@@ -247,18 +247,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal string? IntermediateOutputFilePath
         {
             get => _intermediateOutputFilePath;
-            set
-            {
-                // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.
-                // To work around we look for the PDB on the path specified in the PDB debug directory.
-                // https://github.com/dotnet/roslyn/issues/35065
-                _workspace.SetCompilationOutputs(Id, new CompilationOutputFilesWithImplicitPdbPath(value));
-
-                // Unlike OutputFilePath and OutputRefFilePath, the intermediate output path isn't represented in the workspace anywhere;
-                // thus, we won't mutate the solution. We'll still call ChangeProjectOutputPath so we have the rest of the output path tracking
-                // for any P2P reference conversion.
-                ChangeProjectOutputPath(ref _intermediateOutputFilePath, value, s => s);
-            }
+            set => ChangeProjectOutputPath(ref _intermediateOutputFilePath,
+                       value,
+                       s => s.WithProjectCompilationOutputFilePath(Id, value),
+                       w => w.OnCompilationOutputFilePathChanged(Id, value));
         }
 
         public string? OutputFilePath

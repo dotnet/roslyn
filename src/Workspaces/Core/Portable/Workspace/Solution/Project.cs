@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis
         public string? OutputRefFilePath => _projectState.OutputRefFilePath;
 
         /// <summary>
+        /// The path to the compilation output file, or null if it is not known.
+        /// </summary>
+        public string? CompilationOutputFilePath => _projectState.CompilationOutputFilePath;
+
+        /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
         /// or null if it is unknown or not applicable. 
         /// </summary>

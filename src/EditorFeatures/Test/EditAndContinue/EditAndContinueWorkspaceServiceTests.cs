@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Moq;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -36,9 +37,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         private readonly Mock<IDiagnosticAnalyzerService> _mockDiagnosticService;
         private readonly MockDebuggeeModuleMetadataProvider _mockDebugeeModuleMetadataProvider;
         private readonly Mock<IActiveStatementTrackingService> _mockActiveStatementTrackingService;
-        private readonly MockCompilationOutputsProviderService _mockCompilationOutputsService;
 
         private Mock<IActiveStatementProvider> _mockActiveStatementProvider;
+        private Func<Project, CompilationOutputs> _mockCompilationOutputsProvider;
         private readonly List<Guid> _modulesPreparedForUpdate;
         private readonly List<DiagnosticsUpdatedArgs> _emitDiagnosticsUpdated;
         private int _emitDiagnosticsClearedCount;
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             _mockActiveStatementTrackingService.Setup(s => s.StartTracking(It.IsAny<EditSession>()));
             _mockActiveStatementTrackingService.Setup(s => s.EndTracking());
 
-            _mockCompilationOutputsService = new MockCompilationOutputsProviderService();
+            _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid());
             _telemetryLog = new List<string>();
         }
 
@@ -83,12 +84,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => new EditAndContinueWorkspaceService(
                 workspace,
                 _mockActiveStatementTrackingService.Object,
-                _mockCompilationOutputsService,
                 _mockDiagnosticService.Object,
                 _diagnosticUpdateSource,
                 _mockActiveStatementProvider.Object,
                 _mockDebugeeModuleMetadataProvider,
-                reportTelemetry: data => EditAndContinueWorkspaceService.LogDebuggingSessionTelemetry(data, (id, message) => _telemetryLog.Add($"{id}: {message.GetMessage()}"), () => ++_telemetryId));
+                _mockCompilationOutputsProvider,
+                testReportTelemetry: data => EditAndContinueWorkspaceService.LogDebuggingSessionTelemetry(data, (id, message) => _telemetryLog.Add($"{id}: {message.GetMessage()}"), () => ++_telemetryId));
 
         private DebuggingSession StartDebuggingSession(EditAndContinueWorkspaceService service, CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
         {
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var debuggeeModuleInfo = new DebuggeeModuleInfo(moduleMetadata, symReader);
 
             // associate the binaries with the project
-            _mockCompilationOutputsService.Outputs.Add(projectId, new MockCompilationOutputs(moduleId)
+            _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId)
             {
                 OpenPdbStreamImpl = () =>
                 {
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     pdbStream.Position = 0;
                     return pdbStream;
                 }
-            });
+            };
 
             // library not loaded yet:
             _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => null;
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 documentServiceProvider: new DesignTimeOnlyDocumentServiceProvider());
 
             workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path).AddDocument(documentInfo));
-            _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path));
+            _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -301,7 +302,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var service = CreateEditAndContinueService(workspace);
 
                 var project = workspace.CurrentSolution.Projects.Single();
-                _mockCompilationOutputsService.Outputs.Add(project.Id, new MockCompilationOutputs(Guid.Empty));
+                _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.Empty);
 
                 StartDebuggingSession(service);
 
@@ -329,7 +330,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 var project = workspace.CurrentSolution.Projects.Single();
 
-                _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path));
+                _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
                 var service = CreateEditAndContinueService(workspace);
 
@@ -367,7 +368,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var project = workspace.CurrentSolution.Projects.Single();
             workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path));
-            _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path));
+            _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
             var document1 = project.Documents.Single();
 
@@ -411,7 +412,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path));
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path));
+            _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -450,7 +451,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var project = workspace.CurrentSolution.Projects.Single();
                 workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path));
 
-                _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path));
+                _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
                 var service = CreateEditAndContinueService(workspace);
 
@@ -499,7 +500,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var project = workspace.CurrentSolution.Projects.Single();
             workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path));
-            _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path));
+            _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -682,7 +683,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             using (var workspace = TestWorkspace.CreateCSharp("class C1 { void M() { System.Console.WriteLine(1); } }"))
             {
                 var project = workspace.CurrentSolution.Projects.Single();
-                _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path));
+                _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
                 var service = CreateEditAndContinueService(workspace);
 
@@ -752,7 +753,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path);
 
-            _mockCompilationOutputsService.Outputs[project.Id] = new MockCompilationOutputs(moduleId)
+            _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId)
             {
                 OpenPdbStreamImpl = () =>
                 {
@@ -905,7 +906,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 return false;
             };
 
-            _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path));
+            _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -972,7 +973,7 @@ class C1
             using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 var project = workspace.CurrentSolution.Projects.Single();
-                _mockCompilationOutputsService.Outputs.Add(project.Id, new MockCompilationOutputs(moduleId));
+                _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId);
 
                 _mockDebugeeModuleMetadataProvider.IsEditAndContinueAvailable = (Guid guid, out int errorCode, out string localizedMessage) =>
                 {
@@ -1075,7 +1076,7 @@ class C1
             using (var workspace = TestWorkspace.CreateCSharp("class C1 { void M() { System.Console.WriteLine(1); } }"))
             {
                 var project = workspace.CurrentSolution.Projects.Single();
-                _mockCompilationOutputsService.Outputs.Add(project.Id, new MockCompilationOutputs(moduleId));
+                _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId);
 
                 var service = CreateEditAndContinueService(workspace);
 
@@ -1325,7 +1326,7 @@ class C1
             using (var workspace = TestWorkspace.CreateCSharp("class C1 { void M() { System.Console.WriteLine(1); } }"))
             {
                 var project = workspace.CurrentSolution.Projects.Single();
-                _mockCompilationOutputsService.Outputs.Add(project.Id, new MockCompilationOutputs(moduleId));
+                _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId);
 
                 var service = CreateEditAndContinueService(workspace);
 
@@ -1907,7 +1908,7 @@ class C1
             var project = workspace.CurrentSolution.Projects.Single();
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path, pdbFile.Path));
+            _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path, pdbFile.Path);
 
             // set up an active statement in the first method, so that we can test preservation of local signature.
             _mockActiveStatementProvider = new Mock<IActiveStatementProvider>(MockBehavior.Strict);
@@ -2058,8 +2059,10 @@ class C1
                 var projectB = solution.AddProject("B", "A", "C#").AddMetadataReferences(projectA.MetadataReferences).AddDocument("DocB", source1, filePath: "DocB.cs").Project;
                 workspace.ChangeSolution(projectB.Solution);
 
-                _mockCompilationOutputsService.Outputs.Add(projectA.Id, new CompilationOutputFiles(moduleFileA.Path));
-                _mockCompilationOutputsService.Outputs.Add(projectB.Id, new CompilationOutputFiles(moduleFileB.Path, pdbFileB.Path));
+                _mockCompilationOutputsProvider = project =>
+                    (project == projectA) ? new CompilationOutputFiles(moduleFileA.Path) :
+                    (project == projectB) ? new CompilationOutputFiles(moduleFileB.Path, pdbFileB.Path) :
+                    throw ExceptionUtilities.UnexpectedValue(project);
 
                 // only module A is loaded
                 _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo =
@@ -2257,11 +2260,11 @@ class C1
             using (var workspace = TestWorkspace.CreateCSharp("class C1 { void M() { System.Console.WriteLine(1); } }"))
             {
                 var project = workspace.CurrentSolution.Projects.Single();
-                _mockCompilationOutputsService.Outputs.Add(project.Id, new MockCompilationOutputs(Guid.NewGuid())
+                _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid())
                 {
                     OpenPdbStreamImpl = () => null,
                     OpenAssemblyStreamImpl = () => null,
-                });
+                };
 
                 // module not loaded
                 _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => null;
@@ -2295,11 +2298,11 @@ class C1
             using (var workspace = TestWorkspace.CreateCSharp(sourceV1))
             {
                 var project = workspace.CurrentSolution.Projects.Single();
-                _mockCompilationOutputsService.Outputs.Add(project.Id, new MockCompilationOutputs(Guid.NewGuid())
+                _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid())
                 {
                     OpenPdbStreamImpl = () => pdbStream,
                     OpenAssemblyStreamImpl = () => throw new IOException(),
-                });
+                };
 
                 // module not loaded
                 _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => null;

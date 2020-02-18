@@ -1,15 +1,15 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.CodeAnalysis.Emit
 {
     /// <summary>
     /// Provides access to compilation outputs based only on the path of the output asssembly.

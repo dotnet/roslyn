@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public static class ExceptionUtilities
+    public static class TestExceptionUtilities
     {
         [DllImport("kernel32")]
         private static extern void RaiseFailFastException(IntPtr exceptionRecord, IntPtr contextRecord, uint flags);

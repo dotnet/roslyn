@@ -533,6 +533,14 @@ namespace Microsoft.CodeAnalysis
             => SetCurrentSolution(oldSolution => oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
+        /// Call this method when a project's compiler output file path is changed in the host environment.
+        /// </summary>
+        protected internal void OnCompilationOutputFilePathChanged(ProjectId projectId, string? outputFilePath)
+        {
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectCompilationOutputFilePath(projectId, outputFilePath));
+        }
+
+        /// <summary>
         /// Call this method when a project's name is changed in the host environment.
         /// </summary>
         // TODO (https://github.com/dotnet/roslyn/issues/37124): decide if we want to allow "name" to be nullable.

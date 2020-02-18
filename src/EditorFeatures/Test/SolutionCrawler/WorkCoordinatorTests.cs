@@ -372,6 +372,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false, 5)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false, 5)]
         [Theory]
+        internal async Task Project_CompilationOutputFilePath_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
+        {
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
+            if (firstDocumentActive)
+            {
+                MakeFirstDocumentActive(project);
+            }
+
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var newSolution = workspace.CurrentSolution.WithProjectCompilationOutputFilePath(project.Id, "/newPath");
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, newSolution));
+
+            Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
+        }
+
+        [InlineData(BackgroundAnalysisScope.ActiveFile, false, 0)]
+        [InlineData(BackgroundAnalysisScope.ActiveFile, true, 1)]
+        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false, 5)]
+        [InlineData(BackgroundAnalysisScope.FullSolution, false, 5)]
+        [Theory]
         internal async Task Project_RunAnalyzers_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
         {
             using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawler);

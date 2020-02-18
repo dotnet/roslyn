@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -359,6 +360,9 @@ namespace Microsoft.CodeAnalysis
         public string? OutputRefFilePath => this.ProjectInfo.OutputRefFilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public string? CompilationOutputFilePath => this.ProjectInfo.CompilationOutputFilePath;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public string? DefaultNamespace => this.ProjectInfo.DefaultNamespace;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -516,6 +520,24 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState WithRunAnalyzers(bool runAnalyzers)
             => (runAnalyzers == RunAnalyzers) ? this : WithAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
+
+        public ProjectState UpdateCompilationOutputFilePath(string? compilationOutputFilePath)
+        {
+            if (compilationOutputFilePath == this.CompilationOutputFilePath)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithCompilationOutputFilePath(compilationOutputFilePath).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState UpdateDefaultNamespace(string? defaultNamespace)
+        {
+            if (defaultNamespace == this.DefaultNamespace)
+            {
+                return this;
+            }
+        }
 
         public ProjectState WithCompilationOptions(CompilationOptions options)
         {

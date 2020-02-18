@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis
         public string? OutputRefFilePath => Attributes.OutputRefFilePath;
 
         /// <summary>
+        /// The path to the compiler output file (module or assembly).
+        /// </summary>
+        public string? CompilationOutputFilePath => Attributes.CompilationOutputFilePath;
+
+        /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
         /// or null if it is unknown or not applicable. 
         /// </summary>
@@ -161,6 +166,59 @@ namespace Microsoft.CodeAnalysis
             HostObjectType = hostObjectType;
         }
 
+        /// <summary>
+        /// Create a new instance of a ProjectInfo.
+        /// </summary>
+        internal static ProjectInfo Create(
+            ProjectId id,
+            VersionStamp version,
+            string name,
+            string assemblyName,
+            string language,
+            string? filePath,
+            string? outputFilePath,
+            string? outputRefFilePath,
+            string? compilationOutputFilePath,
+            string? defaultNamespace,
+            CompilationOptions? compilationOptions,
+            ParseOptions? parseOptions,
+            IEnumerable<DocumentInfo>? documents,
+            IEnumerable<ProjectReference>? projectReferences,
+            IEnumerable<MetadataReference>? metadataReferences,
+            IEnumerable<AnalyzerReference>? analyzerReferences,
+            IEnumerable<DocumentInfo>? additionalDocuments,
+            IEnumerable<DocumentInfo>? analyzerConfigDocuments,
+            bool isSubmission,
+            Type? hostObjectType,
+            bool hasAllInformation,
+            bool runAnalyzers)
+        {
+            return new ProjectInfo(
+                new ProjectAttributes(
+                    id,
+                    version,
+                    name,
+                    assemblyName,
+                    language,
+                    filePath,
+                    outputFilePath,
+                    outputRefFilePath,
+                    compilationOutputFilePath,
+                    defaultNamespace,
+                    isSubmission,
+                    hasAllInformation,
+                    runAnalyzers),
+                compilationOptions,
+                parseOptions,
+                documents,
+                projectReferences,
+                metadataReferences,
+                analyzerReferences,
+                additionalDocuments,
+                analyzerConfigDocuments,
+                hostObjectType);
+        }
+
         // 2.7.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         /// <summary>
         /// Create a new instance of a <see cref="ProjectInfo"/>.
@@ -185,9 +243,9 @@ namespace Microsoft.CodeAnalysis
         {
             return Create(
                 id, version, name, assemblyName, language,
-                filePath, outputFilePath, compilationOptions, parseOptions,
-                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
-                isSubmission, hostObjectType, outputRefFilePath: null);
+                filePath, outputFilePath, outputRefFilePath: null, compilationOutputFilePath: null, defaultNamespace: null, compilationOptions, parseOptions,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
+                isSubmission, hostObjectType, hasAllInformation: true, runAnalyzers: true);
         }
 
         /// <summary>
@@ -305,6 +363,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithOutputRefFilePath(string? outputRefFilePath)
             => With(attributes: Attributes.With(outputRefPath: outputRefFilePath));
 
+        public ProjectInfo WithCompilationOutputFilePath(string? compilationOutputFilePath)
+        {
+            return With(attributes: Attributes.With(compilerOutputPath: compilationOutputFilePath));
+        }
+
         public ProjectInfo WithDefaultNamespace(string? defaultNamespace)
             => With(attributes: Attributes.With(defaultNamespace: defaultNamespace));
 
@@ -390,6 +453,11 @@ namespace Microsoft.CodeAnalysis
             public string? OutputRefFilePath { get; }
 
             /// <summary>
+            /// The path to the compiler output file (module or assembly).
+            /// </summary>
+            public string? CompilationOutputFilePath { get; }
+
+            /// <summary>
             /// The default namespace of the project.
             /// </summary>
             public string? DefaultNamespace { get; }
@@ -420,6 +488,7 @@ namespace Microsoft.CodeAnalysis
                 string? filePath,
                 string? outputFilePath,
                 string? outputRefFilePath,
+                string? compilationOutputFilePath,
                 string? defaultNamespace,
                 bool isSubmission,
                 bool hasAllInformation,
@@ -434,6 +503,7 @@ namespace Microsoft.CodeAnalysis
                 FilePath = filePath;
                 OutputFilePath = outputFilePath;
                 OutputRefFilePath = outputRefFilePath;
+                CompilationOutputFilePath = compilationOutputFilePath;
                 DefaultNamespace = defaultNamespace;
                 IsSubmission = isSubmission;
                 HasAllInformation = hasAllInformation;
@@ -448,6 +518,7 @@ namespace Microsoft.CodeAnalysis
                 Optional<string?> filePath = default,
                 Optional<string?> outputPath = default,
                 Optional<string?> outputRefPath = default,
+                Optional<string?> compilerOutputPath = default,
                 Optional<string?> defaultNamespace = default,
                 Optional<bool> isSubmission = default,
                 Optional<bool> hasAllInformation = default,
@@ -460,6 +531,7 @@ namespace Microsoft.CodeAnalysis
                 var newFilepath = filePath.HasValue ? filePath.Value : FilePath;
                 var newOutputPath = outputPath.HasValue ? outputPath.Value : OutputFilePath;
                 var newOutputRefPath = outputRefPath.HasValue ? outputRefPath.Value : OutputRefFilePath;
+                var newCompilerOutputPath = compilerOutputPath.HasValue ? compilerOutputPath.Value : CompilationOutputFilePath;
                 var newDefaultNamespace = defaultNamespace.HasValue ? defaultNamespace.Value : DefaultNamespace;
                 var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : IsSubmission;
                 var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
@@ -472,6 +544,7 @@ namespace Microsoft.CodeAnalysis
                     newFilepath == FilePath &&
                     newOutputPath == OutputFilePath &&
                     newOutputRefPath == OutputRefFilePath &&
+                    newCompilerOutputPath == CompilationOutputFilePath &&
                     newDefaultNamespace == DefaultNamespace &&
                     newIsSubmission == IsSubmission &&
                     newHasAllInformation == HasAllInformation &&
@@ -489,6 +562,7 @@ namespace Microsoft.CodeAnalysis
                     newFilepath,
                     newOutputPath,
                     newOutputRefPath,
+                    newCompilerOutputPath,
                     newDefaultNamespace,
                     newIsSubmission,
                     newHasAllInformation,
@@ -510,6 +584,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(FilePath);
                 writer.WriteString(OutputFilePath);
                 writer.WriteString(OutputRefFilePath);
+                writer.WriteString(CompilationOutputFilePath);
                 writer.WriteString(DefaultNamespace);
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);
@@ -530,12 +605,26 @@ namespace Microsoft.CodeAnalysis
                 var filePath = reader.ReadString();
                 var outputFilePath = reader.ReadString();
                 var outputRefFilePath = reader.ReadString();
+                var compilationOutputFilePath = reader.ReadString();
                 var defaultNamespace = reader.ReadString();
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
                 var runAnalyzers = reader.ReadBoolean();
 
-                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, outputRefFilePath, defaultNamespace, isSubmission, hasAllInformation, runAnalyzers);
+                return new ProjectAttributes(
+                    projectId,
+                    VersionStamp.Create(),
+                    name,
+                    assemblyName,
+                    language,
+                    filePath,
+                    outputFilePath,
+                    outputRefFilePath,
+                    compilationOutputFilePath,
+                    defaultNamespace,
+                    isSubmission,
+                    hasAllInformation,
+                    runAnalyzers);
             }
 
             Checksum IChecksummedObject.Checksum
