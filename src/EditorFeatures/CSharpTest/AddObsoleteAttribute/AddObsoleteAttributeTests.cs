@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
@@ -269,6 +268,9 @@ class Derived {
 class Collection : System.Collections.Generic.IEnumerable<int> {
     [System.Obsolete]
     public void Add(int i) { }
+
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
 }
 
 class Derived {
@@ -279,17 +281,13 @@ class Derived {
     }
 }
 ",
-                new[]
-                {
-                    // Test0.cs(2,20): error CS0535: 'Collection' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
-                    DiagnosticResult.CompilerError("CS0535").WithSpan(2, 20, 2, 63).WithArguments("Collection", "System.Collections.Generic.IEnumerable<int>.GetEnumerator()"),
-                    // Test0.cs(2,20): error CS0535: 'Collection' does not implement interface member 'IEnumerable.GetEnumerator()'
-                    DiagnosticResult.CompilerError("CS0535").WithSpan(2, 20, 2, 63).WithArguments("Collection", "System.Collections.IEnumerable.GetEnumerator()"),
-                },
 @"
 class Collection : System.Collections.Generic.IEnumerable<int> {
     [System.Obsolete]
     public void Add(int i) { }
+
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
 }
 
 class Derived {
@@ -311,6 +309,9 @@ class Derived {
 class Collection : System.Collections.Generic.IEnumerable<int> {
     [System.Obsolete(""message"")]
     public void Add(int i) { }
+
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
 }
 
 class Derived {
@@ -321,17 +322,13 @@ class Derived {
     }
 }
 ",
-                new[]
-                {
-                    // Test0.cs(2,20): error CS0535: 'Collection' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
-                    DiagnosticResult.CompilerError("CS0535").WithSpan(2, 20, 2, 63).WithArguments("Collection", "System.Collections.Generic.IEnumerable<int>.GetEnumerator()"),
-                    // Test0.cs(2,20): error CS0535: 'Collection' does not implement interface member 'IEnumerable.GetEnumerator()'
-                    DiagnosticResult.CompilerError("CS0535").WithSpan(2, 20, 2, 63).WithArguments("Collection", "System.Collections.IEnumerable.GetEnumerator()"),
-                },
 @"
 class Collection : System.Collections.Generic.IEnumerable<int> {
     [System.Obsolete(""message"")]
     public void Add(int i) { }
+
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
 }
 
 class Derived {
@@ -353,6 +350,9 @@ class Derived {
 class Collection : System.Collections.Generic.IEnumerable<int> {
     [System.Obsolete(""message"", error: false)]
     public void Add(int i) { }
+
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
 }
 
 class Derived {
@@ -363,17 +363,13 @@ class Derived {
     }
 }
 ",
-                new[]
-                {
-                    // Test0.cs(2,20): error CS0535: 'Collection' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
-                    DiagnosticResult.CompilerError("CS0535").WithSpan(2, 20, 2, 63).WithArguments("Collection", "System.Collections.Generic.IEnumerable<int>.GetEnumerator()"),
-                    // Test0.cs(2,20): error CS0535: 'Collection' does not implement interface member 'IEnumerable.GetEnumerator()'
-                    DiagnosticResult.CompilerError("CS0535").WithSpan(2, 20, 2, 63).WithArguments("Collection", "System.Collections.IEnumerable.GetEnumerator()"),
-                },
 @"
 class Collection : System.Collections.Generic.IEnumerable<int> {
     [System.Obsolete(""message"", error: false)]
     public void Add(int i) { }
+
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
 }
 
 class Derived {
@@ -394,6 +390,9 @@ class Derived {
 class Collection : System.Collections.Generic.IEnumerable<int> {
     [System.Obsolete(""message"", error: true)]
     public void Add(int i) { }
+
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
 }
 
 class Derived {
@@ -404,16 +403,8 @@ class Derived {
     }
 }
 ";
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(2,20): error CS0535: 'Collection' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
-                    DiagnosticResult.CompilerError("CS0535").WithSpan(2, 20, 2, 63).WithArguments("Collection", "System.Collections.Generic.IEnumerable<int>.GetEnumerator()"),
-                    // Test0.cs(2,20): error CS0535: 'Collection' does not implement interface member 'IEnumerable.GetEnumerator()'
-                    DiagnosticResult.CompilerError("CS0535").WithSpan(2, 20, 2, 63).WithArguments("Collection", "System.Collections.IEnumerable.GetEnumerator()"),
-                },
-                fixedSource: code);
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
     }
 }
