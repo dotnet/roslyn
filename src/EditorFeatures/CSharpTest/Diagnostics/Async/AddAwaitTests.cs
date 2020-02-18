@@ -3,11 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.Async;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
@@ -560,6 +556,7 @@ class TestClass
     private Task MyTestMethod1Async()
     {
         long myInt = {|CS0029:MyIntMethodAsync()|};
+        return Task.CompletedTask;
     }
 
     private Task<int> MyIntMethodAsync()
@@ -568,11 +565,7 @@ class TestClass
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(5,18): error CS0161: 'TestClass.MyTestMethod1Async()': not all code paths return a value
-                DiagnosticResult.CompilerError("CS0161").WithSpan(5, 18, 5, 36).WithArguments("TestClass.MyTestMethod1Async()"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -692,7 +685,8 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression3()
         {
-            var code = @"using System;
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
 using System.Threading.Tasks;
 
 class TestClass
@@ -700,7 +694,8 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Func<Task> lambda = () => {
-            int myInt = MyInt  MethodAsync();
+            int myInt = {|CS0029:MyIntMethodAsync()|};
+            return Task.CompletedTask;
         };
     }
 
@@ -708,28 +703,32 @@ class TestClass
     {
         return Task.FromResult(result: 1);
     }
-}";
+}",
+@"using System;
+using System.Threading.Tasks;
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(8,32): error CS1643: Not all code paths return a value in lambda expression of type 'Func<Task>'
-                    DiagnosticResult.CompilerError("CS1643").WithSpan(8, 32, 8, 34).WithArguments("lambda expression", "System.Func<System.Threading.Tasks.Task>"),
-                    // Test0.cs(9,25): error CS0103: The name 'MyInt' does not exist in the current context
-                    DiagnosticResult.CompilerError("CS0103").WithSpan(9, 25, 9, 30).WithArguments("MyInt"),
-                    // Test0.cs(9,32): error CS0103: The name 'MethodAsync' does not exist in the current context
-                    DiagnosticResult.CompilerError("CS0103").WithSpan(9, 32, 9, 43).WithArguments("MethodAsync"),
-                    // Test0.cs(9,32): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(9, 32, 9, 43),
-                },
-                fixedSource: code);
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> lambda = () => {
+            int myInt = {|CS4034:await MyIntMethodAsync()|};
+            return Task.CompletedTask;
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression4()
         {
-            var code = @"using System;
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
 using System.Threading.Tasks;
 
 class TestClass
@@ -737,7 +736,7 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Action lambda = () => {
-            int myInt = MyIntM  ethodAsync();
+            int myInt = {|CS0029:MyIntMethodAsync()|};
         };
     }
 
@@ -745,20 +744,24 @@ class TestClass
     {
         return Task.FromResult(result: 1);
     }
-}";
+}",
+@"using System;
+using System.Threading.Tasks;
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(9,25): error CS0103: The name 'MyIntM' does not exist in the current context
-                    DiagnosticResult.CompilerError("CS0103").WithSpan(9, 25, 9, 31).WithArguments("MyIntM"),
-                    // Test0.cs(9,33): error CS0103: The name 'ethodAsync' does not exist in the current context
-                    DiagnosticResult.CompilerError("CS0103").WithSpan(9, 33, 9, 43).WithArguments("ethodAsync"),
-                    // Test0.cs(9,33): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(9, 33, 9, 43),
-                },
-                fixedSource: code);
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action lambda = () => {
+            int myInt = {|CS4034:await MyIntMethodAsync()|};
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -844,7 +847,8 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression7()
         {
-            var code = @"using System;
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
 using System.Threading.Tasks;
 
 class TestClass
@@ -852,7 +856,7 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Action @delegate = delegate {
-            int myInt = MyInt  MethodAsync();
+            int myInt = {|CS0029:MyIntMethodAsync()|};
         };
     }
 
@@ -860,26 +864,31 @@ class TestClass
     {
         return Task.FromResult(result: 1);
     }
-}";
+}",
+@"using System;
+using System.Threading.Tasks;
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(9,25): error CS0103: The name 'MyInt' does not exist in the current context
-                    DiagnosticResult.CompilerError("CS0103").WithSpan(9, 25, 9, 30).WithArguments("MyInt"),
-                    // Test0.cs(9,32): error CS0103: The name 'MethodAsync' does not exist in the current context
-                    DiagnosticResult.CompilerError("CS0103").WithSpan(9, 32, 9, 43).WithArguments("MethodAsync"),
-                    // Test0.cs(9,32): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(9, 32, 9, 43),
-                },
-                fixedSource: code);
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action @delegate = delegate {
+            int myInt = {|CS4034:await MyIntMethodAsync()|};
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression8()
         {
-            var code = @"using System;
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
 using System.Threading.Tasks;
 
 class TestClass
@@ -887,7 +896,8 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Func<Task> @delegate = delegate {
-            int myInt = MyIntM  ethodAsync();
+            int myInt = {|CS0029:MyIntMethodAsync()|};
+            return Task.CompletedTask;
         };
     }
 
@@ -895,22 +905,25 @@ class TestClass
     {
         return Task.FromResult(result: 1);
     }
-}";
+}",
+@"using System;
+using System.Threading.Tasks;
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(8,32): error CS1643: Not all code paths return a value in anonymous method of type 'Func<Task>'
-                    DiagnosticResult.CompilerError("CS1643").WithSpan(8, 32, 8, 40).WithArguments("anonymous method", "System.Func<System.Threading.Tasks.Task>"),
-                    // Test0.cs(9,25): error CS0103: The name 'MyIntM' does not exist in the current context
-                    DiagnosticResult.CompilerError("CS0103").WithSpan(9, 25, 9, 31).WithArguments("MyIntM"),
-                    // Test0.cs(9,33): error CS0103: The name 'ethodAsync' does not exist in the current context
-                    DiagnosticResult.CompilerError("CS0103").WithSpan(9, 33, 9, 43).WithArguments("ethodAsync"),
-                    // Test0.cs(9,33): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(9, 33, 9, 43),
-                },
-                fixedSource: code);
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> @delegate = delegate {
+            int myInt = {|CS4034:await MyIntMethodAsync()|};
+            return Task.CompletedTask;
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -950,7 +963,7 @@ class Program
 {
     async Task<int> A()
     {
-        return {|CS4016:null ?? Task.FromResult(1)|} {|CS1002:}|}
+        return {|CS4016:null ?? Task.FromResult(1)|}; }
 }",
 @"using System;
 using System.Threading.Tasks;
@@ -959,7 +972,7 @@ class Program
 {
     async Task<int> A()
     {
-        return await (null ?? Task.FromResult(1)){|CS1002:}|}
+        return await (null ?? Task.FromResult(1)); }
 }");
         }
 
@@ -974,7 +987,7 @@ class Program
 {
     async Task<int> A()
     {
-        return {|CS4016:null as Task<int>|} {|CS1002:}|}
+        return {|CS4016:null as Task<int>|}; }
 }",
 @"using System;
 using System.Threading.Tasks;
@@ -983,7 +996,7 @@ class Program
 {
     async Task<int> A()
     {
-        return await (null as Task<int>){|CS1002:}|}
+        return await (null as Task<int>); }
 }");
         }
     }
