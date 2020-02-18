@@ -2,6 +2,10 @@
 
 namespace Microsoft.CodeAnalysis.Testing
 {
+    /// <summary>
+    /// Indicates the manner in which properties are inherited from base test states.
+    /// </summary>
+    /// <seealso cref="SolutionState.InheritanceMode"/>
     public enum StateInheritanceMode
     {
         /// <summary>
