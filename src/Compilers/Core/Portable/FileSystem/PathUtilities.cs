@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -93,7 +95,7 @@ namespace Roslyn.Utilities
             return FileNameUtilities.GetExtension(path);
         }
 
-        public static string ChangeExtension(string path, string extension)
+        public static string ChangeExtension(string path, string? extension)
         {
             return FileNameUtilities.ChangeExtension(path, extension);
         }
@@ -103,7 +105,8 @@ namespace Roslyn.Utilities
             return FileNameUtilities.ChangeExtension(path, extension: null);
         }
 
-        public static string GetFileName(string path, bool includeExtension = true)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        public static string? GetFileName(string? path, bool includeExtension = true)
         {
             return FileNameUtilities.GetFileName(path, includeExtension);
         }
@@ -115,12 +118,12 @@ namespace Roslyn.Utilities
         /// Unlike <see cref="System.IO.Path.GetDirectoryName(string)"/> it doesn't check for invalid path characters
         /// </remarks>
         /// <returns>Prefix of path that represents a directory</returns>
-        public static string GetDirectoryName(string path)
+        public static string? GetDirectoryName(string? path)
         {
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
-        private static string GetDirectoryName(string path, bool isUnixLike)
+        internal static string? GetDirectoryName(string? path, bool isUnixLike)
         {
             if (path != null)
             {
@@ -152,17 +155,17 @@ namespace Roslyn.Utilities
         internal static bool IsSameDirectoryOrChildOf(string child, string parent)
         {
             parent = RemoveTrailingDirectorySeparator(parent);
-
-            while (child != null)
+            string? currentChild = child;
+            while (currentChild != null)
             {
-                child = RemoveTrailingDirectorySeparator(child);
+                currentChild = RemoveTrailingDirectorySeparator(currentChild);
 
-                if (child.Equals(parent, StringComparison.OrdinalIgnoreCase))
+                if (currentChild.Equals(parent, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
 
-                child = GetDirectoryName(child);
+                currentChild = GetDirectoryName(currentChild);
             }
 
             return false;
@@ -171,12 +174,14 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Gets the root part of the path.
         /// </summary>
-        public static string GetPathRoot(string path)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        public static string? GetPathRoot(string? path)
         {
             return GetPathRoot(path, IsUnixLikePlatform);
         }
 
-        private static string GetPathRoot(string path, bool isUnixLike)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        private static string? GetPathRoot(string? path, bool isUnixLike)
         {
             if (path == null)
             {
@@ -279,9 +284,9 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Gets the specific kind of relative or absolute path.
         /// </summary>
-        public static PathKind GetPathKind(string path)
+        public static PathKind GetPathKind(string? path)
         {
-            if (string.IsNullOrWhiteSpace(path))
+            if (RoslynString.IsNullOrWhiteSpace(path))
             {
                 return PathKind.Empty;
             }
@@ -335,12 +340,10 @@ namespace Roslyn.Utilities
             return PathKind.Relative;
         }
 
-#nullable enable
-
         /// <summary>
         /// True if the path is an absolute path (rooted to drive or network share)
         /// </summary>
-        public static bool IsAbsolute([NotNullWhen(true)]string? path)
+        public static bool IsAbsolute([NotNullWhen(true)] string? path)
         {
             if (RoslynString.IsNullOrEmpty(path))
             {
@@ -366,8 +369,6 @@ namespace Roslyn.Utilities
                 IsDirectorySeparator(path[1]);
         }
 
-#nullable restore
-
         /// <summary>
         /// Returns true if given path is absolute and starts with a drive specification ("C:\").
         /// </summary>
@@ -389,7 +390,7 @@ namespace Roslyn.Utilities
         /// or relative to a drive directory (e.g. "C:abc\def").
         /// </returns>
         /// <seealso cref="CombinePossiblyRelativeAndRelativePaths"/>
-        public static string CombineAbsoluteAndRelativePaths(string root, string relativePath)
+        public static string? CombineAbsoluteAndRelativePaths(string root, string relativePath)
         {
             Debug.Assert(IsAbsolute(root));
 
@@ -403,9 +404,9 @@ namespace Roslyn.Utilities
         /// <param name="relativePath">Second path: relative and non-null.</param>
         /// <returns>null, if <paramref name="rootOpt"/> is null; a combined path, otherwise.</returns>
         /// <seealso cref="CombineAbsoluteAndRelativePaths"/>
-        public static string CombinePossiblyRelativeAndRelativePaths(string rootOpt, string relativePath)
+        public static string? CombinePossiblyRelativeAndRelativePaths(string? rootOpt, string? relativePath)
         {
-            if (string.IsNullOrEmpty(rootOpt))
+            if (RoslynString.IsNullOrEmpty(rootOpt))
             {
                 return null;
             }
@@ -424,9 +425,9 @@ namespace Roslyn.Utilities
             return CombinePathsUnchecked(rootOpt, relativePath);
         }
 
-        public static string CombinePathsUnchecked(string root, string relativePath)
+        public static string CombinePathsUnchecked(string root, string? relativePath)
         {
-            Debug.Assert(!string.IsNullOrEmpty(root));
+            RoslynDebug.Assert(!RoslynString.IsNullOrEmpty(root));
 
             char c = root[root.Length - 1];
             if (!IsDirectorySeparator(c) && c != VolumeSeparatorChar)
@@ -455,9 +456,9 @@ namespace Roslyn.Utilities
         /// </summary>
         public static bool IsFilePath(string assemblyDisplayNameOrPath)
         {
-            Debug.Assert(assemblyDisplayNameOrPath != null);
+            RoslynDebug.Assert(assemblyDisplayNameOrPath != null);
 
-            string extension = FileNameUtilities.GetExtension(assemblyDisplayNameOrPath);
+            string? extension = FileNameUtilities.GetExtension(assemblyDisplayNameOrPath);
             return string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(extension, ".exe", StringComparison.OrdinalIgnoreCase)
                 || assemblyDisplayNameOrPath.IndexOf(DirectorySeparatorChar) != -1
@@ -483,7 +484,7 @@ namespace Roslyn.Utilities
                 var comparer = ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
 
                 int count = 0;
-                var currentPath = path;
+                string? currentPath = path;
                 while (currentPath != null)
                 {
                     var currentName = GetFileName(currentPath);
@@ -638,7 +639,7 @@ namespace Roslyn.Utilities
                 : char.ToUpperInvariant(x) == char.ToUpperInvariant(y);
         }
 
-        private static int PathHashCode(string path)
+        private static int PathHashCode(string? path)
         {
             int hc = 0;
 
@@ -703,11 +704,11 @@ namespace Roslyn.Utilities
         /// 
         /// The more accurate way is to let the framework parse the path and throw on any errors.
         /// </summary>
-        public static bool IsValidFilePath(string fullPath)
+        public static bool IsValidFilePath([NotNullWhen(true)] string? fullPath)
         {
             try
             {
-                if (string.IsNullOrEmpty(fullPath))
+                if (RoslynString.IsNullOrEmpty(fullPath))
                 {
                     return false;
                 }
@@ -736,9 +737,9 @@ namespace Roslyn.Utilities
 
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 
-        private class PathComparer : IEqualityComparer<string>
+        private class PathComparer : IEqualityComparer<string?>
         {
-            public bool Equals(string x, string y)
+            public bool Equals(string? x, string? y)
             {
                 if (x == null && y == null)
                 {
@@ -753,7 +754,7 @@ namespace Roslyn.Utilities
                 return PathsEqual(x, y);
             }
 
-            public int GetHashCode(string s)
+            public int GetHashCode(string? s)
             {
                 return PathHashCode(s);
             }
@@ -761,7 +762,7 @@ namespace Roslyn.Utilities
 
         internal static class TestAccessor
         {
-            internal static string GetDirectoryName(string path, bool isUnixLike)
+            internal static string? GetDirectoryName(string path, bool isUnixLike)
                 => PathUtilities.GetDirectoryName(path, isUnixLike);
         }
     }
