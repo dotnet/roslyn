@@ -2004,11 +2004,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implement Abstract Class.
+        ///   Looks up a localized string similar to Implement abstract class.
         /// </summary>
-        internal static string Implement_Abstract_Class {
+        internal static string Implement_abstract_class {
             get {
-                return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
+                return ResourceManager.GetString("Implement_abstract_class", resourceCulture);
             }
         }
         
