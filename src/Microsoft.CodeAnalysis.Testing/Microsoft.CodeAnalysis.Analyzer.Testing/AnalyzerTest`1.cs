@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 else
                 {
                     VerifyDiagnosticLocation(analyzers, actual, expected, actual.Location, expected.Spans[0], verifier);
-                    if (!expected.Spans[0].Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
+                    if (!expected.Options.HasFlag(DiagnosticOptions.IgnoreAdditionalLocations))
                     {
                         var additionalLocations = actual.AdditionalLocations.ToArray();
 
@@ -322,8 +322,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic id to be \"{expected.Id}\" was \"{actual.Id}\"");
                 verifier.Equal(expected.Id, actual.Id, message);
 
-                message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic severity to be \"{expected.Severity}\" was \"{actual.Severity}\"");
-                verifier.Equal(expected.Severity, actual.Severity, message);
+                if (!expected.Options.HasFlag(DiagnosticOptions.IgnoreSeverity))
+                {
+                    message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic severity to be \"{expected.Severity}\" was \"{actual.Severity}\"");
+                    verifier.Equal(expected.Severity, actual.Severity, message);
+                }
 
                 if (expected.Message != null)
                 {
@@ -509,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 var isIdMatch = diagnosticId == diagnosticResult.Id;
                 if (isLocationMatch
                     && isIdMatch
-                    && diagnostic.Severity == diagnosticResult.Severity
+                    && IsSeverityMatch(diagnostic, diagnosticResult)
                     && IsMessageMatch(diagnostic, actualArguments, diagnosticResult, expectedArguments))
                 {
                     return MatchQuality.Full;
@@ -539,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         return false;
                     }
 
-                    if (diagnosticResult.Spans[0].Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
+                    if (diagnosticResult.Options.HasFlag(DiagnosticOptions.IgnoreAdditionalLocations))
                     {
                         return true;
                     }
@@ -582,6 +585,16 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 return true;
+            }
+
+            static bool IsSeverityMatch(Diagnostic actual, DiagnosticResult expected)
+            {
+                if (expected.Options.HasFlag(DiagnosticOptions.IgnoreSeverity))
+                {
+                    return true;
+                }
+
+                return actual.Severity == expected.Severity;
             }
 
             static bool IsMessageMatch(Diagnostic actual, ImmutableArray<string> actualArguments, DiagnosticResult expected, ImmutableArray<string> expectedArguments)
@@ -776,7 +789,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     foreach (var span in diagnostics[i].Spans)
                     {
                         AppendLocation(span);
-                        if (span.Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
+                        if (diagnostics[i].Options.HasFlag(DiagnosticOptions.IgnoreAdditionalLocations))
                         {
                             break;
                         }

@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         /// <summary>
-        /// Verifies that a test case with automatically include compiler diagnostics which are part of the the provided codefix
+        /// Verifies that a test case will automatically include compiler diagnostics which are part of the the provided
+        /// codefix.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         [Fact]
@@ -94,6 +95,42 @@ namespace ConsoleApp1
 
             var diagnostic = DiagnosticResult.CompilerWarning("CS0169").WithSpan(8, 21, 8, 30).WithArguments("ConsoleApp1.TestClass.someField");
             await Verify<SomeCodeFix>.VerifyCodeFixAsync(before, diagnostic, after);
+        }
+
+        /// <summary>
+        /// Verifies that a test case will automatically include compiler diagnostics which are part of the the provided
+        /// codefix, and the markup will ignore the severity of the diagnostic.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        [Fact]
+        [WorkItem(419, "https://github.com/dotnet/roslyn-sdk/issues/419")]
+        public async Task VerifySimpleMarkupSyntaxWorks()
+        {
+            var before = @"
+using System;
+
+namespace ConsoleApp1
+{
+    public class TestClass
+    {
+        private int {|CS0169:someField|};
+
+        public void SomeMethod(){}
+    }
+}";
+
+            var after = @"
+using System;
+
+namespace ConsoleApp1
+{
+    public class TestClass
+    {
+        public void SomeMethod(){}
+    }
+}";
+
+            await Verify<SomeCodeFix>.VerifyCodeFixAsync(before, after);
         }
     }
 }

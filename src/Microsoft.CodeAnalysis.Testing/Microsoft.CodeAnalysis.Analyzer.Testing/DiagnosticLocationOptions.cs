@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.Testing
 {
     /// <summary>
     /// Defines options for interpreting <see cref="DiagnosticLocation"/>.
     /// </summary>
+    [Flags]
     public enum DiagnosticLocationOptions
     {
         /// <summary>
@@ -17,11 +20,5 @@ namespace Microsoft.CodeAnalysis.Testing
         /// should be ignored when comparing results.
         /// </summary>
         IgnoreLength = 1,
-
-        /// <summary>
-        /// The primary diagnostic location is defined, but additional locations have not been provided. Disables
-        /// validation of additional locations reported for the corresponding diagnostics.
-        /// </summary>
-        IgnoreAdditionalLocations = 2,
     }
 }
