@@ -348,18 +348,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMissingForLocalFunctionExpressionBody()
         {
-            // Not desirable.  Happens because error is not reported on expr-body
-            // like for lambdas.
-            var code = @"class C
+            await VerifyCS.VerifyCodeFixAsync(
+@"class C
 {
     void X()
     {
         char {|CS0177:D|}(out int i) => 'a';
         D(out _);
     }
-}";
+}",
+@"class C
+{
+    void X()
+    {
+        char D(out int i) { i = 0; return 'a'; }
 
-            await VerifyCS.VerifyCodeFixAsync(code, code);
+        D(out _);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
