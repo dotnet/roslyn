@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.AssignOutParameters;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
@@ -132,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         {
             var code = @"class C
 {
-    char M(out int i)
+    char M(bool b, out int i)
     {
         if (b)
             i = 1;
@@ -143,11 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(5,13): error CS0103: The name 'b' does not exist in the current context
-                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 13, 5, 14).WithArguments("b"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
@@ -171,22 +166,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             // Handled by other fixer
             var code = @"class C
 {
-    char M(out int i, out string s)
+    string M(out int i, out string s)
     {
-        {|CS0177:return s = "";
-|}    }
+        {|CS0177:return s = """";|}
+    }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(5,20): error CS1010: Newline in constant
-                    DiagnosticResult.CompilerError("CS1010").WithSpan(5, 20, 5, 20),
-                    // Test0.cs(5,22): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(5, 22, 5, 22),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
@@ -195,17 +181,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
             // Handled by other fixer
             var code = @"class C
 {
-    char M(out int i, out string s)
+    string M(out int i, out string s)
     {
         {|CS0177:return (i = 0).ToString();|}
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(5,16): error CS0029: Cannot implicitly convert type 'string' to 'char'
-                DiagnosticResult.CompilerError("CS0029").WithSpan(5, 16, 5, 34).WithArguments("string", "char"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
@@ -272,10 +254,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         }
 
         i = 1;
+        throw null;
     }
 }",
-                // Test0.cs(3,10): error CS0161: 'C.M(bool, out int)': not all code paths return a value
-                DiagnosticResult.CompilerError("CS0161").WithSpan(3, 10, 3, 11).WithArguments("C.M(bool, out int)"),
 @"class C
 {
     char M(bool b, out int i)
@@ -287,6 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         }
 
         i = 1;
+        throw null;
     }
 }");
         }
@@ -347,15 +329,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         D d = (out int i) =>
         {
             {|CS0177:return 'a';|}
-        }
+        };
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(9,10): error CS1002: ; expected
-                DiagnosticResult.CompilerError("CS1002").WithSpan(9, 10, 9, 10),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
