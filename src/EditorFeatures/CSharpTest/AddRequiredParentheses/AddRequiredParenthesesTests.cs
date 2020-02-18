@@ -4,28 +4,65 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddRequiredParentheses;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses.CSharpAddRequiredParenthesesDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.AddRequiredParentheses.AddRequiredParenthesesCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
-    public partial class AddRequiredParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddRequiredParenthesesTests
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpAddRequiredParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
+        private static IDictionary<OptionKey, object> RequireAllParenthesesForClarity
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.RequireAllParenthesesForClarity(LanguageNames.CSharp);
 
-        private Task TestMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options)
-            => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
+        private static IDictionary<OptionKey, object> RequireOtherBinaryParenthesesForClarity
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.RequireOtherBinaryParenthesesForClarity(LanguageNames.CSharp);
 
-        private Task TestAsync(string initialMarkup, string expected, IDictionary<OptionKey, object> options)
-            => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
+        private static IDictionary<OptionKey, object> RequireArithmeticBinaryParenthesesForClarity
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.RequireArithmeticBinaryParenthesesForClarity(LanguageNames.CSharp);
+
+        private static IDictionary<OptionKey, object> RequireRelationalBinaryParenthesesForClarity
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.RequireRelationalBinaryParenthesesForClarity(LanguageNames.CSharp);
+
+        private static IDictionary<OptionKey, object> IgnoreAllParentheses
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.IgnoreAllParentheses(LanguageNames.CSharp);
+
+        private static IDictionary<OptionKey, object> RemoveAllUnnecessaryParentheses
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.RemoveAllUnnecessaryParentheses(LanguageNames.CSharp);
+
+        private async Task TestMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options, params DiagnosticResult[] expected)
+        {
+            await TestAsync(initialMarkup, expected: initialMarkup, options, expected);
+        }
+
+        private async Task TestAsync(string initialMarkup, string expected, IDictionary<OptionKey, object> options, params DiagnosticResult[] expectedDiagnostics)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expected,
+            };
+
+            test.ExpectedDiagnostics.AddRange(expectedDiagnostics);
+
+            foreach (var (key, value) in options)
+            {
+                test.Options.Add(key, value);
+            }
+
+            await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public void TestStandardProperties()
+            => VerifyCS.VerifyStandardProperties();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestArithmeticPrecedence()
@@ -35,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 + 2 $$* 3;
+        int x = 1 + 2 [|*|] 3;
     }
 }",
 @"class C
@@ -48,19 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNoArithmeticOnLowerPrecedence()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
-    {
-        int x = 1 $$+ 2 * 3;
-    }
-}", RequireAllParenthesesForClarity);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestNotIfArithmeticPrecedenceStaysTheSame()
         {
             await TestMissingAsync(
@@ -68,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 + 2 $$+ 3;
+        int x = 1 + 2 + 3;
     }
 }", RequireAllParenthesesForClarity);
         }
@@ -81,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 + 2 $$+ 3;
+        int x = 1 + 2 + 3;
     }
 }", RequireOtherBinaryParenthesesForClarity);
         }
@@ -94,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 + 2 $$* 3;
+        int x = 1 + 2 * 3;
     }
 }", RequireOtherBinaryParenthesesForClarity);
         }
@@ -107,14 +131,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = a $$> b == c;
+        int x = {|CS0103:a|} [|>|] {|CS0103:b|} == {|CS0103:c|};
     }
 }",
 @"class C
 {
     void M()
     {
-        int x = (a > b) == c;
+        int x = ({|CS0103:a|} > {|CS0103:b|}) == {|CS0103:c|};
     }
 }", RequireAllParenthesesForClarity);
         }
@@ -127,27 +151,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = a || b $$&& c;
+        int x = {|CS0103:a|} || {|CS0103:b|} [|&&|] {|CS0103:c|};
     }
 }",
 @"class C
 {
     void M()
     {
-        int x = a || (b && c);
-    }
-}", RequireAllParenthesesForClarity);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNoLogicalOnLowerPrecedence()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
-    {
-        int x = a $$|| b && c;
+        int x = {|CS0103:a|} || ({|CS0103:b|} && {|CS0103:c|});
     }
 }", RequireAllParenthesesForClarity);
         }
@@ -160,9 +171,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = a || b $$|| c;
+        int x = a || b || c;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,17): error CS0103: The name 'a' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 17, 5, 18).WithArguments("a"),
+                // Test0.cs(5,22): error CS0103: The name 'b' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 22, 5, 23).WithArguments("b"),
+                // Test0.cs(5,27): error CS0103: The name 'c' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 27, 5, 28).WithArguments("c"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -173,9 +190,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = a || b $$|| c;
+        int x = a || b || c;
     }
-}", RequireArithmeticBinaryParenthesesForClarity);
+}", RequireArithmeticBinaryParenthesesForClarity,
+                // Test0.cs(5,17): error CS0103: The name 'a' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 17, 5, 18).WithArguments("a"),
+                // Test0.cs(5,22): error CS0103: The name 'b' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 22, 5, 23).WithArguments("b"),
+                // Test0.cs(5,27): error CS0103: The name 'c' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 27, 5, 28).WithArguments("c"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -186,9 +209,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = a == b $$&& c == d;
+        int x = a == b && c == d;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,17): error CS0103: The name 'a' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 17, 5, 18).WithArguments("a"),
+                // Test0.cs(5,22): error CS0103: The name 'b' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 22, 5, 23).WithArguments("b"),
+                // Test0.cs(5,27): error CS0103: The name 'c' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 27, 5, 28).WithArguments("c"),
+                // Test0.cs(5,32): error CS0103: The name 'd' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 32, 5, 33).WithArguments("d"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -199,34 +230,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = a || b $$&& c && d;
+        int x = {|CS0103:a|} || {|CS0103:b|} [|&&|] {|CS0103:c|} [|&&|] {|CS0103:d|};
     }
 }",
 @"class C
 {
     void M()
     {
-        int x = a || (b && c && d);
-    }
-}", RequireAllParenthesesForClarity);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
-    {
-        int x = a || b && c $$&& d;
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = a || (b && c && d);
+        int x = {|CS0103:a|} || ({|CS0103:b|} && {|CS0103:c|} && {|CS0103:d|});
     }
 }", RequireAllParenthesesForClarity);
         }
@@ -239,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 $$+ 2 << 3;
+        int x = 1 [|+|] 2 << 3;
     }
 }",
 @"class C
@@ -259,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 $$+ 2 << 3;
+        int x = 1 [|+|] 2 << 3;
     }
 }",
 @"class C
@@ -279,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 $$+ 2 << 3;
+        int x = 1 + 2 << 3;
     }
 }", RequireOtherBinaryParenthesesForClarity);
         }
@@ -292,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 $$<< 2 << 3;
+        int x = 1 << 2 << 3;
     }
 }", RequireAllParenthesesForClarity);
         }
@@ -305,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 << 2 $$<< 3;
+        int x = 1 << 2 << 3;
     }
 }", RequireAllParenthesesForClarity);
         }
@@ -318,9 +329,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 $$+ 2 == 2 + 3;
+        int x = 1 + 2 == 2 + 3;
     }
-}", RequireOtherBinaryParenthesesForClarity);
+}", RequireOtherBinaryParenthesesForClarity,
+                // Test0.cs(5,17): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                DiagnosticResult.CompilerError("CS0029").WithSpan(5, 17, 5, 31).WithArguments("bool", "int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -331,35 +344,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 + 2 == 2 $$+ 3;
+        int x = 1 + 2 == 2 + 3;
     }
-}", RequireOtherBinaryParenthesesForClarity);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestEqualityPrecedence3()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
-    {
-        int x = 1 $$+ 2 == 2 + 3;
-    }
-}", RequireRelationalBinaryParenthesesForClarity);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestEqualityPrecedence4()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
-    {
-        int x = 1 + 2 == 2 $$+ 3;
-    }
-}", RequireRelationalBinaryParenthesesForClarity);
+}", RequireRelationalBinaryParenthesesForClarity,
+                // Test0.cs(5,17): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                DiagnosticResult.CompilerError("CS0029").WithSpan(5, 17, 5, 31).WithArguments("bool", "int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -370,9 +359,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = a $$+ b ?? c;
+        int x = a + b ?? c;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,17): error CS0103: The name 'a' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 17, 5, 18).WithArguments("a"),
+                // Test0.cs(5,21): error CS0103: The name 'b' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 21, 5, 22).WithArguments("b"),
+                // Test0.cs(5,26): error CS0103: The name 'c' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 26, 5, 27).WithArguments("c"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -383,22 +378,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = a $$?? b ?? c;
+        int x = a ?? b ?? c;
     }
-}", RequireAllParenthesesForClarity);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestCoalescePrecedence3()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
-    {
-        int x = a ?? b $$?? c;
-    }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,17): error CS0103: The name 'a' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 17, 5, 18).WithArguments("a"),
+                // Test0.cs(5,22): error CS0103: The name 'b' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 22, 5, 23).WithArguments("b"),
+                // Test0.cs(5,27): error CS0103: The name 'c' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 27, 5, 28).WithArguments("c"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -409,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 $$+ 2 & 3;
+        int x = 1 [|+|] 2 & 3;
     }
 }",
 @"class C
@@ -429,9 +417,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = a $$| b | c;
+        int x = a | b | c;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,17): error CS0103: The name 'a' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 17, 5, 18).WithArguments("a"),
+                // Test0.cs(5,21): error CS0103: The name 'b' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 21, 5, 22).WithArguments("b"),
+                // Test0.cs(5,25): error CS0103: The name 'c' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 25, 5, 26).WithArguments("c"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -442,27 +436,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = a | b $$& c;
+        int x = {|CS0103:a|} | {|CS0103:b|} [|&|] {|CS0103:c|};
     }
 }",
 @"class C
 {
     void M()
     {
-        int x = a | (b & c);
-    }
-}", RequireAllParenthesesForClarity);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestBitwisePrecedence4()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
-    {
-        int x = a $$| b & c;
+        int x = {|CS0103:a|} | ({|CS0103:b|} & {|CS0103:c|});
     }
 }", RequireAllParenthesesForClarity);
         }
@@ -475,9 +456,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = 1 $$== 2;
+        int x = 1 == 2;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,17): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                DiagnosticResult.CompilerError("CS0029").WithSpan(5, 17, 5, 23).WithArguments("bool", "int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -488,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M(int a)
     {
-        int x = a $$+= 2;
+        int x = a += 2;
     }
 }", RequireAllParenthesesForClarity);
         }
@@ -501,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M(bool x, bool y, bool z)
     {
-        x $$= y == z;
+        x = y == z;
     }
 }", RequireAllParenthesesForClarity);
         }
@@ -514,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M(bool x, bool y, bool z)
     {
-        x = y $$== z;
+        x = y == z;
     }
 }", RequireAllParenthesesForClarity);
         }
@@ -527,9 +510,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = (int)$$-y;
+        int x = (int)-y;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,23): error CS0103: The name 'y' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 23, 5, 24).WithArguments("y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -540,9 +525,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = (int)$$-y;
+        int x = (int)-y;
     }
-}", IgnoreAllParentheses);
+}", IgnoreAllParentheses,
+                // Test0.cs(5,23): error CS0103: The name 'y' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 23, 5, 24).WithArguments("y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -553,9 +540,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = (int)$$-y;
+        int x = (int)-y;
     }
-}", RemoveAllUnnecessaryParentheses);
+}", RemoveAllUnnecessaryParentheses,
+                // Test0.cs(5,23): error CS0103: The name 'y' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 23, 5, 24).WithArguments("y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -566,9 +555,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = (int)$$+y;
+        int x = (int)+y;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,23): error CS0103: The name 'y' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 23, 5, 24).WithArguments("y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -579,9 +570,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = (int)$$&y;
+        int x = (int)&y;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,23): error CS0103: The name 'y' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 23, 5, 24).WithArguments("y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -592,9 +585,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = (int)$$*y;
+        int x = (int)*y;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,23): error CS0103: The name 'y' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 23, 5, 24).WithArguments("y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -605,9 +600,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = (int)$$y;
+        int x = (int)y;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,22): error CS0103: The name 'y' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 22, 5, 23).WithArguments("y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -618,9 +615,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = (int)$$y.z;
+        int x = (int)y.z;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,22): error CS0103: The name 'y' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 22, 5, 23).WithArguments("y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -631,9 +630,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = (int)$$(y);
+        int x = (int)(y);
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,23): error CS0103: The name 'y' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 23, 5, 24).WithArguments("y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -644,20 +645,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     void M()
     {
-        int x = (int)$$!y;
+        int x = (int)!y;
     }
-}", RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity,
+                // Test0.cs(5,23): error CS0103: The name 'y' does not exist in the current context
+                DiagnosticResult.CompilerError("CS0103").WithSpan(5, 23, 5, 24).WithArguments("y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestFixAll1()
         {
-            await TestMissingAsync(
+            await TestAsync(
 @"class C
 {
     void M()
     {
-        if (0 {|FixAllInDocument:>=|} 3 * 2 + 4)
+        if (0 >= 3 [|*|] 2 + 4)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (0 >= (3 * 2) + 4)
         {
         }
     }
@@ -667,12 +679,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M()
     {
-        if (3 * 2 + 4 >= 3 {|FixAllInDocument:*|} 2 + 4)
+        if (3 [|*|] 2 + 4 >= 3 [|*|] 2 + 4)
         {
         }
     }
@@ -685,42 +697,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         {
         }
     }
-}", options: RequireAllParenthesesForClarity);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestFixAll3()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
-    {
-        if (3 * 2 + 4 >= 3 * 2 {|FixAllInDocument:+|} 4)
-        {
-        }
-    }
 }", RequireAllParenthesesForClarity);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestSeams1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M()
     {
-        int x = 1 + 2 {|FixAllInDocument:*|} 3 == 1 + 2 * 3;
+        int x = {|CS0029:1 + 2 [|*|] 3 == 1 + 2 [|*|] 3|};
     }
 }",
 @"class C
 {
     void M()
     {
-        int x = 1 + (2 * 3) == 1 + (2 * 3);
+        int x = {|CS0029:1 + (2 * 3) == 1 + (2 * 3)|};
     }
-}", options: RequireAllParenthesesForClarity);
+}", RequireAllParenthesesForClarity);
         }
     }
 }

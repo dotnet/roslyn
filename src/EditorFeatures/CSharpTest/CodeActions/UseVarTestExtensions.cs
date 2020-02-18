@@ -25,62 +25,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions
 
         public static IDictionary<OptionKey, object> PreferExplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest test)
             => AbstractCodeActionOrUserDiagnosticTest.OptionsSet(
-                test.SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithError),
-                test.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError),
-                test.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithError));
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithError),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithError));
 
         public static IDictionary<OptionKey, object> PreferImplicitTypeWithError(this AbstractCodeActionOrUserDiagnosticTest test)
             => AbstractCodeActionOrUserDiagnosticTest.OptionsSet(
-                test.SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithError),
-                test.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError),
-                test.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithError));
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithError),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithError));
 
         public static IDictionary<OptionKey, object> PreferExplicitTypeWithWarning(this AbstractCodeActionOrUserDiagnosticTest test)
             => AbstractCodeActionOrUserDiagnosticTest.OptionsSet(
-                test.SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithWarning),
-                test.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithWarning),
-                test.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithWarning));
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithWarning),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithWarning),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithWarning));
 
         public static IDictionary<OptionKey, object> PreferImplicitTypeWithWarning(this AbstractCodeActionOrUserDiagnosticTest test)
             => AbstractCodeActionOrUserDiagnosticTest.OptionsSet(
-                test.SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithWarning),
-                test.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithWarning),
-                test.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithWarning));
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithWarning),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithWarning),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithWarning));
 
         public static IDictionary<OptionKey, object> PreferExplicitTypeWithInfo(this AbstractCodeActionOrUserDiagnosticTest test)
             => AbstractCodeActionOrUserDiagnosticTest.OptionsSet(
-                test.SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
-                test.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo),
-                test.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
         public static IDictionary<OptionKey, object> PreferImplicitTypeWithInfo(this AbstractCodeActionOrUserDiagnosticTest test)
             => AbstractCodeActionOrUserDiagnosticTest.OptionsSet(
-                test.SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-                test.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-                test.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
         public static IDictionary<OptionKey, object> PreferExplicitTypeWithSilent(this AbstractCodeActionOrUserDiagnosticTest test)
             => AbstractCodeActionOrUserDiagnosticTest.OptionsSet(
-                test.SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithSilent),
-                test.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent),
-                test.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent));
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithSilent),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent));
 
         public static IDictionary<OptionKey, object> PreferImplicitTypeWithSilent(this AbstractCodeActionOrUserDiagnosticTest test)
             => AbstractCodeActionOrUserDiagnosticTest.OptionsSet(
-                test.SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
-                test.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
-                test.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
 
         public static IDictionary<OptionKey, object> PreferExplicitTypeWithNone(this AbstractCodeActionOrUserDiagnosticTest test)
             => AbstractCodeActionOrUserDiagnosticTest.OptionsSet(
-                test.SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithNone),
-                test.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithNone),
-                test.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithNone));
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithNone),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithNone),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithNone));
 
         public static IDictionary<OptionKey, object> PreferImplicitTypeWithNone(this AbstractCodeActionOrUserDiagnosticTest test)
             => AbstractCodeActionOrUserDiagnosticTest.OptionsSet(
-                test.SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithNone),
-                test.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithNone),
-                test.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithNone));
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithNone),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithNone),
+                AbstractCodeActionOrUserDiagnosticTest.SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithNone));
     }
 }

@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -16,8 +19,23 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses
 {
-    public partial class RemoveUnnecessaryParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveUnnecessaryParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        private static new IDictionary<OptionKey, object> RequireAllParenthesesForClarity
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.RequireAllParenthesesForClarity(LanguageNames.CSharp);
+
+        private static new IDictionary<OptionKey, object> RequireOtherBinaryParenthesesForClarity
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.RequireOtherBinaryParenthesesForClarity(LanguageNames.CSharp);
+
+        private static new IDictionary<OptionKey, object> RequireArithmeticBinaryParenthesesForClarity
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.RequireArithmeticBinaryParenthesesForClarity(LanguageNames.CSharp);
+
+        private static new IDictionary<OptionKey, object> IgnoreAllParentheses
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.IgnoreAllParentheses(LanguageNames.CSharp);
+
+        private static new IDictionary<OptionKey, object> RemoveAllUnnecessaryParentheses
+            => AbstractDiagnosticProviderBasedUserDiagnosticTest.RemoveAllUnnecessaryParentheses(LanguageNames.CSharp);
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
 
