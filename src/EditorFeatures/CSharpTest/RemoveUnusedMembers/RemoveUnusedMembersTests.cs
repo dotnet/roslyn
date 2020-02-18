@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
@@ -124,39 +123,10 @@ $@"class MyClass
             var code = $@"class MyClass
 {{
     {accessibility}
-    int this {{ get {{ return 0; }} set {{ }} }}
+    int this[int arg] {{ get {{ return 0; }} set {{ }} }}
 }}";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(4,9): error CS0548: 'MyClass.this[get]': property or indexer must have at least one accessor
-                    DiagnosticResult.CompilerError("CS0548").WithSpan(4, 9, 4, 13).WithArguments("MyClass.this[get]"),
-                    // Test0.cs(4,14): error CS1001: Identifier expected
-                    DiagnosticResult.CompilerError("CS1001").WithSpan(4, 14, 4, 15),
-                    // Test0.cs(4,14): error CS1003: Syntax error, '[' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(4, 14, 4, 15).WithArguments("[", "{"),
-                    // Test0.cs(4,16): error CS0246: The type or namespace name 'get' could not be found (are you missing a using directive or an assembly reference?)
-                    DiagnosticResult.CompilerError("CS0246").WithSpan(4, 16, 4, 19).WithArguments("get"),
-                    // Test0.cs(4,20): error CS1001: Identifier expected
-                    DiagnosticResult.CompilerError("CS1001").WithSpan(4, 20, 4, 21),
-                    // Test0.cs(4,20): error CS1003: Syntax error, ',' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(4, 20, 4, 21).WithArguments(",", "{"),
-                    // Test0.cs(4,32): error CS1003: Syntax error, ']' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(4, 32, 4, 33).WithArguments("]", "}"),
-                    // Test0.cs(4,32): error CS1514: { expected
-                    DiagnosticResult.CompilerError("CS1514").WithSpan(4, 32, 4, 33),
-                    // Test0.cs(4,38): error CS1519: Invalid token '{' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(4, 38, 4, 39).WithArguments("{"),
-                    // Test0.cs(4,38): error CS1519: Invalid token '{' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(4, 38, 4, 39).WithArguments("{"),
-                    // Test0.cs(4,42): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(4, 42, 4, 43),
-                    // Test0.cs(5,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(5, 1, 5, 2),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -402,6 +372,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(
 @"class MyClass
 {
+    // error CS0106: The modifier 'readonly' is not valid for this item
     private readonly event System.EventHandler {|CS0106:[|E|]|};
 }",
 @"class MyClass
@@ -428,7 +399,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(
 @"class MyClass
 {
-    private static void {|CS0547:{|CS0548:[|M|]|}|} { }
+    private static void [|M|]() { }
 }",
 @"class MyClass
 {
@@ -454,6 +425,7 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(
 @"class MyClass
 {
+    // error CS0106: The modifier 'static' is not valid for this item
     private static int {|CS0106:[|this|]|}[int x] { get { return 0; } set { } }
 }",
 @"class MyClass
@@ -490,16 +462,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsUnused_Abstract()
         {
-            var code = @"class C
+            var code = @"abstract class C
 {
     protected abstract void M();
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(3,29): error CS0513: 'C.M()' is abstract but it is contained in non-abstract class 'C'
-                DiagnosticResult.CompilerError("CS0513").WithSpan(3, 29, 3, 30).WithArguments("C.M()", "C"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -626,7 +594,8 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ExpressionLambda()
         {
-            var code = @"class MyClass
+            var code = @"using System;
+class MyClass
 {
     private int _goo;
     public void M()
@@ -635,59 +604,39 @@ class C : I
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(6,9): error CS0246: The type or namespace name 'Func<>' could not be found (are you missing a using directive or an assembly reference?)
-                DiagnosticResult.CompilerError("CS0246").WithSpan(6, 9, 6, 18).WithArguments("Func<>"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_BlockLambda()
         {
-            var code = @"class MyClass
+            var code = @"using System;
+class MyClass
 {
     private int _goo;
     public void M()
     {
-        Func<int> getGoo = () => { return _goo; }
+        Func<int> getGoo = () => { return _goo; };
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(6,9): error CS0246: The type or namespace name 'Func<>' could not be found (are you missing a using directive or an assembly reference?)
-                    DiagnosticResult.CompilerError("CS0246").WithSpan(6, 9, 6, 18).WithArguments("Func<>"),
-                    // Test0.cs(6,50): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(6, 50, 6, 50),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_Delegate()
         {
-            var code = @"class MyClass
+            var code = @"using System;
+class MyClass
 {
     private int _goo;
     public void M()
     {
-        Func<int> getGoo = delegate { return _goo; }
+        Func<int> getGoo = delegate { return _goo; };
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(6,9): error CS0246: The type or namespace name 'Func<>' could not be found (are you missing a using directive or an assembly reference?)
-                    DiagnosticResult.CompilerError("CS0246").WithSpan(6, 9, 6, 18).WithArguments("Func<>"),
-                    // Test0.cs(6,53): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(6, 53, 6, 53),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -726,7 +675,7 @@ class C : I
             var code = @"class MyClass
 {
     private int _goo;
-    public void Goo
+    public int Goo
     {
         get
         {
@@ -735,16 +684,7 @@ class C : I
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(4,17): error CS0547: 'MyClass.Goo': property or indexer cannot have void type
-                    DiagnosticResult.CompilerError("CS0547").WithSpan(4, 17, 4, 20).WithArguments("MyClass.Goo"),
-                    // Test0.cs(8,13): error CS0127: Since 'MyClass.Goo.get' returns void, a return keyword must not be followed by an object expression
-                    DiagnosticResult.CompilerError("CS0127").WithSpan(8, 13, 8, 19).WithArguments("MyClass.Goo.get"),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -817,20 +757,11 @@ class MyClass
         {
             var code = @"class MyClass
 {
-    private int M1 => 0
+    private int M1() => 0;
     public int M2() => M1();
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(3,24): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(3, 24, 3, 24),
-                    // Test0.cs(4,24): error CS1955: Non-invocable member 'MyClass.M1' cannot be used like a method.
-                    DiagnosticResult.CompilerError("CS1955").WithSpan(4, 24, 4, 26).WithArguments("MyClass.M1"),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -838,23 +769,14 @@ class MyClass
         {
             var code = @"class MyClass
 {
-    private int M1 => 0
+    private int M1() => 0;
     public void M2()
     {
         System.Func<int> m1 = M1;
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(3,24): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(3, 24, 3, 24),
-                    // Test0.cs(6,31): error CS0029: Cannot implicitly convert type 'int' to 'System.Func<int>'
-                    DiagnosticResult.CompilerError("CS0029").WithSpan(6, 31, 6, 33).WithArguments("int", "System.Func<int>"),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1543,31 +1465,10 @@ class MyClass
 {
     private int _goo;
     public int M1() => M2(_goo);
-    public int M2(int i) => { i = 0; return i; }
+    public int M2(int i) { i = 0; return i; }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(5,29): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(5, 29, 5, 30),
-                    // Test0.cs(5,29): error CS1519: Invalid token '{' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(5, 29, 5, 30).WithArguments("{"),
-                    // Test0.cs(5,29): error CS1525: Invalid expression term '{'
-                    DiagnosticResult.CompilerError("CS1525").WithSpan(5, 29, 5, 30).WithArguments("{"),
-                    // Test0.cs(5,33): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(5, 33, 5, 34).WithArguments("="),
-                    // Test0.cs(5,33): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(5, 33, 5, 34).WithArguments("="),
-                    // Test0.cs(5,46): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(5, 46, 5, 47).WithArguments(";"),
-                    // Test0.cs(5,46): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(5, 46, 5, 47).WithArguments(";"),
-                    // Test0.cs(6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(6, 1, 6, 2),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1577,31 +1478,10 @@ class MyClass
 {
     private int _goo;
     public int M1() => M2(_goo);
-    public int M2(in int i) => { i = 0; return i; }
+    public int M2(in int i) { return i; }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(5,32): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(5, 32, 5, 33),
-                    // Test0.cs(5,32): error CS1519: Invalid token '{' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(5, 32, 5, 33).WithArguments("{"),
-                    // Test0.cs(5,32): error CS1525: Invalid expression term '{'
-                    DiagnosticResult.CompilerError("CS1525").WithSpan(5, 32, 5, 33).WithArguments("{"),
-                    // Test0.cs(5,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(5, 36, 5, 37).WithArguments("="),
-                    // Test0.cs(5,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(5, 36, 5, 37).WithArguments("="),
-                    // Test0.cs(5,49): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(5, 49, 5, 50).WithArguments(";"),
-                    // Test0.cs(5,49): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(5, 49, 5, 50).WithArguments(";"),
-                    // Test0.cs(6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(6, 1, 6, 2),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1745,24 +1625,11 @@ class MyClass
 
     class Derived : MyClass
     {
-        public in M() => _goo;
+        public int M() => _goo;
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(7,16): error CS1519: Invalid token 'in' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(7, 16, 7, 18).WithArguments("in"),
-                    // Test0.cs(7,16): error CS1519: Invalid token 'in' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(7, 16, 7, 18).WithArguments("in"),
-                    // Test0.cs(7,19): error CS1520: Method must have a return type
-                    DiagnosticResult.CompilerError("CS1520").WithSpan(7, 19, 7, 20),
-                    // Test0.cs(7,26): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                    DiagnosticResult.CompilerError("CS0201").WithSpan(7, 26, 7, 30),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1774,22 +1641,11 @@ class MyClass
 
     class Derived : MyClass
     {
-        public in M2() => M1();
+        public int M2() => M1();
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                new[]
-                {
-                    // Test0.cs(7,16): error CS1519: Invalid token 'in' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(7, 16, 7, 18).WithArguments("in"),
-                    // Test0.cs(7,16): error CS1519: Invalid token 'in' in class, struct, or interface member declaration
-                    DiagnosticResult.CompilerError("CS1519").WithSpan(7, 16, 7, 18).WithArguments("in"),
-                    // Test0.cs(7,19): error CS1520: Method must have a return type
-                    DiagnosticResult.CompilerError("CS1520").WithSpan(7, 19, 7, 21),
-                },
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
