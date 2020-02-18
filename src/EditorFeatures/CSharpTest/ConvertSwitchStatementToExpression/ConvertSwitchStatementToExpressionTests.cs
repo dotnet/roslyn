@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 {
     int[] array = new int[1];
 
-    int M(int i)
+    void M(int i)
     {
         [|switch|] (i)
         {
@@ -123,13 +123,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
     }
 }",
-                // Test0.cs(5,9): error CS0161: 'Program.M(int)': not all code paths return a value
-                DiagnosticResult.CompilerError("CS0161").WithSpan(5, 9, 5, 10).WithArguments("Program.M(int)"),
 @"class Program
 {
     int[] array = new int[1];
 
-    int M(int i)
+    void M(int i)
     {
         array[0] = i switch
         {
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 {
     int[] array = new int[1];
 
-    int M(int i)
+    void M(int i)
     {
         switch (i)
         {
@@ -169,11 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(5,9): error CS0161: 'Program.M(int)': not all code paths return a value
-                DiagnosticResult.CompilerError("CS0161").WithSpan(5, 9, 5, 10).WithArguments("Program.M(int)"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
@@ -183,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 {
     int[] array = new int[1];
 
-    int M(int i)
+    void M(int i)
     {
         switch (i)
         {
@@ -203,11 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(5,9): error CS0161: 'Program.M(int)': not all code paths return a value
-                DiagnosticResult.CompilerError("CS0161").WithSpan(5, 9, 5, 10).WithArguments("Program.M(int)"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
@@ -237,17 +227,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     {
         switch (i)
         {
-            case _:
+            case { }:
                 break;
         }
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(7,18): error CS0103: The name '_' does not exist in the current context
-                DiagnosticResult.CompilerError("CS0103").WithSpan(7, 18, 7, 19).WithArguments("_"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
@@ -312,7 +298,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         public async Task TestAllThrow()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"class Program
+@"using System;
+class Program
 {
     void M(int i)
     {
@@ -321,18 +308,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             case 1:
                 throw null;
             default:
-                throw new {|CS0246:Exception|}();
+                throw new Exception();
         }
     }
 }",
-@"class Program
+@"using System;
+class Program
 {
     void M(int i)
     {
         throw i switch
         {
             1 => null,
-            _ => new {|CS0246:Exception|}(),
+            _ => new Exception(),
         };
     }
 }");
@@ -1731,7 +1719,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNotWithRefReturns()
         {
-            var code = @"class Program
+            var code = @"using System;
+class Program
 {
     static ref int GetRef(int[] mem, int addr, int mode)
     {
@@ -1744,18 +1733,15 @@ class Program
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(9,32): error CS0246: The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)
-                DiagnosticResult.CompilerError("CS0246").WithSpan(9, 32, 9, 41).WithArguments("Exception"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNotWithRefAssignment()
         {
-            var code = @"class Program
+            var code = @"using System;
+class Program
 {
     static ref int GetRef(int[] mem, int addr, int mode)
     {
@@ -1770,18 +1756,15 @@ class Program
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(9,32): error CS0246: The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)
-                DiagnosticResult.CompilerError("CS0246").WithSpan(9, 32, 9, 41).WithArguments("Exception"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNotWithRefConditionalAssignment()
         {
-            var code = @"class Program
+            var code = @"using System;
+class Program
 {
     static ref int GetRef(int[] mem, int addr, int mode)
     {
@@ -1796,11 +1779,7 @@ class Program
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source: code,
-                // Test0.cs(9,32): error CS0246: The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)
-                DiagnosticResult.CompilerError("CS0246").WithSpan(9, 32, 9, 41).WithArguments("Exception"),
-                fixedSource: code);
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
@@ -1808,7 +1787,8 @@ class Program
         public async Task TestWithRefInsideConditionalAssignment()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"class Program
+@"using System;
+class Program
 {
     static void GetRef(int[] mem, int addr, int mode)
     {
@@ -1816,11 +1796,12 @@ class Program
         [|switch|] (mode)
         {
             case 0: i = true ? ref mem[mem[addr]] : ref mem[mem[addr]]; break;
-            default: throw new {|CS0246:Exception|}();
+            default: throw new Exception();
         }
     }
 }",
-@"class Program
+@"using System;
+class Program
 {
     static void GetRef(int[] mem, int addr, int mode)
     {
@@ -1828,7 +1809,7 @@ class Program
         i = mode switch
         {
             0 => true ? ref mem[mem[addr]] : ref mem[mem[addr]],
-            _ => throw new {|CS0246:Exception|}(),
+            _ => throw new Exception(),
         };
     }
 }");
