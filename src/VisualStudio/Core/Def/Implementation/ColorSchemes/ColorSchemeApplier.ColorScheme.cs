@@ -13,6 +13,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 {
     internal partial class ColorSchemeApplier
     {
+        /// <summary>
+        /// A ColorScheme contains classification colors for a set of VS themes.
+        /// </summary>
         private class ColorScheme
         {
             public ImmutableArray<ColorTheme> Themes { get; }

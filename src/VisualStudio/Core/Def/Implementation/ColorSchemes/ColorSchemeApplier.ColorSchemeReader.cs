@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -19,9 +20,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     {
         private static class ColorSchemeReader
         {
+            private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
+
             public static ColorScheme ReadColorScheme(Stream schemeStream)
             {
-                var schemeDocument = XDocument.Load(schemeStream);
+                using var xmlReader = XmlReader.Create(schemeStream, s_xmlSettings);
+                var schemeDocument = XDocument.Load(xmlReader);
 
                 var themes = schemeDocument
                     .Descendants("Theme")

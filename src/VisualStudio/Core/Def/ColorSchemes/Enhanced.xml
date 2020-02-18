@@ -1,4 +1,10 @@
 <Themes>
+    <!-- 
+        Every Roslyn classification should be listed in this file for each theme.
+        Some classifications do not define Foreground colors because we want them to
+        inherit their color from the their parent classification (For instance Type 
+        and Member name classifications inherit from Identifier).
+    -->
     <Theme Name="Light" GUID="{de3dbbcd-f642-433c-8353-8f1df4370aba}">
         <Category Name="Roslyn Text Editor MEF Items" GUID="{75a05685-00a8-4ded-bae5-e7a50bfa929a}">
             <Color Name="preprocessor text">
@@ -37,14 +43,12 @@
             <Color Name="type parameter name">
                 <Foreground Type="CT_RAW" Source="FF2B91AF" />
             </Color>
-<!--
             <Color Name="field name">
             </Color>
             <Color Name="enum member name">
             </Color>
             <Color Name="constant name">
             </Color>
--->
             <Color Name="local name">
                 <Foreground Type="CT_RAW" Source="FF1F377F" />
             </Color>
@@ -57,7 +61,6 @@
             <Color Name="extension method name">
                 <Foreground Type="CT_RAW" Source="FF74531F" />
             </Color>
-<!--
             <Color Name="property name">
             </Color>
             <Color Name="event name">
@@ -66,7 +69,6 @@
             </Color>
             <Color Name="label name">
             </Color>
--->
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF808080" />
             </Color>
@@ -198,14 +200,12 @@
             <Color Name="type parameter name">
                 <Foreground Type="CT_RAW" Source="FF2B91AF" />
             </Color>
-<!--
             <Color Name="field name">
             </Color>
             <Color Name="enum member name">
             </Color>
             <Color Name="constant name">
             </Color>
--->
             <Color Name="local name">
                 <Foreground Type="CT_RAW" Source="FF1F377F" />
             </Color>
@@ -218,7 +218,6 @@
             <Color Name="extension method name">
                 <Foreground Type="CT_RAW" Source="FF74531F" />
             </Color>
-<!--
             <Color Name="property name">
             </Color>
             <Color Name="event name">
@@ -227,7 +226,6 @@
             </Color>
             <Color Name="label name">
             </Color>
--->
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF808080" />
             </Color>
@@ -359,14 +357,12 @@
             <Color Name="type parameter name">
                 <Foreground Type="CT_RAW" Source="FF066555" />
             </Color>
-<!--
             <Color Name="field name">
             </Color>
             <Color Name="enum member name">
             </Color>
             <Color Name="constant name">
             </Color>
--->
             <Color Name="local name">
                 <Foreground Type="CT_RAW" Source="FF1F377F" />
             </Color>
@@ -379,7 +375,6 @@
             <Color Name="extension method name">
                 <Foreground Type="CT_RAW" Source="FF74531F" />
             </Color>
-<!--
             <Color Name="property name">
             </Color>
             <Color Name="event name">
@@ -388,7 +383,6 @@
             </Color>
             <Color Name="label name">
             </Color>
--->
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF5B5B5B" />
             </Color>
@@ -520,14 +514,12 @@
             <Color Name="type parameter name">
                 <Foreground Type="CT_RAW" Source="FFB8D7A3" />
             </Color>
-<!--
             <Color Name="field name">
             </Color>
             <Color Name="enum member name">
             </Color>
             <Color Name="constant name">
             </Color>
--->
             <Color Name="local name">
                 <Foreground Type="CT_RAW" Source="FF9CDCFE" />
             </Color>
@@ -540,7 +532,6 @@
             <Color Name="extension method name">
                 <Foreground Type="CT_RAW" Source="FFDCDCAA" />
             </Color>
-<!--
                 <Color Name="property name">
                 </Color>
                 <Color Name="event name">
@@ -549,7 +540,6 @@
                 </Color>
                 <Color Name="label name">
                 </Color> 
--->
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FFC8C8C8" />
             </Color>
