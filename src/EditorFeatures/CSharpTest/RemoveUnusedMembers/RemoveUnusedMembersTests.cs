@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1144,27 +1146,26 @@ class C
             var source =
 @"class MyClass
 {
-    private int {|IDE0052:P|} { get; set; }
+    private int P { get; set; }
     public void M()
     {
         P = 0;
     }
 }";
 
+            var descriptor = new CSharpRemoveUnusedMembersDiagnosticAnalyzer().SupportedDiagnostics.First(x => x.Id == "IDE0052");
+            var expectedMessage = string.Format(FeaturesResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
+
             await new VerifyCS.Test
             {
                 TestCode = source,
                 ExpectedDiagnostics =
                 {
+                    // Test0.cs(3,17): info IDE0052: Private property 'MyClass.P' can be converted to a method as its get accessor is never invoked.
+                    VerifyCS.Diagnostic(descriptor).WithMessage(expectedMessage).WithSpan(3, 17, 3, 18),
                 },
                 FixedCode = source,
             }.RunAsync();
-            //var testParameters = new TestParameters(retainNonFixableDiagnostics: true);
-            //using var workspace = CreateWorkspaceFromOptions(source, testParameters);
-            //var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
-            //diagnostics.Verify(Diagnostic("IDE0052", "P").WithLocation(3, 17));
-            //var expectedMessage = string.Format(FeaturesResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
-            //Assert.Equal(expectedMessage, diagnostics.Single().GetMessage());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
