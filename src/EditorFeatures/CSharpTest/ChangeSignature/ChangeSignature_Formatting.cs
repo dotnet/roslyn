@@ -383,8 +383,7 @@ class CustomAttribute : System.Attribute
 }";
             var updatedSignature = new int[] { };
             var expectedUpdatedCode = @"
-[Custom(
-)]
+[Custom()]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute() { }
@@ -430,6 +429,153 @@ class CustomAttribute : System.Attribute
     void M(System.Action<int, int> f)
     {
         M((x, y) => System.Console.WriteLine(x + y));
+    }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ChangeSignature_Formatting_Declaration_PreserveCommentsAndIndentation()
+        {
+            var markup = @"
+class C
+{
+    public void M($$int a /* a */, // a2
+                        /* b */ int b /* b2 */, /* b3 */
+                        int c /* c */)
+    { }
+}";
+            var updatedSignature = new[] { 1, 0, 2 };
+            var expectedUpdatedCode = @"
+class C
+{
+    public void M(/* b */ int b /* b2 */, /* b3 */
+                        int a /* a */, /* a2 */
+                        int c /* c */)
+    { }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ChangeSignature_Formatting_Declaration_PreserveCommentsAndIndentation_VerifyLastSeparatorTriviaAppendedToLastNode()
+        {
+            var markup = @"
+class C
+{
+    public void M($$int a /* a */, // a2
+                        /* b */ int b /* b2 */, /* b3 */
+                        int c /* c */)
+    { }
+}";
+            var updatedSignature = new[] { 2, 0, 1 };
+            var expectedUpdatedCode = @"
+class C
+{
+    public void M(int c /* c */,
+                        int a /* a */, /* a2 */
+                        /* b */ int b /* b2 */ /* b3 */)
+    { }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ChangeSignature_Formatting_Declaration_PreserveCommentsAndIndentation_RemoveParameter()
+        {
+            var markup = @"
+class C
+{
+    public void M($$int a /* a */, // a2
+                        /* b */ int b /* b2 */, /* b3 */
+                        int c /* c */)
+    { }
+}";
+            var updatedSignature = new[] { 2, 1 };
+            var expectedUpdatedCode = @"
+class C
+{
+    public void M(int c /* c */,
+                        /* b */ int b /* b2 */ /* b3 */)
+    { }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ChangeSignature_Formatting_Declaration_PreserveCommentsAndIndentation_RemoveMultipleParameters()
+        {
+            var markup = @"
+class C
+{
+    public void M($$int a /* a */, // a2
+                        /* b */ int b /* b2 */, /* b3 */
+                        int c /* c */)
+    { }
+}";
+            var updatedSignature = new[] { 2 };
+            var expectedUpdatedCode = @"
+class C
+{
+    public void M(int c /* c */)
+    { }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ChangeSignature_Formatting_Invocation_PreserveCommentsAndIndentation()
+        {
+            var markup = @"
+class C
+{
+    public void M(int a, int b, int c)
+    {
+        M($$a /* a */, // a2
+                    /* b */ b /* b2 */, /* b3 */
+                    c /* c */);
+    }
+}";
+            var updatedSignature = new[] { 1, 0, 2 };
+            var expectedUpdatedCode = @"
+class C
+{
+    public void M(int b, int a, int c)
+    {
+        M(/* b */ b /* b2 */, /* b3 */
+                    a /* a */, /* a2 */
+                    c /* c */);
+    }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ChangeSignature_Formatting_Invocation_PreserveCommentsAndIndentation_VerifyLastSeparatorTriviaAppendedToLastNode()
+        {
+            var markup = @"
+class C
+{
+    public void M(int a, int b, int c)
+    {
+        M($$a /* a */, // a2
+                    /* b */ b /* b2 */, /* b3 */
+                    c /* c */);
+    }
+}";
+            var updatedSignature = new[] { 2, 0, 1 };
+            var expectedUpdatedCode = @"
+class C
+{
+    public void M(int c, int a, int b)
+    {
+        M(c /* c */,
+                    a /* a */, /* a2 */
+                    /* b */ b /* b2 */ /* b3 */);
     }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);

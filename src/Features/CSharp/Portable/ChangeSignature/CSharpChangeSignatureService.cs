@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
@@ -269,32 +270,38 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax method))
             {
-                var updatedParameters = PermuteDeclaration(method.ParameterList.Parameters, signaturePermutation);
-                return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var parameterList = method.ParameterList;
+                var updatedParameters = PermuteDeclaration(parameterList.Parameters, parameterList.OpenParenToken, signaturePermutation);
+                return method.WithParameterList(parameterList.WithParameters(updatedParameters).WithOpenParenToken(parameterList.OpenParenToken.WithTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.LocalFunctionStatement, out LocalFunctionStatementSyntax localFunction))
             {
-                var updatedParameters = PermuteDeclaration(localFunction.ParameterList.Parameters, signaturePermutation);
-                return localFunction.WithParameterList(localFunction.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var parameterList = localFunction.ParameterList;
+                var updatedParameters = PermuteDeclaration(parameterList.Parameters, parameterList.OpenParenToken, signaturePermutation);
+                return localFunction.WithParameterList(parameterList.WithParameters(updatedParameters).WithOpenParenToken(parameterList.OpenParenToken.WithTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax constructor))
             {
-                var updatedParameters = PermuteDeclaration(constructor.ParameterList.Parameters, signaturePermutation);
-                return constructor.WithParameterList(constructor.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var parameterList = constructor.ParameterList;
+                var updatedParameters = PermuteDeclaration(parameterList.Parameters, parameterList.OpenParenToken, signaturePermutation);
+                return constructor.WithParameterList(parameterList.WithParameters(updatedParameters).WithOpenParenToken(parameterList.OpenParenToken.WithTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexer))
             {
-                var updatedParameters = PermuteDeclaration(indexer.ParameterList.Parameters, signaturePermutation);
-                return indexer.WithParameterList(indexer.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var parameterList = indexer.ParameterList;
+                var updatedParameters = PermuteDeclaration(parameterList.Parameters, parameterList.OpenBracketToken, signaturePermutation);
+                return indexer.WithParameterList(parameterList.WithParameters(updatedParameters).WithOpenBracketToken(parameterList.OpenBracketToken.WithTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax delegateDeclaration))
             {
-                var updatedParameters = PermuteDeclaration(delegateDeclaration.ParameterList.Parameters, signaturePermutation);
-                return delegateDeclaration.WithParameterList(delegateDeclaration.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var parameterList = delegateDeclaration.ParameterList;
+                var updatedParameters = PermuteDeclaration(parameterList.Parameters, parameterList.OpenParenToken, signaturePermutation);
+                return delegateDeclaration.WithParameterList(
+                    parameterList.WithParameters(updatedParameters).WithOpenParenToken(parameterList.OpenParenToken.WithTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.AnonymousMethodExpression, out AnonymousMethodExpressionSyntax anonymousMethod))
@@ -305,8 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     return anonymousMethod;
                 }
 
-                var updatedParameters = PermuteDeclaration(anonymousMethod.ParameterList.Parameters, signaturePermutation);
-                return anonymousMethod.WithParameterList(anonymousMethod.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var parameterList = anonymousMethod.ParameterList;
+                var updatedParameters = PermuteDeclaration(parameterList.Parameters, parameterList.OpenParenToken, signaturePermutation);
+                return anonymousMethod.WithParameterList(parameterList.WithParameters(updatedParameters).WithOpenParenToken(parameterList.OpenParenToken.WithTrailingTrivia().WithAdditionalAnnotations(changeSignatureFormattingAnnotation)));
             }
 
             if (updatedNode.IsKind(SyntaxKind.SimpleLambdaExpression, out SimpleLambdaExpressionSyntax lambda))
@@ -329,8 +337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (updatedNode.IsKind(SyntaxKind.ParenthesizedLambdaExpression, out ParenthesizedLambdaExpressionSyntax parenLambda))
             {
-                var updatedParameters = PermuteDeclaration(parenLambda.ParameterList.Parameters, signaturePermutation);
-                return parenLambda.WithParameterList(parenLambda.ParameterList.WithParameters(updatedParameters));
+                var parameterList = parenLambda.ParameterList;
+                var updatedParameters = PermuteDeclaration(parameterList.Parameters, parameterList.OpenParenToken, signaturePermutation);
+                return parenLambda.WithParameterList(parameterList.WithParameters(updatedParameters).WithOpenParenToken(parameterList.OpenParenToken.WithTrailingTrivia()));
             }
 
             // Update reference site argument lists
@@ -347,34 +356,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     isReducedExtensionMethod = true;
                 }
 
-                var newArguments = PermuteArgumentList(declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod);
-                return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var argumentList = invocation.ArgumentList;
+                var newArguments = PermuteArgumentList(declarationSymbol, argumentList.Arguments, argumentList.OpenParenToken, signaturePermutation, isReducedExtensionMethod);
+                return invocation.WithArgumentList(argumentList.WithArguments(newArguments).WithOpenParenToken(argumentList.OpenParenToken.WithTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objCreation))
             {
-                var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation);
-                return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var argumentList = objCreation.ArgumentList;
+                var newArguments = PermuteArgumentList(declarationSymbol, argumentList.Arguments, argumentList.OpenParenToken, signaturePermutation);
+                return objCreation.WithArgumentList(argumentList.WithArguments(newArguments).WithOpenParenToken(argumentList.OpenParenToken.WithTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer) ||
                 updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer))
             {
                 var constructorInit = (ConstructorInitializerSyntax)updatedNode;
-                var newArguments = PermuteArgumentList(declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation);
-                return constructorInit.WithArgumentList(constructorInit.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var argumentList = constructorInit.ArgumentList;
+                var newArguments = PermuteArgumentList(declarationSymbol, argumentList.Arguments, argumentList.OpenParenToken, signaturePermutation);
+                return constructorInit.WithArgumentList(argumentList.WithArguments(newArguments).WithOpenParenToken(argumentList.OpenParenToken.WithTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess))
             {
-                var newArguments = PermuteArgumentList(declarationSymbol, elementAccess.ArgumentList.Arguments, signaturePermutation);
-                return elementAccess.WithArgumentList(elementAccess.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var argumentList = elementAccess.ArgumentList;
+                var newArguments = PermuteArgumentList(declarationSymbol, argumentList.Arguments, argumentList.OpenBracketToken, signaturePermutation);
+                return elementAccess.WithArgumentList(argumentList.WithArguments(newArguments).WithOpenBracketToken(argumentList.OpenBracketToken.WithTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.Attribute, out AttributeSyntax attribute))
             {
-                var newArguments = PermuteAttributeArgumentList(declarationSymbol, attribute.ArgumentList.Arguments, signaturePermutation);
-                return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var argumentList = attribute.ArgumentList;
+                var newArguments = PermuteAttributeArgumentList(declarationSymbol, argumentList.Arguments, argumentList.OpenParenToken, signaturePermutation);
+                return attribute.WithArgumentList(argumentList.WithArguments(newArguments).WithOpenParenToken(argumentList.OpenParenToken.WithTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             // Handle references in crefs
@@ -387,9 +401,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     return nameMemberCref;
                 }
 
-                var newParameters = PermuteDeclaration(nameMemberCref.Parameters.Parameters, signaturePermutation);
+                var parameterList = nameMemberCref.Parameters;
+                var newParameters = PermuteDeclaration(parameterList.Parameters, parameterList.OpenParenToken, signaturePermutation);
 
-                var newCrefParameterList = nameMemberCref.Parameters.WithParameters(newParameters);
+                var newCrefParameterList = parameterList.WithParameters(newParameters).WithOpenParenToken(parameterList.OpenParenToken.WithTrailingTrivia());
                 return nameMemberCref.WithParameters(newCrefParameterList);
             }
 
@@ -397,7 +412,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return null;
         }
 
-        private SeparatedSyntaxList<T> PermuteDeclaration<T>(SeparatedSyntaxList<T> list, SignatureChange updatedSignature) where T : SyntaxNode
+        private SeparatedSyntaxList<T> PermuteDeclaration<T>(
+            SeparatedSyntaxList<T> list,
+            SyntaxToken openParamToken,
+            SignatureChange updatedSignature) where T : SyntaxNode
         {
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
@@ -410,7 +428,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var originalIndex = originalParameters.IndexOf(newParamSymbol);
 
                 // Transferring over trivia both from the node any associated separator.
-                var (newParamNode, newSeparator) = TransferTrivia(list, list[originalIndex], originalIndex, newIndex);
+                var (newParamNode, newSeparator) = TransferTrivia(list, list[originalIndex], originalIndex, newIndex, reorderedParameters.Count);
+
+                // We also need to transfer over the trailing trivia from the open param token since there may be comments/trivia there.
+                // TO-DO: refactor
+                if (originalIndex == 0)
+                {
+                    newParamNode = newParamNode.WithLeadingTrivia(newParamNode.GetLeadingTrivia().Concat(GetSeparatorCommentsWithInBetweenTrivia(openParamToken.TrailingTrivia)));
+                }
+
+                if (newIndex == 0)
+                {
+                    newParamNode = newParamNode.WithLeadingTrivia(openParamToken.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)).Concat(newParamNode.GetLeadingTrivia()));
+                }
 
                 newParameters.Add(newParamNode);
                 newSeparators[newIndex] = newSeparator;
@@ -423,17 +453,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SeparatedSyntaxList<T> list,
             T newParamNode,
             int originalIndex,
-            int newIndex) where T : SyntaxNode
+            int newIndex,
+            int reorderedParametersCount) where T : SyntaxNode
         {
             // Copy whitespace trivia from original position.
             newParamNode = TransferLeadingWhitespaceTrivia(newParamNode, list[newIndex]);
 
             // The separator associated with the node should have its trivia transferred over as well. If we're looking at the last node, then there is no associated separator.
-            var originalSeparator = originalIndex == list.Count - 1 ? new SyntaxToken() : list.GetSeparator(originalIndex);
-            var newSeparator = newIndex == list.Count - 1 ? new SyntaxToken() : list.GetSeparator(newIndex);
+            var originalSeparator = originalIndex >= list.Count - 1 ? new SyntaxToken() : list.GetSeparator(originalIndex);
+            var newSeparator = newIndex >= reorderedParametersCount - 1 ? new SyntaxToken() : list.GetSeparator(newIndex);
 
             // If the associated node is not switching positions, we don't need to do any work.
-            if (newIndex == originalIndex)
+            if (originalSeparator == newSeparator)
             {
                 return (newParamNode, newSeparator);
             }
@@ -542,18 +573,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         private static SeparatedSyntaxList<AttributeArgumentSyntax> PermuteAttributeArgumentList(
             ISymbol declarationSymbol,
             SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
+            SyntaxToken openParamToken,
             SignatureChange updatedSignature)
         {
             var originalArguments = arguments.Select(a => UnifiedArgumentSyntax.Create(a, arguments.IndexOf(a))).ToList();
             var permutedArguments = PermuteArguments(declarationSymbol, originalArguments, updatedSignature);
             var newSeparators = new SyntaxToken[originalArguments.Count];
 
-            return GetFinalPermutedArgumentsWithTrivia<AttributeArgumentSyntax>(arguments, permutedArguments, newSeparators);
+            return GetFinalPermutedArgumentsWithTrivia<AttributeArgumentSyntax>(arguments, openParamToken, permutedArguments, newSeparators);
         }
 
         private static SeparatedSyntaxList<ArgumentSyntax> PermuteArgumentList(
             ISymbol declarationSymbol,
             SeparatedSyntaxList<ArgumentSyntax> arguments,
+            SyntaxToken openParamToken,
             SignatureChange updatedSignature,
             bool isReducedExtensionMethod = false)
         {
@@ -561,11 +594,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var permutedArguments = PermuteArguments(declarationSymbol, originalArguments, updatedSignature, isReducedExtensionMethod);
             var newSeparators = new SyntaxToken[originalArguments.Count];
 
-            return GetFinalPermutedArgumentsWithTrivia<ArgumentSyntax>(arguments, permutedArguments, newSeparators);
+            return GetFinalPermutedArgumentsWithTrivia<ArgumentSyntax>(arguments, openParamToken, permutedArguments, newSeparators);
         }
 
         private static SeparatedSyntaxList<AttributeArgumentSyntax> GetFinalPermutedArgumentsWithTrivia<T>(
             SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
+            SyntaxToken openParamToken,
             List<IUnifiedArgumentSyntax> permutedArguments,
             SyntaxToken[] newSeparators)
         {
@@ -575,7 +609,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var argument = permutedArguments[newIndex];
                 var originalIndex = argument.Index;
 
-                var (newParamNode, newSeparator) = TransferTrivia(arguments, (AttributeArgumentSyntax)(UnifiedArgumentSyntax)permutedArguments[newIndex], originalIndex, newIndex);
+                var (newParamNode, newSeparator) = TransferTrivia(arguments, (AttributeArgumentSyntax)(UnifiedArgumentSyntax)permutedArguments[newIndex], originalIndex, newIndex, permutedArguments.Count);
+
+                if (originalIndex == 0)
+                {
+                    newParamNode = newParamNode.WithLeadingTrivia(newParamNode.GetLeadingTrivia().Concat(GetSeparatorCommentsWithInBetweenTrivia(openParamToken.TrailingTrivia)));
+                }
+
+                if (newIndex == 0)
+                {
+                    newParamNode = newParamNode.WithLeadingTrivia(openParamToken.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)).Concat(newParamNode.GetLeadingTrivia()));
+                }
 
                 finalArguments.Add(newParamNode);
                 newSeparators[newIndex] = newSeparator;
@@ -586,6 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         private static SeparatedSyntaxList<ArgumentSyntax> GetFinalPermutedArgumentsWithTrivia<T>(
             SeparatedSyntaxList<ArgumentSyntax> arguments,
+            SyntaxToken openParamToken,
             List<IUnifiedArgumentSyntax> permutedArguments,
             SyntaxToken[] newSeparators)
         {
@@ -595,7 +640,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var argument = permutedArguments[newIndex];
                 var originalIndex = argument.Index;
 
-                var (newParamNode, newSeparator) = TransferTrivia(arguments, (ArgumentSyntax)(UnifiedArgumentSyntax)permutedArguments[newIndex], originalIndex, newIndex);
+                var (newParamNode, newSeparator) = TransferTrivia(arguments, (ArgumentSyntax)(UnifiedArgumentSyntax)permutedArguments[newIndex], originalIndex, newIndex, permutedArguments.Count);
+
+                if (originalIndex == 0)
+                {
+                    newParamNode = newParamNode.WithLeadingTrivia(newParamNode.GetLeadingTrivia().Concat(GetSeparatorCommentsWithInBetweenTrivia(openParamToken.TrailingTrivia)));
+                }
+
+                if (newIndex == 0)
+                {
+                    newParamNode = newParamNode.WithLeadingTrivia(openParamToken.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)).Concat(newParamNode.GetLeadingTrivia()));
+                }
 
                 finalArguments.Add(newParamNode);
                 newSeparators[newIndex] = newSeparator;
