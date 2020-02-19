@@ -308,6 +308,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             // as that is not part of overload resolution.
         }
 
+        internal void FunctionPointerOverloadResolution(
+            ArrayBuilder<FunctionPointerMethodSymbol> funcPtrBuilder,
+            AnalyzedArguments analyzedArguments,
+            OverloadResolutionResult<FunctionPointerMethodSymbol> overloadResolutionResult,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert(funcPtrBuilder.Count == 1);
+            var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+
+            // PROTOTYPE(func-ptr): Handle dynamic
+            AddMemberToCandidateSet(
+                funcPtrBuilder[0],
+                overloadResolutionResult.ResultsBuilder,
+                funcPtrBuilder,
+                typeArgumentsBuilder,
+                receiverOpt: null,
+                analyzedArguments,
+                completeResults: true,
+                isMethodGroupConversion: false,
+                allowRefOmittedArguments: false,
+                containingTypeMapOpt: null,
+                inferWithDynamic: false,
+                ref useSiteDiagnostics,
+                allowUnexpandedForm: true);
+
+            ReportUseSiteDiagnostics(overloadResolutionResult.ResultsBuilder, ref useSiteDiagnostics);
+        }
+
         private void RemoveStaticInstanceMismatches<TMember>(
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             AnalyzedArguments arguments,

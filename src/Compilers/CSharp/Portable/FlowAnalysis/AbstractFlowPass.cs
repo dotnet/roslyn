@@ -3007,6 +3007,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            Visit(node.InvokedExpression);
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.FunctionPointer.Signature);
+            return null;
+        }
+
         /// <summary>
         /// This visitor represents just the assignment part of the null coalescing assignment
         /// operator.

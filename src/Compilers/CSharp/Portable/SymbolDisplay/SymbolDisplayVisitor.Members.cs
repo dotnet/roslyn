@@ -264,6 +264,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, symbol, symbol.Name));
                 return;
             }
+            else if (symbol.MethodKind == MethodKind.FunctionPointerSignature)
+            {
+                AddKeyword(SyntaxKind.DelegateKeyword);
+                AddPunctuation(SyntaxKind.AsteriskToken);
+
+                // PROTOTYPE(func-ptr): Expose calling convention and format here
+
+                AddPunctuation(SyntaxKind.LessThanToken);
+
+                foreach (var param in symbol.Parameters)
+                {
+                    param.Accept(this);
+                    AddPunctuation(SyntaxKind.CommaToken);
+                }
+
+                symbol.ReturnType.Accept(this);
+
+                AddPunctuation(SyntaxKind.GreaterThanToken);
+                return;
+            }
 
             if (symbol.IsExtensionMethod && format.ExtensionMethodStyle != SymbolDisplayExtensionMethodStyle.Default)
             {

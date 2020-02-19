@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AddressOfOperator,
         PointerIndirectionOperator,
         PointerElementAccess,
+        FunctionPointerInvocation,
         RefTypeOperator,
         MakeRefOperator,
         RefValueOperator,
@@ -1041,6 +1042,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression != this.Expression || index != this.Index || @checked != this.Checked || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundPointerElementAccess(this.Syntax, expression, index, @checked, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundFunctionPointerInvocation : BoundExpression
+    {
+        public BoundFunctionPointerInvocation(SyntaxNode syntax, BoundExpression invokedExpression, FunctionPointerTypeSymbol functionPointer, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.FunctionPointerInvocation, syntax, type, hasErrors || invokedExpression.HasErrors() || arguments.HasErrors())
+        {
+
+            RoslynDebug.Assert(invokedExpression is object, "Field 'invokedExpression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(functionPointer is object, "Field 'functionPointer' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.InvokedExpression = invokedExpression;
+            this.FunctionPointer = functionPointer;
+            this.Arguments = arguments;
+            this.ArgumentRefKindsOpt = argumentRefKindsOpt;
+        }
+
+
+        public new TypeSymbol Type => base.Type!;
+
+        public BoundExpression InvokedExpression { get; }
+
+        public FunctionPointerTypeSymbol FunctionPointer { get; }
+
+        public ImmutableArray<BoundExpression> Arguments { get; }
+
+        public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitFunctionPointerInvocation(this);
+
+        public BoundFunctionPointerInvocation Update(BoundExpression invokedExpression, FunctionPointerTypeSymbol functionPointer, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol type)
+        {
+            if (invokedExpression != this.InvokedExpression || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(functionPointer, this.FunctionPointer) || arguments != this.Arguments || argumentRefKindsOpt != this.ArgumentRefKindsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundFunctionPointerInvocation(this.Syntax, invokedExpression, functionPointer, arguments, argumentRefKindsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7449,6 +7492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitPointerIndirectionOperator((BoundPointerIndirectionOperator)node, arg);
                 case BoundKind.PointerElementAccess: 
                     return VisitPointerElementAccess((BoundPointerElementAccess)node, arg);
+                case BoundKind.FunctionPointerInvocation: 
+                    return VisitFunctionPointerInvocation((BoundFunctionPointerInvocation)node, arg);
                 case BoundKind.RefTypeOperator: 
                     return VisitRefTypeOperator((BoundRefTypeOperator)node, arg);
                 case BoundKind.MakeRefOperator: 
@@ -7809,6 +7854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitAddressOfOperator(BoundAddressOfOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPointerElementAccess(BoundPointerElementAccess node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitRefTypeOperator(BoundRefTypeOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitMakeRefOperator(BoundMakeRefOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitRefValueOperator(BoundRefValueOperator node, A arg) => this.DefaultVisit(node, arg);
@@ -8000,6 +8046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitAddressOfOperator(BoundAddressOfOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPointerElementAccess(BoundPointerElementAccess node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitRefTypeOperator(BoundRefTypeOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitMakeRefOperator(BoundMakeRefOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitRefValueOperator(BoundRefValueOperator node) => this.DefaultVisit(node);
@@ -8247,6 +8294,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Expression);
             this.Visit(node.Index);
+            return null;
+        }
+        public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            this.Visit(node.InvokedExpression);
+            this.VisitList(node.Arguments);
             return null;
         }
         public override BoundNode? VisitRefTypeOperator(BoundRefTypeOperator node)
@@ -9142,6 +9195,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression index = (BoundExpression)this.Visit(node.Index);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(expression, index, node.Checked, type);
+        }
+        public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            BoundExpression invokedExpression = (BoundExpression)this.Visit(node.InvokedExpression);
+            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(invokedExpression, node.FunctionPointer, arguments, node.ArgumentRefKindsOpt, type);
         }
         public override BoundNode? VisitRefTypeOperator(BoundRefTypeOperator node)
         {
@@ -10401,6 +10461,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(expression, index, node.Checked, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            FunctionPointerTypeSymbol functionPointer = GetUpdatedSymbol(node, node.FunctionPointer);
+            BoundExpression invokedExpression = (BoundExpression)this.Visit(node.InvokedExpression);
+            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
+            BoundFunctionPointerInvocation updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(invokedExpression, functionPointer, arguments, node.ArgumentRefKindsOpt, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(invokedExpression, functionPointer, arguments, node.ArgumentRefKindsOpt, node.Type);
             }
             return updatedNode;
         }
@@ -12546,6 +12625,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("index", null, new TreeDumperNode[] { Visit(node.Index, null) }),
             new TreeDumperNode("@checked", node.Checked, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node, object? arg) => new TreeDumperNode("functionPointerInvocation", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("invokedExpression", null, new TreeDumperNode[] { Visit(node.InvokedExpression, null) }),
+            new TreeDumperNode("functionPointer", node.FunctionPointer, null),
+            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+            new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

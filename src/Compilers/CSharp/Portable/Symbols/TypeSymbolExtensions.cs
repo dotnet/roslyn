@@ -335,6 +335,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).IsSZArray;
         }
 
+        public static bool IsFunctionPointerType(this TypeSymbol type)
+        {
+            RoslynDebug.Assert((object)type != null);
+            return type.TypeKind == TypeKind.FunctionPointer;
+        }
+
         // If the type is a delegate type, it returns it. If the type is an
         // expression tree type associated with a delegate type, it returns
         // the delegate type. Otherwise, null.

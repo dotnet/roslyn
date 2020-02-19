@@ -15,9 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenFunctionPointersTests : CSharpTestBase
     {
-        private CompilationVerifier CompileAndVerifyFunctionPointers(string source, Action<ModuleSymbol>? symbolValidator = null, Verification verify = Verification.Passes)
+        private CompilationVerifier CompileAndVerifyFunctionPointers(string source, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null, Verification verify = Verification.Passes)
         {
-            return CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll, symbolValidator: symbolValidator, verify: verify);
+            return CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: verify);
+        }
+
+        private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
+        {
+            var comp = CreateCompilationWithIL(source, ilStub, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe);
+            return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator);
         }
 
         [Theory]
@@ -255,7 +261,7 @@ public unsafe class C
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""delegate*<void,string> C.<Prop1>k__BackingField""
+  IL_0001:  ldfld      ""delegate*<string,void> C.<Prop1>k__BackingField""
   IL_0006:  ret
 }
 ");
@@ -266,7 +272,7 @@ public unsafe class C
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      ""delegate*<void,string> C.<Prop1>k__BackingField""
+  IL_0002:  stfld      ""delegate*<string,void> C.<Prop1>k__BackingField""
   IL_0007:  ret
 }
 ");
@@ -344,8 +350,7 @@ class D : C
     public unsafe override delegate*<ref int, ref bool> M() => throw null;
 }";
 
-            var comp = CreateCompilationWithIL(source, ilSource: ilSource, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
-            CompileAndVerify(comp, symbolValidator: symbolValidator);
+            var comp = CompileAndVerifyFunctionPointersWithIl(source, ilStub: ilSource, symbolValidator: symbolValidator);
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -432,6 +437,928 @@ unsafe struct S
     public delegate*<S, S> Property { get; set; }
 }", verify: Verification.Skipped);
         }
+
+        [Fact]
+        public void CalliOnParameter()
+        {
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        method void *() LoadPtr () cil managed 
+    {
+        nop
+        ldftn void Program::Called()
+        ret
+    } // end of method Program::Main
+
+    .method private hidebysig static 
+        void Called () cil managed 
+    {
+        nop
+        ldstr ""Called""
+        call void [mscorlib]System.Console::WriteLine(string)
+        nop
+        ret
+    } // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+class Caller
+{
+    public unsafe static void Main()
+    {
+        Call(Program.LoadPtr());
+    }
+
+    public unsafe static void Call(delegate*<void> ptr)
+    {
+        ptr();
+    }
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: "Called");
+            verifier.VerifyIL("Caller.Call(delegate*<void>)", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  calli      0x2
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void CalliOnFieldNoArgs()
+        {
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        method void *() LoadPtr () cil managed 
+    {
+        nop
+        ldftn void Program::Called()
+        ret
+    } // end of method Program::Main
+
+    .method private hidebysig static 
+        void Called () cil managed 
+    {
+        nop
+        ldstr ""Called""
+        call void [mscorlib]System.Console::WriteLine(string)
+        nop
+        ret
+    } // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+unsafe class Caller
+{
+    static delegate*<void> _field;
+
+    public unsafe static void Main()
+    {
+        _field = Program.LoadPtr();
+        Call();
+    }
+
+    public unsafe static void Call()
+    {
+        _field();
+    }
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: "Called");
+            verifier.VerifyIL("Caller.Call()", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldsfld     ""delegate*<void> Caller._field""
+  IL_0005:  calli      0x3
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void CalliOnFieldArgs()
+        {
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        method void *(string) LoadPtr () cil managed 
+    {
+        nop
+        ldftn void Program::Called(string)
+        ret
+    } // end of method Program::Main
+
+    .method private hidebysig static 
+        void Called (string arg) cil managed 
+    {
+        nop
+        ldarg.0
+        call void [mscorlib]System.Console::WriteLine(string)
+        nop
+        ret
+    } // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+unsafe class Caller
+{
+    static delegate*<string, void> _field;
+
+    public unsafe static void Main()
+    {
+        _field = Program.LoadPtr();
+        Call();
+    }
+
+    public unsafe static void Call()
+    {
+        _field(""Called"");
+    }
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: "Called");
+            verifier.VerifyIL("Caller.Call()", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (delegate*<string,void> V_0)
+  IL_0000:  ldsfld     ""delegate*<string,void> Caller._field""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""Called""
+  IL_000b:  ldloc.0
+  IL_000c:  calli      0x4
+  IL_0011:  ret
+}");
+        }
+
+        [Theory(Skip = "PROTOTYPE(func-ptr)")]
+        [InlineData("cdecl")]
+        [InlineData("thiscall")]
+        [InlineData("stdcall")]
+        public void UnmanagedCallingConventions(string convention)
+        {
+            var ilStub = $@"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{{
+    // Methods
+    .method public hidebysig static 
+        method unmanaged {convention} void *() LoadPtr () cil managed 
+    {{
+        nop
+        ldftn unmanaged cdecl void Program::Called()
+        ret
+    }} // end of method Program::Main
+
+    .method private hidebysig static 
+        unmanaged {convention} void Called () cil managed 
+    {{
+        nop
+        ldstr ""Called""
+        call void [mscorlib]System.Console::WriteLine(string)
+        nop
+        ret
+    }} // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {{
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    }} // end of Program::.ctor
+}}
+";
+
+            var source = $@"
+class Caller
+{{
+    public unsafe static void Main()
+    {{
+        Call(Program.LoadPtr());
+    }}
+
+    public unsafe static void Call(delegate* {convention}<void> ptr)
+    {{
+        ptr();
+    }}
+}}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: "Called");
+            verifier.VerifyIL($"Caller.Call(delegate* {convention}<void>)", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  calli      0x2
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void InvocationOrder()
+        {
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        method void *(string, string) LoadPtr () cil managed 
+    {
+        nop
+        ldftn void Program::Called(string, string)
+        ret
+    } // end of method Program::Main
+
+    .method private hidebysig static 
+        void Called (
+            string arg1,
+            string arg2) cil managed 
+    {
+        nop
+        ldarg.0
+        ldarg.1
+        call string [mscorlib]System.String::Concat(string, string)
+        call void [mscorlib]System.Console::WriteLine(string)
+        nop
+        ret
+    } // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+        ldarg.0
+        call instance void[mscorlib]
+        System.Object::.ctor()
+        nop
+        ret
+    } // end of Program::.ctor
+}";
+
+            var source = @"
+using System;
+unsafe class C
+{
+    static delegate*<string, string, void> Prop
+    {
+        get
+        {
+            Console.WriteLine(""Getter"");
+            return Program.LoadPtr();
+        }
+    }
+
+    static delegate*<string, string, void> Method()
+    {
+        Console.WriteLine(""Method"");
+        return Program.LoadPtr();
+    }
+
+    static string GetArg(string val)
+    {
+        Console.WriteLine($""Getting {val}"");
+        return val;
+    }
+
+    static void PropertyOrder()
+    {
+        Prop(GetArg(""1""), GetArg(""2""));
+    }
+
+    static void MethodOrder()
+    {
+        Method()(GetArg(""3""), GetArg(""4""));
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(""Property Access"");
+        PropertyOrder();
+        Console.WriteLine(""Method Access"");
+        MethodOrder();
+    }
+}
+";
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: @"
+Property Access
+Getter
+Getting 1
+Getting 2
+12
+Method Access
+Method
+Getting 3
+Getting 4
+34");
+
+            verifier.VerifyIL("C.PropertyOrder", expectedIL: @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (delegate*<string,string,void> V_0)
+  IL_0000:  call       ""delegate*<string,string,void> C.Prop.get""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""1""
+  IL_000b:  call       ""string C.GetArg(string)""
+  IL_0010:  ldstr      ""2""
+  IL_0015:  call       ""string C.GetArg(string)""
+  IL_001a:  ldloc.0
+  IL_001b:  calli      0x6
+  IL_0020:  ret
+}");
+
+            verifier.VerifyIL("C.MethodOrder()", expectedIL: @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (delegate*<string,string,void> V_0)
+  IL_0000:  call       ""delegate*<string,string,void> C.Method()""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""3""
+  IL_000b:  call       ""string C.GetArg(string)""
+  IL_0010:  ldstr      ""4""
+  IL_0015:  call       ""string C.GetArg(string)""
+  IL_001a:  ldloc.0
+  IL_001b:  calli      0x6
+  IL_0020:  ret
+}");
+        }
+
+        [Fact]
+        public void ReturnValueUsed()
+        {
+
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        method string *(string) LoadPtr () cil managed 
+    {
+        nop
+        ldftn string Program::Called(string)
+        ret
+    } // end of method Program::Main
+
+    .method private hidebysig static 
+        string Called (string arg) cil managed 
+    {
+        nop
+        ldstr ""Called""
+        call void [mscorlib]System.Console::WriteLine(string)
+        ldarg.0
+        ret
+    } // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        var retValue = Program.LoadPtr()(""Returned"");
+        Console.WriteLine(retValue);
+    }
+}
+";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: @"
+Called
+Returned");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (delegate*<string,string> V_0)
+  IL_0000:  call       ""delegate*<string,string> Program.LoadPtr()""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""Returned""
+  IL_000b:  ldloc.0
+  IL_000c:  calli      0x2
+  IL_0011:  call       ""void System.Console.WriteLine(string)""
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void ReturnValueUnused()
+        {
+
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        method string *(string) LoadPtr () cil managed 
+    {
+        nop
+        ldftn string Program::Called(string)
+        ret
+    } // end of method Program::Main
+
+    .method private hidebysig static 
+        string Called (string arg) cil managed 
+    {
+        nop
+        ldstr ""Called""
+        call void [mscorlib]System.Console::WriteLine(string)
+        ldarg.0
+        ret
+    } // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        var retValue = Program.LoadPtr()(""Unused"");
+        Console.WriteLine(""Constant"");
+    }
+}
+";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: @"
+Called
+Constant");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (delegate*<string,string> V_0)
+  IL_0000:  call       ""delegate*<string,string> Program.LoadPtr()""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""Unused""
+  IL_000b:  ldloc.0
+  IL_000c:  calli      0x2
+  IL_0011:  pop
+  IL_0012:  ldstr      ""Constant""
+  IL_0017:  call       ""void System.Console.WriteLine(string)""
+  IL_001c:  ret
+}");
+        }
+
+        [Fact]
+        public void FunctionPointerReturningFunctionPointer()
+        {
+
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        method method string *(string) *() LoadPtr () cil managed 
+    {
+        nop
+        ldftn method string *(string) Program::Called1()
+        ret
+    } // end of method Program::LoadPtr
+
+    .method private hidebysig static 
+        method string *(string) Called1 () cil managed 
+    {
+        nop
+        ldstr ""Outer pointer""
+        call void [mscorlib]System.Console::WriteLine(string)
+        ldftn string Program::Called2(string)
+        ret
+    } // end of Program::Called1
+
+    .method private hidebysig static 
+        string Called2 (string arg) cil managed 
+    {
+        nop
+        ldstr ""Inner pointer""
+        call void [mscorlib]System.Console::WriteLine(string)
+        ldarg.0
+        ret
+    } // end of Program::Called2
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+using System;
+unsafe class C
+{
+    public static void Main()
+    {
+        var outer = Program.LoadPtr();
+        var inner = outer();
+        Console.WriteLine(inner(""Returned""));
+    }
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: @"
+Outer pointer
+Inner pointer
+Returned");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (delegate*<string,string> V_0) //inner
+  IL_0000:  call       ""delegate*<delegate*<string,string>> Program.LoadPtr()""
+  IL_0005:  calli      0x2
+  IL_000a:  stloc.0
+  IL_000b:  ldstr      ""Returned""
+  IL_0010:  ldloc.0
+  IL_0011:  calli      0x3
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
+}");
+        }
+
+        [Fact]
+        public void UserDefinedConversionParameter()
+        {
+
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    .field public string '_field'
+
+    // Methods
+    .method public hidebysig static 
+        method void *(class Program) LoadPtr () cil managed 
+    {
+        nop
+        ldstr ""LoadPtr""
+        call void [mscorlib]System.Console::WriteLine(string)
+        ldftn void Program::Called(class Program)
+        ret
+    } // end of method Program::LoadPtr
+
+    .method private hidebysig static 
+        void Called (class Program arg1) cil managed 
+    {
+        nop
+        ldarg.0
+        ldfld string Program::'_field'
+        call void [mscorlib]System.Console::WriteLine(string)
+        ret
+    } // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+using System;
+unsafe class C
+{
+    public static void Main()
+    {
+        Program.LoadPtr()(new C());
+    }
+
+    public static implicit operator Program(C c)
+    {
+        var p = new Program();
+        p._field = ""Implicit conversion"";
+        return p;
+    }
+}";
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: @"
+LoadPtr
+Implicit conversion
+");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (delegate*<Program,void> V_0)
+  IL_0000:  call       ""delegate*<Program,void> Program.LoadPtr()""
+  IL_0005:  stloc.0
+  IL_0006:  newobj     ""C..ctor()""
+  IL_000b:  call       ""Program C.op_Implicit(C)""
+  IL_0010:  ldloc.0
+  IL_0011:  calli      0x4
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void RefParameter()
+        {
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        method void *(string&) LoadPtr () cil managed 
+    {
+        nop
+        ldftn void Program::Called(string&)
+        ret
+    } // end of method Program::Main
+
+    .method private hidebysig static 
+        void Called (string& arg) cil managed 
+    {
+        nop
+        ldarg.0
+        ldstr ""Ref set""
+        stind.ref
+        ret
+    } // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<ref string, void> pointer = Program.LoadPtr();
+        string str = ""Unset"";
+        pointer(ref str);
+        Console.WriteLine(str);
+    }
+}
+";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: @"Ref set");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (delegate*<ref string,void> V_0, //pointer
+                string V_1) //str
+  IL_0000:  call       ""delegate*<ref string,void> Program.LoadPtr()""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""Unset""
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  ldloc.0
+  IL_000f:  calli      0x3
+  IL_0014:  ldloc.1
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReturnUnused()
+        {
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    .field public static string 'field'
+
+    // Methods
+    .method public hidebysig static 
+        method string& *() LoadPtr () cil managed 
+    {
+        nop
+        ldftn string& Program::Called()
+        ret
+    } // end of method Program::Main
+
+    .method private hidebysig static 
+        string& Called () cil managed 
+    {
+        nop
+        ldsflda string Program::'field'
+        ret
+    } // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        Program.field = ""Field"";
+        delegate*<ref string> pointer = Program.LoadPtr();
+        Console.WriteLine(pointer());
+    }
+}
+";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: @"Field");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  IL_0000:  ldstr      ""Field""
+  IL_0005:  stsfld     ""string Program.field""
+  IL_000a:  call       ""delegate*<string> Program.LoadPtr()""
+  IL_000f:  calli      0x2
+  IL_0014:  ldind.ref
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReturnUsed()
+        {
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    .field public static string 'field'
+
+    // Methods
+    .method public hidebysig static 
+        method string& *() LoadPtr () cil managed 
+    {
+        nop
+        ldftn string& Program::Called()
+        ret
+    } // end of method Program::Main
+
+    .method private hidebysig static 
+        string& Called () cil managed 
+    {
+        nop
+        ldsflda string Program::'field'
+        ret
+    } // end of Program::Called
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        Program.LoadPtr()() = ""Field"";
+        Console.WriteLine(Program.field);
+    }
+}
+";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: @"Field");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  call       ""delegate*<string> Program.LoadPtr()""
+  IL_0005:  calli      0x1
+  IL_000a:  ldstr      ""Field""
+  IL_000f:  stind.ref
+  IL_0010:  ldsfld     ""string Program.field""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
+}");
+        }
+
+        [Fact]
+        public void Typeof()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        var t = typeof(delegate*<void>);
+        Console.WriteLine(t.ToString());
+    }
+}
+", expectedOutput: "System.IntPtr");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldtoken    ""delegate*<void>""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  callvirt   ""string object.ToString()""
+  IL_000f:  call       ""void System.Console.WriteLine(string)""
+  IL_0014:  ret
+}");
+        }
+
+        // typeof() on function pointer
 
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {

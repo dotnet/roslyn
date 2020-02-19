@@ -145,6 +145,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
+        internal static void VisitSignature(Cci.ISignature signature, EmitContext context)
+        {
+            // Visit parameter types
+            VisitParameters(signature.GetParameters(context), context);
+
+            // Visit return value type
+            VisitTypeReference(signature.GetType(context), context);
+
+            foreach (var typeModifier in signature.RefCustomModifiers)
+            {
+                VisitTypeReference(typeModifier.GetModifier(context), context);
+            }
+
+            foreach (var typeModifier in signature.ReturnValueCustomModifiers)
+            {
+                VisitTypeReference(typeModifier.GetModifier(context), context);
+            }
+        }
+
         private static void VisitParameters(ImmutableArray<Cci.IParameterTypeInformation> parameters, EmitContext context)
         {
             foreach (var param in parameters)

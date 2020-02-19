@@ -1050,6 +1050,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     Debug.Assert(((BoundCall)lhs).Method.RefKind == RefKind.Ref, "only ref returning methods are assignable");
                     return true;
 
+                case BoundKind.FunctionPointerInvocation:
+                    Debug.Assert(((BoundFunctionPointerInvocation)lhs).FunctionPointer.Signature.RefKind == RefKind.Ref, "only ref returning function pointers are assignable");
+                    return true;
+
                 case BoundKind.ConditionalOperator:
                     Debug.Assert(((BoundConditionalOperator)lhs).IsRef, "only ref ternaries are assignable");
                     return true;
@@ -1669,6 +1673,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EnsureOnlyEvalStack();
 
             return node.Update(node.RefKind, expressionOpt);
+        }
+
+        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            BoundExpression invokedExpression = (BoundExpression)this.Visit(node.InvokedExpression);
+
+            if (invokedExpression is BoundLocal { LocalSymbol: var localSymbol }
+                && node.Arguments.Length > 0
+                && CanScheduleToStack(localSymbol))
+            {
+                // This local's side effects must come before the argument's side effects, but it must
+                // be on top of the stack when calling the function pointer
+                ShouldNotSchedule(localSymbol);
+            }
+
+            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
+            return node.Update(invokedExpression, node.FunctionPointer, arguments, node.ArgumentRefKindsOpt, node.Type);
         }
 
         // Ensures that there are no stack locals.

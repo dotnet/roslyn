@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<T> memberGroup, // the T is just a convenience for the caller
             NamedTypeSymbol typeContainingConstructor,
             NamedTypeSymbol delegateTypeBeingInvoked,
+            FunctionPointerMethodSymbol functionPointerMethodBeingInvoked,
             CSharpSyntaxNode queryClause = null,
             bool isMethodGroupConversion = false,
             RefKind? returnRefKind = null,
@@ -463,7 +464,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If there are multiple supported candidates, we don't have a good way to choose the best
                 // one so we report a general diagnostic (below).
-                if (!(firstSupported.Result.Kind == MemberResolutionKind.RequiredParameterMissing && supportedRequiredParameterMissingConflicts) && !isMethodGroupConversion)
+                if (!(firstSupported.Result.Kind == MemberResolutionKind.RequiredParameterMissing && supportedRequiredParameterMissingConflicts)
+                    && !isMethodGroupConversion
+                    // Function pointer type symbols don't have named parameters, so we just want to report a general mismatched parameter
+                    // count instead of name errors.
+                    && !(firstSupported.Member is FunctionPointerMethodSymbol _))
                 {
                     switch (firstSupported.Result.Kind)
                     {
@@ -526,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isMethodGroupConversion)
             {
-                ReportBadParameterCount(diagnostics, name, arguments, symbols, location, typeContainingConstructor, delegateTypeBeingInvoked);
+                ReportBadParameterCount(diagnostics, name, arguments, symbols, location, typeContainingConstructor, delegateTypeBeingInvoked, functionPointerMethodBeingInvoked);
             }
         }
 
@@ -860,17 +865,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Symbol> symbols,
             Location location,
             NamedTypeSymbol typeContainingConstructor,
-            NamedTypeSymbol delegateTypeBeingInvoked)
+            NamedTypeSymbol delegateTypeBeingInvoked,
+            FunctionPointerMethodSymbol functionPointerMethodBeingInvoked)
         {
             // error CS1501: No overload for method 'M' takes n arguments
             // error CS1729: 'M' does not contain a constructor that takes n arguments
             // error CS1593: Delegate 'M' does not take n arguments
+            // error CS8757: Function pointer 'M' does not take n arguments
 
-            var code =
-                (object)typeContainingConstructor != null ? ErrorCode.ERR_BadCtorArgCount :
-                (object)delegateTypeBeingInvoked != null ? ErrorCode.ERR_BadDelArgCount :
-                ErrorCode.ERR_BadArgCount;
-            var target = (object)typeContainingConstructor ?? (object)delegateTypeBeingInvoked ?? name;
+            (ErrorCode code, object target) = (typeContainingConstructor, delegateTypeBeingInvoked, functionPointerMethodBeingInvoked) switch
+            {
+                (object t, _, _) => (ErrorCode.ERR_BadCtorArgCount, t),
+                (_, object t, _) => (ErrorCode.ERR_BadDelArgCount, t),
+                (_, _, object t) => (ErrorCode.ERR_BadFuncPointerArgCount, t),
+                _ => (ErrorCode.ERR_BadArgCount, name)
+            };
 
             int argCount = arguments.Arguments.Count;
             if (arguments.IsExtensionMethodInvocation)

@@ -488,6 +488,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var call = (BoundCall)expr;
                     return CheckCallValueKind(call, node, valueKind, checkingReceiver, diagnostics);
 
+                case BoundKind.FunctionPointerInvocation:
+                    return CheckMethodReturnValueKind(((BoundFunctionPointerInvocation)expr).FunctionPointer.Signature,
+                        expr.Syntax,
+                        node,
+                        valueKind,
+                        checkingReceiver,
+                        diagnostics);
+
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
                     // If we got here this should be a pttern indexer taking a Range,

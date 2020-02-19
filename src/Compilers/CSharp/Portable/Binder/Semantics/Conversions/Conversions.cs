@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             name: expr.Name,
                             receiver: resolution.MethodGroup.Receiver, invokedExpression: expr.Syntax, arguments: resolution.AnalyzedArguments,
                             memberGroup: resolution.MethodGroup.Methods.ToImmutable(),
-                            typeContainingConstructor: null, delegateTypeBeingInvoked: null,
+                            typeContainingConstructor: null, delegateTypeBeingInvoked: null, functionPointerMethodBeingInvoked: null,
                             isMethodGroupConversion: true, returnRefKind: invokeMethodOpt?.RefKind, delegateType: targetType);
 
                         if (!overloadDiagnostics.IsEmptyWithoutResolution)

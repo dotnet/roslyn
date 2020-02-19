@@ -5443,7 +5443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.ReportDiagnostics(
                         binder: this, location: errorLocation, nodeOpt: null, diagnostics,
                         name: errorName, receiver: null, invokedExpression: null, analyzedArguments,
-                        memberGroup: candidateConstructors, typeContainingConstructors, delegateTypeBeingInvoked: null);
+                        memberGroup: candidateConstructors, typeContainingConstructors, delegateTypeBeingInvoked: null,
+                        functionPointerMethodBeingInvoked: null);
                 }
             }
 
@@ -7522,7 +7523,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             arguments: analyzedArguments,
                             memberGroup: candidates,
                             typeContainingConstructor: null,
-                            delegateTypeBeingInvoked: null);
+                            delegateTypeBeingInvoked: null,
+                            functionPointerMethodBeingInvoked: null);
                     }
                 }
 

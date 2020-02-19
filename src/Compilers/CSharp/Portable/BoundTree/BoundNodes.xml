@@ -329,7 +329,16 @@
     <Field Name="Index" Type="BoundExpression"/>
     <Field Name="Checked" Type="bool"/>
   </Node>
-  
+
+  <Node Name="BoundFunctionPointerInvocation" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="InvokedExpression" Type="BoundExpression"/>
+    <Field Name="FunctionPointer" Type="FunctionPointerTypeSymbol"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+  </Node>
+
   <Node Name="BoundRefTypeOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>

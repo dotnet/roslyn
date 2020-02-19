@@ -425,7 +425,7 @@ namespace Microsoft.Cci
         private bool _tableIndicesAreComplete;
 
         private EntityHandle[] _pseudoSymbolTokenToTokenMap;
-        private IReference[] _pseudoSymbolTokenToReferenceMap;
+        private object[] _pseudoSymbolTokenToReferenceMap;
         private UserStringHandle[] _pseudoStringTokenToTokenMap;
         private bool _userStringTokenOverflow;
         private List<string> _pseudoStringTokenToStringMap;
@@ -468,10 +468,10 @@ namespace Microsoft.Cci
             var referencesInIL = module.ReferencesInIL(out count);
 
             _pseudoSymbolTokenToTokenMap = new EntityHandle[count];
-            _pseudoSymbolTokenToReferenceMap = new IReference[count];
+            _pseudoSymbolTokenToReferenceMap = new object[count];
 
             int cur = 0;
-            foreach (IReference o in referencesInIL)
+            foreach (object o in referencesInIL)
             {
                 _pseudoSymbolTokenToReferenceMap[cur] = o;
                 cur++;
@@ -1203,6 +1203,18 @@ namespace Microsoft.Cci
             return methodSpec != null
                 ? (EntityHandle)GetMethodSpecificationHandle(methodSpec)
                 : GetMemberReferenceHandle(methodReference);
+        }
+
+        internal EntityHandle GetStandaloneSignatureHandle(ISignature signature)
+        {
+            Debug.Assert(!(signature is IMethodReference));
+            var builder = PooledBlobBuilder.GetInstance();
+            var signatureEncoder = new BlobEncoder(builder).MethodSignature(convention: signature.CallingConvention.ToSignatureConvention(), genericParameterCount: 0, isInstanceMethod: false);
+            SerializeReturnValueAndParameters(signatureEncoder, signature, varargParameters: ImmutableArray<IParameterTypeInformation>.Empty);
+
+            BlobHandle blobIndex = metadata.GetOrAddBlob(builder);
+            StandaloneSignatureHandle handle = GetOrAddStandaloneSignatureHandle(blobIndex);
+            return handle;
         }
 
         public static ParameterAttributes GetParameterAttributes(IParameterDefinition parDef)
@@ -3025,13 +3037,14 @@ namespace Microsoft.Cci
             return buffer[pos] | buffer[pos + 1] << 8 | buffer[pos + 2] << 16 | buffer[pos + 3] << 24;
         }
 
-        private EntityHandle GetHandle(IReference reference)
+        private EntityHandle GetHandle(object reference)
         {
             return reference switch
             {
                 ITypeReference typeReference => GetTypeHandle(typeReference),
                 IFieldReference fieldReference => GetFieldHandle(fieldReference),
                 IMethodReference methodReference => GetMethodHandle(methodReference),
+                ISignature signature => GetStandaloneSignatureHandle(signature),
                 _ => throw ExceptionUtilities.UnexpectedValue(reference)
             };
         }
@@ -3039,14 +3052,17 @@ namespace Microsoft.Cci
         private EntityHandle ResolveEntityHandleFromPseudoToken(int pseudoSymbolToken)
         {
             int index = pseudoSymbolToken;
-            var reference = _pseudoSymbolTokenToReferenceMap[index];
-            if (reference != null)
+            var entity = _pseudoSymbolTokenToReferenceMap[index];
+            if (entity != null)
             {
                 // EDMAURER since method bodies are not visited as they are in CCI, the operations
                 // that would have been done on them are done here.
-                _referenceVisitor.VisitMethodBodyReference(reference);
+                if (entity is IReference reference)
+                {
+                    _referenceVisitor.VisitMethodBodyReference(reference);
+                }
 
-                EntityHandle handle = GetHandle(reference);
+                EntityHandle handle = GetHandle(entity);
                 _pseudoSymbolTokenToTokenMap[index] = handle;
                 _pseudoSymbolTokenToReferenceMap[index] = null; // Set to null to bypass next lookup
                 return handle;
@@ -3129,6 +3145,7 @@ namespace Microsoft.Cci
                     case OperandType.InlineMethod:
                     case OperandType.InlineTok:
                     case OperandType.InlineType:
+                    case OperandType.InlineSig:
                         {
                             int pseudoToken = ReadInt32(generatedIL, offset);
                             int token = 0;
@@ -3201,7 +3218,6 @@ namespace Microsoft.Cci
                             break;
                         }
 
-                    case OperandType.InlineSig: // calli
                     case OperandType.InlineBrTarget:
                     case OperandType.InlineI:
                     case OperandType.ShortInlineR:
