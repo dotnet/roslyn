@@ -53,19 +53,9 @@
     <Compile Include="..\..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
-    <Compile Update="VBFeaturesResources.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>VBFeaturesResources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="VBFeaturesResources.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources</CustomToolNamespace>
-      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
-      <LastGenOutput>VBFeaturesResources.Designer.vb</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <EmbeddedResource Update="VBFeaturesResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
@@ -75,4 +65,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
+  <Import Project="..\..\..\Analyzers\VisualBasic\Analyzers\VisualBasicAnalyzers.projitems" Label="Shared" />
+  <Import Project="..\..\..\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems" Label="Shared" />
 </Project>

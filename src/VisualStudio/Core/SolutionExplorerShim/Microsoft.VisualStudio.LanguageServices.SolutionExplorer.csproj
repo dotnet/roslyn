@@ -42,15 +42,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="SolutionExplorerShim.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SolutionExplorerShim.resx</DependentUpon>
-    </Compile>
-    <EmbeddedResource Update="SolutionExplorerShim.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>SolutionExplorerShim.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="SolutionExplorerShim.resx" GenerateSource="true" />
   </ItemGroup>
 </Project>

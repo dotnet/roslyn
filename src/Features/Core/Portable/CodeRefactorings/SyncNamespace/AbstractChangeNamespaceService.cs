@@ -863,9 +863,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     ? container.DescendantNodes().First()
                     : container;
 
-                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst, cancellationToken);
+                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var generator = document.GetLanguageService<SyntaxGenerator>();
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, placeSystemNamespaceFirst, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
 
