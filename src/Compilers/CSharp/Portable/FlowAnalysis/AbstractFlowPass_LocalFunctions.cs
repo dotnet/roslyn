@@ -155,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TLocalFunctionState currentState,
             ref TLocalState stateAtReturn)
         {
-            bool anyChanged = Join(ref currentState.StateFromTop, ref stateAtReturn);
+            bool anyChanged = LocalFunctionEnd(savedState, currentState, ref stateAtReturn);
+            anyChanged |= Join(ref currentState.StateFromTop, ref stateAtReturn);
 
             if (NonMonotonicState.HasValue)
             {
@@ -166,10 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Meet(ref value, ref stateAtReturn);
                 anyChanged |= Join(ref currentState.StateFromBottom, ref value);
             }
-
-            // N.B. Do NOT shortcut this operation. LocalFunctionEnd may have important
-            // side effects to the local function state
-            anyChanged |= LocalFunctionEnd(savedState, currentState, ref stateAtReturn);
             return anyChanged;
         }
 

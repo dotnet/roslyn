@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public BitVector ReadVars = BitVector.Empty;
 
+            public BitVector CapturedMask = BitVector.Null;
+            public BitVector InvertedCapturedMask = BitVector.Null;
+
             public LocalFunctionState(LocalState stateFromBottom, LocalState stateFromTop)
                 : base(stateFromBottom, stateFromTop)
             { }
@@ -115,10 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BitVector GetCapturedBitmask(ref BitVector state)
+        private BitVector GetCapturedBitmask()
         {
-            BitVector mask = BitVector.Empty;
-            for (int slot = 1; slot < state.Capacity; slot++)
+            BitVector mask = BitVector.AllSet(1);
+            for (int slot = 1; slot < nextVariableSlot; slot++)
             {
                 if (IsCapturedInLocalFunction(slot))
                 {
@@ -184,10 +187,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalFunctionState currentState,
             ref LocalState stateAtReturn)
         {
+            if (currentState.CapturedMask.IsNull)
+            {
+                currentState.CapturedMask = GetCapturedBitmask();
+                currentState.InvertedCapturedMask = currentState.CapturedMask.Clone();
+                currentState.InvertedCapturedMask.Invert();
+            }
+            // Filter the modified state variables to only captured variables
+            stateAtReturn.Assigned.IntersectWith(currentState.CapturedMask);
+            if (NonMonotonicState.HasValue)
+            {
+                var state = NonMonotonicState.Value;
+                state.Assigned.UnionWith(currentState.InvertedCapturedMask);
+                NonMonotonicState = state;
+            }
+
             // Build a list of variables that are both captured and read before assignment
-            var capturedMask = GetCapturedBitmask(ref currentState.ReadVars);
             var capturedAndRead = currentState.ReadVars;
-            capturedAndRead.IntersectWith(capturedMask);
+            capturedAndRead.IntersectWith(currentState.CapturedMask);
 
             // Union and check to see if there are any changes
             return savedState.ReadVars.UnionWith(capturedAndRead);

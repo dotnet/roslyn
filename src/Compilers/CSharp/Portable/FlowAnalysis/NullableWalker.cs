@@ -8473,7 +8473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool Reachable => _state[0];
 
-            public bool NormalizeToBottom { get; } = false;
+            public bool NormalizeToBottom => false;
 
             public static LocalState ReachableState(int capacity)
             {

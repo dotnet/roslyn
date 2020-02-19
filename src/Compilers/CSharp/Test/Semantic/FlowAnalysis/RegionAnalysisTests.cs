@@ -4239,13 +4239,13 @@ class C
             Assert.Null(GetSymbolNamesJoined(dataFlow.DataFlowsIn));
             Assert.Equal("x1", GetSymbolNamesJoined(dataFlow.DataFlowsOut));
             Assert.Equal("this", GetSymbolNamesJoined(dataFlow.DefinitelyAssignedOnEntry));
-            Assert.Equal("this, x1, x", GetSymbolNamesJoined(dataFlow.DefinitelyAssignedOnExit));
+            Assert.Equal("this, x1", GetSymbolNamesJoined(dataFlow.DefinitelyAssignedOnExit));
             Assert.Null(GetSymbolNamesJoined(dataFlow.ReadInside));
             Assert.Equal("x1", GetSymbolNamesJoined(dataFlow.WrittenInside));
-            Assert.Equal("this, x1, x4, x4, x6, x7, x7, x8, x9, x9, y10, x14, x15, x, x", 
+            Assert.Equal("this, x1, x4, x4, x6, x7, x7, x8, x9, x9, y10, x14, x15, x, x",
                 GetSymbolNamesJoined(dataFlow.ReadOutside));
-            Assert.Equal("this, x, x4, x4, x6, x7, x7, x8, x9, x9, x10, " + 
-                         "y10, x14, x14, x15, x15, x, y, x", 
+            Assert.Equal("this, x, x4, x4, x6, x7, x7, x8, x9, x9, x10, " +
+                         "y10, x14, x14, x15, x15, x, y, x",
                 GetSymbolNamesJoined(dataFlow.WrittenOutside));
         }
 
