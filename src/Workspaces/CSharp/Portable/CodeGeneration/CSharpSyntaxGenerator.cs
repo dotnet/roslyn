@@ -993,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (!s_declAttributes.TryGetValue(declaration, out var attrs))
             {
-                var tmp = Flatten(GetAttributeLists(declaration).Where(al => !IsReturnAttribute(al)).ToImmutableReadOnlyListOrEmpty());
+                var tmp = Flatten(declaration.GetAttributeLists().Where(al => !IsReturnAttribute(al)).ToImmutableReadOnlyListOrEmpty());
                 attrs = s_declAttributes.GetValue(declaration, _d => tmp);
             }
 
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (!s_declReturnAttributes.TryGetValue(declaration, out var attrs))
             {
-                var tmp = Flatten(GetAttributeLists(declaration).Where(al => IsReturnAttribute(al)).ToImmutableReadOnlyListOrEmpty());
+                var tmp = Flatten(declaration.GetAttributeLists().Where(al => IsReturnAttribute(al)).ToImmutableReadOnlyListOrEmpty());
                 attrs = s_declReturnAttributes.GetValue(declaration, _d => tmp);
             }
 
@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                var lists = GetAttributeLists(declaration);
+                var lists = declaration.GetAttributeLists();
                 var newList = lists.AddRange(newAttributes);
                 return WithAttributeLists(declaration, newList);
             }
@@ -1074,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                var lists = GetAttributeLists(d);
+                var lists = d.GetAttributeLists();
                 var newList = lists.AddRange(newAttributes);
                 return WithAttributeLists(d, newList);
             }
@@ -1177,16 +1177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return declaration;
         }
-
-        internal static SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode declaration)
-            => declaration switch
-            {
-                MemberDeclarationSyntax memberDecl => memberDecl.AttributeLists,
-                AccessorDeclarationSyntax accessor => accessor.AttributeLists,
-                ParameterSyntax parameter => parameter.AttributeLists,
-                CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
-                _ => default,
-            };
 
         private static SyntaxNode WithAttributeLists(SyntaxNode declaration, SyntaxList<AttributeListSyntax> attributeLists)
             => declaration switch
@@ -2353,7 +2343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration)
         {
-            var list = GetParameterList(declaration);
+            var list = declaration.GetParameterList();
             return list != null
                 ? list.Parameters
                 : declaration is SimpleLambdaExpressionSyntax simpleLambda
@@ -2365,7 +2355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var newParameters = AsParameterList(parameters);
 
-            var currentList = GetParameterList(declaration);
+            var currentList = declaration.GetParameterList();
             if (currentList == null)
             {
                 currentList = declaration.IsKind(SyntaxKind.IndexerDeclaration)
@@ -2435,23 +2425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal override SyntaxNode GetParameterListNode(SyntaxNode declaration)
-            => GetParameterList(declaration);
-
-        internal static BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
-            => declaration.Kind() switch
-            {
-                SyntaxKind.DelegateDeclaration => ((DelegateDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.OperatorDeclaration => ((OperatorDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.ConversionOperatorDeclaration => ((ConversionOperatorDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.ConstructorDeclaration => ((ConstructorDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.DestructorDeclaration => ((DestructorDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).ParameterList,
-                SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
-                SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
-                SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
-                _ => (BaseParameterListSyntax)null,
-            };
+            => declaration.GetParameterList();
 
         private static SyntaxNode WithParameterList(SyntaxNode declaration, BaseParameterListSyntax list)
         {

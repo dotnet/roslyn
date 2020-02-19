@@ -45,23 +45,6 @@
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\ExpressionEvaluator\Core\Source\ExpressionCompiler\DkmExceptionUtilities.cs" Link="Implementation\EditAndContinue\Interop\DkmExceptionUtilities.cs" />
-    <Compile Update="Implementation\MoveToNamespace\MoveToNamespaceDialog.xaml.cs">
-      <DependentUpon>MoveToNamespaceDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Implementation\ChangeSignature\AddParameterDialog.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Implementation\PickMembers\PickMembersDialog.xaml.cs">
-      <DependentUpon>PickMembersDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
-      <DependentUpon>DetailedErrorInfoDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="ServicesVSResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ServicesVSResources.resx</DependentUpon>
-    </Compile>
     <Compile Update="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -192,11 +175,7 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="ServicesVSResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>ServicesVSResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="ServicesVSResources.resx" GenerateSource="true" />
     <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>

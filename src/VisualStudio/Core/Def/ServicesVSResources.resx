@@ -1419,4 +1419,7 @@ I agree to all of the foregoing:</value>
     <value>Index</value>
     <comment>Index of parameter in original signature</comment>
   </data>
+  <data name="Value_colon" xml:space="preserve">
+    <value>Value:</value>
+  </data>
 </root>

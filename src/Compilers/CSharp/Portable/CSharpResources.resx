@@ -2572,6 +2572,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_OutputNeedsName" xml:space="preserve">
     <value>Outputs without source must have the /out option specified</value>
   </data>
+  <data name="ERR_NoOutputDirectory" xml:space="preserve">
+    <value>Output directory could not be determined</value>
+  </data>
   <data name="ERR_CantHaveWin32ResAndManifest" xml:space="preserve">
     <value>Conflicting options specified: Win32 resource file; Win32 manifest</value>
   </data>
@@ -5081,6 +5084,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchCaseSubsumed" xml:space="preserve">
     <value>The switch case has already been handled by a previous case.</value>
   </data>
+  <data name="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected" xml:space="preserve">
+    <value>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</value>
+  </data>
   <data name="ERR_SwitchArmSubsumed" xml:space="preserve">
     <value>The pattern has already been handled by a previous arm of the switch expression.</value>
   </data>
@@ -5339,11 +5345,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInReturnTypeOnOverride_Title" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match overridden member.</value>
   </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes" xml:space="preserve">
+    <value>Return type doesn't match overridden member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Return type doesn't match overridden member because of nullability attributes.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnOverride" xml:space="preserve">
     <value>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnOverride_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes" xml:space="preserve">
+    <value>Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Type of parameter doesn't match overridden member because of nullability attributes.</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnPartial" xml:space="preserve">
     <value>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</value>
@@ -5369,6 +5387,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</value>
   </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInTypeOnExplicitImplementation" xml:space="preserve">
     <value>Nullability of reference types in type doesn't match implemented member '{0}'.</value>
   </data>
@@ -5386,6 +5416,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implemented member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
     <value>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</value>
@@ -5458,6 +5500,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_ShouldNotReturn_Title" xml:space="preserve">
     <value>A method marked [DoesNotReturn] should not return.</value>
+  </data>
+  <data name="WRN_DoesNotReturnMismatch" xml:space="preserve">
+    <value>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</value>
+  </data>
+  <data name="WRN_DoesNotReturnMismatch_Title" xml:space="preserve">
+    <value>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>

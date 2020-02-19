@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)

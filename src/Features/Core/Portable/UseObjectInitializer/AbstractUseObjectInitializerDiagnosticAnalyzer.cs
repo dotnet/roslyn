@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -40,9 +42,11 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeNode, GetObjectCreationSyntaxKind());
-
-        protected abstract TSyntaxKind GetObjectCreationSyntaxKind();
+        {
+            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            context.RegisterSyntaxNodeAction(
+                AnalyzeNode, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+        }
 
         protected abstract bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context);
 
@@ -64,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var option = optionSet.GetOption(CodeStyleOptions.PreferObjectInitializer, language);
-            if (!option.Value)
+            if (option == null || !option.Value)
             {
                 // not point in analyzing if the option is off.
                 return;
@@ -80,6 +84,11 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+            if (containingStatement == null)
+            {
+                return;
+            }
+
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value.Select(m => m.Statement));
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             {

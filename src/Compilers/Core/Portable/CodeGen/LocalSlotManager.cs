@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             public override int GetHashCode()
                 => Hash.Combine(_type, (int)_constraints);
 
-            public override bool Equals(object obj)
-                => Equals((LocalSignature)obj);
+            public override bool Equals(object? obj)
+                => obj is LocalSignature ls && Equals(ls);
         }
 
         // maps local identities to locals.

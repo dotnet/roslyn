@@ -122,12 +122,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Add required using/imports directive.                              
             var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var importNode = CreateImport(document, containingNamespace);
 
-            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, placeSystemNamespaceFirst, cancellationToken);
+            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, placeSystemNamespaceFirst, cancellationToken);
             var documentWithImport = document.WithSyntaxRoot(rootWithImport);
             // This only formats the annotated import we just added, not the entire document.
             var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
