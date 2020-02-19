@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
+        // error CS1604: Cannot assign to 'this' because it is read-only
         {|CS1604:this|} = new MyClass(5);
     }
 }";
