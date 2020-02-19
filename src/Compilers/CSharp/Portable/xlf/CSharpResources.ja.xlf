@@ -327,6 +327,11 @@
         <target state="translated">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。'using' ではなく 'await using' ですか?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoOutputDirectory">
+        <source>Output directory could not be determined</source>
+        <target state="new">Output directory could not be determined</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
         <target state="translated">'notnull' 制約は、他の制約の前に指定されなければなりません</target>

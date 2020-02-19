@@ -6491,7 +6491,7 @@ class Program
     {
 ");
 
-            const int depth = 10000;
+            const int depth = 100000;
             for (int i = 0; i < depth; i++)
             {
                 var line = string.Format("Action a{0} = delegate d{0} {{", i);

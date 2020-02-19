@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
 
         public CommandState GetCommandState(SyncClassViewCommandArgs args)
         {
-            return Commanding.CommandState.Unspecified;
+            return Commanding.CommandState.Available;
         }
     }
 }

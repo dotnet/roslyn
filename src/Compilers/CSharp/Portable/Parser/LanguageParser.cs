@@ -2095,8 +2095,14 @@ tryAgain:
                     var saveTerm = _termState;
                     _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
 
+<<<<<<< HEAD
                     // Any expression is allowed, not just expression statements:
                     var statement = this.TryParseStatementNoDeclaration(attributes, allowAnyExpression: true);
+=======
+                    // We don't allow local declaration statements or functions at the top level.  We want
+                    // to fall out below and parse them instead as fields or methods.
+                    var statement = this.ParseStatementCore(isGlobalScriptLevel: true);
+>>>>>>> upstream/master
 
                     _termState = saveTerm;
                     if (statement != null)
@@ -6276,6 +6282,7 @@ done:;
         public StatementSyntax ParseStatement()
         {
             return ParseWithStackGuard(
+<<<<<<< HEAD
                 () => TryParseStatementCore() ?? ParseExpressionStatement(attributes: default),
                 () => SyntaxFactory.EmptyStatement(attributeLists: default, SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
         }
@@ -6284,16 +6291,30 @@ done:;
         private StatementSyntax TryParseStatementCore()
         {
             var resetPointBeforeStatement = this.GetResetPoint();
+=======
+                () => ParseStatementCore(isGlobalScriptLevel: false) ?? ParseExpressionStatement(),
+                () => SyntaxFactory.EmptyStatement(SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
+        }
+
+        /// <param name="isGlobalScriptLevel">If we're being called while parsing a C# script from
+        /// the top-level.  At the top level, we allow most statements *except* for
+        /// local-decls/local-funcs.  Those will instead be parsed out as
+        /// script-fields/methods.</param>
+        private StatementSyntax ParseStatementCore(bool isGlobalScriptLevel)
+        {
+            ResetPoint resetPointBeforeStatement = this.GetResetPoint();
+>>>>>>> upstream/master
             try
             {
                 _recursionDepth++;
                 StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
-                if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
+                if (canReuseStatement(isGlobalScriptLevel))
                 {
                     return (StatementSyntax)this.EatNode();
                 }
 
+<<<<<<< HEAD
                 // All statements allow attributes in the syntax model (though not all support them in terms of the langauge).
                 // Start by parsing out the optional attributes that can proceed everything. Then determine how to
                 // parse the actual construct that follows.
@@ -6301,10 +6322,68 @@ done:;
 
                 StatementSyntax result = TryParseStatementNoDeclaration(attributes, allowAnyExpression: false);
                 if (result != null)
+=======
+                StatementSyntax result;
+
+                // Main switch to handle processing almost any statement.
+                switch (this.CurrentToken.Kind)
+>>>>>>> upstream/master
                 {
-                    return result;
+                    case SyntaxKind.FixedKeyword:
+                        return this.ParseFixedStatement();
+                    case SyntaxKind.BreakKeyword:
+                        return this.ParseBreakStatement();
+                    case SyntaxKind.ContinueKeyword:
+                        return this.ParseContinueStatement();
+                    case SyntaxKind.TryKeyword:
+                    case SyntaxKind.CatchKeyword:
+                    case SyntaxKind.FinallyKeyword:
+                        return this.ParseTryStatement();
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.UncheckedKeyword:
+                        return this.ParseCheckedStatement();
+                    case SyntaxKind.DoKeyword:
+                        return this.ParseDoStatement();
+                    case SyntaxKind.ForKeyword:
+                        return this.ParseForOrForEachStatement();
+                    case SyntaxKind.ForEachKeyword:
+                        return this.ParseForEachStatement(awaitTokenOpt: default);
+                    case SyntaxKind.GotoKeyword:
+                        return this.ParseGotoStatement();
+                    case SyntaxKind.IfKeyword:
+                        return this.ParseIfStatement();
+                    case SyntaxKind.ElseKeyword:
+                        // Including 'else' keyword to handle 'else without if' error cases 
+                        return this.ParseMisplacedElse();
+                    case SyntaxKind.LockKeyword:
+                        return this.ParseLockStatement();
+                    case SyntaxKind.ReturnKeyword:
+                        return this.ParseReturnStatement();
+                    case SyntaxKind.SwitchKeyword:
+                        return this.ParseSwitchStatement();
+                    case SyntaxKind.ThrowKeyword:
+                        return this.ParseThrowStatement();
+                    case SyntaxKind.UnsafeKeyword:
+                        result = TryParseStatementStartingWithUnsafe();
+                        if (result != null)
+                            return result;
+                        break;
+                    case SyntaxKind.UsingKeyword:
+                        return ParseStatementStartingWithUsing();
+                    case SyntaxKind.WhileKeyword:
+                        return this.ParseWhileStatement();
+                    case SyntaxKind.OpenBraceToken:
+                        return this.ParseBlock();
+                    case SyntaxKind.SemicolonToken:
+                        return _syntaxFactory.EmptyStatement(this.EatToken());
+                    case SyntaxKind.IdentifierToken:
+                        result = TryParseStatementStartingWithIdentifier(isGlobalScriptLevel);
+                        if (result != null)
+                            return result;
+                        break;
                 }
 
+<<<<<<< HEAD
                 // We could not successfully parse the statement as a non-declaration. Try to parse
                 // it as either a declaration or as an "await X();" statement that is in a non-async
                 // method. 
@@ -6319,20 +6398,39 @@ done:;
                 // to before them so that they don't get lost.
                 this.Reset(ref resetPointBeforeStatement);
                 return null;
+=======
+                return ParseStatementCoreRest(isGlobalScriptLevel, ref resetPointBeforeStatement);
+>>>>>>> upstream/master
             }
             finally
             {
                 _recursionDepth--;
                 this.Release(ref resetPointBeforeStatement);
+<<<<<<< HEAD
             }
         }
 
         /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
         private StatementSyntax TryParsePossibleDeclarationOrBadAwaitStatement(SyntaxList<AttributeListSyntax> attributes)
-        {
-            ResetPoint resetPointBeforeStatement = this.GetResetPoint();
-            try
+=======
+            }
+
+            bool canReuseStatement(bool isGlobalScriptLevel)
             {
+                // Can only reuse a global-script or regular statement if we're in the same
+                // global-script context we were originally in.
+                return this.IsIncrementalAndFactoryContextMatches &&
+                       this.CurrentNode is CSharp.Syntax.StatementSyntax &&
+                       isGlobalScriptLevel == (this.CurrentNode.Parent is Syntax.GlobalStatementSyntax);
+            }
+        }
+
+        private StatementSyntax ParseStatementCoreRest(bool isGlobalScriptLevel, ref ResetPoint resetPointBeforeStatement)
+>>>>>>> upstream/master
+        {
+            if (!this.IsPossibleLocalDeclarationStatement(isGlobalScriptLevel))
+            {
+<<<<<<< HEAD
                 // Precondition: We have already attempted to parse the statement as a non-declaration and failed.
                 //
                 // That means that we are in one of the following cases:
@@ -6366,28 +6464,55 @@ done:;
                 {
                     return result;
                 }
+=======
+                return this.ParseExpressionStatement();
+            }
+>>>>>>> upstream/master
 
-                // The statement begins with "await" and could not be parsed as a legal declaration statement.
-                // We know from our precondition that it is not a legal "await X();" statement, though it is
-                // possible that it was only not legal because we were not in an async context.
+            if (isGlobalScriptLevel)
+            {
+                // if we're at the global script level, then we don't support local-decls or
+                // local-funcs. The caller instead will look for those and parse them as
+                // fields/methods in the global script scope.
+                return null;
+            }
 
-                Debug.Assert(!IsInAsync);
+            bool beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            var result = ParseLocalDeclarationStatement();
 
-                // Let's see if we're in case (5). Pretend that we're in an async method and retry.
+            if (result == null)
+            {
+                // didn't get any sort of statement.  This was something else entirely (like just a
+                // `}`).  No need to retry anything here.  Just reset back to where we started from
+                // and bail entirely from parsing a statement.
+                this.Reset(ref resetPointBeforeStatement);
+                return null;
+            }
 
+            if (result.ContainsDiagnostics &&
+                beginsWithAwait &&
+                !IsInAsync)
+            {
+                // Local decl had issues.  We were also starting with 'await' in a non-async
+                // context. Retry parsing this as if we were in an 'async' context as it's much
+                // more likely that this was a misplace await-expr' than a local decl.
+                //
+                // The user will still get a later binding error about an await-expr in a non-async
+                // context.
                 this.Reset(ref resetPointBeforeStatement);
                 IsInAsync = true;
+<<<<<<< HEAD
                 result = TryParseStatementNoDeclaration(attributes, allowAnyExpression: false);
+=======
+                result = ParseExpressionStatement();
+>>>>>>> upstream/master
                 IsInAsync = false;
+            }
 
-                return result;
-            }
-            finally
-            {
-                this.Release(ref resetPointBeforeStatement);
-            }
+            return result;
         }
 
+<<<<<<< HEAD
         /// <summary>
         /// Parses any statement but a declaration statement. Returns null if the lookahead looks like a declaration.
         /// </summary>
@@ -6397,9 +6522,14 @@ done:;
         /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
         private StatementSyntax TryParseStatementNoDeclaration(
             SyntaxList<AttributeListSyntax> attributes, bool allowAnyExpression)
+=======
+        private StatementSyntax TryParseStatementStartingWithIdentifier(bool isGlobalScriptLevel)
+>>>>>>> upstream/master
         {
-            switch (this.CurrentToken.Kind)
+            if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
+                this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword)
             {
+<<<<<<< HEAD
                 case SyntaxKind.FixedKeyword:
                     return this.ParseFixedStatement(attributes);
                 case SyntaxKind.BreakKeyword:
@@ -6486,36 +6616,58 @@ done:;
                         return this.ParseExpressionStatement(attributes, this.ParseQueryExpression(0));
                     }
                     break;
+=======
+                return this.ParseForEachStatement(ParseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
+>>>>>>> upstream/master
             }
-
-            if (this.IsPossibleLocalDeclarationStatement(allowAnyExpression))
+            else if (IsPossibleAwaitUsing())
             {
-                return null;
+                if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+                {
+                    // `await using Type ...` is handled later when ParseLocalDeclarationStatement is called.
+                    return this.ParseUsingStatement(ParseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
+                }
             }
-            else
+            else if (this.IsPossibleLabeledStatement())
             {
+<<<<<<< HEAD
                 return this.ParseExpressionStatement(attributes);
+=======
+                return this.ParseLabeledStatement();
+>>>>>>> upstream/master
+            }
+            else if (this.IsPossibleYieldStatement())
+            {
+                return this.ParseYieldStatement();
+            }
+            else if (this.IsPossibleAwaitExpressionStatement())
+            {
+                return this.ParseExpressionStatement();
+            }
+            else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: isGlobalScriptLevel))
+            {
+                return this.ParseExpressionStatement(this.ParseQueryExpression(0));
             }
 
-            bool isPossibleAwaitForEach()
-            {
-                return this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
-                    this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword;
-            }
-
-            bool isPossibleAwaitUsing()
-            {
-                return this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
-                    this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
-            }
-
-            SyntaxToken parseAwaitKeyword(MessageID feature)
-            {
-                Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
-                SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-                return feature != MessageID.None ? CheckFeatureAvailability(awaitToken, feature) : awaitToken;
-            }
+            return null;
         }
+
+        private StatementSyntax ParseStatementStartingWithUsing()
+            => PeekToken(1).Kind == SyntaxKind.OpenParenToken ? ParseUsingStatement() : ParseLocalDeclarationStatement();
+
+        private UnsafeStatementSyntax TryParseStatementStartingWithUnsafe()
+            // Checking for brace to disambiguate between unsafe statement and unsafe local function
+            => this.IsPossibleUnsafeStatement() ? this.ParseUnsafeStatement() : null;
+
+        private SyntaxToken ParseAwaitKeyword(MessageID feature)
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
+            SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+            return feature != MessageID.None ? CheckFeatureAvailability(awaitToken, feature) : awaitToken;
+        }
+
+        private bool IsPossibleAwaitUsing()
+            => this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword && this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
 
         private bool IsPossibleLabeledStatement()
         {
@@ -6532,7 +6684,7 @@ done:;
             return this.CurrentToken.ContextualKind == SyntaxKind.YieldKeyword && (this.PeekToken(1).Kind == SyntaxKind.ReturnKeyword || this.PeekToken(1).Kind == SyntaxKind.BreakKeyword);
         }
 
-        private bool IsPossibleLocalDeclarationStatement(bool allowAnyExpression)
+        private bool IsPossibleLocalDeclarationStatement(bool isGlobalScriptLevel)
         {
             // This method decides whether to parse a statement as a
             // declaration or as an expression statement. In the old
@@ -6545,6 +6697,19 @@ done:;
                         this.PeekToken(1).Kind != SyntaxKind.DotToken && // e.g. `int.Parse()` is an expression
                         this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) // e.g. `int (x, y)` is an error decl expression
             {
+                return true;
+            }
+
+            // note: `using (` and `await using (` are already handled in ParseStatementCore.
+            if (tk == SyntaxKind.UsingKeyword)
+            {
+                Debug.Assert(PeekToken(1).Kind != SyntaxKind.OpenParenToken);
+                return true;
+            }
+
+            if (IsPossibleAwaitUsing())
+            {
+                Debug.Assert(PeekToken(2).Kind != SyntaxKind.OpenParenToken);
                 return true;
             }
 
@@ -6632,7 +6797,7 @@ done:;
                 }
 
                 // T? and T* might start an expression, we need to parse further to disambiguate:
-                if (allowAnyExpression)
+                if (isGlobalScriptLevel)
                 {
                     if (st == ScanTypeFlags.PointerOrMultiplication)
                     {
@@ -7057,7 +7222,11 @@ done:;
             {
                 if (this.IsPossibleStatement(acceptAccessibilityMods: true))
                 {
+<<<<<<< HEAD
                     var statement = this.TryParseStatementCore();
+=======
+                    var statement = this.ParseStatementCore(isGlobalScriptLevel: false);
+>>>>>>> upstream/master
                     if (statement != null)
                     {
                         statements.Add(statement);
@@ -7187,7 +7356,11 @@ done:;
             // deep impact on the number of recursive calls we can make (more than a hundred during
             // empirical testing).
 
+<<<<<<< HEAD
             return parseEmbeddedStatementRest(this.TryParseStatementCore());
+=======
+            return parseEmbeddedStatementRest(this.ParseStatementCore(isGlobalScriptLevel: false));
+>>>>>>> upstream/master
 
             StatementSyntax parseEmbeddedStatementRest(StatementSyntax statement)
             {
@@ -8114,24 +8287,50 @@ tryAgain:
             var label = this.ParseIdentifierToken();
             var colon = this.EatToken(SyntaxKind.ColonToken);
             Debug.Assert(!colon.IsMissing);
+<<<<<<< HEAD
             var statement = this.TryParseStatementCore() ?? SyntaxFactory.EmptyStatement(attributeLists: null, EatToken(SyntaxKind.SemicolonToken));
             return _syntaxFactory.LabeledStatement(attributes, label, colon, statement);
+=======
+            var statement = this.ParseStatementCore(isGlobalScriptLevel: false) ?? SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
+            return _syntaxFactory.LabeledStatement(label, colon, statement);
+>>>>>>> upstream/master
         }
 
         /// <summary>
         /// Parses any kind of local declaration statement: local variable or local function.
         /// </summary>
+<<<<<<< HEAD
         /// <returns><c>null</c> if a local declaration could not be parsed at the current
         /// location.</returns>
         private StatementSyntax TryParseLocalDeclarationStatement(
             SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitKeywordOpt = default)
+=======
+        private StatementSyntax ParseLocalDeclarationStatement()
+>>>>>>> upstream/master
         {
-            var usingKeyword = TryEatToken(SyntaxKind.UsingKeyword);
+            SyntaxToken awaitKeyword, usingKeyword;
+            bool canParseAsLocalFunction = false;
+            if (IsPossibleAwaitUsing())
+            {
+                awaitKeyword = ParseAwaitKeyword(MessageID.None);
+                usingKeyword = EatToken();
+            }
+            else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
+            {
+                awaitKeyword = default;
+                usingKeyword = EatToken();
+            }
+            else
+            {
+                awaitKeyword = default;
+                usingKeyword = null;
+                canParseAsLocalFunction = true;
+            }
+
             if (usingKeyword != null)
             {
                 usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);
             }
-            bool canParseAsLocalFunction = usingKeyword == null;
 
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
@@ -8177,8 +8376,12 @@ tryAgain:
                 }
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 return _syntaxFactory.LocalDeclarationStatement(
+<<<<<<< HEAD
                     attributes,
                     awaitKeywordOpt,
+=======
+                    awaitKeyword,
+>>>>>>> upstream/master
                     usingKeyword,
                     mods.ToList(),
                     _syntaxFactory.VariableDeclaration(type, variables),

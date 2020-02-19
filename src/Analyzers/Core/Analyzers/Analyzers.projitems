@@ -8,4 +8,7 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Microsoft.CodeAnalysis.Analyzers</Import_RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" GenerateSource="true" />
+  </ItemGroup>
 </Project>

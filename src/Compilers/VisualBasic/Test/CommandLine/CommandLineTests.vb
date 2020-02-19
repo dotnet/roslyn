@@ -7048,7 +7048,7 @@ Imports System
         End Sub
 
         Private Function GetDefaultResponseFilePath() As String
-            Return Temp.CreateFile().WriteAllBytes(CommandLineTestResources.vbc_rsp).Path
+            Return Temp.CreateFile().WriteAllBytes(GetType(CommandLineTests).Assembly.GetManifestResourceStream("vbc.rsp").ReadAllBytes()).Path
         End Function
 
         <Fact>
