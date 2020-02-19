@@ -4,8 +4,13 @@
 
 using System.Collections;
 using System.Collections.Generic;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -18,6 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             _languageName = languageName;
         }
+
+        public int Count => _options.Count;
+
+        public bool IsEmpty => Count == 0;
 
         public void Add<T>(Option<T> option, T value)
             => _options.Add(new OptionKey(option), value);

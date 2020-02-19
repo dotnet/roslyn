@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -26,15 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId).ParseOptions;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    var options = solution.Options;
-                    foreach (var (key, value) in Options)
-                    {
-                        options = options.WithChangedOption(key, value);
-                    }
-
-                    solution = solution.WithOptions(options);
-
-                    return solution;
+                    return CodeFixVerifierHelper.ApplyOptions(solution, Options);
                 });
             }
 
@@ -50,9 +42,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
 
+            protected override string DefaultFilePathPrefix
+            {
+                get
+                {
+#if CODE_STYLE
+                    // For CodeStyle layer tests, we needed rooted file path for documents.
+                    // See comments in "CodeFixVerifierHelper.ApplyOptions" for details.
+                    return Path.Combine(CodeFixVerifierHelper.DefaultRootFilePath, base.DefaultFilePathPrefix);
+#else
+                    return base.DefaultFilePathPrefix;
+#endif
+                }
+            }
+
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
             {
-                return new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+                var analyzerOptions = base.GetAnalyzerOptions(project);
+
+#if !CODE_STYLE
+                analyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, project.Solution);
+#endif
+
+                return analyzerOptions;
             }
         }
     }

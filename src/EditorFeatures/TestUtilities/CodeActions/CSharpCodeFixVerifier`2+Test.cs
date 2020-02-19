@@ -4,12 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -41,15 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_nullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
-                    var options = solution.Options;
-                    foreach (var (key, value) in Options)
-                    {
-                        options = options.WithChangedOption(key, value);
-                    }
-
-                    solution = solution.WithOptions(options);
-
-                    return solution;
+                    return CodeFixVerifierHelper.ApplyOptions(solution, Options);
                 });
             }
 
@@ -79,9 +71,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
 
+            protected override string DefaultFilePathPrefix
+            {
+                get
+                {
+#if CODE_STYLE
+                    // For CodeStyle layer tests, we needed rooted file path for documents.
+                    // See comments in "CodeFixVerifierHelper.ApplyOptions" for details.
+                    return Path.Combine(CodeFixVerifierHelper.DefaultRootFilePath, base.DefaultFilePathPrefix);
+#else
+                    return base.DefaultFilePathPrefix;
+#endif
+                }
+            }
+
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
             {
-                return new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+                var analyzerOptions = base.GetAnalyzerOptions(project);
+
+#if !CODE_STYLE
+                analyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, project.Solution);
+#endif
+
+                return analyzerOptions;
             }
         }
     }

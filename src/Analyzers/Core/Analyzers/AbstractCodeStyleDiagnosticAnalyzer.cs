@@ -9,6 +9,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer
     {
+        // Diagnostics in CodeStyle layer should be warnings by default.
+#if CODE_STYLE
+        private const DiagnosticSeverity DefaultSeverity = DiagnosticSeverity.Warning;
+#else
+        private const DiagnosticSeverity DefaultSeverity = DiagnosticSeverity.Hidden;
+#endif
+
         protected readonly string DescriptorId;
 
         protected readonly DiagnosticDescriptor Descriptor;
@@ -88,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             => new DiagnosticDescriptor(
                     id, title, messageFormat,
                     DiagnosticCategory.Style,
-                    DiagnosticSeverity.Hidden,
+                    !isUnneccessary ? DefaultSeverity : DiagnosticSeverity.Hidden,
                     isEnabledByDefault: true,
                     description: description,
                     customTags: DiagnosticCustomTags.Create(isUnneccessary, isConfigurable, customTags));

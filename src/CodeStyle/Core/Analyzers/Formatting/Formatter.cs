@@ -6,16 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Internal.Formatting
 {
     /// <summary>
     /// Formats whitespace in documents or syntax trees.
     /// </summary>
+    /// <remarks>
+    /// This utility class is only to be used by the formatting analyzer and formatting code fixer in Code Style layer.
+    /// Other components should use the public "Formatter" type defined in "Microsoft.CodeAnalysis.Formatting" namespace.
+    /// </remarks>
     internal static class Formatter
     {
         /// <summary>

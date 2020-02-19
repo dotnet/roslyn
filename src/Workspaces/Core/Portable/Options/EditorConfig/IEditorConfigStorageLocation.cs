@@ -5,7 +5,11 @@
 using System;
 using System.Collections.Generic;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
     internal interface IEditorConfigStorageLocation
     {

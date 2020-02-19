@@ -7,10 +7,18 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+
+namespace Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle
+{
+#else
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
+#endif
     internal static partial class CSharpCodeStyleOptions
     {
         private static readonly ImmutableArray<IOption>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption>();

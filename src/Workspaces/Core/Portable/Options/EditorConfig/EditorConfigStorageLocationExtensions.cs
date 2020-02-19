@@ -3,14 +3,23 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Collections.Immutable;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
     internal static class EditorConfigStorageLocationExtensions
     {
         public static bool TryGetOption(this IEditorConfigStorageLocation editorConfigStorageLocation, AnalyzerConfigOptions analyzerConfigOptions, Type type, out object value)
         {
+#if CODE_STYLE
+            // TODO: "AnalyzerConfigOptions.Keys" is not yet available in CodeStyle layer.
+            //       Remove this #if once it is available.
+            value = default;
+            return false;
+#else
             var optionDictionary = analyzerConfigOptions.Keys.ToImmutableDictionary(
                 key => key,
                 key =>
@@ -20,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Options
                 });
 
             return editorConfigStorageLocation.TryGetOption(optionDictionary, type, out value);
+#endif
         }
     }
 }

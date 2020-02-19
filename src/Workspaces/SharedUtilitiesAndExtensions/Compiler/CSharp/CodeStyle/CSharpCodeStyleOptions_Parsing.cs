@@ -7,8 +7,18 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+
+namespace Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle
+{
+#else
+using Microsoft.CodeAnalysis.Options;
+
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
+#endif
+
     internal static partial class CSharpCodeStyleOptions
     {
         public static CodeStyleOption<ExpressionBodyPreference> ParseExpressionBodyPreference(

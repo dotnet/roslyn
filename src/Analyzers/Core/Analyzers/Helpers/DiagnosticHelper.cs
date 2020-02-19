@@ -10,7 +10,6 @@ using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </param>
         /// <param name="tagIndices">
         /// a map of location tag to index in additional locations.
-        /// <see cref="AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer{TLanguageKindEnum, TParenthesizedExpressionSyntax}"/> for an example of usage.
+        /// see AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer for an example of usage.
         /// </param>
         /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>

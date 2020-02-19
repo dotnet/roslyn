@@ -2,10 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+
+namespace Microsoft.CodeAnalysis.Internal.Fading
+{
+#else
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Fading
 {
+#endif
     internal static class FadingOptions
     {
         public static readonly PerLanguageOption<bool> FadeOutUnusedImports = new PerLanguageOption<bool>(

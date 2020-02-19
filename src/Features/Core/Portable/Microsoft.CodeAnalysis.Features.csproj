@@ -95,7 +95,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(CompletionTestsKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\CodeStyle\Core\Analyzers\AbstractCodeStyleDiagnosticAnalyzer.cs" Link="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="..\..\..\CodeStyle\Core\Analyzers\FormattingAnalyzerHelper.cs" Link="Formatting\FormattingAnalyzerHelper.cs" />
     <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\FormattingCodeFixHelper.cs" Link="Formatting\FormattingCodeFixHelper.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\TextUtilities.cs" Link="Shared\Utilities\TextUtilities.cs" />

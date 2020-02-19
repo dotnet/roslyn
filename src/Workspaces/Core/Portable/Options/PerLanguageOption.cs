@@ -5,7 +5,11 @@
 using System;
 using System.Collections.Immutable;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
     /// <summary>
     /// Marker interface for <see cref="PerLanguageOption{T}"/>

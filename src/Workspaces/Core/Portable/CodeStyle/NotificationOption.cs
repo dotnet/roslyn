@@ -7,9 +7,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
-#endif
-
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
     /// <summary>
     /// Offers different notification styles for enforcing
