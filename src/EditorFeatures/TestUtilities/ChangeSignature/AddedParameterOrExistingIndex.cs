@@ -48,8 +48,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
                 _ => throw new ArgumentException("Unsupported language")
             };
 
+            if (type == null)
+            {
+                throw new ArgumentException($"Could not bind type {_addedParameterFullyQualifiedTypeName}", nameof(_addedParameterFullyQualifiedTypeName));
+            }
+
             return new AddedParameter(
-                type!,
+                type,
                 _addedParameterWithoutTypeSymbol!.TypeName,
                 _addedParameterWithoutTypeSymbol.Name,
                 _addedParameterWithoutTypeSymbol.CallSiteValue,
