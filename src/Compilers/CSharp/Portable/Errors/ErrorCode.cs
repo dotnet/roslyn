@@ -1755,6 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes = 8769,
 
         WRN_DoesNotReturnMismatch = 8770,
+        ERR_NoOutputDirectory = 8771,
 
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
 

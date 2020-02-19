@@ -74,8 +74,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 foreach (var analyzerConfigDocument in project.AnalyzerConfigDocuments)
                 {
                     var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigDocument.FilePath);
+                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
                     if (diagnosticFilePath.StartsWith(analyzerConfigDirectory) &&
-                        analyzerConfigDirectory.Length > bestPath.Length)
+                        analyzerConfigDirectory!.Length > bestPath.Length)
                     {
                         bestPath = analyzerConfigDirectory;
                         bestAnalyzerConfigDocument = analyzerConfigDocument;
@@ -97,7 +98,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             var solutionOrProjectDirectoryPath = PathUtilities.GetDirectoryName(solutionOrProjectFilePath);
-            return PathUtilities.CombineAbsoluteAndRelativePaths(solutionOrProjectDirectoryPath, ".editorconfig");
+            // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+            return PathUtilities.CombineAbsoluteAndRelativePaths(solutionOrProjectDirectoryPath!, ".editorconfig");
         }
 
         public static AnalyzerConfigDocument? TryGetExistingAnalyzerConfigDocumentAtPath(this Project project, string analyzerConfigPath)

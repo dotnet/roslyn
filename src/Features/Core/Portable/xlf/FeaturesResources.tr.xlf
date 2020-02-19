@@ -297,6 +297,11 @@
         <target state="translated">'{0}' öğesini örtük olarak uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">Tüm arabirimleri örtük olarak uygula</target>
@@ -2108,11 +2113,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Bilinmiyor)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Soyut Sınıfı Uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">
