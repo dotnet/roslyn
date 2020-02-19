@@ -7,11 +7,11 @@ using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal static class AnalyzerConfigOptionsExtensions
+    internal static class OptionSetExtensions
     {
-        public static T GetOption<T>(this OptionSet analyzerConfigOptions, Option<T> option)
+        public static T GetOption<T>(this OptionSet optionSet, Option<T> option)
         {
-            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out T value))
+            if (!TryGetEditorConfigOption(optionSet, option, out T value))
             {
                 value = option.DefaultValue;
             }
@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        public static T GetOption<T>(this OptionSet analyzerConfigOptions, PerLanguageOption<T> option, string language)
+        public static T GetOption<T>(this OptionSet optionSet, PerLanguageOption<T> option, string language)
         {
-            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out T value))
+            if (!TryGetEditorConfigOption(optionSet, option, out T value))
             {
                 value = option.DefaultValue;
             }
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        private static bool TryGetEditorConfigOption<T>(this OptionSet analyzerConfigOptions, IOption option, out T value)
+        private static bool TryGetEditorConfigOption<T>(this OptionSet optionSet, IOption option, out T value)
         {
             foreach (var storageLocation in option.StorageLocations)
             {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (!analyzerConfigOptions.TryGetValue(editorConfigStorageLocation.KeyName, out var stringValue))
+                if (!optionSet.TryGetValue(editorConfigStorageLocation.KeyName, out var stringValue))
                 {
                     continue;
                 }
