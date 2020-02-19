@@ -7,12 +7,6 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
-#if CODE_STYLE
-    using Resources = CodeStyleResources;
-#else
-    using Resources = WorkspacesResources;
-#endif
-
     internal static class CompilerPathUtilities
     {
         internal static void RequireAbsolutePath(string path, string argumentName)
@@ -24,7 +18,7 @@ namespace Roslyn.Utilities
 
             if (!PathUtilities.IsAbsolute(path))
             {
-                throw new ArgumentException(Resources.Absolute_path_expected, argumentName);
+                throw new ArgumentException(CompilerExtensionsResources.Absolute_path_expected, argumentName);
             }
         }
     }

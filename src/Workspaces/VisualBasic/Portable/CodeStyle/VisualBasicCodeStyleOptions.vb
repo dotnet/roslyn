@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
     End Class
 
     Friend NotInheritable Class VisualBasicCodeStyleOptionGroups
-        Public Shared ReadOnly Modifier As New OptionGroup(WorkspacesResources.Modifier_preferences, priority:=1)
-        Public Shared ReadOnly ExpressionLevelPreferences As New OptionGroup(WorkspacesResources.Expression_level_preferences, priority:=2)
+        Public Shared ReadOnly Modifier As New OptionGroup(CompilerExtensionsResources.Modifier_preferences, priority:=1)
+        Public Shared ReadOnly ExpressionLevelPreferences As New OptionGroup(CompilerExtensionsResources.Expression_level_preferences, priority:=2)
     End Class
 End Namespace
