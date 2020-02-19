@@ -603,6 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxToken openParamToken,
             SignatureChange updatedSignature)
         {
+            arguments = TweakTrivia(arguments);
             var originalArguments = arguments.Select(a => UnifiedArgumentSyntax.Create(a, arguments.IndexOf(a))).ToList();
             var permutedArguments = PermuteArguments(declarationSymbol, originalArguments, updatedSignature);
             var newSeparators = new SyntaxToken[originalArguments.Count];
@@ -617,6 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SignatureChange updatedSignature,
             bool isReducedExtensionMethod = false)
         {
+            arguments = TweakTrivia(arguments);
             var originalArguments = arguments.Select(a => UnifiedArgumentSyntax.Create(a, arguments.IndexOf(a))).ToList();
             var permutedArguments = PermuteArguments(declarationSymbol, originalArguments, updatedSignature, isReducedExtensionMethod);
             var newSeparators = new SyntaxToken[originalArguments.Count];
@@ -640,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 if (originalIndex == 0)
                 {
-                    newParamNode = newParamNode.WithLeadingTrivia(newParamNode.GetLeadingTrivia().Concat(GetSeparatorCommentsWithInBetweenTrivia(openParamToken.TrailingTrivia)));
+                    newParamNode = newParamNode.WithLeadingTrivia(newParamNode.GetLeadingTrivia().Concat(openParamToken.TrailingTrivia.Where(trivia => !trivia.IsKind(SyntaxKind.EndOfLineTrivia))));
                 }
 
                 if (newIndex == 0)
@@ -671,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 if (originalIndex == 0)
                 {
-                    newParamNode = newParamNode.WithLeadingTrivia(newParamNode.GetLeadingTrivia().Concat(GetSeparatorCommentsWithInBetweenTrivia(openParamToken.TrailingTrivia)));
+                    newParamNode = newParamNode.WithLeadingTrivia(newParamNode.GetLeadingTrivia().Concat(openParamToken.TrailingTrivia.Where(trivia => !trivia.IsKind(SyntaxKind.EndOfLineTrivia))));
                 }
 
                 if (newIndex == 0)

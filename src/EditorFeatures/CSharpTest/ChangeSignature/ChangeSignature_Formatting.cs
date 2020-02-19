@@ -488,6 +488,32 @@ class C
 
         [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ChangeSignature_Formatting_Declaration_PreserveCommentsAndIndentation2()
+        {
+            var markup = @"
+class C
+{
+    public void M(
+        $$int a /* a */, // a2
+        /* b */ int b /* b2 */, /* b3 */
+        int c /* c */)
+    { }
+}";
+            var updatedSignature = new[] { 1, 0, 2 };
+            var expectedUpdatedCode = @"
+class C
+{
+    public void M(
+        /* b */ int b /* b2 */, /* b3 */
+        int a /* a */, /* a2 */
+        int c /* c */)
+    { }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Formatting_Declaration_PreserveCommentsAndIndentation_VerifyLastSeparatorTriviaAppendedToLastNode()
         {
             var markup = @"
@@ -638,6 +664,54 @@ class C
 
         [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ChangeSignature_Formatting_Declaration_PreserveCommentsAndIndentation_RemoveAllParameters()
+        {
+            var markup = @"
+class C
+{
+    public void M($$int a /* a */, // a2
+                        /* b */ int b /* b2 */, /* b3 */
+                        int c /* c */)
+    { }
+}";
+            var updatedSignature = new[] { 2 };
+            var expectedUpdatedCode = @"
+class C
+{
+    public void M()
+    { }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ChangeSignature_Formatting_Invocation_PreserveCommentsAndIndentation_RemoveAllParameters()
+        {
+            var markup = @"
+class C
+{
+    public void M(int a, int b, int c)
+    {
+        M($$a /* a */, // a2
+                    /* b */ b /* b2 */, /* b3 */
+                    c /* c */);
+    }
+}";
+            var updatedSignature = new[] { 0 };
+            var expectedUpdatedCode = @"
+class C
+{
+    public void M()
+    {
+        M();
+    }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Formatting_Declaration_PreserveCommentsAndIndentation_Inline()
         {
             var markup = @"
@@ -652,6 +726,30 @@ class C
 {
     public void M(/* c */ int c /* c2 */, /* a */ int a /* a2 */, /* b */ int b /* b2 */)
     { }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ChangeSignature_Formatting_Invocation_PreserveCommentsAndIndentation_Inline()
+        {
+            var markup = @"
+class C
+{
+    public void M(int a, int b, int c)
+    {
+        M($$/* a */ a /* a2 */, /* b */ b /* b2 */, /* c */ c /* c2 */);
+    }
+}";
+            var updatedSignature = new[] { 2, 0, 1 };
+            var expectedUpdatedCode = @"
+class C
+{
+    public void M(int c, int a, int b)
+    {
+        M(/* c */ c /* c2 */, /* a */ a /* a2 */, /* b */ b /* b2 */);
+    }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
