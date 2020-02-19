@@ -303,6 +303,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeFixes_FixAllOccurrencesComputation_Project_Merge,
         CodeFixes_FixAllOccurrencesPreviewChanges,
         CodeFixes_ApplyChanges,
+        CodeFixes_AddExplicitCast,
 
         SolutionExplorer_AnalyzerItemSource_GetItems,
         SolutionExplorer_DiagnosticItemSource_GetItems,

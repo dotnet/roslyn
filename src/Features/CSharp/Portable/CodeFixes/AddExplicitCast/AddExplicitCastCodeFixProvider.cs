@@ -85,11 +85,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                             c => FixIt(context.Document, root, targetNode, convType, c)));
                     }
 
-                    //Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
-                    //    KeyValueLogMessage.Create(m =>
-                    //    {
-                    //        m["number_of_stuff"] = 5;
-                    //    }));
+                    if (potentialConvTypes.Length > 3)
+                    {
+                        Logger.Log(FunctionId.CodeFixes_AddExplicitCast,
+                            KeyValueLogMessage.Create(m =>
+                            {
+                                m["NumberOfCandidates"] = potentialConvTypes.Length;
+                            }));
+                    }
 
                     context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
                     CSharpFeaturesResources.Add_explicit_cast,
@@ -111,30 +114,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         // Base b; Derived d = [||]b;       
         // object b is the current node with type *Base*, and the conversion type which object b is going to be cast by is *Derived*
         private bool GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken,
-            out ITypeSymbol? nodeType, out ITypeSymbol? conversionType, out ImmutableArray<ITypeSymbol> potentialConvTypes)
+            out ITypeSymbol? targetNodeType, out ITypeSymbol? targetNodeConversionType, out ImmutableArray<ITypeSymbol> potentialConvTypes)
         {
-            nodeType = null;
-            conversionType = null;
+            targetNodeType = null;
+            targetNodeConversionType = null;
             potentialConvTypes = ImmutableArray<ITypeSymbol>.Empty;
             if (targetNode == null)
             {
                 return false;
             }
 
-            var nodeInfo = semanticModel.GetTypeInfo(targetNode, cancellationToken);
-            nodeType = nodeInfo.Type;
-            conversionType = nodeInfo.ConvertedType;
-            if (nodeType == null)
+            var targetNodeInfo = semanticModel.GetTypeInfo(targetNode, cancellationToken);
+            targetNodeType = targetNodeInfo.Type;
+            targetNodeConversionType = targetNodeInfo.ConvertedType;
+            if (targetNodeType == null)
             {
                 return false;
             }
 
             var textSpan = targetNode.GetLocation().SourceSpan;
-            if (TryGetNode(root, textSpan, SyntaxKind.Argument, targetNode, out var argumentNode) && argumentNode is ArgumentSyntax argument &&
-                argument.Parent is ArgumentListSyntax argumentList && argumentList.Parent is SyntaxNode invocationNode)
+            if (TryGetNode(root, textSpan, SyntaxKind.Argument, targetNode, out var argumentNode) && argumentNode is ArgumentSyntax targetArgument &&
+                targetArgument.Parent is ArgumentListSyntax argumentList && argumentList.Parent is SyntaxNode invocationNode)
             {
                 // Implicit downcast appears on the arguments of function invocation, get all candidate functions and extract potential conversion types 
-                conversionType = null;
+                targetNodeConversionType = null;
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidateSymbols = symbolInfo.CandidateSymbols;
 
@@ -147,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         continue;
                     }
 
-                    // Test if all parameters are convertible, otherwise it is not the perfect match function. For example:
+                    // Test if all arguments can match all parameters, otherwise it is not the perfect match function. For example:
                     // class Base { }
                     // class Derived1 : Base { }
                     // class Derived2 : Base { }
@@ -160,89 +163,108 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     // *void DoSomething(string s, Derived2 d) { }* is not the perfect match candidate function for
                     // *DoSomething(1, [||]b)* because int and string are not ancestor-descendant relationship. Thus,
                     // Derived2 is not a potential conversion type
-                    if (IsArgumentListAndParameterListPerfactMatch(semanticModel, argumentList.Arguments, methodSymbol.Parameters, argument, cancellationToken, out var paramIndex))
+                    if (IsArgumentListAndParameterListPerfactMatch(semanticModel, argumentList.Arguments, methodSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
                     {
                         var correspondingParameter = methodSymbol.Parameters[paramIndex];
-                        potentialConversionTypes.Add(correspondingParameter.Type);
+                        var argumentConversionType = correspondingParameter.Type;
+                        if (correspondingParameter.IsParams && correspondingParameter.Type is IArrayTypeSymbol arrayType && !(targetNodeType is IArrayTypeSymbol))
+                        {
+                            argumentConversionType = arrayType.ElementType;
+                        }
+                        potentialConversionTypes.Add(argumentConversionType);
                     }
                 }
 
-                var comparer = new InheritanceDistanceComparer(semanticModel, nodeType);
+                // Sort the potential conversion types by inheritance distance
+                var comparer = new InheritanceDistanceComparer(semanticModel, targetNodeType);
                 potentialConversionTypes.Sort(comparer);
-                potentialConvTypes = potentialConversionTypes.Distinct().ToImmutableArray(); // may have duplicate types
-                // If there is no exact solution, then don't provide suggestions
-                if (potentialConversionTypes.Count != 1)
+                potentialConvTypes = potentialConversionTypes.Distinct().ToImmutableArray(); // clear up duplicate types
+                if (potentialConvTypes.Length != 1)
                 {
+                    // no exact solutions
                     return false;
                 }
 
-                conversionType = potentialConversionTypes[0];
+                targetNodeConversionType = potentialConvTypes[0];
             }
 
-            if (nodeType == null || conversionType == null)
+            if (targetNodeConversionType == null)
             {
                 return false;
             }
 
-            var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(nodeType, conversionType);
+            var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(targetNodeType, targetNodeConversionType);
+            // example: Derived d = [||]new Base();
+            // It is invalid except the target node has explicit conversion operator 
             if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression) && !commonConversion.IsUserDefined)
             {
-                conversionType = null;
+                targetNodeConversionType = null;
                 return false;
             }
             return commonConversion.Exists;
         }
 
         private bool IsArgumentListAndParameterListPerfactMatch(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
-            ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax target, CancellationToken cancellationToken, out int paramIndex)
+            ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax target, CancellationToken cancellationToken, out int targetParamIndex)
         {
-            paramIndex = -1; // return invalid index if it is not a perfact match
-            if (parameters.Length < arguments.Count) // #paremeters is large than or equal to #arguments
-            {
-                return false;
-            }
+            targetParamIndex = -1; // return invalid index if it is not a perfact match
 
             var matchedTypes = new bool[parameters.Length]; // default value is false
+            var inOrder = true; // assume the arguments are in order
 
-            // in order check 
             for (var i = 0; i < arguments.Count; i++)
             {
+                // Parameter index cannot out of its range, #arguments is larger than #parameter only if the last parameter with keyword params
+                var parameterIndex = Math.Min(i, parameters.Length - 1);
+
+                // If the argument has a name, get the corresponding parameter index
                 var nameSyntax = arguments[i].NameColon?.Name;
-                var argType = semanticModel.GetTypeInfo(arguments[i].Expression, cancellationToken);
                 if (nameSyntax != null)
                 {
                     var name = nameSyntax.ToString();
+                    var found = false;
                     for (var j = 0; j < parameters.Length; j++)
                     {
-                        if (name == parameters[j].Name && argType.Type != null &&
-                            semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[j].Type).Exists)
+                        if (name.Equals(parameters[j].Name))
                         {
-                            matchedTypes[j] = true;
-                            if (target.Equals(arguments[i]))
-                            {
-                                paramIndex = j;
-                            }
+                            // Check if the argument is in order with parameters.
+                            // If the argument breaks the order, the rest arguments must have names
+                            if (i != j) inOrder = false;
+                            parameterIndex = j;
+                            found = true;
                             break;
                         }
                     }
+                    if (!found) return false;
                 }
-                else
+
+                // 1. The argument is either in order with parameters, or have a matched name with parameters
+                // 2. The type of argument and the type of parameter must be conversible
+                var argType = semanticModel.GetTypeInfo(arguments[i].Expression, cancellationToken);
+                if (argType.Type != null && (inOrder || !(nameSyntax is null)))
                 {
-                    if (argType.Type == null || !semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[i].Type).Exists)
+                    if (semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
                     {
-                        return false;
+                        if (matchedTypes[parameterIndex]) return false;
+                        matchedTypes[parameterIndex] = true;
                     }
-                    matchedTypes[i] = true;
-                    if (target.Equals(arguments[i]))
+                    else if (parameters[parameterIndex].IsParams && parameters.Last().Type is IArrayTypeSymbol paramsType &&
+                      semanticModel.Compilation.ClassifyCommonConversion(argType.Type, paramsType.ElementType).Exists)
                     {
-                        paramIndex = i;
+                        // For the parameter with keyword params, compare its element type.
+                        matchedTypes[parameterIndex] = true;
                     }
+                    else return false;
+
+                    if (target.Equals(arguments[i])) targetParamIndex = parameterIndex;
                 }
+                else return false;
             }
 
+            // mark all optional parameters as matched
             for (var i = 0; i < parameters.Length; i++)
             {
-                if (parameters[i].IsOptional)
+                if (parameters[i].IsOptional || parameters[i].IsParams)
                 {
                     matchedTypes[i] = true;
                 }
@@ -276,6 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
             public int Compare(ITypeSymbol x, ITypeSymbol y)
             {
+                // if the node has the explicit conversion operator, then it has the shortest distance
                 var x_dist = semanticModel.Compilation.ClassifyCommonConversion(baseType, x).IsUserDefined ?
                     0 : GetInheritanceDistance(baseType, x);
                 var y_dist = semanticModel.Compilation.ClassifyCommonConversion(baseType, y).IsUserDefined ?
@@ -289,8 +312,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 this.baseType = baseType;
             }
         }
-
-        
 
 
         protected SyntaxNode? TryGetTargetNode(SyntaxNode root, TextSpan span)
