@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             var syntaxTree = interpolation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-#pragma warning disable CS0612 // Type or member is obsolete
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-#pragma warning restore CS0612 // Type or member is obsolete
+            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             if (optionSet == null)
             {
                 return;

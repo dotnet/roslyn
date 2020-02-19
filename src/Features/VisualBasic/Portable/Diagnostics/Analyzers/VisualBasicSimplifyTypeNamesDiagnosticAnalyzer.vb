@@ -39,10 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim cancellationToken = context.CancellationToken
 
             Dim syntaxTree = semanticModel.SyntaxTree
-            Dim options = context.Options
-#Disable Warning BC40008 ' Type or member is obsolete
-            Dim optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()
-#Enable Warning BC40008 ' Type or member is obsolete
+            Dim optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken)
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=Nothing, cancellationToken)
             simplifier.Visit(context.CodeBlock)
@@ -60,10 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim cancellationToken = context.CancellationToken
 
             Dim syntaxTree = semanticModel.SyntaxTree
-            Dim options = context.Options
-#Disable Warning BC40008 ' Type or member is obsolete
-            Dim optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()
-#Enable Warning BC40008 ' Type or member is obsolete
+            Dim optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken)
             Dim root = syntaxTree.GetRoot(cancellationToken)
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=codeBlockIntervalTree, cancellationToken)

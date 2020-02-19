@@ -51,11 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var cancellationToken = context.CancellationToken;
 
             var syntaxTree = semanticModel.SyntaxTree;
-            var options = context.Options;
-#pragma warning disable CS0612 // Type or member is obsolete
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()!;
-#pragma warning restore CS0612 // Type or member is obsolete
-
+            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: null, cancellationToken);
             simplifier.Visit(context.CodeBlock);
             if (!simplifier.HasDiagnostics)
@@ -73,10 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var cancellationToken = context.CancellationToken;
 
             var syntaxTree = semanticModel.SyntaxTree;
-            var options = context.Options;
-#pragma warning disable CS0612 // Type or member is obsolete
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()!;
-#pragma warning restore CS0612 // Type or member is obsolete
+            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             var root = syntaxTree.GetRoot(cancellationToken);
 
             var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: codeBlockIntervalTree, cancellationToken);
