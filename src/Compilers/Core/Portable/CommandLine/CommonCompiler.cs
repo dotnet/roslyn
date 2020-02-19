@@ -690,6 +690,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        //PROTOTYPE: hook to do generation, by default does nothing
+        protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts) { return input; }
+
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             Debug.Assert(!Arguments.IsScriptRunner);
@@ -769,6 +772,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
+
+            // PROTOTYPE: at this point we have a compilation with nothing yet computed. 
+            // We pass it to the generators, which will realize any symbols they require. (TODO: how does diagnostics function at this point??)
+            compilation = RunGenerators(compilation, Arguments.ParseOptions, additionalTexts);
 
             CompileAndEmit(
                 touchedFilesLogger,

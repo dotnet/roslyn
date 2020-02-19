@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -394,6 +395,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 embeddedFiles.Add(resolvedPath);
             }
+        }
+
+        protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts)
+        {
+            //PROTOTYPE: this needs to be behind a feature flag
+            //PROTOTYPE: we need to actually read the generators in via the provider mechanism
+            var driver = new CSharpGeneratorDriver(input, parseOptions).WithAdditionalTexts(additionalTexts);
+            driver.GenerateSource(input, out var compilationOut);
+            return compilationOut;
         }
     }
 }
