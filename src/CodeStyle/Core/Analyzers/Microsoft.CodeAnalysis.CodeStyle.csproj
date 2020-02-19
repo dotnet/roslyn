@@ -128,18 +128,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\CommonFormattingHelpers.cs" Link="Formatting\CommonFormattingHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="CodeStyleResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CodeStyleResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="CodeStyleResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>CodeStyleResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="CodeStyleResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
