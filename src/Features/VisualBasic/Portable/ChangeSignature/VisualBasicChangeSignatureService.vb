@@ -502,6 +502,8 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
             Dim originalSeparator = If(originalIndex = list.Count - 1, closeParenToken, list.GetSeparator(originalIndex))
             Dim newSeparator = If(lastParam, closeParenToken, list.GetSeparator(newIndex))
 
+            'to-do: FIX newseparator like VB
+
             ' If the associated node is not switching positions, we don't need to do any work.
             If originalIndex = newIndex Then
                 Return newSeparator

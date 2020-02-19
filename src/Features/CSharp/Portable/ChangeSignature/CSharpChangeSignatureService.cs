@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -422,6 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             var newParameters = new List<T>();
             var newSeparators = new SyntaxToken[list.Count];
+
+            list = TweakTrivia(list);
             for (var newIndex = 0; newIndex < reorderedParameters.Count; newIndex++)
             {
                 var newParamSymbol = reorderedParameters[newIndex];
@@ -434,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 // TO-DO: refactor
                 if (originalIndex == 0)
                 {
-                    newParamNode = newParamNode.WithLeadingTrivia(newParamNode.GetLeadingTrivia().Concat(GetSeparatorCommentsWithInBetweenTrivia(openParamToken.TrailingTrivia)));
+                    newParamNode = newParamNode.WithLeadingTrivia(newParamNode.GetLeadingTrivia().Concat(openParamToken.TrailingTrivia.Where(trivia => !trivia.IsKind(SyntaxKind.EndOfLineTrivia))));
                 }
 
                 if (newIndex == 0)
@@ -447,6 +450,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             return SyntaxFactory.SeparatedList(newParameters, newSeparators.ToList().GetRange(0, reorderedParameters.Count == 0 ? 0 : reorderedParameters.Count - 1));
+        }
+
+        private static SeparatedSyntaxList<T> TweakTrivia<T>(SeparatedSyntaxList<T> list) where T : SyntaxNode
+        {
+            var newParameters = new List<T>();
+            foreach (var param in list)
+            {
+                newParameters.Add(param);
+            }
+
+            var newSeparators = new SyntaxToken[list.SeparatorCount];
+            for (var separatorIndex = 0; separatorIndex < list.SeparatorCount; separatorIndex++)
+            {
+                var separator = list.GetSeparator(separatorIndex);
+                if (!separator.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
+                {
+                    newParameters[separatorIndex + 1] = newParameters[separatorIndex + 1].WithPrependedLeadingTrivia(separator.TrailingTrivia);
+                    separator = separator.WithTrailingTrivia();
+                }
+
+                newSeparators[separatorIndex] = separator;
+            }
+
+            return SyntaxFactory.SeparatedList(newParameters, newSeparators);
         }
 
         private static (T newParamNode, SyntaxToken newSeparator) TransferTrivia<T>(
