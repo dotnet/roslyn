@@ -254,36 +254,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return false;
         }
 
-        async Task<object> IPreviewFactoryService.CreateAddedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
-        {
-            return await CreateAddedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken).ConfigureAwaitRunInline();
-        }
-
-        async Task<object> IPreviewFactoryService.CreateAddedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
-        {
-            return await CreateAddedDocumentPreviewViewAsync(document, zoomLevel, cancellationToken).ConfigureAwaitRunInline();
-        }
-
-        async Task<object> IPreviewFactoryService.CreateRemovedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
-        {
-            return await CreateRemovedDocumentPreviewViewAsync(document, cancellationToken).ConfigureAwaitRunInline();
-        }
-
-        async Task<object> IPreviewFactoryService.CreateRemovedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
-        {
-            return await CreateRemovedDocumentPreviewViewAsync(document, zoomLevel, cancellationToken).ConfigureAwaitRunInline();
-        }
-
-        async Task<object> IPreviewFactoryService.CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
-        {
-            return await CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, cancellationToken).ConfigureAwaitRunInline();
-        }
-
-        async Task<object> IPreviewFactoryService.CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, double zoomLevel, CancellationToken cancellationToken)
-        {
-            return await CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, zoomLevel, cancellationToken).ConfigureAwaitRunInline();
-        }
-
         public Task<DifferenceViewerPreview> CreateAddedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
         {
             return CreateAddedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
