@@ -19,7 +19,7 @@ parameters:
   # Which stages should finish execution before post-build stages start
   validateDependsOn:
   - build
-  publishDependsOn: 
+  publishDependsOn:
   - Validate
 
 stages:
@@ -59,8 +59,8 @@ stages:
         displayName: Validate
         inputs:
           filePath: $(Build.SourcesDirectory)/eng/common/post-build/nuget-validation.ps1
-          arguments: -PackagesPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/ 
-            -ToolDestinationPath $(Agent.BuildDirectory)/Extract/ 
+          arguments: -PackagesPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/
+            -ToolDestinationPath $(Agent.BuildDirectory)/Extract/
 
   - job:
     displayName: Signing Validation
@@ -142,9 +142,9 @@ stages:
         displayName: Validate
         inputs:
           filePath: $(Build.SourcesDirectory)/eng/common/post-build/sourcelink-validation.ps1
-          arguments: -InputPath $(Build.ArtifactStagingDirectory)/BlobArtifacts/ 
-            -ExtractPath $(Agent.BuildDirectory)/Extract/ 
-            -GHRepoName $(Build.Repository.Name) 
+          arguments: -InputPath $(Build.ArtifactStagingDirectory)/BlobArtifacts/
+            -ExtractPath $(Agent.BuildDirectory)/Extract/
+            -GHRepoName $(Build.Repository.Name)
             -GHCommit $(Build.SourceVersion)
             -SourcelinkCliVersion $(SourceLinkCLIVersion)
         continueOnError: true
