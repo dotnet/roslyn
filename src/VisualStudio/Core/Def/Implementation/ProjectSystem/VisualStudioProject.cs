@@ -249,8 +249,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             get => _intermediateOutputFilePath;
             set => ChangeProjectOutputPath(ref _intermediateOutputFilePath,
                        value,
-                       s => s.WithProjectCompilationOutputFilePath(Id, value),
-                       w => w.OnCompilationOutputFilePathChanged(Id, value));
+                       s => s.WithProjectCompilationOutputFilePaths(Id, new CompilationOutputFilePaths(value)),
+                       w => w.OnCompilationOutputFilePathsChanged(Id, new CompilationOutputFilePaths(value)));
         }
 
         public string? OutputFilePath

@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     documentProperties : DefaultTextDocumentServiceProvider.Instance.GetService<TService>();
         }
 
-        private (DebuggeeModuleInfo, Guid) EmitAndLoadLibraryToDebuggee(string source, ProjectId projectId, string assemblyName = "", string sourceFilePath = "test1.cs", Encoding encoding = null)
+        private (DebuggeeModuleInfo, Guid) EmitAndLoadLibraryToDebuggee(string source, string assemblyName = "", string sourceFilePath = "test1.cs", Encoding encoding = null)
         {
-            var (debuggeeModuleInfo, moduleId) = EmitLibrary(source, projectId, assemblyName, sourceFilePath, encoding);
+            var (debuggeeModuleInfo, moduleId) = EmitLibrary(source, assemblyName, sourceFilePath, encoding);
             LoadLibraryToDebuggee(debuggeeModuleInfo);
             return (debuggeeModuleInfo, moduleId);
         }
@@ -152,7 +152,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private (DebuggeeModuleInfo, Guid) EmitLibrary(
             string source,
-            ProjectId projectId,
             string assemblyName = "",
             string sourceFilePath = "test1.cs",
             Encoding encoding = null,
@@ -299,10 +298,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             using (var workspace = TestWorkspace.CreateCSharp("class C1 { void M() { System.Console.WriteLine(1); } }"))
             {
-                var service = CreateEditAndContinueService(workspace);
-
-                var project = workspace.CurrentSolution.Projects.Single();
                 _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.Empty);
+
+                var service = CreateEditAndContinueService(workspace);
+                var project = workspace.CurrentSolution.Projects.Single();
 
                 StartDebuggingSession(service);
 
@@ -628,7 +627,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             workspace.ChangeSolution(documentC.Project.Solution);
 
             // only compile A; B and C are design-time-only:
-            var (moduleInfo, moduleId) = EmitLibrary(sourceA, documentA.Project.Id, sourceFilePath: sourceFileA.Path);
+            var (moduleInfo, moduleId) = EmitLibrary(sourceA, sourceFilePath: sourceFileA.Path);
 
             if (!delayLoad)
             {
@@ -751,7 +750,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var project = document1.Project;
             workspace.ChangeSolution(project.Solution);
 
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path);
+            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
             _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId)
             {
@@ -825,7 +824,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var project = document1.Project;
             workspace.ChangeSolution(project.Solution);
 
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path);
+            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
             StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
@@ -1049,7 +1048,7 @@ class C1
             var project = document1.Project;
             workspace.ChangeSolution(project.Solution);
 
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path, encoding: encoding);
+            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path, encoding: encoding);
 
             var service = CreateEditAndContinueService(workspace);
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
@@ -1136,7 +1135,7 @@ class C1
             workspace.ChangeSolution(project.Solution);
 
             // compile with source0:
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source0, project.Id, sourceFilePath: sourceFile.Path);
+            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source0, sourceFilePath: sourceFile.Path);
 
             // update the file with source1 before session starts:
             sourceFile.WriteAllText(source1);
@@ -1226,7 +1225,7 @@ class C1
             var project = document1.Project;
             workspace.ChangeSolution(project.Solution);
 
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path);
+            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -1274,7 +1273,7 @@ class C1
             var project = document1.Project;
             workspace.ChangeSolution(project.Solution);
 
-            var (debuggeeModuleInfo, _) = EmitLibrary(source1, project.Id, sourceFilePath: sourceFile.Path);
+            var (debuggeeModuleInfo, _) = EmitLibrary(source1, sourceFilePath: sourceFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -1375,7 +1374,7 @@ class C1
             using var workspace = TestWorkspace.CreateCSharp(sourceV1);
 
             var project = workspace.CurrentSolution.Projects.Single();
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(sourceV1, project.Id);
+            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(sourceV1);
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -1472,7 +1471,7 @@ class C1
             using var workspace = TestWorkspace.CreateCSharp(sourceV1);
 
             var project = workspace.CurrentSolution.Projects.Single();
-            EmitAndLoadLibraryToDebuggee(sourceV1, project.Id);
+            EmitAndLoadLibraryToDebuggee(sourceV1);
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -1571,7 +1570,7 @@ class C1
             var project = document1.Project;
             workspace.ChangeSolution(project.Solution);
 
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path);
+            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
@@ -1651,7 +1650,7 @@ class C1
             var project = document2.Project;
             workspace.ChangeSolution(project.Solution);
 
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path);
+            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
@@ -1722,7 +1721,7 @@ class C1
             var project = document1.Project;
             workspace.ChangeSolution(project.Solution);
 
-            var (moduleInfo, moduleId) = EmitLibrary(sourceOnDisk, project.Id, sourceFilePath: sourceFile.Path);
+            var (moduleInfo, moduleId) = EmitLibrary(sourceOnDisk, sourceFilePath: sourceFile.Path);
 
             if (!delayLoad)
             {
@@ -1784,7 +1783,7 @@ class C1
             using var workspace = TestWorkspace.CreateCSharp(sourceV1);
 
             var project = workspace.CurrentSolution.Projects.Single();
-            var (debuggeeModuleInfo, moduleId) = EmitAndLoadLibraryToDebuggee(sourceV1, project.Id);
+            var (debuggeeModuleInfo, moduleId) = EmitAndLoadLibraryToDebuggee(sourceV1);
 
             var diagnosticUpdateSource = new EditAndContinueDiagnosticUpdateSource();
             var emitDiagnosticsUpdated = new List<DiagnosticsUpdatedArgs>();
@@ -2060,8 +2059,8 @@ class C1
                 workspace.ChangeSolution(projectB.Solution);
 
                 _mockCompilationOutputsProvider = project =>
-                    (project == projectA) ? new CompilationOutputFiles(moduleFileA.Path) :
-                    (project == projectB) ? new CompilationOutputFiles(moduleFileB.Path, pdbFileB.Path) :
+                    (project.Id == projectA.Id) ? new CompilationOutputFiles(moduleFileA.Path) :
+                    (project.Id == projectB.Id) ? new CompilationOutputFiles(moduleFileB.Path, pdbFileB.Path) :
                     throw ExceptionUtilities.UnexpectedValue(project);
 
                 // only module A is loaded

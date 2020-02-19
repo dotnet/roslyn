@@ -8,6 +8,12 @@ Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption(Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
 *REMOVED*abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
 Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> T
+Microsoft.CodeAnalysis.CompilationOutputFilePaths
+Microsoft.CodeAnalysis.CompilationOutputFilePaths.AssemblyPath.get -> string
+Microsoft.CodeAnalysis.CompilationOutputFilePaths.CompilationOutputFilePaths(string assemblyPath) -> void
+Microsoft.CodeAnalysis.CompilationOutputFilePaths.Equals(Microsoft.CodeAnalysis.CompilationOutputFilePaths other) -> bool
+Microsoft.CodeAnalysis.CompilationOutputFilePaths.WithAssemblyPath(string path) -> Microsoft.CodeAnalysis.CompilationOutputFilePaths
+Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, T value) -> Microsoft.CodeAnalysis.Options.DocumentOptionSet
 Microsoft.CodeAnalysis.Project.RemoveDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Solution.RemoveAdditionalDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.RemoveAnalyzerConfigDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Solution
@@ -21,3 +27,12 @@ override Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Equals(object obj) 
 override Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.GetHashCode() -> int
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Extern.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Volatile.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Project.CompilationOutputFilePaths.get -> Microsoft.CodeAnalysis.CompilationOutputFilePaths
+Microsoft.CodeAnalysis.ProjectInfo.CompilationOutputFilePaths.get -> Microsoft.CodeAnalysis.CompilationOutputFilePaths
+Microsoft.CodeAnalysis.ProjectInfo.WithCompilationOutputFilePaths(Microsoft.CodeAnalysis.CompilationOutputFilePaths paths) -> Microsoft.CodeAnalysis.ProjectInfo
+Microsoft.CodeAnalysis.Solution.WithProjectCompilationOutputFilePaths(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.CompilationOutputFilePaths paths) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Workspace.OnCompilationOutputFilePathsChanged(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.CompilationOutputFilePaths paths) -> void
+override Microsoft.CodeAnalysis.CompilationOutputFilePaths.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.CompilationOutputFilePaths.GetHashCode() -> int
+static Microsoft.CodeAnalysis.CompilationOutputFilePaths.operator !=(Microsoft.CodeAnalysis.CompilationOutputFilePaths left, Microsoft.CodeAnalysis.CompilationOutputFilePaths right) -> bool
+static Microsoft.CodeAnalysis.CompilationOutputFilePaths.operator ==(Microsoft.CodeAnalysis.CompilationOutputFilePaths left, Microsoft.CodeAnalysis.CompilationOutputFilePaths right) -> bool

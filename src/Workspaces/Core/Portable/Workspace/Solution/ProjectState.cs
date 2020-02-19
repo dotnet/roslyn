@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis
         public string? OutputRefFilePath => this.ProjectInfo.OutputRefFilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public string? CompilationOutputFilePath => this.ProjectInfo.CompilationOutputFilePath;
+        public CompilationOutputFilePaths CompilationOutputFilePaths => this.ProjectInfo.CompilationOutputFilePaths;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public string? DefaultNamespace => this.ProjectInfo.DefaultNamespace;
@@ -521,14 +521,14 @@ namespace Microsoft.CodeAnalysis
         public ProjectState WithRunAnalyzers(bool runAnalyzers)
             => (runAnalyzers == RunAnalyzers) ? this : WithAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
 
-        public ProjectState UpdateCompilationOutputFilePath(string? compilationOutputFilePath)
+        public ProjectState UpdateCompilationOutputFilePaths(CompilationOutputFilePaths paths)
         {
-            if (compilationOutputFilePath == this.CompilationOutputFilePath)
+            if (paths == this.CompilationOutputFilePaths)
             {
                 return this;
             }
 
-            return this.With(projectInfo: this.ProjectInfo.WithCompilationOutputFilePath(compilationOutputFilePath).WithVersion(this.Version.GetNewerVersion()));
+            return this.With(projectInfo: this.ProjectInfo.WithCompilationOutputFilePaths(paths).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState UpdateDefaultNamespace(string? defaultNamespace)

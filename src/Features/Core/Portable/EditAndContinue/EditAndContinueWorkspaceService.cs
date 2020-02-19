@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.
             // To work around we look for the PDB on the path specified in the PDB debug directory.
             // https://github.com/dotnet/roslyn/issues/35065
-            return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputFilePath);
+            return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputFilePaths.AssemblyPath);
         }
 
         public void OnSourceFileUpdated(DocumentId documentId)

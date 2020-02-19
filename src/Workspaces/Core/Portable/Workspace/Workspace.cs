@@ -533,11 +533,11 @@ namespace Microsoft.CodeAnalysis
             => SetCurrentSolution(oldSolution => oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
-        /// Call this method when a project's compiler output file path is changed in the host environment.
+        /// Call this method when a project's compiler output file paths are changed in the host environment.
         /// </summary>
-        protected internal void OnCompilationOutputFilePathChanged(ProjectId projectId, string? outputFilePath)
+        protected internal void OnCompilationOutputFilePathsChanged(ProjectId projectId, CompilationOutputFilePaths paths)
         {
-            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectCompilationOutputFilePath(projectId, outputFilePath));
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectCompilationOutputFilePaths(projectId, paths));
         }
 
         /// <summary>

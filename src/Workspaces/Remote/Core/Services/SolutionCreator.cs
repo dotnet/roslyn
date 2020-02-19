@@ -290,9 +290,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = project.Solution.WithProjectOutputRefFilePath(projectId, newProjectAttributes.OutputRefFilePath).GetProject(projectId)!;
             }
 
-            if (project.State.ProjectInfo.Attributes.CompilationOutputFilePath != newProjectAttributes.CompilationOutputFilePath)
+            if (project.State.ProjectInfo.Attributes.CompilationOutputFilePaths != newProjectAttributes.CompilationOutputFilePaths)
             {
-                project = project.Solution.WithProjectCompilationOutputFilePath(project.Id, newProjectAttributes.CompilationOutputFilePath).GetProject(project.Id)!;
+                project = project.Solution.WithProjectCompilationOutputFilePaths(project.Id, newProjectAttributes.CompilationOutputFilePaths).GetProject(project.Id)!;
             }
 
             if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectAttributes.DefaultNamespace)

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The path to the compiler output file (module or assembly).
         /// </summary>
-        public string? CompilationOutputFilePath => Attributes.CompilationOutputFilePath;
+        public CompilationOutputFilePaths CompilationOutputFilePaths => Attributes.CompilationOutputFilePaths;
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis
             string? filePath,
             string? outputFilePath,
             string? outputRefFilePath,
-            string? compilationOutputFilePath,
+            CompilationOutputFilePaths compilationOutputFilePaths,
             string? defaultNamespace,
             CompilationOptions? compilationOptions,
             ParseOptions? parseOptions,
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis
                     filePath,
                     outputFilePath,
                     outputRefFilePath,
-                    compilationOutputFilePath,
+                    compilationOutputFilePaths,
                     defaultNamespace,
                     isSubmission,
                     hasAllInformation,
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis
         {
             return Create(
                 id, version, name, assemblyName, language,
-                filePath, outputFilePath, outputRefFilePath: null, compilationOutputFilePath: null, defaultNamespace: null, compilationOptions, parseOptions,
+                filePath, outputFilePath, outputRefFilePath: null, compilationOutputFilePaths: default, defaultNamespace: null, compilationOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
                 isSubmission, hostObjectType, hasAllInformation: true, runAnalyzers: true);
         }
@@ -280,6 +280,7 @@ namespace Microsoft.CodeAnalysis
                     filePath,
                     outputFilePath,
                     outputRefFilePath,
+                    compilationOutputFilePaths: default,
                     defaultNamespace: null,
                     isSubmission,
                     hasAllInformation: true,
@@ -363,10 +364,8 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithOutputRefFilePath(string? outputRefFilePath)
             => With(attributes: Attributes.With(outputRefPath: outputRefFilePath));
 
-        public ProjectInfo WithCompilationOutputFilePath(string? compilationOutputFilePath)
-        {
-            return With(attributes: Attributes.With(compilerOutputPath: compilationOutputFilePath));
-        }
+        public ProjectInfo WithCompilationOutputFilePaths(CompilationOutputFilePaths paths)
+            => With(attributes: Attributes.With(compilationOutputPaths: paths));
 
         public ProjectInfo WithDefaultNamespace(string? defaultNamespace)
             => With(attributes: Attributes.With(defaultNamespace: defaultNamespace));
@@ -455,7 +454,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// The path to the compiler output file (module or assembly).
             /// </summary>
-            public string? CompilationOutputFilePath { get; }
+            public CompilationOutputFilePaths CompilationOutputFilePaths { get; }
 
             /// <summary>
             /// The default namespace of the project.
@@ -488,7 +487,7 @@ namespace Microsoft.CodeAnalysis
                 string? filePath,
                 string? outputFilePath,
                 string? outputRefFilePath,
-                string? compilationOutputFilePath,
+                CompilationOutputFilePaths compilationOutputFilePaths,
                 string? defaultNamespace,
                 bool isSubmission,
                 bool hasAllInformation,
@@ -503,7 +502,7 @@ namespace Microsoft.CodeAnalysis
                 FilePath = filePath;
                 OutputFilePath = outputFilePath;
                 OutputRefFilePath = outputRefFilePath;
-                CompilationOutputFilePath = compilationOutputFilePath;
+                CompilationOutputFilePaths = compilationOutputFilePaths;
                 DefaultNamespace = defaultNamespace;
                 IsSubmission = isSubmission;
                 HasAllInformation = hasAllInformation;
@@ -518,7 +517,7 @@ namespace Microsoft.CodeAnalysis
                 Optional<string?> filePath = default,
                 Optional<string?> outputPath = default,
                 Optional<string?> outputRefPath = default,
-                Optional<string?> compilerOutputPath = default,
+                Optional<CompilationOutputFilePaths> compilationOutputPaths = default,
                 Optional<string?> defaultNamespace = default,
                 Optional<bool> isSubmission = default,
                 Optional<bool> hasAllInformation = default,
@@ -531,7 +530,7 @@ namespace Microsoft.CodeAnalysis
                 var newFilepath = filePath.HasValue ? filePath.Value : FilePath;
                 var newOutputPath = outputPath.HasValue ? outputPath.Value : OutputFilePath;
                 var newOutputRefPath = outputRefPath.HasValue ? outputRefPath.Value : OutputRefFilePath;
-                var newCompilerOutputPath = compilerOutputPath.HasValue ? compilerOutputPath.Value : CompilationOutputFilePath;
+                var newCompilationOutputPaths = compilationOutputPaths.HasValue ? compilationOutputPaths.Value : CompilationOutputFilePaths;
                 var newDefaultNamespace = defaultNamespace.HasValue ? defaultNamespace.Value : DefaultNamespace;
                 var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : IsSubmission;
                 var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
@@ -544,7 +543,7 @@ namespace Microsoft.CodeAnalysis
                     newFilepath == FilePath &&
                     newOutputPath == OutputFilePath &&
                     newOutputRefPath == OutputRefFilePath &&
-                    newCompilerOutputPath == CompilationOutputFilePath &&
+                    newCompilationOutputPaths == CompilationOutputFilePaths &&
                     newDefaultNamespace == DefaultNamespace &&
                     newIsSubmission == IsSubmission &&
                     newHasAllInformation == HasAllInformation &&
@@ -562,7 +561,7 @@ namespace Microsoft.CodeAnalysis
                     newFilepath,
                     newOutputPath,
                     newOutputRefPath,
-                    newCompilerOutputPath,
+                    newCompilationOutputPaths,
                     newDefaultNamespace,
                     newIsSubmission,
                     newHasAllInformation,
@@ -584,7 +583,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(FilePath);
                 writer.WriteString(OutputFilePath);
                 writer.WriteString(OutputRefFilePath);
-                writer.WriteString(CompilationOutputFilePath);
+                CompilationOutputFilePaths.WriteTo(writer);
                 writer.WriteString(DefaultNamespace);
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);
@@ -605,7 +604,7 @@ namespace Microsoft.CodeAnalysis
                 var filePath = reader.ReadString();
                 var outputFilePath = reader.ReadString();
                 var outputRefFilePath = reader.ReadString();
-                var compilationOutputFilePath = reader.ReadString();
+                var compilationOutputFilePaths = CompilationOutputFilePaths.ReadFrom(reader);
                 var defaultNamespace = reader.ReadString();
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
@@ -620,7 +619,7 @@ namespace Microsoft.CodeAnalysis
                     filePath,
                     outputFilePath,
                     outputRefFilePath,
-                    compilationOutputFilePath,
+                    compilationOutputFilePaths,
                     defaultNamespace,
                     isSubmission,
                     hasAllInformation,
