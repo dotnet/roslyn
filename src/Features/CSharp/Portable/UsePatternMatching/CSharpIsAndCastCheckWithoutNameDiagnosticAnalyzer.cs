@@ -69,7 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var isExpression = (BinaryExpressionSyntax)context.Node;
 
-            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
+            var options = context.Options as WorkspaceAnalyzerOptions;
+            var workspace = options?.Services.Workspace;
+            if (workspace == null)
+            {
+                return;
+            }
+
+            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
             if (!styleOption.Value)
             {
