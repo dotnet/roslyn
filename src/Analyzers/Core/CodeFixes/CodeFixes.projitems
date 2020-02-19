@@ -8,4 +8,7 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Microsoft.CodeAnalysis.CodeFixes</Import_RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" GenerateSource="true" />
+  </ItemGroup>
 </Project>

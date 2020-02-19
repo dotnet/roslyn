@@ -2231,7 +2231,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!this.ContainsDocument(documentId))
             {
-                throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
             }
         }
 
@@ -2241,7 +2241,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!this.ContainsAdditionalDocument(documentId))
             {
-                throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
             }
         }
 
@@ -2251,7 +2251,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!this.ContainsAnalyzerConfigDocument(documentId))
             {
-                throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
             }
         }
 
