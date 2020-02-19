@@ -477,7 +477,6 @@ this serialization mechanism happens entirely at compile time and can be
 specialized exactly to what was written in the user class.
 
 
-TODO:
 
 ### Auto interface implementation
 
@@ -496,5 +495,4 @@ This section track other miscellaneous TODO items:
 **Partial methods**: Should we provide a scenario that includes partial methods? Reasons:
  - Control of name. The developer can control the name of the member
  - Generation is optional/depending on other state. Based on other information, generator might decide that the method isn't needed.
-
 
