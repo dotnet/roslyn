@@ -493,8 +493,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for new()</source>
-        <target state="new">There is no target type for new()</target>
+        <source>There is no target type for '{0}'</source>
+        <target state="new">There is no target type for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypelessNewNotValid">

@@ -6005,7 +6005,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Use of new() is not valid in this context</value>
   </data>
   <data name="ERR_TypelessNewNoTargetType" xml:space="preserve">
-    <value>There is no target type for new()</value>
+    <value>There is no target type for '{0}'</value>
   </data>
   <data name="IDS_FeatureTargetTypedObjectCreation" xml:space="preserve">
     <value>target-typed object creation</value>
