@@ -277,7 +277,206 @@ public partial class UserClass : INotifyPropertyChanged
 
 ### Serialization
 
-TODO:
+**User Scenario**
+
+Serialization is often implemented using _dynamic analysis_, i.e. serializers often
+use reflection to examine the runtime state of a given type and generate serialization
+logic. This can be expensive and brittle. If the compile-time type and the runtime-type
+are similar, it could be useful to move much of the cost to compile-time, instead of
+run-time.
+
+Source generators provide a way to do this. Since source generators can be delivered via
+NuGet the same way analyzers can, we anticipate this would be a use-case for a source
+generator library, as opposed to everyone building their own.
+
+**Solution**
+
+To start, the generator will need some way to discover which types are meant
+to be serializable. One indicator could be an attribute, e.g.
+
+```C#
+[GeneratorSerializable]
+partial class MyRecord
+{
+    public string Item1 { get; }
+    public int Item2 { get; }
+}
+```
+
+This attribute could also be used for #participate-in-the-ide-experience,
+when the full scope of that feature is fully designed. In that scenario,
+instead of the generator finding every type marked with the given attribute,
+the compiler would notify the generator of every type marked with the given
+attribute. For now we'll assume that the types are provided to us.
+
+The first task is to decide what we want our serialization to return. Let's say
+we do a simple JSon serialization that produces a string like the following
+
+```json
+{
+    "Item1": "abc",
+    "Item2": 11,
+}
+```
+
+For that we could add a `Serialize` method to our record type like the following:
+
+```C#
+public string Serialize()
+{
+    var sb = new StringBuilder();
+    sb.AppendLine("{");
+    int indent = 8;
+
+    // Body
+    addWithIndent($"\"Item1\": \"{this.Item1.ToString()}\",");
+    addWithIndent($"\"Item2\": {this.Item2.ToString()},");
+
+    sb.AppendLine("{");
+
+    return sb.ToString();
+
+    void addWithIndent(string s)
+    {
+        sb.Append(' ', indent);
+        sb.AppendLine(s);
+    }
+}
+```
+
+Obviously this is heavily simplified -- this example only handles the `string` and `int`
+types properly and has no error recovery, but it should serve to demonstrate the kind
+of code a source generator could add to a compilation.
+
+Our next task is design a generator to generate the above code, since the
+above code is itself customized in the `// Body` section according to the
+actual properties in the class. In other words, we need to generate the code
+which will generate the JSon format. This is a generator-generator.
+
+Let's start with a basic template. We are adding a full source generator, so we'll need
+to generate a class with the same name as the input class, with a public method called
+`Serialize`, and a filler area where we write out the properties.
+
+```C#
+string template = @"
+using System.Text;
+partial class {0}
+{{
+    public string Serialize()
+    {{
+        var sb = new StringBuilder();
+        sb.AppendLine(""{{"");
+        int indent = 8;
+
+        // Body
+{1}
+
+        sb.AppendLine(""}}"");
+
+        return sb.ToString();
+
+        void addWithIndent(string s)
+        {{
+            sb.Append(' ', indent);
+            sb.AppendLine(s);
+        }}
+    }}
+}}";
+```
+
+Now that we know the general structure of the code, we need to examine the input
+type and find all the right info to fill in. This information is all available in
+a C# SyntaxTree in our example. Let's say we were given a `ClassDeclarationSyntax`
+that was confirmed to have a generation attribute attached. Then we could grab the
+name of the class and the name of it's properties as follows:
+
+```C#
+private static string Generate(ClassDeclarationSyntax c)
+{
+    var className = c.Identifier.ToString();
+    var propertyNames = new List<string>();
+    foreach (var member in c.Members)
+    {
+        if (member is PropertyDeclarationSyntax p)
+        {
+            propertyNames.Add(p.Identifier.ToString());
+        }
+    }
+}
+```
+
+This is really all we need. If the serialized values of the properties
+is their string value, the generated code just needs to call `ToString()` on
+them. The only remaining question is what `using`s to put at the top of the file.
+Since our template uses a string builder, we'll need `System.Text` for that, but
+all other types appear to be primitives, so that's all we'll need. Putting it all
+together:
+
+```C#
+private static string Generate(ClassDeclarationSyntax c)
+{
+    var sb = new StringBuilder();
+    int indent = 8;
+    foreach (var member in c.Members)
+    {
+        if (member is PropertyDeclarationSyntax p)
+        {
+            var name = p.Identifier.ToString();
+            appendWithIndent($"addWithIndent($\"\\\"{name}\\\": ");
+            if (p.Type.ToString() != "int")
+            {
+                sb.Append("\\\"");
+            }
+            sb.Append($"{{this.{name}.ToString()}}");
+            if (p.Type.ToString() != "int")
+            {
+                sb.Append("\\\"");
+            }
+            sb.AppendLine(",\");");
+            break;
+        }
+    }
+
+    return $@"
+using System.Text;
+partial class {c.Identifier.ToString()}
+{{
+    public string Serialize()
+    {{
+        var sb = new StringBuilder();
+        sb.AppendLine(""{{"");
+        int indent = 8;
+
+        // Body
+{sb.ToString()}
+
+        sb.AppendLine(""}}"");
+
+        return sb.ToString();
+
+        void addWithIndent(string s)
+        {{
+            sb.Append(' ', indent);
+            sb.AppendLine(s);
+        }}
+    }}
+}}";
+    void appendWithIndent(string s)
+    {
+        sb.Append(' ', indent);
+        sb.Append(s);
+    }
+}
+```
+
+This ties cleanly into the other serialization examples. By finding all the
+appropriate class declarations in the Compilation's SyntaxTrees and passing
+them to the above Generate method we can build new partial classes for each
+type that opt-ed in to generated serialization. Unlike other technologies,
+this serialization mechanism happens entirely at compile time and can be
+specialized exactly to what was written in the user class.
+
+
 
 ### Auto interface implementation
 
@@ -296,5 +495,4 @@ This section track other miscellaneous TODO items:
 **Partial methods**: Should we provide a scenario that includes partial methods? Reasons:
  - Control of name. The developer can control the name of the member
  - Generation is optional/depending on other state. Based on other information, generator might decide that the method isn't needed.
-
 
