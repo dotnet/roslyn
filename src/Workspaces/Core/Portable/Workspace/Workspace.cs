@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -86,6 +87,19 @@ namespace Microsoft.CodeAnalysis
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
             var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService, serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty);
             _latestSolution = CreateSolution(info, emptyOptions);
+
+            TryRegisterDocumentOptionsProvider();
+        }
+
+        internal void TryRegisterDocumentOptionsProvider()
+        {
+            var documentOptionsProvider = EditorConfigDocumentOptionsProviderFactory.TryCreate(this);
+            if (documentOptionsProvider is null)
+            {
+                return;
+            }
+
+            _optionService.RegisterDocumentOptionsProvider(documentOptionsProvider);
         }
 
         internal void LogTestMessage(string message)
