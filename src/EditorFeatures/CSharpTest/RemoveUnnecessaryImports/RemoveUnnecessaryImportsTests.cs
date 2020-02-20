@@ -836,6 +836,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessField1()
         {
+            // Test intentionally uses 'using' instead of 'using static'
             var testCode = @"[|{|IDE0005:using {|CS0138:SomeNS.Goo|};|}|]
 
 class Program
@@ -905,6 +906,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessMethod1()
         {
+            // Test intentionally uses 'using' instead of 'using static'
             var testCode = @"[|{|IDE0005:using {|CS0138:SomeNS.Goo|};|}|]
 
 class Program
@@ -982,10 +984,45 @@ namespace SomeNS
 
         [WorkItem(8846, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
-        public async Task TestUnusedTypeImportIsRemoved()
+        public async Task TestUnusedTypeImportIsRemoved1()
         {
+            // Test intentionally uses 'using' instead of 'using static'
             await VerifyCodeFixAsync(
 @"[|{|IDE0005:using {|CS0138:SomeNS.Goo|};|}|]
+
+class Program
+{
+    static void Main()
+    {
+    }
+}
+
+namespace SomeNS
+{
+    static class Goo
+    {
+    }
+}",
+@"class Program
+{
+    static void Main()
+    {
+    }
+}
+
+namespace SomeNS
+{
+    static class Goo
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestUnusedTypeImportIsRemoved2()
+        {
+            await VerifyCodeFixAsync(
+@"[|{|IDE0005:using static SomeNS.Goo;|}|]
 
 class Program
 {
