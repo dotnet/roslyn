@@ -7,13 +7,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 using NativeMethods = Microsoft.CodeAnalysis.Editor.Wpf.Utilities.NativeMethods;
 
 namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
@@ -23,40 +24,40 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private class ColorSchemeSettings
         {
             private readonly IServiceProvider _serviceProvider;
-            private readonly VisualStudioWorkspace _workspace;
+            private readonly IGlobalOptionService _optionService;
 
             public HasThemeBeenDefaultedIndexer HasThemeBeenDefaulted { get; }
 
-            public ColorSchemeSettings(IServiceProvider serviceProvider, VisualStudioWorkspace workspace)
+            public ColorSchemeSettings(IServiceProvider serviceProvider, IGlobalOptionService globalOptionService)
             {
                 _serviceProvider = serviceProvider;
-                _workspace = workspace;
+                _optionService = globalOptionService;
 
-                HasThemeBeenDefaulted = new HasThemeBeenDefaultedIndexer(_workspace);
+                HasThemeBeenDefaulted = new HasThemeBeenDefaultedIndexer(globalOptionService);
             }
 
-            public ImmutableDictionary<string, ColorScheme> GetColorSchemes()
+            public ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
             {
-                return new Dictionary<string, ColorScheme>
+                return new[]
                 {
-                    [ColorSchemeOptions.Enhanced] = GetColorScheme(ColorSchemeOptions.Enhanced),
-                    [ColorSchemeOptions.VisualStudio2017] = GetColorScheme(ColorSchemeOptions.VisualStudio2017)
-                }.ToImmutableDictionary();
+                    SchemeName.Enhanced,
+                    SchemeName.VisualStudio2017
+                }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
             }
 
-            private ColorScheme GetColorScheme(string colorSchemeName)
+            private ColorScheme GetColorScheme(SchemeName schemeName)
             {
-                using var colorSchemeStream = GetColorSchemeXmlStream(colorSchemeName);
+                using var colorSchemeStream = GetColorSchemeXmlStream(schemeName);
                 return ColorSchemeReader.ReadColorScheme(colorSchemeStream);
             }
 
-            private Stream GetColorSchemeXmlStream(string colorSchemeName)
+            private Stream GetColorSchemeXmlStream(SchemeName schemeName)
             {
                 var assembly = Assembly.GetExecutingAssembly();
-                return assembly.GetManifestResourceStream($"Microsoft.VisualStudio.LanguageServices.ColorSchemes.{colorSchemeName}.xml");
+                return assembly.GetManifestResourceStream($"Microsoft.VisualStudio.LanguageServices.ColorSchemes.{schemeName}.xml");
             }
 
-            public void ApplyColorScheme(string colorSchemeName, ImmutableArray<RegistryItem> registryItems)
+            public void ApplyColorScheme(SchemeName schemeName, ImmutableArray<RegistryItem> registryItems)
             {
                 using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: true);
 
@@ -66,28 +67,32 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     itemKey.SetValue(item.ValueName, item.ValueData);
                 }
 
-                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.AppliedColorScheme, colorSchemeName)));
+                _optionService.SetOptions(new SingleOptionSet(ColorSchemeOptions.AppliedColorScheme, schemeName));
 
                 // Broadcast that system color settings have changed to force the ColorThemeService to reload colors.
                 NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_SYSCOLORCHANGE, wparam: IntPtr.Zero, lparam: IntPtr.Zero);
             }
 
-            public string GetAppliedColorScheme()
+            public SchemeName GetAppliedColorScheme()
             {
-                return _workspace.Options.GetOption(ColorSchemeOptions.AppliedColorScheme)
-                    ?? ColorSchemeOptions.AppliedColorScheme.DefaultValue;
+                var schemeName = _optionService.GetOption(ColorSchemeOptions.AppliedColorScheme);
+                return schemeName != SchemeName.None
+                    ? schemeName
+                    : ColorSchemeOptions.AppliedColorScheme.DefaultValue;
             }
 
-            public string GetConfiguredColorScheme()
+            public SchemeName GetConfiguredColorScheme()
             {
-                return _workspace.Options.GetOption(ColorSchemeOptions.ColorScheme)
-                    ?? ColorSchemeOptions.ColorScheme.DefaultValue;
+                var schemeName = _optionService.GetOption(ColorSchemeOptions.ColorScheme);
+                return schemeName != SchemeName.None
+                    ? schemeName
+                    : ColorSchemeOptions.ColorScheme.DefaultValue;
             }
 
             public void MigrateToColorSchemeSetting(bool isThemeCustomized)
             {
                 // Get the preview feature flag value.
-                var useEnhancedColorsSetting = _workspace.Options.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
+                var useEnhancedColorsSetting = _optionService.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
 
                 // Return if we have already migrated.
                 if (useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.Migrated)
@@ -100,23 +105,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     ? ColorSchemeOptions.Enhanced
                     : ColorSchemeOptions.VisualStudio2017;
 
-                var updatedOptionSet = _workspace.Options
-                    .WithChangedOption(ColorSchemeOptions.ColorScheme, colorScheme)
-                    .WithChangedOption(ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated);
-                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(updatedOptionSet));
+                _optionService.SetOptions(new SingleOptionSet(ColorSchemeOptions.ColorScheme, colorScheme));
+                _optionService.SetOptions(new SingleOptionSet(ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated));
             }
 
             public Guid GetThemeId()
             {
                 // Look up the value from the new roamed theme property first and
                 // fallback to the original roamed theme property if that fails.
-                var themeIdString = _workspace.Options.GetOption(VisualStudioColorTheme.CurrentThemeNew)
-                    ?? _workspace.Options.GetOption(VisualStudioColorTheme.CurrentTheme);
+                var themeIdString = _optionService.GetOption(VisualStudioColorTheme.CurrentThemeNew)
+                    ?? _optionService.GetOption(VisualStudioColorTheme.CurrentTheme);
 
                 return Guid.TryParse(themeIdString, out var themeId) ? themeId : Guid.Empty;
             }
 
-            public static class VisualStudioColorTheme
+            private static class VisualStudioColorTheme
             {
                 private const string CurrentThemeValueName = "Microsoft.VisualStudio.ColorTheme";
                 private const string CurrentThemeValueNameNew = "Microsoft.VisualStudio.ColorThemeNew";
@@ -132,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     storageLocations: new RoamingProfileStorageLocation(CurrentThemeValueNameNew));
             }
 
-            public class HasThemeBeenDefaultedIndexer
+            public sealed class HasThemeBeenDefaultedIndexer
             {
                 private static readonly ImmutableDictionary<Guid, Option<bool>> HasThemeBeenDefaultedOptions = new Dictionary<Guid, Option<bool>>
                 {
@@ -145,21 +148,53 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 private static Option<bool> CreateHasThemeBeenDefaultedOption(Guid themeId)
                 {
                     return new Option<bool>(nameof(ColorSchemeApplier), $"{nameof(HasThemeBeenDefaultedOptions)}{themeId}", defaultValue: false,
-                        storageLocations: new RoamingProfileStorageLocation($@"Roslyn\ColorSchemeApplier\HasThemeBeenDefaulted{themeId}"));
+                        storageLocations: new RoamingProfileStorageLocation($@"Roslyn\ColorSchemeApplier\HasThemeBeenDefaulted\{themeId}"));
                 }
 
-                private readonly VisualStudioWorkspace _workspace;
+                private readonly IGlobalOptionService _optionService;
 
-                public HasThemeBeenDefaultedIndexer(VisualStudioWorkspace workspace)
+                public HasThemeBeenDefaultedIndexer(IGlobalOptionService globalOptionService)
                 {
-                    _workspace = workspace;
+                    _optionService = globalOptionService;
                 }
 
                 public bool this[Guid themeId]
                 {
-                    get => _workspace.Options.GetOption(HasThemeBeenDefaultedOptions[themeId]);
+                    get => _optionService.GetOption(HasThemeBeenDefaultedOptions[themeId]);
 
-                    set => _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions[themeId], value)));
+                    set => _optionService.SetOptions(new SingleOptionSet(HasThemeBeenDefaultedOptions[themeId], value));
+                }
+            }
+
+            private sealed class SingleOptionSet : OptionSet
+            {
+                private readonly OptionKey _optionKey;
+                private readonly object? _value;
+
+                public SingleOptionSet(IOption option, object? value)
+                {
+                    _optionKey = new OptionKey(option);
+                    _value = value;
+                }
+
+                public override object? GetOption(OptionKey optionKey)
+                {
+                    if (optionKey != _optionKey)
+                    {
+                        throw new ArgumentOutOfRangeException();
+                    }
+
+                    return _value;
+                }
+
+                public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
+                {
+                    throw new NotImplementedException();
+                }
+
+                internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+                {
+                    return SpecializedCollections.SingletonEnumerable(_optionKey);
                 }
             }
         }

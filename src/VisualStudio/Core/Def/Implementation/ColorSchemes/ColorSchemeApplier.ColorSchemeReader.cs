@@ -21,6 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private static class ColorSchemeReader
         {
             private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
+            private const string RawColorType = nameof(__VSCOLORTYPE.CT_RAW);
+            private const string SystemColorType = nameof(__VSCOLORTYPE.CT_SYSCOLOR);
 
             public static ColorScheme ReadColorScheme(Stream schemeStream)
             {
@@ -53,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 var colorItems = categoryElement
                     .Descendants("Color")
                     .Select(ReadColorItem)
-                    .OfType<ColorItem>();
+                    .WhereNotNull();
 
                 return new ColorCategory(categoryName, categoryGuid, colorItems.ToImmutableArray());
             }
@@ -63,10 +65,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 var name = (string)colorElement.Attribute("Name");
 
                 var backgroundElement = colorElement.Descendants("Background").SingleOrDefault();
-                (var backgroundType, var backgroundColor) = ReadColor(backgroundElement);
+                (var backgroundType, var backgroundColor) = backgroundElement is object
+                    ? ReadColor(backgroundElement)
+                    : (__VSCOLORTYPE.CT_INVALID, (uint?)null);
 
                 var foregroundElement = colorElement.Descendants("Foreground").SingleOrDefault();
-                (var foregroundType, var foregroundColor) = ReadColor(foregroundElement);
+                (var foregroundType, var foregroundColor) = foregroundElement is object
+                    ? ReadColor(foregroundElement)
+                    : (__VSCOLORTYPE.CT_INVALID, (uint?)null);
 
                 if (backgroundElement is null && foregroundElement is null)
                 {
@@ -76,22 +82,17 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 return new ColorItem(name, backgroundType, backgroundColor, foregroundType, foregroundColor);
             }
 
-            private static (int Type, uint? Color) ReadColor(XElement colorElement)
+            private static (__VSCOLORTYPE Type, uint Color) ReadColor(XElement colorElement)
             {
-                if (colorElement is null)
-                {
-                    return (0, null);
-                }
-
                 var colorType = (string)colorElement.Attribute("Type");
                 var sourceColor = (string)colorElement.Attribute("Source");
 
-                int type;
-                uint? color;
+                __VSCOLORTYPE type;
+                uint color;
 
-                if (colorType == "CT_RAW")
+                if (colorType == RawColorType)
                 {
-                    type = (int)__VSCOLORTYPE.CT_RAW;
+                    type = __VSCOLORTYPE.CT_RAW;
 
                     // The ColorableItemInfo returned by the FontAndColorStorage retuns RGB color information as 0x00BBGGRR.
                     // Optimize for color comparisons by converting ARGB to BGR by ignoring the alpha channel and reversing byte order.
@@ -100,9 +101,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     var b = sourceColor.Substring(6, 2);
                     color = uint.Parse($"{b}{g}{r}", NumberStyles.HexNumber);
                 }
-                else if (colorType == "CT_SYSCOLOR")
+                else if (colorType == SystemColorType)
                 {
-                    type = (int)__VSCOLORTYPE.CT_SYSCOLOR;
+                    type = __VSCOLORTYPE.CT_SYSCOLOR;
 
                     color = uint.Parse(sourceColor, NumberStyles.HexNumber);
                 }

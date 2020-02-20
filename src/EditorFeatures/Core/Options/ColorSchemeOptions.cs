@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -14,16 +15,16 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         public const string Enhanced = nameof(Enhanced);
         public const string VisualStudio2017 = nameof(VisualStudio2017);
 
-        public static readonly Option<string> ColorScheme = new Option<string>(nameof(ColorSchemeOptions),
+        public static readonly Option<SchemeName> ColorScheme = new Option<SchemeName>(nameof(ColorSchemeOptions),
             nameof(ColorScheme),
-            defaultValue: Enhanced,
+            defaultValue: SchemeName.Enhanced,
             storageLocations: new RoamingProfileStorageLocation(ColorSchemeSettingKey));
 
         // The applied color scheme is a local setting because it is the scheme that is applied to 
         // the users current registry hive.
-        public static readonly Option<string> AppliedColorScheme = new Option<string>(nameof(ColorSchemeOptions),
+        public static readonly Option<SchemeName> AppliedColorScheme = new Option<SchemeName>(nameof(ColorSchemeOptions),
             nameof(AppliedColorScheme),
-            defaultValue: string.Empty,
+            defaultValue: SchemeName.None,
             storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\ColorSchemeApplier\AppliedColorScheme"));
 
         // This option is not exported by the OptionProvider because it does not need to serialize to .vssettings files

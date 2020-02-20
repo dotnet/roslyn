@@ -14,9 +14,11 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
@@ -31,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ColorSchemeSettings _settings;
-        private readonly ImmutableDictionary<string, ColorScheme> _colorSchemes;
-        private readonly AsyncLazy<ImmutableDictionary<string, ImmutableArray<RegistryItem>>> _colorSchemeRegistryItems;
+        private readonly ImmutableDictionary<SchemeName, ColorScheme> _colorSchemes;
+        private readonly AsyncLazy<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> _colorSchemeRegistryItems;
         private readonly ForegroundColorDefaulter _colorDefaulter;
 
         private bool _isInitialized = false;
@@ -40,16 +42,20 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ColorSchemeApplier(IThreadingContext threadingContext, VisualStudioWorkspace workspace, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(threadingContext, assertIsForeground: true)
+        public ColorSchemeApplier(
+            IThreadingContext threadingContext,
+            IGlobalOptionService globalOptionService,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            [Import(typeof(SVsFontAndColorStorage))] IVsFontAndColorStorage fontAndColorStorage)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
 
-            _settings = new ColorSchemeSettings(_serviceProvider, workspace);
+            _settings = new ColorSchemeSettings(_serviceProvider, globalOptionService);
             _colorSchemes = _settings.GetColorSchemes();
-            _colorDefaulter = new ForegroundColorDefaulter(ThreadingContext, _serviceProvider, _settings, _colorSchemes);
+            _colorDefaulter = new ForegroundColorDefaulter(threadingContext, fontAndColorStorage, _settings, _colorSchemes);
 
-            _colorSchemeRegistryItems = new AsyncLazy<ImmutableDictionary<string, ImmutableArray<RegistryItem>>>(GetColorSchemeRegistryItemsAsync, cacheResult: true);
+            _colorSchemeRegistryItems = new AsyncLazy<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>>(GetColorSchemeRegistryItemsAsync, cacheResult: true);
         }
 
         public void Dispose()
@@ -82,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             }
         }
 
-        private Task<ImmutableDictionary<string, ImmutableArray<RegistryItem>>> GetColorSchemeRegistryItemsAsync(CancellationToken arg)
+        private Task<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> GetColorSchemeRegistryItemsAsync(CancellationToken arg)
         {
             return SpecializedTasks.FromResult(_colorSchemes.ToImmutableDictionary(kvp => kvp.Key, kvp => RegistryItemConverter.Convert(kvp.Value)));
         }
@@ -124,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             if (TryGetUpdatedColorScheme(out var colorScheme))
             {
                 var colorSchemeRegistryItems = _colorSchemeRegistryItems.GetValue(CancellationToken.None);
-                _settings.ApplyColorScheme(colorScheme, colorSchemeRegistryItems[colorScheme]);
+                _settings.ApplyColorScheme(colorScheme.Value, colorSchemeRegistryItems[colorScheme.Value]);
             }
         }
 
@@ -132,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         /// Returns true if the color scheme needs updating.
         /// </summary>
         /// <param name="colorScheme">The color scheme to update with.</param>
-        private bool TryGetUpdatedColorScheme([NotNullWhen(returnValue: true)]out string? colorScheme)
+        private bool TryGetUpdatedColorScheme([NotNullWhen(returnValue: true)]out SchemeName? colorScheme)
         {
             // The color scheme that is currently applied to the registry
             var appliedColorScheme = _settings.GetAppliedColorScheme();
@@ -141,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             // Custom themes would be based on the MEF exported color information for classifications which matches the VS 2017 theme.
             var configuredColorScheme = IsSupportedTheme()
                 ? _settings.GetConfiguredColorScheme()
-                : ColorSchemeOptions.VisualStudio2017;
+                : SchemeName.VisualStudio2017;
 
             if (appliedColorScheme == configuredColorScheme)
             {

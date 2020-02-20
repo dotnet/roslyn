@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 WriteDWord(bytes, (uint)color.Name.Length);
 
-                WriteString(bytes, color.Name);
+                bytes.Write(Encoding.ASCII.GetBytes(color.Name), 0, color.Name.Length);
 
                 bytes.WriteByte((byte)color.BackgroundType);
 
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     var background = color.Background.Value;
 
                     // Add back a fully opaque alpha value for RGB colors
-                    if (color.BackgroundType == (int)__VSCOLORTYPE.CT_RAW)
+                    if (color.BackgroundType == __VSCOLORTYPE.CT_RAW)
                     {
                         background |= FullyOpaqueAlpha;
                     }
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     var foreground = color.Foreground.Value;
 
                     // Add back a fully opaque alpha value for RGB colors
-                    if (color.ForegroundType == (int)__VSCOLORTYPE.CT_RAW)
+                    if (color.ForegroundType == __VSCOLORTYPE.CT_RAW)
                     {
                         foreground |= FullyOpaqueAlpha;
                     }
@@ -134,11 +134,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 }
 
                 return;
-
-                static void WriteString(MemoryStream bytes, string ascii)
-                {
-                    bytes.Write(Encoding.ASCII.GetBytes(ascii), 0, ascii.Length);
-                }
             }
         }
     }

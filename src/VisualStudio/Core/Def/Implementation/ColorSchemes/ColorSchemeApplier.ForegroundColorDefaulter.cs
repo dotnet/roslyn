@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Windows;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -26,7 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private sealed class ForegroundColorDefaulter : ForegroundThreadAffinitizedObject
         {
             private readonly ColorSchemeSettings _settings;
-            private readonly ImmutableArray<ImmutableDictionary<Guid, ImmutableDictionary<string, uint?>>> _colorSchemes;
+
+            // Holds an lookup optimized version of the ColorScheme data. An array of ColorSchemes where ColorTheme data is
+            // indexed by ThemeId. ColorTheme data being foreground color indexed by classification name.
+            private readonly ImmutableArray<ImmutableDictionary<Guid, ImmutableDictionary<string, uint>>> _colorSchemes;
 
             private readonly IVsFontAndColorStorage _fontAndColorStorage;
             private readonly IVsFontAndColorStorage3 _fontAndColorStorage3;
@@ -73,8 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             private ImmutableArray<string> Classifications { get; }
 
-            public ForegroundColorDefaulter(IThreadingContext threadingContext, IServiceProvider serviceProvider, ColorSchemeSettings settings, ImmutableDictionary<string, ColorScheme> colorSchemes)
-                : base(threadingContext, assertIsForeground: true)
+            public ForegroundColorDefaulter(IThreadingContext threadingContext, IVsFontAndColorStorage fontAndColorStorage, ColorSchemeSettings settings, ImmutableDictionary<SchemeName, ColorScheme> colorSchemes)
+                : base(threadingContext)
             {
                 _settings = settings;
 
@@ -82,9 +86,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 _colorSchemes = colorSchemes.Values.Select(
                     scheme => scheme.Themes.ToImmutableDictionary(
                         theme => theme.Guid,
-                        theme => theme.Category.Colors.ToImmutableDictionary(
-                            color => color.Name,
-                            color => color.Foreground)))
+                        theme => theme.Category.Colors
+                            .Where(color => color.Foreground.HasValue)
+                            .ToImmutableDictionary(
+                                color => color.Name,
+                                color => color.Foreground!.Value)))
                     .ToImmutableArray();
 
                 // Gather all the classifications from the core and scheme dictionaries.
@@ -92,10 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 var colorSchemeClassifications = _colorSchemes.SelectMany(scheme => scheme.Values.SelectMany(theme => theme.Keys)).Distinct();
                 Classifications = coreClassifications.Concat(colorSchemeClassifications).ToImmutableArray();
 
-                _fontAndColorStorage = serviceProvider.GetService<SVsFontAndColorStorage, IVsFontAndColorStorage>();
+                _fontAndColorStorage = fontAndColorStorage;
                 // IVsFontAndColorStorage3 has methods to default classifications but does not include the methods defined in IVsFontAndColorStorage
-                _fontAndColorStorage3 = (IVsFontAndColorStorage3)_fontAndColorStorage;
-                _fontAndColorUtilities = serviceProvider.GetService<SVsFontAndColorStorage, IVsFontAndColorUtilities>();
+                _fontAndColorStorage3 = (IVsFontAndColorStorage3)fontAndColorStorage;
+                _fontAndColorUtilities = (IVsFontAndColorUtilities)fontAndColorStorage;
             }
 
             /// <summary>
@@ -143,8 +149,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 return _colorSchemes.Any(scheme => scheme.ContainsKey(themeId));
             }
 
-            private bool AreClassificationsDefaultableToScheme(Guid themeId, ImmutableDictionary<string, uint?> schemeThemeColors)
+            private bool AreClassificationsDefaultableToScheme(Guid themeId, ImmutableDictionary<string, uint> schemeThemeColors)
             {
+                AssertIsForeground();
+
                 foreach (var classification in Classifications)
                 {
                     var colorItems = new ColorableItemInfo[1];
@@ -166,9 +174,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 return true;
             }
 
-            private bool IsClassificationDefaultable(Guid themeId, ImmutableDictionary<string, uint?> schemeThemeColors, ColorableItemInfo colorItem, string classification)
+            /// <summary>
+            /// Determines if the ColorableItemInfo's Foreground is already defaulted or if the Info can be reverted to its default state.
+            /// This requires checking both background color and font configuration, since reverting will reset all information for the item.
+            /// </summary>
+            private bool IsClassificationDefaultable(Guid themeId, ImmutableDictionary<string, uint> schemeThemeColors, ColorableItemInfo colorItem, string classification)
             {
+                AssertIsForeground();
+
                 if (_fontAndColorUtilities.GetColorType(colorItem.crForeground, out var foregroundColorType) != VSConstants.S_OK)
+                {
+                    // Without being able to check color type, we cannot make a determination.
+                    return false;
+                }
+
+                if (_fontAndColorUtilities.GetColorType(colorItem.crBackground, out var backgroundColorType) != VSConstants.S_OK)
                 {
                     // Without being able to check color type, we cannot make a determination.
                     return false;
@@ -176,30 +196,17 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 return foregroundColorType switch
                 {
+                    // The item's foreground is already defaulted and there is no work to be done.
                     (int)__VSCOLORTYPE.CT_AUTOMATIC => true,
-                    (int)__VSCOLORTYPE.CT_RAW => CanItemBeDefaulted(themeId, schemeThemeColors, colorItem, classification),
+                    // The item's foreground is set. Does it match the scheme's color and is the rest of the item defaulted?
+                    (int)__VSCOLORTYPE.CT_RAW => IsForegroundTheSchemeColor(themeId, schemeThemeColors, classification, colorItem.crForeground)
+                        && backgroundColorType == (int)__VSCOLORTYPE.CT_AUTOMATIC
+                        && colorItem.dwFontFlags == (uint)FONTFLAGS.FF_DEFAULT,
                     _ => false
                 };
             }
 
-            /// <summary>
-            /// Determines if the ColorableItemInfo can be reverted to its default state. This requires checking both color and font configuration,
-            /// since reverting will reset all information for the item.
-            /// </summary>
-            private bool CanItemBeDefaulted(Guid themeId, ImmutableDictionary<string, uint?> schemeThemeColors, ColorableItemInfo colorItem, string classification)
-            {
-                if (_fontAndColorUtilities.GetColorType(colorItem.crBackground, out var backgroundColorType) != VSConstants.S_OK)
-                {
-                    // Without being able to check color type, we cannot make a determination.
-                    return false;
-                }
-
-                return IsForegroundTheSchemeColor(themeId, schemeThemeColors, classification, colorItem.crForeground)
-                    && backgroundColorType == (int)__VSCOLORTYPE.CT_AUTOMATIC
-                    && colorItem.dwFontFlags == (uint)FONTFLAGS.FF_DEFAULT;
-            }
-
-            private bool IsForegroundTheSchemeColor(Guid themeId, ImmutableDictionary<string, uint?> schemeThemeColors, string classification, uint foregroundColorRef)
+            private bool IsForegroundTheSchemeColor(Guid themeId, ImmutableDictionary<string, uint> schemeThemeColors, string classification, uint foregroundColorRef)
             {
                 var coreThemeColors = (themeId == KnownColorThemes.Dark)
                     ? DarkThemeForeground
@@ -210,9 +217,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     return foregroundColorRef == coreColor;
                 }
 
-                if (schemeThemeColors.TryGetValue(classification, out var schemeColor) && schemeColor.HasValue)
+                if (schemeThemeColors.TryGetValue(classification, out var schemeColor))
                 {
-                    return foregroundColorRef == schemeColor.Value;
+                    return foregroundColorRef == schemeColor;
                 }
 
                 // Since Classification inheritance isn't represented in the scheme files,
@@ -266,6 +273,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             private void DefaultClassification(string classification)
             {
+                AssertIsForeground();
+
                 var colorItems = new ColorableItemInfo[1];
                 if (_fontAndColorStorage.GetItem(classification, colorItems) != VSConstants.S_OK)
                 {

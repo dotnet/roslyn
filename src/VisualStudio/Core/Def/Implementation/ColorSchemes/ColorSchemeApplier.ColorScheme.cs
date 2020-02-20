@@ -14,7 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     internal partial class ColorSchemeApplier
     {
         /// <summary>
-        /// A ColorScheme contains classification colors for a set of VS themes.
+        /// A ColorScheme represents a style to be applied to VS themes in 
+        /// order to emphasize some aspect of the source code. For instance
+        /// C++ has an 'Enhanced (Globals vs. Members)' scheme to emphasize
+        /// a distinction between where identifiers are declared.
         /// </summary>
         private class ColorScheme
         {
@@ -26,6 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             }
         }
 
+        /// <summary>
+        /// A ColorTheme contains a scheme's colors for a particular VS theme.
+        /// </summary>
         private class ColorTheme
         {
             public string Name { get; }
@@ -57,20 +63,20 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private class ColorItem
         {
             public string Name { get; }
-            public int BackgroundType { get; }
+            public __VSCOLORTYPE BackgroundType { get; }
             public uint? Background { get; }
-            public int ForegroundType { get; }
+            public __VSCOLORTYPE ForegroundType { get; }
             public uint? Foreground { get; }
 
-            public ColorItem(string name, int backgroundType, uint? background, int foregroundType, uint? foreground)
+            public ColorItem(string name, __VSCOLORTYPE backgroundType, uint? background, __VSCOLORTYPE foregroundType, uint? foreground)
             {
                 Name = name;
 
-                Debug.Assert(backgroundType == (int)__VSCOLORTYPE.CT_INVALID || background.HasValue);
+                Debug.Assert(backgroundType == __VSCOLORTYPE.CT_INVALID || background.HasValue);
                 BackgroundType = backgroundType;
                 Background = background;
 
-                Debug.Assert(foregroundType == (int)__VSCOLORTYPE.CT_INVALID || foreground.HasValue);
+                Debug.Assert(foregroundType == __VSCOLORTYPE.CT_INVALID || foreground.HasValue);
                 ForegroundType = foregroundType;
                 Foreground = foreground;
             }
