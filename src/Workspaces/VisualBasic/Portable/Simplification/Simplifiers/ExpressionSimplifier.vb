@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                 aliasReplacement.Name,
                                 memberAccess.GetTrailingTrivia())
 
-                    identifierToken = VisualBasicSimplificationService.TryEscapeIdentifierToken(identifierToken)
+                    identifierToken = TryEscapeIdentifierToken(identifierToken)
                     replacementNode = SyntaxFactory.IdentifierName(identifierToken)
 
                     issueSpan = memberAccess.Span

@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (diagnostics.Any(d => d == null))
             {
-                throw new ArgumentException(WorkspacesResources.Supplied_diagnostic_cannot_be_null, nameof(diagnostics));
+                throw new ArgumentException(WorkspaceExtensionsResources.Supplied_diagnostic_cannot_be_null, nameof(diagnostics));
             }
 
             if (diagnostics.Any(d => d.Location.SourceSpan != span))
