@@ -774,7 +774,10 @@ namespace Microsoft.CodeAnalysis
             var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
 
             // PROTOTYPE: at this point we have a compilation with nothing yet computed. 
-            // We pass it to the generators, which will realize any symbols they require. (how do diagnostics function at this point?)
+            // We pass it to the generators, which will realize any symbols they require. 
+
+            // PROTOTYPE: we'll need to handle diagnostics produced by the generators seperately too, so we
+            // can fail the build on a generator error
             compilation = RunGenerators(compilation, Arguments.ParseOptions, additionalTexts);
 
             CompileAndEmit(

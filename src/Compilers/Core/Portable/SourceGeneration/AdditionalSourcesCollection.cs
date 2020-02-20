@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree()
         {
-            ArrayBuilder<GeneratedSourceText> builder = new ArrayBuilder<GeneratedSourceText>();
+            ArrayBuilder<GeneratedSourceText> builder = ArrayBuilder<GeneratedSourceText>.GetInstance();
             foreach (var (hintName, sourceText) in _sourcesAdded)
             {
                 builder.Add(new GeneratedSourceText(hintName, sourceText));

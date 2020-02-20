@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
             _state = new GeneratorDriverState(compilation, parseOptions, ImmutableArray<GeneratorProvider>.Empty, ImmutableArray<AdditionalText>.Empty, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>>.Empty, finalCompilation: null, editsFailed: true);
         }
 
-        public GeneratorDriver GenerateSource(Compilation compilation, out Compilation outputCompilation, CancellationToken cancellationToken = default)
+        public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, CancellationToken cancellationToken = default)
         {
             // with no providers, there is no work to do
             if (_state.Providers.Length == 0)
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
-                    var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), new GeneratorDriverAnalyzerOptions()));
+                    var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), CompilerAnalyzerConfigOptionsProvider.Empty));
 
                     // PROTOTYPE: we call provider.GetGenerator(). Should we cache it here, or rely on the provider to do so?
                     provider.GetGenerator().Execute(context);
