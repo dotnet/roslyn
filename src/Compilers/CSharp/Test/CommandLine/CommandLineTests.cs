@@ -36,11 +36,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CommandLineTestBase
     {
+#if NETCOREAPP3_1
+        private static readonly string s_CSharpCompilerExecutable;
+        private static readonly string s_DotnetCscRun;
+#else
         private static readonly string s_CSharpCompilerExecutable = Path.Combine(
             Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
             Path.Combine("dependency", "csc.exe"));
+        private static readonly string s_DotnetCscRun = ExecutionConditionUtil.IsMono ? "mono" : string.Empty;
+#endif
+        private static readonly string s_CSharpScriptExecutable;
 
         private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(CommandLineTests));
+
+        static CommandLineTests()
+        {
+#if NETCOREAPP3_1
+            var cscDllPath = Path.Combine(
+                Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
+                Path.Combine("dependency", "csc.dll"));
+            var dotnetExe = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+            var netStandardDllPath = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(assembly => !assembly.IsDynamic && assembly.Location.EndsWith("netstandard.dll")).Location;
+            var netStandardDllDir = Path.GetDirectoryName(netStandardDllPath);
+
+            s_CSharpCompilerExecutable = $@"""{dotnetExe}"" ""{cscDllPath}"" /r:""{netStandardDllPath}"" /r:""{netStandardDllDir}/System.Private.CoreLib.dll"" /r:""{netStandardDllDir}/System.Console.dll"" /r:""{netStandardDllDir}/System.Runtime.dll""";
+            s_DotnetCscRun = $@"""{dotnetExe}"" exec --runtimeconfig ""{Path.Combine(Path.GetDirectoryName(cscDllPath), "csc.runtimeconfig.json")}""";
+            s_CSharpScriptExecutable = s_CSharpCompilerExecutable.Replace("csc.dll", Path.Combine("csi", "csi.dll"));
+#else
+            s_CSharpScriptExecutable = s_CSharpCompilerExecutable.Replace("csc.exe", Path.Combine("csi", "csi.exe"));
+#endif
+        }
 
         private class TestCommandLineParser : CSharpCommandLineParser
         {
@@ -418,12 +444,47 @@ d.cs
             Assert.Equal(basePath, args.BaseDirectory);
         }
 
-        [Fact]
+#nullable enable
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NullBaseDirectoryNotAddedToKeyFileSearchPaths()
         {
-            var parser = CSharpCommandLineParser.Default.Parse(new string[0], null, SdkDirectory);
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "c:/test.cs" }, baseDirectory: null, SdkDirectory);
             AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
+            Assert.Null(parser.OutputDirectory);
+            parser.Errors.Verify(
+                // error CS8762: Output directory could not be determined
+                Diagnostic(ErrorCode.ERR_NoOutputDirectory).WithLocation(1, 1)
+                );
         }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NullBaseDirectoryWithAdditionalFiles()
+        {
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "c:/test.cs" }, baseDirectory: null, SdkDirectory);
+            AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
+            Assert.Null(parser.OutputDirectory);
+            parser.Errors.Verify(
+                // error CS2021: File name 'web.config' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("web.config").WithLocation(1, 1),
+                // error CS8762: Output directory could not be determined
+                Diagnostic(ErrorCode.ERR_NoOutputDirectory).WithLocation(1, 1)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NullBaseDirectoryWithAdditionalFiles_Wildcard()
+        {
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:*", "c:/test.cs" }, baseDirectory: null, SdkDirectory);
+            AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
+            Assert.Null(parser.OutputDirectory);
+            parser.Errors.Verify(
+                // error CS2001: Source file '*' could not be found.
+                Diagnostic(ErrorCode.ERR_FileNotFound).WithArguments("*").WithLocation(1, 1),
+                // error CS8762: Output directory could not be determined
+                Diagnostic(ErrorCode.ERR_NoOutputDirectory).WithLocation(1, 1)
+                );
+        }
+#nullable restore
 
         [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void NoSdkPath()
@@ -877,15 +938,15 @@ class C
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " ", WorkingDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
+                // error CS2005: Missing file specification for '' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
             Assert.Null(desc);
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " , ", WorkingDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
+                // error CS2005: Missing file specification for '' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
             Assert.Null(desc);
 
@@ -898,8 +959,8 @@ class C
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name", WorkingDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
+                // error CS2005: Missing file specification for '' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
             Assert.Null(desc);
 
@@ -926,8 +987,8 @@ class C
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " , ,private", WorkingDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
+                // error CS2005: Missing file specification for '' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
             Assert.Null(desc);
 
@@ -963,8 +1024,8 @@ class C
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name,private", WorkingDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
+                // error CS2005: Missing file specification for '' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
             Assert.Null(desc);
 
@@ -3136,12 +3197,17 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 2, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
             foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
+
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation)]);
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
         [Fact]
@@ -3164,12 +3230,17 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 2, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
             foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
+
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation)]);
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
         [Fact]
@@ -3192,7 +3263,7 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 3, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
             foreach (string warning in ErrorFacts.NullableWarnings)
             {
@@ -3200,6 +3271,10 @@ class C
             }
 
             Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"]);
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation)]);
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
         [Fact]
@@ -3222,12 +3297,17 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 2, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
             foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
+
+            Assert.Equal(expected: ReportDiagnostic.Error,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation)]);
+            Assert.Equal(expected: ReportDiagnostic.Error,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
         [WorkItem(912906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]
@@ -5635,6 +5715,145 @@ class Test { static void Main() {} }").Path;
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/utf8output:"));
         }
 
+        [Fact]
+        public void CscCompile_WithSourceCodeRedirectedViaStandardInput_ProducesRunnableProgram()
+        {
+            string tempDir = Temp.CreateDirectory().Path;
+            ProcessResult result = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                ProcessUtilities.Run("cmd", $@"/C echo  ^
+class A                                                 ^
+{{                                                      ^
+    public static void Main() =^^^>                     ^
+        System.Console.WriteLine(""Hello World!"");     ^
+}} | {s_CSharpCompilerExecutable} /nologo /t:exe -"
+    .Replace(Environment.NewLine, string.Empty), workingDirectory: tempDir) :
+                ProcessUtilities.Run("/usr/bin/env", $@"sh -c ""echo  \
+class A                                                               \
+{{                                                                    \
+    public static void Main\(\) =\>                                   \
+        System.Console.WriteLine\(\\\""Hello World\!\\\""\)\;         \
+}} | {s_CSharpCompilerExecutable} /nologo /t:exe -""", workingDirectory: tempDir,
+                    // we are testing shell's piped/redirected stdin behavior explicitly
+                    // instead of using Process.StandardInput.Write(), so we set
+                    // redirectStandardInput to true, which implies that isatty of child
+                    // process is false and thereby Console.IsInputRedirected will return
+                    // true in csc code.
+                    redirectStandardInput: true);
+
+            Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}");
+
+            string output = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                ProcessUtilities.RunAndGetOutput("cmd.exe", $@"/C ""{s_DotnetCscRun} -.exe""", expectedRetCode: 0, startFolder: tempDir) :
+                ProcessUtilities.RunAndGetOutput("sh", $@"-c ""{s_DotnetCscRun} -.exe""", expectedRetCode: 0, startFolder: tempDir);
+
+            Assert.Equal("Hello World!", output.Trim());
+        }
+
+        [Fact]
+        public void CscCompile_WithSourceCodeRedirectedViaStandardInput_ProducesLibrary()
+        {
+            var name = Guid.NewGuid().ToString() + ".dll";
+            string tempDir = Temp.CreateDirectory().Path;
+            ProcessResult result = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                ProcessUtilities.Run("cmd", $@"/C echo  ^
+class A                                                 ^
+{{                                                      ^
+    public A Get() =^^^> default;                       ^
+}} | {s_CSharpCompilerExecutable} /nologo /t:library /out:{name} -"
+    .Replace(Environment.NewLine, string.Empty), workingDirectory: tempDir) :
+                ProcessUtilities.Run("/usr/bin/env", $@"sh -c ""echo  \
+class A                                                               \
+{{                                                                    \
+    public A Get\(\) =\> default\;                                    \
+}} | {s_CSharpCompilerExecutable} /nologo /t:library /out:{name} -""", workingDirectory: tempDir,
+                    // we are testing shell's piped/redirected stdin behavior explicitly
+                    // instead of using Process.StandardInput.Write(), so we set
+                    // redirectStandardInput to true, which implies that isatty of child
+                    // process is false and thereby Console.IsInputRedirected will return
+                    // true in csc code.
+                    redirectStandardInput: true);
+
+            Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}");
+
+            var assemblyName = AssemblyName.GetAssemblyName(Path.Combine(tempDir, name));
+            Assert.Equal(name.Replace(".dll", ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                assemblyName.ToString());
+        }
+
+        [Fact]
+        public void CsiScript_WithSourceCodeRedirectedViaStandardInput_ExecutesNonInteractively()
+        {
+            string tempDir = Temp.CreateDirectory().Path;
+            ProcessResult result = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                ProcessUtilities.Run("cmd", $@"/C echo Console.WriteLine(""Hello World!"") | {s_CSharpScriptExecutable} -") :
+                ProcessUtilities.Run("/usr/bin/env", $@"sh -c ""echo Console.WriteLine\(\\\""Hello World\!\\\""\) | {s_CSharpScriptExecutable} -""",
+                workingDirectory: tempDir,
+                    // we are testing shell's piped/redirected stdin behavior explicitly
+                    // instead of using Process.StandardInput.Write(), so we set
+                    // redirectStandardInput to true, which implies that isatty of child
+                    // process is false and thereby Console.IsInputRedirected will return
+                    // true in csc code.
+                    redirectStandardInput: true);
+
+            Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}");
+            Assert.Equal("Hello World!", result.Output.Trim());
+        }
+
+        [Fact]
+        public void CscCompile_WithRedirectedInputIndicatorAndStandardInputNotRedirected_ReportsCS8782()
+        {
+            if (Console.IsInputRedirected)
+            {
+                // [applicable to both Windows and Unix]
+                // if our parent (xunit) process itself has input redirected, we cannot test this
+                // error case because our child process will inherit it and we cannot achieve what
+                // we are aiming for: isatty(0):true and thereby Console.IsInputerRedirected:false in
+                // child. running this case will make StreamReader to hang (waiting for input, that
+                // we do not propagate: parent.In->child.In).
+                //
+                // note: in Unix we can "close" fd0 by appending `0>&-` in the `sh -c` command below,
+                // but that will also not impact the result of isatty(), and in turn causes a different
+                // compiler error.
+                return;
+            }
+
+            string tempDir = Temp.CreateDirectory().Path;
+            ProcessResult result = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                ProcessUtilities.Run("cmd", $@"/C ""{s_CSharpCompilerExecutable} /nologo /t:exe -""", workingDirectory: tempDir) :
+                ProcessUtilities.Run("/usr/bin/env", $@"sh -c ""{s_CSharpCompilerExecutable} /nologo /t:exe -""", workingDirectory: tempDir);
+
+            Assert.True(result.ContainsErrors);
+            Assert.Contains(((int)ErrorCode.ERR_StdInOptionProvidedButConsoleInputIsNotRedirected).ToString(), result.Output);
+        }
+
+        [Fact]
+        public void CscCompile_WithMultipleStdInOperators_WarnsCS2002()
+        {
+            string tempDir = Temp.CreateDirectory().Path;
+            ProcessResult result = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                ProcessUtilities.Run("cmd", $@"/C echo  ^
+class A                                                 ^
+{{                                                      ^
+    public static void Main() =^^^>                     ^
+        System.Console.WriteLine(""Hello World!"");     ^
+}} | {s_CSharpCompilerExecutable} /nologo - /t:exe -"
+    .Replace(Environment.NewLine, string.Empty)) :
+                ProcessUtilities.Run("/usr/bin/env", $@"sh -c ""echo  \
+class A                                                               \
+{{                                                                    \
+    public static void Main\(\) =\>                                   \
+        System.Console.WriteLine\(\\\""Hello World\!\\\""\)\;         \
+}} | {s_CSharpCompilerExecutable} /nologo - /t:exe -""", workingDirectory: tempDir,
+                    // we are testing shell's piped/redirected stdin behavior explicitly
+                    // instead of using Process.StandardInput.Write(), so we set
+                    // redirectStandardInput to true, which implies that isatty of child
+                    // process is false and thereby Console.IsInputRedirected will return
+                    // true in csc code.
+                    redirectStandardInput: true);
+
+            Assert.Contains(((int)ErrorCode.WRN_FileAlreadyIncluded).ToString(), result.Output);
+        }
+
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void CscUtf8Output_WithRedirecting_Off()
         {
@@ -5849,7 +6068,7 @@ public class CS1698_a {}
             CleanupAllGeneratedFiles(binaryPath);
         }
 
-#if !NETCOREAPP3_1
+#if !NETCOREAPP
         [WorkItem(530221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530221")]
         [WorkItem(5660, "https://github.com/dotnet/roslyn/issues/5660")]
         [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
@@ -7476,23 +7695,23 @@ class C
 struct StructCollection : IEnumerable
 {
     public int added;
-    #region IEnumerable Members
+#region IEnumerable Members
     public void Add(int t)
     {
         added = t;
     }
-    #endregion
+#endregion
 }
 
 class ClassCollection : IEnumerable
 {
     public int added;
-    #region IEnumerable Members
+#region IEnumerable Members
     public void Add(int t)
     {
         added = t;
     }
-    #endregion
+#endregion
 }
 
 namespace System.Collections
@@ -7993,6 +8212,31 @@ class Test
             int exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/nowarn:1522,642", source.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);
+        }
+
+        [Fact, WorkItem(41610, "https://github.com/dotnet/roslyn/issues/41610")]
+        public void TestWarnAsError_CS8632()
+        {
+            string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
+public class C
+{
+    public string? field;
+    public static void Main()
+    {
+    }
+}
+").Path;
+
+            var baseDir = Path.GetDirectoryName(source);
+            var fileName = Path.GetFileName(source);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", "/warn:3", "/warnaserror:nullable", source.ToString() }).Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.Equal(
+$@"{fileName}(4,18): error CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
         }
@@ -10763,8 +11007,14 @@ class C
             var srcFile = analyzerDir.CreateFile(srcFileName).WriteAllText("public class C { }");
 
             var result = ProcessUtilities.Run(s_CSharpCompilerExecutable, arguments: $"/nologo /t:library /analyzer:{analyzerFileName} {srcFileName}", workingDirectory: analyzerDir.Path);
+            var outputWithoutPaths = Regex.Replace(result.Output, " in .*", "");
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.", result.Output);
+                $@"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.
+System.NotImplementedException: 28
+   at TestAnalyzer.get_SupportedDiagnostics()
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors>b__0(Object _)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
+-----", outputWithoutPaths);
 
             Assert.Equal(0, result.ExitCode);
         }

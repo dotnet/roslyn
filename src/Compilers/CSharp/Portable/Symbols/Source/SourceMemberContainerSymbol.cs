@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.CheckMemberNameDistinctFromType(t, diagnostics);
 
                     var key = (t.Name, t.Arity);
-                    SourceNamedTypeSymbol other;
+                    SourceNamedTypeSymbol? other;
                     if (conflictDict.TryGetValue(key, out other))
                     {
                         if (Locations.Length == 1 || IsPartial)
@@ -1230,8 +1230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         yield return (FieldSymbol)m;
                         break;
                     case SymbolKind.Event:
-                        FieldSymbol associatedField = ((EventSymbol)m).AssociatedField;
-                        if ((object)associatedField != null)
+                        FieldSymbol? associatedField = ((EventSymbol)m).AssociatedField;
+                        if ((object?)associatedField != null)
                         {
                             yield return associatedField;
                         }
@@ -1576,8 +1576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Does this conversion collide *as a method* with any previously-seen
                         // non-conversion method?
 
-                        SourceMemberMethodSymbol previousMethod;
-                        if (methodsBySignature.TryGetValue(conversion, out previousMethod))
+                        if (methodsBySignature.TryGetValue(conversion, out var previousMethod))
                         {
                             ReportMethodSignatureCollision(diagnostics, conversion, previousMethod);
                         }
@@ -1589,8 +1588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Does this method collide *as a method* with any previously-seen
                         // conversion?
 
-                        SourceMemberMethodSymbol previousConversion;
-                        if (conversionsAsMethods.TryGetValue(method, out previousConversion))
+                        if (conversionsAsMethods.TryGetValue(method, out var previousConversion))
                         {
                             ReportMethodSignatureCollision(diagnostics, method, previousConversion);
                         }
@@ -1599,8 +1597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Does this method collide *as a method* with any previously-seen
                         // non-conversion method?
 
-                        SourceMemberMethodSymbol previousMethod;
-                        if (methodsBySignature.TryGetValue(method, out previousMethod))
+                        if (methodsBySignature.TryGetValue(method, out var previousMethod))
                         {
                             ReportMethodSignatureCollision(diagnostics, method, previousMethod);
                         }
@@ -1745,8 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            PropertySymbol prevIndexerBySignature;
-            if (indexersBySignature.TryGetValue(indexer, out prevIndexerBySignature))
+            if (indexersBySignature.TryGetValue(indexer, out var prevIndexerBySignature))
             {
                 // Type '{1}' already defines a member called '{0}' with the same parameter types
                 // NOTE: Dev10 prints "this" as the name of the indexer.
@@ -2086,9 +2082,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static bool InfiniteFlatteningGraph(SourceMemberContainerTypeSymbol top, NamedTypeSymbol t, Dictionary<NamedTypeSymbol, NamedTypeSymbol> instanceMap)
         {
             if (!t.ContainsTypeParameter()) return false;
-            NamedTypeSymbol oldInstance;
             var tOriginal = t.OriginalDefinition;
-            if (instanceMap.TryGetValue(tOriginal, out oldInstance))
+            if (instanceMap.TryGetValue(tOriginal, out var oldInstance))
             {
                 // short circuit when we find a cycle, but only return true when the cycle contains the top struct
                 return (!TypeSymbol.Equals(oldInstance, t, TypeCompareKind.AllNullableIgnoreOptions)) && ReferenceEquals(tOriginal, top);
@@ -2464,8 +2459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue; // only partial methods need to be merged
                     }
 
-                    SourceMemberMethodSymbol prev;
-                    if (methodsBySignature.TryGetValue(method, out prev))
+                    if (methodsBySignature.TryGetValue(method, out var prev))
                     {
                         var prevPart = (SourceOrdinaryMethodSymbol)prev;
                         var methodPart = (SourceOrdinaryMethodSymbol)method;
@@ -2649,7 +2643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static Location GetAccessorOrEventLocation(EventSymbol propertySymbol, bool isAdder)
         {
-            var locationFrom = (Symbol)(isAdder ? propertySymbol.AddMethod : propertySymbol.RemoveMethod) ?? propertySymbol;
+            var locationFrom = (Symbol?)(isAdder ? propertySymbol.AddMethod : propertySymbol.RemoveMethod) ?? propertySymbol;
             return locationFrom.Locations[0];
         }
 
@@ -3209,7 +3203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 SourceFieldLikeEventSymbol @event = new SourceFieldLikeEventSymbol(this, bodyBinder, eventFieldSyntax.Modifiers, declarator, diagnostics);
                                 builder.NonTypeNonIndexerMembers.Add(@event);
 
-                                FieldSymbol associatedField = @event.AssociatedField;
+                                FieldSymbol? associatedField = @event.AssociatedField;
 
                                 if (IsScriptClass)
                                 {
@@ -3219,7 +3213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             associatedField);
                                 }
 
-                                if ((object)associatedField != null)
+                                if ((object?)associatedField != null)
                                 {
                                     // NOTE: specifically don't add the associated field to the members list
                                     // (regard it as an implementation detail).
@@ -3262,7 +3256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, @event.AddMethod, diagnostics);
                             AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, @event.RemoveMethod, diagnostics);
 
-                            Debug.Assert((object)@event.AssociatedField == null);
+                            Debug.Assert(@event.AssociatedField is null);
                         }
                         break;
 

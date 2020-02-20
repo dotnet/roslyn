@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Remote.Shared;
@@ -66,7 +67,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var solution = workspace.CurrentSolution;
                 var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
-                var service = (ISolutionController)await GetSolutionServiceAsync(solution);
+                var service = await GetSolutionServiceAsync(solution);
                 var synched = await service.GetSolutionAsync(solutionChecksum, fromPrimaryBranch: true, solution.WorkspaceVersion, cancellationToken: CancellationToken.None);
                 Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
                 Assert.True(synched.Workspace is RemoteWorkspace);
@@ -363,7 +364,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 // update primary workspace
                 var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-                await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
+                await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
                 // get solution in remote host
                 var oopSolution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
@@ -428,7 +429,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await Verify(currentSolution, oopSolution3, expectRemoteSolutionToCurrent: true);
 
                 // move to new solution backward
-                var (solutionInfo, options) = await service.GetSolutionInfoAndOptionsAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
+                var (solutionInfo, options) = await service.AssetProvider.CreateSolutionInfoAndOptionsAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
                 Assert.False(remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, solution1.WorkspaceVersion, options, out var _));
 
                 // move to new solution forward
@@ -440,7 +441,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 // set up initial solution
                 var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-                await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
+                await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
                 // get solution in remote host
                 return await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
@@ -474,7 +475,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
             // update primary workspace
-            await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
+            await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
             var first = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
 
             Assert.IsAssignableFrom<RemoteWorkspace>(first.Workspace);
@@ -494,7 +495,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.NotSame(primaryWorkspace.PrimaryBranchId, second.BranchId);
 
             // do same once updating primary workspace
-            await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(newSolutionChecksum, solution.WorkspaceVersion + 1, CancellationToken.None);
+            await service.UpdatePrimaryWorkspaceAsync(newSolutionChecksum, solution.WorkspaceVersion + 1, CancellationToken.None);
             var third = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
@@ -513,9 +514,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var storage = new AssetStorage();
             _ = new SimpleAssetSource(storage, map);
             var remoteWorkspace = new RemoteWorkspace();
-            var service = new SolutionService(new AssetService(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>()));
 
-            return service;
+            return new SolutionService(new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>()));
         }
 
         private class TestAnalyzerProvider : IIncrementalAnalyzerProvider

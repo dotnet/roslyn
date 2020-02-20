@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class PEParameterSymbolTests : CSharpTestBase
     {
-#if !NETCOREAPP3_1
+#if !NETCOREAPP
         [Fact]
         public void NoParameterNames()
         {

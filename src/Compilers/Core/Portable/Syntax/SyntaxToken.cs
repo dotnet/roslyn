@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines whether the supplied <see cref="SyntaxToken"/> is equal to this
         /// <see cref="SyntaxToken"/>.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SyntaxToken && Equals((SyntaxToken)obj);
         }

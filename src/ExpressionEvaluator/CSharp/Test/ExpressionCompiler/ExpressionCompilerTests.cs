@@ -23,7 +23,6 @@ using Roslyn.Test.PdbUtilities;
 using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Roslyn.Test.Utilities;
 using Xunit;
-using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -5480,9 +5479,7 @@ class C
 }";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
-            var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-
-            using (var pinnedMetadata = new PinnedBlob(CommonResources.NoValidTables))
+            using (var pinnedMetadata = new PinnedBlob(TestResources.ExpressionCompiler.NoValidTables))
             {
                 var corruptMetadata = ModuleInstance.Create(pinnedMetadata.Pointer, pinnedMetadata.Size, default(Guid));
 

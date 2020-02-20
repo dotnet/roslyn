@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -59,18 +62,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The 'add' accessor of the event.  Null only in error scenarios.
         /// </summary>
-        public abstract MethodSymbol AddMethod { get; }
+        public abstract MethodSymbol? AddMethod { get; }
 
         /// <summary>
         /// The 'remove' accessor of the event.  Null only in error scenarios.
         /// </summary>
-        public abstract MethodSymbol RemoveMethod { get; }
+        public abstract MethodSymbol? RemoveMethod { get; }
 
         internal bool HasAssociatedField
         {
             get
             {
-                return (object)this.AssociatedField != null;
+                return (object?)this.AssociatedField != null;
             }
         }
 
@@ -113,12 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public ImmutableArray<CSharpAttributeData> GetFieldAttributes()
         {
-            return (object)this.AssociatedField == null ?
+            return (object?)this.AssociatedField == null ?
                 ImmutableArray<CSharpAttributeData>.Empty :
                 this.AssociatedField.GetAttributes();
         }
 
-        internal virtual FieldSymbol AssociatedField
+        internal virtual FieldSymbol? AssociatedField
         {
             get
             {
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns the overridden event, or null.
         /// </summary>
-        public EventSymbol OverriddenEvent
+        public EventSymbol? OverriddenEvent
         {
             get
             {
@@ -158,14 +161,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                MethodSymbol accessor = AddMethod ?? RemoveMethod;
-                return (object)accessor != null && accessor.HidesBaseMethodsByName;
+                MethodSymbol? accessor = AddMethod ?? RemoveMethod;
+                return (object?)accessor != null && accessor.HidesBaseMethodsByName;
             }
         }
 
-        internal EventSymbol GetLeastOverriddenEvent(NamedTypeSymbol accessingTypeOpt)
+        internal EventSymbol GetLeastOverriddenEvent(NamedTypeSymbol? accessingTypeOpt)
         {
-            var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
+            var accessingType = ((object?)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
 
             EventSymbol e = this;
             while (e.IsOverride && !e.HidesBaseEventsByName)
@@ -190,9 +193,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //   }
                 //
                 // See InternalsVisibleToAndStrongNameTests: IvtVirtualCall1, IvtVirtualCall2, IvtVirtual_ParamsAndDynamic.
-                EventSymbol overridden = e.OverriddenEvent;
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if ((object)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics))
+                EventSymbol? overridden = e.OverriddenEvent;
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                if ((object?)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics))
                 {
                     break;
                 }
@@ -260,14 +263,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-            return newOwner.IsDefinition ? this : new SubstitutedEventSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
+            Debug.Assert(newOwner.IsDefinition || newOwner is SubstitutedNamedTypeSymbol);
+            return newOwner.IsDefinition ? this : new SubstitutedEventSymbol((newOwner as SubstitutedNamedTypeSymbol)!, this);
         }
 
         internal abstract bool MustCallMethodsDirectly { get; }
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             if (this.IsDefinition)
             {
@@ -277,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.OriginalDefinition.GetUseSiteDiagnostic();
         }
 
-        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo result)
+        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo? result)
         {
             Debug.Assert(this.IsDefinition);
 
@@ -291,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // If the member is in an assembly with unified references, 
                 // we check if its definition depends on a type from a unified reference.
-                HashSet<TypeSymbol> unificationCheckedTypes = null;
+                HashSet<TypeSymbol>? unificationCheckedTypes = null;
                 if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
                 {
                     return true;
@@ -313,8 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
+                DiagnosticInfo? info = GetUseSiteDiagnostic();
+                return (object?)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
             }
         }
 
@@ -327,9 +331,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Equality
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
-            EventSymbol other = obj as EventSymbol;
+            EventSymbol? other = obj as EventSymbol;
 
             if (ReferenceEquals(null, other))
             {

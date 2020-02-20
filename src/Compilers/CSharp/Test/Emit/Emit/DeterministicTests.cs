@@ -220,7 +220,7 @@ namespace N
         }
 
         [WorkItem(926, "https://github.com/dotnet/roslyn/issues/926")]
-        [Theory]
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/41626")]
         [MemberData(nameof(PdbFormats))]
         public void CompareAllBytesEmitted_Debug(DebugInformationFormat pdbFormat)
         {
