@@ -444,12 +444,47 @@ d.cs
             Assert.Equal(basePath, args.BaseDirectory);
         }
 
-        [Fact]
+#nullable enable
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NullBaseDirectoryNotAddedToKeyFileSearchPaths()
         {
-            var parser = CSharpCommandLineParser.Default.Parse(new string[0], null, SdkDirectory);
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "c:/test.cs" }, baseDirectory: null, SdkDirectory);
             AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
+            Assert.Null(parser.OutputDirectory);
+            parser.Errors.Verify(
+                // error CS8762: Output directory could not be determined
+                Diagnostic(ErrorCode.ERR_NoOutputDirectory).WithLocation(1, 1)
+                );
         }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NullBaseDirectoryWithAdditionalFiles()
+        {
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "c:/test.cs" }, baseDirectory: null, SdkDirectory);
+            AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
+            Assert.Null(parser.OutputDirectory);
+            parser.Errors.Verify(
+                // error CS2021: File name 'web.config' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("web.config").WithLocation(1, 1),
+                // error CS8762: Output directory could not be determined
+                Diagnostic(ErrorCode.ERR_NoOutputDirectory).WithLocation(1, 1)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NullBaseDirectoryWithAdditionalFiles_Wildcard()
+        {
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:*", "c:/test.cs" }, baseDirectory: null, SdkDirectory);
+            AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
+            Assert.Null(parser.OutputDirectory);
+            parser.Errors.Verify(
+                // error CS2001: Source file '*' could not be found.
+                Diagnostic(ErrorCode.ERR_FileNotFound).WithArguments("*").WithLocation(1, 1),
+                // error CS8762: Output directory could not be determined
+                Diagnostic(ErrorCode.ERR_NoOutputDirectory).WithLocation(1, 1)
+                );
+        }
+#nullable restore
 
         [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void NoSdkPath()
@@ -903,15 +938,15 @@ class C
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " ", WorkingDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
+                // error CS2005: Missing file specification for '' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
             Assert.Null(desc);
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " , ", WorkingDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
+                // error CS2005: Missing file specification for '' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
             Assert.Null(desc);
 
@@ -924,8 +959,8 @@ class C
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name", WorkingDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
+                // error CS2005: Missing file specification for '' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
             Assert.Null(desc);
 
@@ -952,8 +987,8 @@ class C
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " , ,private", WorkingDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
+                // error CS2005: Missing file specification for '' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
             Assert.Null(desc);
 
@@ -989,8 +1024,8 @@ class C
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name,private", WorkingDirectory, diags, embedded: false);
             diags.Verify(
-                // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
+                // error CS2005: Missing file specification for '' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
             Assert.Null(desc);
 
@@ -3162,12 +3197,17 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 2, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
             foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
+
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation)]);
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
         [Fact]
@@ -3190,12 +3230,17 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 2, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
             foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
+
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation)]);
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
         [Fact]
@@ -3218,7 +3263,7 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 3, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
             foreach (string warning in ErrorFacts.NullableWarnings)
             {
@@ -3226,6 +3271,10 @@ class C
             }
 
             Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"]);
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation)]);
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
         [Fact]
@@ -3248,12 +3297,17 @@ class C
             Assert.Empty(errors);
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
-            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ErrorFacts.NullableWarnings.Count + 2, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
 
             foreach (string warning in ErrorFacts.NullableWarnings)
             {
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
+
+            Assert.Equal(expected: ReportDiagnostic.Error,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation)]);
+            Assert.Equal(expected: ReportDiagnostic.Error,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
         [WorkItem(912906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]
@@ -8158,6 +8212,31 @@ class Test
             int exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/nowarn:1522,642", source.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);
+        }
+
+        [Fact, WorkItem(41610, "https://github.com/dotnet/roslyn/issues/41610")]
+        public void TestWarnAsError_CS8632()
+        {
+            string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
+public class C
+{
+    public string? field;
+    public static void Main()
+    {
+    }
+}
+").Path;
+
+            var baseDir = Path.GetDirectoryName(source);
+            var fileName = Path.GetFileName(source);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", "/warn:3", "/warnaserror:nullable", source.ToString() }).Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.Equal(
+$@"{fileName}(4,18): error CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
         }

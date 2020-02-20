@@ -86,4 +86,7 @@
     <Import Include="Roslyn.Utilities" />
     <Import Include="Roslyn.Utilities.Contract" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicWorkspaceExtensionsResources.resx" GenerateSource="true" />
+  </ItemGroup>
 </Project>

@@ -22,11 +22,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Update="CodeAnalysisResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CodeAnalysisResources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Operations\OperationInterfaces.xml" />
@@ -99,11 +94,7 @@
     <InternalsVisibleTo Include="CompilerBenchmarks" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="CodeAnalysisResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>CodeAnalysisResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="CodeAnalysisResources.resx" GenerateSource="true" />
     <EmbeddedResource Include="Resources\default.win32manifest" />
   </ItemGroup>
   <ItemGroup>
