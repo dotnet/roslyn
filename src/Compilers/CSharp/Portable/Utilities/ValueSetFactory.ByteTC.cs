@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (byte leftMax, byte rightMin) NumericTC<byte>.Partition(byte min, byte max)
             {
-                Debug.Assert(min != max);
+                Debug.Assert(min < max);
                 int half = (max - min) / 2;
                 byte leftMax = (byte)(min + half);
                 byte rightMin = (byte)(leftMax + 1);

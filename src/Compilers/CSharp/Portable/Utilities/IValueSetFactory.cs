@@ -15,16 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal interface IValueSetFactory
     {
         /// <summary>
-        /// Returns a value set that includes all values of its type.
-        /// </summary>
-        IValueSet All { get; }
-
-        /// <summary>
-        /// Returns a value set that includes no values of its type.
-        /// </summary>
-        IValueSet None { get; }
-
-        /// <summary>
         /// Returns a value set that includes any values that satisfy the given relation when compared to the given value.
         /// </summary>
         IValueSet Related(BinaryOperatorKind relation, ConstantValue value);
@@ -37,22 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal interface IValueSetFactory<T> : IValueSetFactory
     {
         /// <summary>
-        /// Returns a value set that includes all values of type <typeparamref name="T"/>
-        /// </summary>
-        new IValueSet<T> All { get; }
-
-        /// <summary>
-        /// Returns a value set that includes no values.
-        /// </summary>
-        new IValueSet<T> None { get; }
-
-        /// <summary>
         /// Returns a value set that includes any values that satisfy the given relation when compared to the given value.
         /// </summary>
         IValueSet<T> Related(BinaryOperatorKind relation, T value);
 
         /// <summary>
-        /// Produce a random value set with the given expected size.
+        /// Produce a random value set with the given expected size for testing.
         /// </summary>
         IValueSet<T> Random(int expectedSize, Random random);
     }

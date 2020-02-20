@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getItemProperty = (PropertySymbol)pattern.GetItemMethod.AssociatedSymbol;
             var iTupleType = getLengthProperty.ContainingType;
             RoslynDebug.Assert(iTupleType.Name == "ITuple");
-            var tests = ArrayBuilder<Tests>.GetInstance(4 + patternLength);
+            var tests = ArrayBuilder<Tests>.GetInstance(4 + patternLength * 2);
 
             tests.Add(new Tests.One(new BoundDagTypeTest(syntax, iTupleType, input)));
             var valueAsITupleEvaluation = new BoundDagTypeEvaluation(syntax, iTupleType, input);
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = typePattern.DeclaredType.Type;
             var tests = ArrayBuilder<Tests>.GetInstance(4);
-            input = MakeConvertToType(input: input, syntax: typePattern.Syntax, type: type, isExplicitTest: false, tests: tests);
+            input = MakeConvertToType(input: input, syntax: typePattern.Syntax, type: type, isExplicitTest: typePattern.IsExplicitNotNullTest, tests: tests);
             return Tests.AndSequence.Create(tests);
         }
 
@@ -1210,6 +1210,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stateIdentifierMap.Add(allStates[i], i);
                 }
 
+                // NOTE that this numbering for temps does not work well for the invocation of Deconstruct, which produces
+                // multiple values.  This would make them appear to be the same temp in the debug dump.
                 int nextTempNumber = 0;
                 PooledDictionary<BoundDagEvaluation, int> tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
                 int tempIdentifier(BoundDagEvaluation? e)
@@ -1225,27 +1227,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultBuilder = PooledStringBuilder.GetInstance();
                 var result = resultBuilder.Builder;
 
-                foreach (var state in allStates)
+                foreach (DagState state in allStates)
                 {
-                    result.AppendLine($"State " + stateIdentifierMap[state]);
+                    bool isFail = state.Cases.IsEmpty;
+                    bool starred = isFail || state.Cases.First().RemainingTests is Tests.True;
+                    result.Append($"{(starred ? "*" : "")}State " + stateIdentifierMap[state] + (isFail ? " FAIL" : ""));
+                    var remainingValues = state.RemainingValues.Select(kvp => $"{tempName(kvp.Key)}:{kvp.Value}");
+                    result.AppendLine($"{(remainingValues.Any() ? " REMAINING " + string.Join(" ", remainingValues) : "")}");
+
                     foreach (StateForCase cd in state.Cases)
                     {
-                        result.AppendLine($"  [{cd.Syntax}] {cd.RemainingTests.Dump(dump)}");
+                        result.AppendLine($"    {dumpStateForCase(cd)}");
                     }
 
                     if (state.SelectedTest != null)
                     {
-                        result.AppendLine($"  Test: {dump(state.SelectedTest)}");
+                        result.AppendLine($"    Test: {dumpDagTest(state.SelectedTest)}");
                     }
 
                     if (state.TrueBranch != null)
                     {
-                        result.AppendLine($"  TrueBranch: {stateIdentifierMap[state.TrueBranch]}");
+                        result.AppendLine($"    TrueBranch: {stateIdentifierMap[state.TrueBranch]}");
                     }
 
                     if (state.FalseBranch != null)
                     {
-                        result.AppendLine($"  FalseBranch: {stateIdentifierMap[state.FalseBranch]}");
+                        result.AppendLine($"    FalseBranch: {stateIdentifierMap[state.FalseBranch]}");
                     }
                 }
 
@@ -1253,18 +1260,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tempIdentifierMap.Free();
                 return resultBuilder.ToStringAndFree();
 
-                string dump(BoundDagTest d)
+                string dumpStateForCase(StateForCase cd)
+                {
+                    var instance = PooledStringBuilder.GetInstance();
+                    StringBuilder builder = instance.Builder;
+                    builder.Append($"{cd.Index}. [{cd.Syntax}] {(cd.RemainingTests is Tests.True ? "MATCH" : cd.RemainingTests.Dump(dumpDagTest))}");
+                    var bindings = cd.Bindings.Select(bpb => $"{(bpb.VariableAccess is BoundLocal l ? l.LocalSymbol.Name : "<var>")}={tempName(bpb.TempContainingValue)}");
+                    if (bindings.Any())
+                    {
+                        builder.Append(" BIND[");
+                        builder.Append(string.Join("; ", bindings));
+                        builder.Append("]");
+                    }
+
+                    if (cd.WhenClause is { })
+                    {
+                        builder.Append($" WHEN[{cd.WhenClause.Syntax}]");
+                    }
+
+                    return instance.ToStringAndFree();
+                }
+
+                string dumpDagTest(BoundDagTest d)
                 {
                     switch (d)
                     {
                         case BoundDagTypeEvaluation a:
-                            return $"t{tempIdentifier(a)}={a.Kind}({a.Type.ToString()})";
+                            return $"t{tempIdentifier(a)}={a.Kind}(t{tempIdentifier(a)} as {a.Type})";
                         case BoundDagEvaluation e:
-                            return $"t{tempIdentifier(e)}={e.Kind}";
+                            return $"t{tempIdentifier(e)}={e.Kind}(t{tempIdentifier(e)})";
                         case BoundDagTypeTest b:
-                            return $"?{d.Kind}({b.Type.ToString()}, {tempName(d.Input)})";
+                            return $"?{d.Kind}({tempName(d.Input)} is {b.Type})";
                         case BoundDagValueTest v:
-                            return $"?{d.Kind}({v.Value.ToString()}, {tempName(d.Input)})";
+                            return $"?{d.Kind}({tempName(d.Input)} == {v.Value})";
+                        case BoundDagRelationalTest r:
+                            var operatorName = r.Relation.Operator() switch
+                            {
+                                BinaryOperatorKind.LessThan => "<",
+                                BinaryOperatorKind.LessThanOrEqual => "<=",
+                                BinaryOperatorKind.GreaterThan => ">",
+                                BinaryOperatorKind.GreaterThanOrEqual => ">=",
+                                _ => "??"
+                            };
+                            return $"?{d.Kind}({tempName(d.Input)} {operatorName} {r.Value})";
                         default:
                             return $"?{d.Kind}({tempName(d.Input)})";
                     }

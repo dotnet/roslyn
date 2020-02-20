@@ -16,19 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A value set factory that only supports equality and works by including or excluding specific values.
         /// </summary>
-        private class EnumeratedValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, EqualableValueTC<T>
+        private sealed class EnumeratedValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, EqualableValueTC<T>
         {
             public static EnumeratedValueSetFactory<T, TTC> Instance = new EnumeratedValueSetFactory<T, TTC>();
 
             private EnumeratedValueSetFactory() { }
-
-            IValueSet<T> IValueSetFactory<T>.All => EnumeratedValueSet<T, TTC>.AllValues;
-
-            IValueSet IValueSetFactory.All => EnumeratedValueSet<T, TTC>.AllValues;
-
-            IValueSet<T> IValueSetFactory<T>.None => EnumeratedValueSet<T, TTC>.None;
-
-            IValueSet IValueSetFactory.None => EnumeratedValueSet<T, TTC>.None;
 
             public IValueSet<T> Related(BinaryOperatorKind relation, T value)
             {

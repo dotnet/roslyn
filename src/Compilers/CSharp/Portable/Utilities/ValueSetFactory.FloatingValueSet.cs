@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Text;
 using Roslyn.Utilities;
 
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <typeparam name="TFloating">A floating-point type.</typeparam>
         /// <typeparam name="TFloatingTC">A typeclass supporting that floating-point type.</typeparam>
-        private class FloatingValueSet<TFloating, TFloatingTC> : IValueSet<TFloating> where TFloatingTC : struct, FloatingTC<TFloating>
+        private sealed class FloatingValueSet<TFloating, TFloatingTC> : IValueSet<TFloating> where TFloatingTC : struct, FloatingTC<TFloating>
         {
             private bool _hasNaN, _hasMinusInf, _hasPlusInf;
             private IValueSet<TFloating> _numbers;
@@ -31,7 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public static readonly IValueSet<TFloating> AllValues = new FloatingValueSet<TFloating, TFloatingTC>(
-                hasNaN: true, hasMinusInf: true, hasPlusInf: true, numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.All);
+                hasNaN: true, hasMinusInf: true, hasPlusInf: true, numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Included.Instance));
+
+            public static readonly IValueSet<TFloating> NoValues = new FloatingValueSet<TFloating, TFloatingTC>(
+                hasNaN: false, hasMinusInf: false, hasPlusInf: false, numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Excluded.Instance));
 
             internal static IValueSet<TFloating> Random(int expectedSize, Random random)
             {
@@ -42,14 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasNaN: hasNan, hasMinusInf: hasMinusInf, hasPlusInf: hasPlusInf, numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Random(expectedSize, random));
             }
 
-            public static readonly IValueSet<TFloating> None = new FloatingValueSet<TFloating, TFloatingTC>(
-                hasNaN: false, hasMinusInf: false, hasPlusInf: false, numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.None);
-
             bool IValueSet.IsEmpty => !_hasNaN && !_hasMinusInf && !_hasPlusInf && _numbers.IsEmpty;
-
-            IValueSetFactory<TFloating> IValueSet<TFloating>.Factory => FloatingValueSetFactory<TFloating, TFloatingTC>.Instance;
-
-            IValueSetFactory IValueSet.Factory => FloatingValueSetFactory<TFloating, TFloatingTC>.Instance;
 
             public static IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value)
             {
@@ -65,16 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 hasNaN: true,
                                 hasMinusInf: false,
                                 hasPlusInf: false,
-                                numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.None
+                                numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Excluded.Instance)
                                 );
                         case BinaryOperatorKind.LessThan:
                         case BinaryOperatorKind.GreaterThan:
-                            return None;
+                            return NoValues;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(relation);
                     }
                 }
-
                 return new FloatingValueSet<TFloating, TFloatingTC>(
                     hasNaN: false,
                     hasMinusInf: tc.Related(relation, tc.MinusInf, value),

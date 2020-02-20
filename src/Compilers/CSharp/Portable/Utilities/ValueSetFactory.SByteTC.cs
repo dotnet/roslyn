@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (sbyte leftMax, sbyte rightMin) NumericTC<sbyte>.Partition(sbyte min, sbyte max)
             {
-                Debug.Assert(min != max);
+                Debug.Assert(min < max);
                 int half = (max - min) / 2;
                 sbyte leftMax = (sbyte)(min + half);
                 sbyte rightMin = (sbyte)(leftMax + 1);

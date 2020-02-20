@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (ulong leftMax, ulong rightMin) NumericTC<ulong>.Partition(ulong min, ulong max)
             {
-                Debug.Assert(min != max);
+                Debug.Assert(min < max);
                 ulong half = (max - min) / 2;
                 ulong leftMax = min + half;
                 return (leftMax, leftMax + 1);

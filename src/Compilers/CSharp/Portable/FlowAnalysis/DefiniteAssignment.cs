@@ -1403,6 +1403,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetConditionalState(this.State, whenFail);
         }
 
+        /// <summary>
+        /// Find the pattern variables of the pattern, and make them definitely assigned if <paramref name="definitely"/>.
+        /// That would be false under "not" and "or" patterns.
+        /// </summary>
         private void AssignPatternVariables(BoundPattern pattern, bool definitely = true)
         {
             switch (pattern.Kind)

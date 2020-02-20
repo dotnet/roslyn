@@ -2566,5 +2566,338 @@ class C
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(12, 9)
                 );
         }
+
+        [Fact]
+        public void Relational_09()
+        {
+            var source = @"
+class C
+{
+    public int M(uint c) => c switch
+    {
+        | 3 => 3,
+        || 4 => 4,
+        & 5 => 5,
+        && 6 => 6,
+        _ => 7
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (5,6): error CS1525: Invalid expression term '|'
+                //     {
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("|").WithLocation(5, 6),
+                // (6,18): error CS1525: Invalid expression term '||'
+                //         | 3 => 3,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("||").WithLocation(6, 18),
+                // (8,11): error CS0211: Cannot take the address of the given expression
+                //         & 5 => 5,
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "5").WithLocation(8, 11),
+                // (8,18): error CS1525: Invalid expression term '&&'
+                //         & 5 => 5,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("&&").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void Relational_10()
+        {
+            var source = @"
+class C
+{
+    public int M(uint c) => c switch
+    {
+        == 0 => 1,
+        != 2 => 2,
+        _ => 7
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS1525: Invalid expression term '=='
+                //         == 0 => 1,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "==").WithArguments("==").WithLocation(6, 9),
+                // (7,9): error CS1525: Invalid expression term '!='
+                //         != 2 => 2,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void Relational_EnumSubsumption()
+        {
+            var source = @"
+enum E : uint
+{
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven
+}
+class C
+{
+    public int M(E c) => c switch
+    {
+        >= E.Five => 1,
+        E.Four => 2,
+        E.Three => 3,
+        E.Two => 4,
+        E.One => 5,
+        E.Zero => 6,
+        _ => 7, // 1
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (23,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //         _ => 7, // 1
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(23, 9)
+                );
+        }
+
+        [Fact]
+        public void Relational_SignedEnumComplete()
+        {
+            foreach (var typeName in new[] { "sbyte", "short", "int", "long" })
+            {
+                var source = @"
+using System;
+enum E : " + typeName + @"
+{
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven
+}
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(E.Zero));
+        Console.WriteLine(M(E.One));
+        Console.WriteLine(M(E.Two));
+        Console.WriteLine(M(E.Three));
+        Console.WriteLine(M(E.Four));
+        Console.WriteLine(M(E.Five));
+        Console.WriteLine(M(E.Six));
+        Console.WriteLine(M(E.Seven));
+        Console.WriteLine(M((E)100));
+        Console.WriteLine(M((E)(-100)));
+    }
+    static int M(E c) => c switch
+    {
+        >= E.Five => 1,
+        E.Four => 2,
+        E.Three => 3,
+        E.Two => 4,
+        E.One => 5,
+        E.Zero => 6,
+        _ => 7, // handles negative values
+    };
+}";
+                var expectedOutput = @"6
+5
+4
+3
+2
+1
+1
+1
+1
+7";
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                compilation.VerifyDiagnostics(
+                    );
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
+        }
+
+        [Fact]
+        public void Relational_UnsignedEnumComplete()
+        {
+            foreach (var typeName in new[] { "byte", "ushort", "uint", "ulong" })
+            {
+                var source = @"
+using System;
+enum E : " + typeName + @"
+{
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven
+}
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(E.Zero));
+        Console.WriteLine(M(E.One));
+        Console.WriteLine(M(E.Two));
+        Console.WriteLine(M(E.Three));
+        Console.WriteLine(M(E.Four));
+        Console.WriteLine(M(E.Five));
+        Console.WriteLine(M(E.Six));
+        Console.WriteLine(M(E.Seven));
+        Console.WriteLine(M((E)100));
+    }
+    static int M(E c) => c switch
+    {
+        > E.Five => 1,
+        E.Four => 2,
+        E.Three => 3,
+        E.Two => 4,
+        E.One => 5,
+        E.Zero => 6,
+        _ => 7, // handles E.Five
+    };
+}";
+                var expectedOutput = @"6
+5
+4
+3
+2
+7
+1
+1
+1";
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                compilation.VerifyDiagnostics(
+                    );
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
+        }
+
+        [Fact]
+        public void Relational_SignedEnumExhaustive()
+        {
+            foreach (var typeName in new[] { "byte", "ushort", "uint", "ulong" })
+            {
+                foreach (var withExhaustive in new[] { false, true })
+                {
+                    var source = @"
+enum E : " + typeName + @"
+{
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven
+}
+class C
+{
+    static int M(E c) => c switch
+    {
+        > E.Five => 1,
+        E.Four => 2,
+        E.Three => 3,
+        E.Two => 4,
+        E.One => 5,
+        E.Zero => 6,
+" +
+(withExhaustive ? @"        E.Five => 7, // exhaustive
+" : "")
++ @"    };
+}";
+                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                    if (withExhaustive)
+                    {
+                        compilation.VerifyDiagnostics(
+                            );
+                    }
+                    else
+                    {
+                        compilation.VerifyDiagnostics(
+                            // (15,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                            //     static int M(E c) => c switch
+                            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 28)
+                            );
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void Relational_UnsignedEnumExhaustive()
+        {
+            foreach (var typeName in new[] { "sbyte", "short", "int", "long" })
+            {
+                foreach (var withExhaustive in new[] { false, true })
+                {
+                    var source = @"
+enum E : " + typeName + @"
+{
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven
+}
+class C
+{
+    static int M(E c) => c switch
+    {
+        > E.Five => 1,
+        E.Four => 2,
+        E.Three => 3,
+        E.Two => 4,
+        E.One => 5,
+        <= E.Zero => 6,
+" +
+(withExhaustive ? @"        E.Five => 7, // exhaustive
+" : "")
++ @"    };
+}";
+                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                    if (withExhaustive)
+                    {
+                        compilation.VerifyDiagnostics(
+                            );
+                    }
+                    else
+                    {
+                        compilation.VerifyDiagnostics(
+                            // (15,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                            //     static int M(E c) => c switch
+                            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 28)
+                            );
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TEMP()
+        {
+            var source = @"
+public static class C
+{
+    static int M(string s) => s switch
+    {
+        ""a"" => 1,
+        ""b"" => 2,
+        _ => 3
+    };
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                );
+        }
     }
 }

@@ -46,8 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             T Next(T value);
 
             /// <summary>
-            /// A formatter for values of type <typeparamref name="T"/>.  This is needed because the default ToString
-            /// for float and double changed between desktop and .net core.
+            /// A formatter for values of type <typeparamref name="T"/>.  This is needed for testing because
+            /// the default ToString output for float and double changed between desktop and .net core,
+            /// and also because we want the string representation to be locale-independent.
             /// </summary>
             string ToString(T value);
         }
