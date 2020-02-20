@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End If
 
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-            Dim symbol = TryGetDeclaredSymbol(semanticModel, matchingNode, token, cancellationToken)
+            Dim symbol = TryGetDeclaredSymbol(semanticModel, matchingNode, cancellationToken)
             If symbol IsNot Nothing Then
                 Dim selectedIndex = TryGetSelectedIndexFromDeclaration(position, matchingNode)
                 Return (symbol, selectedIndex)
@@ -181,7 +181,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         Private Function TryGetDeclaredSymbol(semanticModel As SemanticModel,
                                               matchingNode As SyntaxNode,
-                                              token As SyntaxToken,
                                               cancellationToken As CancellationToken) As ISymbol
             Select Case matchingNode.Kind()
                 Case SyntaxKind.PropertyBlock
