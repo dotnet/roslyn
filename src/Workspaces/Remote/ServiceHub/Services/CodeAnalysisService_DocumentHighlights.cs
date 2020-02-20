@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteDocumentHighlights
     {
         public Task<IList<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken)
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // that are not all the same language and might not exist in the OOP process
                 // (like the JS parts of a .cshtml file). Filter them out here.  This will
                 // need to be revisited if we someday support FAR between these languages.
-                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId);
                 var documentsToSearch = ImmutableHashSet.CreateRange(
                     documentIdsToSearch.Select(solution.GetDocument).WhereNotNull());

@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis
                     && _warningLevel == other._warningLevel;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return this.Equals(obj as Diagnostic);
             }

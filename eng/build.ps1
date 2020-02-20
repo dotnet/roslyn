@@ -466,9 +466,10 @@ function Deploy-VsixViaTool() {
   $vsDir = $vsInfo.installationPath.TrimEnd("\")
   $vsId = $vsInfo.instanceId
   $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+  $displayVersion = $vsInfo.catalog.productDisplayVersion
 
   $hive = "RoslynDev"
-  Write-Host "Using VS Instance $vsId at `"$vsDir`""
+  Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
   $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
 
   Write-Host "Uninstalling old Roslyn VSIX"
@@ -571,6 +572,9 @@ function Setup-IntegrationTestRun() {
 }
 
 function Prepare-TempDir() {
+  $env:TEMP=$TempDir
+  $env:TMP=$TempDir
+
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
@@ -652,6 +656,10 @@ try {
   }
 
   if ($launch) {
+    if (-not $build) {
+      InitializeBuildTool
+    }
+
     $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
     &$devenvExe /rootSuffix RoslynDev
   }
