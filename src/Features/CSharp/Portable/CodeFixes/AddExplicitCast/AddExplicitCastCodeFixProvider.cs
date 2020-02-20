@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 if (exactSolution)
                 {
                     context.RegisterCodeFix(new MyCodeAction(
-                    CSharpFeaturesResources.Add_explicit_cast,
-                    c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                    context.Diagnostics);
+                        CSharpFeaturesResources.Add_explicit_cast,
+                        c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                        context.Diagnostics);
                 }
                 else if (potentialConvTypes.Length > 1)
                 {
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     }
 
                     context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
-                    CSharpFeaturesResources.Add_explicit_cast,
-                    actions.ToImmutableArray(), false),
-                    context.Diagnostics);
+                        CSharpFeaturesResources.Add_explicit_cast,
+                        actions.ToImmutableArray(), false),
+                        context.Diagnostics);
                 }
             }
         }
@@ -109,10 +109,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return document.WithSyntaxRoot(newRoot);
         }
 
-        // Output the current type info of the target node and the conversion type that the target node is going to be cast by
-        // Implicit downcast can appear on Variable Declaration, Return Statement, and Function Invocation, for example:
-        // Base b; Derived d = [||]b;       
-        // object b is the current node with type *Base*, and the conversion type which object b is going to be cast by is *Derived*
+        /// <summary>
+        /// Output the current type info of the target node and the conversion type(s) that the target node is going to be cast by.
+        /// Implicit downcast can appear on Variable Declaration, Return Statement, and Function Invocation, for example:
+        /// Base b; Derived d = [||]b;       
+        /// object b is the current node with type *Base*, and the conversion type which object b is going to be cast by is *Derived*
+        /// </summary>
+        /// <param name="semanticModel"></param>
+        /// <param name="root">The root of the tree of nodes.</param>
+        /// <param name="targetNode">The node to be cast.</param>
+        /// <param name="cancellationToken"></param>
+        /// <param name="targetNodeType">Output the type of <paramref name="targetNode"/>.</param>
+        /// <param name="targetNodeConversionType">Output the exact conversion type that <paramref name="targetNode"/> is going to be cast.</param>
+        /// <param name="potentialConvTypes">>Output the potential conversions types that <paramref name="targetNode"/> can be cast</param>
+        /// <returns>
+        /// True, if the target node has exactly one conversion type, and it is assigned to <paramref name="targetNodeConversionType"/>
+        /// False, if the target node has no conversion type or multiple conversion types. Multiple conversion types are assigned to <paramref name="potentialConvTypes"/>
+        /// </returns>
         private bool GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken,
             out ITypeSymbol? targetNodeType, out ITypeSymbol? targetNodeConversionType, out ImmutableArray<ITypeSymbol> potentialConvTypes)
         {
@@ -134,9 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
             var textSpan = targetNode.GetLocation().SourceSpan;
             if (TryGetNode(root, textSpan, SyntaxKind.Argument, targetNode, out var argumentNode) && argumentNode is ArgumentSyntax targetArgument &&
-                targetArgument.Parent is ArgumentListSyntax argumentList && argumentList.Parent is SyntaxNode invocationNode)
+                targetArgument.Parent is ArgumentListSyntax argumentList && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
-                // Implicit downcast appears on the arguments of function invocation, get all candidate functions and extract potential conversion types 
+                // Implicit downcast appears on the argument of invocation node, get all candidate functions and extract potential conversion types 
                 targetNodeConversionType = null;
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidateSymbols = symbolInfo.CandidateSymbols;
@@ -167,10 +180,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     {
                         var correspondingParameter = methodSymbol.Parameters[paramIndex];
                         var argumentConversionType = correspondingParameter.Type;
+
                         if (correspondingParameter.IsParams && correspondingParameter.Type is IArrayTypeSymbol arrayType && !(targetNodeType is IArrayTypeSymbol))
                         {
+                            // target argument is matched to the parameter with keyword params
                             argumentConversionType = arrayType.ElementType;
                         }
+
                         potentialConversionTypes.Add(argumentConversionType);
                     }
                 }
@@ -181,7 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 potentialConvTypes = potentialConversionTypes.Distinct().ToImmutableArray(); // clear up duplicate types
                 if (potentialConvTypes.Length != 1)
                 {
-                    // no exact solutions
                     return false;
                 }
 
@@ -204,8 +219,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return commonConversion.Exists;
         }
 
+        /// <summary>
+        /// Try to test if the invocation node is available to invoke the method.
+        /// </summary>
+        /// <param name="semanticModel"></param>
+        /// <param name="arguments">The arguments of invocation</param>
+        /// <param name="parameters">The parameters of </param>
+        /// <param name="targetArgument">The target argument that contains target node</param>
+        /// <param name="cancellationToken"></param>
+        /// <param name="targetParamIndex">Output the corresponding parameter index of the target arugment</param>
+        /// <returns>
+        /// True, if arguments and parameters match perfectly.
+        /// False, otherwise.
+        /// </returns>
         private bool IsArgumentListAndParameterListPerfactMatch(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
-            ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax target, CancellationToken cancellationToken, out int targetParamIndex)
+            ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument, CancellationToken cancellationToken, out int targetParamIndex)
         {
             targetParamIndex = -1; // return invalid index if it is not a perfact match
 
@@ -228,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         if (name.Equals(parameters[j].Name))
                         {
                             // Check if the argument is in order with parameters.
-                            // If the argument breaks the order, the rest arguments must have names
+                            // If the argument breaks the order, the rest arguments of matched functions must have names
                             if (i != j) inOrder = false;
                             parameterIndex = j;
                             found = true;
@@ -238,11 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     if (!found) return false;
                 }
 
-                // 1. The argument is either in order with parameters, or have a matched name with parameters
-                // 2. The type of argument and the type of parameter must be conversible
+                // The argument is either in order with parameters, or have a matched name with parameters
                 var argType = semanticModel.GetTypeInfo(arguments[i].Expression, cancellationToken);
                 if (argType.Type != null && (inOrder || !(nameSyntax is null)))
                 {
+                    // The type of argument must be convertible to the type of parameter
                     if (semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
                     {
                         if (matchedTypes[parameterIndex]) return false;
@@ -256,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     }
                     else return false;
 
-                    if (target.Equals(arguments[i])) targetParamIndex = parameterIndex;
+                    if (targetArgument.Equals(arguments[i])) targetParamIndex = parameterIndex;
                 }
                 else return false;
             }
