@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 => _underlying.GetParameters(context);
             public ITypeReference GetType(EmitContext context) => _underlying.GetType(context);
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return obj is FunctionPointerMethodSignature { _underlying: var otherUnderlying } &&
                     _underlying.Equals(otherUnderlying);
