@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
-                "// Test0.cs(1,23): warning Brace: message" + Environment.NewLine +
+                "// /0/Test0.cs(1,23): warning Brace: message" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24)," + Environment.NewLine +
                 Environment.NewLine;
             Assert.Equal(expected, exception.Message);

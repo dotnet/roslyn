@@ -29,7 +29,7 @@ class TestClass {
                 "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
-                "// Test0.cs(3,34): error CS1002: ; expected" + Environment.NewLine +
+                "// /0/Test0.cs(3,34): error CS1002: ; expected" + Environment.NewLine +
                 "DiagnosticResult.CompilerError(\"CS1002\").WithSpan(3, 34, 3, 35)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -100,11 +100,11 @@ class TestClass {
                 "Expected diagnostic to end at column \"21\" was actually at column \"19\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Expected diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(2,8,2,21): error CS0246" + Environment.NewLine +
+                "    // /0/Test0.cs(2,8,2,21): error CS0246" + Environment.NewLine +
                 "DiagnosticResult.CompilerError(\"CS0246\").WithSpan(2, 8, 2, 21).WithArguments(\"IDisposable\")," + Environment.NewLine +
                 Environment.NewLine +
                 "Actual diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(2,8): error CS0246: The type or namespace name 'IDisposable' could not be found (are you missing a using directive or an assembly reference?)" + Environment.NewLine +
+                "    // /0/Test0.cs(2,8): error CS0246: The type or namespace name 'IDisposable' could not be found (are you missing a using directive or an assembly reference?)" + Environment.NewLine +
                 "DiagnosticResult.CompilerError(\"CS0246\").WithSpan(2, 8, 2, 19).WithArguments(\"IDisposable\")," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -190,11 +190,11 @@ class TestClass {
                 "Expected diagnostic message arguments to match" + Environment.NewLine +
                 Environment.NewLine +
                 "Expected diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(3,7,3,12): warning CS0414" + Environment.NewLine +
+                "    // /0/Test0.cs(3,7,3,12): warning CS0414" + Environment.NewLine +
                 "DiagnosticResult.CompilerWarning(\"CS0414\").WithSpan(3, 7, 3, 12).WithArguments(\"TestClass2.value\")," + Environment.NewLine +
                 Environment.NewLine +
                 "Actual diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(3,7): warning CS0414: The field 'TestClass.value' is assigned but its value is never used" + Environment.NewLine +
+                "    // /0/Test0.cs(3,7): warning CS0414: The field 'TestClass.value' is assigned but its value is never used" + Environment.NewLine +
                 "DiagnosticResult.CompilerWarning(\"CS0414\").WithSpan(3, 7, 3, 12).WithArguments(\"TestClass.value\")," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -218,7 +218,7 @@ class TestClass {
                 "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
-                "// Test0.cs(3,7): warning CS0414: The field 'TestClass.value' is assigned but its value is never used" + Environment.NewLine +
+                "// /0/Test0.cs(3,7): warning CS0414: The field 'TestClass.value' is assigned but its value is never used" + Environment.NewLine +
                 "DiagnosticResult.CompilerWarning(\"CS0414\").WithSpan(3, 7, 3, 12).WithArguments(\"TestClass.value\")," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -272,7 +272,7 @@ class TestClass {
                 "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
-                "// Test0.cs(2,1): hidden CS8019: Unnecessary using directive." + Environment.NewLine +
+                "// /0/Test0.cs(2,1): hidden CS8019: Unnecessary using directive." + Environment.NewLine +
                 "new DiagnosticResult(\"CS8019\", DiagnosticSeverity.Hidden).WithSpan(2, 1, 2, 14)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -297,7 +297,7 @@ End Class
                 "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
-                "// Test0.vb(3) : error BC30205: End of statement expected." + Environment.NewLine +
+                "// /0/Test0.vb(3) : error BC30205: End of statement expected." + Environment.NewLine +
                 "DiagnosticResult.CompilerError(\"BC30205\").WithSpan(3, 13, 3, 14)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);

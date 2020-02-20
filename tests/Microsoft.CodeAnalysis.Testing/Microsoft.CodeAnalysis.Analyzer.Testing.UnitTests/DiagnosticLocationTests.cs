@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 "Expected diagnostic to end at column \"17\" was actually at column \"18\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Expected diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(1,17,1,17): warning Brace" + Environment.NewLine +
+                "    // /0/Test0.cs(1,17,1,17): warning Brace" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 17)," + Environment.NewLine +
                 Environment.NewLine +
                 "Actual diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
+                "    // /0/Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -91,11 +91,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 "Expected diagnostic to start at column \"18\" was actually at column \"17\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Expected diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(1,18): warning Brace" + Environment.NewLine +
+                "    // /0/Test0.cs(1,18): warning Brace" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithLocation(1, 18)," + Environment.NewLine +
                 Environment.NewLine +
                 "Actual diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
+                "    // /0/Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 "new DiagnosticResult(HighlightBraceSpanAnalyzer.Brace)," + Environment.NewLine +
                 Environment.NewLine +
                 "Actual diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
+                "    // /0/Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 "new DiagnosticResult(HighlightBraceSpanAnalyzer.Brace)," + Environment.NewLine +
                 Environment.NewLine +
                 "Actual diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
+                "    // /0/Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -186,11 +186,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 "Expected diagnostic to end at column \"18\" was actually at column \"17\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Expected diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(1,17,1,18): warning Brace" + Environment.NewLine +
+                "    // /0/Test0.cs(1,17,1,18): warning Brace" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)," + Environment.NewLine +
                 Environment.NewLine +
                 "Actual diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
+                "    // /0/Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 17)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -211,11 +211,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 "Expected diagnostic to start at column \"18\" was actually at column \"17\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Expected diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(1,18): warning Brace" + Environment.NewLine +
+                "    // /0/Test0.cs(1,18): warning Brace" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithLocation(1, 18)," + Environment.NewLine +
                 Environment.NewLine +
                 "Actual diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
+                "    // /0/Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
                 "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 17)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
