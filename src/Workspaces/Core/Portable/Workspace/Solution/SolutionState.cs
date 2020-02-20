@@ -2020,7 +2020,7 @@ namespace Microsoft.CodeAnalysis
                 GeneratorDriver? driver = _projectIdToGeneratorDriverMap.ContainsKey(project.Id)
                                        ? _projectIdToGeneratorDriverMap[project.Id]
                                        : project.LanguageServices.CompilationFactory?.CreateGeneratorDriver(comp, project.ParseOptions)
-                                         .WithAdditionalTexts(project.AdditionalDocumentStates.Values.SelectAsArray<TextDocumentState, AdditionalText>(d => new AdditionalTextWithState(d)));
+                                         ?.WithAdditionalTexts(project.AdditionalDocumentStates.Values.SelectAsArray<TextDocumentState, AdditionalText>(d => new AdditionalTextWithState(d)));
 
                 if (driver is object)
                 {
