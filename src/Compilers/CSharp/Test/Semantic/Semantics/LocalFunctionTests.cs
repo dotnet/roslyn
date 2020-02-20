@@ -609,6 +609,123 @@ class C
                 // (31,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //         [A(local5())] // 3
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "local5()").WithLocation(31, 12));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var arg1 = (AttributeArgumentSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AttributeArgument, occurrence: 1).AsNode();
+            Assert.Equal("System.String s1", model.GetSymbolInfo(arg1.Expression).Symbol.ToTestDisplayString());
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(arg1.Expression).Type.SpecialType);
+
+            var arg2 = (AttributeArgumentSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AttributeArgument, occurrence: 2).AsNode();
+            Assert.Null(model.GetSymbolInfo(arg2.Expression).Symbol);
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(arg2.Expression).Type.SpecialType);
+
+            var arg3 = (AttributeArgumentSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AttributeArgument, occurrence: 3).AsNode();
+            Assert.Equal("System.String s2", model.GetSymbolInfo(arg3.Expression).Symbol.ToTestDisplayString());
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(arg3.Expression).Type.SpecialType);
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute_OnFunction_DeclarationPattern()
+        {
+            const string text = @"
+using System;
+class A : Attribute
+{
+    internal A(bool b) { }
+}
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        [A(42 is int i)] // 1
+        void local1()
+        {
+            _ = i.ToString(); // 2
+        }
+
+        _ = i.ToString(); // 3
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //         [A(42 is int i)] // 1
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "42 is int i").WithLocation(13, 12),
+                // (16,17): error CS0103: The name 'i' does not exist in the current context
+                //             _ = i.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(16, 17),
+                // (19,13): error CS0103: The name 'i' does not exist in the current context
+                //         _ = i.ToString(); // 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(19, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var arg = (AttributeArgumentSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AttributeArgument, occurrence: 1).AsNode();
+            Assert.Null(model.GetSymbolInfo(arg.Expression).Symbol);
+            Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(arg.Expression).Type.SpecialType);
+
+            var decl = (DeclarationPatternSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.DeclarationPattern, occurrence: 1).AsNode();
+            Assert.Equal("System.Int32 i", model.GetDeclaredSymbol(decl.Designation).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute_OnFunction_OutVarInCall()
+        {
+            const string text = @"
+using System;
+class A : Attribute
+{
+    internal A(bool b) { }
+}
+
+class C
+{
+    void M1()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        [A(M2(out var i))] // 1
+        void local1()
+        {
+            _ = i.ToString(); // 2
+        }
+
+        _ = i.ToString(); // 3
+    }
+
+    static bool M2(out int x)
+    {
+        x = 0;
+        return false;
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //         [A(M2(out var i))] // 1
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "M2(out var i)").WithLocation(13, 12),
+                // (16,17): error CS0103: The name 'i' does not exist in the current context
+                //             _ = i.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(16, 17),
+                // (19,13): error CS0103: The name 'i' does not exist in the current context
+                //         _ = i.ToString(); // 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(19, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var arg = (AttributeArgumentSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AttributeArgument, occurrence: 1).AsNode();
+            Assert.Equal("System.Boolean C.M2(out System.Int32 x)", model.GetSymbolInfo(arg.Expression).Symbol.ToTestDisplayString());
+            Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(arg.Expression).Type.SpecialType);
+
+            var decl = (DeclarationExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.DeclarationExpression, occurrence: 1).AsNode();
+            Assert.Equal("System.Int32 i", model.GetDeclaredSymbol(decl.Designation).ToTestDisplayString());
         }
 
         [Fact]
