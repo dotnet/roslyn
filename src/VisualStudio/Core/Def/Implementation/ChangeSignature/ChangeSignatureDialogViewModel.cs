@@ -197,32 +197,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             return true;
         }
 
-        public bool CanEdit
-        {
-            get
-            {
-                if (!SelectedIndex.HasValue)
-                {
-                    return false;
-                }
-
-                // Cannot edit `this` parameter
-                var index = SelectedIndex.Value;
-                if (index == 0 && _thisParameter != null)
-                {
-                    return false;
-                }
-
-                // Cannot edit params parameter
-                if (index >= (_thisParameter == null ? 0 : 1) + _parametersWithoutDefaultValues.Count + _parametersWithDefaultValues.Count)
-                {
-                    return false;
-                }
-
-                return !AllParameters[SelectedIndex.Value].IsRemoved;
-            }
-        }
-
         internal void Remove()
         {
             if (AllParameters[_selectedIndex!.Value] is AddedParameterViewModel)
@@ -267,7 +241,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             NotifyPropertyChanged(nameof(RemoveAutomationText));
             NotifyPropertyChanged(nameof(CanRestore));
             NotifyPropertyChanged(nameof(RestoreAutomationText));
-            NotifyPropertyChanged(nameof(CanEdit));
         }
 
         internal ParameterConfiguration GetParameterConfiguration()
@@ -517,7 +490,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 NotifyPropertyChanged(nameof(RemoveAutomationText));
                 NotifyPropertyChanged(nameof(CanRestore));
                 NotifyPropertyChanged(nameof(RestoreAutomationText));
-                NotifyPropertyChanged(nameof(CanEdit));
             }
         }
 

@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -618,6 +619,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFactsService
+            Get
+                Return VisualBasicSyntaxFactsService.Instance
+            End Get
+        End Property
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

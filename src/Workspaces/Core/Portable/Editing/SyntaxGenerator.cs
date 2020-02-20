@@ -2281,10 +2281,6 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString);
 
-        internal abstract bool IsNamedArgument(SyntaxNode syntaxNode);
-
-        internal abstract bool IsDocumentationCommentTriviaSyntax(SyntaxNode node);
-
         internal abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
 
         internal abstract SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);

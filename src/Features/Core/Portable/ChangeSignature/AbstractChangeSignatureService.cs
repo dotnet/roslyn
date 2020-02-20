@@ -147,9 +147,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             var solution = document.Project.Solution;
-            var documentId = solution.GetDocumentId(declarationLocation.SourceTree);
-            var declarationDocument = solution.GetDocument(documentId);
-            var declarationChangeSignatureService = declarationDocument?.GetRequiredLanguageService<AbstractChangeSignatureService>();
+            var declarationDocument = solution.GetRequiredDocument(declarationLocation.SourceTree!);
+            var declarationChangeSignatureService = declarationDocument.GetRequiredLanguageService<AbstractChangeSignatureService>();
 
             if (declarationChangeSignatureService == null)
             {
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationMethodPositionNotFound);
             }
 
-            if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property, SymbolKind.NamedType))
+            if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property))
             {
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
@@ -172,7 +171,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalysisSucceededContext(
-                declarationDocument ?? document, insertPosition.Value, symbol, parameterConfiguration);
+                declarationDocument, insertPosition.Value, symbol, parameterConfiguration);
         }
 
         private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalysisSucceededContext context, CancellationToken cancellationToken)
@@ -732,6 +731,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         protected abstract SyntaxGenerator Generator { get; }
+        protected abstract ISyntaxFactsService SyntaxFacts { get; }
 
         protected SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
           SeparatedSyntaxList<SyntaxNode> newArguments,
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     {
                         if (indexInExistingList < newArguments.Count)
                         {
-                            if (Generator.IsNamedArgument(newArguments[indexInExistingList]))
+                            if (SyntaxFacts.IsNamedParameter(newArguments[indexInExistingList]))
                             {
                                 seenNameEquals = true;
                             }
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
 
                 var structuredTrivia = trivia.GetStructure();
-                if (!(Generator.IsDocumentationCommentTriviaSyntax(structuredTrivia)))
+                if (!syntaxFacts.IsDocumentationComment(structuredTrivia))
                 {
                     updatedLeadingTrivia.Add(trivia);
                     continue;

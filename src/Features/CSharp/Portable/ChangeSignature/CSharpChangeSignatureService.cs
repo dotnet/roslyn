@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
     internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
     {
         protected override SyntaxGenerator Generator => CSharpSyntaxGenerator.Instance;
+        protected override ISyntaxFactsService SyntaxFacts => CSharpSyntaxFactsService.Instance;
 
         private static readonly ImmutableArray<SyntaxKind> _declarationKinds = ImmutableArray.Create(
             SyntaxKind.MethodDeclaration,

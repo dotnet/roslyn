@@ -62,19 +62,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString), lastWhitespaceTrivia)
         End Function
 
-        Friend Overrides Function IsNamedArgument(syntaxNode As SyntaxNode) As Boolean
-            Dim argument = TryCast(syntaxNode, ArgumentSyntax)
-            If argument IsNot Nothing Then
-                Return argument.IsNamed
-            Else
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function IsDocumentationCommentTriviaSyntax(node As SyntaxNode) As Boolean
-            Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
-        End Function
-
         Friend Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean
             Dim xmlElement = TryCast(node, XmlElementSyntax)
             If xmlElement IsNot Nothing Then

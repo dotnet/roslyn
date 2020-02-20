@@ -72,12 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 lastWhitespaceTrivia);
         }
 
-        internal override bool IsNamedArgument(SyntaxNode syntaxNode)
-            => syntaxNode is ArgumentSyntax argumentSyntax && argumentSyntax.NameColon != null;
-
-        internal override bool IsDocumentationCommentTriviaSyntax(SyntaxNode node)
-            => node is DocumentationCommentTriviaSyntax;
-
         internal override bool IsParameterNameXmlElementSyntax(SyntaxNode node)
             => node.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax xmlElement) &&
             xmlElement.StartTag.Name.ToString() == DocumentationCommentXmlNames.ParameterElementName;
