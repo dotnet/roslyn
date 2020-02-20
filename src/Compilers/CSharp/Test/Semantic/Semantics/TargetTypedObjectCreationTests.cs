@@ -2312,16 +2312,21 @@ class C
 {
     static void Main()
     {
-        throw new();
+        throw new(""message"");
     }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (6,15): error CS8754: Use of 'new()' is not valid in this context
-                //         throw new();
-                Diagnostic(ErrorCode.ERR_TypelessNewNotValid, "new()").WithLocation(6, 15)
-                );
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<ImplicitObjectCreationExpressionSyntax>().First();
+            Assert.Equal("System.Exception", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("System.Exception", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.Exception..ctor(System.String message)", model.GetSymbolInfo(def).Symbol.ToTestDisplayString());
         }
 
         [Fact]
