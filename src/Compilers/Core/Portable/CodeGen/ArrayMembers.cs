@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private ArrayMethod GetArrayMethod(Cci.IArrayTypeReference arrayType, ArrayMethodKind id)
         {
             var key = ((byte)id, arrayType);
-            ArrayMethod result;
+            ArrayMethod? result;
 
             var dict = _dict;
             if (!dict.TryGetValue(key, out result))

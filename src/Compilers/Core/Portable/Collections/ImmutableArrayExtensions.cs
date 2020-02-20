@@ -555,6 +555,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+            where K : notnull
         {
             if (items.Length == 1)
             {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -39,13 +41,15 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                                                                                m.Parameters.Length == 2);
                     if (referenceEqualsMethod != null)
                     {
-                        context.RegisterSyntaxNodeAction(c => AnalyzeSyntax(c, referenceEqualsMethod), GetInvocationExpressionKind());
+                        var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+                        context.RegisterSyntaxNodeAction(
+                            c => AnalyzeSyntax(c, referenceEqualsMethod),
+                            syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.InvocationExpression));
                     }
                 }
             });
 
         protected abstract bool IsLanguageVersionSupported(ParseOptions options);
-        protected abstract TLanguageKindEnum GetInvocationExpressionKind();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod)
@@ -59,13 +63,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
+            var option = context.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
             if (!option.Value)
             {
                 return;
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     additionalLocations, properties));
         }
 
-        private static ITypeParameterSymbol GetGenericParameterSymbol(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
+        private static ITypeParameterSymbol? GetGenericParameterSymbol(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
         {
             var valueNode = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node1)) ? node2 : node1;
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(valueNode);
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return parameterType as ITypeParameterSymbol;
             }
 
-            return default;
+            return null;
         }
 
         private static bool MatchesPattern(ISyntaxFactsService syntaxFacts, SyntaxNode node1, SyntaxNode node2)
