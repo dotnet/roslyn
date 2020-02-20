@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
                 return null;
             }
 
-            return new EditorConfigDocumentOptionsProvider(workspace.Services.GetService<IErrorLoggerService>());
+            return new EditorConfigDocumentOptionsProvider();
         }
 
         private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
@@ -40,18 +40,15 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
         private class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
         {
-            private readonly IErrorLoggerService? _errorLogger;
-
-            public EditorConfigDocumentOptionsProvider(IErrorLoggerService? errorLogger)
+            public EditorConfigDocumentOptionsProvider()
             {
-                _errorLogger = errorLogger;
             }
 
             public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
             {
                 var options = await document.GetAnalyzerOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-                return new DocumentOptions(options, _errorLogger);
+                var errorLogger = document.Project.Solution.Workspace.Services.GetService<IErrorLoggerService>();
+                return new DocumentOptions(options, errorLogger);
             }
 
             private class DocumentOptions : IDocumentOptions
