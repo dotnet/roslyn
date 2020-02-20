@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableDictionary<ProjectId, CompilationTracker> _projectIdToTrackerMap;
 
+        // PROTOTYPE: create a generator driver per-project
+        private ImmutableDictionary<ProjectId, GeneratorDriver> _projectIdToGeneratorDriverMap;
+
         // Checksums for this solution state
         private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
 
@@ -61,6 +64,7 @@ namespace Microsoft.CodeAnalysis
             SerializableOptionSet options,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
+            ImmutableDictionary<ProjectId, GeneratorDriver> projectIdToGeneratorDriverMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
             ProjectDependencyGraph dependencyGraph)
         {
@@ -72,6 +76,7 @@ namespace Microsoft.CodeAnalysis
             Options = options ?? throw new ArgumentNullException(nameof(options));
             _projectIdToProjectStateMap = idToProjectStateMap;
             _projectIdToTrackerMap = projectIdToTrackerMap;
+            _projectIdToGeneratorDriverMap = projectIdToGeneratorDriverMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
 
@@ -95,6 +100,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
+                projectIdToGeneratorDriverMap: ImmutableDictionary<ProjectId, GeneratorDriver>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
                 dependencyGraph: ProjectDependencyGraph.Empty)
         {
@@ -174,6 +180,7 @@ namespace Microsoft.CodeAnalysis
             SerializableOptionSet? options = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker>? projectIdToTrackerMap = null,
+            ImmutableDictionary<ProjectId, GeneratorDriver>? projectIdToGeneratorDriverMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
             ProjectDependencyGraph? dependencyGraph = null)
         {
@@ -185,6 +192,7 @@ namespace Microsoft.CodeAnalysis
             options ??= Options.WithLanguages(GetProjectLanguages(idToProjectStateMap));
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
+            projectIdToGeneratorDriverMap ??= _projectIdToGeneratorDriverMap;
             dependencyGraph ??= _dependencyGraph;
 
             if (branchId == _branchId &&
@@ -209,6 +217,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 idToProjectStateMap,
                 projectIdToTrackerMap,
+                projectIdToGeneratorDriverMap,
                 filePathToDocumentIdsMap,
                 dependencyGraph);
         }
@@ -234,6 +243,7 @@ namespace Microsoft.CodeAnalysis
                 Options,
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
+                _projectIdToGeneratorDriverMap,
                 _filePathToDocumentIdsMap,
                 _dependencyGraph);
         }
@@ -1235,6 +1245,17 @@ namespace Microsoft.CodeAnalysis
 
                 var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProject, newDocumentStatesForProject);
 
+                // PROTOTYPE: we add the edit to the projects driver, if we have one
+                if (_projectIdToGeneratorDriverMap.ContainsKey(oldProject.Id))
+                {
+                    GeneratorDriver driver = _projectIdToGeneratorDriverMap[oldProject.Id]!;
+
+                    var edits = newDocumentStatesForProject.SelectAsArray<T, PendingEdit>(s => new AddtionalFileAddedEdit(new AdditionalTextWithState(s)));
+                    driver = driver.WithPendingEdits(edits);
+
+                    _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(oldProject.Id, driver);
+                }
+
                 newSolutionState = newSolutionState.ForkProject(newProjectState,
                     compilationTranslationAction,
                     newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
@@ -1988,11 +2009,31 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The compilation is guaranteed to have a syntax tree for each document of the project.
         /// </remarks>
-        public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
+        public async Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
         {
-            return project.SupportsCompilation
-                ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).AsNullable()
-                : SpecializedTasks.Null<Compilation>();
+            if (project.SupportsCompilation)
+            {
+                var comp = await GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).ConfigureAwait(false);
+
+                // PROTOTYPE: either get an existing generator, or create a new one
+                // PROTOTYPE: we currently aren't adding any actual providers, so this won't cause anything to happen
+                GeneratorDriver? driver = _projectIdToGeneratorDriverMap.ContainsKey(project.Id)
+                                       ? _projectIdToGeneratorDriverMap[project.Id]
+                                       : project.LanguageServices.CompilationFactory?.CreateGeneratorDriver(comp, project.ParseOptions)
+                                         .WithAdditionalTexts(project.AdditionalDocumentStates.Values.SelectAsArray<TextDocumentState, AdditionalText>(d => new AdditionalTextWithState(d)));
+
+                if (driver is object)
+                {
+                    // PROTOTYPE: obviously we don't want to run full generation everytime
+                    //            we should instead periodically run full generation, and TryApplyEdits as needed.
+                    //            For now this lets us imagine what the experience feels like in the IDE
+                    driver = driver.GenerateSource(comp, out comp);
+                    _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(project.Id, driver);
+                }
+
+                return comp;
+            }
+            return null;
         }
 
         /// <summary>
