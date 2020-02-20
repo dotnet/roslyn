@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Immutable;
 
+#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     //PROTOTYPE: we'll wire this up to the project options when we figure that part out
@@ -14,12 +16,12 @@ namespace Microsoft.CodeAnalysis
     {
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
         {
-            return new CompilerAnalyzerConfigOptions(System.Collections.Immutable.ImmutableDictionary<string, string>.Empty);
+            return new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty);
         }
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
         {
-            return new CompilerAnalyzerConfigOptions(System.Collections.Immutable.ImmutableDictionary<string, string>.Empty);
+            return new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty);
         }
     }
 }

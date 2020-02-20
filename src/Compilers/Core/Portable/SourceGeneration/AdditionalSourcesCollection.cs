@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     // PROTOTYPE: should this implement ICollection?
