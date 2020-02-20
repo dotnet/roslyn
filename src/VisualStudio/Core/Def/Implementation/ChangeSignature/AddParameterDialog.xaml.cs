@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         // Do nothing. This case is handled in parent control KeyDown events.
                     }
                     else if (e.Key == Key.Space &&
-                        typeOrNameTextBox.ContainerName.Equals("NameContentControl"))
+                        typeOrNameTextBox.ContainerName.Equals(NameContentControl.Name))
                     {
                         // Do nothing. We disallow spaces in the name field for both C# and VB.
                         e.Handled = true;
@@ -127,10 +127,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 //     1. The type field is empty.
                 //     2. We're in a VB project, since VB doesn't give name suggestions.
                 var typeOrNameTextBox = elementWithFocus.GetParentOfType<IntellisenseTextBox>();
-                if (typeOrNameTextBox != null && typeOrNameTextBox.ContainerName.Equals("NameContentControl"))
+                if (typeOrNameTextBox != null && typeOrNameTextBox.ContainerName.Equals(NameContentControl.Name))
                 {
-                    var nameBeforeType = string.IsNullOrWhiteSpace(((IntellisenseTextBox)TypeContentControl.Content).Text);
-                    if (nameBeforeType || _viewModel.Document.Project.Language == LanguageNames.VisualBasic)
+                    var typeFieldIsEmpty = string.IsNullOrWhiteSpace(((IntellisenseTextBox)TypeContentControl.Content).Text);
+                    if (typeFieldIsEmpty || _viewModel.Document.Project.Language == LanguageNames.VisualBasic)
                     {
                         typeOrNameTextBox.ShutDownIntellisenseSessions();
                     }

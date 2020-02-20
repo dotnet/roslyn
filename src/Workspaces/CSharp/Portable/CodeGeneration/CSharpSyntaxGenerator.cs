@@ -75,9 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override bool IsNamedArgument(SyntaxNode syntaxNode)
             => syntaxNode is ArgumentSyntax argumentSyntax && argumentSyntax.NameColon != null;
 
-        internal override bool IsWhitespaceTrivia(SyntaxTrivia trivia)
-            => trivia.IsKind(SyntaxKind.WhitespaceTrivia);
-
         internal override bool IsDocumentationCommentTriviaSyntax(SyntaxNode node)
             => node is DocumentationCommentTriviaSyntax;
 

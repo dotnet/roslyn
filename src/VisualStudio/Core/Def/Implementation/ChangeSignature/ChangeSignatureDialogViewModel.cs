@@ -151,19 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             get
             {
-                if (!AllParameters.Any())
-                {
-                    return false;
-                }
-
-                if (!SelectedIndex.HasValue)
-                {
-                    return false;
-                }
-
-                var index = SelectedIndex.Value;
-
-                if (index == 0 && _thisParameter != null)
+                if (!EditableParameterSelected(out var index))
                 {
                     return false;
                 }
@@ -176,25 +164,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             get
             {
-                if (!AllParameters.Any())
-                {
-                    return false;
-                }
-
-                if (!SelectedIndex.HasValue)
-                {
-                    return false;
-                }
-
-                var index = SelectedIndex.Value;
-
-                if (index == 0 && _thisParameter != null)
+                if (!EditableParameterSelected(out var index))
                 {
                     return false;
                 }
 
                 return AllParameters[index].IsRemoved;
             }
+        }
+
+        private bool EditableParameterSelected(out int index)
+        {
+            index = -1;
+
+            if (!AllParameters.Any())
+            {
+                return false;
+            }
+
+            if (!SelectedIndex.HasValue)
+            {
+                return false;
+            }
+
+            index = SelectedIndex.Value;
+
+            if (index == 0 && _thisParameter != null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public bool CanEdit

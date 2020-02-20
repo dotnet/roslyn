@@ -2283,8 +2283,6 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract bool IsNamedArgument(SyntaxNode syntaxNode);
 
-        internal abstract bool IsWhitespaceTrivia(SyntaxTrivia trivia);
-
         internal abstract bool IsDocumentationCommentTriviaSyntax(SyntaxNode node);
 
         internal abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);

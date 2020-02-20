@@ -71,10 +71,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Friend Overrides Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean
-            Return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-        End Function
-
         Friend Overrides Function IsDocumentationCommentTriviaSyntax(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
         End Function

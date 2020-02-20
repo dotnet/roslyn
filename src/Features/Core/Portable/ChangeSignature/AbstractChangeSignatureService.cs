@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -806,11 +807,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var index = 0;
             SyntaxTrivia lastWhiteSpaceTrivia = default;
 
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
             foreach (var trivia in node.GetLeadingTrivia())
             {
                 if (!trivia.HasStructure)
                 {
-                    if (Generator.IsWhitespaceTrivia(trivia))
+                    if (syntaxFacts.IsWhitespaceTrivia(trivia))
                     {
                         lastWhiteSpaceTrivia = trivia;
                     }
