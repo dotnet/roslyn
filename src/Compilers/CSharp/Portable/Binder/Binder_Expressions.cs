@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (reportNoTargetType)
                         {
-                            diagnostics.Add(ErrorCode.ERR_TypelessNewNoTargetType, expr.Syntax.GetLocation());
+                            diagnostics.Add(ErrorCode.ERR_TypelessNewNoTargetType, expr.Syntax.GetLocation(), expr.Display);
                         }
 
                         result = BindObjectCreationForErrorRecovery(expr, diagnostics);

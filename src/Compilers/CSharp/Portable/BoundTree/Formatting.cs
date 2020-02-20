@@ -168,6 +168,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundUnconvertedObjectCreationExpression
     {
-        public override object Display => "new()";
+        public override object Display
+        {
+            get
+            {
+                var arguments = this.Arguments;
+                if (arguments.Length == 0)
+                {
+                    return "new()";
+                }
+
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+                var argumentDisplays = new object[arguments.Length];
+
+                builder.Append("new");
+                builder.Append('(');
+                builder.Append("{0}");
+                argumentDisplays[0] = arguments[0].Display;
+
+                for (int i = 1; i < arguments.Length; i++)
+                {
+                    builder.Append($", {{{i.ToString()}}}");
+                    argumentDisplays[i] = arguments[i].Display;
+                }
+
+                builder.Append(')');
+
+                var format = pooledBuilder.ToStringAndFree();
+                return FormattableStringFactory.Create(format, argumentDisplays);
+            }
+        }
     }
 }
