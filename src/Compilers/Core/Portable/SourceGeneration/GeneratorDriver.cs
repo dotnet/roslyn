@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis
             // run the actual generation
             var state = StateWithPendingEditsApplied(_state);
             var sourcesBuilder = PooledDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>>.GetInstance();
+
+            //PROTOTYPE: should be possible to parallelize this
             foreach (var provider in state.Providers)
             {
                 try
@@ -131,8 +133,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     // attempt to apply the edit
                     var context = new UpdateContext(state.Sources[provider], cancellationToken);
-                    context = edit.TryApply(generator, context);
-                    if (!context.Succeeded)
+                    var succeeded = edit.TryApply(generator, context);
+                    if (!succeeded)
                     {
                         // we couldn't successfully apply this edit
                         // return the original state noting we failed

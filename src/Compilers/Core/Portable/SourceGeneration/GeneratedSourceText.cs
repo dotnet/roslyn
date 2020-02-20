@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis
     /// A source text created by an <see cref="ISourceGenerator"/>
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
-    public struct GeneratedSourceText
+    public readonly struct GeneratedSourceText
     {
         public SourceText Text { get; }
 
-        public string Hint { get; }
+        public string HintName { get; }
 
-        public GeneratedSourceText(string hint, SourceText text)
+        public GeneratedSourceText(string hintName, SourceText text)
         {
             this.Text = text;
-            this.Hint = hint;
+            this.HintName = hintName;
         }
     }
 }

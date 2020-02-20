@@ -13,6 +13,23 @@ namespace Microsoft.CodeAnalysis
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "<Pending>")]
     public readonly struct GeneratorDriverState
     {
+        internal GeneratorDriverState(Compilation compilation, ParseOptions parseOptions)
+            : this(compilation, parseOptions, ImmutableArray<GeneratorProvider>.Empty, ImmutableArray<AdditionalText>.Empty, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>>.Empty, null, false)
+        {
+        }
+
+        internal GeneratorDriverState(Compilation compilation, ParseOptions parseOptions, ImmutableArray<GeneratorProvider> providers, ImmutableArray<AdditionalText> additionalTexts, ImmutableArray<PendingEdit> edits, ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>> sources, Compilation? finalCompilation, bool editsFailed)
+        {
+            Providers = providers;
+            AdditionalTexts = additionalTexts;
+            Sources = sources;
+            Edits = edits;
+            Compilation = compilation;
+            ParseOptions = parseOptions;
+            FinalCompilation = finalCompilation;
+            EditsFailed = editsFailed;
+        }
+
         /// <summary>
         /// The set of <see cref="GeneratorProvider"/>s that will be run
         /// </summary>
@@ -52,23 +69,6 @@ namespace Microsoft.CodeAnalysis
         /// ParseOptions to use when parsing generator provided source.
         /// </summary>
         internal readonly ParseOptions ParseOptions;
-
-        internal GeneratorDriverState(Compilation compilation, ParseOptions parseOptions)
-            : this(compilation, parseOptions, ImmutableArray<GeneratorProvider>.Empty, ImmutableArray<AdditionalText>.Empty, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>>.Empty, null, false)
-        {
-        }
-
-        internal GeneratorDriverState(Compilation compilation, ParseOptions parseOptions, ImmutableArray<GeneratorProvider> providers, ImmutableArray<AdditionalText> additionalTexts, ImmutableArray<PendingEdit> edits, ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>> sources, Compilation? finalCompilation, bool editsFailed)
-        {
-            Providers = providers;
-            AdditionalTexts = additionalTexts;
-            Sources = sources;
-            Edits = edits;
-            Compilation = compilation;
-            ParseOptions = parseOptions;
-            FinalCompilation = finalCompilation;
-            EditsFailed = editsFailed;
-        }
 
         internal GeneratorDriverState With(
             Compilation? compilation = null,

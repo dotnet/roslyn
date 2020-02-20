@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
     public interface ITriggeredByAdditionalFileGenerator : ISourceGenerator
     {
-        UpdateContext UpdateContext(UpdateContext context, AdditionalFileEdit edit);
+        bool UpdateContext(UpdateContext context, AdditionalFileEdit edit);
     }
 }
 

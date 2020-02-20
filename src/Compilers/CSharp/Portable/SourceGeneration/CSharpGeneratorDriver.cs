@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        protected override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, CancellationToken cancellationToken) => SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, input.Hint, cancellationToken); //PROTOTYPE: hint path/ filename uniqueness
+        protected override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, CancellationToken cancellationToken) => SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, input.HintName, cancellationToken); //PROTOTYPE: hint path/ filename uniqueness
 
         protected override GeneratorDriver FromState(GeneratorDriverState state) => new CSharpGeneratorDriver(state);
     }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
 {
     // PROTOTYPE: should this implement ICollection?
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
-    public class AdditionalSourcesCollection
+    public sealed class AdditionalSourcesCollection
     {
         private readonly PooledDictionary<string, SourceText> _sourcesAdded;
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var source in sources)
             {
-                _sourcesAdded.Add(source.Hint, source.Text);
+                _sourcesAdded.Add(source.HintName, source.Text);
             }
         }
 

@@ -41,20 +41,17 @@ namespace Microsoft.CodeAnalysis
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
     // PROTOTYPE: this is going to need to track the input and output compilations that occured
-    public struct UpdateContext
+    public readonly struct UpdateContext
     {
         internal UpdateContext(ImmutableArray<GeneratedSourceText> sources, CancellationToken cancellationToken = default)
         {
             AdditionalSources = new AdditionalSourcesCollection(sources);
-            Succeeded = true;
             CancellationToken = cancellationToken;
         }
 
         public CancellationToken CancellationToken { get; }
 
         public AdditionalSourcesCollection AdditionalSources { get; }
-
-        public bool Succeeded { get; set; }
 
         public void ReportDiagnostic(Diagnostic diagnostic) { throw new NotImplementedException(); }
     }

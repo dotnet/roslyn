@@ -20,26 +20,28 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract bool AcceptedBy(ISourceGenerator generator);
 
-        internal abstract UpdateContext TryApply(ISourceGenerator generator, UpdateContext context);
+        internal abstract bool TryApply(ISourceGenerator generator, UpdateContext context);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
     public abstract class AdditionalFileEdit : PendingEdit
     {
-        public class AddtionalFileAddedEdit : AdditionalFileEdit
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
+    public sealed class AddtionalFileAddedEdit : AdditionalFileEdit
+    {
+        public AddtionalFileAddedEdit(AdditionalText addedText)
         {
-            public AddtionalFileAddedEdit(AdditionalText addedText)
-            {
-                AddedText = addedText;
-            }
-
-            public AdditionalText AddedText { get; }
-
-            internal override GeneratorDriverState Commit(GeneratorDriverState state) => state.With(additionalTexts: state.AdditionalTexts.Add(this.AddedText));
-
-            internal override bool AcceptedBy(ISourceGenerator generator) => generator is ITriggeredByAdditionalFileGenerator;
-
-            internal override UpdateContext TryApply(ISourceGenerator generator, UpdateContext context) => ((ITriggeredByAdditionalFileGenerator)generator).UpdateContext(context, this);
+            AddedText = addedText;
         }
+
+        public AdditionalText AddedText { get; }
+
+        internal override GeneratorDriverState Commit(GeneratorDriverState state) => state.With(additionalTexts: state.AdditionalTexts.Add(this.AddedText));
+
+        internal override bool AcceptedBy(ISourceGenerator generator) => generator is ITriggeredByAdditionalFileGenerator;
+
+        internal override bool TryApply(ISourceGenerator generator, UpdateContext context) => ((ITriggeredByAdditionalFileGenerator)generator).UpdateContext(context, this);
     }
 }
