@@ -64,14 +64,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
 
             if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel,
@@ -108,7 +100,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             }
 
             var option = GetLanguageOption(precedence);
-            var preference = optionSet.GetOption(option, parenthesizedExpression.Language)!;
+            var preference = context.GetOption(option, parenthesizedExpression.Language);
 
             if (preference.Notification.Severity == ReportDiagnostic.Suppress)
             {
@@ -136,7 +128,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 s_diagnosticDescriptor,
-                GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
+                GetDiagnosticSquiggleLocation(parenthesizedExpression, context.CancellationToken),
                 severity,
                 additionalLocations,
                 s_fadeLocations));

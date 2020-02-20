@@ -17,12 +17,6 @@ using Contract = System.Diagnostics.Contracts.Contract;
 
 namespace Roslyn.Collections.Immutable
 {
-#if CODE_STYLE
-    using Resources = CodeStyleResources;
-#else
-    using Resources = WorkspacesResources;
-#endif
-
     /// <summary>
     /// An immutable unordered hash map implementation.
     /// </summary>
@@ -1162,7 +1156,7 @@ namespace Roslyn.Collections.Immutable
 
         private static class Strings
         {
-            public static string DuplicateKey => Resources.An_element_with_the_same_key_but_a_different_value_already_exists;
+            public static string DuplicateKey => CompilerExtensionsResources.An_element_with_the_same_key_but_a_different_value_already_exists;
         }
     }
 }
