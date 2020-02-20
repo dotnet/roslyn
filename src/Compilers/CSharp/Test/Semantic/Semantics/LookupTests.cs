@@ -1066,6 +1066,35 @@ class Program
             Assert.Contains("System.Int32 y", lookupSymbols);
         }
 
+        [Fact]
+        public void LookupInsideIncompleteStatementAttribute()
+        {
+            var testSrc = @"
+using System;
+
+class Program
+{
+    const int w = 0451;
+
+    void M()
+    {
+        int x = 42;
+        const int y = 123;
+        [ObsoleteAttribute(/*pos*/
+        int
+    }
+}
+";
+
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
+        }
+
         [WorkItem(541909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541909")]
         [Fact]
         public void LookupFromRangeVariableAfterFromClause()

@@ -370,7 +370,8 @@ class C
         [InlineData("[return: A] void local() { }")]
         [InlineData("void local([A] int i) { }")]
         [InlineData("void local<[A]T>() {}")]
-        public void LocalFunctionAttribute_SpeculativeSemanticModel(string localFunction)
+        [InlineData("[A] int x = 123;")]
+        public void LocalFunctionAttribute_SpeculativeSemanticModel(string statement)
         {
             string text = $@"
 using System;
@@ -380,7 +381,7 @@ class C
 {{
     static void M()
     {{
-        {localFunction}
+        {statement}
     }}
 }}";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
@@ -408,6 +409,58 @@ class C
             var info = model.GetSymbolInfo(a);
             // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
             Assert.Equal(attrType, info.Symbol);
+        }
+
+        [Theory]
+        [InlineData(@"[Attr(42, Name = ""hello"")] void local() { }")]
+        [InlineData(@"[return: Attr(42, Name = ""hello"")] void local() { }")]
+        [InlineData(@"void local([Attr(42, Name = ""hello"")] int i) { }")]
+        [InlineData(@"void local<[Attr(42, Name = ""hello"")]T>() {}")]
+        [InlineData(@"[Attr(42, Name = ""hello"")] int x = 123;")]
+        public void LocalFunctionAttribute_Argument_SemanticModel(string statement)
+        {
+            var text = $@"
+class Attr
+{{
+    public Attr(int id) {{ }}
+    public string Name {{ get; set; }}
+}}
+
+class C
+{{
+    static void M()
+    {{
+        {statement}
+    }}
+}}";
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularPreview);
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
+            validate(model, tree);
+
+            var newTree = SyntaxFactory.ParseSyntaxTree(text + " ", options: TestOptions.RegularPreview);
+            var mMethod = (MethodDeclarationSyntax)newTree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration, occurrence: 1).AsNode();
+
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(mMethod.Body.SpanStart, mMethod, out var newModel));
+            validate(newModel, newTree);
+
+            static void validate(SemanticModel model, SyntaxTree tree)
+            {
+                var attributeSyntax = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+                var attrArgs = attributeSyntax.ArgumentList.Arguments;
+
+                var attrArg0 = attrArgs[0].Expression;
+                Assert.Null(model.GetSymbolInfo(attrArg0).Symbol);
+
+                var argType0 = model.GetTypeInfo(attrArg0).Type;
+                Assert.Equal(SpecialType.System_Int32, argType0.SpecialType);
+
+                var attrArg1 = attrArgs[1].Expression;
+                Assert.Null(model.GetSymbolInfo(attrArg1).Symbol);
+
+                var argType1 = model.GetTypeInfo(attrArg1).Type;
+                Assert.Equal(SpecialType.System_String, argType1.SpecialType);
+            }
         }
 
         [Fact]
