@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private readonly ITextBuffer _subjectBuffer;
         private readonly IWaitIndicator _waitIndicator;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly WorkspaceRegistration _workspaceRegistration;
 
         /// <summary>
         /// If we have pushed a full list to the presenter in response to a focus event, this
@@ -57,8 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _subjectBuffer = subjectBuffer;
             _waitIndicator = waitIndicator;
             _asyncListener = asyncListener;
-            _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
-            _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
 
             presenter.CaretMoved += OnCaretMoved;
             presenter.ViewFocused += OnViewFocused;
@@ -76,18 +73,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     null));
 
             _selectedItemInfoTask = Task.FromResult(new NavigationBarSelectedTypeAndMember(null, null));
-
-            if (_workspaceRegistration.Workspace != null)
-            {
-                ConnectToWorkspace(_workspaceRegistration.Workspace);
-            }
         }
 
-        private void OnWorkspaceRegistrationChanged(object sender, EventArgs e)
+        public void SetWorkspace(Workspace newWorkspace)
         {
             DisconnectFromWorkspace();
 
-            var newWorkspace = _workspaceRegistration.Workspace;
             if (newWorkspace != null)
             {
                 ConnectToWorkspace(newWorkspace);
@@ -150,8 +141,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _presenter.ItemSelected -= OnItemSelected;
 
             _presenter.Disconnect();
-
-            _workspaceRegistration.WorkspaceChanged -= OnWorkspaceRegistrationChanged;
 
             _disconnected = true;
 

@@ -7,5 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor
     internal interface INavigationBarController
     {
         void Disconnect();
+
+        void SetWorkspace(Workspace newWorkspace);
     }
 }

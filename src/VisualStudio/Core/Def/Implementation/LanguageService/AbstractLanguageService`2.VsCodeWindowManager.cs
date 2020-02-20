@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
@@ -9,9 +11,12 @@ using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -23,9 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private readonly IVsCodeWindow _codeWindow;
             private readonly ComEventSink _sink;
             private readonly IOptionService _optionService;
+            private readonly IThreadingContext _threadingContext;
 
-            private INavigationBarController _navigationBarController;
-            private IVsDropdownBarClient _dropdownBarClient;
+            private INavigationBarController? _navigationBarController;
+            private IVsDropdownBarClient? _dropdownBarClient;
+            private WorkspaceRegistration _workspaceRegistration;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
@@ -33,10 +40,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _codeWindow = codeWindow;
 
                 var workspace = languageService.Package.ComponentModel.GetService<VisualStudioWorkspace>();
-                _optionService = workspace.Services.GetService<IOptionService>();
+                _optionService = workspace.Services.GetRequiredService<IOptionService>();
+
+                _threadingContext = languageService.Package.ComponentModel.GetService<IThreadingContext>();
 
                 _sink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
                 _optionService.OptionChanged += OnOptionChanged;
+
+                _workspaceRegistration = GetWorkspaceRegistration();
+                _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
+            }
+
+            private void OnWorkspaceRegistrationChanged(object sender, System.EventArgs e)
+            {
+                _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    // This event may not be triggered on the main thread, but adding and removing the navbar
+                    // must be done from the main thread.
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                    _navigationBarController?.SetWorkspace(_workspaceRegistration.Workspace);
+
+                    // Trigger a check to see if the dropdown should be added / removed now that the buffer is in a different workspace.
+                    var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
+                    AddOrRemoveDropdown(enabled);
+                });
             }
 
             private void SetupView(IVsTextView view)
@@ -60,6 +88,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 AddOrRemoveDropdown(enabled);
             }
 
+            private WorkspaceRegistration GetWorkspaceRegistration()
+            {
+                ErrorHandler.ThrowOnFailure(_codeWindow.GetBuffer(out var buffer));
+
+                var textContainer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer).AsTextContainer();
+                return CodeAnalysis.Workspace.GetWorkspaceRegistration(textContainer);
+            }
+
             private void AddOrRemoveDropdown(bool enabled)
             {
                 if (!(_codeWindow is IVsDropdownBarManager dropdownManager))
@@ -77,6 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var document = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer).AsTextContainer().GetRelatedDocuments().FirstOrDefault();
                 if (document.GetLanguageService<INavigationBarItemService>() == null)
                 {
+                    RemoveDropdownBar(dropdownManager);
                     return;
                 }
 
@@ -132,6 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
                 var controllerFactoryService = _languageService.Package.ComponentModel.GetService<INavigationBarControllerFactoryService>();
                 var newController = controllerFactoryService.CreateController(navigationBarClient, textBuffer);
+                newController.SetWorkspace(_workspaceRegistration.Workspace);
                 var hr = dropdownManager.AddDropdownBar(cCombos: 3, pClient: navigationBarClient);
 
                 if (ErrorHandler.Failed(hr))
@@ -198,6 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 _sink.Unadvise();
                 _optionService.OptionChanged -= OnOptionChanged;
+                _workspaceRegistration.WorkspaceChanged -= OnWorkspaceRegistrationChanged;
 
                 AddOrRemoveDropdown(enabled: false);
 
