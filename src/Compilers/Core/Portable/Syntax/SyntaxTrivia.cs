@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 var node = UnderlyingNode;
-                RoslynDebug.Assert(node is object);
+                Debug.Assert(node is object);
                 return node;
             }
         }

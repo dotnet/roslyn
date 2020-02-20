@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
 
         public SyntaxTriviaList(SyntaxTrivia trivia)
         {
-            RoslynDebug.Assert(trivia.UnderlyingNode is object);
+            Debug.Assert(trivia.UnderlyingNode is object);
             Token = default(SyntaxToken);
             Node = trivia.UnderlyingNode;
             Position = 0;
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.UnderlyingNode!)), 0, 0);
+            return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
         }
 
         /// <summary>
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTrivia);
-                return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.UnderlyingNode!)), 0, 0);
+                return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
             }
 
             throw new ArgumentOutOfRangeException(nameof(triviaInList));
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private GreenNode? GetGreenNodeAt(int i)
         {
-            RoslynDebug.Assert(Node is object);
+            Debug.Assert(Node is object);
             return GetGreenNodeAt(Node, i);
         }
 
