@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var inputString = new string[] { "h", "e", "l", "l", "o" };
 
             writer.WriteValue(inputBool);
-            writer.WriteValue(inputByte);
+            writer.WriteValue((object)inputByte);
             writer.WriteValue(inputChar);
             writer.WriteValue(inputDecimal);
             writer.WriteValue(inputDouble);

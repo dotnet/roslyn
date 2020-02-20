@@ -266,6 +266,47 @@ namespace Roslyn.Utilities
             }
         }
 
+        public void WriteValue(ReadOnlySpan<byte> span)
+        {
+            int length = span.Length;
+            switch (length)
+            {
+                case 0:
+                    _writer.Write((byte)EncodingKind.Array_0);
+                    break;
+                case 1:
+                    _writer.Write((byte)EncodingKind.Array_1);
+                    break;
+                case 2:
+                    _writer.Write((byte)EncodingKind.Array_2);
+                    break;
+                case 3:
+                    _writer.Write((byte)EncodingKind.Array_3);
+                    break;
+                default:
+                    _writer.Write((byte)EncodingKind.Array);
+                    WriteCompressedUInt((uint)length);
+                    break;
+            }
+
+            var elementType = typeof(byte);
+            Debug.Assert(s_typeMap[elementType] == EncodingKind.UInt8);
+
+            WritePrimitiveType(elementType, EncodingKind.UInt8);
+
+#if NETCOREAPP
+            _writer.Write(span);
+#else
+            var buffer = new byte[Math.Min(length, 8192)];
+            for (int offset = 0; offset < length; offset += buffer.Length)
+            {
+                var segmentLength = Math.Min(buffer.Length, length - offset);
+                span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
+                _writer.Write(buffer, 0, segmentLength);
+            }
+#endif
+        }
+
         public void WriteValue(IObjectWritable value)
         {
             if (value == null)
