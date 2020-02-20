@@ -1576,6 +1576,7 @@
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?"/>
+    <Field Name="WasTargetTyped" Type="bool"/>
 
     <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
     <Field Name="BinderOpt" Type="Binder?"/>

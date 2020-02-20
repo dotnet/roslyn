@@ -4989,7 +4989,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             DiagnosticBag diagnostics,
             InitializerExpressionSyntax initializerSyntaxOpt = null,
-            TypeSymbol initializerTypeOpt = null)
+            TypeSymbol initializerTypeOpt = null,
+            bool wasTargetTyped = false)
         {
 
             BoundExpression result = null;
@@ -5108,6 +5109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argToParams,
                     constantValueOpt,
                     boundInitializerOpt,
+                    wasTargetTyped,
                     this,
                     type,
                     hasError);
