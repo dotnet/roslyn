@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.IsKind(SyntaxKind.QualifiedName);
 
         public bool IsNamedParameter(SyntaxNode node)
-            => node.CheckParent<NameColonSyntax>(p => p.Name == node);
+            => node.CheckParent<NameColonSyntax>(p => p.Name == node) || (node is ArgumentSyntax arg && arg.NameColon != null);
 
         public SyntaxToken? GetNameOfParameter(SyntaxNode node)
             => (node as ParameterSyntax)?.Identifier;
