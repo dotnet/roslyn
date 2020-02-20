@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // If we found a linked document which is part of a project with different project file,
             // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that for now.
             if (linkedDocumentIds.Any(id =>
-                    !PathUtilities.PathsEqual(solution.GetRequiredDocument(id).Project.FilePath, document.Project.FilePath)))
+                    !PathUtilities.PathsEqual(solution.GetRequiredDocument(id).Project.FilePath!, document.Project.FilePath!)))
             {
                 allDocumentIds = default;
                 return false;
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 }
                 else
                 {
-                    Debug.Assert(!PathUtilities.PathsEqual(refLocation.Document.FilePath, document.FilePath));
+                    Debug.Assert(!PathUtilities.PathsEqual(refLocation.Document.FilePath!, document.FilePath!));
                     refLocationsInOtherDocuments.Add(refLocation);
                 }
             }
@@ -863,9 +863,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     ? container.DescendantNodes().First()
                     : container;
 
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var generator = document.GetLanguageService<SyntaxGenerator>();
+                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
                 root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, placeSystemNamespaceFirst, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
