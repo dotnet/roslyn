@@ -309,6 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // Also valid after certain modifiers
             var modifierTokens = syntaxTree.GetPrecedingModifiers(
                 position, token, out var beforeModifiersPosition);
 

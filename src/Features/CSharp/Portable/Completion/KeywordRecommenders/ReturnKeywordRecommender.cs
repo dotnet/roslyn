@@ -30,21 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructTypeDeclarations, cancellationToken) ||
                 (context.SyntaxTree.IsScript() && context.IsTypeAttributeContext(cancellationToken)) ||
-                IsStatementAttributeContext(context);
-        }
-
-        private static bool IsStatementAttributeContext(CSharpSyntaxContext context)
-        {
-            var token = context.TargetToken;
-
-            if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                token.Parent.Kind() == SyntaxKind.AttributeList &&
-                token.Parent.Parent is StatementSyntax)
-            {
-                return true;
-            }
-
-            return false;
+                context.IsStatementAttributeContext();
         }
     }
 }
