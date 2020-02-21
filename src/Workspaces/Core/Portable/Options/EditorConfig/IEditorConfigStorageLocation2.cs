@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal interface IEditorConfigStorageLocation2 : IEditorConfigStorageLocation
     {
+        string KeyName { get; }
+
         /// <summary>
         /// Gets the editorconfig string representation for this storage location.
         /// </summary>

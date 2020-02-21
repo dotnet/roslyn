@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,6 +28,9 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly HashSet<string> _forceComputedLanguages;
 
         private readonly object _gate = new object();
+
+        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _editorConfigKeysToOptions
+            = ImmutableDictionary.Create<string, (IOption?, IEditorConfigStorageLocation2?)>(AnalyzerConfigOptions.KeyComparer);
 
         private ImmutableDictionary<OptionKey, object?> _currentValues;
         private ImmutableArray<Workspace> _registeredWorkspaces;
@@ -97,6 +101,47 @@ namespace Microsoft.CodeAnalysis.Options
         public IEnumerable<IOption> GetRegisteredOptions()
         {
             return _lazyAllOptions.Value;
+        }
+
+        public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey)
+        {
+            var (option, storage) = ImmutableInterlocked.GetOrAdd(
+                ref _editorConfigKeysToOptions,
+                key,
+                (key, self) => MapToOptionWithoutLanguage(self, key),
+                this);
+
+            if (option is object)
+            {
+                RoslynDebug.AssertNotNull(storage);
+                storageLocation = storage;
+                optionKey = option.IsPerLanguage ? new OptionKey(option, language) : new OptionKey(option);
+                return true;
+            }
+
+            storageLocation = null;
+            optionKey = default;
+            return false;
+
+            // Local function
+            static (IOption? option, IEditorConfigStorageLocation2? storageLocation) MapToOptionWithoutLanguage(GlobalOptionService service, string key)
+            {
+                foreach (var option in service.GetRegisteredOptions())
+                {
+                    foreach (var storage in option.StorageLocations)
+                    {
+                        if (!(storage is IEditorConfigStorageLocation2 editorConfigStorage))
+                            continue;
+
+                        if (!AnalyzerConfigOptions.KeyComparer.Equals(key, editorConfigStorage.KeyName))
+                            continue;
+
+                        return (option, editorConfigStorage);
+                    }
+                }
+
+                return (null, null);
+            }
         }
 
         public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)

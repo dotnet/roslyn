@@ -39,9 +39,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new NotImplementedException();
         }
 
+        internal override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
+        {
+            if (_optionSet is null)
+            {
+                return _analyzerConfigOptions;
+            }
+
+            return new AnalyzerConfigOptionsImpl(_analyzerConfigOptions, _optionSet.AsAnalyzerConfigOptions(optionService, language));
+        }
+
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
             throw new NotImplementedException();
+        }
+
+        private sealed class AnalyzerConfigOptionsImpl : AnalyzerConfigOptions
+        {
+            private readonly AnalyzerConfigOptions _options;
+            private readonly AnalyzerConfigOptions _fallbackOptions;
+
+            public AnalyzerConfigOptionsImpl(AnalyzerConfigOptions options, AnalyzerConfigOptions fallbackOptions)
+            {
+                _options = options;
+                _fallbackOptions = fallbackOptions;
+            }
+
+            public override bool TryGetValue(string key, out string value)
+            {
+                if (_options.TryGetValue(key, out value))
+                {
+                    return true;
+                }
+
+                return _fallbackOptions.TryGetValue(key, out value);
+            }
         }
     }
 }

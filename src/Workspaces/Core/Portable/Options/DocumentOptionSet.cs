@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -22,17 +26,19 @@ namespace Microsoft.CodeAnalysis.Options
             _language = language;
         }
 
+        [return: MaybeNull]
         public override object GetOption(OptionKey optionKey)
         {
             return _backingOptionSet.GetOption(optionKey);
         }
 
+        [return: MaybeNull]
         public T GetOption<T>(PerLanguageOption<T> option)
         {
             return _backingOptionSet.GetOption(option, _language);
         }
 
-        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
+        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
         {
             return new DocumentOptionSet(_backingOptionSet.WithChangedOption(optionAndLanguage, value), _language);
         }
@@ -44,6 +50,9 @@ namespace Microsoft.CodeAnalysis.Options
         {
             return (DocumentOptionSet)WithChangedOption(option, _language, value);
         }
+
+        internal override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
+            => _backingOptionSet.AsAnalyzerConfigOptions(optionService, language ?? _language);
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
