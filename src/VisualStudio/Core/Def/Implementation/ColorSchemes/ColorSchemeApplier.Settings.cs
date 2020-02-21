@@ -7,12 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
@@ -27,16 +23,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private class ColorSchemeSettings
         {
             private readonly IServiceProvider _serviceProvider;
-            private readonly IGlobalOptionService _optionService;
+            private readonly VisualStudioWorkspace _workspace;
 
             public HasThemeBeenDefaultedIndexer HasThemeBeenDefaulted { get; }
 
-            public ColorSchemeSettings(IServiceProvider serviceProvider, IGlobalOptionService globalOptionService)
+            public ColorSchemeSettings(IServiceProvider serviceProvider, VisualStudioWorkspace visualStudioWorkspace)
             {
                 _serviceProvider = serviceProvider;
-                _optionService = globalOptionService;
+                _workspace = visualStudioWorkspace;
 
-                HasThemeBeenDefaulted = new HasThemeBeenDefaultedIndexer(globalOptionService);
+                HasThemeBeenDefaulted = new HasThemeBeenDefaultedIndexer(visualStudioWorkspace);
             }
 
             public ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
@@ -70,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     itemKey.SetValue(item.ValueName, item.ValueData);
                 }
 
-                SetOption(_optionService, ColorSchemeOptions.AppliedColorScheme, schemeName);
+                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.AppliedColorScheme, schemeName));
 
                 // Broadcast that system color settings have changed to force the ColorThemeService to reload colors.
                 NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_SYSCOLORCHANGE, wparam: IntPtr.Zero, lparam: IntPtr.Zero);
@@ -78,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             public SchemeName GetAppliedColorScheme()
             {
-                var schemeName = _optionService.GetOption(ColorSchemeOptions.AppliedColorScheme);
+                var schemeName = _workspace.Options.GetOption(ColorSchemeOptions.AppliedColorScheme);
                 return schemeName != SchemeName.None
                     ? schemeName
                     : ColorSchemeOptions.AppliedColorScheme.DefaultValue;
@@ -86,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             public SchemeName GetConfiguredColorScheme()
             {
-                var schemeName = _optionService.GetOption(ColorSchemeOptions.ColorScheme);
+                var schemeName = _workspace.Options.GetOption(ColorSchemeOptions.ColorScheme);
                 return schemeName != SchemeName.None
                     ? schemeName
                     : ColorSchemeOptions.ColorScheme.DefaultValue;
@@ -95,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             public void MigrateToColorSchemeSetting(bool isThemeCustomized)
             {
                 // Get the preview feature flag value.
-                var useEnhancedColorsSetting = _optionService.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
+                var useEnhancedColorsSetting = _workspace.Options.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
 
                 // Return if we have already migrated.
                 if (useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.Migrated)
@@ -108,16 +104,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     ? SchemeName.Enhanced
                     : SchemeName.VisualStudio2017;
 
-                SetOption(_optionService, ColorSchemeOptions.ColorScheme, colorScheme);
-                SetOption(_optionService, ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated);
+                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.ColorScheme, colorScheme));
+                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated));
             }
 
             public Guid GetThemeId()
             {
                 // Look up the value from the new roamed theme property first and
                 // fallback to the original roamed theme property if that fails.
-                var themeIdString = _optionService.GetOption(VisualStudioColorTheme.CurrentThemeNew)
-                    ?? _optionService.GetOption(VisualStudioColorTheme.CurrentTheme);
+                var themeIdString = _workspace.Options.GetOption(VisualStudioColorTheme.CurrentThemeNew)
+                    ?? _workspace.Options.GetOption(VisualStudioColorTheme.CurrentTheme);
 
                 return Guid.TryParse(themeIdString, out var themeId) ? themeId : Guid.Empty;
             }
@@ -154,94 +150,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                         storageLocations: new RoamingProfileStorageLocation($@"Roslyn\ColorSchemeApplier\HasThemeBeenDefaulted\{themeId}"));
                 }
 
-                private readonly IGlobalOptionService _optionService;
+                private readonly VisualStudioWorkspace _workspace;
 
-                public HasThemeBeenDefaultedIndexer(IGlobalOptionService globalOptionService)
+                public HasThemeBeenDefaultedIndexer(VisualStudioWorkspace visualStudioWorkspace)
                 {
-                    _optionService = globalOptionService;
+                    _workspace = visualStudioWorkspace;
                 }
 
                 public bool this[Guid themeId]
                 {
-                    get => _optionService.GetOption(HasThemeBeenDefaultedOptions[themeId]);
+                    get => _workspace.Options.GetOption(HasThemeBeenDefaultedOptions[themeId]);
 
-                    set => SetOption(_optionService, HasThemeBeenDefaultedOptions[themeId], value);
-                }
-            }
-
-            private static readonly EmptyOptionService s_emptyOptionService = new EmptyOptionService();
-            private static readonly ImmutableHashSet<string> s_emptyStringSet = ImmutableHashSet.Create(string.Empty);
-            private static void SetOption(IGlobalOptionService optionService, IOption option, object? value)
-            {
-                var optionKey = new OptionKey(option);
-                var optionSet = optionService.GetSerializableOptionsSnapshot(s_emptyStringSet, s_emptyOptionService);
-                optionService.SetOptions(optionSet.WithChangedOption(optionKey, value));
-            }
-
-            private sealed class EmptyOptionService : IOptionService
-            {
-                public event EventHandler<OptionChangedEventArgs>? OptionChanged;
-
-                [return: MaybeNull]
-                public T GetOption<T>(Option<T> option)
-                {
-                    throw new NotImplementedException();
-                }
-
-                [return: MaybeNull]
-                public T GetOption<T>(PerLanguageOption<T> option, string? languageName)
-                {
-                    throw new NotImplementedException();
-                }
-
-                public object? GetOption(OptionKey optionKey)
-                {
-                    return null;
-                }
-
-                public SerializableOptionSet GetOptions()
-                {
-                    throw new NotImplementedException();
-                }
-
-                public IEnumerable<IOption> GetRegisteredOptions()
-                {
-                    throw new NotImplementedException();
-                }
-
-                public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)
-                {
-                    throw new NotImplementedException();
-                }
-
-                public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages)
-                {
-                    throw new NotImplementedException();
-                }
-
-                public Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
-                {
-                    throw new NotImplementedException();
-                }
-
-                public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
-                {
-                    throw new NotImplementedException();
-                }
-
-                public void RegisterWorkspace(Workspace workspace)
-                {
-                    throw new NotImplementedException();
-                }
-
-                public void SetOptions(OptionSet optionSet)
-                {
-                    throw new NotImplementedException();
-                }
-
-                public void UnregisterWorkspace(Workspace workspace)
-                {
-                    throw new NotImplementedException();
+                    set => _workspace.SetOptions(_workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions[themeId], value));
                 }
             }
         }

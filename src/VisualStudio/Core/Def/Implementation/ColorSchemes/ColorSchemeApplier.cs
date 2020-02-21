@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
@@ -44,13 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ColorSchemeApplier(
             IThreadingContext threadingContext,
-            IGlobalOptionService globalOptionService,
+            VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
 
-            _settings = new ColorSchemeSettings(_serviceProvider, globalOptionService);
+            _settings = new ColorSchemeSettings(_serviceProvider, visualStudioWorkspace);
             _colorSchemes = _settings.GetColorSchemes();
             _colorDefaulter = new ForegroundColorDefaulter(threadingContext, serviceProvider, _settings, _colorSchemes);
 
