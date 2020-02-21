@@ -26096,6 +26096,36 @@ public class C2
         }
 
         [Fact]
+        [WorkItem(41699, "https://github.com/dotnet/roslyn/issues/41699")]
+        public void MissingBaseType_TupleTypeArgumentWithNames()
+        {
+            var sourceA =
+@"public class A<T> { }";
+            var comp = CreateCompilation(sourceA, assemblyName: "A");
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"public class B : A<(object X, B Y)> { }";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var refB = comp.EmitToImageReference();
+
+            var sourceC =
+@"class Program
+{
+    static void Main()
+    {
+        var b = new B();
+        b.ToString();
+    }
+}";
+            comp = CreateCompilation(sourceC, references: new[] { refB });
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0012: The type 'A<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         b.ToString();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "ToString").WithArguments("A<>", "A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 11));
+        }
+
+        [Fact]
         [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
         public void FailedDecodingOfTupleNamesWhenMissingValueTupleType()
         {

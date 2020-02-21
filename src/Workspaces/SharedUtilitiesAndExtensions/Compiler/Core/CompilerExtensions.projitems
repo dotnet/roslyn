@@ -308,6 +308,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolEquivalenceComparer.SignatureTypeSymbolEquivalenceComparer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" Link="CompilerExtensionsResources.resx" />
   </ItemGroup>
 </Project>

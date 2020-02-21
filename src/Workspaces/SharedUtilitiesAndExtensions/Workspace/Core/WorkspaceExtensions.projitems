@@ -87,6 +87,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\WorkspaceServiceMetadata.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" GenerateSource="true" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" GenerateSource="true" Link="WorkspaceExtensionsResources.resx" />
   </ItemGroup>
 </Project>
