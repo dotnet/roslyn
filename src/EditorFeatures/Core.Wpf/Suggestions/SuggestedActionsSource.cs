@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 RegisterEventsToWorkspace(_registration.Workspace);
             }
 
-            private void RegisterEventsToWorkspace(Workspace workspace)
+            private void RegisterEventsToWorkspace(Workspace? workspace)
             {
                 _workspace = workspace;
 
@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 _workspace.DocumentActiveContextChanged += OnActiveContextChanged;
-                _workspaceStatusService = workspace.Services.GetService<IWorkspaceStatusService>();
+                _workspaceStatusService = _workspace.Services.GetService<IWorkspaceStatusService>();
                 if (_workspaceStatusService != null)
                 {
                     _workspaceStatusService.StatusChanged += OnWorkspaceStatusChanged;
