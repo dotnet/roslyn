@@ -12,22 +12,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
     {
         private readonly IUnitTestingIncrementalAnalyzerProviderImplementation _incrementalAnalyzerProvider;
         private IIncrementalAnalyzer _analyzer;
-        private Workspace _workspace;
 
         public UnitTestingIncrementalAnalyzerProvider(IUnitTestingIncrementalAnalyzerProviderImplementation incrementalAnalyzerProvider)
             => _incrementalAnalyzerProvider = incrementalAnalyzerProvider;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            if (_workspace != null && _workspace != workspace)
-            {
-                throw new ArgumentException(nameof(workspace));
-            }
-
+            // NOTE: We're currently expecting the analyzer to be singleton, so that
+            //       analyzers returned when calling this method twice would pass a reference equality check.
+            //       One instance should be created by SolutionCrawler, another one by us, when calling the
+            //       UnitTestingSolutionCrawlerServiceAccessor.Reanalyze method.
             if (_analyzer == null)
             {
-                _analyzer = new UnitTestingIncrementalAnalyzer(_incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace));
-                _workspace = workspace;
+                _analyzer = new UnitTestingIncrementalAnalyzer(_incrementalAnalyzerProvider.CreateIncrementalAnalyzer());
             }
 
             return _analyzer;

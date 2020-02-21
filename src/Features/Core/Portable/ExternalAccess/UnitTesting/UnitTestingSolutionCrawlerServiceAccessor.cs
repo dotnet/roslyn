@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 
         private UnitTestingIncrementalAnalyzerProvider _analyzerProvider;
 
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public UnitTestingSolutionCrawlerServiceAccessor(
             ISolutionCrawlerRegistrationService registrationService,
             ISolutionCrawlerService solutionCrawlerService)
@@ -30,16 +30,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         {
             if (_analyzerProvider != null)
             {
-                // NOTE: We should call this method just once.
-                throw new ArgumentException(nameof(provider));
+                // NOTE: We expect the analyzer to be a singleton, therefore this method should be called just once.
+                throw new InvalidOperationException();
             }
 
             _analyzerProvider = new UnitTestingIncrementalAnalyzerProvider(provider);
             _registrationService.AddAnalyzerProvider(_analyzerProvider, metadata.UnderlyingObject);
         }
 
+        // NOTE: For the Reanalyze method to work correctly, the analyzer passed into the Reanalyze method,
+        //       must be the same as created when we call the AddAnalyzerProvider method.
+        //       As such the analyzer provider instance caches a single instance of the analyzer.
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
         {
+            // NOTE: this method must be called after AddAnalyzerProvider was called previously.
+            if (_analyzerProvider == null)
+            {
+                throw new InvalidOperationException();
+            }
+
             _solutionCrawlerService.Reanalyze(workspace, _analyzerProvider.CreateIncrementalAnalyzer(workspace), projectIds, documentIds, highPriority);
         }
 
