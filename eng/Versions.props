@@ -33,7 +33,7 @@
     <CodeStyleAnalyzerVersion>3.5.0-beta3-20078-04</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
-    <MicrosoftVisualStudioLanguageServerPackagesVersion>16.5.1043-develop-gf07d514b</MicrosoftVisualStudioLanguageServerPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerPackagesVersion>16.6.4</MicrosoftVisualStudioLanguageServerPackagesVersion>
   </PropertyGroup>
   <!-- 
     Dependency versions
@@ -233,7 +233,7 @@
       create a test insertion in Visual Studio to validate.
     -->
     <NewtonsoftJsonVersion>12.0.2</NewtonsoftJsonVersion>
-    <StreamJsonRpcVersion>2.3.36-alpha</StreamJsonRpcVersion>
+    <StreamJsonRpcVersion>2.3.80-rc</StreamJsonRpcVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
   </PropertyGroup>
