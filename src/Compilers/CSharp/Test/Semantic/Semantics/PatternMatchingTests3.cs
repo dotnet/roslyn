@@ -1838,25 +1838,44 @@ class C
         switch ((a, b))
         {
             case (string str, int[] arr) _:
-                goto case (var c, var d);
+                goto case a is (var x1, var x2);
+                x1 = x2;
             case (string str, decimal[] arr) _:
                 break;
         }
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
                 // (8,18): error CS0163: Control cannot fall through from one case label ('(string str, int[] arr) _') to another
                 //             case (string str, int[] arr) _:
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string str, int[] arr) _").WithArguments("(string str, int[] arr) _").WithLocation(8, 18),
-                // (9,28): error CS8185: A declaration is not allowed in this context.
-                //                 goto case (var c, var d);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var c").WithLocation(9, 28),
-                // (9,35): error CS8185: A declaration is not allowed in this context.
-                //                 goto case (var c, var d);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var d").WithLocation(9, 35)
+                // (9,17): error CS0029: Cannot implicitly convert type 'bool' to '(object a, object b)'
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case a is (var x1, var x2);").WithArguments("bool", "(object a, object b)").WithLocation(9, 17),
+                // (9,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var x1, var x2)").WithArguments("object", "Deconstruct").WithLocation(9, 32),
+                // (9,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var x1, var x2)").WithArguments("object", "2").WithLocation(9, 32)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
+
+            var x2Decl = GetPatternDeclarations(tree, "x2").ToArray();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(1, x2Decl.Length);
+            Assert.Equal(1, x2Ref.Length);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
         }
     }
 }
