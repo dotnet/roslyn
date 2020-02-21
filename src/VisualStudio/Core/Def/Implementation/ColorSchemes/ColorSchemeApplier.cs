@@ -45,15 +45,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         public ColorSchemeApplier(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptionService,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            [Import(typeof(SVsFontAndColorStorage))] IVsFontAndColorStorage fontAndColorStorage)
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
 
             _settings = new ColorSchemeSettings(_serviceProvider, globalOptionService);
             _colorSchemes = _settings.GetColorSchemes();
-            _colorDefaulter = new ForegroundColorDefaulter(threadingContext, fontAndColorStorage, _settings, _colorSchemes);
+            _colorDefaulter = new ForegroundColorDefaulter(threadingContext, serviceProvider, _settings, _colorSchemes);
 
             _colorSchemeRegistryItems = new AsyncLazy<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>>(GetColorSchemeRegistryItemsAsync, cacheResult: true);
         }
@@ -178,6 +177,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
-        private class SVsSettingsPersistenceManager { };
+        private class SVsSettingsPersistenceManager { }
     }
 }

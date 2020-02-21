@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -212,10 +212,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Color_Scheme_VisualStudio2017 =>
             ServicesVSResources.Visual_Studio_2017;
 
-        public static string Color_Scheme_Enhanced_Tag =>
-            ColorSchemeOptions.Enhanced;
+        public static SchemeName Color_Scheme_Enhanced_Tag =>
+            SchemeName.Enhanced;
 
-        public static string Color_Scheme_VisualStudio2017_Tag =>
-            ColorSchemeOptions.VisualStudio2017;
+        public static SchemeName Color_Scheme_VisualStudio2017_Tag =>
+            SchemeName.VisualStudio2017;
     }
 }

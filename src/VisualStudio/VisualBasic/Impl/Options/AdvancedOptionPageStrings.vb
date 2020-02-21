@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Options
+Imports Microsoft.CodeAnalysis.Editor.ColorSchemes
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
@@ -248,10 +248,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Color_Scheme_VisualStudio2017 As String =
             ServicesVSResources.Visual_Studio_2017
 
-        Public ReadOnly Property Color_Scheme_Enhanced_Tag As String =
-            ColorSchemeOptions.Enhanced
+        Public ReadOnly Property Color_Scheme_Enhanced_Tag As SchemeName =
+            SchemeName.Enhanced
 
-        Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As String =
-            ColorSchemeOptions.VisualStudio2017
+        Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As SchemeName =
+            SchemeName.VisualStudio2017
     End Module
 End Namespace

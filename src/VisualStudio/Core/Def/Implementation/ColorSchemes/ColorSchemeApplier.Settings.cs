@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     itemKey.SetValue(item.ValueName, item.ValueData);
                 }
 
-                _optionService.SetOptions(new SingleOptionSet(ColorSchemeOptions.AppliedColorScheme, schemeName));
+                _optionService.RefreshOption(new OptionKey(ColorSchemeOptions.AppliedColorScheme), schemeName);
 
                 // Broadcast that system color settings have changed to force the ColorThemeService to reload colors.
                 NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_SYSCOLORCHANGE, wparam: IntPtr.Zero, lparam: IntPtr.Zero);
@@ -102,11 +102,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 // Since we did not apply enhanced colors if the theme had been customized, default customized themes to classic colors.
                 var colorScheme = (useEnhancedColorsSetting != ColorSchemeOptions.UseEnhancedColors.DoNotUse && !isThemeCustomized)
-                    ? ColorSchemeOptions.Enhanced
-                    : ColorSchemeOptions.VisualStudio2017;
+                    ? SchemeName.Enhanced
+                    : SchemeName.VisualStudio2017;
 
-                _optionService.SetOptions(new SingleOptionSet(ColorSchemeOptions.ColorScheme, colorScheme));
-                _optionService.SetOptions(new SingleOptionSet(ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated));
+                _optionService.RefreshOption(new OptionKey(ColorSchemeOptions.ColorScheme), colorScheme);
+                _optionService.RefreshOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.Migrated);
             }
 
             public Guid GetThemeId()
@@ -162,39 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 {
                     get => _optionService.GetOption(HasThemeBeenDefaultedOptions[themeId]);
 
-                    set => _optionService.SetOptions(new SingleOptionSet(HasThemeBeenDefaultedOptions[themeId], value));
-                }
-            }
-
-            private sealed class SingleOptionSet : OptionSet
-            {
-                private readonly OptionKey _optionKey;
-                private readonly object? _value;
-
-                public SingleOptionSet(IOption option, object? value)
-                {
-                    _optionKey = new OptionKey(option);
-                    _value = value;
-                }
-
-                public override object? GetOption(OptionKey optionKey)
-                {
-                    if (optionKey != _optionKey)
-                    {
-                        throw new ArgumentOutOfRangeException();
-                    }
-
-                    return _value;
-                }
-
-                public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-                {
-                    throw new NotImplementedException();
-                }
-
-                internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-                {
-                    return SpecializedCollections.SingletonEnumerable(_optionKey);
+                    set => _optionService.RefreshOption(new OptionKey(HasThemeBeenDefaultedOptions[themeId]), value);
                 }
             }
         }

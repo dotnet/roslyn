@@ -12,9 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     {
         internal const string ColorSchemeSettingKey = "TextEditor.Roslyn.ColorScheme";
 
-        public const string Enhanced = nameof(Enhanced);
-        public const string VisualStudio2017 = nameof(VisualStudio2017);
-
         public static readonly Option<SchemeName> ColorScheme = new Option<SchemeName>(nameof(ColorSchemeOptions),
             nameof(ColorScheme),
             defaultValue: SchemeName.Enhanced,

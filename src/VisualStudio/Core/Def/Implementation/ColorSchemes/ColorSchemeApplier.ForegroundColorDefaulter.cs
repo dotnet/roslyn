@@ -26,15 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         // change theme colors it will be reflected in the editor.
         private sealed class ForegroundColorDefaulter : ForegroundThreadAffinitizedObject
         {
+            private readonly IServiceProvider _serviceProvider;
             private readonly ColorSchemeSettings _settings;
 
             // Holds an lookup optimized version of the ColorScheme data. An array of ColorSchemes where ColorTheme data is
             // indexed by ThemeId. ColorTheme data being foreground color indexed by classification name.
             private readonly ImmutableArray<ImmutableDictionary<Guid, ImmutableDictionary<string, uint>>> _colorSchemes;
-
-            private readonly IVsFontAndColorStorage _fontAndColorStorage;
-            private readonly IVsFontAndColorStorage3 _fontAndColorStorage3;
-            private readonly IVsFontAndColorUtilities _fontAndColorUtilities;
 
             private static readonly Guid TextEditorMEFItemsColorCategory = new Guid("75a05685-00a8-4ded-bae5-e7a50bfa929a");
 
@@ -75,11 +72,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             // The High Contrast theme is not included because we do not want to make changes when the user is in High Contrast mode.
 
+            private IVsFontAndColorStorage? _fontAndColorStorage;
+            private IVsFontAndColorStorage3? _fontAndColorStorage3;
+            private IVsFontAndColorUtilities? _fontAndColorUtilities;
+
             private ImmutableArray<string> Classifications { get; }
 
-            public ForegroundColorDefaulter(IThreadingContext threadingContext, IVsFontAndColorStorage fontAndColorStorage, ColorSchemeSettings settings, ImmutableDictionary<SchemeName, ColorScheme> colorSchemes)
+            public ForegroundColorDefaulter(IThreadingContext threadingContext, IServiceProvider serviceProvider, ColorSchemeSettings settings, ImmutableDictionary<SchemeName, ColorScheme> colorSchemes)
                 : base(threadingContext)
             {
+                _serviceProvider = serviceProvider;
                 _settings = settings;
 
                 // Convert colors schemes into an array of theme dictionaries which contain classification dictionaries of colors.
@@ -97,11 +99,19 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 var coreClassifications = DarkThemeForeground.Keys.Concat(BlueLightThemeForeground.Keys).Distinct();
                 var colorSchemeClassifications = _colorSchemes.SelectMany(scheme => scheme.Values.SelectMany(theme => theme.Keys)).Distinct();
                 Classifications = coreClassifications.Concat(colorSchemeClassifications).ToImmutableArray();
+            }
 
-                _fontAndColorStorage = fontAndColorStorage;
+            private void EnsureInitialized()
+            {
+                if (_fontAndColorStorage is object)
+                {
+                    return;
+                }
+
+                _fontAndColorStorage = _serviceProvider.GetService<SVsFontAndColorStorage, IVsFontAndColorStorage>();
                 // IVsFontAndColorStorage3 has methods to default classifications but does not include the methods defined in IVsFontAndColorStorage
-                _fontAndColorStorage3 = (IVsFontAndColorStorage3)fontAndColorStorage;
-                _fontAndColorUtilities = (IVsFontAndColorUtilities)fontAndColorStorage;
+                _fontAndColorStorage3 = (IVsFontAndColorStorage3)_fontAndColorStorage!;
+                _fontAndColorUtilities = (IVsFontAndColorUtilities)_fontAndColorStorage!;
             }
 
             /// <summary>
@@ -111,6 +121,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             {
                 AssertIsForeground();
 
+                EnsureInitialized();
+
                 // Make no changes when in high contast mode or in unknown theme.
                 if (SystemParameters.HighContrast || !IsSupportedTheme(themeId))
                 {
@@ -118,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 }
 
                 // Open Text Editor category for readonly access and do not load items if they are defaulted.
-                if (_fontAndColorStorage.OpenCategory(TextEditorMEFItemsColorCategory, (uint)__FCSTORAGEFLAGS.FCSF_READONLY) != VSConstants.S_OK)
+                if (_fontAndColorStorage!.OpenCategory(TextEditorMEFItemsColorCategory, (uint)__FCSTORAGEFLAGS.FCSF_READONLY) != VSConstants.S_OK)
                 {
                     // We were unable to access color information.
                     return false;
@@ -157,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 {
                     var colorItems = new ColorableItemInfo[1];
 
-                    if (_fontAndColorStorage.GetItem(classification, colorItems) != VSConstants.S_OK)
+                    if (_fontAndColorStorage!.GetItem(classification, colorItems) != VSConstants.S_OK)
                     {
                         // Classifications that are still defaulted will not have entries.
                         continue;
@@ -182,13 +194,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             {
                 AssertIsForeground();
 
-                if (_fontAndColorUtilities.GetColorType(colorItem.crForeground, out var foregroundColorType) != VSConstants.S_OK)
+                if (_fontAndColorUtilities!.GetColorType(colorItem.crForeground, out var foregroundColorType) != VSConstants.S_OK)
                 {
                     // Without being able to check color type, we cannot make a determination.
                     return false;
                 }
 
-                if (_fontAndColorUtilities.GetColorType(colorItem.crBackground, out var backgroundColorType) != VSConstants.S_OK)
+                if (_fontAndColorUtilities!.GetColorType(colorItem.crBackground, out var backgroundColorType) != VSConstants.S_OK)
                 {
                     // Without being able to check color type, we cannot make a determination.
                     return false;
@@ -250,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 }
 
                 // Open Text Editor category for read/write.
-                if (_fontAndColorStorage.OpenCategory(TextEditorMEFItemsColorCategory, (uint)__FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES) != VSConstants.S_OK)
+                if (_fontAndColorStorage!.OpenCategory(TextEditorMEFItemsColorCategory, (uint)__FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES) != VSConstants.S_OK)
                 {
                     // We were unable to access color information.
                     return;
@@ -275,8 +287,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             {
                 AssertIsForeground();
 
+                EnsureInitialized();
+
                 var colorItems = new ColorableItemInfo[1];
-                if (_fontAndColorStorage.GetItem(classification, colorItems) != VSConstants.S_OK)
+                if (_fontAndColorStorage!.GetItem(classification, colorItems) != VSConstants.S_OK)
                 {
                     // Classifications that are still defaulted will not have entries.
                     return;
@@ -286,13 +300,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 // If the foreground is the automatic color then no need to default the classification,
                 // since it will pull in the theme's color.
-                if (_fontAndColorUtilities.GetColorType(colorItem.crForeground, out var foregroundColorType) == VSConstants.S_OK
+                if (_fontAndColorUtilities!.GetColorType(colorItem.crForeground, out var foregroundColorType) == VSConstants.S_OK
                     && foregroundColorType == (int)__VSCOLORTYPE.CT_AUTOMATIC)
                 {
                     return;
                 }
 
-                _fontAndColorStorage3.RevertItemToDefault(classification);
+                _fontAndColorStorage3!.RevertItemToDefault(classification);
             }
         }
     }
