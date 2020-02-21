@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public override bool Equals(object obj) => obj is NumericValueSet<T, TTC> other && this._rootInterval.Equals(other._rootInterval);
+            public override bool Equals(object? obj) => obj is NumericValueSet<T, TTC> other && this._rootInterval.Equals(other._rootInterval);
 
             public override int GetHashCode() => this._rootInterval.GetHashCode();
         }

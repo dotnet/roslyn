@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSet.Union(IValueSet other) => Union((IValueSet<T>)other);
 
-            public override bool Equals(object obj) => obj is EnumeratedValueSet<T, TTC> other &&
+            public override bool Equals(object? obj) => obj is EnumeratedValueSet<T, TTC> other &&
                 this._included == other._included && this._membersIncludedOrExcluded.SetEquals(other._membersIncludedOrExcluded);
 
             public override int GetHashCode() => Hash.Combine(this._included.GetHashCode(), this._membersIncludedOrExcluded.GetHashCode());

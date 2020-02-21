@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DagState uniqifyState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
                 var state = new DagState(cases, remainingValues);
-                if (uniqueState.TryGetValue(state, out DagState existingState))
+                if (uniqueState.TryGetValue(state, out DagState? existingState))
                 {
                     var newRemainingValues = existingState.RemainingValues;
                     foreach (var (dagTemp, valuesForTemp) in remainingValues)
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     BoundDecisionDagNode finalState(SyntaxNode syntax, LabelSymbol label, ImmutableArray<BoundPatternBinding> bindings)
                     {
-                        if (!finalStates.TryGetValue(label, out BoundDecisionDagNode final))
+                        if (!finalStates.TryGetValue(label, out BoundDecisionDagNode? final))
                         {
                             final = new BoundLeafDecisionDagNode(syntax, label);
                             if (!bindings.IsDefaultOrEmpty)
@@ -1389,8 +1389,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private DagStateEquivalence() { }
 
-            public bool Equals(DagState x, DagState y)
+            public bool Equals(DagState? x, DagState? y)
             {
+                RoslynDebug.Assert(x is { });
+                RoslynDebug.Assert(y is { });
                 return x.Cases.SequenceEqual(y.Cases, (a, b) => a.Equals(b));
             }
 
@@ -1433,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.CaseLabel = CaseLabel;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1482,8 +1484,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 public static True Instance = new True();
                 public override string Dump(Func<BoundDagTest, String> dump) => "TRUE";
-                public override bool Equals(object obj) => obj is True;
-                public override int GetHashCode() => 1;
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
@@ -1504,8 +1504,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 public static False Instance = new False();
                 public override string Dump(Func<BoundDagTest, String> dump) => "FALSE";
-                public override bool Equals(object obj) => obj is False;
-                public override int GetHashCode() => 2;
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
@@ -1555,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundDagTest ComputeSelectedTest() => this.Test;
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => Test is BoundDagEvaluation e2 && e2 == e ? Tests.True.Instance : (Tests)this;
                 public override string Dump(Func<BoundDagTest, String> dump) => dump(this.Test);
-                public override bool Equals(object obj)
+                public override bool Equals(object? obj)
                 {
                     if (!(obj is One other))
                         return false;
@@ -1632,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenTrue = Not.Create(whenTestTrue);
                     whenFalse = Not.Create(whenTestFalse);
                 }
-                public override bool Equals(object obj) => obj is Not n && Negated.Equals(n.Negated);
+                public override bool Equals(object? obj) => obj is Not n && Negated.Equals(n.Negated);
                 public override int GetHashCode() => Hash.Combine(Negated.GetHashCode(), typeof(Not).GetHashCode());
             }
 
@@ -1670,7 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return Update(builder);
                 }
-                public override bool Equals(object obj)
+                public override bool Equals(object? obj)
                 {
                     if (!(obj is SequenceTests other))
                         return false;

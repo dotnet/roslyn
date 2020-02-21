@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public void Deconstruct(out Interval Left, out Interval Right) => (Left, Right) = (this.Left, this.Right);
 
-                public override bool Equals(object obj) => obj is Mixed other && Left.Equals(other.Left) && Right.Equals(other.Right);
+                public override bool Equals(object? obj) => obj is Mixed other && Left.Equals(other.Left) && Right.Equals(other.Right);
 
                 public override int GetHashCode() => Hash.Combine(Left.GetHashCode(), Right.GetHashCode());
             }

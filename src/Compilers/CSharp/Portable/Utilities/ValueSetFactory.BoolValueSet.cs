@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<bool>)other);
 
             // Since we cache all distinct boolean value sets, we can use reference equality.
-            public override bool Equals(object obj) => this == obj;
+            public override bool Equals(object? obj) => this == obj;
 
             public override int GetHashCode() => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
 

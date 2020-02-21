@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override int GetHashCode() => this._numbers.GetHashCode();
 
-            public override bool Equals(object obj) => this == obj ||
+            public override bool Equals(object? obj) => this == obj ||
                 obj is FloatingValueSet<TFloating, TFloatingTC> other &&
                 this._hasNaN == other._hasNaN &&
                 this._hasMinusInf == other._hasMinusInf &&
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     b.Append($"{(b.Length > 0 ? "," : "")}-Inf");
                 if (_hasPlusInf)
                     b.Append($"{(b.Length > 0 ? "," : "")}Inf");
-                string more = this._numbers.ToString();
+                string more = this._numbers.ToString()!;
                 if (b.Length > 1 && more.Length > 1)
                     b.Append(",");
                 b.Append(more);
