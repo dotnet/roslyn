@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
@@ -7,6 +8,28 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class AnalyzerConfigOptionsExtensions
     {
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option<T> option)
+        {
+            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out var value))
+            {
+                Debug.Fail("Failed to find a .editorconfig key for the option.");
+                value = option.DefaultValue;
+            }
+
+            return value;
+        }
+
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option)
+        {
+            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out var value))
+            {
+                Debug.Fail("Failed to find a .editorconfig key for the option.");
+                value = option.DefaultValue;
+            }
+
+            return value;
+        }
+
         public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option<T> option, out T value)
         {
             return TryGetEditorConfigOption(analyzerConfigOptions, (IOption)option, out value);
@@ -14,7 +37,7 @@ namespace Microsoft.CodeAnalysis
 
         public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option, out T value)
         {
-            return TryGetEditorConfigOption(analyzerConfigOptions, option, out value);
+            return TryGetEditorConfigOption(analyzerConfigOptions, (IOption)option, out value);
         }
 
         public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, out T value)

@@ -19,14 +19,20 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        public static T GetOption<T>(this OptionSet optionSet, PerLanguageOption<T> option, string language)
+        public static T GetOption<T>(this OptionSet optionSet, PerLanguageOption<T> option)
         {
             if (!TryGetEditorConfigOption(optionSet, option, out T value))
-            {
                 value = option.DefaultValue;
-            }
 
             return value;
+        }
+
+        public static T GetOption<T>(this OptionSet optionSet, PerLanguageOption<T> option, string language)
+        {
+            // Language is not used for .editorconfig lookups
+            _ = language;
+
+            return GetOption(optionSet, option);
         }
 
         private static bool TryGetEditorConfigOption<T>(this OptionSet optionSet, IOption option, out T value)

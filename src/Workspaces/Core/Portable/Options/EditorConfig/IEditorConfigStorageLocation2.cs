@@ -18,5 +18,10 @@ namespace Microsoft.CodeAnalysis.Options
         /// Gets the editorconfig string representation for this storage location.
         /// </summary>
         string GetEditorConfigString(object? value, OptionSet optionSet);
+
+        /// <summary>
+        /// Gets the editorconfig string representation for this storage location. The result does not include the key.
+        /// </summary>
+        string GetEditorConfigStringValue(object? value, OptionSet optionSet);
     }
 }

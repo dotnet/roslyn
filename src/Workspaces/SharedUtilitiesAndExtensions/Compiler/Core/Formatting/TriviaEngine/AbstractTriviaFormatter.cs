@@ -10,12 +10,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -225,9 +220,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             get { return this.Context.TreeData; }
         }
 
-        protected OptionSet OptionSet
+        protected AnalyzerConfigOptions Options
         {
-            get { return this.Context.OptionSet; }
+            get { return this.Context.Options; }
         }
 
         protected string Language => _language;
@@ -581,8 +576,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return this.Spaces;
             }
 
-            var position = lastText.ConvertTabToSpace(this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language), initialColumn, index);
-            var tokenPosition = lastText.ConvertTabToSpace(this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language), initialColumn, lastText.Length);
+            var position = lastText.ConvertTabToSpace(this.Options.GetOption(FormattingOptions.TabSize), initialColumn, index);
+            var tokenPosition = lastText.ConvertTabToSpace(this.Options.GetOption(FormattingOptions.TabSize), initialColumn, lastText.Length);
 
             return this.Spaces - (tokenPosition - position);
         }
@@ -754,8 +749,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var useTabs = this.OptionSet.GetOption(FormattingOptions.UseTabs, this.Language);
-            var tabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language);
+            var useTabs = this.Options.GetOption(FormattingOptions.UseTabs);
+            var tabSize = this.Options.GetOption(FormattingOptions.TabSize);
 
             // space indicates indentation
             if (delta.Lines > 0 || lineColumn.Column == 0)
@@ -772,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var sb = StringBuilderPool.Allocate();
 
-            var newLine = this.OptionSet.GetOption(FormattingOptions.NewLine, this.Language);
+            var newLine = this.Options.GetOption(FormattingOptions.NewLine);
             for (var i = 0; i < delta.Lines; i++)
             {
                 sb.Append(newLine);
@@ -783,8 +778,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return StringBuilderPool.ReturnAndFree(sb);
             }
 
-            var useTabs = this.OptionSet.GetOption(FormattingOptions.UseTabs, this.Language);
-            var tabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language);
+            var useTabs = this.Options.GetOption(FormattingOptions.UseTabs);
+            var tabSize = this.Options.GetOption(FormattingOptions.TabSize);
 
             // space indicates indentation
             if (delta.Lines > 0 || lineColumn.Column == 0)
@@ -869,7 +864,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var text = trivia2.ToFullString();
             return new LineColumnDelta(
                 lines: 0,
-                spaces: text.ConvertTabToSpace(this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language), lineColumn.With(whitespaceBetween).Column, text.Length),
+                spaces: text.ConvertTabToSpace(this.Options.GetOption(FormattingOptions.TabSize), lineColumn.With(whitespaceBetween).Column, text.Length),
                 whitespaceOnly: true,
                 forceUpdate: false);
         }
@@ -905,13 +900,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 return new LineColumnDelta(
                     lines: text.GetNumberOfLineBreaks(),
-                    spaces: lineText.GetColumnFromLineOffset(lineText.Length, this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language)),
+                    spaces: lineText.GetColumnFromLineOffset(lineText.Length, this.Options.GetOption(FormattingOptions.TabSize)),
                     whitespaceOnly: IsNullOrWhitespace(lineText));
             }
 
             return new LineColumnDelta(
                 lines: 0,
-                spaces: text.ConvertTabToSpace(this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language), initialColumn, text.Length),
+                spaces: text.ConvertTabToSpace(this.Options.GetOption(FormattingOptions.TabSize), initialColumn, text.Length),
                 whitespaceOnly: IsNullOrWhitespace(lineText));
         }
 
