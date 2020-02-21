@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             defaultValue: SchemeName.None,
             storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\ColorSchemeApplier\AppliedColorScheme"));
 
-        // This option is not exported by the OptionProvider because it does not need to serialize to .vssettings files
         public static readonly Option<UseEnhancedColors> LegacyUseEnhancedColors = new Option<UseEnhancedColors>(nameof(ColorSchemeOptions),
             nameof(LegacyUseEnhancedColors),
             defaultValue: UseEnhancedColors.Default,
@@ -47,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         {
         }
 
-        public ImmutableArray<IOption> Options => ImmutableArray.Create<IOption>(ColorSchemeOptions.ColorScheme);
+        public ImmutableArray<IOption> Options => ImmutableArray.Create<IOption>(
+            ColorSchemeOptions.ColorScheme,
+            ColorSchemeOptions.AppliedColorScheme,
+            ColorSchemeOptions.LegacyUseEnhancedColors);
     }
 }

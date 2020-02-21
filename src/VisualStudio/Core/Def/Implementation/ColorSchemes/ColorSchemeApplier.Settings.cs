@@ -7,14 +7,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 using NativeMethods = Microsoft.CodeAnalysis.Editor.Wpf.Utilities.NativeMethods;
 
 namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
@@ -67,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     itemKey.SetValue(item.ValueName, item.ValueData);
                 }
 
-                _optionService.RefreshOption(new OptionKey(ColorSchemeOptions.AppliedColorScheme), schemeName);
+                SetOption(_optionService, ColorSchemeOptions.AppliedColorScheme, schemeName);
 
                 // Broadcast that system color settings have changed to force the ColorThemeService to reload colors.
                 NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_SYSCOLORCHANGE, wparam: IntPtr.Zero, lparam: IntPtr.Zero);
@@ -105,8 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     ? SchemeName.Enhanced
                     : SchemeName.VisualStudio2017;
 
-                _optionService.RefreshOption(new OptionKey(ColorSchemeOptions.ColorScheme), colorScheme);
-                _optionService.RefreshOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.Migrated);
+                SetOption(_optionService, ColorSchemeOptions.ColorScheme, colorScheme);
+                SetOption(_optionService, ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated);
             }
 
             public Guid GetThemeId()
@@ -162,7 +165,83 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 {
                     get => _optionService.GetOption(HasThemeBeenDefaultedOptions[themeId]);
 
-                    set => _optionService.RefreshOption(new OptionKey(HasThemeBeenDefaultedOptions[themeId]), value);
+                    set => SetOption(_optionService, HasThemeBeenDefaultedOptions[themeId], value);
+                }
+            }
+
+            private static readonly EmptyOptionService s_emptyOptionService = new EmptyOptionService();
+            private static readonly ImmutableHashSet<string> s_emptyStringSet = ImmutableHashSet.Create(string.Empty);
+            private static void SetOption(IGlobalOptionService optionService, IOption option, object? value)
+            {
+                var optionKey = new OptionKey(option);
+                var optionSet = optionService.GetSerializableOptionsSnapshot(s_emptyStringSet, s_emptyOptionService);
+                optionService.SetOptions(optionSet.WithChangedOption(optionKey, value));
+            }
+
+            private sealed class EmptyOptionService : IOptionService
+            {
+                public event EventHandler<OptionChangedEventArgs> OptionChanged;
+
+                [return: MaybeNull]
+                public T GetOption<T>(Option<T> option)
+                {
+                    throw new NotImplementedException();
+                }
+
+                [return: MaybeNull]
+                public T GetOption<T>(PerLanguageOption<T> option, string? languageName)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public object? GetOption(OptionKey optionKey)
+                {
+                    return null;
+                }
+
+                public SerializableOptionSet GetOptions()
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IEnumerable<IOption> GetRegisteredOptions()
+                {
+                    throw new NotImplementedException();
+                }
+
+                public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public void RegisterWorkspace(Workspace workspace)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public void SetOptions(OptionSet optionSet)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public void UnregisterWorkspace(Workspace workspace)
+                {
+                    throw new NotImplementedException();
                 }
             }
         }

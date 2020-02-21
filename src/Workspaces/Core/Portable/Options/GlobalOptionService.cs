@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             if (languages.IsEmpty)
             {
-                return ImmutableHashSet<IOption>.Empty;
+                return GetSerializableOptionsForLanguage(string.Empty);
             }
 
             var builder = ImmutableHashSet.CreateBuilder<IOption>();
