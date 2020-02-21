@@ -4,23 +4,27 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementToExpression
 {
-    public partial class ConvertSwitchStatementToExpressionTests
+    public class ConvertSwitchStatementToExpressionFixAllTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNested_01()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     int M(int i, int j)
     {
         int r;
-        {|FixAllInDocument:switch|} (i)
+        [|switch|] (i)
         {
             case 1:
                 r = 1;
@@ -55,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 y = 1;
                 break;
         }
-        switch (i)
+        [|switch|] (i)
         {
             default:
                 throw null;
             case 1:
-                switch (j)
+                [|switch|] (j)
                 {
                     case 10:
                         return 10;
@@ -71,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 }
                 return 0;
             case 2:
-                switch (j)
+                [|switch|] (j)
                 {
                     case 10:
                         return 10;
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                         return 0;
                 }
             case 3:
-                switch (j)
+                [|switch|] (j)
                 {
                     case 10:
                         return 10;
@@ -160,18 +164,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNested_02()
         {
-            await TestInCSharp8(
-@"class Program
+            var input = @"class Program
 {
-    System.Action<int> M(int i, int j)
+    System.Func<int> M(int i, int j)
     {
-        {|FixAllInDocument:switch|} (i)
+        [|switch|] (i)
         {
             // 1
             default: // 2
                 return () =>
                 {
-                    switch (j)
+                    [|switch|] (j)
                     {
                         default:
                             return 3;
@@ -179,10 +182,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 };
         }
     }
-}",
-@"class Program
+}";
+            var expected = @"class Program
 {
-    System.Action<int> M(int i, int j)
+    System.Func<int> M(int i, int j)
     {
         return i switch
         {
@@ -190,24 +193,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             // 2
             _ => () =>
                               {
-                                  switch (j)
+                                  return j switch
                                   {
-                                      default:
-                                          return 3;
-                                  }
+                                      _ => 3,
+                                  };
                               }
 
             ,
         };
     }
-}");
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                NumberOfFixAllIterations = 2,
+            }.RunAsync();
         }
 
         [WorkItem(37907, "https://github.com/dotnet/roslyn/issues/37907")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNested_03()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 
 class Program
@@ -218,10 +227,10 @@ class Program
     public bool ValueBoolean()
     {
         bool value;
-        {|FixAllInDocument:switch|} (StatusValue())
+        [|switch|] (StatusValue())
         {
             case DayOfWeek.Monday:
-                switch (Value)
+                [|switch|] (Value)
                 {
                     case 0:
                         value = false;

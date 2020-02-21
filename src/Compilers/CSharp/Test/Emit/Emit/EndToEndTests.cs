@@ -223,7 +223,7 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly), AlwaysSkip = "PROTOTYPE(local-function-attributes)")]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NestedIfStatements()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch

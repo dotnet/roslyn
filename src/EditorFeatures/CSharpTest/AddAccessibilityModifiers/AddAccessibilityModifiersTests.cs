@@ -2,74 +2,70 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers.CSharpAddAccessibilityModifiersDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers.CSharpAddAccessibilityModifiersCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifiers
 {
-    public partial class AddAccessibilityModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddAccessibilityModifiersTests
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpAddAccessibilityModifiersDiagnosticAnalyzer(), new CSharpAddAccessibilityModifiersCodeFixProvider());
-
-        private IDictionary<OptionKey, object> OmitDefaultModifiers =>
-            OptionsSet(SingleOption(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Suggestion));
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public void TestStandardProperties()
+            => VerifyCS.VerifyStandardProperties();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestAllConstructs()
         {
-            await TestInRegularAndScriptAsync(
-@"
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
 namespace Outer
 {
     namespace Inner1.Inner2
     {
-        class {|FixAllInDocument:C|}
+        partial class [|C|] : I
         {
-            class NestedClass { }
+            class [|NestedClass|] { }
 
-            struct NestedStruct { }
+            struct [|NestedStruct|] { }
 
-            int f1;
-            int f2, f3;
+            int [|f1|];
+            int [|f2|], f3;
             public int f4;
 
-            event Action e1, e2;
+            event Action [|e1|], e2;
             public event Action e3;
 
-            event Action e4 { add { } remove { } }
+            event Action [|e4|] { add { } remove { } }
             public event Action e5 { add { } remove { } }
-            event Action I.e6 { add { } remote { } }
+            event Action I.e6 { add { } remove { } }
 
             static C() { }
-            C() { }
+            [|C|]() { }
             public C(int i) { }
 
             ~C() { }
 
-            void M1() { }
+            void [|M1|]() { }
             public void M2() { }
             void I.M3() { }
+            partial void M4();
             partial void M4() { }
 
-            int P1 { get; }
+            int [|P1|] { get; }
             public int P2 { get; }
             int I.P3 { get; }
 
-            int this[int i] { get; }
-            public int this[string s] { get; }
-            int I.this[bool b] { get; }
+            int [|this|][int i] => throw null;
+            public int this[string s] => throw null;
+            int I.this[bool b] => throw null;
         }
 
-        interface I
+        interface [|I|]
         {
             event Action e6;
             void M3();
@@ -77,20 +73,20 @@ namespace Outer
             int this[bool b] { get; }
         }
 
-        delegate void D();
+        delegate void [|D|]();
 
-        enum E
+        enum [|E|]
         {
             EMember
         }
     }
 }",
-@"
+                @"using System;
 namespace Outer
 {
     namespace Inner1.Inner2
     {
-        internal class {|FixAllInDocument:C|}
+        internal partial class C : I
         {
             private class NestedClass { }
 
@@ -105,7 +101,7 @@ namespace Outer
 
             private event Action e4 { add { } remove { } }
             public event Action e5 { add { } remove { } }
-            event Action I.e6 { add { } remote { } }
+            event Action I.e6 { add { } remove { } }
 
             static C() { }
 
@@ -117,15 +113,16 @@ namespace Outer
             private void M1() { }
             public void M2() { }
             void I.M3() { }
+            partial void M4();
             partial void M4() { }
 
             private int P1 { get; }
             public int P2 { get; }
             int I.P3 { get; }
 
-            private int this[int i] { get; }
-            public int this[string s] { get; }
-            int I.this[bool b] { get; }
+            private int this[int i] => throw null;
+            public int this[string s] => throw null;
+            int I.this[bool b] => throw null;
         }
 
         internal interface I
@@ -149,7 +146,7 @@ namespace Outer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestRefStructs()
         {
-            await TestInRegularAndScriptAsync(@"
+            await VerifyCS.VerifyCodeFixAsync(@"
 namespace Test
 {
     ref struct [|S1|] { }
@@ -163,7 +160,7 @@ namespace Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestReadOnlyStructs()
         {
-            await TestInRegularAndScriptAsync(@"
+            await VerifyCS.VerifyCodeFixAsync(@"
 namespace Test
 {
     readonly struct [|S1|] { }
@@ -177,51 +174,57 @@ namespace Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestAllConstructsWithOmit()
         {
-            await TestInRegularAndScriptAsync(
-@"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"using System;
 namespace Outer
 {
     namespace Inner1.Inner2
     {
-        internal class {|FixAllInDocument:C|}
+        internal partial class [|C|] : I
         {
-            private class NestedClass { }
+            private class [|NestedClass|] { }
 
-            private struct NestedStruct { }
+            private struct [|NestedStruct|] { }
 
-            private int f1;
-            private int f2, f3;
+            private int [|f1|];
+            private int [|f2|], f3;
             public int f4;
 
-            private event Action e1, e2;
+            private event Action [|e1|], e2;
             public event Action e3;
 
-            private event Action e4 { add { } remove { } }
+            private event Action [|e4|] { add { } remove { } }
             public event Action e5 { add { } remove { } }
-            event Action I.e6 { add { } remote { } }
+            event Action I.e6 { add { } remove { } }
 
             static C() { }
 
-            private C() { }
+            private [|C|]() { }
             public C(int i) { }
 
             ~C() { }
 
-            private void M1() { }
+            private void [|M1|]() { }
             public void M2() { }
             void I.M3() { }
+            partial void M4();
             partial void M4() { }
 
-            private int P1 { get; }
+            private int [|P1|] { get; }
             public int P2 { get; }
             int I.P3 { get; }
 
-            private int this[int i] { get; }
-            public int this[string s] { get; }
-            int I.this[bool b] { get; }
+            private int [|this|][int i] => throw null;
+            public int this[string s] => throw null;
+            int I.this[bool b] => throw null;
         }
 
-        internal interface I
+        internal interface [|I|]
         {
             event Action e6;
             void M3();
@@ -229,20 +232,26 @@ namespace Outer
             int this[bool b] { get; }
         }
 
-        internal delegate void D();
+        internal delegate void [|D|]();
 
-        internal enum E
+        internal enum [|E|]
         {
             EMember
         }
     }
 }",
-@"
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        @"using System;
 namespace Outer
 {
     namespace Inner1.Inner2
     {
-        class {|FixAllInDocument:C|}
+        partial class C : I
         {
             class NestedClass { }
 
@@ -257,7 +266,7 @@ namespace Outer
 
             event Action e4 { add { } remove { } }
             public event Action e5 { add { } remove { } }
-            event Action I.e6 { add { } remote { } }
+            event Action I.e6 { add { } remove { } }
 
             static C() { }
 
@@ -269,15 +278,16 @@ namespace Outer
             void M1() { }
             public void M2() { }
             void I.M3() { }
+            partial void M4();
             partial void M4() { }
 
             int P1 { get; }
             public int P2 { get; }
             int I.P3 { get; }
 
-            int this[int i] { get; }
-            public int this[string s] { get; }
-            int I.this[bool b] { get; }
+            int this[int i] => throw null;
+            public int this[string s] => throw null;
+            int I.this[bool b] => throw null;
         }
 
         interface I
@@ -295,43 +305,74 @@ namespace Outer
             EMember
         }
     }
-}", options: OmitDefaultModifiers);
+}",
+                    },
+                },
+                Options =
+                {
+                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestRefStructsWithOmit()
         {
-            await TestInRegularAndScriptAsync(@"
+            await new VerifyCS.Test
+            {
+                TestCode = @"
 namespace Test
 {
     internal ref struct [|S1|] { }
-}", @"
+}",
+                FixedCode = @"
 namespace Test
 {
     ref struct S1 { }
-}", options: OmitDefaultModifiers);
+}",
+                Options =
+                {
+                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestReadOnlyStructsWithOmit()
         {
-            await TestInRegularAndScriptAsync(@"
+            await new VerifyCS.Test
+            {
+                TestCode = @"
 namespace Test
 {
     internal readonly struct [|S1|] { }
-}", @"
+}",
+                FixedCode = @"
 namespace Test
 {
     readonly struct S1 { }
-}", options: OmitDefaultModifiers);
+}",
+                Options =
+                {
+                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestClassOutsideNamespace()
         {
-            await TestInRegularAndScriptAsync(@"
-internal class [|C1|] { }", @"
-class C1 { }", options: OmitDefaultModifiers);
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+internal class [|C1|] { }",
+                FixedCode = @"
+class C1 { }",
+                Options =
+                {
+                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                },
+            }.RunAsync();
         }
     }
 }

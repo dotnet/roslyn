@@ -117,7 +117,7 @@ End Class", "1").EmitToArray())
             AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 > #r ""://invalidfilepath""
 «Red»
-(1) : error BC2017: " + String.Format(ERR_LibNotFound, "://invalidfilepath") + "
+(1) : error BC2017: " + String.Format(VBResources.ERR_LibNotFound, "://invalidfilepath") + "
 «Gray»
 >", runner.Console.Out.ToString())
         End Sub

@@ -971,9 +971,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
-        // PROTOTYPE(local-function-attributes): security-related properties perhaps should be
-        // overridden in SynthesizedMethodBaseSymbol in order to work with local functions
-
         internal override bool RequiresSecurityObject
         {
             get

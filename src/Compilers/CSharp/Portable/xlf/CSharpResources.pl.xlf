@@ -327,6 +327,11 @@
         <target state="translated">„{0}”: typ użyty w instrukcji using musi umożliwiać niejawną konwersję na interfejs „System.IDisposable”. Czy chodziło Ci o instrukcję „await using”, a nie „using”?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoOutputDirectory">
+        <source>Output directory could not be determined</source>
+        <target state="new">Output directory could not be determined</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
         <target state="translated">Ograniczenie „notnull” musi występować przed wszystkimi innymi ograniczeniami</target>
