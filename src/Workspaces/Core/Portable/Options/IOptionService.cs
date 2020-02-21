@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         IEnumerable<IOption> GetRegisteredOptions();
 
+        /// <inheritdoc cref="IGlobalOptionService.TryMapEditorConfigKeyToOption"/>
         bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey);
 
         /// <summary>

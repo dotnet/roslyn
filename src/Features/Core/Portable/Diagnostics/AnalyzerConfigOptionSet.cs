@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// This class proxies requests for option values first to the <see cref="AnalyzerConfigOptions" /> then to a backup <see cref="OptionSet" /> if provided.
     /// </summary>
-    internal sealed class AnalyzerConfigOptionSet : OptionSet
+    internal sealed partial class AnalyzerConfigOptionSet : OptionSet
     {
         private readonly AnalyzerConfigOptions _analyzerConfigOptions;
         private readonly OptionSet? _optionSet;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new NotImplementedException();
         }
 
-        internal override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
+        private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
         {
             if (_optionSet is null)
             {
@@ -52,28 +52,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
             throw new NotImplementedException();
-        }
-
-        private sealed class AnalyzerConfigOptionsImpl : AnalyzerConfigOptions
-        {
-            private readonly AnalyzerConfigOptions _options;
-            private readonly AnalyzerConfigOptions _fallbackOptions;
-
-            public AnalyzerConfigOptionsImpl(AnalyzerConfigOptions options, AnalyzerConfigOptions fallbackOptions)
-            {
-                _options = options;
-                _fallbackOptions = fallbackOptions;
-            }
-
-            public override bool TryGetValue(string key, out string value)
-            {
-                if (_options.TryGetValue(key, out value))
-                {
-                    return true;
-                }
-
-                return _fallbackOptions.TryGetValue(key, out value);
-            }
         }
     }
 }

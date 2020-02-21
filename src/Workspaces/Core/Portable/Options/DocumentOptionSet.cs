@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Options
             return (DocumentOptionSet)WithChangedOption(option, _language, value);
         }
 
-        internal override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
+        private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
             => _backingOptionSet.AsAnalyzerConfigOptions(optionService, language ?? _language);
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
