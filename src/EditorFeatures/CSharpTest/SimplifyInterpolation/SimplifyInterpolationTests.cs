@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3} suffix"";
+        _ = $""prefix {someValue,3} suffix"";
     }
 }");
         }
@@ -218,13 +218,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,3} suffix"";
+        _ = $""prefix {someValue,-3} suffix"";
     }
 }");
         }
 
         [Fact]
-        public async Task PadLeftWithComplexConstantExpressionRequiringParentheses()
+        public async Task PadLeftWithComplexConstantExpression()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(string someValue)
     {
         const int someConstant = 1;
-        _ = $""prefix {someValue,-((byte)3.3 + someConstant)} suffix"";
+        _ = $""prefix {someValue,(byte)3.3 + someConstant} suffix"";
     }
 }");
         }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3} suffix"";
+        _ = $""prefix {someValue,3} suffix"";
     }
 }");
         }
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,3} suffix"";
+        _ = $""prefix {someValue,-3} suffix"";
     }
 }");
         }
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task PadRightWithComplexConstantExpression()
+        public async Task PadRightWithComplexConstantExpressionRequiringParentheses()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(string someValue)
     {
         const int someConstant = 1;
-        _ = $""prefix {someValue,(byte)3.3 + someConstant} suffix"";
+        _ = $""prefix {someValue,-((byte)3.3 + someConstant)} suffix"";
     }
 }");
         }
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3:goo} suffix"";
+        _ = $""prefix {someValue,3:goo} suffix"";
     }
 }");
         }
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,3:goo} suffix"";
+        _ = $""prefix {someValue,-3:goo} suffix"";
     }
 }");
         }
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3} suffix"";
+        _ = $""prefix {someValue,3} suffix"";
     }
 }");
         }
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue.PadLeft(3),3} suffix"";
+        _ = $""prefix {someValue.PadLeft(3),-3} suffix"";
     }
 }");
         }
