@@ -15,7 +15,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(MicrosoftCodeAnalysisWorkspacesCommonFixedVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" Aliases="global,CodeStyle" />
+    <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes" />
