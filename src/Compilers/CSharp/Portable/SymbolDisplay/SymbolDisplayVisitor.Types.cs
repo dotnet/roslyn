@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            INamedTypeSymbol currentUnderlying = getTupleUnderlyingTypeOrSelf(tupleSymbol);
+            INamedTypeSymbol currentUnderlying = GetTupleUnderlyingTypeOrSelf(tupleSymbol);
             if (currentUnderlying.Arity <= 1)
             {
                 return false;
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                currentUnderlying = getTupleUnderlyingTypeOrSelf(tupleSymbol);
+                currentUnderlying = GetTupleUnderlyingTypeOrSelf(tupleSymbol);
             }
 
             return true;
@@ -489,8 +489,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return modifiers.Any(m => !m.IsEmpty);
             }
+        }
 
-            static INamedTypeSymbol getTupleUnderlyingTypeOrSelf(INamedTypeSymbol type) => type.TupleUnderlyingType ?? type;
+        private static INamedTypeSymbol GetTupleUnderlyingTypeOrSelf(INamedTypeSymbol type)
+        {
+            return type.TupleUnderlyingType ?? type;
         }
 
         private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)

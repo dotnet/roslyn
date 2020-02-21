@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using static TestResources.NetFX.ValueTuple;
 
@@ -26561,7 +26562,7 @@ class Program
 
         [Fact]
         [WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")]
-        public void TupleUnderlyingType()
+        public void TupleUnderlyingType_FromCSharp()
         {
             var source =
 @"#pragma warning disable 169
@@ -26575,78 +26576,118 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+            var containingType = comp.GlobalNamespace.GetTypeMembers("Program").Single();
+            VerifyTypeFromCSharp((NamedTypeSymbol)((FieldSymbol)containingType.GetMembers("F0").Single()).Type, TupleUnderlyingTypeValue.Same, TupleUnderlyingTypeValue.Null, TupleUnderlyingTypeValue.Same, TupleUnderlyingTypeValue.Null, "System.ValueTuple", "()");
+            VerifyTypeFromCSharp((NamedTypeSymbol)((FieldSymbol)containingType.GetMembers("F1").Single()).Type, TupleUnderlyingTypeValue.Same, TupleUnderlyingTypeValue.Null, TupleUnderlyingTypeValue.Same, TupleUnderlyingTypeValue.Null, "(System.Int32, System.Int32)", "(System.Int32, System.Int32)");
+            VerifyTypeFromCSharp((NamedTypeSymbol)((FieldSymbol)containingType.GetMembers("F2").Single()).Type, TupleUnderlyingTypeValue.Distinct, TupleUnderlyingTypeValue.Distinct, TupleUnderlyingTypeValue.Same, TupleUnderlyingTypeValue.Null, "(System.Int32 A, System.Int32 B)", "(A As System.Int32, B As System.Int32)");
+            VerifyTypeFromCSharp((NamedTypeSymbol)((FieldSymbol)containingType.GetMembers("F3").Single()).Type, TupleUnderlyingTypeValue.Same, TupleUnderlyingTypeValue.Null, TupleUnderlyingTypeValue.Null, TupleUnderlyingTypeValue.Null, "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)");
+            VerifyTypeFromCSharp((NamedTypeSymbol)((FieldSymbol)containingType.GetMembers("F4").Single()).Type, TupleUnderlyingTypeValue.Distinct, TupleUnderlyingTypeValue.Distinct, TupleUnderlyingTypeValue.Null, TupleUnderlyingTypeValue.Null, "(System.Object, System.Object B, System.Object, System.Object D, System.Object, System.Object F, System.Object, System.Object H)", "(System.Object, B As System.Object, System.Object, D As System.Object, System.Object, F As System.Object, System.Object, H As System.Object)");
+        }
 
-            verifyType((NamedTypeSymbol)comp.GetMember<FieldSymbol>("Program.F0").Type, hasNames: false, "System.ValueTuple");
-            verifyType((NamedTypeSymbol)comp.GetMember<FieldSymbol>("Program.F1").Type, hasNames: false, "(System.Int32, System.Int32)");
-            verifyType((NamedTypeSymbol)comp.GetMember<FieldSymbol>("Program.F2").Type, hasNames: true, "(System.Int32 A, System.Int32 B)");
-            verifyType((NamedTypeSymbol)comp.GetMember<FieldSymbol>("Program.F3").Type, hasNames: false, "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)");
-            verifyType((NamedTypeSymbol)comp.GetMember<FieldSymbol>("Program.F4").Type, hasNames: true, "(System.Object, System.Object B, System.Object, System.Object D, System.Object, System.Object F, System.Object, System.Object H)");
+        [Fact]
+        [WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")]
+        public void TupleUnderlyingType_FromVisualBasic()
+        {
+            var source =
+@"Class Program
+    Private F0 As System.ValueTuple
+    Private F1 As (Integer, Integer)
+    Private F2 As (A As Integer, B As Integer)
+    Private F3 As (Object, Object, Object, Object, Object, Object, Object, Object)
+    Private F4 As (Object, B As Object, Object, D As Object, Object, F As Object, Object, H As Object)
+End Class";
+            var comp = CreateVisualBasicCompilation(source, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard));
+            comp.VerifyDiagnostics();
+            var containingType = comp.GlobalNamespace.GetTypeMembers("Program").Single();
+            VerifyTypeFromVisualBasic((INamedTypeSymbol)((IFieldSymbol)containingType.GetMembers("F0").Single()).Type, TupleUnderlyingTypeValue.Null, "System.ValueTuple", "System.ValueTuple");
+            VerifyTypeFromVisualBasic((INamedTypeSymbol)((IFieldSymbol)containingType.GetMembers("F1").Single()).Type, TupleUnderlyingTypeValue.Distinct, "(System.Int32, System.Int32)", "(System.Int32, System.Int32)");
+            VerifyTypeFromVisualBasic((INamedTypeSymbol)((IFieldSymbol)containingType.GetMembers("F2").Single()).Type, TupleUnderlyingTypeValue.Distinct, "(System.Int32 A, System.Int32 B)", "(A As System.Int32, B As System.Int32)");
+            VerifyTypeFromVisualBasic((INamedTypeSymbol)((IFieldSymbol)containingType.GetMembers("F3").Single()).Type, TupleUnderlyingTypeValue.Distinct, "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)");
+            VerifyTypeFromVisualBasic((INamedTypeSymbol)((IFieldSymbol)containingType.GetMembers("F4").Single()).Type, TupleUnderlyingTypeValue.Distinct, "(System.Object, System.Object B, System.Object, System.Object D, System.Object, System.Object F, System.Object, System.Object H)", "(System.Object, B As System.Object, System.Object, D As System.Object, System.Object, F As System.Object, System.Object, H As System.Object)");
+        }
 
-            static void verifyType(NamedTypeSymbol type, bool hasNames, string expected)
+        private enum TupleUnderlyingTypeValue
+        {
+            Null,
+            Distinct,
+            Same
+        }
+
+        private static void VerifyTypeFromCSharp(
+            NamedTypeSymbol type,
+            TupleUnderlyingTypeValue expectedInternalValue,
+            TupleUnderlyingTypeValue expectedPublicValue,
+            TupleUnderlyingTypeValue definitionInternalValue,
+            TupleUnderlyingTypeValue definitionPublicValue,
+            string expectedCSharp,
+            string expectedVisualBasic)
+        {
+            VerifyDisplay(type.GetPublicSymbol(), expectedCSharp, expectedVisualBasic);
+            VerifyInternalType(type, expectedInternalValue);
+            VerifyPublicType(type.GetPublicSymbol(), expectedPublicValue);
+            type = type.OriginalDefinition;
+            VerifyInternalType(type, definitionInternalValue);
+            VerifyPublicType(type.GetPublicSymbol(), definitionPublicValue);
+        }
+
+        private static void VerifyTypeFromVisualBasic(
+            INamedTypeSymbol type,
+            TupleUnderlyingTypeValue expectedValue,
+            string expectedCSharp,
+            string expectedVisualBasic)
+        {
+            VerifyDisplay(type, expectedCSharp, expectedVisualBasic);
+            VerifyPublicType(type, expectedValue);
+            VerifyPublicType(type.OriginalDefinition, expectedValue);
+        }
+
+        private static void VerifyDisplay(INamedTypeSymbol type, string expectedCSharp, string expectedVisualBasic)
+        {
+            Assert.Equal(expectedCSharp, CSharp.SymbolDisplay.ToDisplayString(type, SymbolDisplayFormat.TestFormat));
+            Assert.Equal(expectedVisualBasic, VisualBasic.SymbolDisplay.ToDisplayString(type, SymbolDisplayFormat.TestFormat));
+        }
+
+        private static void VerifyInternalType(NamedTypeSymbol type, TupleUnderlyingTypeValue expectedValue)
+        {
+            var underlyingType = type.TupleUnderlyingType;
+
+            switch (expectedValue)
             {
-                Assert.Equal(expected, type.ToTestDisplayString());
-                verifyUnderlyingTypes(type, hasNames);
-                verifyUnderlyingTypes(type.OriginalDefinition, hasNames: false);
-            }
-
-            static void verifyUnderlyingTypes(NamedTypeSymbol type, bool hasNames)
-            {
-                verifyInternalType(type, hasNames);
-                verifyPublicType(type.GetPublicSymbol(), hasNames);
-            }
-
-            static void verifyInternalType(NamedTypeSymbol type, bool hasNames)
-            {
-                if (hasNames)
-                {
-                    Assert.True(type.IsTupleType);
-                }
-
-                var underlyingType = type.TupleUnderlyingType;
-
-                if (hasNames)
-                {
+                case TupleUnderlyingTypeValue.Null:
+                    Assert.Null(underlyingType);
+                    break;
+                case TupleUnderlyingTypeValue.Distinct:
                     Assert.NotEqual(type, underlyingType);
                     Assert.True(type.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions));
                     Assert.False(type.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
-
-                    verifyInternalType(underlyingType, hasNames: false);
-                }
-                else if (type.IsTupleType)
-                {
-                    // NamedTypeSymbol.TupleUnderlyingType should return `this` if the type is unnamed.
+                    VerifyInternalType(underlyingType, TupleUnderlyingTypeValue.Same);
+                    break;
+                case TupleUnderlyingTypeValue.Same:
                     Assert.Equal(type, underlyingType);
                     Assert.True(type.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
-                }
-                else
-                {
-                    // NamedTypeSymbol.TupleUnderlyingType should return null if the type is not a tuple type.
-                    Assert.Null(underlyingType);
-                }
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expectedValue);
             }
+        }
 
-            static void verifyPublicType(INamedTypeSymbol type, bool hasNames)
+        private static void VerifyPublicType(INamedTypeSymbol type, TupleUnderlyingTypeValue expectedValue)
+        {
+            var underlyingType = type.TupleUnderlyingType;
+
+            switch (expectedValue)
             {
-                if (hasNames)
-                {
-                    Assert.True(type.IsTupleType);
-                }
-
-                var underlyingType = type.TupleUnderlyingType;
-
-                if (hasNames)
-                {
+                case TupleUnderlyingTypeValue.Null:
+                    Assert.Null(underlyingType);
+                    break;
+                case TupleUnderlyingTypeValue.Distinct:
                     Assert.NotEqual(type, underlyingType);
                     Assert.False(type.Equals(underlyingType, SymbolEqualityComparer.Default));
                     Assert.False(type.Equals(underlyingType, SymbolEqualityComparer.ConsiderEverything));
-
-                    verifyPublicType(underlyingType, hasNames: false);
-                }
-                else
-                {
-                    // INamedTypeSymbol.TupleUnderlyingType should return null if the type is unnamed.
-                    Assert.Null(underlyingType);
-                }
+                    VerifyPublicType(underlyingType, TupleUnderlyingTypeValue.Null);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expectedValue);
             }
         }
     }
