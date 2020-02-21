@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
             => _incrementalAnalyzerProvider = incrementalAnalyzerProvider;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new UnitTestingIncrementalAnalyzer(_incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace));
+            => UnitTestingIncrementalAnalyzer.GetInstance(_incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace));
     }
 }

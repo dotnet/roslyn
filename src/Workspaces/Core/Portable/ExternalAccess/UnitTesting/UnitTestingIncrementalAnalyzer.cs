@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
@@ -12,6 +13,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
     internal class UnitTestingIncrementalAnalyzer : IIncrementalAnalyzer
     {
+        private static UnitTestingIncrementalAnalyzer s_instance;
+
+        public static UnitTestingIncrementalAnalyzer GetInstance(IUnitTestingIncrementalAnalyzerImplementation implementation)
+        {
+            if (s_instance == null)
+            {
+                s_instance = new UnitTestingIncrementalAnalyzer(implementation);
+            }
+
+            if (s_instance._implementation != implementation)
+            {
+                // NOTE: The implementation should be a singleton.
+                throw new InvalidOperationException();
+            }
+
+            return s_instance;
+        }
+
         private readonly IUnitTestingIncrementalAnalyzerImplementation _implementation;
 
         public UnitTestingIncrementalAnalyzer(IUnitTestingIncrementalAnalyzerImplementation implementation)

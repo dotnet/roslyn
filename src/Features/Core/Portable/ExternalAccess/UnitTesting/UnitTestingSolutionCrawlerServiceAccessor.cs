@@ -12,13 +12,38 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
     internal sealed class UnitTestingSolutionCrawlerServiceAccessor : IUnitTestingSolutionCrawlerServiceAccessor
     {
-        private readonly ISolutionCrawlerService _implementation;
+        private readonly ISolutionCrawlerRegistrationService _registrationService;
+        private readonly ISolutionCrawlerService _solutionCrawlerService;
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public UnitTestingSolutionCrawlerServiceAccessor(ISolutionCrawlerService implementation)
-            => _implementation = implementation;
+        private UnitTestingIncrementalAnalyzerProvider _analyzerProvider;
 
-        public void Reanalyze(Workspace workspace, IUnitTestingIncrementalAnalyzerImplementation analyzer, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
-            => _implementation.Reanalyze(workspace, new UnitTestingIncrementalAnalyzer(analyzer), projectIds, documentIds, highPriority);
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public UnitTestingSolutionCrawlerServiceAccessor(
+            ISolutionCrawlerRegistrationService registrationService,
+            ISolutionCrawlerService solutionCrawlerService)
+        {
+            _registrationService = registrationService;
+            _solutionCrawlerService = solutionCrawlerService;
+        }
+
+        public void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProviderImplementation provider, UnitTestingIncrementalAnalyzerProviderMetadataWrapper metadata)
+        {
+            if (_analyzerProvider != null)
+            {
+                // NOTE: We should call this method just once.
+                throw new ArgumentException(nameof(provider));
+            }
+
+            _analyzerProvider = new UnitTestingIncrementalAnalyzerProvider(provider);
+            _registrationService.AddAnalyzerProvider(_analyzerProvider, metadata.UnderlyingObject);
+        }
+
+        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
+        {
+            _solutionCrawlerService.Reanalyze(workspace, _analyzerProvider.CreateIncrementalAnalyzer(workspace), projectIds, documentIds, highPriority);
+        }
+
+        public void Register(Workspace workspace)
+            => _registrationService.Register(workspace);
     }
 }
