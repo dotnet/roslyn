@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private VersionStamp? _versionStampOfFullListPushedToPresenter = null;
 
         private bool _disconnected = false;
-        private Workspace _workspace;
+        private Workspace? _workspace;
 
         public NavigationBarController(
             IThreadingContext threadingContext,
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 var oldProject = args.OldSolution.GetProject(args.ProjectId);
                 var newProject = args.NewSolution.GetProject(args.ProjectId);
 
-                if (oldProject.Name != newProject.Name)
+                if (oldProject?.Name != newProject?.Name)
                 {
                     var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
 
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _versionStampOfFullListPushedToPresenter = _modelTask.Result.SemanticVersionStamp;
         }
 
-        private void GetProjectItems(out IList<NavigationBarProjectItem> projectItems, out NavigationBarProjectItem selectedProjectItem)
+        private void GetProjectItems(out IList<NavigationBarProjectItem> projectItems, out NavigationBarProjectItem? selectedProjectItem)
         {
             var documents = _subjectBuffer.CurrentSnapshot.GetRelatedDocumentsWithChanges();
             if (!documents.Any())
@@ -312,8 +314,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             var oldLeft = selectedItems.TypeItem;
             var oldRight = selectedItems.MemberItem;
 
-            NavigationBarItem newLeft = null;
-            NavigationBarItem newRight = null;
+            NavigationBarItem? newLeft = null;
+            NavigationBarItem? newRight = null;
             var listOfLeft = new List<NavigationBarItem>();
             var listOfRight = new List<NavigationBarItem>();
 
@@ -385,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    var languageService = document.GetLanguageService<INavigationBarItemService>();
+                    var languageService = document.GetRequiredLanguageService<INavigationBarItemService>();
 
                     NavigateToItem(item, document, _subjectBuffer.CurrentSnapshot, languageService, cancellationToken);
                 }
