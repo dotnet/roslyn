@@ -1357,19 +1357,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
 
             SyntaxNode lambdaOrLambdaBodySyntax;
-            var anonymousFunction = syntax as AnonymousFunctionExpressionSyntax;
-            var localFunction = syntax as LocalFunctionStatementSyntax;
             bool isLambdaBody;
 
-            if (anonymousFunction != null)
+            if (syntax is AnonymousFunctionExpressionSyntax anonymousFunction)
             {
                 lambdaOrLambdaBodySyntax = anonymousFunction.Body;
                 isLambdaBody = true;
             }
-            else if (localFunction != null)
+            else if (syntax is LocalFunctionStatementSyntax localFunction)
             {
                 lambdaOrLambdaBodySyntax = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody?.Expression;
-                isLambdaBody = true;
+
+                if (lambdaOrLambdaBodySyntax is null)
+                {
+                    lambdaOrLambdaBodySyntax = localFunction;
+                    isLambdaBody = false;
+                }
+                else
+                {
+                    isLambdaBody = true;
+                }
             }
             else if (LambdaUtilities.IsQueryPairLambda(syntax))
             {
@@ -1478,9 +1485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentTypeParameters = containerAsFrame?.TypeParameters.Concat(synthesizedMethod.TypeParameters) ?? synthesizedMethod.TypeParameters;
             _currentLambdaBodyTypeMap = synthesizedMethod.TypeMap;
 
-            var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(node.Body));
-            CheckLocalsDefined(body);
-            AddSynthesizedMethod(synthesizedMethod, body);
+            if (node.Body is BoundBlock block)
+            {
+                var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(block));
+                CheckLocalsDefined(body);
+                AddSynthesizedMethod(synthesizedMethod, body);
+            }
 
             // return to the old method
 
