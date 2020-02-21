@@ -4132,6 +4132,7 @@ struct S
         #region "lambda"
 
         [Fact]
+        [WorkItem(41802, "https://github.com/dotnet/roslyn/pull/41802")]
         public void DataFlowAnalysisLocalFunctions10()
         {
             var dataFlow = CompileAndAnalyzeDataFlowExpression(@"

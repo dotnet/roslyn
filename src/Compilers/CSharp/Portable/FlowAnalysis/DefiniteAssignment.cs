@@ -746,10 +746,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     state.Assigned[slot] &&
                     variableBySlot[slot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct;
 
-                if (state.NormalizeToBottom)
+                if (state.NormalizeToBottom && slot == 0)
                 {
                     // NormalizeToBottom means new variables are assumed to be assigned (bottom state)
-                    assign |= slot == 0;
+                    assign = true;
                 }
 
                 state.Assigned[i] = assign;
