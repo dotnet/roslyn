@@ -9,6 +9,6 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.CodeFixes</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" GenerateSource="true" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" GenerateSource="true" Link="CSharpCodeFixesResources.resx" />
   </ItemGroup>
 </Project>
