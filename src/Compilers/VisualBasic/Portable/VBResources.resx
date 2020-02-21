@@ -1253,6 +1253,9 @@
   <data name="ERR_DuplicatePrefix" xml:space="preserve">
     <value>XML namespace prefix '{0}' is already declared.</value>
   </data>
+  <data name="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected" xml:space="preserve">
+    <value>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</value>
+  </data>
   <data name="ERR_StrictDisallowsLateBinding" xml:space="preserve">
     <value>Option Strict On disallows late binding.</value>
   </data>

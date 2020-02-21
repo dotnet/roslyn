@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">Aktuální obsah zdrojového souboru {0} se neshoduje se sestaveným zdrojem. Případné změny provedené v tomto souboru během ladění se nepoužijí, dokud se jeho obsah nebude shodovat se sestaveným zdrojem.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -295,6 +295,11 @@
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
         <target state="translated">Implementovat rozhraní {0} implicitně</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
@@ -434,12 +439,12 @@
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <target state="translated">Parametr {0} je možné odebrat, pokud není součástí dodaného veřejného rozhraní API. Jeho počáteční hodnota se nikdy nepoužívá.</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <target state="translated">Parametr {0} je možné odebrat, protože jeho počáteční hodnota nebyla nikdy použita.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -569,7 +574,7 @@
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">Není možné přečíst zdrojový soubor {0} nebo soubor PDB sestavený pro obsahující projekt. Případné změny provedené v tomto souboru během ladění se nepoužijí, dokud se jeho obsah nebude shodovat se sestaveným zdrojem.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -779,7 +784,7 @@
       </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
-        <target state="translated">zahodit</target>
+        <target state="translated">proměnná typu discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -2108,11 +2113,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(neznámé)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Implementovat abstraktní třídu</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         }
 
         public Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject.TryInvokeAsync(targetName, arguments, cancellationToken);
+            => UnderlyingObject.TryInvokeAsync(targetName, solution: null, arguments, cancellationToken);
 
         public Task<bool> TryInvokeAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             => UnderlyingObject.TryInvokeAsync(targetName, solution, arguments, cancellationToken);
 
         public async Task<T> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            var result = await UnderlyingObject.TryInvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            var result = await UnderlyingObject.TryInvokeAsync<T>(targetName, solution: null, arguments, cancellationToken).ConfigureAwait(false);
             return result.HasValue ? result.Value : default;
         }
     }
