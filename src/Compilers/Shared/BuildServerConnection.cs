@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// communication layer which is shared between MSBuild and non-MSBuild components. This is the problem that 
     /// BuildPathsAlt fixes as the type lives with the build server communication code.
     /// </summary>
-    internal readonly struct BuildPathsAlt
+    internal sealed class BuildPathsAlt
     {
         /// <summary>
         /// The path which contains the compiler binaries and response files.
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
-        internal static bool IsCompilerServerSupported(string tempPath) => GetPipeNameForPathOpt("") is object;
+        internal static bool IsCompilerServerSupported => GetPipeNameForPathOpt("") is object;
 
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             List<string> arguments,
             BuildPathsAlt buildPaths,
             string? keepAlive,
-            string libEnvVariable,
+            string? libEnvVariable,
             CancellationToken cancellationToken)
         {
             var pipeNameOpt = sharedCompilationId ?? GetPipeNameForPathOpt(buildPaths.ClientDirectory);
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             BuildPathsAlt buildPaths,
             string? pipeName,
             string? keepAlive,
-            string libEnvVariable,
+            string? libEnvVariable,
             int? timeoutOverride,
             CreateServerFunc createServerFunc,
             CancellationToken cancellationToken)
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 
         /// closely as possible.
         /// </summary>
-        public static string GetTempPath(string? workingDir)
+        public static string? GetTempPath(string? workingDir)
         {
             if (PlatformInformation.IsUnix)
             {
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static string GetMutexDirectory()
         {
             var tempPath = BuildServerConnection.GetTempPath(null);
-            var result = Path.Combine(tempPath, ".roslyn");
+            var result = Path.Combine(tempPath!, ".roslyn");
             Directory.CreateDirectory(result);
             return result;
         }

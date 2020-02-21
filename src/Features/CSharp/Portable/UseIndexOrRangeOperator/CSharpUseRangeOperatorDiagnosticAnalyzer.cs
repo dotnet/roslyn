@@ -102,13 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     return default;
                 }
 
-                var optionSet = analyzerOptionsOpt.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-                if (optionSet is null)
-                {
-                    return default;
-                }
-
-                option = optionSet.GetOption(CSharpCodeStyleOptions.PreferRangeOperator);
+                option = analyzerOptionsOpt.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
                 if (!option.Value)
                 {
                     return default;

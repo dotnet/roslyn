@@ -45,14 +45,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private void UnexpectedExceptionThrown(Exception exception)
             => RemoteHostCrashInfoBar.ShowInfoBar(_workspace, exception);
 
-        public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public override Task InvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
             => _serviceEndPoint.InvokeAsync(targetName, arguments, cancellationToken);
 
-        public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
             => _serviceEndPoint.InvokeAsync<T>(targetName, arguments, cancellationToken);
 
-        public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
-            => _serviceEndPoint.InvokeAsync(targetName, arguments, directStreamReader, cancellationToken);
+        public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
+            => _serviceEndPoint.InvokeAsync(targetName, arguments, dataReader, cancellationToken);
 
         protected override void DisposeImpl()
         {

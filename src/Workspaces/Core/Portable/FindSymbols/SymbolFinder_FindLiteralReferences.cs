@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var success = await client.TryRunRemoteAsync(
                         WellKnownServiceHubServices.CodeAnalysisService,
                         nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
-                        new object[] { value, typeCode },
                         solution,
+                        new object[] { value, typeCode },
                         serverCallback,
                         cancellationToken).ConfigureAwait(false);
 

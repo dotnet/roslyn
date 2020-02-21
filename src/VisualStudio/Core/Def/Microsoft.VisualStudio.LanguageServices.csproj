@@ -1,11 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net472</TargetFramework>
+    <UseWpf>true</UseWpf>
     <CreateVsixContainer>false</CreateVsixContainer>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
@@ -44,20 +45,6 @@
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\ExpressionEvaluator\Core\Source\ExpressionCompiler\DkmExceptionUtilities.cs" Link="Implementation\EditAndContinue\Interop\DkmExceptionUtilities.cs" />
-    <Compile Update="Implementation\MoveToNamespace\MoveToNamespaceDialog.xaml.cs">
-      <DependentUpon>MoveToNamespaceDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Implementation\PickMembers\PickMembersDialog.xaml.cs">
-      <DependentUpon>PickMembersDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
-      <DependentUpon>DetailedErrorInfoDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="ServicesVSResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ServicesVSResources.resx</DependentUpon>
-    </Compile>
     <Compile Update="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -129,25 +116,14 @@
     <None Include="ManagedEditAndContinueService.vsdconfigxml" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Design" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="UIAutomationProvider" />
     <Reference Include="UIAutomationTypes" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="WindowsFormsIntegration" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.UI.Interfaces" Version="$(MicrosoftVisualStudioDebuggerUIInterfacesVersion)" />
@@ -199,60 +175,7 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">
-      <DependentUpon>ChangeSignatureDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Implementation\PreviewPane\PreviewPane.xaml.cs">
-      <DependentUpon>PreviewPane.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Implementation\ExtractInterface\ExtractInterfaceDialog.xaml.cs">
-      <DependentUpon>ExtractInterfaceDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Implementation\GenerateType\GenerateTypeDialog.xaml.cs">
-      <DependentUpon>GenerateTypeDialog.xaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="Implementation\ChangeSignature\ChangeSignatureDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Implementation\MoveToNamespace\MoveToNamespaceDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\PickMembers\PickMembersDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Implementation\PreviewPane\PreviewPane.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\ExtractInterface\ExtractInterfaceDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\GenerateType\GenerateTypeDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\PullMemberUp\MainDialog\PullMemberUpDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\PullMemberUp\WarningDialog\PullMemberUpWarningDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="ServicesVSResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>ServicesVSResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="ServicesVSResources.resx" GenerateSource="true" />
     <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>

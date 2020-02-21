@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var success = await client.TryRunRemoteAsync(
                             WellKnownServiceHubServices.CodeAnalysisService,
                             nameof(IRemoteSymbolFinder.FindReferencesAsync),
+                            solution,
                             new object[]
                             {
                                 SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
                                 documents?.Select(d => d.Id).ToArray(),
                                 SerializableFindReferencesSearchOptions.Dehydrate(options),
                             },
-                            solution,
                             serverCallback,
                             cancellationToken).ConfigureAwait(false);
 

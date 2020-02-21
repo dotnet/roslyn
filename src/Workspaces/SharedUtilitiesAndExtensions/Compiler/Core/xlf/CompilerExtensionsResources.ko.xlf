@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../CompilerExtensionsResources.resx">
+    <body>
+      <trans-unit id="Absolute_path_expected">
+        <source>Absolute path expected.</source>
+        <target state="new">Absolute path expected.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
+        <source>An element with the same key but a different value already exists.</source>
+        <target state="new">An element with the same key but a different value already exists.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_level_preferences">
+        <source>Expression-level preferences</source>
+        <target state="new">Expression-level preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences">
+        <source>Field preferences</source>
+        <target state="new">Field preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
+        <source>Language keywords vs BCL types preferences</source>
+        <target state="new">Language keywords vs BCL types preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences">
+        <source>Modifier preferences</source>
+        <target state="new">Modifier preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organize_usings">
+        <source>Organize usings</source>
+        <target state="new">Organize usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences">
+        <source>Parameter preferences</source>
+        <target state="new">Parameter preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_preferences">
+        <source>Parentheses preferences</source>
+        <target state="new">Parentheses preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="this_dot_and_Me_dot_preferences">
+        <source>this. and Me. preferences</source>
+        <target state="new">this. and Me. preferences</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -107,14 +107,14 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   }
 
   # Don't resolve runtime, shared framework, or SDK from other locations to ensure build determinism
-  $env:DOTNET_MULTILEVEL_LOOKUP=0
+  $env:DOTNET_MULTILEVEL_LOOKUP = 0
 
   # Disable first run since we do not need all ASP.NET packages restored.
-  $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+  $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 1
 
   # Disable telemetry on CI.
   if ($ci) {
-    $env:DOTNET_CLI_TELEMETRY_OPTOUT=1
+    $env:DOTNET_CLI_TELEMETRY_OPTOUT = 1
   }
 
   # Source Build uses DotNetCoreSdkDir variable
@@ -136,13 +136,15 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   # otherwise install the dotnet CLI and SDK to repo local .dotnet directory to avoid potential permission issues.
   if ((-not $globalJsonHasRuntimes) -and ($env:DOTNET_INSTALL_DIR -ne $null) -and (Test-Path(Join-Path $env:DOTNET_INSTALL_DIR "sdk\$dotnetSdkVersion"))) {
     $dotnetRoot = $env:DOTNET_INSTALL_DIR
-  } else {
+  }
+  else {
     $dotnetRoot = Join-Path $RepoRoot '.dotnet'
 
     if (-not (Test-Path(Join-Path $dotnetRoot "sdk\$dotnetSdkVersion"))) {
       if ($install) {
         InstallDotNetSdk $dotnetRoot $dotnetSdkVersion
-      } else {
+      }
+      else {
         Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Unable to find dotnet with SDK version '$dotnetSdkVersion'"
         ExitWithExitCode 1
       }
@@ -155,15 +157,16 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   # The following code block is protecting against concurrent access so that this function can
   # be called in parallel.
   if ($createSdkLocationFile) {
-    do { 
+    do {
       $sdkCacheFileTemp = Join-Path $ToolsetDir $([System.IO.Path]::GetRandomFileName())
-    } 
+    }
     until (!(Test-Path $sdkCacheFileTemp))
     Set-Content -Path $sdkCacheFileTemp -Value $dotnetRoot
-  
+
     try {
       Rename-Item -Force -Path $sdkCacheFileTemp 'sdk.txt'
-    } catch {
+    }
+    catch {
       # Somebody beat us
       Remove-Item -Path $sdkCacheFileTemp
     }
@@ -188,7 +191,33 @@ function GetDotNetInstallScript([string] $dotnetRoot) {
   if (!(Test-Path $installScript)) {
     Create-Directory $dotnetRoot
     $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
-    Invoke-WebRequest "https://dot.net/$dotnetInstallScriptVersion/dotnet-install.ps1" -OutFile $installScript
+
+    $maxRetries = 5
+    $retries = 1
+
+    $uri = "https://dot.net/$dotnetInstallScriptVersion/dotnet-install.ps1"
+
+    while ($true) {
+      try {
+        Write-Host "GET $uri"
+        Invoke-WebRequest $uri -OutFile $installScript
+        break
+      }
+      catch {
+        Write-Host "Failed to download '$uri'"
+        Write-Error $_.Exception.Message -ErrorAction Continue
+      }
+
+      if (++$retries -le $maxRetries) {
+        $delayInSeconds = [math]::Pow(2, $retries) - 1 # Exponential backoff
+        Write-Host "Retrying. Waiting for $delayInSeconds seconds before next attempt ($retries of $maxRetries)."
+        Start-Sleep -Seconds $delayInSeconds
+      }
+      else {
+        throw "Unable to download file in $maxRetries attempts."
+      }
+
+    }
   }
 
   return $installScript
@@ -198,17 +227,17 @@ function InstallDotNetSdk([string] $dotnetRoot, [string] $version, [string] $arc
   InstallDotNet $dotnetRoot $version $architecture
 }
 
-function InstallDotNet([string] $dotnetRoot, 
-  [string] $version, 
-  [string] $architecture = '', 
-  [string] $runtime = '', 
-  [bool] $skipNonVersionedFiles = $false, 
-  [string] $runtimeSourceFeed = '', 
+function InstallDotNet([string] $dotnetRoot,
+  [string] $version,
+  [string] $architecture = '',
+  [string] $runtime = '',
+  [bool] $skipNonVersionedFiles = $false,
+  [string] $runtimeSourceFeed = '',
   [string] $runtimeSourceFeedKey = '') {
 
   $installScript = GetDotNetInstallScript $dotnetRoot
   $installParameters = @{
-    Version = $version
+    Version    = $version
     InstallDir = $dotnetRoot
   }
 
@@ -239,7 +268,8 @@ function InstallDotNet([string] $dotnetRoot,
         Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Failed to install dotnet runtime '$runtime' from custom location '$runtimeSourceFeed'."
         ExitWithExitCode 1
       }
-    } else {
+    }
+    else {
       ExitWithExitCode 1
     }
   }
@@ -289,19 +319,21 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
     $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
 
     InitializeVisualStudioEnvironmentVariables $vsInstallDir $vsMajorVersion
-  } else {
+  }
+  else {
 
     if (Get-Member -InputObject $GlobalJson.tools -Name 'xcopy-msbuild') {
       $xcopyMSBuildVersion = $GlobalJson.tools.'xcopy-msbuild'
       $vsMajorVersion = $xcopyMSBuildVersion.Split('.')[0]
-    } else {
+    }
+    else {
       $vsMajorVersion = $vsMinVersion.Major
       $xcopyMSBuildVersion = "$vsMajorVersion.$($vsMinVersion.Minor).0-alpha"
     }
-    
+
     $vsInstallDir = $null
     if ($xcopyMSBuildVersion.Trim() -ine "none") {
-        $vsInstallDir = InitializeXCopyMSBuild $xcopyMSBuildVersion $install
+      $vsInstallDir = InitializeXCopyMSBuild $xcopyMSBuildVersion $install
     }
     if ($vsInstallDir -eq $null) {
       throw 'Unable to find Visual Studio that has required version and components installed'
@@ -360,10 +392,11 @@ function InitializeXCopyMSBuild([string]$packageVersion, [bool]$install) {
 # Returns JSON describing the located VS instance (same format as returned by vswhere),
 # or $null if no instance meeting the requirements is found on the machine.
 #
-function LocateVisualStudio([object]$vsRequirements = $null){
+function LocateVisualStudio([object]$vsRequirements = $null) {
   if (Get-Member -InputObject $GlobalJson.tools -Name 'vswhere') {
     $vswhereVersion = $GlobalJson.tools.vswhere
-  } else {
+  }
+  else {
     $vswhereVersion = '2.5.2'
   }
 
@@ -373,7 +406,12 @@ function LocateVisualStudio([object]$vsRequirements = $null){
   if (!(Test-Path $vsWhereExe)) {
     Create-Directory $vsWhereDir
     Write-Host 'Downloading vswhere'
-    Invoke-WebRequest "https://github.com/Microsoft/vswhere/releases/download/$vswhereVersion/vswhere.exe" -OutFile $vswhereExe
+    try {
+      Invoke-WebRequest "https://netcorenativeassets.blob.core.windows.net/resource-packages/external/windows/vswhere/$vswhereVersion/vswhere.exe" -OutFile $vswhereExe
+    }
+    catch {
+      Write-PipelineTelemetryError -Category 'InitializeToolset' -Message $_
+    }
   }
 
   if (!$vsRequirements) { $vsRequirements = $GlobalJson.tools.vs }
@@ -391,7 +429,7 @@ function LocateVisualStudio([object]$vsRequirements = $null){
     }
   }
 
-  $vsInfo =& $vsWhereExe $args | ConvertFrom-Json
+  $vsInfo = & $vsWhereExe $args | ConvertFrom-Json
 
   if ($lastExitCode -ne 0) {
     return $null
@@ -422,16 +460,19 @@ function InitializeBuildTool() {
       ExitWithExitCode 1
     }
     $buildTool = @{ Path = Join-Path $dotnetRoot 'dotnet.exe'; Command = 'msbuild'; Tool = 'dotnet'; Framework = 'netcoreapp2.1' }
-  } elseif ($msbuildEngine -eq "vs") {
+  }
+  elseif ($msbuildEngine -eq "vs") {
     try {
       $msbuildPath = InitializeVisualStudioMSBuild -install:$restore
-    } catch {
+    }
+    catch {
       Write-PipelineTelemetryError -Category 'InitializeToolset' -Message $_
       ExitWithExitCode 1
     }
 
     $buildTool = @{ Path = $msbuildPath; Command = ""; Tool = "vs"; Framework = "net472" }
-  } else {
+  }
+  else {
     Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Unexpected value of -msbuildEngine: '$msbuildEngine'."
     ExitWithExitCode 1
   }
@@ -459,7 +500,8 @@ function GetNuGetPackageCachePath() {
     # use global cache in dev builds to avoid cost of downloading packages.
     if ($useGlobalNuGetCache) {
       $env:NUGET_PACKAGES = Join-Path $env:UserProfile '.nuget\packages'
-    } else {
+    }
+    else {
       $env:NUGET_PACKAGES = Join-Path $RepoRoot '.packages'
     }
   }
@@ -474,7 +516,7 @@ function GetSdkTaskProject([string]$taskName) {
 
 function InitializeNativeTools() {
   if (-Not (Test-Path variable:DisableNativeToolsetInstalls) -And (Get-Member -InputObject $GlobalJson -Name "native-tools")) {
-    $nativeArgs= @{}
+    $nativeArgs = @{ }
     if ($ci) {
       $nativeArgs = @{
         InstallDirectory = "$ToolsDir"
@@ -654,9 +696,6 @@ Write-PipelineSetVariable -Name 'Artifacts.Toolset' -Value $ToolsetDir
 Write-PipelineSetVariable -Name 'Artifacts.Log' -Value $LogDir
 Write-PipelineSetVariable -Name 'TEMP' -Value $TempDir
 Write-PipelineSetVariable -Name 'TMP' -Value $TempDir
-
-$env:TEMP=$TempDir
-$env:TMP=$TempDir
 
 # Import custom tools configuration, if present in the repo.
 # Note: Import in global scope so that the script set top-level variables without qualification.

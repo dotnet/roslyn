@@ -124,8 +124,8 @@ End Class";
             Assert.True(await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
-                new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 solution,
+                new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 callbackTarget: null,
                 CancellationToken.None));
         }

@@ -1972,5 +1972,25 @@ End Class
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
+
+        <WorkItem(40451, "https://github.com/dotnet/roslyn/issues/40451")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestSigHelpIsVisibleWithDuplicateMethodNames() As Task
+            Dim markup = "
+Class C
+    Shared Sub Test()
+        M(1, 2$$)
+    End Sub
+
+    Sub M(y As Integer)
+    End Sub
+
+    Shared Sub M(x As Integer, y As Integer)
+    End Sub
+End Class
+"
+
+            Await TestAsync(markup, {New SignatureHelpTestItem("C.M(x As Integer, y As Integer)")})
+        End Function
     End Class
 End Namespace
