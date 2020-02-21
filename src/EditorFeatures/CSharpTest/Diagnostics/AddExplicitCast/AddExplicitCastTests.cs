@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicitCast
@@ -13,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicit
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new AddExplicitCastCodeFixProvider());
+
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+            => FlattenActions(actions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task SimpleVariableDeclaration()
@@ -1434,7 +1440,7 @@ class Program
 
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
-        public async Task SingleMethodCandidate()
+        public async Task ExactMethodCandidate()
         {
             await TestMissingInRegularAndScriptAsync(
             @"
@@ -2006,6 +2012,84 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MethodCandidates17_ArgumentsInOrder_SomeLabels()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(string s, Derived d, int i, int j = 1) { }
+
+    void M()
+    {
+        Base b = new Base();
+        Foo("""", d: [||]b, 1);
+    }
+}",
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(string s, Derived d, int i, int j = 1) { }
+
+    void M()
+    {
+        Base b = new Base();
+        Foo("""", d: (Derived)b, 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MethodCandidates18_ArgumentsInOrder_SomeLabels()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(string s, Derived d, params Derived2[] d2list) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var dlist = new Derived[] {};
+        Foo("""", d: b, [||]dlist);
+    }
+}",
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(string s, Derived d, params Derived2[] d2list) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var dlist = new Derived[] {};
+        Foo("""", d: b, (Derived2[])dlist);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task ConstructorCandidates1()
         {
             await TestInRegularAndScriptAsync(
@@ -2155,11 +2239,49 @@ class Program
         Test(string s, Derived2 d, int i) { }
     }
 }";
-            var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters());
-            var (_, action) = await GetCodeActionsAsync(workspace, new TestParameters());
-            Assert.Equal(2, action.NestedCodeActions.Length);
-            Assert.Equal(string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived"), action.NestedCodeActions[0].Message);
-            Assert.Equal(string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived2"), action.NestedCodeActions[1].Message);
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+            {
+                var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+                Assert.Equal(2, actions.Length);
+            }
+
+            var expect_0 =
+@"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    class Test
+    {
+        public Test(string s, Base b, int i, params object[] list) : this(d : (Derived)b, s : s, i : i) { }
+        Test(string s, Derived d, int i) { }
+        Test(string s, Derived2 d, int i) { }
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
+                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived"));
+
+            var expect_1 =
+    @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    class Test
+    {
+        public Test(string s, Base b, int i, params object[] list) : this(d : (Derived2)b, s : s, i : i) { }
+        Test(string s, Derived d, int i) { }
+        Test(string s, Derived2 d, int i) { }
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
+                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
@@ -2181,11 +2303,50 @@ class Program
         Test(string s, int i, Derived2 d) { }
     }
 }";
-            var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters());
-            var (_, action) = await GetCodeActionsAsync(workspace, new TestParameters());
-            Assert.Equal(2, action.NestedCodeActions.Length);
-            Assert.Equal(string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived"), action.NestedCodeActions[0].Message);
-            Assert.Equal(string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived2"), action.NestedCodeActions[1].Message);
+
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+            {
+                var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+                Assert.Equal(2, actions.Length);
+            }
+            var expect_0 =
+@"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    class Test
+    {
+        public Test(string s, Base b, int i, params object[] list) : this(d : (Derived)b, s : s, i : i) { }
+        Test(string s, Derived d, int i) { }
+        Test(string s, int i, Derived2 d) { }
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
+                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived"));
+
+            var expect_1 =
+    @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    class Test
+    {
+        public Test(string s, Base b, int i, params object[] list) : this(d : (Derived2)b, s : s, i : i) { }
+        Test(string s, Derived d, int i) { }
+        Test(string s, int i, Derived2 d) { }
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
+                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived2"));
+
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
@@ -2292,11 +2453,54 @@ class Program
         Foo("""", d: [||]b, list: strlist, i: 1);
     }
 }";
-            var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters());
-            var (_, action) = await GetCodeActionsAsync(workspace, new TestParameters());
-            Assert.Equal(2, action.NestedCodeActions.Length);
-            Assert.Equal(string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived"), action.NestedCodeActions[0].Message);
-            Assert.Equal(string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived2"), action.NestedCodeActions[1].Message);
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+            {
+                var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+                Assert.Equal(2, actions.Length);
+            }
+            var expect_0 =
+@"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Foo(string s, Derived2 d, int i, object[] list) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var strlist = new string[1];
+        Foo("""", d: (Derived)b, list: strlist, i: 1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
+                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived"));
+
+            var expect_1 =
+    @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(string s, Derived d, int i, params object[] list) { }
+    void Foo(string s, Derived2 d, int i, object[] list) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var strlist = new string[1];
+        Foo("""", d: (Derived2)b, list: strlist, i: 1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
+                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
@@ -2324,12 +2528,85 @@ class Program
         Foo("""", d: [||]b, i: 1);
     }
 }";
-            var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters());
-            var (_, action) = await GetCodeActionsAsync(workspace, new TestParameters());
-            Assert.Equal(3, action.NestedCodeActions.Length);
-            Assert.Equal(string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "string"), action.NestedCodeActions[0].Message);
-            Assert.Equal(string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived"), action.NestedCodeActions[1].Message);
-            Assert.Equal(string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived2"), action.NestedCodeActions[2].Message);
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, new TestParameters()))
+            {
+                var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
+                Assert.Equal(3, actions.Length);
+            }
+            var expect_0 =
+@"
+class Program
+{
+    class Base { 
+        static public explicit operator string(Base b) { return """";  }
+    }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(string s, Derived d, int i) { }
+    void Foo(string s, Derived2 d, int i) { }
+    void Foo(string s, string d, int i) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var strlist = new string[1];
+        Foo("""", d: (string)b, i: 1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
+                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "string"));
+
+            var expect_1 =
+@"
+class Program
+{
+    class Base { 
+        static public explicit operator string(Base b) { return """";  }
+    }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(string s, Derived d, int i) { }
+    void Foo(string s, Derived2 d, int i) { }
+    void Foo(string s, string d, int i) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var strlist = new string[1];
+        Foo("""", d: (Derived)b, i: 1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
+                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived"));
+
+            var expect_2 =
+@"
+class Program
+{
+    class Base { 
+        static public explicit operator string(Base b) { return """";  }
+    }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(string s, Derived d, int i) { }
+    void Foo(string s, Derived2 d, int i) { }
+    void Foo(string s, string d, int i) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var strlist = new string[1];
+        Foo("""", d: (Derived2)b, i: 1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expect_2, index: 2,
+                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Program.Derived2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
@@ -2373,6 +2650,50 @@ class Program
         Base b = new Base();
         var strlist = new string[1];
         Foo(s1:"""", 1, d: (Derived)b);
+    }
+}";
+            await TestInRegularAndScriptAsync(initialMarkup, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MultipleOptions8()
+        {
+            var initialMarkup =
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo4(Derived d, string a, string b, params string[] list) { }
+    void Foo4(Derived2 d, params string[] list) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var strlist = new string[] { };
+        Foo4([||]b, ""1"", ""2"", list: strlist);
+    }
+}";
+            var expected =
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo4(Derived d, string a, string b, params string[] list) { }
+    void Foo4(Derived2 d, params string[] list) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var strlist = new string[] { };
+        Foo4((Derived)b, ""1"", ""2"", list: strlist);
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expected);

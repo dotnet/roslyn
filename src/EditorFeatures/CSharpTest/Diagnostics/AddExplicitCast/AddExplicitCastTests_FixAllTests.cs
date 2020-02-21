@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicitCast
 {
-    public partial class AddExplicitCastTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AddExplicitCastTests
     {
         #region "Fix all occurrences tests"
 
@@ -41,6 +42,13 @@ public class Program1
 		Base b = new Base();
 		return b;
 	}
+
+	Base ReturnBase(Derived)
+	{
+		Base b = new Base();
+		return b;
+	}
+
 	Derived ReturnDerived(Base b)
 	{
 		return b;
@@ -82,6 +90,7 @@ public class Program1
 		d = new Base() { };
 
 		Derived d2 = ReturnBase();
+        Derived d2 = ReturnBase(b);
 
         Test t = new Test();
 		t.D = b;
@@ -104,12 +113,26 @@ public class Program2
 	class Derived1 : Base2, Base3 { }
 	class Derived2 : Derived1 { }
 
+    class Test
+	{
+		static public explicit operator Derived2(Test t) { return new Derived2();  }
+    }
+
+     Derived2 returnDerived2_1() {
+        return new Derived1();
+    }
+
+     Derived2 returnDerived2_2() {
+        return new Test();
+    }
+
 	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
 	{
 		Derived2 derived2 = b1;
 		derived2 = b3;
 		Base2 base2 = b1;
 		derived2 = d1;
+        Derived2 d2 = new Test();
 	}
 }
         </Document>
@@ -118,19 +141,15 @@ public class Program2
         <Document>
 public class Program3
 {
-    interface Base1 { }
-	interface Base2 : Base1 { }
-	interface Base3 { }
-	class Derived1 : Base2, Base3 { }
-	class Derived2 : Derived1 { }
+    class Base { }
+    class Derived : Base { }
+    class Derived2 : Derived { }
 
-	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
-	{
-		Derived2 derived2 = b1;
-		derived2 = b3;
-		Base2 base2 = b1;
-		derived2 = d1;
-	}
+    Derived2 returnD2(Base b)
+    {
+        Derived d;
+        return d = b;
+    }
 }
         </Document>
     </Project>
@@ -162,6 +181,13 @@ public class Program1
 		Base b = new Base();
 		return b;
 	}
+
+	Base ReturnBase(Derived)
+	{
+		Base b = new Base();
+		return b;
+	}
+
 	Derived ReturnDerived(Base b)
 	{
 		return (Derived)b;
@@ -203,6 +229,7 @@ public class Program1
 		d = new Base() { };
 
 		Derived d2 = (Derived)ReturnBase();
+        Derived d2 = ReturnBase(b);
 
         Test t = new Test();
 		t.D = (Derived)b;
@@ -225,12 +252,26 @@ public class Program2
 	class Derived1 : Base2, Base3 { }
 	class Derived2 : Derived1 { }
 
+    class Test
+	{
+		static public explicit operator Derived2(Test t) { return new Derived2();  }
+    }
+
+     Derived2 returnDerived2_1() {
+        return new Derived1();
+    }
+
+     Derived2 returnDerived2_2() {
+        return new Test();
+    }
+
 	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
 	{
 		Derived2 derived2 = b1;
 		derived2 = b3;
 		Base2 base2 = b1;
 		derived2 = d1;
+        Derived2 d2 = new Test();
 	}
 }
         </Document>
@@ -239,19 +280,15 @@ public class Program2
         <Document>
 public class Program3
 {
-    interface Base1 { }
-	interface Base2 : Base1 { }
-	interface Base3 { }
-	class Derived1 : Base2, Base3 { }
-	class Derived2 : Derived1 { }
+    class Base { }
+    class Derived : Base { }
+    class Derived2 : Derived { }
 
-	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
-	{
-		Derived2 derived2 = b1;
-		derived2 = b3;
-		Base2 base2 = b1;
-		derived2 = d1;
-	}
+    Derived2 returnD2(Base b)
+    {
+        Derived d;
+        return d = b;
+    }
 }
         </Document>
     </Project>
@@ -292,6 +329,13 @@ public class Program1
 		Base b = new Base();
 		return b;
 	}
+
+	Base ReturnBase(Derived)
+	{
+		Base b = new Base();
+		return b;
+	}
+
 	Derived ReturnDerived(Base b)
 	{
 		return b;
@@ -333,6 +377,7 @@ public class Program1
 		d = new Base() { };
 
 		Derived d2 = ReturnBase();
+        Derived d2 = ReturnBase(b);
 
         Test t = new Test();
 		t.D = b;
@@ -355,12 +400,26 @@ public class Program2
 	class Derived1 : Base2, Base3 { }
 	class Derived2 : Derived1 { }
 
+    class Test
+	{
+		static public explicit operator Derived2(Test t) { return new Derived2();  }
+    }
+
+     Derived2 returnDerived2_1() {
+        return new Derived1();
+    }
+
+     Derived2 returnDerived2_2() {
+        return new Test();
+    }
+
 	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
 	{
 		Derived2 derived2 = b1;
 		derived2 = b3;
 		Base2 base2 = b1;
 		derived2 = d1;
+        Derived2 d2 = new Test();
 	}
 }
         </Document>
@@ -369,19 +428,15 @@ public class Program2
         <Document>
 public class Program3
 {
-    interface Base1 { }
-	interface Base2 : Base1 { }
-	interface Base3 { }
-	class Derived1 : Base2, Base3 { }
-	class Derived2 : Derived1 { }
+    class Base { }
+    class Derived : Base { }
+    class Derived2 : Derived { }
 
-	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
-	{
-		Derived2 derived2 = b1;
-		derived2 = b3;
-		Base2 base2 = b1;
-		derived2 = d1;
-	}
+    Derived2 returnD2(Base b)
+    {
+        Derived d;
+        return d = b;
+    }
 }
         </Document>
     </Project>
@@ -413,6 +468,13 @@ public class Program1
 		Base b = new Base();
 		return b;
 	}
+
+	Base ReturnBase(Derived)
+	{
+		Base b = new Base();
+		return b;
+	}
+
 	Derived ReturnDerived(Base b)
 	{
 		return (Derived)b;
@@ -454,6 +516,7 @@ public class Program1
 		d = new Base() { };
 
 		Derived d2 = (Derived)ReturnBase();
+        Derived d2 = ReturnBase(b);
 
         Test t = new Test();
 		t.D = (Derived)b;
@@ -476,12 +539,26 @@ public class Program2
 	class Derived1 : Base2, Base3 { }
 	class Derived2 : Derived1 { }
 
+    class Test
+	{
+		static public explicit operator Derived2(Test t) { return new Derived2();  }
+    }
+
+     Derived2 returnDerived2_1() {
+        return new Derived1();
+    }
+
+     Derived2 returnDerived2_2() {
+        return (Derived2)new Test();
+    }
+
 	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
 	{
 		Derived2 derived2 = (Derived2)b1;
 		derived2 = (Derived2)b3;
 		Base2 base2 = (Base2)b1;
 		derived2 = (Derived2)d1;
+        Derived2 d2 = (Derived2)new Test();
 	}
 }
         </Document>
@@ -490,19 +567,15 @@ public class Program2
         <Document>
 public class Program3
 {
-    interface Base1 { }
-	interface Base2 : Base1 { }
-	interface Base3 { }
-	class Derived1 : Base2, Base3 { }
-	class Derived2 : Derived1 { }
+    class Base { }
+    class Derived : Base { }
+    class Derived2 : Derived { }
 
-	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
-	{
-		Derived2 derived2 = b1;
-		derived2 = b3;
-		Base2 base2 = b1;
-		derived2 = d1;
-	}
+    Derived2 returnD2(Base b)
+    {
+        Derived d;
+        return d = b;
+    }
 }
         </Document>
     </Project>
@@ -542,6 +615,13 @@ public class Program1
 		Base b = new Base();
 		return b;
 	}
+
+	Base ReturnBase(Derived)
+	{
+		Base b = new Base();
+		return b;
+	}
+
 	Derived ReturnDerived(Base b)
 	{
 		return b;
@@ -583,6 +663,7 @@ public class Program1
 		d = new Base() { };
 
 		Derived d2 = ReturnBase();
+        Derived d2 = ReturnBase(b);
 
         Test t = new Test();
 		t.D = b;
@@ -605,12 +686,26 @@ public class Program2
 	class Derived1 : Base2, Base3 { }
 	class Derived2 : Derived1 { }
 
+    class Test
+	{
+		static public explicit operator Derived2(Test t) { return new Derived2();  }
+    }
+
+     Derived2 returnDerived2_1() {
+        return new Derived1();
+    }
+
+     Derived2 returnDerived2_2() {
+        return new Test();
+    }
+
 	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
 	{
 		Derived2 derived2 = b1;
 		derived2 = b3;
 		Base2 base2 = b1;
 		derived2 = d1;
+        Derived2 d2 = new Test();
 	}
 }
         </Document>
@@ -619,19 +714,15 @@ public class Program2
         <Document>
 public class Program3
 {
-    interface Base1 { }
-	interface Base2 : Base1 { }
-	interface Base3 { }
-	class Derived1 : Base2, Base3 { }
-	class Derived2 : Derived1 { }
+    class Base { }
+    class Derived : Base { }
+    class Derived2 : Derived { }
 
-	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
-	{
-		Derived2 derived2 = b1;
-		derived2 = b3;
-		Base2 base2 = b1;
-		derived2 = d1;
-	}
+    Derived2 returnD2(Base b)
+    {
+        Derived d;
+        return d = b;
+    }
 }
         </Document>
     </Project>
@@ -663,6 +754,13 @@ public class Program1
 		Base b = new Base();
 		return b;
 	}
+
+	Base ReturnBase(Derived)
+	{
+		Base b = new Base();
+		return b;
+	}
+
 	Derived ReturnDerived(Base b)
 	{
 		return (Derived)b;
@@ -704,6 +802,7 @@ public class Program1
 		d = new Base() { };
 
 		Derived d2 = (Derived)ReturnBase();
+        Derived d2 = ReturnBase(b);
 
         Test t = new Test();
 		t.D = (Derived)b;
@@ -726,12 +825,26 @@ public class Program2
 	class Derived1 : Base2, Base3 { }
 	class Derived2 : Derived1 { }
 
+    class Test
+	{
+		static public explicit operator Derived2(Test t) { return new Derived2();  }
+    }
+
+     Derived2 returnDerived2_1() {
+        return new Derived1();
+    }
+
+     Derived2 returnDerived2_2() {
+        return (Derived2)new Test();
+    }
+
 	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
 	{
 		Derived2 derived2 = (Derived2)b1;
 		derived2 = (Derived2)b3;
 		Base2 base2 = (Base2)b1;
 		derived2 = (Derived2)d1;
+        Derived2 d2 = (Derived2)new Test();
 	}
 }
         </Document>
@@ -740,19 +853,15 @@ public class Program2
         <Document>
 public class Program3
 {
-    interface Base1 { }
-	interface Base2 : Base1 { }
-	interface Base3 { }
-	class Derived1 : Base2, Base3 { }
-	class Derived2 : Derived1 { }
+    class Base { }
+    class Derived : Base { }
+    class Derived2 : Derived { }
 
-	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
-	{
-		Derived2 derived2 = (Derived2)b1;
-		derived2 = (Derived2)b3;
-		Base2 base2 = (Base2)b1;
-		derived2 = (Derived2)d1;
-	}
+    Derived2 returnD2(Base b)
+    {
+        Derived d;
+        return (Derived2)(d = (Derived)b);
+    }
 }
         </Document>
     </Project>
@@ -1111,18 +1220,57 @@ public class Program2
 	class Derived1 : Base2, Base3 { }
 	class Derived2 : Derived1 { }
 
+	class Test
+	{
+		static public explicit operator Derived1(Test t) { return new Derived1(); }
+		static public explicit operator Derived2(Test t) { return new Derived2(); }
+	}
+
 	void Foo1(Derived2 b) { }
 	void Foo2(Base2 b) { }
 
 	void Foo3(Derived2 b1) { }
 	void Foo3(int i) { }
 
+	void Foo4(int i, string j, Derived1 d) { }
+	void Foo4(string j, int i, Derived1 d) { }
+
+	void Foo5(string j, int i, Derived1 d, int x = 1) { }
+
+	void Foo5(string j, int i, Derived1 d, params Derived2[] d2list) { }
+
+	void Foo6(Derived1 d, params Derived2[] d2list) { }
+
 	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
 	{
 		Foo1(b1);
 		Foo1(d1);
+
 		Foo2(b1);
+
 		Foo3(b1);
+
+		Foo4(1, """", b1);
+		Foo4(i: 1, j: """", b1); // one operation, fix
+
+		Foo5(1, """", b1); // multiple operations, no fix-all
+
+		Foo5(d: b1, i: 1, j: """", x: 1); // all arguments out of order - match
+		Foo5(1, """", x: 1, d: b1); // part of arguments out of order - mismatch
+
+		Foo5(1, """", d: b1, b2, b3, d1); // part of arguments out of order - mismatch
+		Foo5("""", 1, d: b1, b2, b3, d1); // part of arguments out of order - match
+
+		var d2list = new Derived2[] { };
+		Foo5(d2list: d2list, j: """", i: 1, d: b2);
+		var d1list = new Derived1[] { };
+		Foo5(d2list: d1list, j: """", i: 1, d: b2); 
+
+		Foo6(b1);
+
+		Foo6(new Test()); // params is optional,  object creation can be cast with explicit cast operator
+		Foo6(new Test(), new Derived1()); // object creation cannot be cast without explicit cast operator
+		Foo6(new Derived1(), new Test());
 	}
 }
         </Document>
@@ -1238,18 +1386,57 @@ public class Program2
 	class Derived1 : Base2, Base3 { }
 	class Derived2 : Derived1 { }
 
+	class Test
+	{
+		static public explicit operator Derived1(Test t) { return new Derived1(); }
+		static public explicit operator Derived2(Test t) { return new Derived2(); }
+	}
+
 	void Foo1(Derived2 b) { }
 	void Foo2(Base2 b) { }
 
 	void Foo3(Derived2 b1) { }
 	void Foo3(int i) { }
 
+	void Foo4(int i, string j, Derived1 d) { }
+	void Foo4(string j, int i, Derived1 d) { }
+
+	void Foo5(string j, int i, Derived1 d, int x = 1) { }
+
+	void Foo5(string j, int i, Derived1 d, params Derived2[] d2list) { }
+
+	void Foo6(Derived1 d, params Derived2[] d2list) { }
+
 	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
 	{
 		Foo1((Derived2)b1);
 		Foo1((Derived2)d1);
+
 		Foo2((Base2)b1);
+
 		Foo3((Derived2)b1);
+
+		Foo4(1, """", (Derived1)b1);
+		Foo4(i: 1, j: """", (Derived1)b1); // one operation, fix
+
+		Foo5(1, """", b1); // multiple operations, no fix-all
+
+		Foo5(d: (Derived1)b1, i: 1, j: """", x: 1); // all arguments out of order - match
+		Foo5(1, """", x: 1, d: b1); // part of arguments out of order - mismatch
+
+		Foo5(1, """", d: b1, b2, b3, d1); // part of arguments out of order - mismatch
+		Foo5("""", 1, d: (Derived1)b1, (Derived2)b2, (Derived2)b3, (Derived2)d1); // part of arguments out of order - match
+
+		var d2list = new Derived2[] { };
+		Foo5(d2list: d2list, j: """", i: 1, d: (Derived1)b2);
+		var d1list = new Derived1[] { };
+		Foo5(d2list: (Derived2[])d1list, j: """", i: 1, d: (Derived1)b2); 
+
+		Foo6((Derived1)b1);
+
+		Foo6((Derived1)new Test()); // params is optional,  object creation can be cast with explicit cast operator
+		Foo6((Derived1)new Test(), new Derived1()); // object creation cannot be cast without explicit cast operator
+		Foo6(new Derived1(), (Derived2)new Test());
 	}
 }
         </Document>
@@ -1393,24 +1580,26 @@ public class Program2
         <Document>
 class Program3
 {
-	interface Base1 { }
-	interface Base2 : Base1 { }
-	interface Base3 { }
-	class Derived1 : Base2, Base3 { }
+	interface Base { }
+	class Derived1 : Base { }
 	class Derived2 : Derived1 { }
 
-	void Foo1(Derived2 b) { }
-	void Foo2(Base2 b) { }
-
-	void Foo3(Derived2 b1) { }
-	void Foo3(int i) { }
-
-	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
+	class Test
 	{
-		Foo1(b1);
-		Foo1(d1);
-		Foo2(b1);
-		Foo3(b1);
+		public Test(string s, Base b, int i, params object[] list) : this(d: b, s: s, i: i) { } // 2 operations, no fix in fix-all
+		Test(string s, Derived1 d, int i) { }
+		Test(string s, Derived2 d, int i) { }
+	}
+
+	void Foo(Derived1 d, int a, int b, params int[] list) { }
+	void Foo(Derived2 d, params int[] list) { }
+
+
+	private void M2(Base b, Derived1 d1, Derived2 d2)
+	{
+		Foo(b, 1, 2); // 2 operations, no fix in fix-all
+		var intlist = new int[] { };
+		Foo(b, 1, 2, list: intlist); // 1 operation
 	}
 }
         </Document>
@@ -1520,24 +1709,26 @@ public class Program2
         <Document>
 class Program3
 {
-	interface Base1 { }
-	interface Base2 : Base1 { }
-	interface Base3 { }
-	class Derived1 : Base2, Base3 { }
+	interface Base { }
+	class Derived1 : Base { }
 	class Derived2 : Derived1 { }
 
-	void Foo1(Derived2 b) { }
-	void Foo2(Base2 b) { }
-
-	void Foo3(Derived2 b1) { }
-	void Foo3(int i) { }
-
-	private void M2(Base1 b1, Base2 b2, Base3 b3, Derived1 d1, Derived2 d2)
+	class Test
 	{
-		Foo1((Derived2)b1);
-		Foo1((Derived2)d1);
-		Foo2((Base2)b1);
-		Foo3((Derived2)b1);
+		public Test(string s, Base b, int i, params object[] list) : this(d: b, s: s, i: i) { } // 2 operations, no fix in fix-all
+		Test(string s, Derived1 d, int i) { }
+		Test(string s, Derived2 d, int i) { }
+	}
+
+	void Foo(Derived1 d, int a, int b, params int[] list) { }
+	void Foo(Derived2 d, params int[] list) { }
+
+
+	private void M2(Base b, Derived1 d1, Derived2 d2)
+	{
+		Foo(b, 1, 2); // 2 operations, no fix in fix-all
+		var intlist = new int[] { };
+		Foo((Derived1)b, 1, 2, list: intlist); // 1 operation
 	}
 }
         </Document>
