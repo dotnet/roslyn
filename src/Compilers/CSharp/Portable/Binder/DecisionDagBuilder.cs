@@ -576,25 +576,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (uniqueState.TryGetValue(state, out DagState? existingState))
                 {
                     var newRemainingValues = existingState.RemainingValues;
+                    bool changed = false;
                     foreach (var (dagTemp, valuesForTemp) in remainingValues)
                     {
                         if (newRemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
                         {
                             var newExistingValuesForTemp = existingValuesForTemp.Union(valuesForTemp);
-                            if (newExistingValuesForTemp != existingValuesForTemp)
+                            if (!newExistingValuesForTemp.Equals(existingValuesForTemp))
                             {
-                                RoslynDebug.Assert(!newExistingValuesForTemp.Equals(existingValuesForTemp));
                                 newRemainingValues = newRemainingValues.SetItem(dagTemp, newExistingValuesForTemp);
+                                changed = true;
                             }
                         }
                         else
                         {
                             newRemainingValues = newRemainingValues.Add(dagTemp, valuesForTemp);
+                            changed = true;
                         }
                     }
 
-                    if (existingState.UpdateRemainingValues(newRemainingValues))
-                        workList.Push(existingState);
+                    if (changed)
+                    {
+                        existingState.UpdateRemainingValues(newRemainingValues);
+                        if (!workList.Contains(existingState))
+                            workList.Push(existingState);
+                    }
 
                     return existingState;
                 }
@@ -1363,18 +1369,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Cases[0].RemainingTests.ComputeSelectedTest();
             }
 
-            internal bool UpdateRemainingValues(ImmutableDictionary<BoundDagTemp, IValueSet> newRemainingValues)
+            internal void UpdateRemainingValues(ImmutableDictionary<BoundDagTemp, IValueSet> newRemainingValues)
             {
-                if (this.RemainingValues != newRemainingValues)
-                {
-                    this.RemainingValues = newRemainingValues;
-                    this.SelectedTest = null;
-                    this.TrueBranch = null;
-                    this.FalseBranch = null;
-                    return true;
-                }
-
-                return false;
+                this.RemainingValues = newRemainingValues;
+                this.SelectedTest = null;
+                this.TrueBranch = null;
+                this.FalseBranch = null;
             }
         }
 
