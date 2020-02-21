@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 
 namespace Microsoft.CodeAnalysis
@@ -14,9 +16,9 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public Workspace Workspace { get; private set; }
+        public Workspace? Workspace { get; private set; }
 
-        public event EventHandler WorkspaceChanged;
+        public event EventHandler? WorkspaceChanged;
 
         internal void SetWorkspaceAndRaiseEvents(Workspace workspace)
         {

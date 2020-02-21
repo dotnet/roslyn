@@ -29,10 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private readonly ComEventSink _sink;
             private readonly IOptionService _optionService;
             private readonly IThreadingContext _threadingContext;
+            private readonly WorkspaceRegistration _workspaceRegistration;
 
             private INavigationBarController? _navigationBarController;
             private IVsDropdownBarClient? _dropdownBarClient;
-            private WorkspaceRegistration _workspaceRegistration;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
@@ -47,7 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _sink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
                 _optionService.OptionChanged += OnOptionChanged;
 
-                _workspaceRegistration = GetWorkspaceRegistration();
+                ErrorHandler.ThrowOnFailure(_codeWindow.GetBuffer(out var buffer));
+                var textContainer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer).AsTextContainer();
+                _workspaceRegistration = CodeAnalysis.Workspace.GetWorkspaceRegistration(textContainer);
                 _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
             }
 
@@ -86,14 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
                 AddOrRemoveDropdown(enabled);
-            }
-
-            private WorkspaceRegistration GetWorkspaceRegistration()
-            {
-                ErrorHandler.ThrowOnFailure(_codeWindow.GetBuffer(out var buffer));
-
-                var textContainer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer).AsTextContainer();
-                return CodeAnalysis.Workspace.GetWorkspaceRegistration(textContainer);
             }
 
             private void AddOrRemoveDropdown(bool enabled)
