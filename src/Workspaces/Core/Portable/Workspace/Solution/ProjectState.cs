@@ -311,14 +311,14 @@ namespace Microsoft.CodeAnalysis
             // PROTOTYPE: why isn't this just a provided implementation?
             private sealed class WorkspaceAnalyzerConfigOptions : AnalyzerConfigOptions
             {
-                private readonly ImmutableDictionary<string, string> _analyzerOptions;
+                private readonly ImmutableDictionary<string, string> _backing;
 
                 public WorkspaceAnalyzerConfigOptions(AnalyzerConfigOptionsResult analyzerConfigOptions)
                 {
-                    _analyzerOptions = analyzerConfigOptions.AnalyzerOptions;
+                    _backing = analyzerConfigOptions.AnalyzerOptions;
                 }
 
-                public override bool TryGetValue(string key, [NotNullWhen(returnValue: true)] out string? value) => _analyzerOptions.TryGetValue(key, out value);
+                public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
             }
         }
 
