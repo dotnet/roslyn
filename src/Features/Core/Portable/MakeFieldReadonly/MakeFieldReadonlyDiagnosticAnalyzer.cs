@@ -215,8 +215,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
         private static CodeStyleOption<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            var optionSet = options.GetDocumentOptionSetAsync(field.Locations[0].SourceTree, cancellationToken).GetAwaiter().GetResult();
-            return optionSet?.GetOption(CodeStyleOptions.PreferReadonly, field.Language);
+            return options.GetOption(CodeStyleOptions.PreferReadonly, field.Language, field.Locations[0].SourceTree, cancellationToken);
         }
     }
 }

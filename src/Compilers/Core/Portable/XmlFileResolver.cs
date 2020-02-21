@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Roslyn.Utilities;
 
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis
             // Dev11: first look relative to the directory containing the file with the <include> element (baseFilepath)
             // and then look in the base directory (i.e. current working directory of the compiler).
 
-            string resolvedPath;
+            string? resolvedPath;
 
             if (baseFilePath != null)
             {
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             return FileUtilities.OpenRead(resolvedPath);
         }
 
-        protected virtual bool FileExists(string? resolvedPath)
+        protected virtual bool FileExists([NotNullWhen(true)] string? resolvedPath)
         {
             return File.Exists(resolvedPath);
         }

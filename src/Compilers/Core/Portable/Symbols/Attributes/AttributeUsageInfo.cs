@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
             return left._flags != right._flags;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is AttributeUsageInfo)
             {
