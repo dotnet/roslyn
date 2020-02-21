@@ -22,6 +22,9 @@ namespace Microsoft.CodeAnalysis.Options
     [Export(typeof(IGlobalOptionService)), Shared]
     internal class GlobalOptionService : IGlobalOptionService
     {
+        private static readonly ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> s_emptyEditorConfigKeysToOptions
+            = ImmutableDictionary.Create<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)>(AnalyzerConfigOptions.KeyComparer);
+
         private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
         private readonly ImmutableArray<Lazy<IOptionPersister>> _optionSerializers;
         private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
@@ -29,8 +32,9 @@ namespace Microsoft.CodeAnalysis.Options
 
         private readonly object _gate = new object();
 
-        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _editorConfigKeysToOptions
-            = ImmutableDictionary.Create<string, (IOption?, IEditorConfigStorageLocation2?)>(AnalyzerConfigOptions.KeyComparer);
+        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _neutralEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
+        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _csharpEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
+        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _visualBasicEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
 
         private ImmutableDictionary<OptionKey, object?> _currentValues;
         private ImmutableArray<Workspace> _registeredWorkspaces;
@@ -105,11 +109,32 @@ namespace Microsoft.CodeAnalysis.Options
 
         public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey)
         {
+            ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> temporaryOptions = s_emptyEditorConfigKeysToOptions;
+            ref var editorConfigToOptionsStorage = ref temporaryOptions;
+            switch (language)
+            {
+                case LanguageNames.CSharp:
+                    // Suppression required due to https://github.com/dotnet/roslyn/issues/42018
+                    editorConfigToOptionsStorage = ref _csharpEditorConfigKeysToOptions!;
+                    break;
+
+                case LanguageNames.VisualBasic:
+                    // Suppression required due to https://github.com/dotnet/roslyn/issues/42018
+                    editorConfigToOptionsStorage = ref _visualBasicEditorConfigKeysToOptions!;
+                    break;
+
+                case null:
+                case "":
+                    // Suppression required due to https://github.com/dotnet/roslyn/issues/42018
+                    editorConfigToOptionsStorage = ref _neutralEditorConfigKeysToOptions!;
+                    break;
+            }
+
             var (option, storage) = ImmutableInterlocked.GetOrAdd(
-                ref _editorConfigKeysToOptions,
+                ref editorConfigToOptionsStorage,
                 key,
-                (key, self) => MapToOptionWithoutLanguage(self, key),
-                this);
+                (key, arg) => MapToOptionIgnorePerLanguage(arg.self, key, arg.language),
+                (self: this, language));
 
             if (option is object)
             {
@@ -124,9 +149,11 @@ namespace Microsoft.CodeAnalysis.Options
             return false;
 
             // Local function
-            static (IOption? option, IEditorConfigStorageLocation2? storageLocation) MapToOptionWithoutLanguage(GlobalOptionService service, string key)
+            static (IOption? option, IEditorConfigStorageLocation2? storageLocation) MapToOptionIgnorePerLanguage(GlobalOptionService service, string key, string? language)
             {
-                foreach (var option in service.GetRegisteredOptions())
+                // Use GetRegisteredSerializableOptions instead of GetRegisteredOptions to avoid loading assemblies for
+                // inactive languages.
+                foreach (var option in service.GetRegisteredSerializableOptions(ImmutableHashSet.Create(language ?? "")))
                 {
                     foreach (var storage in option.StorageLocations)
                     {
