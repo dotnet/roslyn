@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             private sealed class EmptyOptionService : IOptionService
             {
-                public event EventHandler<OptionChangedEventArgs> OptionChanged;
+                public event EventHandler<OptionChangedEventArgs>? OptionChanged;
 
                 [return: MaybeNull]
                 public T GetOption<T>(Option<T> option)
