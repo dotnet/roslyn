@@ -64,8 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     _navigationBarController?.SetWorkspace(_workspaceRegistration.Workspace);
 
                     // Trigger a check to see if the dropdown should be added / removed now that the buffer is in a different workspace.
-                    var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
-                    AddOrRemoveDropdown(enabled);
+                    AddOrRemoveDropdown();
                 });
             }
 
@@ -86,11 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return;
                 }
 
-                var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
-                AddOrRemoveDropdown(enabled);
+                AddOrRemoveDropdown();
             }
 
-            private void AddOrRemoveDropdown(bool enabled)
+            private void AddOrRemoveDropdown()
             {
                 if (!(_codeWindow is IVsDropdownBarManager dropdownManager))
                 {
@@ -111,6 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return;
                 }
 
+                var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
                 if (enabled)
                 {
                     var existingDropdownBar = GetDropdownBar(dropdownManager);
@@ -206,8 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     SetupView(secondaryView);
                 }
 
-                var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
-                AddOrRemoveDropdown(enabled);
+                AddOrRemoveDropdown();
 
                 return VSConstants.S_OK;
             }
@@ -232,7 +230,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _optionService.OptionChanged -= OnOptionChanged;
                 _workspaceRegistration.WorkspaceChanged -= OnWorkspaceRegistrationChanged;
 
-                AddOrRemoveDropdown(enabled: false);
+                if (_codeWindow is IVsDropdownBarManager dropdownManager)
+                {
+                    RemoveDropdownBar(dropdownManager);
+                }
 
                 return VSConstants.S_OK;
             }
