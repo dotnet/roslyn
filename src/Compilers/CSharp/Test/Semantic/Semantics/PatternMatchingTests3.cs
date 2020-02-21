@@ -1791,8 +1791,8 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
                 // (8,18): error CS0163: Control cannot fall through from one case label ('(string str, int[] arr) _') to another
                 //             case (string str, int[] arr) _:
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string str, int[] arr) _").WithArguments("(string str, int[] arr) _").WithLocation(8, 18),
@@ -1824,6 +1824,17 @@ class C
                 //             case (string str, decimal[] arr) _:
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "arr").WithArguments("arr").WithLocation(10, 41)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var strDecl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(s => s.Identifier.ValueText == "str").ToArray();
+            Assert.Equal(3, strDecl.Length);
+            VerifyModelForDuplicateVariableDeclarationInSameScope(model, strDecl[1], LocalDeclarationKind.DeclarationExpressionVariable);
+
+            var arrDecl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(s => s.Identifier.ValueText == "arr").ToArray();
+            Assert.Equal(3, arrDecl.Length);
+            VerifyModelForDuplicateVariableDeclarationInSameScope(model, arrDecl[1], LocalDeclarationKind.DeclarationExpressionVariable);
         }
 
         [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
