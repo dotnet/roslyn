@@ -21,50 +21,59 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         static ErrorFacts()
         {
-            ImmutableHashSet<string>.Builder builder = ImmutableHashSet.CreateBuilder<string>();
+            ImmutableHashSet<string>.Builder nullableWarnings = ImmutableHashSet.CreateBuilder<string>();
 
-            builder.Add(getId(ErrorCode.WRN_NullReferenceAssignment));
-            builder.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
-            builder.Add(getId(ErrorCode.WRN_NullReferenceReturn));
-            builder.Add(getId(ErrorCode.WRN_NullReferenceArgument));
-            builder.Add(getId(ErrorCode.WRN_UninitializedNonNullableField));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInAssignment));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgument));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
-            builder.Add(getId(ErrorCode.WRN_NullAsNonNullable));
-            builder.Add(getId(ErrorCode.WRN_NullableValueTypeMayBeNull));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint));
-            builder.Add(getId(ErrorCode.WRN_ThrowPossibleNull));
-            builder.Add(getId(ErrorCode.WRN_UnboxPossibleNull));
-            builder.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceAssignment));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceReturn));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceArgument));
+            nullableWarnings.Add(getId(ErrorCode.WRN_UninitializedNonNullableField));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInAssignment));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgument));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullAsNonNullable));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullableValueTypeMayBeNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ThrowPossibleNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_UnboxPossibleNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
 
-            builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
-            builder.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
-            builder.Add(getId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
-            builder.Add(getId(ErrorCode.WRN_ShouldNotReturn));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
+            nullableWarnings.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ShouldNotReturn));
 
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase));
-            builder.Add(getId(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation));
-            builder.Add(getId(ErrorCode.WRN_NullReferenceInitializer));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase));
+            nullableWarnings.Add(getId(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceInitializer));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ShouldNotReturn));
+            nullableWarnings.Add(getId(ErrorCode.WRN_DoesNotReturnMismatch));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes));
 
-            NullableWarnings = builder.ToImmutable();
+            NullableWarnings = nullableWarnings.ToImmutable();
 
             static string getId(ErrorCode errorCode)
             {
@@ -186,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (s_resourceManager == null)
                 {
-                    s_resourceManager = new System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpResources", typeof(ErrorCode).GetTypeInfo().Assembly);
+                    s_resourceManager = new System.Resources.ResourceManager(typeof(CSharpResources).FullName, typeof(ErrorCode).GetTypeInfo().Assembly);
                 }
 
                 return s_resourceManager;
@@ -428,10 +437,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                 case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_ShouldNotReturn:
+                case ErrorCode.WRN_DoesNotReturnMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
                     return 1;
                 default:
                     return 0;
             }
+            // Note: when adding a warning here, consider whether it should be registered as a nullability warning too
         }
 
         /// <summary>

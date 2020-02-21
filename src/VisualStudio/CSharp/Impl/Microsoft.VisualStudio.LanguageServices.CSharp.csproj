@@ -55,16 +55,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="CSharpVSResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CSharpVSResources.resx</DependentUpon>
-    </Compile>
-    <EmbeddedResource Update="CSharpVSResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>CSharpVSResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="CSharpVSResources.resx" GenerateSource="true" />
     <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>

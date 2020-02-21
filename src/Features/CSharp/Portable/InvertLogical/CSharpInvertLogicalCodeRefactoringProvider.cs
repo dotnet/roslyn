@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,14 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertLogical
         public CSharpInvertLogicalCodeRefactoringProvider()
         {
         }
-
-        protected override SyntaxKind GetKind(int rawKind)
-            => (SyntaxKind)rawKind;
-
-        protected override SyntaxKind InvertedKind(SyntaxKind binaryExprKind)
-            => binaryExprKind == SyntaxKind.LogicalAndExpression
-                ? SyntaxKind.LogicalOrExpression
-                : SyntaxKind.LogicalAndExpression;
 
         protected override string GetOperatorText(SyntaxKind binaryExprKind)
             => binaryExprKind == SyntaxKind.LogicalAndExpression

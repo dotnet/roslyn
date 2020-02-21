@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 return;
             }
 
-#if !NETFX20
+#if !NET20
             if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1 && aggregate.InnerExceptions[0].Data[s_reportedMarker] != null)
             {
                 return;

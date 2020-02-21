@@ -21,9 +21,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
         Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
             Return VisualBasicSyntaxFactsService.Instance
         End Function
-
-        Protected Overrides Function GetSyntaxKindToAnalyze() As SyntaxKind
-            Return SyntaxKind.TernaryConditionalExpression
-        End Function
     End Class
 End Namespace
