@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ThreeState _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown;
 
-        private NativeIntegerTypeSymbol _lazyNativeInt;
-
         protected override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
         {
             Location backupLocation = null;
@@ -1373,17 +1371,9 @@ next:;
         {
             Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
-            if (!asNativeInt)
-            {
-                return this;
-            }
-
-            if (_lazyNativeInt is null)
-            {
-                Interlocked.CompareExchange(ref _lazyNativeInt, new NativeIntegerTypeSymbol(this), null);
-            }
-
-            return _lazyNativeInt;
+            return asNativeInt ?
+                ContainingAssembly.GetNativeIntegerType(this) :
+                this;
         }
 
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)

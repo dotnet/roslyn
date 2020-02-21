@@ -410,6 +410,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Return the native integer type corresponding to the underlying type.
+        /// </summary>
+        internal virtual NamedTypeSymbol GetNativeIntegerType(NamedTypeSymbol underlyingType)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        /// <summary>
         /// Figure out if the target runtime supports default interface implementation.
         /// </summary>
         internal bool RuntimeSupportsDefaultInterfaceImplementation

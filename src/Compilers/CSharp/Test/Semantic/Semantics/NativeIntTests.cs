@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         {
             var memberNames = type.MemberNames;
             var allMembers = type.GetMembers();
+            Assert.Equal(allMembers, type.GetMembers(), ReferenceEqualityComparer.Instance);
 
             foreach (var member in allMembers)
             {
@@ -635,6 +636,7 @@ unsafe class Program
         {
             string source =
 @"using System;
+using System.Linq.Expressions;
 class MyInt
 {
     private readonly nint _i;
@@ -648,11 +650,21 @@ class MyInt
     }
     public override int GetHashCode()
     {
-        return _i.GetHashCode();
+        return ((Func<int>)_i.GetHashCode)();
     }
     public override bool Equals(object other)
     {
         return _i.Equals((other as MyInt)?._i);
+    }
+    internal string ToStringFromExpr()
+    {
+        Expression<Func<string>> e = () => ((Func<string>)_i.ToString)();
+        return e.Compile()();
+    }
+    internal int GetHashCodeFromExpr()
+    {
+        Expression<Func<int>> e = () => _i.GetHashCode();
+        return e.Compile()();
     }
 }
 class Program
@@ -663,13 +675,17 @@ class Program
         Console.WriteLine(m);
         Console.WriteLine(m.GetHashCode());
         Console.WriteLine(m.Equals(null));
+        Console.WriteLine(m.ToStringFromExpr());
+        Console.WriteLine(m.GetHashCodeFromExpr());
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput:
 $@"42
 {42.GetHashCode()}
-False");
+False
+42
+{42.GetHashCode()}");
             verifier.VerifyIL("MyInt.ToString",
 @"{
   // Code size       15 (0xf)
@@ -684,15 +700,16 @@ False");
 }");
             verifier.VerifyIL("MyInt.GetHashCode",
 @"{
-  // Code size       15 (0xf)
-  .maxstack  1
-  .locals init (System.IntPtr V_0)
+  // Code size       29 (0x1d)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""nint MyInt._i""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""int nint.GetHashCode()""
-  IL_000e:  ret
+  IL_0006:  box        ""System.IntPtr""
+  IL_000b:  dup
+  IL_000c:  ldvirtftn  ""int object.GetHashCode()""
+  IL_0012:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0017:  callvirt   ""int System.Func<int>.Invoke()""
+  IL_001c:  ret
 }");
             verifier.VerifyIL("MyInt.Equals",
 @"{
