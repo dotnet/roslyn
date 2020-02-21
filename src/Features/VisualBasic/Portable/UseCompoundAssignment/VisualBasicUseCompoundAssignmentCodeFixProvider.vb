@@ -18,10 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
             MyBase.New(Kinds)
         End Sub
 
-        Protected Overrides Function GetSyntaxKind(rawKind As Integer) As SyntaxKind
-            Return CType(rawKind, SyntaxKind)
-        End Function
-
         Protected Overrides Function Token(kind As SyntaxKind) As SyntaxToken
             Return SyntaxFactory.Token(kind)
         End Function

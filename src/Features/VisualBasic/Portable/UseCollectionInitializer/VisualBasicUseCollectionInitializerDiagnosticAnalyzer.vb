@@ -24,10 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return True
         End Function
 
-        Protected Overrides Function GetObjectCreationSyntaxKind() As SyntaxKind
-            Return SyntaxKind.ObjectCreationExpression
-        End Function
-
         Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
             Return VisualBasicSyntaxFactsService.Instance
         End Function

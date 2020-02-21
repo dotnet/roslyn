@@ -26096,6 +26096,36 @@ public class C2
         }
 
         [Fact]
+        [WorkItem(41699, "https://github.com/dotnet/roslyn/issues/41699")]
+        public void MissingBaseType_TupleTypeArgumentWithNames()
+        {
+            var sourceA =
+@"public class A<T> { }";
+            var comp = CreateCompilation(sourceA, assemblyName: "A");
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"public class B : A<(object X, B Y)> { }";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var refB = comp.EmitToImageReference();
+
+            var sourceC =
+@"class Program
+{
+    static void Main()
+    {
+        var b = new B();
+        b.ToString();
+    }
+}";
+            comp = CreateCompilation(sourceC, references: new[] { refB });
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0012: The type 'A<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         b.ToString();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "ToString").WithArguments("A<>", "A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 11));
+        }
+
+        [Fact]
         [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
         public void FailedDecodingOfTupleNamesWhenMissingValueTupleType()
         {
@@ -26548,6 +26578,42 @@ class Program
 
             var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
             CompileAndVerify(comp6, expectedOutput: "123");
+        }
+
+        [Fact]
+        [WorkItem(40981, "https://github.com/dotnet/roslyn/issues/40981")]
+        public void TupleFromMetadata_TypeInference()
+        {
+            var source0 = @"
+using System;
+public interface IInterface
+{
+    (Type, Type)[] GetTypeTuples();
+}
+";
+
+            var source1 = @"
+using System;
+using System.Linq;
+
+public class Class
+{
+    private void Method(IInterface inter, Func<(Type, Type), string> keySelector)
+    {
+        var tuples = inter.GetTypeTuples();
+        IOrderedEnumerable<(Type, Type)> ordered = tuples.OrderBy(keySelector);
+    }
+}
+";
+
+            var comp0 = CreateCompilation(new[] { source0, source1 }, options: TestOptions.DebugDll);
+            CompileAndVerify(comp0);
+
+            var comp1 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CompileAndVerify(comp1);
+
+            var comp2 = CreateCompilation(source1, references: new[] { comp1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            CompileAndVerify(comp2);
         }
     }
 }

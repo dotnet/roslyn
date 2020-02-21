@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">Der aktuelle Inhalt der Quelldatei "{0}" stimmt nicht mit der erstellten Quelle überein. Alle Änderungen, die während des Debuggens an dieser Datei vorgenommen wurden, werden erst angewendet, wenn der Inhalt der erstellten Quelle entspricht.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -295,6 +295,11 @@
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
         <target state="translated">"{0}" implizit implementieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
@@ -434,12 +439,12 @@
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <target state="translated">Der Parameter "{0}" kann entfernt werden, wenn er nicht Bestandteil einer öffentlich verfügbaren API ist. Sein ursprünglicher Wert wird niemals verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <target state="translated">Der Parameter "{0}" kann entfernt werden, sein ursprünglicher Wert wird niemals verwendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -569,7 +574,7 @@
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">Die Quelldatei "{0}" oder die für das enthaltende Projekt erstellte PDB-Datei kann nicht gelesen werden. Alle Änderungen, die während des Debuggens an dieser Datei vorgenommen wurden, werden erst angewendet, wenn der Inhalt der erstellten Quelle entspricht.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -702,6 +707,11 @@
         <target state="translated">Einfache using-Anweisung verwenden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Warnung: Durch die Änderung des Namespaces kann der Code ungültig werden oder seine Bedeutung verändern.</target>
@@ -774,7 +784,7 @@
       </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
-        <target state="translated">Verwerfen</target>
+        <target state="translated">Ausschussvariable</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -2103,11 +2113,6 @@ Diese Version wird verwendet in: {2}</target>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Unbekannt)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Abstrakte Klasse implementieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

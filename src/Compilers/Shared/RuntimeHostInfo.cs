@@ -7,7 +7,9 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.IO.Pipes;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis
         internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
 
         internal static string ToolExtension => IsCoreClrRuntime ? "dll" : "exe";
+        private static string NativeToolSuffix => PlatformInformation.IsWindows ? ".exe" : "";
 
         /// <summary>
         /// This gets information about invoking a tool on the current runtime. This will attempt to 
@@ -29,6 +32,11 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!toolFilePathWithoutExtension.EndsWith(".dll") && !toolFilePathWithoutExtension.EndsWith(".exe"));
 
+            var nativeToolFilePath = $"{toolFilePathWithoutExtension}{NativeToolSuffix}";
+            if (IsCoreClrRuntime && File.Exists(nativeToolFilePath))
+            {
+                return (nativeToolFilePath, commandLineArguments, nativeToolFilePath);
+            }
             var toolFilePath = $"{toolFilePathWithoutExtension}.{ToolExtension}";
             if (IsDotNetHost(out string? pathToDotNet))
             {
@@ -53,7 +61,7 @@ namespace Microsoft.CodeAnalysis
         internal static NamedPipeClientStream CreateNamedPipeClient(string serverName, string pipeName, PipeDirection direction, PipeOptions options) =>
             new NamedPipeClientStream(serverName, pipeName, direction, options);
 
-#elif NETCOREAPP3_1
+#elif NETCOREAPP
         internal static bool IsDesktopRuntime => false;
 
         private static string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
