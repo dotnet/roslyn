@@ -382,14 +382,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(em.IsEmpty);
             var q = t.Intersect(t);
             Assert.Same(t, q);
-            Assert.Same(t.Factory, ForBool);
             IValueSet b = t;
-            Assert.Same(b.Factory, ForBool);
             Assert.Same(b.Intersect(b), b);
             Assert.Same(b.Union(b), b);
             IValueSetFactory bf = ForBool;
-            Assert.Same(ForBool.All, bf.All);
-            Assert.Same(ForBool.None, bf.None);
         }
 
         [Fact]
@@ -404,28 +400,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var s1 = ForString.Related(Equal, "a");
             var s2 = ForString.Related(Equal, "b");
-            Assert.Equal(ForString.None, s1.Intersect(s2));
-            Assert.Equal(ForString.All, s1.Complement().Union(s2.Complement()));
+            Assert.True(s1.Intersect(s2).IsEmpty);
+            Assert.True(s1.Complement().Union(s2.Complement()).Complement().IsEmpty);
             Assert.Equal(s1.Union(s2).Complement(), s1.Complement().Intersect(s2.Complement()));
             IValueSet b = s1;
-            Assert.Same(s1.Factory, ForString);
-            Assert.Same(b.Factory, ForString);
             Assert.Same(b.Intersect(b), b);
             Assert.Same(b.Union(b), b);
             IValueSetFactory bf = ForString;
-            Assert.Same(ForString.All, bf.All);
-            Assert.Same(ForString.None, bf.None);
-            Assert.True(ForString.None.All(Equal, "a"));
             Assert.False(s1.Union(s2).All(Equal, "a"));
-        }
-
-        [Fact]
-        public void TestFloat_Cov_01()
-        {
-            var s1 = ForFloat.Related(LessThan, 3.14f);
-            IValueSet b = s1;
-            Assert.Same(s1.Factory, b.Factory);
-            Assert.Same(s1.Factory, ForFloat);
         }
 
         [Fact]
@@ -433,8 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var s1 = ForDouble.Related(LessThan, 3.14d);
             IValueSet b = s1;
-            Assert.Same(s1.Factory, b.Factory);
-            Assert.Same(s1.Factory, ForDouble);
             Assert.Same(s1, s1.Intersect(s1));
             Assert.Same(s1, s1.Union(s1));
             var s2 = ForDouble.Related(GreaterThan, 31.4d);
@@ -442,8 +422,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("NaN,[3.1400000000000001..31.399999999999999]", s3.ToString());
             var s4 = b.Union(s2).Complement();
             Assert.Equal(s3, s4);
-            Assert.Same(b.Factory.All, ForDouble.All);
-            Assert.Same(b.Factory.None, ForDouble.None);
         }
 
         [Fact]
@@ -480,10 +458,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(s2.All(GreaterThan, 10));
             Assert.False(s2.All(GreaterThanOrEqual, 10));
             Assert.False(s2.All(Equal, 10));
-
-            IValueSet b = s1;
-            Assert.Same(s1.Factory, b.Factory);
-            Assert.Same(s1.Factory.None, b.Factory.None);
         }
 
         [Fact]
@@ -626,39 +600,88 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             for (int i = 0; i < 100; i++)
             {
-                var s1 = randomStringSet();
-                var s2 = randomStringSet();
+                var s1 = randomStringSet(K - 1);
+                var s2 = randomStringSet(K + 1);
+
                 var u1 = s1.Union(s2);
                 var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
+                var u3 = s2.Union(s1);
+                var u4 = s2.Complement().Intersect(s1.Complement()).Complement();
                 Assert.Equal(u1, u2);
+                Assert.Equal(u1, u3);
+                Assert.Equal(u1, u4);
+
                 var i1 = s1.Intersect(s2);
                 var i2 = s1.Complement().Union(s2.Complement()).Complement();
+                var i3 = s2.Intersect(s1);
+                var i4 = s2.Complement().Union(s1.Complement()).Complement();
                 Assert.Equal(i1, i2);
+                Assert.Equal(i1, i3);
+                Assert.Equal(i1, i4);
+
+                s1 = s1.Complement();
+
+                u1 = s1.Union(s2);
+                u2 = s1.Complement().Intersect(s2.Complement()).Complement();
+                u3 = s2.Union(s1);
+                u4 = s2.Complement().Intersect(s1.Complement()).Complement();
+                Assert.Equal(u1, u2);
+                Assert.Equal(u1, u3);
+                Assert.Equal(u1, u4);
+
+                i1 = s1.Intersect(s2);
+                i2 = s1.Complement().Union(s2.Complement()).Complement();
+                i3 = s2.Intersect(s1);
+                i4 = s2.Complement().Union(s1.Complement()).Complement();
+                Assert.Equal(i1, i2);
+                Assert.Equal(i1, i3);
+                Assert.Equal(i1, i4);
+
+                s2 = s2.Complement();
+
+                u1 = s1.Union(s2);
+                u2 = s1.Complement().Intersect(s2.Complement()).Complement();
+                u3 = s2.Union(s1);
+                u4 = s2.Complement().Intersect(s1.Complement()).Complement();
+                Assert.Equal(u1, u2);
+                Assert.Equal(u1, u3);
+                Assert.Equal(u1, u4);
+
+                i1 = s1.Intersect(s2);
+                i2 = s1.Complement().Union(s2.Complement()).Complement();
+                i3 = s2.Intersect(s1);
+                i4 = s2.Complement().Union(s1.Complement()).Complement();
+                Assert.Equal(i1, i2);
+                Assert.Equal(i1, i3);
+                Assert.Equal(i1, i4);
             }
 
-            // produce a uniformly random subset of 13 letters of the alphabet.
-            IValueSet<string> randomStringSet()
+            // produce a uniformly random subset of letters of the alphabet of the given size.
+            static IValueSet<string> randomStringSet(int size)
             {
-                IValueSet<string> result = ForString.None;
-                int need = K;
+                Assert.True(size > 0);
+                Assert.True(size < 26);
+                IValueSet<string> result = null;
+                int need = size;
                 for (char c = 'a'; c <= 'z'; c++)
                 {
                     int cand = 'z' - c + 1;
                     if (Random.NextDouble() < (1.0 * need / cand))
                     {
-                        result = result.Union(ForString.Related(Equal, c.ToString()));
+                        var added = ForString.Related(Equal, c.ToString());
+                        result = result?.Union(added) ?? added;
                         need--;
                     }
                 }
 
-                // check that we have 13 members
+                // check that we have `size` members
                 int found = 0;
                 for (char c = 'a'; c <= 'z'; c++)
                 {
                     if (result.Any(Equal, c.ToString()))
                         found++;
                 }
-                Assert.Equal(K, found);
+                Assert.Equal(size, found);
 
                 Debug.Assert(need == 0);
                 return result;
@@ -685,14 +708,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // produce a uniformly random subset of 13 letters of the alphabet.
             IValueSet<char> randomCharSet()
             {
-                IValueSet<char> result = ForChar.None;
+                IValueSet<char> result = null;
                 int need = K;
                 for (char c = 'a'; c <= 'z'; c++)
                 {
                     int cand = 'z' - c + 1;
                     if (Random.NextDouble() < (1.0 * need / cand))
                     {
-                        result = result.Union(ForChar.Related(Equal, c));
+                        var added = ForChar.Related(Equal, c);
+                        result = result?.Union(added) ?? added;
                         need--;
                     }
                 }
@@ -735,9 +759,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     d[i] = randomDecimal();
                 }
                 Array.Sort(d);
-                var result = ForDecimal.None;
+
+                // start with an empty set
+                var result = ForDecimal.Related(Equal, 0m);
+                result = result.Intersect(result.Complement());
+                Debug.Assert(result.IsEmpty);
+
                 for (int i = 0; i < n; i += 2)
                 {
+                    // add some intervals
                     result = result.Union(ForDecimal.Related(GreaterThanOrEqual, d[i]).Intersect(ForDecimal.Related(LessThanOrEqual, d[i + 1])));
                 }
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 
 #nullable enable
@@ -18,23 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// parameterized by a type class
         /// <see cref="NumericTC{T}"/> that provides the primitives for that type.
         /// </summary>
-        private class NumericValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, NumericTC<T>
+        private sealed class NumericValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, NumericTC<T>
         {
             public static readonly NumericValueSetFactory<T, TTC> Instance = new NumericValueSetFactory<T, TTC>();
 
             private static readonly IValueSet<T> _all = new NumericValueSet<T, TTC>(Interval.Included.Instance);
 
-            private static readonly IValueSet<T> _none = new NumericValueSet<T, TTC>(Interval.Excluded.Instance);
-
             private NumericValueSetFactory() { }
-
-            public IValueSet<T> All => _all;
-
-            IValueSet IValueSetFactory.All => _all;
-
-            public IValueSet<T> None => _none;
-
-            IValueSet IValueSetFactory.None => _none;
 
             public IValueSet<T> Related(BinaryOperatorKind relation, T value)
             {
@@ -47,9 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             /// <param name="minValue">the interval's minimum value, inclusive</param>
             /// <param name="maxValue">the interval's maximum value, inclusive</param>
-            private Interval RelatedInterval(BinaryOperatorKind relation, T value, T minValue, T maxValue)
+            private static Interval RelatedInterval(BinaryOperatorKind relation, T value, T minValue, T maxValue)
             {
                 TTC tc = default;
+                Debug.Assert(tc.Related(LessThanOrEqual, minValue, maxValue));
                 switch (relation)
                 {
                     case Equal when tc.Related(LessThan, value, minValue):

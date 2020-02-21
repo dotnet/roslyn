@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (ushort leftMax, ushort rightMin) NumericTC<ushort>.Partition(ushort min, ushort max)
             {
-                Debug.Assert(min != max);
+                Debug.Assert(min < max);
                 int half = (max - min) / 2;
                 ushort leftMax = (ushort)(min + half);
                 ushort rightMin = (ushort)(leftMax + 1);

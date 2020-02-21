@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             float FloatingTC<float>.PlusInf => float.PositiveInfinity;
 
+            /// <summary>
+            /// The implementation of Next depends critically on the internal representation of an IEEE floating-point
+            /// number.  Every bit sequence between the representation of 0 and MaxValue represents a distinct
+            /// value, and the integer representations are ordered by value the same as the floating-point numbers they represent.
+            /// </summary>
             float NumericTC<float>.Next(float value)
             {
                 Debug.Assert(!float.IsNaN(value));
@@ -36,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return 0.0f; // skip negative zero
                     return -UintAsFloat(FloatAsUint(-value) - 1);
                 }
+
                 return UintAsFloat(FloatAsUint(value) + 1);
             }
 
@@ -53,14 +59,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return *dp;
             }
 
+            /// <summary>
+            /// The implementation of Partition depends critically on the internal representation of an IEEE floating-point
+            /// number.  Every bit sequence between the representation of 0 and MaxValue represents a distinct
+            /// value, and the integer representations are ordered by value the same as the floating-point numbers they represent.
+            /// </summary>
             (float leftMax, float rightMin) NumericTC<float>.Partition(float min, float max)
             {
-                Debug.Assert(min != max);
+                Debug.Assert(min < max);
 
                 if (min == float.MinValue && max == float.MaxValue)
                     return (-UintAsFloat(1), 0.0f); // skip negative zero
 
                 Debug.Assert((min >= 0) == (max >= 0));
+
+                // we partition the set of floating-point numbers in half.  Note that having the same
+                // number of values on the left and the right (which is what we want) is not the same thing as the
+                // numeric average of the two numbers (which would be a highly unbalanced partition)
                 if (min < 0)
                 {
                     uint minl = FloatAsUint(-max);
@@ -98,6 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             float EqualableValueTC<float>.FromConstantValue(ConstantValue constantValue) => constantValue.SingleValue;
 
+            /// <summary>
+            /// Produce a string for testing purposes that is likely to be the same independent of platform and locale.
+            /// </summary>
             string NumericTC<float>.ToString(float value) => FormattableString.Invariant($"{value:G9}");
         }
     }

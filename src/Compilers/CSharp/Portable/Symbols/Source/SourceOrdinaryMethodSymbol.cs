@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 implementation,
                 diagnostics,
                 reportMismatchInReturnType: null,
-                (diagnostics, implementedMethod, implementingMethod, implementingParameter, arg) =>
+                (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },

@@ -2009,6 +2009,7 @@
 
   <Node Name="BoundTypePattern" Base="BoundPattern">
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
+    <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
   <Node Name="BoundBinaryPattern" Base="BoundPattern">

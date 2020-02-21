@@ -7191,7 +7191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypePattern : BoundPattern
     {
-        public BoundTypePattern(SyntaxNode syntax, BoundTypeExpression declaredType, TypeSymbol inputType, bool hasErrors = false)
+        public BoundTypePattern(SyntaxNode syntax, BoundTypeExpression declaredType, bool isExplicitNotNullTest, TypeSymbol inputType, bool hasErrors = false)
             : base(BoundKind.TypePattern, syntax, inputType, hasErrors || declaredType.HasErrors())
         {
 
@@ -7199,18 +7199,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.DeclaredType = declaredType;
+            this.IsExplicitNotNullTest = isExplicitNotNullTest;
         }
 
 
         public BoundTypeExpression DeclaredType { get; }
+
+        public bool IsExplicitNotNullTest { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTypePattern(this);
 
-        public BoundTypePattern Update(BoundTypeExpression declaredType, TypeSymbol inputType)
+        public BoundTypePattern Update(BoundTypeExpression declaredType, bool isExplicitNotNullTest, TypeSymbol inputType)
         {
-            if (declaredType != this.DeclaredType || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
+            if (declaredType != this.DeclaredType || isExplicitNotNullTest != this.IsExplicitNotNullTest || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTypePattern(this.Syntax, declaredType, inputType, this.HasErrors);
+                var result = new BoundTypePattern(this.Syntax, declaredType, isExplicitNotNullTest, inputType, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10308,7 +10311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
             TypeSymbol inputType = this.VisitType(node.InputType);
-            return node.Update(declaredType, inputType);
+            return node.Update(declaredType, node.IsExplicitNotNullTest, inputType);
         }
         public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
         {
@@ -12507,7 +12510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
             BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
-            return node.Update(declaredType, inputType);
+            return node.Update(declaredType, node.IsExplicitNotNullTest, inputType);
         }
 
         public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
@@ -14299,6 +14302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitTypePattern(BoundTypePattern node, object? arg) => new TreeDumperNode("typePattern", null, new TreeDumperNode[]
         {
             new TreeDumperNode("declaredType", null, new TreeDumperNode[] { Visit(node.DeclaredType, null) }),
+            new TreeDumperNode("isExplicitNotNullTest", node.IsExplicitNotNullTest, null),
             new TreeDumperNode("inputType", node.InputType, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

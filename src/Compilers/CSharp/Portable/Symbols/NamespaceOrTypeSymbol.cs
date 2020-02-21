@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Get a source type symbol for the given declaration syntax.
         /// </summary>
         /// <returns>Null if there is no matching declaration.</returns>
-        internal SourceNamedTypeSymbol GetSourceTypeMember(TypeDeclarationSyntax syntax)
+        internal SourceNamedTypeSymbol? GetSourceTypeMember(TypeDeclarationSyntax syntax)
         {
             return GetSourceTypeMember(syntax.Identifier.ValueText, syntax.Arity, syntax.Kind(), syntax);
         }
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Get a source type symbol for the given declaration syntax.
         /// </summary>
         /// <returns>Null if there is no matching declaration.</returns>
-        internal SourceNamedTypeSymbol GetSourceTypeMember(DelegateDeclarationSyntax syntax)
+        internal SourceNamedTypeSymbol? GetSourceTypeMember(DelegateDeclarationSyntax syntax)
         {
             return GetSourceTypeMember(syntax.Identifier.ValueText, syntax.Arity, syntax.Kind(), syntax);
         }
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to those that are declared within the given syntax.
         /// </summary>
         /// <returns>Null if there is no matching declaration.</returns>
-        internal SourceNamedTypeSymbol GetSourceTypeMember(
+        internal SourceNamedTypeSymbol? GetSourceTypeMember(
             string name,
             int arity,
             SyntaxKind kind,
@@ -207,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in GetTypeMembers(name, arity))
             {
                 var memberT = member as SourceNamedTypeSymbol;
-                if ((object)memberT != null && memberT.TypeKind == typeKind)
+                if ((object?)memberT != null && memberT.TypeKind == typeKind)
                 {
                     if (syntax != null)
                     {
@@ -251,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)scope, ref emittedTypeName);
             }
 
-            NamedTypeSymbol namedType = null;
+            NamedTypeSymbol? namedType = null;
 
             ImmutableArray<NamedTypeSymbol> namespaceOrTypeMembers;
             bool isTopLevel = scope.IsNamespace;
@@ -271,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (emittedTypeName.InferredArity == named.Arity && named.MangleName)
                         {
-                            if ((object)namedType != null)
+                            if ((object?)namedType != null)
                             {
                                 namedType = null;
                                 break;
@@ -317,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!named.MangleName && (forcedArity == -1 || forcedArity == named.Arity))
                 {
-                    if ((object)namedType != null)
+                    if ((object?)namedType != null)
                     {
                         namedType = null;
                         break;
@@ -328,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 Done:
-            if ((object)namedType == null)
+            if ((object?)namedType == null)
             {
                 if (isTopLevel)
                 {
@@ -354,10 +356,10 @@ Done:
         /// <remarks>
         /// "C.D" matches C.D, C{T}.D, C{S,T}.D{U}, etc.
         /// </remarks>
-        internal IEnumerable<NamespaceOrTypeSymbol> GetNamespaceOrTypeByQualifiedName(IEnumerable<string> qualifiedName)
+        internal IEnumerable<NamespaceOrTypeSymbol>? GetNamespaceOrTypeByQualifiedName(IEnumerable<string> qualifiedName)
         {
             NamespaceOrTypeSymbol namespaceOrType = this;
-            IEnumerable<NamespaceOrTypeSymbol> symbols = null;
+            IEnumerable<NamespaceOrTypeSymbol>? symbols = null;
             foreach (string name in qualifiedName)
             {
                 if (symbols != null)

@@ -16,10 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private abstract class Interval
         {
+            private Interval() { }
+
             /// <summary>
             /// A subinterval that includes all elements.
             /// </summary>
-            internal class Included : Interval
+            internal sealed class Included : Interval
             {
                 private Included() { }
                 public static readonly Interval Instance = new Included();
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// A subinterval that excludes all elements.
             /// </summary>
-            internal class Excluded : Interval
+            internal sealed class Excluded : Interval
             {
                 private Excluded() { }
                 public static readonly Interval Instance = new Excluded();
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// A mixed subinterval, in which some elements are included and some excluded.
             /// </summary>
-            internal class Mixed : Interval
+            internal sealed class Mixed : Interval
             {
                 public readonly Interval Left, Right;
 
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public void Deconstruct(out Interval Left, out Interval Right) => (Left, Right) = (this.Left, this.Right);
 
-                public override bool Equals(object obj) => obj is Mixed other && Left.Equals(other.Left) && Right.Equals(other.Right);
+                public override bool Equals(object? obj) => obj is Mixed other && Left.Equals(other.Left) && Right.Equals(other.Right);
 
                 public override int GetHashCode() => Hash.Combine(Left.GetHashCode(), Right.GetHashCode());
             }

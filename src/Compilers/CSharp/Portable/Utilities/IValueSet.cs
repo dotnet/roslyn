@@ -7,7 +7,11 @@
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// An interface representing a set of values of a specific type.
+    /// An interface representing a set of values of a specific type.  During construction of the state machine
+    /// for pattern-matching, we track the set of values of each intermediate result that can reach each state.
+    /// That permits us to determine when tests can be eliminated either because they are impossible (can be
+    /// replaced by an always-false test) or always true with the set of values that can reach that state (and
+    /// can be replaced by an always true test).
     /// </summary>
     internal interface IValueSet
     {
@@ -36,6 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Test if all of the value in the set satisfy the given relation with the given value. Note that the empty set trivially satisifies this.
+        /// Because of that all four combinations of results from <see cref="Any(BinaryOperatorKind, ConstantValue)"/> and <see cref="All(BinaryOperatorKind, ConstantValue)"/>
+        /// are possible: both true when the set is nonempty and all values satisfy the relation; both false when the set is nonempty and none of
+        /// the values satisfy the relation; all but not any when the set is empty; any but not all when the set is nonempty and some values satisfy
+        /// the relation and some do not.
         /// </summary>
         bool All(BinaryOperatorKind relation, ConstantValue value);
 
@@ -43,11 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Does this value set contain no values?
         /// </summary>
         bool IsEmpty { get; }
-
-        /// <summary>
-        /// Our value set factory.
-        /// </summary>
-        IValueSetFactory Factory { get; }
     }
 
     /// <summary>
@@ -77,12 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Test if all of the value in the set satisfy the given relation with the given value. Note that the empty set trivially satisifies this.
+        /// Because of that all four combinations of results from <see cref="Any(BinaryOperatorKind, T)"/> and <see cref="All(BinaryOperatorKind, T)"/>
+        /// are possible: both true when the set is nonempty and all values satisfy the relation; both false when the set is nonempty and none of
+        /// the values satisfy the relation; all but not any when the set is empty; any but not all when the set is nonempty and some values satisfy
+        /// the relation and some do not.
         /// </summary>
         bool All(BinaryOperatorKind relation, T value);
-
-        /// <summary>
-        /// Our value set factory for <typeparamref name="T"/>.
-        /// </summary>
-        new IValueSetFactory<T> Factory { get; }
     }
 }

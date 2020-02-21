@@ -26546,5 +26546,41 @@ class Program
             var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
             CompileAndVerify(comp6, expectedOutput: "123");
         }
+
+        [Fact]
+        [WorkItem(40981, "https://github.com/dotnet/roslyn/issues/40981")]
+        public void TupleFromMetadata_TypeInference()
+        {
+            var source0 = @"
+using System;
+public interface IInterface
+{
+    (Type, Type)[] GetTypeTuples();
+}
+";
+
+            var source1 = @"
+using System;
+using System.Linq;
+
+public class Class
+{
+    private void Method(IInterface inter, Func<(Type, Type), string> keySelector)
+    {
+        var tuples = inter.GetTypeTuples();
+        IOrderedEnumerable<(Type, Type)> ordered = tuples.OrderBy(keySelector);
+    }
+}
+";
+
+            var comp0 = CreateCompilation(new[] { source0, source1 }, options: TestOptions.DebugDll);
+            CompileAndVerify(comp0);
+
+            var comp1 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CompileAndVerify(comp1);
+
+            var comp2 = CreateCompilation(source1, references: new[] { comp1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            CompileAndVerify(comp2);
+        }
     }
 }

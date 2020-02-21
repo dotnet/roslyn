@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 
 #nullable enable
 
@@ -12,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private class BoolValueSet : IValueSet<bool>
+        private sealed class BoolValueSet : IValueSet<bool>
         {
             private readonly bool _hasFalse, _hasTrue;
 
-            internal static BoolValueSet AllValues = new BoolValueSet(hasFalse: true, hasTrue: true);
-            internal static BoolValueSet None = new BoolValueSet(hasFalse: false, hasTrue: false);
-            internal static BoolValueSet OnlyTrue = new BoolValueSet(hasFalse: false, hasTrue: true);
-            internal static BoolValueSet OnlyFalse = new BoolValueSet(hasFalse: true, hasTrue: false);
+            internal static readonly BoolValueSet AllValues = new BoolValueSet(hasFalse: true, hasTrue: true);
+            internal static readonly BoolValueSet None = new BoolValueSet(hasFalse: false, hasTrue: false);
+            internal static readonly BoolValueSet OnlyTrue = new BoolValueSet(hasFalse: false, hasTrue: true);
+            internal static readonly BoolValueSet OnlyFalse = new BoolValueSet(hasFalse: true, hasTrue: false);
 
             private BoolValueSet(bool hasFalse, bool hasTrue) => (_hasFalse, _hasTrue) = (hasFalse, hasTrue);
 
@@ -39,10 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool IValueSet.IsEmpty => !_hasFalse && !_hasTrue;
-
-            IValueSetFactory<bool> IValueSet<bool>.Factory => BoolValueSetFactory.Instance;
-
-            IValueSetFactory IValueSet.Factory => BoolValueSetFactory.Instance;
 
             public bool Any(BinaryOperatorKind relation, bool value)
             {
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<bool>)other);
 
             // Since we cache all distinct boolean value sets, we can use reference equality.
-            public override bool Equals(object obj) => this == obj;
+            public override bool Equals(object? obj) => this == obj;
 
             public override int GetHashCode() => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
 

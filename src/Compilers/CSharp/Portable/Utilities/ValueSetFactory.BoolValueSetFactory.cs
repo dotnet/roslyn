@@ -17,19 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A value set factory for boolean values.
         /// </summary>
-        private class BoolValueSetFactory : IValueSetFactory<bool>
+        private sealed class BoolValueSetFactory : IValueSetFactory<bool>
         {
             public static readonly BoolValueSetFactory Instance = new BoolValueSetFactory();
 
             private BoolValueSetFactory() { }
-
-            IValueSet<bool> IValueSetFactory<bool>.All => BoolValueSet.AllValues;
-
-            IValueSet IValueSetFactory.All => BoolValueSet.AllValues;
-
-            IValueSet<bool> IValueSetFactory<bool>.None => BoolValueSet.None;
-
-            IValueSet IValueSetFactory.None => BoolValueSet.None;
 
             public IValueSet<bool> Related(BinaryOperatorKind relation, bool value)
             {

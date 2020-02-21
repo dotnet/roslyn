@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTypePattern(BoundTypePattern node)
         {
+            Visit(node.DeclaredType);
             return null;
         }
 
@@ -131,9 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDeclarationPattern _:
                 case BoundDiscardPattern _:
                 case BoundITuplePattern _:
-                case BoundTypePattern _:
                 case BoundRelationalPattern _:
                     break; // nothing to learn
+                case BoundTypePattern tp:
+                    if (tp.IsExplicitNotNullTest)
+                    {
+                        LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
+                    }
+                    break;
                 case BoundRecursivePattern rp:
                     {
                         if (rp.IsExplicitNotNullTest)
@@ -401,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
                                     gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable & inputState.MayBeNull());
                                     break;
-                                case BoundDagExplicitNullTest t:
+                                case BoundDagExplicitNullTest _:
                                     if (inputSlot > 0)
                                     {
                                         LearnFromNullTest(inputSlot, inputType, ref this.StateWhenTrue, markDependentSlotsNotNull: true);
@@ -419,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
                                     gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
                                     break;
-                                case BoundDagRelationalTest t:
+                                case BoundDagRelationalTest _:
                                     if (inputSlot > 0)
                                     {
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);

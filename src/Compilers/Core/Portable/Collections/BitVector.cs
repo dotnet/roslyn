@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                 && _bits.AsSpan().SequenceEqual(other._bits.AsSpan());
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is BitVector other && Equals(other);
         }
