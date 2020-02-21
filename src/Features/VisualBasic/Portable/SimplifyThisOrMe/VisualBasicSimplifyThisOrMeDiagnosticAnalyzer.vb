@@ -21,10 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             MeExpressionSyntax,
             MemberAccessExpressionSyntax)
 
-        Public Sub New()
-            MyBase.New(ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression))
-        End Sub
-
         Protected Overrides Function GetLanguageName() As String
             Return LanguageNames.VisualBasic
         End Function

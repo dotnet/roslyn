@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <UseWpf>true</UseWpf>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp</RootNamespace>
     <CreateVsixContainer>false</CreateVsixContainer>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
-    <TargetFramework>net472</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplyNgenOptimization>partial</ApplyNgenOptimization>
   </PropertyGroup>
@@ -26,18 +27,8 @@
     <ProjectReference Include="..\..\..\VisualStudio\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Design" />
-    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="WindowsBase" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="Microsoft.MSXML" Version="$(MicrosoftMSXMLVersion)" />
@@ -57,34 +48,6 @@
     <PackageReference Include="VSLangProj80" Version="$(VSLangProj80Version)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="CSharpVSResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CSharpVSResources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Options\AdvancedOptionPageControl.xaml.cs">
-      <DependentUpon>AdvancedOptionPageControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Options\Formatting\FormattingOptionPageControl.xaml.cs">
-      <DependentUpon>FormattingOptionPageControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Options\IntelliSenseOptionPageControl.xaml.cs">
-      <DependentUpon>IntelliSenseOptionPageControl.xaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="CSharpVSResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>CSharpVSResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="VSPackage.resx">
-      <MergeWithCTO>true</MergeWithCTO>
-      <ManifestResourceName>VSPackage</ManifestResourceName>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
@@ -92,20 +55,12 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Options\AdvancedOptionPageControl.xaml">
+    <EmbeddedResource Update="CSharpVSResources.resx" GenerateSource="true" />
+    <EmbeddedResource Update="VSPackage.resx">
+      <MergeWithCTO>true</MergeWithCTO>
+      <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Options\Formatting\FormattingOptionPageControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Options\IntelliSenseOptionPageControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
+    </EmbeddedResource>
     <Content Include="CSharpPackageRegistration.pkgdef" />
     <Content Include="Interactive\Resources\ScriptFile.ico" />
     <VSCTCompile Include="Interactive\Commands.vsct">

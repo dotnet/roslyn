@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -23,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Get an analyzer config value for the given key, using the <see cref="KeyComparer"/>.
         /// </summary>
         public abstract bool TryGetValue(string key, out string value);
+
+        /// <summary>
+        /// Get the keys of the defined options.
+        /// </summary>
+        public abstract IEnumerable<string> Keys { get; }
     }
 
     internal sealed class CompilerAnalyzerConfigOptions : AnalyzerConfigOptions
@@ -38,5 +42,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
 
+        public override IEnumerable<string> Keys => _backing.Keys;
     }
 }

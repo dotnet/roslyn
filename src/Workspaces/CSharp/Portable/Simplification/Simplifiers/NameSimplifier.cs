@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                                 aliasReplacement.Name,
                                 name.GetTrailingTrivia());
 
-                        identifierToken = CSharpSimplificationService.TryEscapeIdentifierToken(identifierToken, name, semanticModel);
+                        identifierToken = CSharpSimplificationService.TryEscapeIdentifierToken(identifierToken, name);
                         replacementNode = SyntaxFactory.IdentifierName(identifierToken);
 
                         // Merge annotation to new syntax node

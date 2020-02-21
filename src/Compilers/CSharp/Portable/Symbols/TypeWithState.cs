@@ -88,5 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
             return TypeWithAnnotations.Create(this.Type, annotation);
         }
+
+        public TypeWithAnnotations ToAnnotatedTypeWithAnnotations()
+        {
+            NullableAnnotation annotation = (Type?.IsTypeParameterDisallowingAnnotation() == true || Type?.IsValueType == true)
+                ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
+            return TypeWithAnnotations.Create(this.Type, annotation);
+        }
     }
 }
