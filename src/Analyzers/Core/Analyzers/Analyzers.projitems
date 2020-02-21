@@ -11,4 +11,8 @@
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" GenerateSource="true" Link="AnalyzersResources.resx" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCustomTags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIds.cs" />
+  </ItemGroup>
 </Project>
