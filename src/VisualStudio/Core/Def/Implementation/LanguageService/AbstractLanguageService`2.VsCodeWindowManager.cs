@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // Temporary solution until the editor provides a proper way to resolve the correct navbar.
                 // Tracked in https://github.com/dotnet/roslyn/issues/40989
                 var document = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer).AsTextContainer().GetRelatedDocuments().FirstOrDefault();
-                if (document.GetLanguageService<INavigationBarItemService>() == null)
+                if (document?.GetLanguageService<INavigationBarItemService>() == null)
                 {
                     // Remove the existing dropdown bar if it is ours.
                     if (IsOurDropdownBar(dropdownManager, _dropdownBarClient, out var _))
