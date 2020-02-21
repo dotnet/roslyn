@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameterIndex < deconstructMethod!.ParameterCount)
                     {
                         parameter = deconstructMethod.Parameters[parameterIndex];
-                        string? name = subPattern.NameColon.Name.Identifier.ValueText;
+                        string name = subPattern.NameColon.Name.Identifier.ValueText;
                         string parameterName = parameter.Name;
                         if (name != parameterName)
                         {

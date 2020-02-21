@@ -2882,22 +2882,5 @@ class C
                 }
             }
         }
-
-        [Fact]
-        public void TEMP()
-        {
-            var source = @"
-public static class C
-{
-    static int M(string s) => s switch
-    {
-        ""a"" => 1,
-        ""b"" => 2,
-        _ => 3
-    };
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                );
-        }
     }
 }
