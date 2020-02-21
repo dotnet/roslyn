@@ -187,6 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureSwitchExpression = MessageBase + 12763,
         IDS_FeatureAsyncUsing = MessageBase + 12764,
         IDS_FeatureLambdaDiscardParameters = MessageBase + 12765,
+        IDS_FeatureLocalFunctionAttributes = MessageBase + 12766,
+        IDS_FeatureExternLocalFunctions = MessageBase + 12767,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -293,8 +295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
-                // Preview features.
+                // C# preview features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
+                case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
+                case MessageID.IDS_FeatureExternLocalFunctions: // syntax check
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

@@ -324,6 +324,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public bool IsStatementAttributeContext()
+        {
+            var token = TargetToken;
+
+            if (token.Kind() == SyntaxKind.OpenBracketToken &&
+                token.Parent.Kind() == SyntaxKind.AttributeList &&
+                token.Parent.Parent is StatementSyntax)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public bool IsMemberDeclarationContext(
             ISet<SyntaxKind> validModifiers = null,
             ISet<SyntaxKind> validTypeDeclarations = null,
