@@ -6,17 +6,16 @@
 
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -105,23 +104,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var document = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer).AsTextContainer().GetRelatedDocuments().FirstOrDefault();
                 if (document.GetLanguageService<INavigationBarItemService>() == null)
                 {
-                    RemoveDropdownBar(dropdownManager);
+                    // Remove the existing dropdown bar if it is ours.
+                    if (IsOurDropdownBar(dropdownManager, _dropdownBarClient, out var _))
+                    {
+                        RemoveDropdownBar(dropdownManager);
+                    }
+
                     return;
                 }
 
                 var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
                 if (enabled)
                 {
-                    var existingDropdownBar = GetDropdownBar(dropdownManager);
+                    if (IsOurDropdownBar(dropdownManager, _dropdownBarClient, out var existingDropdownBar))
+                    {
+                        // The dropdown bar is already one of ours, do nothing.
+                        return;
+                    }
+
                     if (existingDropdownBar != null)
                     {
-                        // Check if the existing dropdown is already one of ours, and do nothing if it is.
-                        if (_dropdownBarClient != null &&
-                            _dropdownBarClient == GetDropdownBarClient(existingDropdownBar))
-                        {
-                            return;
-                        }
-
                         // Not ours, so remove the old one so that we can add ours.
                         RemoveDropdownBar(dropdownManager);
                     }
@@ -136,6 +138,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 else
                 {
                     RemoveDropdownBar(dropdownManager);
+                }
+
+                static bool IsOurDropdownBar(IVsDropdownBarManager dropdownBarManager, IVsDropdownBarClient? dropdownBarClient, out IVsDropdownBar? existingDropdownBar)
+                {
+                    existingDropdownBar = GetDropdownBar(dropdownBarManager);
+                    if (existingDropdownBar != null)
+                    {
+                        if (dropdownBarClient != null &&
+                            dropdownBarClient == GetDropdownBarClient(existingDropdownBar))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
                 }
             }
 
