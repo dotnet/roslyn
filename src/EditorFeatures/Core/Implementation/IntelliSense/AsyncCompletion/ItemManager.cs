@@ -69,7 +69,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 AsyncCompletionLogger.LogSessionWithTypeImportCompletionEnabled();
             }
 
-            return Task.FromResult(data.InitialList.Sort(CompletionItemSortingComparer.Instance));
+            // Sort by default comparer of Roslyn CompletionItem
+            var sortedItems = data.InitialList.OrderBy(GetOrAddRoslynCompletionItem).ToImmutableArray();
+            return Task.FromResult(sortedItems);
         }
 
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
@@ -540,6 +542,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return -index;
         }
 
+        private static RoslynCompletionItem GetOrAddRoslynCompletionItem(VSCompletionItem vsItem)
+        {
+            if (!vsItem.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
+            {
+                roslynItem = RoslynCompletionItem.Create(
+                    displayText: vsItem.DisplayText,
+                    filterText: vsItem.FilterText,
+                    sortText: vsItem.SortText,
+                    displayTextSuffix: vsItem.Suffix);
+
+                vsItem.Properties.AddProperty(CompletionSource.RoslynItem, roslynItem);
+            }
+
+            return roslynItem;
+        }
+
         private static bool TryCreateMatchResult(
             CompletionHelper completionHelper,
             VSCompletionItem item,
@@ -551,14 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ref int currentIndex,
             out MatchResult matchResult)
         {
-            if (!item.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
-            {
-                roslynItem = RoslynCompletionItem.Create(
-                    displayText: item.DisplayText,
-                    filterText: item.FilterText,
-                    sortText: item.SortText,
-                    displayTextSuffix: item.Suffix);
-            }
+            var roslynItem = GetOrAddRoslynCompletionItem(item);
 
             // Get the match of the given completion item for the pattern provided so far. 
             // A completion item is checked against the pattern by see if it's 
@@ -763,37 +774,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return char.IsLetter(c)
                 || char.IsNumber(c)
                 || c == '_';
-        }
-
-        /// <summary>
-        /// This comparer can handle expanded items.
-        /// </summary>
-        private class CompletionItemSortingComparer : IComparer<VSCompletionItem>
-        {
-            public static CompletionItemSortingComparer Instance { get; } = new CompletionItemSortingComparer();
-
-            public int Compare(VSCompletionItem x, VSCompletionItem y)
-            {
-                var xHasPrefix = HasExpandedPrefix(x);
-                var yHasPrefix = HasExpandedPrefix(y);
-
-                if (xHasPrefix == yHasPrefix)
-                {
-                    // Don't use Ordinal because we want lowercase to be "smaller" than uppercase.
-                    // e.g. "Goo" before "GoTo"
-                    return string.Compare(x.SortText, y.SortText, StringComparison.InvariantCulture);
-                }
-                else if (xHasPrefix)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return -1;
-                }
-
-                static bool HasExpandedPrefix(VSCompletionItem i) => i.SortText.Length > 1 && i.SortText[0] == ImportCompletionItem.SortTextPrefix;
-            }
         }
     }
 }

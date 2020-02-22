@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal static class ImportCompletionItem
     {
-        public const char SortTextPrefix = '~';
-        private static readonly string s_sortTextFormat = $"{SortTextPrefix}{0} {1}";
+        private const string SortTextFormat = "{0} {1}";
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
         private const string AttributeFullName = nameof(AttributeFullName);
@@ -48,12 +47,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 properties = builder.ToImmutableDictionaryAndFree();
             }
 
-            // Add tildes (ASCII: 126) to name and namespace as sort text:
-            // 1. '~' before type name makes import items show after in-scope items
-            // 2. ' ' before namespace makes types with identical type name but from different namespace all show up in the list,
-            //    it also makes sure type with shorter name shows first, e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
+            // Use "<display name> <namespace>" as sort text. The space before namespace makes items with identical display name
+            // but from different namespace all show up in the list, it also makes sure item with shorter name shows first, 
+            // e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
             var sortTextBuilder = PooledStringBuilder.GetInstance();
-            sortTextBuilder.Builder.AppendFormat(s_sortTextFormat, name, containingNamespace);
+            sortTextBuilder.Builder.AppendFormat(SortTextFormat, name, containingNamespace);
 
             var item = CompletionItem.Create(
                  displayText: name,
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var newProperties = attributeItem.Properties.Add(AttributeFullName, attributeItem.DisplayText);
 
             var sortTextBuilder = PooledStringBuilder.GetInstance();
-            sortTextBuilder.Builder.AppendFormat(s_sortTextFormat, attributeNameWithoutSuffix, attributeItem.InlineDescription);
+            sortTextBuilder.Builder.AppendFormat(SortTextFormat, attributeNameWithoutSuffix, attributeItem.InlineDescription);
 
             var item = CompletionItem.Create(
                  displayText: attributeNameWithoutSuffix,
