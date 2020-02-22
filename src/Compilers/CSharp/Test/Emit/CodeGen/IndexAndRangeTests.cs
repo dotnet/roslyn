@@ -1698,6 +1698,42 @@ class C
 }");
         }
 
+        [Fact, WorkItem(40776, "https://github.com/dotnet/roslyn/issues/40776")]
+        public void FakeIndexIndexerOnStructConstructor()
+        {
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+
+class C
+{
+    static byte Repro() => new Span<byte>(new byte[] { })[^1];
+}");
+
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("C.Repro", @"
+ {
+    // Code size       31 (0x1f)
+    .maxstack  3
+    .locals init (int V_0,
+                  System.Span<byte> V_1)
+    IL_0000:  ldc.i4.0
+    IL_0001:  newarr     ""byte""
+    IL_0006:  newobj     ""System.Span<byte>..ctor(byte[])""
+    IL_000b:  stloc.1
+    IL_000c:  ldloca.s   V_1
+    IL_000e:  dup
+    IL_000f:  call       ""int System.Span<byte>.Length.get""
+    IL_0014:  ldc.i4.1
+    IL_0015:  sub
+    IL_0016:  stloc.0
+    IL_0017:  ldloc.0
+    IL_0018:  call       ""ref byte System.Span<byte>.this[int].get""
+    IL_001d:  ldind.u1
+    IL_001e:  ret
+}");
+        }
+
         [Fact]
         public void FakeRangeIndexerStringOpenEnd()
         {
