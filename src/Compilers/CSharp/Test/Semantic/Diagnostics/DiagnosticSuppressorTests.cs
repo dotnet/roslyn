@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -538,6 +540,25 @@ class C { }";
             Assert.Equal(suppressor.SuppressionDescriptor.Justification, orderedSuppressions[0].Justification);
             Assert.Equal(suppressionId2, orderedSuppressions[1].Id);
             Assert.Equal(suppressor2.SuppressionDescriptor.Justification, orderedSuppressions[1].Justification);
+        }
+
+        [CombinatorialData]
+        [Theory, WorkItem(41713, "https://github.com/dotnet/roslyn/issues/41713")]
+        public void TestCancellationDuringSuppressorExecution(bool concurrent)
+        {
+            string source = @"class C1 { }";
+            var options = TestOptions.DebugDll.WithConcurrentBuild(concurrent);
+            var compilation = CreateCompilation(source, options: options);
+            compilation.VerifyDiagnostics();
+
+            var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
+            var expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source);
+            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer }, expectedDiagnostic);
+
+            var suppressor = new DiagnosticSuppressorForId_ThrowsOperationCancelledException(analyzer.Descriptor.Id);
+            var cancellationToken = suppressor.CancellationTokenSource.Token;
+            var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor };
+            Assert.Throws<OperationCanceledException>(() => compilation.GetAnalyzerDiagnostics(analyzersAndSuppressors, reportSuppressedDiagnostics: true, cancellationToken: cancellationToken));
         }
     }
 }
