@@ -265,9 +265,9 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         private static void AddCoupledNamedTypesCore(ImmutableHashSet<INamedTypeSymbol>.Builder builder, ITypeSymbol typeOpt)
         {
             if (typeOpt is INamedTypeSymbol usedType &&
-                !isIgnoreableType(usedType) &&
-                builder.Add(usedType))
+                !isIgnoreableType(usedType))
             {
+                builder.Add(usedType.OriginalDefinition);
                 if (usedType.IsGenericType)
                 {
                     foreach (var type in usedType.TypeArguments)
@@ -280,6 +280,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             // Compat
             static bool isIgnoreableType(INamedTypeSymbol namedType)
             {
+                if (namedType.IsAnonymousType)
+                {
+                    return true;
+                }
+
                 switch (namedType.SpecialType)
                 {
                     case SpecialType.System_Boolean:
