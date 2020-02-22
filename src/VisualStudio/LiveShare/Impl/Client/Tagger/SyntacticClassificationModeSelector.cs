@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 return (SyntacticClassificationMode)_modeCache;
             }
 
-            if (!Workspace.TryGetWorkspace(_buffer.AsTextContainer(), out var workspace))
+            if (!CodeAnalysis.Workspace.TryGetWorkspace(_buffer.AsTextContainer(), out var workspace))
             {
                 return SyntacticClassificationMode.TextMate;
             }

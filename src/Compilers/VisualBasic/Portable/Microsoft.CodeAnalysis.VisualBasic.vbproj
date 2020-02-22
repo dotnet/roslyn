@@ -20,17 +20,7 @@
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="VBResources.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>VBResources.resx</DependentUpon>
-    </Compile>
-    <EmbeddedResource Update="VBResources.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic</CustomToolNamespace>
-      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>VBResources.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="VBResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\Embedded.vb" />

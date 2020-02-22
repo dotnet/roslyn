@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
         where TArgumentSyntax : SyntaxNode
         where TTupleExpressionSyntax : SyntaxNode
     {
-        protected abstract bool IsCloseParenOrComma(SyntaxToken token);
         protected abstract TArgumentSyntax WithName(TArgumentSyntax argument, string argumentName);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)

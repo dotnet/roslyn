@@ -78,8 +78,9 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">閉じているファイルの診断結果を表示する;
+Use enhanced colors;
+Editor Color Scheme;</source>
+        <target state="needs-review-translation">閉じているファイルの診断結果を表示する;
 正規表現をカラー化する;
 カーソルの下にある関連コンポーネントをハイライトする;
 無効な正規表現を報告する;

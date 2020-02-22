@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal Cci.IFieldReference GetOrAddInstrumentationPayloadRoot(int analysisKind, Cci.ITypeReference payloadRootType)
         {
-            InstrumentationPayloadRootField payloadRootField;
+            InstrumentationPayloadRootField? payloadRootField;
             if (!_instrumentationPayloadRootFields.TryGetValue(analysisKind, out payloadRootField))
             {
                 Debug.Assert(!IsFrozen);
@@ -222,9 +222,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         // Get method by name, if one exists. Otherwise return null.
-        internal Cci.IMethodDefinition GetMethod(string name)
+        internal Cci.IMethodDefinition? GetMethod(string name)
         {
-            Cci.IMethodDefinition method;
+            Cci.IMethodDefinition? method;
             _synthesizedMethods.TryGetValue(name, out method);
             return method;
         }
@@ -295,8 +295,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
             }
 
-            public int Compare(SynthesizedStaticField x, SynthesizedStaticField y)
+            public int Compare(SynthesizedStaticField? x, SynthesizedStaticField? y)
             {
+                RoslynDebug.Assert(x is object && y is object);
+
                 // Fields are always synthesized with non-null names.
                 RoslynDebug.Assert(x.Name != null && y.Name != null);
                 return x.Name.CompareTo(y.Name);

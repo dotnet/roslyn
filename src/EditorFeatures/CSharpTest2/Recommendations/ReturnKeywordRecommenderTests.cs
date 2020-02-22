@@ -49,6 +49,41 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestIncompleteStatementAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestStatementAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$Attr]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestLocalFunctionAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$Attr] void local1() { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLocalFunctionParameterAttributeList()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"void local1([$$Attr] int i) { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLocalFunctionTypeParameterAttributeList()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"void local1<[$$Attr] T>() { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestEmptyStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(

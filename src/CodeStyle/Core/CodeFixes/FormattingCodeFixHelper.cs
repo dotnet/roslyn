@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if CODE_STYLE
-extern alias CodeStyle;
-#endif
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
 #if CODE_STYLE
-using Formatter = CodeStyle::Microsoft.CodeAnalysis.Formatting.Formatter;
+using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
 using FormatterState = Microsoft.CodeAnalysis.Formatting.ISyntaxFormattingService;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
