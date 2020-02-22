@@ -309,23 +309,16 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        /// <summary>
-        /// True if the content (text/tree) has changed.
-        /// </summary>
         public bool HasContentChanged(DocumentState oldState)
         {
             return oldState._treeSource != _treeSource
-                || oldState.sourceText != sourceText
-                || oldState.TextAndVersionSource != TextAndVersionSource;
+                || HasTextChanged(oldState, ignoreUnchangeableDocument: false);
         }
 
-        /// <summary>
-        /// True if the Text has changed
-        /// </summary>
+        [Obsolete("Use TextDocumentState.HasTextChanged")]
         public bool HasTextChanged(DocumentState oldState)
         {
-            return oldState.sourceText != sourceText
-                || oldState.TextAndVersionSource != TextAndVersionSource;
+            return HasTextChanged(oldState, ignoreUnchangeableDocument: false);
         }
 
         public DocumentState UpdateParseOptions(ParseOptions options)
@@ -776,9 +769,10 @@ namespace Microsoft.CodeAnalysis
             {
                 var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
 
-                if (!RoslynString.IsNullOrEmpty(projectPath))
+                if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
                 {
-                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
+                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, Name);
                 }
             }
 

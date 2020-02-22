@@ -2018,6 +2018,110 @@ public class Goo
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function LocalFunctionAttributeNamedPropertyCompletionCommitWithTab() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                            <Document>
+class MyAttribute : System.Attribute
+{
+    public string Name { get; set; }
+}
+
+public class Goo
+{
+    void M()
+    {
+        [MyAttribute($$
+        void local1() { }
+    }
+}
+                            </Document>)
+                state.SendTypeChars("Nam")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        [MyAttribute(Name =", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeOnLocalFunctionCompletionCommitWithTab() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                            <Document>
+class MyGoodAttribute : System.Attribute
+{
+    public string Name { get; set; }
+}
+
+public class Goo
+{
+    void M()
+    {
+        [$$
+        void local1()
+        {
+        }
+    }
+}
+                            </Document>)
+                state.SendTypeChars("MyG")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        [MyGood", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeOnMissingStatementCompletionCommitWithTab() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                            <Document>
+class MyGoodAttribute : System.Attribute
+{
+    public string Name { get; set; }
+}
+
+public class Goo
+{
+    void M()
+    {
+        [$$
+    }
+}
+                            </Document>)
+                state.SendTypeChars("MyG")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        [MyGood", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypeAfterAttributeListOnStatement() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                            <Document>
+class MyGoodAttribute : System.Attribute
+{
+    public string Name { get; set; }
+}
+
+public class Goo
+{
+    void M()
+    {
+        [MyGood] $$
+    }
+}
+                            </Document>)
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        [MyGood] Goo", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedPropertyCompletionCommitWithEquals() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                             <Document>
@@ -5993,6 +6097,64 @@ namespace NS
                     }
 
                 state.AssertItemsInOrder(expectedOrder)
+            End Using
+        End Function
+
+        <WorkItem(39519, "https://github.com/dotnet/roslyn/issues/39519")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsInTheMiddle() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+namespace NS
+{
+    class C
+    {
+        public void Foo(Foo123Bar $$)
+        {
+        }
+    }
+
+    public class Foo123Bar
+    {
+    } 
+}
+]]></Document>)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("foo123Bar", "foo123", "foo", "bar")
+                Await state.AssertCompletionItemsDoNotContainAny("123Bar")
+            End Using
+        End Function
+
+        <WorkItem(39519, "https://github.com/dotnet/roslyn/issues/39519")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsOnTheRight() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+namespace NS
+{
+    class C
+    {
+        public void Foo(Foo123 $$)
+        {
+        }
+    }
+
+    public class Foo123
+    {
+    } 
+}
+]]></Document>)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("foo123", "foo")
+                Await state.AssertCompletionItemsDoNotContainAny("123")
             End Using
         End Function
 

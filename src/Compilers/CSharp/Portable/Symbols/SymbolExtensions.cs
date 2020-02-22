@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the members of superType are accessible from subType due to inheritance.
         /// </summary>
-        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             // NOTE: we don't use strict inheritance.  Instead we ignore constructed generic types
             // and only consider the unconstructed types.  Ecma-334, 4th edition contained the
@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return superType.TypeKind == TypeKind.Submission && subType.TypeKind == TypeKind.Submission;
         }
 
-        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
         }
 
-        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeWithAnnotations type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeWithAnnotations type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
         }
@@ -187,6 +187,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+        }
+
+        public static bool IsSourceParameterWithEnumeratorCancellationAttribute(this ParameterSymbol parameter)
+        {
+            switch (parameter)
+            {
+                case SourceComplexParameterSymbol source:
+                    return source.HasEnumeratorCancellationAttribute;
+                case SynthesizedComplexParameterSymbol synthesized:
+                    return synthesized.HasEnumeratorCancellationAttribute;
+                default:
+                    return false;
             }
         }
 
@@ -319,11 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (symbol is object)
             {
-                SyntaxReference reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
+                SyntaxReference? reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
 
                 if (reference == null && symbol.IsImplicitlyDeclared)
                 {
-                    Symbol containingSymbol = symbol.ContainingSymbol;
+                    Symbol? containingSymbol = symbol.ContainingSymbol;
                     if ((object)containingSymbol != null)
                     {
                         reference = containingSymbol.DeclaringSyntaxReferences.FirstOrDefault();
@@ -605,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbols.Select(p => p.GetPublicSymbol<ISymbol>());
         }
 
-        private static ImmutableArray<TISymbol?> GetPublicSymbols<TISymbol>(this ImmutableArray<Symbol?> symbols) where TISymbol : class, ISymbol
+        private static ImmutableArray<TISymbol> GetPublicSymbols<TISymbol>(this ImmutableArray<Symbol> symbols) where TISymbol : class, ISymbol
         {
             if (symbols.IsDefault)
             {
@@ -615,64 +628,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbols.SelectAsArray(p => p.GetPublicSymbol<TISymbol>());
         }
 
-        internal static ImmutableArray<ISymbol?> GetPublicSymbols(this ImmutableArray<Symbol?> symbols)
+        internal static ImmutableArray<ISymbol> GetPublicSymbols(this ImmutableArray<Symbol> symbols)
         {
             return GetPublicSymbols<ISymbol>(symbols);
         }
 
-        internal static ImmutableArray<IPropertySymbol?> GetPublicSymbols(this ImmutableArray<PropertySymbol?> symbols)
+        internal static ImmutableArray<IPropertySymbol> GetPublicSymbols(this ImmutableArray<PropertySymbol> symbols)
         {
-            return GetPublicSymbols<IPropertySymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<IPropertySymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        internal static ImmutableArray<ITypeSymbol?> GetPublicSymbols(this ImmutableArray<TypeSymbol?> symbols)
+        internal static ImmutableArray<ITypeSymbol> GetPublicSymbols(this ImmutableArray<TypeSymbol> symbols)
         {
-            return GetPublicSymbols<ITypeSymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<ITypeSymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        internal static ImmutableArray<INamedTypeSymbol?> GetPublicSymbols(this ImmutableArray<NamedTypeSymbol?> symbols)
+        internal static ImmutableArray<INamedTypeSymbol> GetPublicSymbols(this ImmutableArray<NamedTypeSymbol> symbols)
         {
-            return GetPublicSymbols<INamedTypeSymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<INamedTypeSymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        internal static ImmutableArray<ILocalSymbol?> GetPublicSymbols(this ImmutableArray<LocalSymbol?> symbols)
+        internal static ImmutableArray<ILocalSymbol> GetPublicSymbols(this ImmutableArray<LocalSymbol> symbols)
         {
-            return GetPublicSymbols<ILocalSymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<ILocalSymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        internal static ImmutableArray<IEventSymbol?> GetPublicSymbols(this ImmutableArray<EventSymbol?> symbols)
+        internal static ImmutableArray<IEventSymbol> GetPublicSymbols(this ImmutableArray<EventSymbol> symbols)
         {
-            return GetPublicSymbols<IEventSymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<IEventSymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        internal static ImmutableArray<ITypeParameterSymbol?> GetPublicSymbols(this ImmutableArray<TypeParameterSymbol?> symbols)
+        internal static ImmutableArray<ITypeParameterSymbol> GetPublicSymbols(this ImmutableArray<TypeParameterSymbol> symbols)
         {
-            return GetPublicSymbols<ITypeParameterSymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<ITypeParameterSymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        internal static ImmutableArray<IParameterSymbol?> GetPublicSymbols(this ImmutableArray<ParameterSymbol?> symbols)
+        internal static ImmutableArray<IParameterSymbol> GetPublicSymbols(this ImmutableArray<ParameterSymbol> symbols)
         {
-            return GetPublicSymbols<IParameterSymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<IParameterSymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        internal static ImmutableArray<IMethodSymbol?> GetPublicSymbols(this ImmutableArray<MethodSymbol?> symbols)
+        internal static ImmutableArray<IMethodSymbol> GetPublicSymbols(this ImmutableArray<MethodSymbol> symbols)
         {
-            return GetPublicSymbols<IMethodSymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<IMethodSymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        internal static ImmutableArray<IAssemblySymbol?> GetPublicSymbols(this ImmutableArray<AssemblySymbol?> symbols)
+        internal static ImmutableArray<IAssemblySymbol> GetPublicSymbols(this ImmutableArray<AssemblySymbol> symbols)
         {
-            return GetPublicSymbols<IAssemblySymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<IAssemblySymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        internal static ImmutableArray<IFieldSymbol?> GetPublicSymbols(this ImmutableArray<FieldSymbol?> symbols)
+        internal static ImmutableArray<IFieldSymbol> GetPublicSymbols(this ImmutableArray<FieldSymbol> symbols)
         {
-            return GetPublicSymbols<IFieldSymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<IFieldSymbol>(StaticCast<Symbol>.From(symbols));
         }
 
-        internal static ImmutableArray<INamespaceSymbol?> GetPublicSymbols(this ImmutableArray<NamespaceSymbol?> symbols)
+        internal static ImmutableArray<INamespaceSymbol> GetPublicSymbols(this ImmutableArray<NamespaceSymbol> symbols)
         {
-            return GetPublicSymbols<INamespaceSymbol>(StaticCast<Symbol?>.From(symbols));
+            return GetPublicSymbols<INamespaceSymbol>(StaticCast<Symbol>.From(symbols));
         }
 
         internal static TSymbol? GetSymbol<TSymbol>(this ISymbol? symbolOpt) where TSymbol : Symbol

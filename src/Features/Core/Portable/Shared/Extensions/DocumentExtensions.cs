@@ -90,16 +90,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static IEnumerable<Document> GetLinkedDocuments(this Document document)
-        {
-            var solution = document.Project.Solution;
-
-            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
-            {
-                yield return solution.GetDocument(linkedDocumentId);
-            }
-        }
-
         /// <summary>
         /// Get the user-specified naming rules, then add standard default naming rules (if provided). The standard 
         /// naming rules (fallback rules) are added at the end so they will only be used if the user hasn't specified 
