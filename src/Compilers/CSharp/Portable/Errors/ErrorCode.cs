@@ -1757,6 +1757,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_DoesNotReturnMismatch = 8770,
         ERR_NoOutputDirectory = 8771,
+        ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8772,
+
+        // available 8761-8779
+
+        #region diagnostics introduced for C# 9.0
+
+        ERR_DesignatorBeneathPatternCombinator = 8780,
 
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
         ERR_ConditionalOnLocalFunction = 8783,
