@@ -170,6 +170,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(model.LookupNames(declarator.SpanStart).Contains(declarator.Identifier.ValueText));
         }
 
+        internal static void VerifyModelForDuplicateVariableDeclarationInSameScope(
+            SemanticModel model,
+            SingleVariableDesignationSyntax designation,
+            LocalDeclarationKind kind)
+        {
+            var symbol = model.GetDeclaredSymbol(designation);
+            Assert.Equal(designation.Identifier.ValueText, symbol.Name);
+            Assert.Equal(designation, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Equal(kind, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
+            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)designation));
+            Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
+        }
+
         protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
         {
             var symbol = model.GetSymbolInfo(reference).Symbol;
