@@ -1768,12 +1768,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
         ERR_ConditionalOnLocalFunction = 8783,
 
-        // available 8784-8799
-
-        #region diagnostics introduced for C# 9.0
-
-        ERR_DesignatorBeneathPatternCombinator = 8800,
-
         #endregion diagnostics introduced for C# 9.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
