@@ -12,17 +12,34 @@ using Roslyn.Utilities;
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// Responsible for orchestrating a source generation pass
+    /// </summary>
+    /// <remarks>
+    /// GeneratorDriver is an immutable class that can be manipulated by returning a mutated copy of itself.
+    /// In the compiler we only ever create a single instance and ignore the mutated copy. The IDE may perform 
+    /// multiple edits, or generation passes of the same driver, re-using the state as needed.
+    /// 
+    /// A generator driver works like a small state machine:
+    ///   - It starts off with no generated sources
+    ///   - A full generation pass will run every generator and produce all possible generated source
+    ///   - At any time an 'edit' maybe supplied, which represents potential future work
+    ///   - TryApplyChanges can be called, which will iterate through the pending edits and try and attempt to 
+    ///     bring the state back to what it would be if a full generation occured by running partial generation
+    ///     on generators that support it
+    ///   - At any time a full generation pass can be re-run, resetting the pending edits
+    /// </remarks>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     public abstract class GeneratorDriver
     {
-        protected readonly GeneratorDriverState _state;
+        internal readonly GeneratorDriverState _state;
 
-        protected GeneratorDriver(GeneratorDriverState state)
+        internal GeneratorDriver(GeneratorDriverState state)
         {
             _state = state;
         }
 
-        protected GeneratorDriver(Compilation compilation, ParseOptions parseOptions)
+        internal GeneratorDriver(Compilation compilation, ParseOptions parseOptions)
         {
             _state = new GeneratorDriverState(compilation, parseOptions, ImmutableArray<GeneratorProvider>.Empty, ImmutableArray<AdditionalText>.Empty, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>>.Empty, finalCompilation: null, editsFailed: true);
         }
@@ -191,8 +208,8 @@ namespace Microsoft.CodeAnalysis
             return FromState(state);
         }
 
-        protected abstract GeneratorDriver FromState(GeneratorDriverState state);
+        internal abstract GeneratorDriver FromState(GeneratorDriverState state);
 
-        protected abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, CancellationToken cancellationToken);
+        internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, CancellationToken cancellationToken);
     }
 }

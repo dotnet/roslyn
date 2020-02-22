@@ -11,14 +11,22 @@ using System.Text;
 namespace Microsoft.CodeAnalysis
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "<Pending>")]
-    public readonly struct GeneratorDriverState
+    internal readonly struct GeneratorDriverState
     {
         internal GeneratorDriverState(Compilation compilation, ParseOptions parseOptions)
             : this(compilation, parseOptions, ImmutableArray<GeneratorProvider>.Empty, ImmutableArray<AdditionalText>.Empty, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>>.Empty, null, false)
         {
         }
 
-        internal GeneratorDriverState(Compilation compilation, ParseOptions parseOptions, ImmutableArray<GeneratorProvider> providers, ImmutableArray<AdditionalText> additionalTexts, ImmutableArray<PendingEdit> edits, ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>> sources, Compilation? finalCompilation, bool editsFailed)
+        internal GeneratorDriverState(Compilation compilation,
+                                      ParseOptions parseOptions,
+                                      ImmutableArray<GeneratorProvider> providers,
+                                      ImmutableArray<AdditionalText> additionalTexts,
+                                      ImmutableArray<PendingEdit> edits,
+                                      ImmutableDictionary<GeneratorProvider,
+                                      ImmutableArray<GeneratedSourceText>> sources,
+                                      Compilation? finalCompilation,
+                                      bool editsFailed)
         {
             Providers = providers;
             AdditionalTexts = additionalTexts;
@@ -31,8 +39,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The set of <see cref="GeneratorProvider"/>s that will be run
+        /// The set of <see cref="GeneratorProvider"/>s associated with this state.
         /// </summary>
+        /// <remarks>
+        /// This is the set of generators that will run on next generation.
+        /// If there are any sources present in <see cref="Sources" />, they were produced by these generators.
+        /// </remarks>
         internal readonly ImmutableArray<GeneratorProvider> Providers;
 
         /// <summary>
@@ -48,6 +60,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The set of sources added to this state, by provider that added them
         /// </summary>
+        /// <remarks>
+        /// If this state has not been used to perform generation, this collection will be empty.
+        /// The keys here will be a subset of the <see cref="Providers"/> collection; only providers
+        /// that produced at least 1 source will have an entry.
+        /// </remarks>
         internal readonly ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>> Sources;
 
         /// <summary>

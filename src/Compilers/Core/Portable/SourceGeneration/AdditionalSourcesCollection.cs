@@ -33,10 +33,6 @@ namespace Microsoft.CodeAnalysis
 
         public void Add(string hintName, SourceText source)
         {
-            if (Contains(hintName))
-            {
-                throw new ArgumentException($"Parameter {nameof(hintName)} must be a unique value.", nameof(hintName));
-            }
             _sourcesAdded.Add(hintName, source);
         }
 

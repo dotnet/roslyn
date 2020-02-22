@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
-    public class CSharpGeneratorDriver : GeneratorDriver
+    public sealed class CSharpGeneratorDriver : GeneratorDriver
     {
         public CSharpGeneratorDriver(Compilation compilation, ParseOptions parseOptions)
             : base(compilation, parseOptions)
@@ -30,8 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        protected override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, CancellationToken cancellationToken) => SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, input.HintName, cancellationToken); //PROTOTYPE: hint path/ filename uniqueness
+        internal override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, CancellationToken cancellationToken)
+            => SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, input.HintName, cancellationToken); //PROTOTYPE: hint path/ filename uniqueness
 
-        protected override GeneratorDriver FromState(GeneratorDriverState state) => new CSharpGeneratorDriver(state);
+        internal override GeneratorDriver FromState(GeneratorDriverState state) => new CSharpGeneratorDriver(state);
     }
 }
