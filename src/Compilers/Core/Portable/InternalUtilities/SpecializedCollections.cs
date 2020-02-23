@@ -30,6 +30,11 @@ namespace Roslyn.Utilities
             return Empty.List<T>.Instance;
         }
 
+        public static IReadOnlyList<T> EmptyImmutableArrayList<T>()
+        {
+            return Empty.ImmutableArrayList<T>.Instance;
+        }
+
         public static IReadOnlyList<T> EmptyReadOnlyList<T>()
         {
             return Empty.List<T>.Instance;

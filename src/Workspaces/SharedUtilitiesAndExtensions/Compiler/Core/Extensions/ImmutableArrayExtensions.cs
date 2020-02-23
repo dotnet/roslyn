@@ -41,19 +41,24 @@ namespace Roslyn.Utilities
             return ImmutableArray.CreateRange<T>(items);
         }
 
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
-            => items.IsDefault ? ImmutableArray<T>.Empty : items;
-
         internal static IReadOnlyList<T> ToImmutableReadOnlyListOrEmpty<T>(this IEnumerable<T>? items)
         {
-            if (items is ImmutableArray<T> array && !array.IsDefault)
+            if (items is null)
             {
-                return (IReadOnlyList<T>)items;
+                return SpecializedCollections.EmptyImmutableArrayList<T>();
             }
-            else
+
+            if (items is ImmutableArray<T> array)
             {
-                return items.ToImmutableArrayOrEmpty();
+                return array.IsDefaultOrEmpty ? SpecializedCollections.EmptyImmutableArrayList<T>() : (IReadOnlyList<T>)items;
             }
+
+            if (items is ICollection<T> collection && collection.Count == 0)
+            {
+                return SpecializedCollections.EmptyImmutableArrayList<T>();
+            }
+
+            return ImmutableArray.CreateRange(items);
         }
 
         internal static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
