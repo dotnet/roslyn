@@ -41,29 +41,37 @@ namespace Roslyn.Utilities
             return ImmutableArray.CreateRange<T>(items);
         }
 
-        internal static IReadOnlyList<T> ToImmutableReadOnlyListOrEmpty<T>(this IEnumerable<T>? items)
+        internal static IReadOnlyList<T> ToBoxedImmutableArray<T>(this IEnumerable<T>? items)
         {
             if (items is null)
             {
-                return SpecializedCollections.EmptyImmutableArrayList<T>();
+                return SpecializedCollections.EmptyBoxedImmutableArray<T>();
             }
 
             if (items is ImmutableArray<T> array)
             {
-                return array.IsDefaultOrEmpty ? SpecializedCollections.EmptyImmutableArrayList<T>() : (IReadOnlyList<T>)items;
+                return array.IsDefaultOrEmpty ? SpecializedCollections.EmptyBoxedImmutableArray<T>() : (IReadOnlyList<T>)items;
             }
 
             if (items is ICollection<T> collection && collection.Count == 0)
             {
-                return SpecializedCollections.EmptyImmutableArrayList<T>();
+                return SpecializedCollections.EmptyBoxedImmutableArray<T>();
             }
 
             return ImmutableArray.CreateRange(items);
         }
 
-        internal static IReadOnlyList<T>? AsImmutableReadOnlyListWithNonNullItems<T>(this IEnumerable<T>? sequence) where T : class
+        /// <summary>
+        /// Use to validate public API input for properties that are exposed as <see cref="IReadOnlyList{T}"/>.
+        /// 
+        /// Pattern:
+        /// <code>
+        /// argument.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(argument)),
+        /// </code>
+        /// </summary>
+        internal static IReadOnlyList<T>? AsBoxedImmutableArrayWithNonNullItems<T>(this IEnumerable<T>? sequence) where T : class
         {
-            var list = sequence.ToImmutableReadOnlyListOrEmpty();
+            var list = sequence.ToBoxedImmutableArray();
 
             foreach (var item in list)
             {

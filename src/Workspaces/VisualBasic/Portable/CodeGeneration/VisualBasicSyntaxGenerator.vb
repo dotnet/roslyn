@@ -3673,7 +3673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function GetBaseAndInterfaceTypes(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
-            Return Me.GetInherits(declaration).SelectMany(Function(ih) ih.Types).Concat(Me.GetImplements(declaration).SelectMany(Function(imp) imp.Types)).ToImmutableReadOnlyListOrEmpty()
+            Return Me.GetInherits(declaration).SelectMany(Function(ih) ih.Types).Concat(Me.GetImplements(declaration).SelectMany(Function(imp) imp.Types)).ToBoxedImmutableArray()
         End Function
 
         Public Overrides Function AddBaseType(declaration As SyntaxNode, baseType As SyntaxNode) As SyntaxNode
@@ -3938,9 +3938,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GetSubDeclarations(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
             Select Case declaration.Kind
                 Case SyntaxKind.FieldDeclaration
-                    Return DirectCast(declaration, FieldDeclarationSyntax).Declarators.SelectMany(Function(d) d.Names).ToImmutableReadOnlyListOrEmpty()
+                    Return DirectCast(declaration, FieldDeclarationSyntax).Declarators.SelectMany(Function(d) d.Names).ToBoxedImmutableArray()
                 Case SyntaxKind.LocalDeclarationStatement
-                    Return DirectCast(declaration, LocalDeclarationStatementSyntax).Declarators.SelectMany(Function(d) d.Names).ToImmutableReadOnlyListOrEmpty()
+                    Return DirectCast(declaration, LocalDeclarationStatementSyntax).Declarators.SelectMany(Function(d) d.Names).ToBoxedImmutableArray()
                 Case SyntaxKind.AttributeList
                     Return DirectCast(declaration, AttributeListSyntax).Attributes
                 Case SyntaxKind.ImportsStatement

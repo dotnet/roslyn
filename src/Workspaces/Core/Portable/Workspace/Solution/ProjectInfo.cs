@@ -229,12 +229,12 @@ namespace Microsoft.CodeAnalysis
                     runAnalyzers: true),
                 compilationOptions,
                 parseOptions,
-                documents.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)),
-                projectReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)),
-                metadataReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)),
-                analyzerReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)),
-                additionalDocuments.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)),
-                analyzerConfigDocuments: SpecializedCollections.EmptyImmutableArrayList<DocumentInfo>(),
+                documents.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)),
+                projectReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)),
+                metadataReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)),
+                analyzerReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)),
+                additionalDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)),
+                analyzerConfigDocuments: SpecializedCollections.EmptyBoxedImmutableArray<DocumentInfo>(),
                 hostObjectType);
         }
 
@@ -322,22 +322,22 @@ namespace Microsoft.CodeAnalysis
             => With(parseOptions: parseOptions);
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo>? documents)
-            => With(documents: documents.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)));
+            => With(documents: documents.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)));
 
         public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo>? additionalDocuments)
-            => With(additionalDocuments: additionalDocuments.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)));
+            => With(additionalDocuments: additionalDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)));
 
         public ProjectInfo WithAnalyzerConfigDocuments(IEnumerable<DocumentInfo>? analyzerConfigDocuments)
-            => With(analyzerConfigDocuments: analyzerConfigDocuments.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerConfigDocuments)));
+            => With(analyzerConfigDocuments: analyzerConfigDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerConfigDocuments)));
 
         public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference>? projectReferences)
-            => With(projectReferences: projectReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)));
+            => With(projectReferences: projectReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)));
 
         public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference>? metadataReferences)
-            => With(metadataReferences: metadataReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)));
+            => With(metadataReferences: metadataReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)));
 
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
-            => With(analyzerReferences: analyzerReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)));
+            => With(analyzerReferences: analyzerReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)));
 
         internal string GetDebuggerDisplay()
             => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");

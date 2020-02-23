@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
                     id ?? throw new ArgumentNullException(nameof(id)),
                     version,
                     filePath),
-                projects.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(projects)));
+                projects.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projects)));
         }
 
         internal ImmutableHashSet<string> GetProjectLanguages()

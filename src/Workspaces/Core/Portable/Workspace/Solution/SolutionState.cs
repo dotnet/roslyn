@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                 workspaceVersion: 0,
                 solutionServices,
                 solutionAttributes,
-                projectIds: SpecializedCollections.EmptyImmutableArrayList<ProjectId>(),
+                projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
                 options,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,

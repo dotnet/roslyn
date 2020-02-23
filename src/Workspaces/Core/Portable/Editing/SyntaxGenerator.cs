@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var args = attribute.ConstructorArguments.Select(a => this.AttributeArgument(this.TypedConstantExpression(a)))
                     .Concat(attribute.NamedArguments.Select(n => this.AttributeArgument(n.Key, this.TypedConstantExpression(n.Value))))
-                    .ToImmutableReadOnlyListOrEmpty();
+                    .ToBoxedImmutableArray();
 
             return Attribute(
                 name: this.TypeExpression(attribute.AttributeClass),

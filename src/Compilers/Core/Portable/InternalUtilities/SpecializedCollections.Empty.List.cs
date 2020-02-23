@@ -14,7 +14,7 @@ namespace Roslyn.Utilities
     {
         private partial class Empty
         {
-            internal static class ImmutableArrayList<T>
+            internal static class BoxedImmutableArray<T>
             {
                 // empty boxed immutable array
                 public static readonly IReadOnlyList<T> Instance = ImmutableArray<T>.Empty;

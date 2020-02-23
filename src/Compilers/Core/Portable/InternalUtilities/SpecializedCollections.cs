@@ -30,9 +30,9 @@ namespace Roslyn.Utilities
             return Empty.List<T>.Instance;
         }
 
-        public static IReadOnlyList<T> EmptyImmutableArrayList<T>()
+        public static IReadOnlyList<T> EmptyBoxedImmutableArray<T>()
         {
-            return Empty.ImmutableArrayList<T>.Instance;
+            return Empty.BoxedImmutableArray<T>.Instance;
         }
 
         public static IReadOnlyList<T> EmptyReadOnlyList<T>()
