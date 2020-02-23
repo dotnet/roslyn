@@ -3842,15 +3842,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ValueReturningLambdaExpression(IEnumerable<SyntaxNode> parameterDeclarations, SyntaxNode expression)
         {
-            var prms = parameterDeclarations?.Cast<ParameterSyntax>().ToList();
+            var parameters = parameterDeclarations?.Cast<ParameterSyntax>().ToList();
 
-            if (prms.Count == 1 && IsSimpleLambdaParameter(prms[0]))
+            if (parameters != null && parameters.Count == 1 && IsSimpleLambdaParameter(parameters[0]))
             {
-                return SyntaxFactory.SimpleLambdaExpression(prms[0], (CSharpSyntaxNode)expression);
+                return SyntaxFactory.SimpleLambdaExpression(parameters[0], (CSharpSyntaxNode)expression);
             }
             else
             {
-                return SyntaxFactory.ParenthesizedLambdaExpression(AsParameterList(prms), (CSharpSyntaxNode)expression);
+                return SyntaxFactory.ParenthesizedLambdaExpression(AsParameterList(parameters), (CSharpSyntaxNode)expression);
             }
         }
 
