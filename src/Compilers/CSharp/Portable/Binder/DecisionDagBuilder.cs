@@ -904,8 +904,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="test"></param>
         /// <param name="other"></param>
-        /// <param name="whenTrueValues">The possible values of test.input when <paramref name="test"/> has succeeded.</param>
-        /// <param name="whenFalseValues">The possible values of test.input when <paramref name="test"/> has failed.</param>
+        /// <param name="whenTrueValues">The possible values of test.Input when <paramref name="test"/> has succeeded.</param>
+        /// <param name="whenFalseValues">The possible values of test.Input when <paramref name="test"/> has failed.</param>
         /// <param name="trueTestPermitsTrueOther">set if <paramref name="test"/> being true would permit <paramref name="other"/> to succeed</param>
         /// <param name="falseTestPermitsTrueOther">set if a false result on <paramref name="test"/> would permit <paramref name="other"/> to succeed</param>
         /// <param name="trueTestImpliesTrueOther">set if <paramref name="test"/> being true means <paramref name="other"/> has been proven true</param>
