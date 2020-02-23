@@ -985,7 +985,9 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to be contained in
         /// the sequence of logical folders.
         /// </summary>
-        public Solution WithDocumentFolders(DocumentId documentId, IEnumerable<string> folders)
+        /// <param name="documentId">Document id.</param>
+        /// <param name="folders">Sequence of folders. <see langword="null"/> values are ignored.</param>
+        public Solution WithDocumentFolders(DocumentId documentId, IEnumerable<string?> folders)
         {
             var newState = _state.WithDocumentFolders(documentId, folders);
             if (newState == _state)
