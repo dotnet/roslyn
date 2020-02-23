@@ -396,9 +396,9 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
                 PropertySubpatterns (0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(10,18): error CS0163: Control cannot fall through from one case label ('(string s1, string s2) _') to another
+                // file.cs(10,13): error CS0163: Control cannot fall through from one case label ('case (string s1, string s2) _:') to another
                 //             case (string s1, string s2) _:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string s1, string s2) _").WithArguments("(string s1, string s2) _").WithLocation(10, 18),
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (string s1, string s2) _:").WithArguments("case (string s1, string s2) _:").WithLocation(10, 13),
                 // file.cs(11,27): error CS0029: Cannot implicitly convert type 'bool' to '(string, string)'
                 //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case args is (var x1, var x2);").WithArguments("bool", "(string, string)").WithLocation(11, 27),
