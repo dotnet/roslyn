@@ -3953,7 +3953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function Flatten(members As IReadOnlyList(Of SyntaxNode)) As IReadOnlyList(Of SyntaxNode)
             Dim builder = ArrayBuilder(Of SyntaxNode).GetInstance()
             Flatten(builder, members)
-            Return New ImmutableArrayBox(Of SyntaxNode)(builder.ToImmutableAndFree())
+            Return builder.ToImmutableAndFree()
         End Function
 
         Private Sub Flatten(builder As ArrayBuilder(Of SyntaxNode), members As IReadOnlyList(Of SyntaxNode))

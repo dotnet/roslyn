@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis
                 _treeSource);
         }
 
-        public DocumentState UpdateFolders(IList<string> folders)
+        public DocumentState UpdateFolders(ImmutableArray<string> folders)
         {
             return new DocumentState(
                 _languageServices,

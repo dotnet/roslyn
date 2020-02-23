@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
@@ -161,7 +162,6 @@ namespace Microsoft.CodeAnalysis
             HostObjectType = hostObjectType;
         }
 
-
         // 2.7.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         /// <summary>
         /// Create a new instance of a <see cref="ProjectInfo"/>.
@@ -229,11 +229,11 @@ namespace Microsoft.CodeAnalysis
                     runAnalyzers: true),
                 compilationOptions,
                 parseOptions,
-                ToImmutableReadOnlyListWithNonNullItems(documents),
-                ToImmutableReadOnlyListWithNonNullItems(projectReferences),
-                ToImmutableReadOnlyListWithNonNullItems(metadataReferences),
-                ToImmutableReadOnlyListWithNonNullItems(analyzerReferences),
-                ToImmutableReadOnlyListWithNonNullItems(additionalDocuments),
+                documents.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)),
+                projectReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)),
+                metadataReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)),
+                analyzerReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)),
+                additionalDocuments.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)),
                 analyzerConfigDocuments: SpecializedCollections.EmptyImmutableArrayList<DocumentInfo>(),
                 hostObjectType);
         }
@@ -288,21 +288,6 @@ namespace Microsoft.CodeAnalysis
                 newHostObjectType);
         }
 
-        private static IReadOnlyList<T> ToImmutableReadOnlyListWithNonNullItems<T>(IEnumerable<T>? sequence) where T : class
-        {
-            var list = sequence.ToImmutableReadOnlyListOrEmpty();
-
-            foreach (var item in list)
-            {
-                if (item is null)
-                {
-                    throw new ArgumentNullException();
-                }
-            }
-
-            return list;
-        }
-
         public ProjectInfo WithVersion(VersionStamp version)
             => With(attributes: Attributes.With(version: version));
 
@@ -337,22 +322,22 @@ namespace Microsoft.CodeAnalysis
             => With(parseOptions: parseOptions);
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo>? documents)
-            => With(documents: ToImmutableReadOnlyListWithNonNullItems(documents));
+            => With(documents: documents.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)));
 
         public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo>? additionalDocuments)
-            => With(additionalDocuments: ToImmutableReadOnlyListWithNonNullItems(additionalDocuments));
+            => With(additionalDocuments: additionalDocuments.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)));
 
         public ProjectInfo WithAnalyzerConfigDocuments(IEnumerable<DocumentInfo>? analyzerConfigDocuments)
-            => With(analyzerConfigDocuments: ToImmutableReadOnlyListWithNonNullItems(analyzerConfigDocuments));
+            => With(analyzerConfigDocuments: analyzerConfigDocuments.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerConfigDocuments)));
 
         public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference>? projectReferences)
-            => With(projectReferences: ToImmutableReadOnlyListWithNonNullItems(projectReferences));
+            => With(projectReferences: projectReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)));
 
         public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference>? metadataReferences)
-            => With(metadataReferences: ToImmutableReadOnlyListWithNonNullItems(metadataReferences));
+            => With(metadataReferences: metadataReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)));
 
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
-            => With(analyzerReferences: ToImmutableReadOnlyListWithNonNullItems(analyzerReferences));
+            => With(analyzerReferences: analyzerReferences.AsImmutableReadOnlyListWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)));
 
         internal string GetDebuggerDisplay()
             => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");

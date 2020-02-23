@@ -61,6 +61,21 @@ namespace Roslyn.Utilities
             return ImmutableArray.CreateRange(items);
         }
 
+        internal static IReadOnlyList<T>? AsImmutableReadOnlyListWithNonNullItems<T>(this IEnumerable<T>? sequence) where T : class
+        {
+            var list = sequence.ToImmutableReadOnlyListOrEmpty();
+
+            foreach (var item in list)
+            {
+                if (item is null)
+                {
+                    return null;
+                }
+            }
+
+            return list;
+        }
+
         internal static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
         {
             return new ConcatImmutableArray<T>(first, second);
