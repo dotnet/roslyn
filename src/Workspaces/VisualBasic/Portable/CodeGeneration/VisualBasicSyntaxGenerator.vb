@@ -703,15 +703,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 #End Region
 
 #Region "Declarations"
-        Private Function AsReadOnlyList(Of T)(sequence As IEnumerable(Of T)) As IReadOnlyList(Of T)
-            Dim list = TryCast(sequence, IReadOnlyList(Of T))
-
-            If list Is Nothing Then
-                list = sequence.ToImmutableReadOnlyListOrEmpty()
-            End If
-
-            Return list
-        End Function
 
         Private Shared s_fieldModifiers As DeclarationModifiers = DeclarationModifiers.Const Or DeclarationModifiers.[New] Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.Static Or DeclarationModifiers.WithEvents
         Private Shared s_methodModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.Async Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
@@ -3960,36 +3951,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function Flatten(members As IReadOnlyList(Of SyntaxNode)) As IReadOnlyList(Of SyntaxNode)
-            If members.Count = 0 OrElse Not members.Any(Function(m) GetDeclarationCount(m) > 1) Then
-                Return members
-            End If
-
-            Dim list = New List(Of SyntaxNode)
-            Flatten(members, list)
-            Return list.ToImmutableReadOnlyListOrEmpty()
+            Dim builder = ArrayBuilder(Of SyntaxNode).GetInstance()
+            Flatten(builder, members)
+            Return New ImmutableArrayBox(Of SyntaxNode)(builder.ToImmutableAndFree())
         End Function
 
-        Private Sub Flatten(members As IReadOnlyList(Of SyntaxNode), list As List(Of SyntaxNode))
-            For Each m In members
-                If GetDeclarationCount(m) > 1 Then
-                    Select Case m.Kind
+        Private Sub Flatten(builder As ArrayBuilder(Of SyntaxNode), members As IReadOnlyList(Of SyntaxNode))
+            For Each member In members
+                If GetDeclarationCount(member) > 1 Then
+                    Select Case member.Kind
                         Case SyntaxKind.FieldDeclaration
-                            Flatten(DirectCast(m, FieldDeclarationSyntax).Declarators, list)
+                            Flatten(builder, DirectCast(member, FieldDeclarationSyntax).Declarators)
                         Case SyntaxKind.LocalDeclarationStatement
-                            Flatten(DirectCast(m, LocalDeclarationStatementSyntax).Declarators, list)
+                            Flatten(builder, DirectCast(member, LocalDeclarationStatementSyntax).Declarators)
                         Case SyntaxKind.VariableDeclarator
-                            Flatten(DirectCast(m, VariableDeclaratorSyntax).Names, list)
+                            Flatten(builder, DirectCast(member, VariableDeclaratorSyntax).Names)
                         Case SyntaxKind.AttributesStatement
-                            Flatten(DirectCast(m, AttributesStatementSyntax).AttributeLists, list)
+                            Flatten(builder, DirectCast(member, AttributesStatementSyntax).AttributeLists)
                         Case SyntaxKind.AttributeList
-                            Flatten(DirectCast(m, AttributeListSyntax).Attributes, list)
+                            Flatten(builder, DirectCast(member, AttributeListSyntax).Attributes)
                         Case SyntaxKind.ImportsStatement
-                            Flatten(DirectCast(m, ImportsStatementSyntax).ImportsClauses, list)
+                            Flatten(builder, DirectCast(member, ImportsStatementSyntax).ImportsClauses)
                         Case Else
-                            list.Add(m)
+                            builder.Add(member)
                     End Select
                 Else
-                    list.Add(m)
+                    builder.Add(member)
                 End If
             Next
         End Sub
