@@ -1765,6 +1765,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DesignatorBeneathPatternCombinator = 8780,
 
+        ERR_ConditionalOnLocalFunction = 8783,
+
         #endregion diagnostics introduced for C# 9.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

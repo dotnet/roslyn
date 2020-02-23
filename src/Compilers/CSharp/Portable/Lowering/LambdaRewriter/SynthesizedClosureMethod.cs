@@ -121,6 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 mods |= DeclarationModifiers.Async;
             }
 
+            if (originalMethod.IsExtern)
+            {
+                mods |= DeclarationModifiers.Extern;
+            }
+
             return mods;
         }
 
@@ -165,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => ImmutableArray<TypeSymbol>.CastUp(_structEnvironments);
         internal int ExtraSynthesizedParameterCount => this._structEnvironments.IsDefault ? 0 : this._structEnvironments.Length;
 
+        internal override bool InheritsBaseMethodAttributes => BaseMethod is LocalFunctionSymbol;
         internal override bool GenerateDebugInfo => !this.IsAsync;
         internal override bool IsExpressionBodied => false;
 
@@ -174,8 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The offset is thus relative to the top-level method body start.
             return TopLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
-
-        public sealed override bool AreLocalsZeroed => TopLevelMethod.AreLocalsZeroed;
 
         IMethodSymbolInternal? ISynthesizedMethodBodyImplementationSymbol.Method => TopLevelMethod;
 
