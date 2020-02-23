@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static string[] Create(bool isUnneccessary, bool isConfigurable, params string[] customTags)
+        internal static string[] Create(bool isUnnecessary, bool isConfigurable, params string[] customTags)
         {
             if (customTags.Length == 0 && isConfigurable)
             {
-                return isUnneccessary ? Unnecessary : Microsoft;
+                return isUnnecessary ? Unnecessary : Microsoft;
             }
 
             var customTagsBuilder = ImmutableArray.CreateBuilder<string>();
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 customTagsBuilder.Add(WellKnownDiagnosticTags.NotConfigurable);
             }
 
-            if (isUnneccessary)
+            if (isUnnecessary)
             {
                 customTagsBuilder.Add(WellKnownDiagnosticTags.Unnecessary);
             }

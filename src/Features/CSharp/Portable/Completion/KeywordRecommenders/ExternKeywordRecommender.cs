@@ -35,6 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 SyntaxKind.UnsafeKeyword,
             };
 
+        private static readonly ISet<SyntaxKind> s_validLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+            {
+                SyntaxKind.StaticKeyword,
+                SyntaxKind.UnsafeKeyword
+            };
+
         public ExternKeywordRecommender()
             : base(SyntaxKind.ExternKeyword)
         {
@@ -51,7 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validModifiers: s_validModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken) ||
+                context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
         }
 
         private static bool IsExternAliasContext(CSharpSyntaxContext context)

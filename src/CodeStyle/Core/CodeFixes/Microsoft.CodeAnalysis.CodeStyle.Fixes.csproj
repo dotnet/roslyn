@@ -8,14 +8,10 @@
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Features\Core\Portable\CodeFixes\PredefinedCodeFixProviderNames.cs" Link="PredefinedCodeFixProviderNames.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\IProgressTracker.cs" Link="IProgressTracker.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(MicrosoftCodeAnalysisWorkspacesCommonFixedVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" Aliases="global,CodeStyle" />
+    <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes" />

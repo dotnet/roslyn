@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -53,12 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic analysis and lowering.
     /// </para>
     /// </summary>
-    internal class DecisionDagBuilder
+    internal sealed class DecisionDagBuilder
     {
         private readonly CSharpCompilation _compilation;
         private readonly Conversions _conversions;
-        private readonly TypeSymbol _booleanType;
-        private readonly TypeSymbol _objectType;
         private readonly DiagnosticBag _diagnostics;
         private readonly LabelSymbol _defaultLabel;
 
@@ -66,8 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this._compilation = compilation;
             this._conversions = compilation.Conversions;
-            this._booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
-            this._objectType = compilation.GetSpecialType(SpecialType.System_Object);
             _diagnostics = diagnostics;
             _defaultLabel = defaultLabel;
         }
@@ -1161,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A representation of the entire decision dag and each of its states.
         /// </summary>
-        private class DecisionDag
+        private sealed class DecisionDag
         {
             /// <summary>
             /// The starting point for deciding which case matches.
@@ -1323,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// forward progress when a test is evaluated (the state description is monotonically smaller at each edge), the
         /// graph of states is acyclic, which is why we call it a dag (directed acyclic graph).
         /// </summary>
-        private class DagState
+        private sealed class DagState
         {
             /// <summary>
             /// For each dag temp of a type for which we track such things (the integral types, floating-point types, and bool),
@@ -1383,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// After dag construction is complete we treat a DagState as using object equality as equivalent
         /// states have been merged.
         /// </summary>
-        private class DagStateEquivalence : IEqualityComparer<DagState>
+        private sealed class DagStateEquivalence : IEqualityComparer<DagState>
         {
             public static readonly DagStateEquivalence Instance = new DagStateEquivalence();
 
@@ -1475,15 +1472,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref bool foundExplicitNullTest);
             public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable;
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
-            public abstract string Dump(Func<BoundDagTest, String> dump);
+            public abstract string Dump(Func<BoundDagTest, string> dump);
 
             /// <summary>
             /// No tests to be performed; the result is true (success).
             /// </summary>
-            public class True : Tests
+            public sealed class True : Tests
             {
-                public static True Instance = new True();
-                public override string Dump(Func<BoundDagTest, String> dump) => "TRUE";
+                public static readonly True Instance = new True();
+                public override string Dump(Func<BoundDagTest, string> dump) => "TRUE";
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
@@ -1500,10 +1497,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// No tests to be performed; the result is false (failure).
             /// </summary>
-            public class False : Tests
+            public sealed class False : Tests
             {
-                public static False Instance = new False();
-                public override string Dump(Func<BoundDagTest, String> dump) => "FALSE";
+                public static readonly False Instance = new False();
+                public override string Dump(Func<BoundDagTest, string> dump) => "FALSE";
                 public override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
@@ -1522,10 +1519,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Note that the test might be a <see cref="BoundDagEvaluation"/>, in which case it is deemed to have
             /// succeeded after being evaluated.
             /// </summary>
-            public class One : Tests
+            public sealed class One : Tests
             {
                 public readonly BoundDagTest Test;
-                public One(BoundDagTest Test) => this.Test = Test;
+                public One(BoundDagTest test) => this.Test = test;
                 public void Deconstruct(out BoundDagTest Test) => Test = this.Test;
                 public override void Filter(
                     DecisionDagBuilder builder,
@@ -1551,8 +1548,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenFalse = falseDecisionImpliesTrueOther ? Tests.True.Instance : falseDecisionPermitsTrueOther ? this : (Tests)Tests.False.Instance;
                 }
                 public override BoundDagTest ComputeSelectedTest() => this.Test;
-                public override Tests RemoveEvaluation(BoundDagEvaluation e) => Test is BoundDagEvaluation e2 && e2 == e ? Tests.True.Instance : (Tests)this;
-                public override string Dump(Func<BoundDagTest, String> dump) => dump(this.Test);
+                public override Tests RemoveEvaluation(BoundDagEvaluation e) => e.Equals(Test) ? Tests.True.Instance : (Tests)this;
+                public override string Dump(Func<BoundDagTest, string> dump) => dump(this.Test);
                 public override bool Equals(object? obj)
                 {
                     if (!(obj is One other))
@@ -1591,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public class Not : Tests
+            public sealed class Not : Tests
             {
                 // Negation is pushed to the level of a single test by demorgan's laws
                 public readonly Tests Negated;
@@ -1637,7 +1634,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public abstract class SequenceTests : Tests
             {
                 public readonly ImmutableArray<Tests> RemainingTests;
-                protected SequenceTests(ImmutableArray<Tests> RemainingTests) => this.RemainingTests = RemainingTests;
+                protected SequenceTests(ImmutableArray<Tests> remainingTests)
+                {
+                    Debug.Assert(remainingTests.Length > 1);
+                    this.RemainingTests = remainingTests;
+                }
                 public abstract Tests Update(ArrayBuilder<Tests> remainingTests);
                 public override void Filter(
                     DecisionDagBuilder builder,
@@ -1668,32 +1669,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return Update(builder);
                 }
-                public override bool Equals(object? obj)
-                {
-                    if (!(obj is SequenceTests other))
-                        return false;
-
-                    if (this.GetType() != other.GetType())
-                        return false;
-
-                    if (this.RemainingTests.Length != other.RemainingTests.Length)
-                        return false;
-
-                    for (int i = 0, n = this.RemainingTests.Length; i < n; i++)
-                    {
-                        if (!this.RemainingTests[i].Equals(other.RemainingTests[i]))
-                            return false;
-                    }
-
-                    return true;
-                }
+                public override bool Equals(object? obj) =>
+                    obj is SequenceTests other && this.GetType() == other.GetType() && RemainingTests.SequenceEqual(other.RemainingTests);
                 public override int GetHashCode()
                 {
                     int length = this.RemainingTests.Length;
                     int value = Hash.Combine(length, this.GetType().GetHashCode());
-                    for (int i = 0; i < length; i++)
-                        value = Hash.Combine(this.RemainingTests[i].GetHashCode(), value);
-
+                    value = Hash.Combine(Hash.CombineValues(this.RemainingTests), value);
                     return value;
                 }
             }
@@ -1702,9 +1684,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// A sequence of tests that must be performed, each of which must succeed.
             /// The sequence is deemed to succeed if no element fails.
             /// </summary>
-            public class AndSequence : SequenceTests
+            public sealed class AndSequence : SequenceTests
             {
-                private AndSequence(ImmutableArray<Tests> RemainingTests) : base(RemainingTests) { }
+                private AndSequence(ImmutableArray<Tests> remainingTests) : base(remainingTests) { }
                 public override Tests Update(ArrayBuilder<Tests> remainingTests) => Create(remainingTests);
                 public static Tests Create(ArrayBuilder<Tests> remainingTests)
                 {
@@ -1760,7 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return RemainingTests[0].ComputeSelectedTest();
                 }
-                public override string Dump(Func<BoundDagTest, String> dump)
+                public override string Dump(Func<BoundDagTest, string> dump)
                 {
                     return $"AND({string.Join(", ", RemainingTests.Select(t => t.Dump(dump)))})";
                 }
@@ -1770,9 +1752,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// A sequence of tests that must be performed, any of which must succeed.
             /// The sequence is deemed to succeed if some element succeeds.
             /// </summary>
-            public class OrSequence : SequenceTests
+            public sealed class OrSequence : SequenceTests
             {
-                private OrSequence(ImmutableArray<Tests> RemainingTests) : base(RemainingTests) { }
+                private OrSequence(ImmutableArray<Tests> remainingTests) : base(remainingTests) { }
                 public override BoundDagTest ComputeSelectedTest() => this.RemainingTests[0].ComputeSelectedTest();
                 public override Tests Update(ArrayBuilder<Tests> remainingTests) => Create(remainingTests);
                 public static Tests Create(ArrayBuilder<Tests> remainingTests)
@@ -1803,7 +1785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     remainingTests.Free();
                     return result;
                 }
-                public override string Dump(Func<BoundDagTest, String> dump)
+                public override string Dump(Func<BoundDagTest, string> dump)
                 {
                     return $"OR({string.Join(", ", RemainingTests.Select(t => t.Dump(dump)))})";
                 }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// Formats whitespace in documents or syntax trees.
     /// </summary>
-    internal static class Formatter
+    internal static class FormatterHelper
     {
         /// <summary>
         /// Gets the formatting rules that would be applied if left unspecified.
