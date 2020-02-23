@@ -303,26 +303,17 @@ namespace Microsoft.CodeAnalysis
             return list;
         }
 
-        public ProjectInfo WithDocuments(IEnumerable<DocumentInfo>? documents)
-            => With(documents: ToImmutableReadOnlyListWithNonNullItems(documents));
-
-        public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo>? additionalDocuments)
-            => With(additionalDocuments: ToImmutableReadOnlyListWithNonNullItems(additionalDocuments));
-
-        public ProjectInfo WithAnalyzerConfigDocuments(IEnumerable<DocumentInfo>? analyzerConfigDocuments)
-            => With(analyzerConfigDocuments: ToImmutableReadOnlyListWithNonNullItems(analyzerConfigDocuments));
-
         public ProjectInfo WithVersion(VersionStamp version)
             => With(attributes: Attributes.With(version: version));
 
         public ProjectInfo WithName(string name)
             => With(attributes: Attributes.With(name: name ?? throw new ArgumentNullException(nameof(name))));
 
-        public ProjectInfo WithFilePath(string? filePath)
-            => With(attributes: Attributes.With(filePath: filePath));
-
         public ProjectInfo WithAssemblyName(string assemblyName)
             => With(attributes: Attributes.With(assemblyName: assemblyName ?? throw new ArgumentNullException(nameof(assemblyName))));
+
+        public ProjectInfo WithFilePath(string? filePath)
+            => With(attributes: Attributes.With(filePath: filePath));
 
         public ProjectInfo WithOutputFilePath(string? outputFilePath)
             => With(attributes: Attributes.With(outputPath: outputFilePath));
@@ -333,11 +324,26 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithDefaultNamespace(string? defaultNamespace)
             => With(attributes: Attributes.With(defaultNamespace: defaultNamespace));
 
+        internal ProjectInfo WithHasAllInformation(bool hasAllInformation)
+            => With(attributes: Attributes.With(hasAllInformation: hasAllInformation));
+
+        internal ProjectInfo WithRunAnalyzers(bool runAnalyzers)
+            => With(attributes: Attributes.With(runAnalyzers: runAnalyzers));
+
         public ProjectInfo WithCompilationOptions(CompilationOptions? compilationOptions)
             => With(compilationOptions: compilationOptions);
 
         public ProjectInfo WithParseOptions(ParseOptions? parseOptions)
             => With(parseOptions: parseOptions);
+
+        public ProjectInfo WithDocuments(IEnumerable<DocumentInfo>? documents)
+            => With(documents: ToImmutableReadOnlyListWithNonNullItems(documents));
+
+        public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo>? additionalDocuments)
+            => With(additionalDocuments: ToImmutableReadOnlyListWithNonNullItems(additionalDocuments));
+
+        public ProjectInfo WithAnalyzerConfigDocuments(IEnumerable<DocumentInfo>? analyzerConfigDocuments)
+            => With(analyzerConfigDocuments: ToImmutableReadOnlyListWithNonNullItems(analyzerConfigDocuments));
 
         public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference>? projectReferences)
             => With(projectReferences: ToImmutableReadOnlyListWithNonNullItems(projectReferences));
@@ -347,12 +353,6 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
             => With(analyzerReferences: ToImmutableReadOnlyListWithNonNullItems(analyzerReferences));
-
-        internal ProjectInfo WithHasAllInformation(bool hasAllInformation)
-            => With(attributes: Attributes.With(hasAllInformation: hasAllInformation));
-
-        internal ProjectInfo WithRunAnalyzers(bool runAnalyzers)
-            => With(attributes: Attributes.With(runAnalyzers: runAnalyzers));
 
         internal string GetDebuggerDisplay()
             => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
