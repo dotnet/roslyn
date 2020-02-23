@@ -1660,11 +1660,6 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState WithDocumentState(DocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
         {
-            if (newDocument == null)
-            {
-                throw new ArgumentNullException(nameof(newDocument));
-            }
-
             CheckContainsDocument(newDocument.Id);
 
             if (newDocument == this.GetDocumentState(newDocument.Id))
@@ -1697,11 +1692,6 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState WithAdditionalDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
         {
-            if (newDocument == null)
-            {
-                throw new ArgumentNullException(nameof(newDocument));
-            }
-
             CheckContainsAdditionalDocument(newDocument.Id);
 
             if (newDocument == this.GetAdditionalDocumentState(newDocument.Id))
@@ -1724,11 +1714,6 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState WithAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
         {
-            if (newDocument == null)
-            {
-                throw new ArgumentNullException(nameof(newDocument));
-            }
-
             CheckContainsAnalyzerConfigDocument(newDocument.Id);
 
             if (newDocument == this.GetAnalyzerConfigDocumentState(newDocument.Id))
@@ -1956,7 +1941,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with all the documents specified updated to have the same specified text.
         /// </summary>
-        public SolutionState WithDocumentText(IEnumerable<DocumentId> documentIds, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public SolutionState WithDocumentText(IEnumerable<DocumentId> documentIds, SourceText text, PreservationMode mode)
         {
             if (documentIds == null)
             {
@@ -2228,26 +2213,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new InvalidOperationException(WorkspacesResources.This_submission_already_references_another_submission_project);
                 }
-            }
-        }
-
-        private void CheckNotContainsDocument(DocumentId documentId)
-        {
-            Debug.Assert(!this.ContainsDocument(documentId));
-
-            if (this.ContainsDocument(documentId))
-            {
-                throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_document);
-            }
-        }
-
-        private void CheckNotContainsAdditionalDocument(DocumentId documentId)
-        {
-            Debug.Assert(!this.ContainsAdditionalDocument(documentId));
-
-            if (this.ContainsAdditionalDocument(documentId))
-            {
-                throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_document);
             }
         }
 
