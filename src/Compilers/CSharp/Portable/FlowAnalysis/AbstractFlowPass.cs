@@ -1303,22 +1303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArgumentsAfterCall(arguments, refKindsOpt, method);
         }
 
-        /// <summary>
-        /// Writes ref and out parameters
-        /// </summary>
-        private void VisitArgumentsAfterCall(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
-        {
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                RefKind refKind = GetRefKind(refKindsOpt, i);
-                // passing as a byref argument is also a potential write
-                if (refKind != RefKind.None)
-                {
-                    WriteArgument(arguments[i], refKind, method);
-                }
-            }
-        }
-
         private void VisitArgumentsBeforeCall(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt)
         {
             // first value and ref parameters are read...
@@ -1332,6 +1316,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     VisitLvalue(arguments[i]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Writes ref and out parameters
+        /// </summary>
+        private void VisitArgumentsAfterCall(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        {
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                RefKind refKind = GetRefKind(refKindsOpt, i);
+                // passing as a byref argument is also a potential write
+                if (refKind != RefKind.None)
+                {
+                    WriteArgument(arguments[i], refKind, method);
                 }
             }
         }
