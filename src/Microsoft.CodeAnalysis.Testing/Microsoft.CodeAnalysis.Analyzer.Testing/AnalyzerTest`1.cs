@@ -1125,6 +1125,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 .WithXmlReferenceResolver(xmlReferenceResolver)
                 .WithAssemblyIdentityComparer(ReferenceAssemblies.AssemblyIdentityComparer);
 
+            var parseOptions = CreateParseOptions();
+
             var workspace = CreateWorkspace();
             foreach (var transform in OptionsTransforms)
             {
@@ -1134,13 +1136,11 @@ namespace Microsoft.CodeAnalysis.Testing
             var solution = workspace
                 .CurrentSolution
                 .AddProject(projectId, DefaultTestProjectName, DefaultTestProjectName, language)
-                .WithProjectCompilationOptions(projectId, compilationOptions);
+                .WithProjectCompilationOptions(projectId, compilationOptions)
+                .WithProjectParseOptions(projectId, parseOptions);
 
             var metadataReferences = await ReferenceAssemblies.ResolveAsync(language, cancellationToken);
             solution = solution.AddMetadataReferences(projectId, metadataReferences);
-
-            var parseOptions = solution.GetProject(projectId).ParseOptions;
-            solution = solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Diagnose));
 
             return solution;
         }
@@ -1194,6 +1194,8 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         protected abstract CompilationOptions CreateCompilationOptions();
+
+        protected abstract ParseOptions CreateParseOptions();
 
         /// <summary>
         /// Sort <see cref="Diagnostic"/>s by location in source document.

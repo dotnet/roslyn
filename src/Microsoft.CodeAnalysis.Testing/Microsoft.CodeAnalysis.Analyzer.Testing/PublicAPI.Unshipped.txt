@@ -171,6 +171,7 @@ Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipGeneratedCodeCheck = 1 -> Micro
 Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipSuppressionCheck = 2 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.TestFileMarkupParser
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
+abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateParseOptions() -> Microsoft.CodeAnalysis.ParseOptions
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFileExt.get -> string
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Language.get -> string

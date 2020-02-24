@@ -3,6 +3,7 @@ Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of TAnalyzer, 
 Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixVerifier(Of TAnalyzer, TCodeFix, TVerifier)
 Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixVerifier(Of TAnalyzer, TCodeFix, TVerifier).New() -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of TAnalyzer, TCodeFix, TVerifier).CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
+Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of TAnalyzer, TCodeFix, TVerifier).CreateParseOptions() -> Microsoft.CodeAnalysis.ParseOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of TAnalyzer, TCodeFix, TVerifier).DefaultFileExt() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of TAnalyzer, TCodeFix, TVerifier).GetCodeFixProviders() -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider)
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of TAnalyzer, TCodeFix, TVerifier).GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer)
