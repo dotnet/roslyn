@@ -33,14 +33,25 @@ namespace Microsoft.CodeAnalysis
                 public DocumentId DocumentId => _newState.Attributes.Id;
             }
 
-            internal sealed class RemoveDocumentAction : SimpleCompilationTranslationAction<DocumentState>
+            internal sealed class RemoveDocumentsAction : CompilationTranslationAction
             {
-                private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> s_action =
-                    async (o, d, c) => o.RemoveSyntaxTrees(await d.GetSyntaxTreeAsync(c).ConfigureAwait(false));
+                private readonly ImmutableArray<DocumentState> _documents;
 
-                public RemoveDocumentAction(DocumentState document)
-                    : base(document, s_action)
+                public RemoveDocumentsAction(ImmutableArray<DocumentState> documents)
                 {
+                    _documents = documents;
+                }
+
+                public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                {
+                    var syntaxTrees = new List<SyntaxTree>(_documents.Length);
+                    foreach (var document in _documents)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        syntaxTrees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                    }
+
+                    return oldCompilation.RemoveSyntaxTrees(syntaxTrees);
                 }
             }
 
@@ -55,9 +66,10 @@ namespace Microsoft.CodeAnalysis
 
                 public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    var syntaxTrees = new List<SyntaxTree>();
+                    var syntaxTrees = new List<SyntaxTree>(capacity: _documents.Length);
                     foreach (var document in _documents)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         syntaxTrees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
                     }
 
@@ -88,42 +100,33 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class ProjectCompilationOptionsAction : SimpleCompilationTranslationAction<CompilationOptions>
+            internal sealed class ProjectCompilationOptionsAction : CompilationTranslationAction
             {
-                private static readonly Func<Compilation, CompilationOptions, CancellationToken, Task<Compilation>> s_action =
-                    (o, d, c) => Task.FromResult(o.WithOptions(d));
+                private readonly CompilationOptions _options;
 
-                public ProjectCompilationOptionsAction(CompilationOptions option)
-                    : base(option, s_action)
+                public ProjectCompilationOptionsAction(CompilationOptions options)
                 {
-                }
-            }
-
-            internal sealed class ProjectAssemblyNameAction : SimpleCompilationTranslationAction<string>
-            {
-                private static readonly Func<Compilation, string, CancellationToken, Task<Compilation>> s_action =
-                    (o, d, c) => Task.FromResult(o.WithAssemblyName(d));
-
-                public ProjectAssemblyNameAction(string assemblyName)
-                    : base(assemblyName, s_action)
-                {
-                }
-            }
-
-            internal class SimpleCompilationTranslationAction<T> : CompilationTranslationAction
-            {
-                private readonly T _data;
-                private readonly Func<Compilation, T, CancellationToken, Task<Compilation>> _action;
-
-                public SimpleCompilationTranslationAction(T data, Func<Compilation, T, CancellationToken, Task<Compilation>> action)
-                {
-                    _data = data;
-                    _action = action;
+                    _options = options;
                 }
 
                 public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    return _action(oldCompilation, _data, cancellationToken);
+                    return Task.FromResult(oldCompilation.WithOptions(_options));
+                }
+            }
+
+            internal sealed class ProjectAssemblyNameAction : CompilationTranslationAction
+            {
+                private readonly string _assemblyName;
+
+                public ProjectAssemblyNameAction(string assemblyName)
+                {
+                    _assemblyName = assemblyName;
+                }
+
+                public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                {
+                    return Task.FromResult(oldCompilation.WithAssemblyName(_assemblyName));
                 }
             }
         }
