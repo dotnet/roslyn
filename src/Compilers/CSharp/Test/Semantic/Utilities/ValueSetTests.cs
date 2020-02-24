@@ -262,8 +262,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 if (i2 != int.MinValue) test(i2 - 1);
                 test(i2);
                 test(i2 + 1);
-                test(Random.Next(int.MinValue, int.MaxValue));
-                test(Random.Next(int.MinValue, int.MaxValue));
                 void test(int val)
                 {
                     Assert.Equal(val >= i1 && val <= i2, values.Any(Equal, val));
@@ -363,6 +361,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var mi = ForDouble.Related(Equal, double.NegativeInfinity);
             Assert.True(mi.All(LessThan, 0.0));
+            Assert.True(mi.Any(LessThan, 0.0));
+            Assert.True(mi.All(LessThanOrEqual, 0.0));
+            Assert.True(mi.Any(LessThanOrEqual, 0.0));
+            Assert.False(mi.All(GreaterThan, 0.0));
+            Assert.False(mi.Any(GreaterThan, 0.0));
+            Assert.False(mi.All(GreaterThanOrEqual, 0.0));
+            Assert.False(mi.Any(GreaterThanOrEqual, 0.0));
+
+            var i = ForDouble.Related(Equal, double.PositiveInfinity);
+            Assert.False(i.All(LessThan, 0.0));
+            Assert.False(i.Any(LessThan, 0.0));
+            Assert.False(i.All(LessThanOrEqual, 0.0));
+            Assert.False(i.Any(LessThanOrEqual, 0.0));
+            Assert.True(i.All(GreaterThan, 0.0));
+            Assert.True(i.Any(GreaterThan, 0.0));
+            Assert.True(i.All(GreaterThanOrEqual, 0.0));
+            Assert.True(i.Any(GreaterThanOrEqual, 0.0));
         }
 
         [Fact]
@@ -386,7 +401,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             IValueSet b = t;
             Assert.Same(b.Intersect(b), b);
             Assert.Same(b.Union(b), b);
-            IValueSetFactory bf = ForBool;
         }
 
         [Fact]
@@ -407,7 +421,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             IValueSet b = s1;
             Assert.Same(b.Intersect(b), b);
             Assert.Same(b.Union(b), b);
-            IValueSetFactory bf = ForString;
             Assert.False(s1.Union(s2).All(Equal, "a"));
         }
 

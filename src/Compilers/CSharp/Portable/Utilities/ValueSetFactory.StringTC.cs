@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ValueSetFactory
     {
-        private struct StringTC : IEqualableValueTC<string>
+        private struct StringTC : IEquatableValueTC<string>
         {
-            string IEqualableValueTC<string>.FromConstantValue(ConstantValue constantValue) => constantValue.StringValue!;
+            string IEquatableValueTC<string>.FromConstantValue(ConstantValue constantValue) => constantValue.StringValue!;
 
-            string[] IEqualableValueTC<string>.RandomValues(int count, Random random, int scope)
+            string[] IEquatableValueTC<string>.RandomValues(int count, Random random, int scope)
             {
                 Debug.Assert(count > 0);
                 Debug.Assert(scope > count);

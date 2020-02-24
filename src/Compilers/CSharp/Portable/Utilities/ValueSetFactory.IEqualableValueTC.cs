@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A type class for values (of type <typeparamref name="T"/>) that can be directly compared for equality 
         /// using <see cref="System.Object.Equals(object?, object?)"/>.
         /// </summary>
-        private interface IEqualableValueTC<T>
+        private interface IEquatableValueTC<T>
         {
             /// <summary>
             /// Get the constant value of type <typeparamref name="T"/> from a <see cref="ConstantValue"/>. This method is shared among all
