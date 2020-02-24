@@ -29,7 +29,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
-using CodeFixGroupKey = System.Tuple<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority>;
+using CodeFixGroupKey = System.Tuple<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority?>;
 using IUIThreadOperationContext = Microsoft.VisualStudio.Utilities.IUIThreadOperationContext;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -496,6 +496,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private static bool IsTopLevelSuppressionAction(CodeAction action)
                 => action is AbstractConfigurationActionWithNestedActions;
 
+            private static bool IsBulkConfigurationAction(CodeAction action)
+                => (action as AbstractConfigurationActionWithNestedActions)?.IsBulkConfigurationAction == true;
+
             private void AddCodeActions(
                 Workspace workspace, IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map,
                 ArrayBuilder<CodeFixGroupKey> order, CodeFixCollection fixCollection,
@@ -542,9 +545,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map,
                 ArrayBuilder<CodeFixGroupKey> order)
             {
-                var diag = fix.GetPrimaryDiagnosticData();
-
-                var groupKey = new CodeFixGroupKey(diag, fix.Action.Priority);
+                var groupKey = GetGroupKey(fix);
                 if (!map.ContainsKey(groupKey))
                 {
                     order.Add(groupKey);
@@ -552,6 +553,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 map[groupKey].Add(suggestedAction);
+
+                static CodeFixGroupKey GetGroupKey(CodeFix fix)
+                {
+                    var diag = fix.GetPrimaryDiagnosticData();
+                    if (fix.Action is AbstractConfigurationActionWithNestedActions configurationAction)
+                    {
+                        return new CodeFixGroupKey(diag, configurationAction.Priority, configurationAction.AdditionalPriority);
+                    }
+
+                    return new CodeFixGroupKey(diag, fix.Action.Priority, null);
+                }
             }
 
             /// <summary>
@@ -612,19 +624,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 using var nonSuppressionSetsDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var nonSuppressionSets);
                 using var suppressionSetsDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var suppressionSets);
+                using var bulkConfigurationActionsDisposer = ArrayBuilder<SuggestedAction>.GetInstance(out var bulkConfigurationActions);
 
-                foreach (var diag in order)
+                foreach (var groupKey in order)
                 {
-                    var actions = map[diag];
+                    var actions = map[groupKey];
 
                     var nonSuppressionActions = actions.Where(a => !IsTopLevelSuppressionAction(a.CodeAction));
-                    AddSuggestedActionsSet(nonSuppressionActions, diag, nonSuppressionSets);
+                    AddSuggestedActionsSet(nonSuppressionActions, groupKey, nonSuppressionSets);
 
-                    var suppressionActions = actions.Where(a => IsTopLevelSuppressionAction(a.CodeAction));
-                    AddSuggestedActionsSet(suppressionActions, diag, suppressionSets);
+                    var suppressionActions = actions.Where(a => IsTopLevelSuppressionAction(a.CodeAction) && !IsBulkConfigurationAction(a.CodeAction));
+                    AddSuggestedActionsSet(suppressionActions, groupKey, suppressionSets);
+
+                    bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.CodeAction)));
                 }
 
                 var sets = nonSuppressionSets.ToImmutable();
+
+                // Append bulk configuration fixes at the end of suppression/configuration fixes.
+                if (bulkConfigurationActions.Count > 0)
+                {
+                    var bulkConfigurationSet = new SuggestedActionSet(PredefinedSuggestedActionCategoryNames.CodeFix, bulkConfigurationActions);
+                    suppressionSets.Add(bulkConfigurationSet);
+                }
 
                 if (suppressionSets.Count > 0)
                 {
@@ -694,7 +716,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private static void AddSuggestedActionsSet(
                 IEnumerable<SuggestedAction> actions,
-                CodeFixGroupKey diag,
+                CodeFixGroupKey groupKey,
                 ArrayBuilder<SuggestedActionSet> sets)
             {
                 foreach (var group in actions.GroupBy(a => a.Priority))
@@ -702,9 +724,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var priority = GetSuggestedActionSetPriority(group.Key);
 
                     // diagnostic from things like build shouldn't reach here since we don't support LB for those diagnostics
-                    Debug.Assert(diag.Item1.HasTextSpan);
-                    var category = GetFixCategory(diag.Item1.Severity);
-                    sets.Add(new SuggestedActionSet(category, group, priority: priority, applicableToSpan: diag.Item1.GetTextSpan().ToSpan()));
+                    Debug.Assert(groupKey.Item1.HasTextSpan);
+                    var category = GetFixCategory(groupKey.Item1.Severity);
+                    sets.Add(new SuggestedActionSet(category, group, priority: priority, applicableToSpan: groupKey.Item1.GetTextSpan().ToSpan()));
                 }
             }
 
