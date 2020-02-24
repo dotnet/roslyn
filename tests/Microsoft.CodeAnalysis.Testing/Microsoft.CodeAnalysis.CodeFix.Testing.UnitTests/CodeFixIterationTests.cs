@@ -249,9 +249,14 @@ class TestClass {{
             new DefaultVerifier().EqualOrDiff($"Context: Fix all in document{Environment.NewLine}{message}", exception.Message);
         }
 
-        [Fact]
+        [Theory]
         [WorkItem(147, "https://github.com/dotnet/roslyn-sdk/issues/147")]
-        public async Task TestOneIterationRequiredForEachOfTwoDocuments()
+        [InlineData(2, CodeFixTestBehaviors.None)]
+        [InlineData(null, CodeFixTestBehaviors.SkipFixAllInDocumentCheck)]
+        [InlineData(null, CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInProjectCheck)]
+        [InlineData(null, CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck)]
+        [InlineData(null, CodeFixTestBehaviors.SkipFixAllCheck)]
+        public async Task TestOneIterationRequiredForEachOfTwoDocuments(int? numberOfFixAllInDocumentIterations, CodeFixTestBehaviors codeFixTestBehaviors)
         {
             var testCode1 = @"
 class TestClass1 {
@@ -278,13 +283,18 @@ class TestClass2 {
             {
                 TestState = { Sources = { testCode1, testCode2 } },
                 FixedState = { Sources = { fixedCode1, fixedCode2 } },
-                NumberOfFixAllInDocumentIterations = 2,
+                NumberOfFixAllInDocumentIterations = numberOfFixAllInDocumentIterations,
+                CodeFixTestBehaviors = codeFixTestBehaviors,
             }.RunAsync();
         }
 
-        [Fact]
+        [Theory]
         [WorkItem(147, "https://github.com/dotnet/roslyn-sdk/issues/147")]
-        public async Task TestOneIterationRequiredForEachOfTwoDocumentsButNotDeclared()
+        [InlineData(CodeFixTestBehaviors.None, "Fix all in document")]
+        [InlineData(CodeFixTestBehaviors.SkipFixAllInProjectCheck, "Fix all in document")]
+        [InlineData(CodeFixTestBehaviors.SkipFixAllInSolutionCheck, "Fix all in document")]
+        [InlineData(CodeFixTestBehaviors.SkipFixAllInProjectCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck, "Fix all in document")]
+        public async Task TestOneIterationRequiredForEachOfTwoDocumentsButNotDeclared(CodeFixTestBehaviors codeFixTestBehaviors, string context)
         {
             var testCode1 = @"
 class TestClass1 {
@@ -313,15 +323,18 @@ class TestClass2 {
                 {
                     TestState = { Sources = { testCode1, testCode2 } },
                     FixedState = { Sources = { fixedCode1, fixedCode2 } },
+                    CodeFixTestBehaviors = codeFixTestBehaviors,
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Fix all in document{Environment.NewLine}Expected '1' iterations but found '2' iterations.", exception.Message);
+            Assert.Equal($"Context: {context}{Environment.NewLine}Expected '1' iterations but found '2' iterations.", exception.Message);
         }
 
-        [Fact]
+        [Theory]
         [WorkItem(147, "https://github.com/dotnet/roslyn-sdk/issues/147")]
-        public async Task TestOneIterationRequiredForEachOfTwoDocumentsButDeclaredForAll()
+        [InlineData(CodeFixTestBehaviors.None, "Fix all in project")]
+        [InlineData(CodeFixTestBehaviors.SkipFixAllInProjectCheck, "Fix all in solution")]
+        public async Task TestOneIterationRequiredForEachOfTwoDocumentsButDeclaredForAll(CodeFixTestBehaviors codeFixTestBehaviors, string context)
         {
             var testCode1 = @"
 class TestClass1 {
@@ -351,10 +364,11 @@ class TestClass2 {
                     TestState = { Sources = { testCode1, testCode2 } },
                     FixedState = { Sources = { fixedCode1, fixedCode2 } },
                     NumberOfFixAllIterations = 2,
+                    CodeFixTestBehaviors = codeFixTestBehaviors,
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Fix all in project{Environment.NewLine}Expected '2' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal($"Context: {context}{Environment.NewLine}Expected '2' iterations but found '1' iterations.", exception.Message);
         }
 
         /// <summary>

@@ -6,6 +6,8 @@ Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixEquivalenceKey.set 
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixIndex.get -> int?
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixIndex.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixTest() -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixTestBehaviors.get -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixTestBehaviors.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixValidationMode.get -> Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixValidationMode.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.FixedCode.set -> void
@@ -17,6 +19,12 @@ Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllIterations.s
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfIncrementalIterations.get -> int?
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfIncrementalIterations.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.VerifyFixAsync(Microsoft.CodeAnalysis.Testing.SolutionState testState, Microsoft.CodeAnalysis.Testing.SolutionState fixedState, Microsoft.CodeAnalysis.Testing.SolutionState batchFixedState, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.None = 0 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllCheck = Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck | Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInProjectCheck | Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInSolutionCheck -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck = 1 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInProjectCheck = 2 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInSolutionCheck = 4 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
 Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
 Microsoft.CodeAnalysis.Testing.CodeFixValidationMode.Full = 2 -> Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
 Microsoft.CodeAnalysis.Testing.CodeFixValidationMode.None = 0 -> Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
