@@ -9655,6 +9655,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use local variable or local function &apos;{0}&apos; declared in a top-level statement in this context..
+        /// </summary>
+        internal static string ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement {
+            get {
+                return ResourceManager.GetString("ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator &apos;_&apos; after the close paren &apos;)&apos;..
         /// </summary>
         internal static string ERR_SingleElementPositionalPatternRequiresDisambiguation {
@@ -11830,6 +11839,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureRefStructs {
             get {
                 return ResourceManager.GetString("IDS_FeatureRefStructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to simple programs.
+        /// </summary>
+        internal static string IDS_FeatureSimplePrograms {
+            get {
+                return ResourceManager.GetString("IDS_FeatureSimplePrograms", resourceCulture);
             }
         }
         
@@ -14914,7 +14932,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The entry point of the program is global script code; ignoring &apos;{0}&apos; entry point..
+        ///   Looks up a localized string similar to The entry point of the program is global code; ignoring &apos;{0}&apos; entry point..
         /// </summary>
         internal static string WRN_MainIgnored {
             get {
@@ -14923,7 +14941,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The entry point of the program is global script code; ignoring entry point.
+        ///   Looks up a localized string similar to The entry point of the program is global code; ignoring entry point.
         /// </summary>
         internal static string WRN_MainIgnored_Title {
             get {

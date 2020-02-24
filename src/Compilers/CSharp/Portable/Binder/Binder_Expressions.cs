@@ -1375,6 +1375,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiver != null ? BoundMethodGroupFlags.HasImplicitReceiver : BoundMethodGroupFlags.None,
                         isError,
                         diagnostics);
+
+                    ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(node, members[0], diagnostics);
                 }
                 else
                 {
@@ -1590,6 +1592,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbol type;
                         bool isNullableUnknown;
 
+                        ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(node, localSymbol, diagnostics);
+
                         if (node.SyntaxTree == localSymbolLocation.SourceTree &&
                             node.SpanStart < localSymbolLocation.SourceSpan.Start)
                         {
@@ -1746,6 +1750,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+        }
+
+        private static void ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(SimpleNameSyntax node, Symbol symbol, DiagnosticBag diagnostics)
+        {
+            if (symbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol)
+            {
+                if (!SyntaxFacts.IsTopLevelStatement(node.Ancestors(ascendOutOfTrivia: false).OfType<GlobalStatementSyntax>().FirstOrDefault()))
+                {
+                    Error(diagnostics, ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, node, node);
+                }
             }
         }
 

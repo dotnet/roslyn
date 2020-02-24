@@ -1537,23 +1537,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (this.Options.MainTypeName != null && !this.Options.MainTypeName.IsValidClrTypeName())
-            {
-                Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
-                return new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
-            }
 
             if (_lazyEntryPoint == null)
             {
-                ImmutableArray<Diagnostic> diagnostics;
-                var entryPoint = FindEntryPoint(cancellationToken, out diagnostics);
-                Interlocked.CompareExchange(ref _lazyEntryPoint, new EntryPoint(entryPoint, diagnostics), null);
+                EntryPoint? entryPoint = null;
+                MethodSymbol? simpleProgramEntryPointSymbol = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this);
+
+                if (this.Options.MainTypeName != null)
+                {
+                    if (simpleProgramEntryPointSymbol is object)
+                    {
+                        // PROTOTYPE(SimplePrograms): Report an error that MainTypeName shouldn't be specified
+                    }
+                    else if (!this.Options.MainTypeName.IsValidClrTypeName())
+                    {
+                        Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
+                        entryPoint = new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
+                    }
+                }
+
+                if (entryPoint is null)
+                {
+                    ImmutableArray<Diagnostic> diagnostics;
+                    var entryPointMethod = FindEntryPoint(simpleProgramEntryPointSymbol, cancellationToken, out diagnostics);
+                    entryPoint = new EntryPoint(entryPointMethod, diagnostics);
+                }
+
+                Interlocked.CompareExchange(ref _lazyEntryPoint, entryPoint, null);
             }
 
             return _lazyEntryPoint;
         }
 
-        private MethodSymbol? FindEntryPoint(CancellationToken cancellationToken, out ImmutableArray<Diagnostic> sealedDiagnostics)
+        private MethodSymbol? FindEntryPoint(MethodSymbol? simpleProgramEntryPointSymbol, CancellationToken cancellationToken, out ImmutableArray<Diagnostic> sealedDiagnostics)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var entryPointCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -1564,11 +1580,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 string? mainTypeName = this.Options.MainTypeName;
                 NamespaceSymbol globalNamespace = this.SourceModule.GlobalNamespace;
+                var scriptClass = this.ScriptClass;
 
-                if (mainTypeName != null)
+                if (simpleProgramEntryPointSymbol is null && mainTypeName != null)
                 {
                     // Global code is the entry point, ignore all other Mains.
-                    var scriptClass = this.ScriptClass;
                     if (scriptClass is object)
                     {
                         // CONSIDER: we could use the symbol instead of just the name.
@@ -1601,14 +1617,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.GetSymbolsWithNameCore(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken));
 
                     // Global code is the entry point, ignore all other Mains.
-                    var scriptClass = this.ScriptClass;
-                    if (scriptClass is object)
+                    if (scriptClass is object || simpleProgramEntryPointSymbol is object)
                     {
                         foreach (var main in entryPointCandidates)
                         {
                             diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
                         }
-                        return scriptClass.GetScriptEntryPoint();
+
+                        if (scriptClass is object)
+                        {
+                            return scriptClass.GetScriptEntryPoint();
+                        }
+
+                        RoslynDebug.Assert(simpleProgramEntryPointSymbol is object);
+                        entryPointCandidates.Clear();
+                        entryPointCandidates.Add(simpleProgramEntryPointSymbol);
                     }
                 }
 

@@ -99,6 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = scope;
                     }
                 }
+
+                if ((options & LookupOptions.LabelsOnly) != 0 && scope.IsLastBinderWithinMember())
+                {
+                    // Labels declared outside of a member are not visible inside.
+                    break;
+                }
             }
             return binder;
         }
@@ -1626,6 +1632,12 @@ symIsHidden:;
             for (var scope = this; scope != null; scope = scope.Next)
             {
                 scope.AddLookupSymbolsInfoInSingleBinder(result, options, originalBinder: this);
+
+                if ((options & LookupOptions.LabelsOnly) != 0 && scope.IsLastBinderWithinMember())
+                {
+                    // Labels declared outside of a member are not visible inside.
+                    break;
+                }
             }
         }
 

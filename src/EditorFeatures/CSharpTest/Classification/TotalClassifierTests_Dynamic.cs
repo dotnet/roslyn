@@ -620,7 +620,7 @@ partial void F(dynamic d)
                 Punctuation.CloseParen);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsArrayName()
         {
             await TestAsync(

@@ -825,7 +825,7 @@ using goo.bar;
 using goo.bar;
 ");
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
-            Assert.Equal(6, tokens.Count);
+            Assert.Equal(3, tokens.Count);
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeSkipped: false);
@@ -836,7 +836,7 @@ using goo.bar;
             }
 
             // descendant tokens includes EOF
-            Assert.Equal(tokens.Count - 1, list.Count);
+            Assert.Equal(tokens.Count - 2, list.Count);
             for (int i = 0; i < list.Count; i++)
             {
                 Assert.Equal(list[i], tokens[i]);
@@ -929,7 +929,7 @@ using goo.bar;
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
 
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
-            Assert.Equal(6, tokens.Count);
+            Assert.Equal(3, tokens.Count);
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetLastToken(includeSkipped: false);
@@ -941,7 +941,7 @@ using goo.bar;
             list.Reverse();
 
             // descendant tokens includes EOF
-            Assert.Equal(tokens.Count, list.Count + 1);
+            Assert.Equal(tokens.Count, list.Count + 2);
             for (int i = 0; i < list.Count; i++)
             {
                 Assert.Equal(tokens[i], list[i]);
@@ -3021,8 +3021,8 @@ class A { } #endregion";
             var s1 = "int goo(int a, int b, int c) {}";
             var tree = SyntaxFactory.ParseSyntaxTree(s1);
 
-            dynamic root = tree.GetCompilationUnitRoot();
-            MethodDeclarationSyntax method = root.Members[0];
+            var root = tree.GetCompilationUnitRoot();
+            var method = (LocalFunctionStatementSyntax)((GlobalStatementSyntax)root.Members[0]).Statement;
 
             var list = (SeparatedSyntaxList<ParameterSyntax>)method.ParameterList.Parameters;
 
@@ -3081,7 +3081,7 @@ class A { } #endregion";
         [Fact]
         public void GetDiagnosticsOnMissingToken()
         {
-            var syntaxTree = SyntaxFactory.ParseSyntaxTree(@"c1<t");
+            var syntaxTree = SyntaxFactory.ParseSyntaxTree(@"namespace n1 { c1<t");
             var token = syntaxTree.FindNodeOrTokenByKind(SyntaxKind.GreaterThanToken);
             var diag = syntaxTree.GetDiagnostics(token).ToList();
 
@@ -3115,19 +3115,6 @@ class Base<T>
             }
 
             // TODO: Please add meaningful checks once the above deadlock issue is fixed.
-        }
-
-        [WorkItem(541587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541587")]
-        [Fact]
-        public void GetDiagnosticsOnMissingToken3()
-        {
-            const string code = @"class c2 4";
-            var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
-            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf('4'));
-            var diag = syntaxTree.GetDiagnostics(token).ToList();
-
-            Assert.True(token.IsMissing);
-            Assert.Equal(2, diag.Count);
         }
 
         [WorkItem(541648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541648")]

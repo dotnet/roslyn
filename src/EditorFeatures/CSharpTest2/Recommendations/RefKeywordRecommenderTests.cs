@@ -735,7 +735,7 @@ $$");
 @"$$ readonly struct { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms)"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNew()
         {
             await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular,

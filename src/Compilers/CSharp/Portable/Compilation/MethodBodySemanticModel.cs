@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
             Debug.Assert(syntax != null);
-            Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit);
+            Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit ||
+                         (syntax.SyntaxTree.Options.Kind == SourceCodeKind.Regular && ((CompilationUnitSyntax)syntax).Members.Any(SyntaxKind.GlobalStatement)));
         }
 
         /// <summary>
@@ -93,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.CompilationUnit:
                     return binder.BindMethodBody(node, diagnostics);
             }
 

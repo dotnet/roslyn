@@ -412,6 +412,11 @@
         <target state="translated">目标运行时不支持对接口的成员使用 "protected"、"protected internal" 或 "private protected" 辅助功能。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
+        <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
+        <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">单元素解构模式需要一些其他语法来消除歧义。建议在关闭 paren ")" 之后添加放弃指示符 "_"。</target>
@@ -935,6 +940,11 @@
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
         <target state="translated">ref 赋值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSimplePrograms">
+        <source>simple programs</source>
+        <target state="new">simple programs</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
@@ -7671,13 +7681,13 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored">
-        <source>The entry point of the program is global script code; ignoring '{0}' entry point.</source>
-        <target state="translated">程序的入口点是全局脚本代码；正在忽略“{0}”入口点。</target>
+        <source>The entry point of the program is global code; ignoring '{0}' entry point.</source>
+        <target state="needs-review-translation">程序的入口点是全局脚本代码；正在忽略“{0}”入口点。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored_Title">
-        <source>The entry point of the program is global script code; ignoring entry point</source>
-        <target state="translated">程序的入口点是全局脚本代码；正在忽略入口点</target>
+        <source>The entry point of the program is global code; ignoring entry point</source>
+        <target state="needs-review-translation">程序的入口点是全局脚本代码；正在忽略入口点</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticInAsOrIs">

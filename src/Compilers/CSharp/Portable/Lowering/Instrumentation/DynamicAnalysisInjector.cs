@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Do not instrument implicitly-declared methods, except for constructors.
             // Instrument implicit constructors in order to instrument member initializers.
-            if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor)
+            if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor && !(method is SynthesizedSimpleProgramEntryPointSymbol))
             {
                 return null;
             }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             // The first point indicates entry into the method and has the span of the method definition.
             SyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
-            if (!method.IsImplicitlyDeclared)
+            if (!method.IsImplicitlyDeclared) // PROTOTYPE(SimplePrograms): What should we do here?
             {
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
             }

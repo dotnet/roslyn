@@ -9779,7 +9779,7 @@ int G1(int[] p) { return p[2]; }
                 "Update [y = (3, 4)]@56 -> [y2 = (3, 4)]@96");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms)")]
         public void TupleElementName()
         {
             var src1 = @"(int a, int b) F();";

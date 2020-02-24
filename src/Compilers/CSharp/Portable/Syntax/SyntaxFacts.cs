@@ -486,5 +486,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (declaration.Body ?? (SyntaxNode)declaration.ExpressionBody) != null;
         }
+
+        internal static bool IsTopLevelStatement(GlobalStatementSyntax syntax)
+        {
+            return syntax?.Parent?.IsKind(SyntaxKind.CompilationUnit) == true;
+        }
+
+        internal static bool IsSimpleProgramTopLevelStatement(GlobalStatementSyntax syntax)
+        {
+            return IsTopLevelStatement(syntax) && syntax.SyntaxTree.Options.Kind == SourceCodeKind.Regular;
+        }
     }
 }

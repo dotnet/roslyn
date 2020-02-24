@@ -1577,9 +1577,7 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
             var symbol = bindInfo.Symbol;
-            Assert.NotNull(symbol);
-            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
-            Assert.Equal("E", symbol.Name);
+            Assert.Null(symbol);
         }
 
         [WorkItem(542360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542360")]

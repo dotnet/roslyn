@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -16,7 +17,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static ProjectChanges GetSingleChangedProjectChanges(Solution oldSolution, Solution newSolution)
         {
             var solutionDifferences = newSolution.GetChanges(oldSolution);
-            var projectId = solutionDifferences.GetProjectChanges().Single().ProjectId;
+            var projectChanges = solutionDifferences.GetProjectChanges();
+
+            Assert.NotNull(projectChanges);
+            Assert.NotEmpty(projectChanges);
+
+            var projectId = projectChanges.Single().ProjectId;
 
             var oldProject = oldSolution.GetRequiredProject(projectId);
             var newProject = newSolution.GetRequiredProject(projectId);

@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Class:
                 case DeclarationKind.Script:
                 case DeclarationKind.ImplicitClass:
+                case DeclarationKind.SimpleProgram:
                     return TypeKind.Class;
 
                 case DeclarationKind.Submission:

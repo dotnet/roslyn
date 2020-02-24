@@ -3848,7 +3848,7 @@ void Goo()
 parseOptions: GetScriptOptions());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms)"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInTopLevelImplicitClass1()
         {
             await TestInRegularAndScriptAsync(
@@ -4096,7 +4096,7 @@ class Program
         }
 
         [WorkItem(539781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539781")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms)"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInTopLevelMethod()
         {
             await TestInRegularAndScriptAsync(

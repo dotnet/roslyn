@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -189,6 +190,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
+            if (method is SynthesizedSimpleProgramEntryPointSymbol synthesized)
+            {
+                return (CSharpSyntaxNode)method.ContainingSymbol.DeclaringSyntaxReferences.Single().GetSyntax(); // PROTOTYPE(SimplePrograms): return first statement
+            }
+
             method = method.PartialDefinitionPart ?? method;
             foreach (var reference in method.DeclaringSyntaxReferences)
             {

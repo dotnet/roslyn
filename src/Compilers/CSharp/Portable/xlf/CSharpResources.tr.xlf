@@ -412,6 +412,11 @@
         <target state="translated">Hedef çalışma zamanı, bir arabirim üyesi için 'protected', 'protected internal' veya 'private protected' erişilebilirliğini desteklemez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
+        <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
+        <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Tek öğeli bir ayrıştırma deseni, kesinleştirme için başka bir söz dizimi gerektirir. ')' kapanış parantezinden sonra '_' atma belirleyicisinin eklenmesi önerilir.</target>
@@ -935,6 +940,11 @@
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
         <target state="translated">ref yeniden ataması</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSimplePrograms">
+        <source>simple programs</source>
+        <target state="new">simple programs</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
@@ -7671,13 +7681,13 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored">
-        <source>The entry point of the program is global script code; ignoring '{0}' entry point.</source>
-        <target state="translated">Programın giriş noktası genel betik kodudur; '{0}' giriş noktası yoksayılıyor.</target>
+        <source>The entry point of the program is global code; ignoring '{0}' entry point.</source>
+        <target state="needs-review-translation">Programın giriş noktası genel betik kodudur; '{0}' giriş noktası yoksayılıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored_Title">
-        <source>The entry point of the program is global script code; ignoring entry point</source>
-        <target state="translated">Programın giriş noktası genel betik kodudur, giriş noktası yoksayılıyor</target>
+        <source>The entry point of the program is global code; ignoring entry point</source>
+        <target state="needs-review-translation">Programın giriş noktası genel betik kodudur, giriş noktası yoksayılıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticInAsOrIs">

@@ -412,6 +412,11 @@
         <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje specyfikatorów dostępu „protected”, „protected internal” i „private protected” dla składowej interfejsu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
+        <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
+        <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Wzorzec dekonstrukcji z jednym elementem wymaga innej składni w celu ujednoznacznienia. Zaleca się dodanie desygnatora odrzucania „_” po nawiasie zamykającym „)”.</target>
@@ -935,6 +940,11 @@
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
         <target state="translated">ponowne przypisanie odwołania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSimplePrograms">
+        <source>simple programs</source>
+        <target state="new">simple programs</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
@@ -7671,13 +7681,13 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored">
-        <source>The entry point of the program is global script code; ignoring '{0}' entry point.</source>
-        <target state="translated">Punkt wejścia programu to kod skryptu globalnego. Punkt wejścia „{0}” został zignorowany.</target>
+        <source>The entry point of the program is global code; ignoring '{0}' entry point.</source>
+        <target state="needs-review-translation">Punkt wejścia programu to kod skryptu globalnego. Punkt wejścia „{0}” został zignorowany.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored_Title">
-        <source>The entry point of the program is global script code; ignoring entry point</source>
-        <target state="translated">Punkt wejścia programu to kod skryptu globalnego. Punkt wejścia został zignorowany</target>
+        <source>The entry point of the program is global code; ignoring entry point</source>
+        <target state="needs-review-translation">Punkt wejścia programu to kod skryptu globalnego. Punkt wejścia został zignorowany</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticInAsOrIs">

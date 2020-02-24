@@ -412,6 +412,11 @@
         <target state="translated">Целевая среда выполнения не поддерживает специальные возможности "защищенный", "внутренний защищенный" или "частный защищенный" для члена интерфейса.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
+        <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
+        <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Для шаблона деконструкции с одним элементом требуется другой синтаксис для устранения неоднозначности. Рекомендуется добавить указатель отмены "_" после закрывающей скобки ")".</target>
@@ -935,6 +940,11 @@
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
         <target state="translated">повторное назначение по ссылке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSimplePrograms">
+        <source>simple programs</source>
+        <target state="new">simple programs</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
@@ -7671,13 +7681,13 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored">
-        <source>The entry point of the program is global script code; ignoring '{0}' entry point.</source>
-        <target state="translated">Точкой входа программы является глобальный код скрипта; игнорируйте точку входа "{0}".</target>
+        <source>The entry point of the program is global code; ignoring '{0}' entry point.</source>
+        <target state="needs-review-translation">Точкой входа программы является глобальный код скрипта; игнорируйте точку входа "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored_Title">
-        <source>The entry point of the program is global script code; ignoring entry point</source>
-        <target state="translated">Точка входа в программе является глобальным кодом скрипта; выполняется пропуск точки входа</target>
+        <source>The entry point of the program is global code; ignoring entry point</source>
+        <target state="needs-review-translation">Точка входа в программе является глобальным кодом скрипта; выполняется пропуск точки входа</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticInAsOrIs">

@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternMatchingTests_Global : PatternMatchingTestBase
     {
+        private static bool BaselinesAdjusted = false; // PROTOTYPE(SimplePrograms): Remove once baselines are adjusted according to the feature.
+
         [Fact]
         public void GlobalCode_ExpressionStatement_01()
         {
@@ -91,6 +93,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -204,6 +207,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -373,6 +377,7 @@ class H
                 VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[1], x5Ref[0]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -509,6 +514,7 @@ class H
                 VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[1], x5Ref[1]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -724,6 +730,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -850,6 +857,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -967,6 +975,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -1083,6 +1092,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -1240,6 +1250,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -1357,6 +1368,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -1487,6 +1499,7 @@ class H
                 VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[1], x5Ref[0]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -1621,6 +1634,7 @@ class H
                 VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[1], x5Ref[0]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -1828,6 +1842,7 @@ class H
                 VerifyNotInScope(model, x5Ref[2]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -1971,6 +1986,7 @@ class H
                 VerifyNotInScope(model, x5Ref[2]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -2147,6 +2163,7 @@ class H
                 VerifyNotInScope(model, x5Ref[2]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -2291,6 +2308,7 @@ class H
                 VerifyNotInScope(model, x5Ref[2]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -2466,6 +2484,7 @@ class H
                 VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[1], x5Ref[0]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -2599,6 +2618,7 @@ class H
                 VerifyModelForDeclarationOrVarSimplePattern(model, x5Decl[1], x5Ref[0]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -2831,6 +2851,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -2962,6 +2983,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -3087,6 +3109,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -3269,6 +3292,7 @@ class H
                 VerifyModelForDeclarationField(model, x5Decl, x5Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -3432,6 +3456,7 @@ class H
                 VerifyModelForDeclarationField(model, x5Decl, x5Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -3654,6 +3679,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -3815,6 +3841,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -4005,6 +4032,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -4178,6 +4206,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -4527,6 +4556,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -4679,6 +4709,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -4998,6 +5029,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -5171,6 +5203,7 @@ class H
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -5492,6 +5525,7 @@ class H
                 // VerifyModelForDeclarationField(model, x1Decl, x1Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -5575,6 +5609,7 @@ class H
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -5656,6 +5691,7 @@ class H
                 // VerifyModelForDeclarationField(model, x1Decl, x1Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -5741,6 +5777,7 @@ class H
                 // VerifyModelForDeclarationField(model, x1Decl, x1Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -6104,6 +6141,7 @@ catch (System.Exception x15)
                 VerifyNotAPatternLocal(model, x15Ref[1]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -6261,6 +6299,7 @@ class H
                 VerifyNotInScope(model, x3Ref);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -6504,6 +6543,7 @@ for (
                 VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -6772,6 +6812,7 @@ foreach (var x15 in
                 VerifyNotAPatternLocal(model, x15Ref[1]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -6971,6 +7012,7 @@ Dummy(x12);
                 VerifyNotAPatternLocal(model, x12Ref[2]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -7410,6 +7452,7 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
                 VerifyNotAPatternField(model, y11Ref[1]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
@@ -7645,6 +7688,7 @@ using (Dummy(1 is var x14,
                 VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
             }
 
+            if (BaselinesAdjusted) // PROTOTYPE(SimplePrograms): Adjust baseline according to the feature.
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,

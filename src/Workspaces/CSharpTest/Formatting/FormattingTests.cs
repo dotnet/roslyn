@@ -4505,7 +4505,7 @@ class innerClass
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms)")]
         [WorkItem(542199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542199")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ColumnOfVeryFirstToken()
