@@ -437,6 +437,11 @@ class TestClass2 {
                 return new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             }
 
+            protected override ParseOptions CreateParseOptions()
+            {
+                return new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
+            }
+
             protected override IEnumerable<CodeFixProvider> GetCodeFixProviders()
             {
                 yield return new IncrementFix();
