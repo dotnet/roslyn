@@ -1,0 +1,20 @@
+Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>
+Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.CodeRefactoringTest() -> void
+Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.FixedCode.set -> void
+Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.FixedState.get -> Microsoft.CodeAnalysis.Testing.SolutionState
+Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.OffersEmptyRefactoring.get -> bool
+Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.OffersEmptyRefactoring.set -> void
+Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.VerifyRefactoringAsync(Microsoft.CodeAnalysis.Testing.SolutionState testState, Microsoft.CodeAnalysis.Testing.SolutionState fixedState, Microsoft.CodeAnalysis.Testing.DiagnosticResult triggerSpan, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.Testing.CodeRefactoringVerifier<TCodeRefactoring, TTest, TVerifier>
+Microsoft.CodeAnalysis.Testing.CodeRefactoringVerifier<TCodeRefactoring, TTest, TVerifier>.CodeRefactoringVerifier() -> void
+Microsoft.CodeAnalysis.Testing.EmptyCodeRefactoringProvider
+Microsoft.CodeAnalysis.Testing.EmptyCodeRefactoringProvider.EmptyCodeRefactoringProvider() -> void
+abstract Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.GetCodeRefactoringProviders() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider>
+override Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.GetDefaultDiagnostic(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer[] analyzers) -> Microsoft.CodeAnalysis.DiagnosticDescriptor
+override Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+override Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+override Microsoft.CodeAnalysis.Testing.EmptyCodeRefactoringProvider.ComputeRefactoringsAsync(Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext context) -> System.Threading.Tasks.Task
+static Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.TriggerSpanDescriptor.get -> Microsoft.CodeAnalysis.DiagnosticDescriptor
+static Microsoft.CodeAnalysis.Testing.CodeRefactoringVerifier<TCodeRefactoring, TTest, TVerifier>.VerifyRefactoringAsync(string source, Microsoft.CodeAnalysis.Testing.DiagnosticResult expected, string fixedSource) -> System.Threading.Tasks.Task
+static Microsoft.CodeAnalysis.Testing.CodeRefactoringVerifier<TCodeRefactoring, TTest, TVerifier>.VerifyRefactoringAsync(string source, Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected, string fixedSource) -> System.Threading.Tasks.Task
+static Microsoft.CodeAnalysis.Testing.CodeRefactoringVerifier<TCodeRefactoring, TTest, TVerifier>.VerifyRefactoringAsync(string source, string fixedSource) -> System.Threading.Tasks.Task

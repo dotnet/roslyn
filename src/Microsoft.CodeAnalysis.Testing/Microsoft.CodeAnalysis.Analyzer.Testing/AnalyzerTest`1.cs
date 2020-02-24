@@ -1074,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     (var newFileName, var source) = projectState.Sources[i];
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
-                    solution = solution.AddDocument(documentId, newFileName, source);
+                    solution = solution.AddDocument(documentId, newFileName, source, filePath: newFileName);
                 }
 
                 solution = solution.AddProjectReference(projectId, new ProjectReference(additionalProjectId));
@@ -1086,14 +1086,14 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 (var newFileName, var source) = sources[i];
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                solution = solution.AddDocument(documentId, newFileName, source);
+                solution = solution.AddDocument(documentId, newFileName, source, filePath: newFileName);
             }
 
             for (var i = 0; i < additionalFiles.Length; i++)
             {
                 (var newFileName, var source) = additionalFiles[i];
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                solution = solution.AddAdditionalDocument(documentId, newFileName, source);
+                solution = solution.AddAdditionalDocument(documentId, newFileName, source, filePath: newFileName);
             }
 
             foreach (var transform in SolutionTransforms)
