@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             get => ImmutableArray.Create(CS0266, CS1503);
         }
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
