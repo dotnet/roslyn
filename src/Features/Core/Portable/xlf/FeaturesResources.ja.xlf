@@ -297,6 +297,11 @@
         <target state="translated">'{0}' を暗黙的に実装する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">すべてのインターフェイスを暗黙的に実装する</target>
@@ -2113,11 +2118,6 @@ This version used in: {2}</source>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(不明)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">抽象クラスの実装</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

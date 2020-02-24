@@ -297,6 +297,11 @@
         <target state="translated">Niejawnie zaimplementuj interfejs „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">Niejawnie zaimplementuj wszystkie interfejsy</target>
@@ -2113,11 +2118,6 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Nieznany)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Implementuj klasę abstrakcyjną</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

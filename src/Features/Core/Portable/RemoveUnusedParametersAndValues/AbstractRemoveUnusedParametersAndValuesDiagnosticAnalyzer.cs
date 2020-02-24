@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Expression_value_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Expression_value_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: false);
+            isUnnecessary: false);
 
         // Diagnostic reported for value assignments to locals/parameters that are never used on any control flow path.
         private static readonly DiagnosticDescriptor s_valueAssignedIsUnusedRule = CreateDescriptorWithId(
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             new LocalizableResourceString(nameof(FeaturesResources.Unnecessary_assignment_of_a_value), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Unnecessary_assignment_of_a_value_to_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: true);
+            isUnnecessary: true);
 
         // Diagnostic reported for unnecessary parameters that can be removed.
         private static readonly DiagnosticDescriptor s_unusedParameterRule = CreateDescriptorWithId(
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: true);
+            isUnnecessary: true);
 
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
 
@@ -198,13 +198,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             out Options options)
         {
             options = null;
-            var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return false;
-            }
 
-            var unusedParametersOption = optionSet.GetOption(CodeStyleOptions.UnusedParameters, language);
+            var unusedParametersOption = analyzerOptions.GetOption(CodeStyleOptions.UnusedParameters, language, syntaxTree, cancellationToken);
             var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(UnusedValueExpressionStatementOption);
             var (unusedValueAssignmentPreference, unusedValueAssignmentSeverity) = GetPreferenceAndSeverity(UnusedValueAssignmentOption);
             if (unusedParametersOption.Notification.Severity == ReportDiagnostic.Suppress &&
@@ -223,7 +218,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             (UnusedValuePreference preference, ReportDiagnostic severity) GetPreferenceAndSeverity(
                 Option<CodeStyleOption<UnusedValuePreference>> codeStyleOption)
             {
-                var option = optionSet.GetOption(codeStyleOption);
+                var option = analyzerOptions.GetOption(codeStyleOption, syntaxTree, cancellationToken);
                 var preferenceOpt = option?.Value;
                 if (preferenceOpt == null ||
                     option.Notification.Severity == ReportDiagnostic.Suppress)

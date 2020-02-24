@@ -47,6 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.VolatileKeyword,
         };
 
+        private static readonly ISet<SyntaxKind> s_validLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.ExternKeyword,
+            SyntaxKind.AsyncKeyword,
+            SyntaxKind.UnsafeKeyword
+        };
+
         public StaticKeywordRecommender()
             : base(SyntaxKind.StaticKeyword)
         {
@@ -57,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsGlobalStatementContext ||
                 context.TargetToken.IsUsingKeywordInUsingDirective() ||
-                context.IsStatementContext ||
                 IsValidContextForType(context, cancellationToken) ||
-                IsValidContextForMember(context, cancellationToken);
+                IsValidContextForMember(context, cancellationToken) ||
+                context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
         }
 
         private static bool IsValidContextForMember(CSharpSyntaxContext context, CancellationToken cancellationToken)

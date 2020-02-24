@@ -1,5 +1,7 @@
 Microsoft.CodeAnalysis.CommandLineArguments.ErrorLogOptions.get -> Microsoft.CodeAnalysis.ErrorLogOptions
 *REMOVED*Microsoft.CodeAnalysis.CommandLineArguments.ErrorLogPath.get -> string
+Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, bool isScript, bool isInputRedirected) -> void
+Microsoft.CodeAnalysis.CommandLineSourceFile.IsInputRedirected.get -> bool
 Microsoft.CodeAnalysis.ErrorLogOptions
 Microsoft.CodeAnalysis.ErrorLogOptions.ErrorLogOptions(string path, Microsoft.CodeAnalysis.SarifVersion sarifVersion) -> void
 Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string

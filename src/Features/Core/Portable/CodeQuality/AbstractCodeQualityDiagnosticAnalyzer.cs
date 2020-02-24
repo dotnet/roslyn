@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             string id,
             LocalizableString title,
             LocalizableString messageFormat,
-            bool isUnneccessary,
+            bool isUnnecessary,
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
             LocalizableString description = null,
@@ -52,6 +52,6 @@ namespace Microsoft.CodeAnalysis.CodeQuality
                     DiagnosticSeverity.Info,
                     isEnabledByDefault,
                     description,
-                    customTags: DiagnosticCustomTags.Create(isUnneccessary, isConfigurable, customTags));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, customTags));
     }
 }

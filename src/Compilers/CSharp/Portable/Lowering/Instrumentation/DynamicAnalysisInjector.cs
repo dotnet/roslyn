@@ -129,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)
         {
+            Debug.Assert(method.MethodKind != MethodKind.LocalFunction && method.MethodKind != MethodKind.AnonymousFunction);
+
             var containingType = method.ContainingType;
             while ((object)containingType != null)
             {
@@ -140,37 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 containingType = containingType.ContainingType;
             }
 
-            // Skip lambdas and local functions. They can't have custom attributes.
-            var nonLambda = method.ContainingNonLambdaMember();
-            if (nonLambda?.Kind == SymbolKind.Method)
+            return method switch
             {
-                method = (MethodSymbol)nonLambda;
-
-                if (method.IsDirectlyExcludedFromCodeCoverage)
-                {
-                    return true;
-                }
-
-                var associatedSymbol = method.AssociatedSymbol;
-                switch (associatedSymbol?.Kind)
-                {
-                    case SymbolKind.Property:
-                        if (((PropertySymbol)associatedSymbol).IsDirectlyExcludedFromCodeCoverage)
-                        {
-                            return true;
-                        }
-                        break;
-
-                    case SymbolKind.Event:
-                        if (((EventSymbol)associatedSymbol).IsDirectlyExcludedFromCodeCoverage)
-                        {
-                            return true;
-                        }
-                        break;
-                }
-            }
-
-            return false;
+                { IsDirectlyExcludedFromCodeCoverage: true } => true,
+                { AssociatedSymbol: PropertySymbol { IsDirectlyExcludedFromCodeCoverage: true } } => true,
+                { AssociatedSymbol: EventSymbol { IsDirectlyExcludedFromCodeCoverage: true } } => true,
+                _ => false
+            };
         }
 
         private static BoundExpressionStatement GetCreatePayloadStatement(
