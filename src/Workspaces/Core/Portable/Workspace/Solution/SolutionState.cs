@@ -1217,18 +1217,18 @@ namespace Microsoft.CodeAnalysis
             foreach (var documentInfosInProject in documentInfosByProjectId)
             {
                 CheckContainsProject(documentInfosInProject.Key);
-                var oldProject = this.GetProjectState(documentInfosInProject.Key)!;
+                var oldProjectState = this.GetProjectState(documentInfosInProject.Key)!;
 
                 var newDocumentStatesForProjectBuilder = ArrayBuilder<T>.GetInstance();
 
                 foreach (var documentInfo in documentInfosInProject)
                 {
-                    newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProject));
+                    newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState));
                 }
 
                 var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
 
-                var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProject, newDocumentStatesForProject);
+                var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
 
                 newSolutionState = newSolutionState.ForkProject(newProjectState,
                     compilationTranslationAction,
@@ -1303,9 +1303,9 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var documentIdsInProject in documentIdsByProjectId)
             {
-                var oldProject = this.GetProjectState(documentIdsInProject.Key);
+                var oldProjectState = this.GetProjectState(documentIdsInProject.Key);
 
-                if (oldProject == null)
+                if (oldProjectState == null)
                 {
                     throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentIdsInProject.Key));
                 }
@@ -1314,12 +1314,12 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var documentId in documentIdsInProject)
                 {
-                    removedDocumentStatesBuilder.Add(getExistingTextDocumentState(oldProject, documentId));
+                    removedDocumentStatesBuilder.Add(getExistingTextDocumentState(oldProjectState, documentId));
                 }
 
                 var removedDocumentStatesForProject = removedDocumentStatesBuilder.ToImmutableAndFree();
 
-                var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProject, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+                var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
 
                 newSolutionState = newSolutionState.ForkProject(newProjectState,
                     compilationTranslationAction,
