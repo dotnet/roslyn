@@ -35,11 +35,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         // The VS LSP client supports streaming using IProgress<T> on various requests.
         // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
+        // Additionally, the VS LSP client will be changing the type of 'tagSupport' from bool to an object in future LSP package versions.
+        // Since updating our package versions is extraordinarily difficult, add this workaround so we aren't broken when they change the type.
+        // https://github.com/dotnet/roslyn/issues/40829 tracks updating our package versions to remove this workaround.
         internal static readonly JsonSerializer JsonSerializer = JsonSerializer.Create(new JsonSerializerSettings
         {
             Error = (sender, args) =>
             {
-                if (object.Equals(args.ErrorContext.Member, "partialResultToken"))
+                if (object.Equals(args.ErrorContext.Member, "partialResultToken")
+                    || (object.Equals(args.ErrorContext.Member, "tagSupport") && args.ErrorContext.OriginalObject.GetType() == typeof(PublishDiagnosticsSetting)))
                 {
                     args.ErrorContext.Handled = true;
                 }
