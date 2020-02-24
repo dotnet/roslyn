@@ -429,7 +429,7 @@ class TestClass {
             }.RunAsync();
         }
 
-        private static ReferenceAssemblies ReferenceAssembliesForTargetFramework(string targetFramework)
+        internal static ReferenceAssemblies ReferenceAssembliesForTargetFramework(string targetFramework)
         {
             return targetFramework switch
             {

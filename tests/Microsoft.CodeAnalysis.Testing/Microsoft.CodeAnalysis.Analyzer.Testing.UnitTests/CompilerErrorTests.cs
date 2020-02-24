@@ -369,8 +369,12 @@ class TestClass {
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestRoslynCompilerUsage_1()
+        [Theory]
+        [InlineData("netstandard1.1", Skip = "https://github.com/dotnet/roslyn-sdk/issues/471")]
+        [InlineData("netstandard2.0", Skip = "https://github.com/dotnet/roslyn-sdk/issues/471")]
+        [InlineData("net452")]
+        [InlineData("net472")]
+        public async Task TestRoslynCompilerUsage_1(string targetFramework)
         {
             var testCode = @"
 using Microsoft.CodeAnalysis.CSharp;
@@ -385,13 +389,17 @@ class TestClass {
                 {
                     Sources = { testCode },
                 },
-                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net452.Default
+                ReferenceAssemblies = MetadataReferenceTests.ReferenceAssembliesForTargetFramework(targetFramework)
                     .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "1.0.1"))),
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestRoslynCompilerUsage_2()
+        [Theory]
+        [InlineData("netstandard1.3")]
+        [InlineData("netstandard2.0")]
+        [InlineData("net46")]
+        [InlineData("net472")]
+        public async Task TestRoslynCompilerUsage_2(string targetFramework)
         {
             var testCode = @"
 using Microsoft.CodeAnalysis.CSharp;
@@ -406,13 +414,15 @@ class TestClass {
                 {
                     Sources = { testCode },
                 },
-                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net46.Default
+                ReferenceAssemblies = MetadataReferenceTests.ReferenceAssembliesForTargetFramework(targetFramework)
                     .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "2.8.2"))),
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestRoslynCompilerUsage_3()
+        [Theory]
+        [InlineData("netstandard2.0")]
+        [InlineData("net472")]
+        public async Task TestRoslynCompilerUsage_3(string targetFramework)
         {
             var testCode = @"
 using Microsoft.CodeAnalysis.CSharp;
@@ -427,7 +437,7 @@ class TestClass {
                 {
                     Sources = { testCode },
                 },
-                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default
+                ReferenceAssemblies = MetadataReferenceTests.ReferenceAssembliesForTargetFramework(targetFramework)
                     .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.3.1"))),
             }.RunAsync();
         }
