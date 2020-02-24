@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Diagnostic> _lazyClsComplianceDiagnostics;
 
         private Conversions? _conversions;
+        /// <summary>
+        /// A conversions object that ignores nullability.
+        /// </summary>
         internal Conversions Conversions
         {
             get
