@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 }
                 else if (potentialConvTypes.Length > 1)
                 {
-                    var actions = new ArrayBuilder<CodeAction>();
+                    var actions = ArrayBuilder<CodeAction>.GetInstance();
                     for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConvTypes.Length); i++)
                     {
                         var convType = potentialConvTypes[i];
