@@ -3005,7 +3005,7 @@ class C
         }
 
         [Fact]
-        public void Relational_SignedEnumExhaustive()
+        public void Relational_UnsignedEnumExhaustive()
         {
             foreach (var typeName in new[] { "byte", "ushort", "uint", "ulong" })
             {
@@ -3057,7 +3057,7 @@ class C
         }
 
         [Fact]
-        public void Relational_UnsignedEnumExhaustive()
+        public void Relational_SignedEnumExhaustive()
         {
             foreach (var typeName in new[] { "sbyte", "short", "int", "long" })
             {
