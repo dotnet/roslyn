@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Testing
         where TCodeFix : CodeFixProvider, new()
         where TVerifier : IVerifier, new()
     {
+        private static readonly LanguageVersion DefaultLanguageVersion =
+            Enum.TryParse("Default", out LanguageVersion version) ? version : LanguageVersion.CSharp6;
+
         protected override IEnumerable<CodeFixProvider> GetCodeFixProviders()
             => new[] { new TCodeFix() };
 
@@ -27,5 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Testing
 
         protected override CompilationOptions CreateCompilationOptions()
             => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true);
+
+        protected override ParseOptions CreateParseOptions()
+            => new CSharpParseOptions(DefaultLanguageVersion, DocumentationMode.Diagnose);
     }
 }
