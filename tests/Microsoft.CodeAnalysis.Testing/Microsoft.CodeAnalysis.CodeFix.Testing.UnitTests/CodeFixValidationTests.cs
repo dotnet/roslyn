@@ -442,6 +442,11 @@ Actual and expected values differ. Expected shown in baseline of diff:
                 return new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             }
 
+            protected override ParseOptions CreateParseOptions()
+            {
+                return new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
+            }
+
             protected override IEnumerable<CodeFixProvider> GetCodeFixProviders()
             {
                 yield return new TCodeFix();

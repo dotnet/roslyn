@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.Testing
             protected override CompilationOptions CreateCompilationOptions()
                 => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
+            protected override ParseOptions CreateParseOptions()
+                => new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
+
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
             {
                 yield return new NoActionAnalyzer();

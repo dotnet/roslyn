@@ -303,6 +303,11 @@ End Class
                 return new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             }
 
+            protected override ParseOptions CreateParseOptions()
+            {
+                return new CSharp.CSharpParseOptions(CSharp.LanguageVersion.Default, DocumentationMode.Diagnose);
+            }
+
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
             {
                 yield return new ReplaceThisWithBaseAnalyzer(_generatedCodeAnalysisFlags);
@@ -325,6 +330,11 @@ End Class
             protected override CompilationOptions CreateCompilationOptions()
             {
                 return new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            }
+
+            protected override ParseOptions CreateParseOptions()
+            {
+                return new VisualBasic.VisualBasicParseOptions(VisualBasic.LanguageVersion.Default, DocumentationMode.Diagnose);
             }
 
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()

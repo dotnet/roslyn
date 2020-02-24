@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Testing
         protected override CompilationOptions CreateCompilationOptions()
             => new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
+        protected override ParseOptions CreateParseOptions()
+            => new VisualBasicParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
+
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             yield return new TAnalyzer();

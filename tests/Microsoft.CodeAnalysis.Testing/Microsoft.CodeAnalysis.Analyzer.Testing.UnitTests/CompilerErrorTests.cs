@@ -441,6 +441,9 @@ class TestClass {
             protected override CompilationOptions CreateCompilationOptions()
                 => new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
+            protected override ParseOptions CreateParseOptions()
+                => new CSharp.CSharpParseOptions(CSharp.LanguageVersion.Default, DocumentationMode.Diagnose);
+
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
             {
                 yield return new NoActionAnalyzer();
@@ -455,6 +458,9 @@ class TestClass {
 
             protected override CompilationOptions CreateCompilationOptions()
                 => new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
+            protected override ParseOptions CreateParseOptions()
+                => new VisualBasic.VisualBasicParseOptions(VisualBasic.LanguageVersion.Default, DocumentationMode.Diagnose);
 
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
             {
