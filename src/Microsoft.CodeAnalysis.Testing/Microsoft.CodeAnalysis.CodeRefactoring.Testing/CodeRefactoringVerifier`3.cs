@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -15,5 +17,44 @@ namespace Microsoft.CodeAnalysis.Testing
            where TTest : CodeRefactoringTest<TVerifier>, new()
            where TVerifier : IVerifier, new()
     {
+        /// <summary>
+        /// Verifies the application of the code refactoring produces the expected result.
+        /// </summary>
+        /// <param name="source">The source text to test. Any diagnostics are defined in markup.</param>
+        /// <param name="fixedSource">The expected fixed source text. Any remaining diagnostics are defined in markup.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public static Task VerifyRefactoringAsync(string source, string fixedSource)
+            => VerifyRefactoringAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
+
+        /// <summary>
+        /// Verifies the application of the code refactoring produces the expected result.
+        /// </summary>
+        /// <param name="source">The source text to test, which may include markup syntax.</param>
+        /// <param name="expected">The expected diagnostic. This diagnostic is in addition to any diagnostics defined in
+        /// markup.</param>
+        /// <param name="fixedSource">The expected fixed source text. Any remaining diagnostics are defined in markup.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public static Task VerifyRefactoringAsync(string source, DiagnosticResult expected, string fixedSource)
+            => VerifyRefactoringAsync(source, new[] { expected }, fixedSource);
+
+        /// <summary>
+        /// Verifies the application of the code refactoring produces the expected result.
+        /// </summary>
+        /// <param name="source">The source text to test, which may include markup syntax.</param>
+        /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics
+        /// defined in markup.</param>
+        /// <param name="fixedSource">The expected fixed source text. Any remaining diagnostics are defined in markup.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public static Task VerifyRefactoringAsync(string source, DiagnosticResult[] expected, string fixedSource)
+        {
+            var test = new TTest
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+            };
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            return test.RunAsync(CancellationToken.None);
+        }
     }
 }
