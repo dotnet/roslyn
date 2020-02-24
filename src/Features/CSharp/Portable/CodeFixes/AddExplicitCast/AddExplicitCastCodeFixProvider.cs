@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             var cancellationToken = context.CancellationToken;
             var diagnostic = context.Diagnostics.First();
 
-            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
