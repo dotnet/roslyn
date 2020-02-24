@@ -686,8 +686,8 @@ False
             // The code generated below does not correspond to the code generated for `ToString()` when `_i` is `int`.
             // For `int _i`, we generate:
             //   ldarg.0
-            //   ldfld      ""nint MyInt._i""
-            //   call       ""string nint.ToString()""
+            //   ldfld      ""int MyInt._i""
+            //   call       ""string int.ToString()""
             // The code below is valid but equivalent to code for a struct type that does not override ToString().
             // PROTOTYPE: Should NativeIntegerTypeSymbol.GetMembers() include members for ToString(),
             // Equals(), GetHashCode()? That would fix this difference and avoid the PEVerify failure above.
