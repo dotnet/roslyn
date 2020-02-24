@@ -8,15 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol
     {
-        private ImmutableArray<Symbol> _lazyMembers;
-
         internal NativeIntegerTypeSymbol(NamedTypeSymbol underlying) : base(underlying, tupleData: null)
         {
             Debug.Assert(underlying.TupleData is null);
@@ -40,29 +37,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override SpecialType SpecialType => _underlyingType.SpecialType;
 
-        public override IEnumerable<string> MemberNames => GetMembers().SelectAsArray(m => m.Name);
+        public override IEnumerable<string> MemberNames => Array.Empty<string>();
 
         /// <summary>
-        /// There only members of <see cref="System.IntPtr"/> that are exposed directly on nint
-        /// are the overridden methods Equals(), GetHashCode(), and ToString(). For the other members:
+        /// There are no members on <see cref="System.IntPtr"/> that should be exposed directly on nint:
         /// constructors for nint other than the default parameterless constructor are not supported;
         /// operators are handled explicitly as built-in operators and conversions;
         /// 0 should be used instead of Zero;
         /// sizeof(nint) should be used instead of Size;
         /// + and - should be used instead of Add() and Subtract();
-        /// ToInt32(), ToInt64(), ToPointer() should be used from System.IntPtr only.
+        /// ToInt32(), ToInt64(), ToPointer() should be used from System.IntPtr only;
+        /// overridden methods Equals(), GetHashCode(), and ToString() are referenced from System.Object.
         /// The one remaining member is <see cref="System.IntPtr.ToString(string)"/> which we could expose if needed.
         /// </summary>
-        public override ImmutableArray<Symbol> GetMembers()
-        {
-            if (_lazyMembers.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyMembers, CalculateMembers(this, _underlyingType));
-            }
-            return _lazyMembers;
-        }
+        public override ImmutableArray<Symbol> GetMembers() => ImmutableArray<Symbol>.Empty;
 
-        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(m => m.Name == name);
+        public override ImmutableArray<Symbol> GetMembers(string name) => ImmutableArray<Symbol>.Empty;
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
 
@@ -97,89 +87,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null) => _underlyingType.Equals(t2, comparison, isValueTypeOverrideOpt);
 
         public override int GetHashCode() => _underlyingType.GetHashCode();
-
-        private static ImmutableArray<Symbol> CalculateMembers(NativeIntegerTypeSymbol containingType, NamedTypeSymbol underlyingType)
-        {
-            var underlyingMembers = underlyingType.GetMembers();
-            var builder = ArrayBuilder<Symbol>.GetInstance();
-            addMethodIfAny(SpecialMember.System_Object__GetHashCode);
-            addMethodIfAny(SpecialMember.System_Object__Equals);
-            addMethodIfAny(SpecialMember.System_Object__ToString);
-            return builder.ToImmutableAndFree();
-
-            void addMethodIfAny(SpecialMember id)
-            {
-                var method = (MethodSymbol?)CSharpCompilation.GetRuntimeMember(
-                    underlyingMembers,
-                    SpecialMembers.GetDescriptor(id),
-                    CSharpCompilation.SpecialMembersSignatureComparer.Instance,
-                    accessWithinOpt: null);
-                if (method is object)
-                {
-                    builder.Add(new NativeIntegerMethodSymbol(containingType, method));
-                }
-            }
-        }
-
-        private sealed class NativeIntegerMethodSymbol : WrappedMethodSymbol
-        {
-            private readonly NativeIntegerTypeSymbol _containingType;
-            private readonly MethodSymbol _underlyingMethod;
-            private ImmutableArray<ParameterSymbol> _lazyParameters;
-
-            internal NativeIntegerMethodSymbol(NativeIntegerTypeSymbol containingType, MethodSymbol underlyingMethod)
-            {
-                Debug.Assert(underlyingMethod.TypeParameters.IsEmpty);
-                Debug.Assert(underlyingMethod.AssociatedSymbol is null);
-
-                _containingType = containingType;
-                _underlyingMethod = underlyingMethod;
-            }
-
-            public override MethodSymbol UnderlyingMethod => _underlyingMethod;
-
-            public override TypeWithAnnotations ReturnTypeWithAnnotations => _underlyingMethod.ReturnTypeWithAnnotations;
-
-            public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
-
-            public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
-
-            public override ImmutableArray<ParameterSymbol> Parameters
-            {
-                get
-                {
-                    if (_lazyParameters.IsDefault)
-                    {
-                        ImmutableInterlocked.InterlockedInitialize(
-                            ref _lazyParameters,
-                            _underlyingMethod.Parameters.SelectAsArray((p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m, p), this));
-                    }
-                    return _lazyParameters;
-                }
-            }
-
-            public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
-
-            public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
-
-            public override Symbol? AssociatedSymbol => null;
-
-            public override Symbol ContainingSymbol => _containingType;
-
-            internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable;
-        }
-
-        private sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
-        {
-            private readonly NativeIntegerMethodSymbol _containingMethod;
-
-            internal NativeIntegerParameterSymbol(NativeIntegerMethodSymbol containingMethod, ParameterSymbol underlyingParameter) :
-                base(underlyingParameter)
-            {
-                _containingMethod = containingMethod;
-            }
-
-            public override Symbol ContainingSymbol => _containingMethod;
-        }
     }
 }

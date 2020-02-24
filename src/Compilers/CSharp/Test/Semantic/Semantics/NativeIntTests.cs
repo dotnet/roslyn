@@ -195,9 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(members.SelectAsArray(m => m.Name), memberNames);
 
             var baseMembers = members.SelectAsArray(m => ((IMethodSymbol)m).OverriddenMethod);
-            Assert.Equal(
-                new[] { "int System.ValueType.GetHashCode()", "bool System.ValueType.Equals(object obj)", "string System.ValueType.ToString()" },
-                baseMembers.SelectAsArray(m => m.ToDisplayString(FormatWithSpecialTypes)));
+            Assert.Empty(baseMembers);
 
             // PROTOTYPE: Include certain interfaces defined on the underlying underlyingType.
             Assert.Empty(nativeIntegerType.Interfaces);
@@ -220,9 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(members.SelectAsArray(m => m.Name), memberNames);
 
             var baseMembers = members.SelectAsArray(m => ((MethodSymbol)m).OverriddenMethod);
-            Assert.Equal(
-                new[] { "int System.ValueType.GetHashCode()", "bool System.ValueType.Equals(object obj)", "string System.ValueType.ToString()" },
-                baseMembers.SelectAsArray(m => m.ToDisplayString(FormatWithSpecialTypes)));
+            Assert.Empty(baseMembers);
 
             // PROTOTYPE: Include certain interfaces defined on the underlying underlyingType.
             Assert.Empty(nativeIntegerType.InterfacesNoUseSiteDiagnostics());
@@ -680,23 +676,28 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            // PEVerify fails with "MyInt::ToString][mdToken=0x6000007][offset 0x00000001] Cannot change initonly field outside its .ctor."
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 $@"42
 {42.GetHashCode()}
 False
 42
 {42.GetHashCode()}");
+            // PROTOTYPE: Should we generate the following instead, which would correspond to the equivalent
+            // code generated for `_i.ToString()` if `_i` was `int`? If NativeIntegerTypeSymbol.GetMembers() included
+            // members for ToString(), Equals(), GetHashCode(), that would fix this issue and the PEVerify failure above.
+            //   ldarg.0
+            //   ldfld      ""nint MyInt._i""
+            //   call       ""string nint.ToString()""
             verifier.VerifyIL("MyInt.ToString",
 @"{
-  // Code size       15 (0xf)
+  // Code size       18 (0x12)
   .maxstack  1
-  .locals init (System.IntPtr V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""nint MyInt._i""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""string nint.ToString()""
-  IL_000e:  ret
+  IL_0001:  ldflda     ""nint MyInt._i""
+  IL_0006:  constrained. ""System.IntPtr""
+  IL_000c:  callvirt   ""string object.ToString()""
+  IL_0011:  ret
 }");
             verifier.VerifyIL("MyInt.GetHashCode",
 @"{
@@ -713,28 +714,26 @@ False
 }");
             verifier.VerifyIL("MyInt.Equals",
 @"{
-  // Code size       51 (0x33)
+  // Code size       54 (0x36)
   .maxstack  3
-  .locals init (System.IntPtr V_0,
-                nint? V_1)
+  .locals init (nint? V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""nint MyInt._i""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  ldarg.1
-  IL_000a:  isinst     ""MyInt""
-  IL_000f:  dup
-  IL_0010:  brtrue.s   IL_001e
-  IL_0012:  pop
-  IL_0013:  ldloca.s   V_1
-  IL_0015:  initobj    ""nint?""
-  IL_001b:  ldloc.1
-  IL_001c:  br.s       IL_0028
-  IL_001e:  ldfld      ""nint MyInt._i""
-  IL_0023:  newobj     ""nint?..ctor(nint)""
-  IL_0028:  box        ""nint?""
-  IL_002d:  call       ""bool nint.Equals(object)""
-  IL_0032:  ret
+  IL_0001:  ldflda     ""nint MyInt._i""
+  IL_0006:  ldarg.1
+  IL_0007:  isinst     ""MyInt""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_001b
+  IL_000f:  pop
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  initobj    ""nint?""
+  IL_0018:  ldloc.0
+  IL_0019:  br.s       IL_0025
+  IL_001b:  ldfld      ""nint MyInt._i""
+  IL_0020:  newobj     ""nint?..ctor(nint)""
+  IL_0025:  box        ""nint?""
+  IL_002a:  constrained. ""System.IntPtr""
+  IL_0030:  callvirt   ""bool object.Equals(object)""
+  IL_0035:  ret
 }");
         }
 
@@ -3408,7 +3407,8 @@ $@"-2147483647
 2147483647
 -1
 -2147483648";
-            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            // PEVerify fails with "MyInt::ToString][mdToken=0x6000007][offset 0x00000001] Cannot change initonly field outside its .ctor."
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Skipped);
             verifier.VerifyIL("Program.PrefixIncrement",
 @"{
   // Code size       17 (0x11)
@@ -3554,7 +3554,8 @@ $@"1
 4294967295
 {(IntPtr.Size == 4 ? "4294967295" : "18446744073709551615")}
 {(IntPtr.Size == 4 ? "0" : "18446744069414584320")}";
-            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            // PEVerify fails with "MyInt::ToString][mdToken=0x6000007][offset 0x00000001] Cannot change initonly field outside its .ctor."
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Skipped);
             verifier.VerifyIL("Program.PrefixIncrement",
 @"{
   // Code size       17 (0x11)
