@@ -1,0 +1,2 @@
+Microsoft.CodeAnalysis.VisualBasic.Testing.MSTest.CodeRefactoringVerifier(Of TCodeRefactoring)
+Microsoft.CodeAnalysis.VisualBasic.Testing.MSTest.CodeRefactoringVerifier(Of TCodeRefactoring).New() -> Void
