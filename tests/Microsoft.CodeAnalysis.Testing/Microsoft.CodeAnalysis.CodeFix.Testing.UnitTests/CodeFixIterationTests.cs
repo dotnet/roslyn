@@ -63,6 +63,78 @@ class TestClass {
         }
 
         [Fact]
+        public async Task TestOneIterationEachForTwoDiagnosticsFixOnlyFirst()
+        {
+            var testCode = @"
+class TestClass {
+  int x = [|4|];
+  int y = [|4|];
+}
+";
+            var fixedCode = @"
+class TestClass {
+  int x =  5;
+  int y = [|4|];
+}
+";
+            var batchFixedCode = @"
+class TestClass {
+  int x =  5;
+  int y =  5;
+}
+";
+
+            await new CSharpTest
+            {
+                TestCode = testCode,
+                FixedState =
+                {
+                    Sources = { fixedCode },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+                BatchFixedCode = batchFixedCode,
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+                DiagnosticIndexToFix = 0,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOneIterationEachForTwoDiagnosticsFixOnlySecond()
+        {
+            var testCode = @"
+class TestClass {
+  int x = [|4|];
+  int y = [|4|];
+}
+";
+            var fixedCode = @"
+class TestClass {
+  int x = [|4|];
+  int y =  5;
+}
+";
+            var batchFixedCode = @"
+class TestClass {
+  int x =  5;
+  int y =  5;
+}
+";
+
+            await new CSharpTest
+            {
+                TestCode = testCode,
+                FixedState =
+                {
+                    Sources = { fixedCode },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+                BatchFixedCode = batchFixedCode,
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+                DiagnosticIndexToFix = 1,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestThreeIterationsForTwoDiagnostics()
         {
             var testCode = @"
@@ -441,9 +513,16 @@ class TestClass2 {
 
             protected override string DefaultFileExt => "cs";
 
+            public int DiagnosticIndexToFix { get; set; }
+
             public CSharpTest()
             {
                 CodeActionValidationMode = CodeActionValidationMode.None;
+            }
+
+            protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
+            {
+                return fixableDiagnostics[DiagnosticIndexToFix];
             }
 
             protected override CompilationOptions CreateCompilationOptions()

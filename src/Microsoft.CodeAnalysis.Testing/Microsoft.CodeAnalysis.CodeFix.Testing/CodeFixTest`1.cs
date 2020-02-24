@@ -349,6 +349,16 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
+        /// <summary>
+        /// Selects the diagnostic to fix when <see cref="CodeFixTestBehaviors.FixOne"/> is used.
+        /// </summary>
+        /// <param name="fixableDiagnostics">The diagnostics available for fixing.</param>
+        /// <returns>The diagnostic to fix; otherwise, <see langword="null"/> if no diagnostics should be fixed.</returns>
+        protected virtual Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
+        {
+            return fixableDiagnostics.FirstOrDefault();
+        }
+
         private async Task VerifyFixAsync(
             string language,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
@@ -432,9 +442,18 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 previousDiagnostics = analyzerDiagnostics;
 
+                var fixableDiagnostics = analyzerDiagnostics.Where(
+                    diagnostic => codeFixProviders.Any(provider => provider.FixableDiagnosticIds.Contains(diagnostic.Id))).ToImmutableArray();
+
+                if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
+                {
+                    var diagnosticToFix = TrySelectDiagnosticToFix(fixableDiagnostics);
+                    fixableDiagnostics = diagnosticToFix is object ? ImmutableArray.Create(diagnosticToFix) : ImmutableArray<Diagnostic>.Empty;
+                }
+
                 done = true;
                 var anyActions = false;
-                foreach (var diagnostic in analyzerDiagnostics)
+                foreach (var diagnostic in fixableDiagnostics)
                 {
                     var actions = new List<CodeAction>();
 
@@ -471,6 +490,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     // Avoid counting iterations that do not provide any code actions
                     numberOfIterations++;
+                }
+
+                if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
+                {
+                    break;
                 }
             }
             while (!done);
@@ -601,6 +625,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     done = false;
                     project = fixedProject;
+                }
+
+                if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
+                {
+                    break;
                 }
             }
             while (!done);

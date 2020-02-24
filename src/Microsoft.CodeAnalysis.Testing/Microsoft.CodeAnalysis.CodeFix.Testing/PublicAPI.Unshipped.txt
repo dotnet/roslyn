@@ -20,6 +20,7 @@ Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfIncrementalIterati
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfIncrementalIterations.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.VerifyFixAsync(Microsoft.CodeAnalysis.Testing.SolutionState testState, Microsoft.CodeAnalysis.Testing.SolutionState fixedState, Microsoft.CodeAnalysis.Testing.SolutionState batchFixedState, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
 Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.FixOne = 8 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
 Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.None = 0 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
 Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllCheck = Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck | Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInProjectCheck | Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInSolutionCheck -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
 Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck = 1 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
@@ -45,3 +46,4 @@ static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest
 static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.VerifyCodeFixAsync(string source, Microsoft.CodeAnalysis.Testing.DiagnosticResult expected, string fixedSource) -> System.Threading.Tasks.Task
 static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.VerifyCodeFixAsync(string source, Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected, string fixedSource) -> System.Threading.Tasks.Task
 static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.VerifyCodeFixAsync(string source, string fixedSource) -> System.Threading.Tasks.Task
+virtual Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.TrySelectDiagnosticToFix(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> fixableDiagnostics) -> Microsoft.CodeAnalysis.Diagnostic

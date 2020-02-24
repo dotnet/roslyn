@@ -34,5 +34,10 @@ namespace Microsoft.CodeAnalysis.Testing
         /// Skip all Fix All checks.
         /// </summary>
         SkipFixAllCheck = SkipFixAllInDocumentCheck | SkipFixAllInProjectCheck | SkipFixAllInSolutionCheck,
+
+        /// <summary>
+        /// One run one code fix iteration.
+        /// </summary>
+        FixOne = 1 << 3,
     }
 }
