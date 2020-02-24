@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 IValueSet<int> values1 = ForInt.Related(LessThanOrEqual, i1).Union(ForInt.Related(GreaterThanOrEqual, i2));
                 Assert.Equal($"[{int.MinValue}..{i1}],[{i2}..{int.MaxValue}]", values1.ToString());
                 IValueSet<int> values2 = values1.Complement();
+                Assert.Equal(values1, values2.Complement());
                 Assert.Equal($"[{i1 + 1}..{i2 - 1}]", values2.ToString());
             }
         }
@@ -576,6 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var s1 = ForString.Random(9, Random);
                 var s2 = ForString.Random(11, Random);
+
+                Assert.Equal(s1.Complement().Complement(), s1);
 
                 var u1 = s1.Union(s2);
                 var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
