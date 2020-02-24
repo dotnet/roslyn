@@ -683,12 +683,14 @@ $@"42
 False
 42
 {42.GetHashCode()}");
-            // PROTOTYPE: Should we generate the following instead, which would correspond to the equivalent
-            // code generated for `_i.ToString()` if `_i` was `int`? If NativeIntegerTypeSymbol.GetMembers() included
-            // members for ToString(), Equals(), GetHashCode(), that would fix this issue and the PEVerify failure above.
+            // The code generated below does not correspond to the code generated for `ToString()` when `_i` is `int`.
+            // For `int _i`, we generate:
             //   ldarg.0
             //   ldfld      ""nint MyInt._i""
             //   call       ""string nint.ToString()""
+            // The code below is valid but equivalent to code for a struct type that does not override ToString().
+            // PROTOTYPE: Should NativeIntegerTypeSymbol.GetMembers() include members for ToString(),
+            // Equals(), GetHashCode()? That would fix this difference and avoid the PEVerify failure above.
             verifier.VerifyIL("MyInt.ToString",
 @"{
   // Code size       18 (0x12)

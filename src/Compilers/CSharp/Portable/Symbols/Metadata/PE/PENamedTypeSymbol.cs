@@ -328,30 +328,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        // PROTOTYPE: Temporary approach for AsNativeInt().
-        // Replace with an approach that handles source symbols as well.
-        protected PENamedTypeSymbol(PENamedTypeSymbol other)
-        {
-            _container = other._container;
-            _handle = other._handle;
-            _name = other._name;
-            _flags = other._flags;
-            _corTypeId = other._corTypeId;
-            _lazyMemberNames = other._lazyMemberNames;
-            _lazyMembersInDeclarationOrder = other._lazyMembersInDeclarationOrder;
-            _lazyMembersByName = other._lazyMembersByName;
-            _lazyNestedTypes = other._lazyNestedTypes;
-            _lazyKind = other._lazyKind;
-            _lazyNullableContextValue = other._lazyNullableContextValue;
-            _lazyBaseType = other._lazyBaseType;
-            _lazyInterfaces = other._lazyInterfaces;
-            _lazyDeclaredBaseType = other._lazyDeclaredBaseType;
-            _lazyDeclaredInterfaces = other._lazyDeclaredInterfaces;
-            _lazyDocComment = other._lazyDocComment;
-            _lazyUseSiteDiagnostic = other._lazyUseSiteDiagnostic;
-            _lazyUncommonProperties = other._lazyUncommonProperties;
-        }
-
         public override SpecialType SpecialType
         {
             get

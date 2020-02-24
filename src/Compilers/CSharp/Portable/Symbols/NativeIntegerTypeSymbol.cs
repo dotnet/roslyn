@@ -12,7 +12,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol
+    // PROTOTYPE: Handle retargeting these types.
+    internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol, Cci.IReference
     {
         internal NativeIntegerTypeSymbol(NamedTypeSymbol underlying) : base(underlying, tupleData: null)
         {
@@ -87,5 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null) => _underlyingType.Equals(t2, comparison, isValueTypeOverrideOpt);
 
         public override int GetHashCode() => _underlyingType.GetHashCode();
+
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            // NativeIntegerTypeSymbol should be used in emit.
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 }
