@@ -1,0 +1,10 @@
+Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>
+Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.CodeRefactoringTest() -> void
+Microsoft.CodeAnalysis.Testing.CodeRefactoringVerifier<TCodeRefactoring, TTest, TVerifier>
+Microsoft.CodeAnalysis.Testing.CodeRefactoringVerifier<TCodeRefactoring, TTest, TVerifier>.CodeRefactoringVerifier() -> void
+Microsoft.CodeAnalysis.Testing.EmptyCodeRefactoringProvider
+Microsoft.CodeAnalysis.Testing.EmptyCodeRefactoringProvider.EmptyCodeRefactoringProvider() -> void
+abstract Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.GetCodeRefactoringProviders() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider>
+abstract Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.SyntaxKindType.get -> System.Type
+override Microsoft.CodeAnalysis.Testing.CodeRefactoringTest<TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+override Microsoft.CodeAnalysis.Testing.EmptyCodeRefactoringProvider.ComputeRefactoringsAsync(Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext context) -> System.Threading.Tasks.Task
