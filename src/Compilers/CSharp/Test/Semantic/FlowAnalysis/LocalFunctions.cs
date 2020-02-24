@@ -1561,11 +1561,11 @@ public class C
     void M()
     {
         string s0;
-        local1(out s0);
+        local1(out s0); // 1
     
         void local1(out string s1)
         {
-            s0.ToString(); // should produce an error, but doesn't
+            s0.ToString();
             s1 = ""hello"";
         }
     }
