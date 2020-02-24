@@ -429,7 +429,7 @@ class TestClass2 {
 
             public CSharpTest()
             {
-                CodeFixValidationMode = CodeFixValidationMode.None;
+                CodeActionValidationMode = CodeActionValidationMode.None;
             }
 
             protected override CompilationOptions CreateCompilationOptions()
