@@ -21,6 +21,19 @@ Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.VerifyDiagnosticsAsync((s
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.XmlReferences.get -> System.Collections.Generic.Dictionary<string, string>
 Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>
 Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.AnalyzerVerifier() -> void
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.ApplyCodeActionAsync(Microsoft.CodeAnalysis.Project project, Microsoft.CodeAnalysis.CodeActions.CodeAction codeAction, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionEquivalenceKey.get -> string
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionEquivalenceKey.set -> void
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionIndex.get -> int?
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionIndex.set -> void
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionTest() -> void
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionValidationMode.get -> Microsoft.CodeAnalysis.Testing.CodeActionValidationMode
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionValidationMode.set -> void
+Microsoft.CodeAnalysis.Testing.CodeActionValidationMode
+Microsoft.CodeAnalysis.Testing.CodeActionValidationMode.Full = 2 -> Microsoft.CodeAnalysis.Testing.CodeActionValidationMode
+Microsoft.CodeAnalysis.Testing.CodeActionValidationMode.None = 0 -> Microsoft.CodeAnalysis.Testing.CodeActionValidationMode
+Microsoft.CodeAnalysis.Testing.CodeActionValidationMode.SemanticStructure = 1 -> Microsoft.CodeAnalysis.Testing.CodeActionValidationMode
 Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
 Microsoft.CodeAnalysis.Testing.CompilerDiagnostics.All = 4 -> Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
 Microsoft.CodeAnalysis.Testing.CompilerDiagnostics.Errors = 1 -> Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
@@ -174,6 +187,7 @@ abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateCompilatio
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFileExt.get -> string
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Language.get -> string
+abstract Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.SyntaxKindType.get -> System.Type
 abstract Microsoft.CodeAnalysis.Testing.ProjectState.Language.get -> string
 override Microsoft.CodeAnalysis.Testing.DiagnosticResult.ToString() -> string
 override Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context) -> void
@@ -183,6 +197,9 @@ static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifi
 static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.Diagnostic(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.Diagnostic(string diagnosticId) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.VerifyAnalyzerAsync(string source, params Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected) -> System.Threading.Tasks.Task
+static Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionExpected(Microsoft.CodeAnalysis.Testing.SolutionState state) -> bool
+static Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.HasAnyChange(Microsoft.CodeAnalysis.Testing.SolutionState oldState, Microsoft.CodeAnalysis.Testing.SolutionState newState) -> bool
+static Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.TryGetCodeActionToApply(System.Collections.Generic.List<Microsoft.CodeAnalysis.CodeActions.CodeAction> actions, int? codeActionIndex, string codeActionEquivalenceKey, Microsoft.CodeAnalysis.Testing.IVerifier verifier) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerError(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerWarning(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.IVerifierExtensions.EqualOrDiff(this Microsoft.CodeAnalysis.Testing.IVerifier verifier, string expected, string actual, string message = null) -> void

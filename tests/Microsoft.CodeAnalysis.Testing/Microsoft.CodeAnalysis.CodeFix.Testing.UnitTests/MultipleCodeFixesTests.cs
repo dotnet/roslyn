@@ -97,7 +97,7 @@ class TestClass {{
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                CodeFixIndex = index,
+                CodeActionIndex = index,
             }.RunAsync();
         }
 
@@ -125,7 +125,7 @@ class TestClass {{
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                CodeFixEquivalenceKey = equivalenceKey,
+                CodeActionEquivalenceKey = equivalenceKey,
             }.RunAsync();
         }
 
@@ -153,8 +153,8 @@ class TestClass {{
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                CodeFixIndex = index,
-                CodeFixEquivalenceKey = equivalenceKey,
+                CodeActionIndex = index,
+                CodeActionEquivalenceKey = equivalenceKey,
             }.RunAsync();
         }
 
@@ -184,8 +184,8 @@ class TestClass {{
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                CodeFixIndex = index,
-                CodeFixEquivalenceKey = equivalenceKey,
+                CodeActionIndex = index,
+                CodeActionEquivalenceKey = equivalenceKey,
             }.RunAsync();
         }
 
@@ -212,8 +212,8 @@ class TestClass {{
                 {
                     TestCode = testCode,
                     FixedCode = fixedCode,
-                    CodeFixIndex = 1,
-                    CodeFixEquivalenceKey = "ReplaceZeroFix_1",
+                    CodeActionIndex = 1,
+                    CodeActionEquivalenceKey = "ReplaceZeroFix_1",
                 }.RunAsync();
             });
 

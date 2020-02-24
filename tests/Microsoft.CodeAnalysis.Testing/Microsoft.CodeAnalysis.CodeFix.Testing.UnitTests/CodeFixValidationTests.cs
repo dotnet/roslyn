@@ -40,7 +40,7 @@ class TestClass {
                 {
                     TestCode = ReplaceThisWithBaseTestCode,
                     FixedCode = ReplaceThisWithBaseFixedCode,
-                    CodeFixValidationMode = CodeFixValidationMode.Full,
+                    CodeActionValidationMode = CodeActionValidationMode.Full,
                 }.RunAsync();
             });
 
@@ -107,7 +107,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
                 {
                     TestCode = ReplaceThisWithBaseTestCode,
                     FixedCode = ReplaceThisWithBaseFixedCode,
-                    CodeFixValidationMode = CodeFixValidationMode.Full,
+                    CodeActionValidationMode = CodeActionValidationMode.Full,
                 }.RunAsync();
             });
 
@@ -171,7 +171,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
             {
                 TestCode = ReplaceThisWithBaseTestCode,
                 FixedCode = ReplaceThisWithBaseFixedCode,
-                CodeFixValidationMode = CodeFixValidationMode.Full,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
             }.RunAsync();
         }
 
@@ -185,7 +185,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
                 {
                     TestCode = ReplaceThisWithBaseTestCode,
                     FixedCode = ReplaceThisWithBaseFixedCode,
-                    CodeFixValidationMode = CodeFixValidationMode.SemanticStructure,
+                    CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
                 }.RunAsync();
             });
 
@@ -239,7 +239,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
             {
                 TestCode = ReplaceThisWithBaseTestCode,
                 FixedCode = ReplaceThisWithBaseFixedCode,
-                CodeFixValidationMode = CodeFixValidationMode.SemanticStructure,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
 
@@ -251,7 +251,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
             {
                 TestCode = ReplaceThisWithBaseTestCode,
                 FixedCode = ReplaceThisWithBaseFixedCode,
-                CodeFixValidationMode = CodeFixValidationMode.SemanticStructure,
+                CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
 
@@ -263,7 +263,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
             {
                 TestCode = ReplaceThisWithBaseTestCode,
                 FixedCode = ReplaceThisWithBaseFixedCode,
-                CodeFixValidationMode = CodeFixValidationMode.None,
+                CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
 
@@ -275,7 +275,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
             {
                 TestCode = ReplaceThisWithBaseTestCode,
                 FixedCode = ReplaceThisWithBaseFixedCode,
-                CodeFixValidationMode = CodeFixValidationMode.None,
+                CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
 
@@ -287,7 +287,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
             {
                 TestCode = ReplaceThisWithBaseTestCode,
                 FixedCode = ReplaceThisWithBaseFixedCode,
-                CodeFixValidationMode = CodeFixValidationMode.None,
+                CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
 
