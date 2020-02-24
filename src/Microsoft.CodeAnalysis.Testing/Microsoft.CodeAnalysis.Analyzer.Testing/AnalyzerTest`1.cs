@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <summary>
         /// Gets the prefix to apply to source files added without an explicit name.
         /// </summary>
-        protected virtual string DefaultFilePathPrefix { get; } = "Test";
+        protected virtual string DefaultFilePathPrefix { get; } = "/0/Test";
 
         /// <summary>
         /// Gets the name of the default project created for testing.
