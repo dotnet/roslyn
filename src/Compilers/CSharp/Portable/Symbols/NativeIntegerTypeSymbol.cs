@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            // NativeIntegerTypeSymbol should be used in emit.
+            // NativeIntegerTypeSymbol should not be used in emit.
             throw ExceptionUtilities.Unreachable;
         }
     }
