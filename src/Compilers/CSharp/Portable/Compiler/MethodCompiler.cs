@@ -1344,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement bodyWithoutLambdas = loweredBody;
                 if (sawLambdas || sawLocalFunctions)
                 {
-                    bodyWithoutLambdas = LambdaRewriter.Rewrite(
+                    bodyWithoutLambdas = ClosureConversion.Rewrite(
                         loweredBody,
                         method.ContainingType,
                         method.ThisParameter,

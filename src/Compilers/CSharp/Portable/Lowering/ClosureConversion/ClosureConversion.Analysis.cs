@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class LambdaRewriter
+    internal partial class ClosureConversion
     {
         /// <summary>
         /// Perform a first analysis pass in preparation for removing all lambdas from a method body.  The entry point is Analyze.
@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// True if the method signature can be rewritten to contain ref/out parameters.
             /// </summary>
-            public bool CanTakeRefParameters(MethodSymbol closure) => !(closure.IsAsync
-                                                                        || closure.IsIterator
-                                                                        // We can't rewrite delegate signatures
-                                                                        || MethodsConvertedToDelegates.Contains(closure));
+            public bool CanTakeRefParameters(MethodSymbol function)
+                => !function.IsAsync && !function.IsIterator
+                    // We can't rewrite delegate signatures
+                    && !MethodsConvertedToDelegates.Contains(function);
 
             /// <summary>
             /// The root of the scope tree for this method.
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Must be called only after <see cref="Closure.CapturedEnvironments"/>
+            /// Must be called only after <see cref="NestedFunction.CapturedEnvironments"/>
             /// has been calculated.
             ///
             /// Finds the most optimal capture environment to place a closure in. 
@@ -139,12 +139,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void ComputeLambdaScopesAndFrameCaptures()
             {
-                VisitClosures(ScopeTree, (scope, closure) =>
+                VisitNestedFunctions(ScopeTree, (scope, function) =>
                 {
-                    if (closure.CapturedEnvironments.Count > 0)
+                    if (function.CapturedEnvironments.Count > 0)
                     {
                         var capturedEnvs = PooledHashSet<ClosureEnvironment>.GetInstance();
-                        capturedEnvs.AddAll(closure.CapturedEnvironments);
+                        capturedEnvs.AddAll(function.CapturedEnvironments);
 
                         // Find the nearest captured class environment, if one exists
                         var curScope = scope;
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var env = curScope.DeclaredEnvironment;
                             if (!(env is null) && capturedEnvs.Remove(env) && !env.IsStruct)
                             {
-                                closure.ContainingEnvironmentOpt = env;
+                                function.ContainingEnvironmentOpt = env;
                                 break;
                             }
                             curScope = curScope.Parent;
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // If everything that captures the 'this' environment
                     // lives in the containing type, we can remove the env
-                    bool cantRemove = CheckClosures(ScopeTree, (scope, closure) =>
+                    bool cantRemove = CheckNestedFunctions(ScopeTree, (scope, closure) =>
                     {
                         return closure.CapturedEnvironments.Contains(env) &&
                             closure.ContainingEnvironmentOpt != null;
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // nested environments which captured a pointer to the 'this'
                     // environment will now capture 'this'
                     RemoveEnv();
-                    VisitClosures(ScopeTree, (scope, closure) =>
+                    VisitNestedFunctions(ScopeTree, (scope, closure) =>
                     {
                         if (closure.ContainingEnvironmentOpt == env)
                         {
@@ -267,12 +267,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 void RemoveEnv()
                 {
                     ScopeTree.DeclaredEnvironment = null;
-                    VisitClosures(ScopeTree, (scope, closure) =>
+                    VisitNestedFunctions(ScopeTree, (scope, nested) =>
                     {
-                        var index = closure.CapturedEnvironments.IndexOf(env);
+                        var index = nested.CapturedEnvironments.IndexOf(env);
                         if (index >= 0)
                         {
-                            closure.CapturedEnvironments.RemoveAt(index);
+                            nested.CapturedEnvironments.RemoveAt(index);
                         }
                     });
                 }
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // definitely be the case. If we are in a variant interface, we always force
                     // creation of a display class.
                     bool isStruct = VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is null;
-                    var closures = new SetWithInsertionOrder<Closure>();
+                    var closures = new SetWithInsertionOrder<NestedFunction>();
                     bool addedItem;
 
                     // This loop is O(n), where n is the length of the chain
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     do
                     {
                         addedItem = false;
-                        VisitClosures(scope, (closureScope, closure) =>
+                        VisitNestedFunctions(scope, (closureScope, closure) =>
                         {
                             if (!closures.Contains(closure) &&
                                 (closure.CapturedVariables.Overlaps(scope.DeclaredVariables) ||
@@ -351,14 +351,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Calculates all closures which directly or indirectly capture a scopes variables.
+            /// Calculates all functions which directly or indirectly capture a scope's variables.
             /// </summary>
             /// <returns></returns>
-            private PooledDictionary<Scope, PooledHashSet<Closure>> CalculateClosuresCapturingScopeVariables()
+            private PooledDictionary<Scope, PooledHashSet<NestedFunction>> CalculateFunctionsCapturingScopeVariables()
             {
-                var closuresCapturingScopeVariables = PooledDictionary<Scope, PooledHashSet<Closure>>.GetInstance();
+                var closuresCapturingScopeVariables = PooledDictionary<Scope, PooledHashSet<NestedFunction>>.GetInstance();
 
-                // calculate closures which directly capture a scope
+                // calculate functions which directly capture a scope
 
                 var environmentsToScopes = PooledDictionary<ClosureEnvironment, Scope>.GetInstance();
 
@@ -366,11 +366,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!(scope.DeclaredEnvironment is null))
                     {
-                        closuresCapturingScopeVariables[scope] = PooledHashSet<Closure>.GetInstance();
+                        closuresCapturingScopeVariables[scope] = PooledHashSet<NestedFunction>.GetInstance();
                         environmentsToScopes[scope.DeclaredEnvironment] = scope;
                     }
 
-                    foreach (var closure in scope.Closures)
+                    foreach (var closure in scope.NestedFunctions)
                     {
                         foreach (var env in closure.CapturedEnvironments)
                         {
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 environmentsToScopes.Free();
 
-                // if a closure captures a scope, which captures its parent, then the closure also captures the parents scope.
+                // if a function captures a scope, which captures its parent, then the closure also captures the parents scope.
                 // we update closuresCapturingScopeVariables to reflect this.
                 foreach (var (scope, capturingClosures) in closuresCapturingScopeVariables)
                 {
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void MergeEnvironments()
             {
-                var closuresCapturingScopeVariables = CalculateClosuresCapturingScopeVariables();
+                var closuresCapturingScopeVariables = CalculateFunctionsCapturingScopeVariables();
 
                 // now we merge environments into their parent environments if it is safe to do so
                 foreach (var (scope, closuresCapturingScope) in closuresCapturingScopeVariables)
@@ -566,9 +566,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case SymbolKind.Method:
-                            foreach (var closure in currentScope.Closures)
+                            foreach (var function in currentScope.NestedFunctions)
                             {
-                                if (closure.OriginalMethodSymbol == variable)
+                                if (function.OriginalMethodSymbol == variable)
                                 {
                                     return currentScope;
                                 }
@@ -622,21 +622,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Walk up the scope tree looking for a closure.
+            /// Walk up the scope tree looking for a nested function.
             /// </summary>
             /// <returns>
-            /// A tuple of the found <see cref="Closure"/> and the <see cref="Scope"/> it was found in.
+            /// A tuple of the found <see cref="NestedFunction"/> and the <see cref="Scope"/> it was found in.
             /// </returns>
-            public static (Closure, Scope) GetVisibleClosure(Scope startingScope, MethodSymbol closureSymbol)
+            public static (NestedFunction, Scope) GetVisibleNestedFunction(Scope startingScope, MethodSymbol functionSymbol)
             {
                 var currentScope = startingScope;
                 while (currentScope != null)
                 {
-                    foreach (var closure in currentScope.Closures)
+                    foreach (var function in currentScope.NestedFunctions)
                     {
-                        if (closure.OriginalMethodSymbol == closureSymbol)
+                        if (function.OriginalMethodSymbol == functionSymbol)
                         {
-                            return (closure, currentScope);
+                            return (function, currentScope);
                         }
                     }
                     currentScope = currentScope.Parent;
@@ -645,25 +645,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Finds a <see cref="Closure"/> with a matching original symbol somewhere in the given scope or nested scopes.
+            /// Finds a <see cref="NestedFunction"/> with a matching original symbol somewhere in the given scope or nested scopes.
             /// </summary>
-            public static Closure GetClosureInTree(Scope treeRoot, MethodSymbol closureSymbol)
+            public static NestedFunction GetNestedFunctionInTree(Scope treeRoot, MethodSymbol functionSymbol)
             {
-                return Helper(treeRoot) ?? throw ExceptionUtilities.Unreachable;
+                return helper(treeRoot) ?? throw ExceptionUtilities.Unreachable;
 
-                Closure Helper(Scope scope)
+                NestedFunction helper(Scope scope)
                 {
-                    foreach (var closure in scope.Closures)
+                    foreach (var function in scope.NestedFunctions)
                     {
-                        if (closure.OriginalMethodSymbol == closureSymbol)
+                        if (function.OriginalMethodSymbol == functionSymbol)
                         {
-                            return closure;
+                            return function;
                         }
                     }
 
                     foreach (var nestedScope in scope.NestedScopes)
                     {
-                        var found = Helper(nestedScope);
+                        var found = helper(nestedScope);
                         if (found != null)
                         {
                             return found;
