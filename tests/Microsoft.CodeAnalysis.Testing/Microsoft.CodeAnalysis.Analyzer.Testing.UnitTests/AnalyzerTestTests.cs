@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             var test = new CSharpTest { TestCode = "Test code" };
             Assert.Single(test.TestState.Sources);
-            Assert.Equal("Test0.cs", test.TestState.Sources[0].filename);
+            Assert.Equal("/0/Test0.cs", test.TestState.Sources[0].filename);
             Assert.Equal("Test code", test.TestState.Sources[0].content.ToString());
             Assert.Null(test.TestState.Sources[0].content.Encoding);
             Assert.Equal(SourceHashAlgorithm.Sha1, test.TestState.Sources[0].content.ChecksumAlgorithm);
@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Testing
             test.TestCode = "Test code";
             Assert.Equal(2, test.TestState.Sources.Count);
 
-            Assert.Equal("Test0.cs", test.TestState.Sources[0].filename);
+            Assert.Equal("/0/Test0.cs", test.TestState.Sources[0].filename);
             Assert.Equal("Test code", test.TestState.Sources[0].content.ToString());
             Assert.Null(test.TestState.Sources[0].content.Encoding);
             Assert.Equal(SourceHashAlgorithm.Sha1, test.TestState.Sources[0].content.ChecksumAlgorithm);
 
-            Assert.Equal("Test1.cs", test.TestState.Sources[1].filename);
+            Assert.Equal("/0/Test1.cs", test.TestState.Sources[1].filename);
             Assert.Equal("Test code", test.TestState.Sources[1].content.ToString());
             Assert.Null(test.TestState.Sources[1].content.Encoding);
             Assert.Equal(SourceHashAlgorithm.Sha1, test.TestState.Sources[1].content.ChecksumAlgorithm);
