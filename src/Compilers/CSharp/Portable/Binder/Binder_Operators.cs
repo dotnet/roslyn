@@ -2791,9 +2791,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression);
                 if (wasExpression)
                 {
+                    var hasErrors = node.Right.HasErrors || constantValueOpt is null;
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
-                    var boundConstantPattern = new BoundConstantPattern(node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, operand.Type, node.Right.HasErrors) { WasCompilerGenerated = true };
+                    var boundConstantPattern = new BoundConstantPattern(node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, operand.Type, hasErrors) { WasCompilerGenerated = true };
                     return MakeIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors, diagnostics);
                 }
 

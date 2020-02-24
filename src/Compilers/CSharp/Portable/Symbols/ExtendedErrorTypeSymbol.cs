@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Symbol> _candidateSymbols;  // Best guess at what user meant, but was wrong.
         private readonly LookupResultKind _resultKind; // why the guessSymbols were wrong.
 
-        internal ExtendedErrorTypeSymbol(CSharpCompilation compilation, string name, int arity, DiagnosticInfo errorInfo, bool unreported = false, bool variableUsedBeforeDeclaration = false)
+        internal ExtendedErrorTypeSymbol(CSharpCompilation compilation, string name, int arity, DiagnosticInfo? errorInfo, bool unreported = false, bool variableUsedBeforeDeclaration = false)
             : this(compilation.Assembly.GlobalNamespace, name, arity, errorInfo, unreported, variableUsedBeforeDeclaration)
         {
         }

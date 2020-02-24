@@ -422,6 +422,11 @@
         <target state="translated">Lewa strona przypisania odwołania musi być odwołaniem lokalnym lub parametrem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RelationalPatternWithNaN">
+        <source>Relational patterns may not be used for a floating-point NaN.</source>
+        <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje specyfikatorów dostępu „protected”, „protected internal” i „private protected” dla składowej interfejsu.</target>
@@ -500,6 +505,11 @@
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
         <target state="translated">Typ „{2}” musi być nienullowalnym typem wartości (podobnie jak wszystkie pola na wszystkich poziomach zagnieżdżenia), aby można było używać go jako parametru „{1}” w typie ogólnym lub metodzie ogólnej „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
+        <source>Relational patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -8743,11 +8753,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_FeatureNotAvailableInVersion7">
         <source>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</source>
         <target state="translated">Funkcja „{0}” nie jest dostępna w języku C# 7.0. Użyj języka w wersji {1} lub nowszej.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">Funkcja „{0}” nie jest zaimplementowana w tym kompilatorze.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VersionExperimental">

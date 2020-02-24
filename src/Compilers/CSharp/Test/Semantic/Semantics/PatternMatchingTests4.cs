@@ -1482,14 +1482,9 @@ class _
 {
 }";
             var compilation = CreatePatternCompilation(source);
-            // PROTOTYPE(ngafter): Diagnostics are not ideal.  On the other hand, this is not likely to be a frequent occurrence except in test code.
+            // Diagnostics are not ideal here.  On the other hand, this is not likely to be a frequent occurrence except in test code
+            // so any effort at improving the diagnostics would not likely be well spent.
             compilation.VerifyDiagnostics(
-                // (9,18): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             case _ x: break;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("type pattern").WithLocation(9, 18),
-                // (9,18): warning CS8513: The name '_' refers to the type '_', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
-                //             case _ x: break;
-                Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("_").WithLocation(9, 18),
                 // (9,20): error CS1003: Syntax error, ':' expected
                 //             case _ x: break;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":", "").WithLocation(9, 20),

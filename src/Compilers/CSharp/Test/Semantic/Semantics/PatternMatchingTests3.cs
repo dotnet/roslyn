@@ -2281,5 +2281,723 @@ System.Int32";
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void PatternCombinatorSubsumptionAndCompleteness_01()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        M(1);
+        M(1L);
+        M(2);
+        M(2L);
+        M(3);
+        M(3L);
+    }
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case 1 or long or 2: Console.Write(1); break;
+            case 1L or int or 2L: Console.Write(2); break;
+        }
+    }
+}";
+            var expectedOutput = @"111121";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""int""
+  IL_0006:  brfalse.s  IL_0017
+  IL_0008:  ldarg.0
+  IL_0009:  unbox.any  ""int""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  sub
+  IL_0012:  ldc.i4.1
+  IL_0013:  ble.un.s   IL_001f
+  IL_0015:  br.s       IL_0026
+  IL_0017:  ldarg.0
+  IL_0018:  isinst     ""long""
+  IL_001d:  brfalse.s  IL_002c
+  IL_001f:  ldc.i4.1
+  IL_0020:  call       ""void System.Console.Write(int)""
+  IL_0025:  ret
+  IL_0026:  ldc.i4.2
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternCombinatorSubsumptionAndCompleteness_02()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        M(1);
+        M(1L);
+        M(2);
+        M(2L);
+        M(3);
+        M(3L);
+    }
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case (1 or not long) or 2: Console.Write(1); break;
+            case 1L or (not int or 2L): Console.Write(2); break;
+        }
+    }
+}";
+            var expectedOutput = @"121212";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""int""
+  IL_0006:  brtrue.s   IL_0010
+  IL_0008:  ldarg.0
+  IL_0009:  isinst     ""long""
+  IL_000e:  brtrue.s   IL_0017
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       ""void System.Console.Write(int)""
+  IL_0016:  ret
+  IL_0017:  ldc.i4.2
+  IL_0018:  call       ""void System.Console.Write(int)""
+  IL_001d:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternCombinatorSubsumptionAndCompleteness_03()
+        {
+            var source = @"using System;
+class C
+{
+    static void M1(object o)
+    {
+        switch (o)
+        {
+            case 1 or not int or 2: Console.Write(1); break;
+            case 1L or 2L: Console.Write(2); break;
+        }
+    }
+    static void M2(object o)
+    {
+        _ = o switch
+        {
+            1 or not int or 2 => 1,
+            1L or 2L => 2,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case 1L or 2L: Console.Write(2); break;
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1L or 2L").WithLocation(9, 18),
+                // (14,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         _ = o switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(14, 15),
+                // (17,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //             1L or 2L => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "1L or 2L").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        public void Relational_01()
+        {
+            var source = @"
+class C
+{
+    static void M1(string s)
+    {
+        System.Console.WriteLine(s switch
+        {
+            <""0"" => ""negative"",
+            ""0"" => ""zero"",
+            >null => ""positive"",
+        });
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (8,13): error CS8781: Relational patterns may not be used for a value of type 'string'.
+                //             <"0" => "negative",
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, @"<""0""").WithArguments("string").WithLocation(8, 13),
+                // (10,13): error CS8781: Relational patterns may not be used for a value of type 'string'.
+                //             >null => "positive",
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, ">null").WithArguments("string").WithLocation(10, 13)
+                );
+        }
+
+        [Fact]
+        public void Relational_02()
+        {
+            foreach (string typeName in new[] { "sbyte", "short", "int" })
+            {
+                var source = @$"
+class C
+{{
+    static void Main()
+    {{
+        M1(-100);
+        M1(0);
+        M1(100);
+    }}
+    static void M1({typeName} i)
+    {{
+        System.Console.WriteLine(i switch
+        {{
+            <0 => ""negative"",
+            0 => ""zero"",
+            >0 => ""positive"",
+        }});
+    }}
+}}
+";
+                var expectedOutput =
+    @"negative
+zero
+positive";
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                compilation.VerifyDiagnostics(
+                    );
+                var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
+        }
+
+        [Fact]
+        public void Relational_03()
+        {
+            foreach (string typeName in new[] { "byte", "sbyte", "short", "ushort", "int" })
+            {
+                var source = @$"
+class C
+{{
+    static void Main()
+    {{
+        M1(0);
+        M1(12);
+        M1(50);
+        M1(100);
+    }}
+    static void M1({typeName} i)
+    {{
+        System.Console.WriteLine(i switch
+        {{
+            <50 => ""less"",
+            50 => ""same"",
+            >50 => ""more"",
+        }});
+    }}
+}}
+";
+                var expectedOutput =
+    @"less
+less
+same
+more";
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                compilation.VerifyDiagnostics(
+                    );
+                var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
+        }
+
+        [Fact]
+        public void Relational_04()
+        {
+            var source = @"
+class C
+{
+    static void M1(object o, decimal d)
+    {
+        _ = o is < 12m;
+        _ = d is < 0;
+        _ = o is < 10;
+        switch (d)
+        {
+            case < 0m:
+            case <= 0m:
+            case > 0m:
+            case >= 0m:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //         _ = o is < 12m;
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 12m").WithArguments("decimal").WithLocation(6, 18),
+                // (7,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //         _ = d is < 0;
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0").WithArguments("decimal").WithLocation(7, 18),
+                // (11,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //             case < 0m:
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0m").WithArguments("decimal").WithLocation(11, 18),
+                // (12,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //             case <= 0m:
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "<= 0m").WithArguments("decimal").WithLocation(12, 18),
+                // (13,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //             case > 0m:
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "> 0m").WithArguments("decimal").WithLocation(13, 18),
+                // (14,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //             case >= 0m:
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, ">= 0m").WithArguments("decimal").WithLocation(14, 18)
+                );
+        }
+
+        [Fact]
+        public void Relational_05()
+        {
+            foreach (string typeName in new[] { "byte", "sbyte", "short", "ushort", "int" })
+            {
+                var source = string.Format(@"
+class C
+{{
+    static void Main()
+    {{
+        M1(({0})0);
+        M1(({0})12);
+        M1(({0})50);
+        M1(({0})100);
+        M1(12m);
+    }}
+    static void M1(object i)
+    {{
+        System.Console.WriteLine(i switch
+        {{
+            < ({0})50 => ""less"",
+            ({0})50 => ""same"",
+            > ({0})50 => ""more"",
+            _ => ""incomparable"",
+        }});
+    }}
+}}
+", typeName);
+                var expectedOutput =
+    @"less
+less
+same
+more
+incomparable";
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                compilation.VerifyDiagnostics(
+                    );
+                var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
+        }
+
+        [Fact]
+        public void Relational_06()
+        {
+            var source = @"
+class C
+{
+    bool M1(object o) => o is < (0.0d / 0.0d);
+    bool M2(object o) => o is < (0.0f / 0.0f);
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (4,33): error CS8782: Relational patterns may not be used for a floating-point NaN.
+                //     bool M1(object o) => o is < (0.0d / 0.0d);
+                Diagnostic(ErrorCode.ERR_RelationalPatternWithNaN, "(0.0d / 0.0d)").WithLocation(4, 33),
+                // (5,33): error CS8782: Relational patterns may not be used for a floating-point NaN.
+                //     bool M2(object o) => o is < (0.0f / 0.0f);
+                Diagnostic(ErrorCode.ERR_RelationalPatternWithNaN, "(0.0f / 0.0f)").WithLocation(5, 33));
+        }
+
+        [Fact]
+        public void Relational_07()
+        {
+            var source = @"
+class C
+{
+    public bool M(char c) => c switch
+    {
+        >= 'A' and <= 'Z' or >= 'a' and <= 'z' => true,
+        'a'                                    => true, // error 1
+        > 'k' and < 'o'                        => true, // error 2
+        '0'                                    => true,
+        >= '0' and <= '9'                      => true,
+        _                                      => false,
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (7,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //         'a'                                    => true, // error 1
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "'a'").WithLocation(7, 9),
+                // (8,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //         > 'k' and < 'o'                        => true, // error 2
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "> 'k' and < 'o'").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void Relational_08()
+        {
+            var source = @"
+class C
+{
+    public int M(uint c) => c switch
+    {
+        >= 5 => 1,
+        4 => 2,
+        3 => 3,
+        2 => 4,
+        1 => 5,
+        0 => 6,
+        _ => 7,
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (12,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //         _ => 7,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void Relational_09()
+        {
+            var source = @"
+class C
+{
+    public int M(uint c) => c switch
+    {
+        | 3 => 3,
+        || 4 => 4,
+        & 5 => 5,
+        && 6 => 6,
+        _ => 7
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (5,6): error CS1525: Invalid expression term '|'
+                //     {
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("|").WithLocation(5, 6),
+                // (6,18): error CS1525: Invalid expression term '||'
+                //         | 3 => 3,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("||").WithLocation(6, 18),
+                // (8,11): error CS0211: Cannot take the address of the given expression
+                //         & 5 => 5,
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "5").WithLocation(8, 11),
+                // (8,18): error CS1525: Invalid expression term '&&'
+                //         & 5 => 5,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("&&").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void Relational_10()
+        {
+            var source = @"
+class C
+{
+    public int M(uint c) => c switch
+    {
+        == 0 => 1,
+        != 2 => 2,
+        _ => 7
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS1525: Invalid expression term '=='
+                //         == 0 => 1,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "==").WithArguments("==").WithLocation(6, 9),
+                // (7,9): error CS1525: Invalid expression term '!='
+                //         != 2 => 2,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void Relational_EnumSubsumption()
+        {
+            var source = @"
+enum E : uint
+{
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven
+}
+class C
+{
+    public int M(E c) => c switch
+    {
+        >= E.Five => 1,
+        E.Four => 2,
+        E.Three => 3,
+        E.Two => 4,
+        E.One => 5,
+        E.Zero => 6,
+        _ => 7, // 1
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (23,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //         _ => 7, // 1
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(23, 9)
+                );
+        }
+
+        [Fact]
+        public void Relational_SignedEnumComplete()
+        {
+            foreach (var typeName in new[] { "sbyte", "short", "int", "long" })
+            {
+                var source = @"
+using System;
+enum E : " + typeName + @"
+{
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven
+}
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(E.Zero));
+        Console.WriteLine(M(E.One));
+        Console.WriteLine(M(E.Two));
+        Console.WriteLine(M(E.Three));
+        Console.WriteLine(M(E.Four));
+        Console.WriteLine(M(E.Five));
+        Console.WriteLine(M(E.Six));
+        Console.WriteLine(M(E.Seven));
+        Console.WriteLine(M((E)100));
+        Console.WriteLine(M((E)(-100)));
+    }
+    static int M(E c) => c switch
+    {
+        >= E.Five => 1,
+        E.Four => 2,
+        E.Three => 3,
+        E.Two => 4,
+        E.One => 5,
+        E.Zero => 6,
+        _ => 7, // handles negative values
+    };
+}";
+                var expectedOutput = @"6
+5
+4
+3
+2
+1
+1
+1
+1
+7";
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                compilation.VerifyDiagnostics(
+                    );
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
+        }
+
+        [Fact]
+        public void Relational_UnsignedEnumComplete()
+        {
+            foreach (var typeName in new[] { "byte", "ushort", "uint", "ulong" })
+            {
+                var source = @"
+using System;
+enum E : " + typeName + @"
+{
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven
+}
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(E.Zero));
+        Console.WriteLine(M(E.One));
+        Console.WriteLine(M(E.Two));
+        Console.WriteLine(M(E.Three));
+        Console.WriteLine(M(E.Four));
+        Console.WriteLine(M(E.Five));
+        Console.WriteLine(M(E.Six));
+        Console.WriteLine(M(E.Seven));
+        Console.WriteLine(M((E)100));
+    }
+    static int M(E c) => c switch
+    {
+        > E.Five => 1,
+        E.Four => 2,
+        E.Three => 3,
+        E.Two => 4,
+        E.One => 5,
+        E.Zero => 6,
+        _ => 7, // handles E.Five
+    };
+}";
+                var expectedOutput = @"6
+5
+4
+3
+2
+7
+1
+1
+1";
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                compilation.VerifyDiagnostics(
+                    );
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
+        }
+
+        [Fact]
+        public void Relational_SignedEnumExhaustive()
+        {
+            foreach (var typeName in new[] { "byte", "ushort", "uint", "ulong" })
+            {
+                foreach (var withExhaustive in new[] { false, true })
+                {
+                    var source = @"
+enum E : " + typeName + @"
+{
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven
+}
+class C
+{
+    static int M(E c) => c switch
+    {
+        > E.Five => 1,
+        E.Four => 2,
+        E.Three => 3,
+        E.Two => 4,
+        E.One => 5,
+        E.Zero => 6,
+" +
+(withExhaustive ? @"        E.Five => 7, // exhaustive
+" : "")
++ @"    };
+}";
+                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                    if (withExhaustive)
+                    {
+                        compilation.VerifyDiagnostics(
+                            );
+                    }
+                    else
+                    {
+                        compilation.VerifyDiagnostics(
+                            // (15,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                            //     static int M(E c) => c switch
+                            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 28)
+                            );
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void Relational_UnsignedEnumExhaustive()
+        {
+            foreach (var typeName in new[] { "sbyte", "short", "int", "long" })
+            {
+                foreach (var withExhaustive in new[] { false, true })
+                {
+                    var source = @"
+enum E : " + typeName + @"
+{
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven
+}
+class C
+{
+    static int M(E c) => c switch
+    {
+        > E.Five => 1,
+        E.Four => 2,
+        E.Three => 3,
+        E.Two => 4,
+        E.One => 5,
+        <= E.Zero => 6,
+" +
+(withExhaustive ? @"        E.Five => 7, // exhaustive
+" : "")
++ @"    };
+}";
+                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                    if (withExhaustive)
+                    {
+                        compilation.VerifyDiagnostics(
+                            );
+                    }
+                    else
+                    {
+                        compilation.VerifyDiagnostics(
+                            // (15,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                            //     static int M(E c) => c switch
+                            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 28)
+                            );
+                    }
+                }
+            }
+        }
     }
 }

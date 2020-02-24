@@ -192,7 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // this is a relational pattern.
                     var relationalToken = this.EatToken();
                     Debug.Assert(precedence < Precedence.Shift);
-                    // PROTOTYPE(ngafter): is this always a subexpression? (to ensure ParseWithStackGuard).
                     var expression = this.ParseSubExpression(Precedence.Relational);
                     var result = _syntaxFactory.RelationalPattern(relationalToken, expression);
                     return CheckFeatureAvailability(result, MessageID.IDS_FeatureRelationalPattern);

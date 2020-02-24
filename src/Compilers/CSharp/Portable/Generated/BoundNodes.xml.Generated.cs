@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagNonNullTest,
         DagExplicitNullTest,
         DagValueTest,
+        DagRelationalTest,
         DagDeconstructEvaluation,
         DagTypeEvaluation,
         DagFieldEvaluation,
@@ -738,9 +739,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypeExpression : BoundExpression
     {
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol? type, bool hasErrors = false)
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.TypeExpression, syntax, type, hasErrors || boundContainingTypeOpt.HasErrors() || boundDimensionsOpt.HasErrors())
         {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
             this.AliasOpt = aliasOpt;
             this.BoundContainingTypeOpt = boundContainingTypeOpt;
             this.BoundDimensionsOpt = boundDimensionsOpt;
@@ -754,11 +758,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<BoundExpression> BoundDimensionsOpt { get; }
 
+        public new TypeSymbol Type => base.Type!;
+
         public TypeWithAnnotations TypeWithAnnotations { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTypeExpression(this);
 
-        public BoundTypeExpression Update(AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol? type)
+        public BoundTypeExpression Update(AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol type)
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(aliasOpt, this.AliasOpt) || boundContainingTypeOpt != this.BoundContainingTypeOpt || boundDimensionsOpt != this.BoundDimensionsOpt || typeWithAnnotations != this.TypeWithAnnotations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -4644,6 +4650,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundDagRelationalTest : BoundDagTest
+    {
+        public BoundDagRelationalTest(SyntaxNode syntax, BinaryOperatorKind operatorKind, ConstantValue value, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagRelationalTest, syntax, input, hasErrors || input.HasErrors())
+        {
+
+            RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.OperatorKind = operatorKind;
+            this.Value = value;
+        }
+
+
+        public BinaryOperatorKind OperatorKind { get; }
+
+        public ConstantValue Value { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagRelationalTest(this);
+
+        public BoundDagRelationalTest Update(BinaryOperatorKind operatorKind, ConstantValue value, BoundDagTemp input)
+        {
+            if (operatorKind != this.OperatorKind || value != this.Value || input != this.Input)
+            {
+                var result = new BoundDagRelationalTest(this.Syntax, operatorKind, value, input, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal abstract partial class BoundDagEvaluation : BoundDagTest
     {
         protected BoundDagEvaluation(BoundKind kind, SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
@@ -7001,10 +7039,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDeclarationPattern : BoundPattern
     {
-        public BoundDeclarationPattern(SyntaxNode syntax, Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression? declaredType, bool isVar, TypeSymbol inputType, bool hasErrors = false)
+        public BoundDeclarationPattern(SyntaxNode syntax, Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression declaredType, bool isVar, TypeSymbol inputType, bool hasErrors = false)
             : base(BoundKind.DeclarationPattern, syntax, inputType, hasErrors || variableAccess.HasErrors() || declaredType.HasErrors())
         {
 
+            RoslynDebug.Assert(declaredType is object, "Field 'declaredType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Variable = variable;
@@ -7018,13 +7057,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression? VariableAccess { get; }
 
-        public BoundTypeExpression? DeclaredType { get; }
+        public BoundTypeExpression DeclaredType { get; }
 
         public bool IsVar { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDeclarationPattern(this);
 
-        public BoundDeclarationPattern Update(Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression? declaredType, bool isVar, TypeSymbol inputType)
+        public BoundDeclarationPattern Update(Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression declaredType, bool isVar, TypeSymbol inputType)
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || declaredType != this.DeclaredType || isVar != this.IsVar || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
@@ -7152,7 +7191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypePattern : BoundPattern
     {
-        public BoundTypePattern(SyntaxNode syntax, BoundTypeExpression declaredType, TypeSymbol inputType, bool hasErrors = false)
+        public BoundTypePattern(SyntaxNode syntax, BoundTypeExpression declaredType, bool isExplicitNotNullTest, TypeSymbol inputType, bool hasErrors = false)
             : base(BoundKind.TypePattern, syntax, inputType, hasErrors || declaredType.HasErrors())
         {
 
@@ -7160,18 +7199,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.DeclaredType = declaredType;
+            this.IsExplicitNotNullTest = isExplicitNotNullTest;
         }
 
 
         public BoundTypeExpression DeclaredType { get; }
+
+        public bool IsExplicitNotNullTest { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTypePattern(this);
 
-        public BoundTypePattern Update(BoundTypeExpression declaredType, TypeSymbol inputType)
+        public BoundTypePattern Update(BoundTypeExpression declaredType, bool isExplicitNotNullTest, TypeSymbol inputType)
         {
-            if (declaredType != this.DeclaredType || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
+            if (declaredType != this.DeclaredType || isExplicitNotNullTest != this.IsExplicitNotNullTest || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTypePattern(this.Syntax, declaredType, inputType, this.HasErrors);
+                var result = new BoundTypePattern(this.Syntax, declaredType, isExplicitNotNullTest, inputType, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7773,6 +7815,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagExplicitNullTest((BoundDagExplicitNullTest)node, arg);
                 case BoundKind.DagValueTest: 
                     return VisitDagValueTest((BoundDagValueTest)node, arg);
+                case BoundKind.DagRelationalTest: 
+                    return VisitDagRelationalTest((BoundDagRelationalTest)node, arg);
                 case BoundKind.DagDeconstructEvaluation: 
                     return VisitDagDeconstructEvaluation((BoundDagDeconstructEvaluation)node, arg);
                 case BoundKind.DagTypeEvaluation: 
@@ -8046,6 +8090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitDagNonNullTest(BoundDagNonNullTest node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagExplicitNullTest(BoundDagExplicitNullTest node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagValueTest(BoundDagValueTest node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDagRelationalTest(BoundDagRelationalTest node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagTypeEvaluation(BoundDagTypeEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagFieldEvaluation(BoundDagFieldEvaluation node, A arg) => this.DefaultVisit(node, arg);
@@ -8241,6 +8286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitDagNonNullTest(BoundDagNonNullTest node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagExplicitNullTest(BoundDagExplicitNullTest node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagValueTest(BoundDagValueTest node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDagRelationalTest(BoundDagRelationalTest node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagTypeEvaluation(BoundDagTypeEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagFieldEvaluation(BoundDagFieldEvaluation node) => this.DefaultVisit(node);
@@ -8816,6 +8862,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode? VisitDagValueTest(BoundDagValueTest node)
+        {
+            this.Visit(node.Input);
+            return null;
+        }
+        public override BoundNode? VisitDagRelationalTest(BoundDagRelationalTest node)
         {
             this.Visit(node.Input);
             return null;
@@ -9852,6 +9903,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             return node.Update(node.Value, input);
         }
+        public override BoundNode? VisitDagRelationalTest(BoundDagRelationalTest node)
+        {
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            return node.Update(node.OperatorKind, node.Value, input);
+        }
         public override BoundNode? VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
@@ -10227,7 +10283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
         {
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
-            BoundTypeExpression? declaredType = (BoundTypeExpression?)this.Visit(node.DeclaredType);
+            BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
             TypeSymbol inputType = this.VisitType(node.InputType);
             return node.Update(node.Variable, variableAccess, declaredType, node.IsVar, inputType);
         }
@@ -10255,7 +10311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
             TypeSymbol inputType = this.VisitType(node.InputType);
-            return node.Update(declaredType, inputType);
+            return node.Update(declaredType, node.IsExplicitNotNullTest, inputType);
         }
         public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
         {
@@ -12418,7 +12474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol? variable = GetUpdatedSymbol(node, node.Variable);
             TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
-            BoundTypeExpression? declaredType = (BoundTypeExpression?)this.Visit(node.DeclaredType);
+            BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
             return node.Update(variable, variableAccess, declaredType, node.IsVar, inputType);
         }
 
@@ -12454,7 +12510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
             BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
-            return node.Update(declaredType, inputType);
+            return node.Update(declaredType, node.IsExplicitNotNullTest, inputType);
         }
 
         public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
@@ -13601,6 +13657,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
+        public override TreeDumperNode VisitDagRelationalTest(BoundDagRelationalTest node, object? arg) => new TreeDumperNode("dagRelationalTest", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("operatorKind", node.OperatorKind, null),
+            new TreeDumperNode("value", node.Value, null),
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
         public override TreeDumperNode VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node, object? arg) => new TreeDumperNode("dagDeconstructEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("deconstructMethod", node.DeconstructMethod, null),
@@ -14238,6 +14302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitTypePattern(BoundTypePattern node, object? arg) => new TreeDumperNode("typePattern", null, new TreeDumperNode[]
         {
             new TreeDumperNode("declaredType", null, new TreeDumperNode[] { Visit(node.DeclaredType, null) }),
+            new TreeDumperNode("isExplicitNotNullTest", node.IsExplicitNotNullTest, null),
             new TreeDumperNode("inputType", node.InputType, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

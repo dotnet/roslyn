@@ -1520,24 +1520,12 @@ class Program
                 // (37,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (System.Int32, System.Int32) z:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(37, 18),
-                // (37,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(37, 19),
-                // (37,33): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(37, 33),
                 // (39,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (System.Int64, System.Int64) d:
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int64, System.Int64)").WithArguments("object", "Deconstruct").WithLocation(39, 18),
                 // (39,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (System.Int64, System.Int64) d:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int64, System.Int64)").WithArguments("object", "2").WithLocation(39, 18),
-                // (39,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int64").WithArguments("type pattern").WithLocation(39, 19),
-                // (39,33): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int64").WithArguments("type pattern").WithLocation(39, 33),
                 // (43,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(43, 22),
@@ -1562,12 +1550,6 @@ class Program
                 // (49,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(49, 22),
-                // (49,23): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             if (o is (System.Int32, System.Int32)) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(49, 23),
-                // (49,37): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             if (o is (System.Int32, System.Int32)) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(49, 37),
                 // (50,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32 x, System.Int32 y)").WithArguments("object", "Deconstruct").WithLocation(50, 22),
@@ -1580,12 +1562,6 @@ class Program
                 // (51,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32, System.Int32) z) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(51, 22),
-                // (51,23): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             if (o is (System.Int32, System.Int32) z) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(51, 23),
-                // (51,37): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             if (o is (System.Int32, System.Int32) z) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(51, 37),
                 // (52,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32 a, System.Int32 b)").WithArguments("object", "Deconstruct").WithLocation(52, 22),
@@ -1650,9 +1626,9 @@ class Program
                 // (8,18): error CS0150: A constant value is expected
                 //             case new object() is int x1:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new object() is int x1").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
+                // (9,42): error CS0165: Use of unassigned local variable 'x1'
                 //                 System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(9, 42)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

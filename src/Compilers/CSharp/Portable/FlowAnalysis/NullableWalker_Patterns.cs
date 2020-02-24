@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTypePattern(BoundTypePattern node)
         {
+            Visit(node.DeclaredType);
             return null;
         }
 
@@ -83,13 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNegatedPattern(BoundNegatedPattern node)
         {
-            // PROTOTYPE(ngafter): what is the right behavior here?
+            Visit(node.Negated);
             return null;
         }
 
         public override BoundNode VisitBinaryPattern(BoundBinaryPattern node)
         {
-            // PROTOTYPE(ngafter): what is the right behavior here?
+            Visit(node.Left);
+            Visit(node.Right);
             return null;
         }
 
@@ -130,9 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDeclarationPattern _:
                 case BoundDiscardPattern _:
                 case BoundITuplePattern _:
-                case BoundTypePattern _:
                 case BoundRelationalPattern _:
                     break; // nothing to learn
+                case BoundTypePattern tp:
+                    if (tp.IsExplicitNotNullTest)
+                    {
+                        LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
+                    }
+                    break;
                 case BoundRecursivePattern rp:
                     {
                         if (rp.IsExplicitNotNullTest)
@@ -168,10 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundNegatedPattern p:
-                    // PROTOTYPE(ngafter): what is the right behavior here?
+                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Negated);
                     break;
                 case BoundBinaryPattern p:
-                    // PROTOTYPE(ngafter): what is the right behavior here?
+                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Left);
+                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Right);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern);
@@ -399,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
                                     gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable & inputState.MayBeNull());
                                     break;
-                                case BoundDagExplicitNullTest t:
+                                case BoundDagExplicitNullTest _:
                                     if (inputSlot > 0)
                                     {
                                         LearnFromNullTest(inputSlot, inputType, ref this.StateWhenTrue, markDependentSlotsNotNull: true);
@@ -410,6 +418,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case BoundDagValueTest t:
                                     Debug.Assert(t.Value != ConstantValue.Null);
+                                    if (inputSlot > 0)
+                                    {
+                                        learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
+                                    }
+                                    gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
+                                    gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
+                                    break;
+                                case BoundDagRelationalTest _:
                                     if (inputSlot > 0)
                                     {
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);

@@ -212,6 +212,7 @@
     <Field Name="BoundDimensionsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
 
     <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="TypeWithAnnotations" Type="TypeWithAnnotations"/>
   </Node>
 
@@ -1327,6 +1328,11 @@
     <!--Check that the input is the same as the given constant value (other than null).-->
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
+  <Node Name="BoundDagRelationalTest" Base="BoundDagTest">
+    <!--Check that the input is related to (equal, not equal, less, less or equal, greater, greater or equal) the given constant value (other than null).-->
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
+    <Field Name="Value" Type="ConstantValue" Null="disallow"/>
+  </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
   <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
   </AbstractNode>
@@ -1965,7 +1971,7 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
-    <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
+    <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>
 
@@ -2003,6 +2009,7 @@
 
   <Node Name="BoundTypePattern" Base="BoundPattern">
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
+    <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
   <Node Name="BoundBinaryPattern" Base="BoundPattern">

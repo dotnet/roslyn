@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/41456"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
         public async Task Test_OpenProjectReferencingPortableProject()
         {

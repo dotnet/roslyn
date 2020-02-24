@@ -422,6 +422,11 @@
         <target state="translated">Levá strana přiřazení odkazu musí být lokální proměnná nebo parametr odkazu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RelationalPatternWithNaN">
+        <source>Relational patterns may not be used for a floating-point NaN.</source>
+        <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Cílový modul runtime nepodporuje pro člena rozhraní přístupnost na úrovni Protected, Protected internal nebo Private protected.</target>
@@ -500,6 +505,11 @@
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
         <target state="translated">Typ {2} musí být typ, který nemůže mít hodnotu null, ani nesmí v žádné úrovni vnoření obsahovat pole, které by ji povolovalo, aby se dal použít jako parametr {1} v obecném typu nebo metodě {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
+        <source>Relational patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -8743,11 +8753,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_FeatureNotAvailableInVersion7">
         <source>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</source>
         <target state="translated">Funkce {0} není dostupná v jazyce C# 7.0. Použijte prosím jazyk verze {1} nebo vyšší.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">Funkce {0} není implementovaná v tomto kompilátoru.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VersionExperimental">

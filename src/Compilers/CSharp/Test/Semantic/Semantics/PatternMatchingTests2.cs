@@ -442,10 +442,7 @@ public class Point
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 48),
                 // (6,48): error CS8504: Pattern missing
                 //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 48),
-                // (6,57): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "false").WithLocation(6, 57)
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 48)
                 );
         }
 

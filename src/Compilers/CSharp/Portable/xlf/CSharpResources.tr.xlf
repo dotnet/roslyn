@@ -422,6 +422,11 @@
         <target state="translated">ref atamasının sol tarafı, yerel ref veya parametresi olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RelationalPatternWithNaN">
+        <source>Relational patterns may not be used for a floating-point NaN.</source>
+        <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Hedef çalışma zamanı, bir arabirim üyesi için 'protected', 'protected internal' veya 'private protected' erişilebilirliğini desteklemez.</target>
@@ -500,6 +505,11 @@
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
         <target state="translated">'{0}' genel türü veya yönteminde '{1}' parametresi olarak kullanılabilmesi için '{2}' türünün, herhangi bir iç içe geçme düzeyindeki tüm alanlarla birlikte null yapılamayan bir değer türü olması gerekir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
+        <source>Relational patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -8743,11 +8753,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_FeatureNotAvailableInVersion7">
         <source>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</source>
         <target state="translated">{0}' özelliği C# 7.0'da kullanılamıyor. Lütfen {1} veya üzeri bir dil sürümü kullanın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">{0}' özelliği bu derleyicide uygulanmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VersionExperimental">

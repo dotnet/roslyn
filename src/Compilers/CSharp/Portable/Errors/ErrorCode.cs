@@ -1617,7 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingPattern = 8504,
         ERR_DefaultPattern = 8505,
         ERR_SwitchExpressionNoBestType = 8506,
-        ERR_SingleElementPositionalPatternRequiresDisambiguation = 8507,
+        // ERR_SingleElementPositionalPatternRequiresDisambiguation = 8507, // Retired C# 8 diagnostic
         ERR_VarMayNotBindToType = 8508,
         WRN_SwitchExpressionNotExhaustive = 8509,
         ERR_SwitchArmSubsumed = 8510,
@@ -1740,7 +1740,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 8.0
 
         ERR_InternalError = 8751,
-        ERR_FeatureIsUnimplemented = 8752, // PROTOTYPE(ngafter): temporary diagnostic until fully implemented
 
         ERR_ExternEventInitializer = 8760,
         ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
@@ -1764,6 +1763,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 9.0
 
         ERR_DesignatorBeneathPatternCombinator = 8780,
+        ERR_UnsupportedTypeForRelationalPattern = 8781,
+        ERR_RelationalPatternWithNaN = 8782,
 
         ERR_ConditionalOnLocalFunction = 8783,
 

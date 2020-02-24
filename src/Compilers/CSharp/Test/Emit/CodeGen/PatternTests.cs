@@ -1154,37 +1154,35 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       85 (0x55)
+  // Code size       82 (0x52)
   .maxstack  3
   .locals init (string V_0) //name
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0054
+  IL_0001:  brfalse.s  IL_0051
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_003f
-  IL_000d:  ldloc.0
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_0029
-  IL_001a:  ldloc.0
-  IL_001b:  ldstr      ""Bob""
-  IL_0020:  call       ""bool string.op_Equality(string, string)""
-  IL_0025:  brtrue.s   IL_0034
-  IL_0027:  br.s       IL_003f
-  IL_0029:  ldstr      ""Hey Bill!""
-  IL_002e:  call       ""void System.Console.WriteLine(string)""
-  IL_0033:  ret
-  IL_0034:  ldstr      ""Hey Bob!""
-  IL_0039:  call       ""void System.Console.WriteLine(string)""
-  IL_003e:  ret
-  IL_003f:  ldstr      ""Hello ""
-  IL_0044:  ldloc.0
-  IL_0045:  ldstr      ""!""
-  IL_004a:  call       ""string string.Concat(string, string, string)""
-  IL_004f:  call       ""void System.Console.WriteLine(string)""
-  IL_0054:  ret
+  IL_000b:  ldstr      ""Bill""
+  IL_0010:  call       ""bool string.op_Equality(string, string)""
+  IL_0015:  brtrue.s   IL_0026
+  IL_0017:  ldloc.0
+  IL_0018:  ldstr      ""Bob""
+  IL_001d:  call       ""bool string.op_Equality(string, string)""
+  IL_0022:  brtrue.s   IL_0031
+  IL_0024:  br.s       IL_003c
+  IL_0026:  ldstr      ""Hey Bill!""
+  IL_002b:  call       ""void System.Console.WriteLine(string)""
+  IL_0030:  ret
+  IL_0031:  ldstr      ""Hey Bob!""
+  IL_0036:  call       ""void System.Console.WriteLine(string)""
+  IL_003b:  ret
+  IL_003c:  ldstr      ""Hello ""
+  IL_0041:  ldloc.0
+  IL_0042:  ldstr      ""!""
+  IL_0047:  call       ""string string.Concat(string, string, string)""
+  IL_004c:  call       ""void System.Console.WriteLine(string)""
+  IL_0051:  ret
 }");
         }
 
@@ -1272,33 +1270,31 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       68 (0x44)
+  // Code size       65 (0x41)
   .maxstack  3
   .locals init (string V_0) //name
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0043
+  IL_0001:  brfalse.s  IL_0040
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.0
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_0023
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  brtrue.s   IL_002e
-  IL_0022:  ret
-  IL_0023:  ldstr      ""Hey Bill!""
-  IL_0028:  call       ""void System.Console.WriteLine(string)""
-  IL_002d:  ret
-  IL_002e:  ldstr      ""Hello student ""
-  IL_0033:  ldloc.0
-  IL_0034:  ldstr      ""!""
-  IL_0039:  call       ""string string.Concat(string, string, string)""
-  IL_003e:  call       ""void System.Console.WriteLine(string)""
-  IL_0043:  ret
+  IL_000b:  ldstr      ""Bill""
+  IL_0010:  call       ""bool string.op_Equality(string, string)""
+  IL_0015:  brtrue.s   IL_0020
+  IL_0017:  ldarg.1
+  IL_0018:  isinst     ""Student""
+  IL_001d:  brtrue.s   IL_002b
+  IL_001f:  ret
+  IL_0020:  ldstr      ""Hey Bill!""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
+  IL_002b:  ldstr      ""Hello student ""
+  IL_0030:  ldloc.0
+  IL_0031:  ldstr      ""!""
+  IL_0036:  call       ""string string.Concat(string, string, string)""
+  IL_003b:  call       ""void System.Console.WriteLine(string)""
+  IL_0040:  ret
 }");
         }
 
@@ -1601,35 +1597,30 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       56 (0x38)
+  // Code size       51 (0x33)
   .maxstack  2
-  .locals init (string V_0, //name
-                string V_1)
+  .locals init (string V_0)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0034
+  IL_0001:  brfalse.s  IL_002f
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.0
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_0024
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  brtrue.s   IL_002c
-  IL_0022:  br.s       IL_0034
-  IL_0024:  ldstr      ""Hey Bill!""
-  IL_0029:  stloc.1
-  IL_002a:  br.s       IL_0036
-  IL_002c:  ldstr      ""Hello student { name}!""
-  IL_0031:  stloc.1
-  IL_0032:  br.s       IL_0036
-  IL_0034:  ldnull
-  IL_0035:  stloc.1
-  IL_0036:  ldloc.1
-  IL_0037:  ret
+  IL_0009:  ldstr      ""Bill""
+  IL_000e:  call       ""bool string.op_Equality(string, string)""
+  IL_0013:  brtrue.s   IL_001f
+  IL_0015:  ldarg.1
+  IL_0016:  isinst     ""Student""
+  IL_001b:  brtrue.s   IL_0027
+  IL_001d:  br.s       IL_002f
+  IL_001f:  ldstr      ""Hey Bill!""
+  IL_0024:  stloc.0
+  IL_0025:  br.s       IL_0031
+  IL_0027:  ldstr      ""Hello student { name}!""
+  IL_002c:  stloc.0
+  IL_002d:  br.s       IL_0031
+  IL_002f:  ldnull
+  IL_0030:  stloc.0
+  IL_0031:  ldloc.0
+  IL_0032:  ret
 }");
         }
 
@@ -1661,33 +1652,31 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       68 (0x44)
+  // Code size       65 (0x41)
   .maxstack  3
   .locals init (string V_0) //name
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0043
+  IL_0001:  brfalse.s  IL_0040
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.0
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_0023
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  brtrue.s   IL_002e
-  IL_0022:  ret
-  IL_0023:  ldstr      ""Hey Bill!""
-  IL_0028:  call       ""void System.Console.WriteLine(string)""
-  IL_002d:  ret
-  IL_002e:  ldstr      ""Hello student ""
-  IL_0033:  ldloc.0
-  IL_0034:  ldstr      ""!""
-  IL_0039:  call       ""string string.Concat(string, string, string)""
-  IL_003e:  call       ""void System.Console.WriteLine(string)""
-  IL_0043:  ret
+  IL_000b:  ldstr      ""Bill""
+  IL_0010:  call       ""bool string.op_Equality(string, string)""
+  IL_0015:  brtrue.s   IL_0020
+  IL_0017:  ldarg.1
+  IL_0018:  isinst     ""Student""
+  IL_001d:  brtrue.s   IL_002b
+  IL_001f:  ret
+  IL_0020:  ldstr      ""Hey Bill!""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
+  IL_002b:  ldstr      ""Hello student ""
+  IL_0030:  ldloc.0
+  IL_0031:  ldstr      ""!""
+  IL_0036:  call       ""string string.Concat(string, string, string)""
+  IL_003b:  call       ""void System.Console.WriteLine(string)""
+  IL_0040:  ret
 }");
         }
 
@@ -1724,40 +1713,35 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       78 (0x4e)
+  // Code size       73 (0x49)
   .maxstack  3
   .locals init (string V_0, //name
-                string V_1,
-                Student V_2)
+                Student V_1)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_004d
+  IL_0001:  brfalse.s  IL_0048
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.1
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_002d
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  brfalse.s  IL_004d
-  IL_0024:  ldloc.2
-  IL_0025:  callvirt   ""string Person.Name.get""
-  IL_002a:  stloc.0
-  IL_002b:  br.s       IL_0038
-  IL_002d:  ldstr      ""Hey Bill!""
-  IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
-  IL_0038:  ldstr      ""Hello student ""
-  IL_003d:  ldloc.0
-  IL_003e:  ldstr      ""!""
-  IL_0043:  call       ""string string.Concat(string, string, string)""
-  IL_0048:  call       ""void System.Console.WriteLine(string)""
-  IL_004d:  ret
+  IL_0009:  ldstr      ""Bill""
+  IL_000e:  call       ""bool string.op_Equality(string, string)""
+  IL_0013:  brtrue.s   IL_0028
+  IL_0015:  ldarg.1
+  IL_0016:  isinst     ""Student""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  brfalse.s  IL_0048
+  IL_001f:  ldloc.1
+  IL_0020:  callvirt   ""string Person.Name.get""
+  IL_0025:  stloc.0
+  IL_0026:  br.s       IL_0033
+  IL_0028:  ldstr      ""Hey Bill!""
+  IL_002d:  call       ""void System.Console.WriteLine(string)""
+  IL_0032:  ret
+  IL_0033:  ldstr      ""Hello student ""
+  IL_0038:  ldloc.0
+  IL_0039:  ldstr      ""!""
+  IL_003e:  call       ""string string.Concat(string, string, string)""
+  IL_0043:  call       ""void System.Console.WriteLine(string)""
+  IL_0048:  ret
 }");
         }
 
@@ -1796,41 +1780,36 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       83 (0x53)
+  // Code size       78 (0x4e)
   .maxstack  2
   .locals init (string V_0, //name
-                string V_1,
-                Student V_2)
+                Student V_1)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0052
+  IL_0001:  brfalse.s  IL_004d
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.1
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_002d
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  brfalse.s  IL_0052
-  IL_0024:  ldloc.2
-  IL_0025:  callvirt   ""string Person.Name.get""
-  IL_002a:  stloc.0
-  IL_002b:  br.s       IL_0038
-  IL_002d:  ldstr      ""Hey Bill!""
-  IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
-  IL_0038:  ldstr      ""Student has name of length {0}!""
-  IL_003d:  ldloc.0
-  IL_003e:  callvirt   ""int string.Length.get""
-  IL_0043:  box        ""int""
-  IL_0048:  call       ""string string.Format(string, object)""
-  IL_004d:  call       ""void System.Console.WriteLine(string)""
-  IL_0052:  ret
+  IL_0009:  ldstr      ""Bill""
+  IL_000e:  call       ""bool string.op_Equality(string, string)""
+  IL_0013:  brtrue.s   IL_0028
+  IL_0015:  ldarg.1
+  IL_0016:  isinst     ""Student""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  brfalse.s  IL_004d
+  IL_001f:  ldloc.1
+  IL_0020:  callvirt   ""string Person.Name.get""
+  IL_0025:  stloc.0
+  IL_0026:  br.s       IL_0033
+  IL_0028:  ldstr      ""Hey Bill!""
+  IL_002d:  call       ""void System.Console.WriteLine(string)""
+  IL_0032:  ret
+  IL_0033:  ldstr      ""Student has name of length {0}!""
+  IL_0038:  ldloc.0
+  IL_0039:  callvirt   ""int string.Length.get""
+  IL_003e:  box        ""int""
+  IL_0043:  call       ""string string.Format(string, object)""
+  IL_0048:  call       ""void System.Console.WriteLine(string)""
+  IL_004d:  ret
 }");
         }
 
@@ -1996,40 +1975,35 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       78 (0x4e)
+  // Code size       73 (0x49)
   .maxstack  3
   .locals init (string V_0, //name
-                string V_1,
-                Student V_2)
+                Student V_1)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_004d
+  IL_0001:  brfalse.s  IL_0048
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.1
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_002d
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  brfalse.s  IL_004d
-  IL_0024:  ldloc.2
-  IL_0025:  callvirt   ""string Student.Name.get""
-  IL_002a:  stloc.0
-  IL_002b:  br.s       IL_0038
-  IL_002d:  ldstr      ""Hey Bill!""
-  IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
-  IL_0038:  ldstr      ""Hello student ""
-  IL_003d:  ldloc.0
-  IL_003e:  ldstr      ""!""
-  IL_0043:  call       ""string string.Concat(string, string, string)""
-  IL_0048:  call       ""void System.Console.WriteLine(string)""
-  IL_004d:  ret
+  IL_0009:  ldstr      ""Bill""
+  IL_000e:  call       ""bool string.op_Equality(string, string)""
+  IL_0013:  brtrue.s   IL_0028
+  IL_0015:  ldarg.1
+  IL_0016:  isinst     ""Student""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  brfalse.s  IL_0048
+  IL_001f:  ldloc.1
+  IL_0020:  callvirt   ""string Student.Name.get""
+  IL_0025:  stloc.0
+  IL_0026:  br.s       IL_0033
+  IL_0028:  ldstr      ""Hey Bill!""
+  IL_002d:  call       ""void System.Console.WriteLine(string)""
+  IL_0032:  ret
+  IL_0033:  ldstr      ""Hello student ""
+  IL_0038:  ldloc.0
+  IL_0039:  ldstr      ""!""
+  IL_003e:  call       ""string string.Concat(string, string, string)""
+  IL_0043:  call       ""void System.Console.WriteLine(string)""
+  IL_0048:  ret
 }");
         }
 
@@ -2442,54 +2416,50 @@ Closed Open -> Opened
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("Program.M1",
 @"{
-  // Code size       53 (0x35)
+  // Code size       50 (0x32)
   .maxstack  2
   .locals init (string V_0)
   IL_0000:  ldarg.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_0034
-  IL_0005:  ldloc.0
-  IL_0006:  ldstr      ""a""
-  IL_000b:  call       ""bool string.op_Equality(string, string)""
-  IL_0010:  brtrue.s   IL_0034
-  IL_0012:  ldloc.0
-  IL_0013:  ldstr      ""b""
-  IL_0018:  call       ""bool string.op_Equality(string, string)""
-  IL_001d:  brtrue.s   IL_002c
-  IL_001f:  ldloc.0
-  IL_0020:  ldstr      ""c""
-  IL_0025:  call       ""bool string.op_Equality(string, string)""
-  IL_002a:  pop
-  IL_002b:  ret
-  IL_002c:  ldarga.s   V_1
-  IL_002e:  call       ""bool Program.Mutate(ref string)""
-  IL_0033:  pop
-  IL_0034:  ret
+  IL_0003:  ldstr      ""a""
+  IL_0008:  call       ""bool string.op_Equality(string, string)""
+  IL_000d:  brtrue.s   IL_0031
+  IL_000f:  ldloc.0
+  IL_0010:  ldstr      ""b""
+  IL_0015:  call       ""bool string.op_Equality(string, string)""
+  IL_001a:  brtrue.s   IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""c""
+  IL_0022:  call       ""bool string.op_Equality(string, string)""
+  IL_0027:  pop
+  IL_0028:  ret
+  IL_0029:  ldarga.s   V_1
+  IL_002b:  call       ""bool Program.Mutate(ref string)""
+  IL_0030:  pop
+  IL_0031:  ret
 }");
             compVerifier.VerifyIL("Program.M2",
 @"{
-  // Code size       50 (0x32)
+  // Code size       47 (0x2f)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0031
-  IL_0003:  ldarg.1
-  IL_0004:  ldstr      ""a""
-  IL_0009:  call       ""bool string.op_Equality(string, string)""
-  IL_000e:  brtrue.s   IL_0031
-  IL_0010:  ldarg.1
-  IL_0011:  ldstr      ""b""
-  IL_0016:  call       ""bool string.op_Equality(string, string)""
-  IL_001b:  brtrue.s   IL_002a
-  IL_001d:  ldarg.1
-  IL_001e:  ldstr      ""c""
-  IL_0023:  call       ""bool string.op_Equality(string, string)""
-  IL_0028:  pop
-  IL_0029:  ret
-  IL_002a:  ldarg.1
-  IL_002b:  call       ""bool Program.Pure(string)""
-  IL_0030:  pop
-  IL_0031:  ret
+  IL_0001:  ldstr      ""a""
+  IL_0006:  call       ""bool string.op_Equality(string, string)""
+  IL_000b:  brtrue.s   IL_002e
+  IL_000d:  ldarg.1
+  IL_000e:  ldstr      ""b""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_0027
+  IL_001a:  ldarg.1
+  IL_001b:  ldstr      ""c""
+  IL_0020:  call       ""bool string.op_Equality(string, string)""
+  IL_0025:  pop
+  IL_0026:  ret
+  IL_0027:  ldarg.1
+  IL_0028:  call       ""bool Program.Pure(string)""
+  IL_002d:  pop
+  IL_002e:  ret
 }");
         }
 

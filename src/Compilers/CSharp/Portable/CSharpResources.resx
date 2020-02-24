@@ -4518,9 +4518,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureIsExperimental" xml:space="preserve">
     <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
   </data>
-  <data name="ERR_FeatureIsUnimplemented" xml:space="preserve">
-    <value>Feature '{0}' is not implemented in this compiler.</value>
-  </data>
   <data name="IDS_VersionExperimental" xml:space="preserve">
     <value>'experimental'</value>
   </data>
@@ -6027,5 +6024,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
     <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
+  </data>
+  <data name="ERR_UnsupportedTypeForRelationalPattern" xml:space="preserve">
+    <value>Relational patterns may not be used for a value of type '{0}'.</value>
+  </data>
+  <data name="ERR_RelationalPatternWithNaN" xml:space="preserve">
+    <value>Relational patterns may not be used for a floating-point NaN.</value>
   </data>
 </root>
