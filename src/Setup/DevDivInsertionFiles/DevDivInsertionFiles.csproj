@@ -121,6 +121,10 @@
       <_Dependency Remove="Microsoft.Win32.Registry"/>
       <_Dependency Remove="System.Security.AccessControl"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>
+      <_Dependency Remove="System.Security.Principal.Windows"/>
+      <_Dependency Remove="MessagePack"/>
+      <_Dependency Remove="MessagePack.Annotations"/>
+      <_Dependency Remove="Microsoft.Bcl.AsyncInterfaces"/>
     </ItemGroup>
 
     <!-- Calculate metadata we need -->
