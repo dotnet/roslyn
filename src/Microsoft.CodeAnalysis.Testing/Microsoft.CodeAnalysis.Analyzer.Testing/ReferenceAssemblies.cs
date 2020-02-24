@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Testing
             PackageIdentity? referenceAssemblyPackage,
             string? referenceAssemblyPath,
             ImmutableArray<string> assemblies,
+            ImmutableArray<string> facadeAssemblies,
             ImmutableDictionary<string, ImmutableArray<string>> languageSpecificAssemblies,
             ImmutableArray<PackageIdentity> packages)
         {
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Testing
             ReferenceAssemblyPackage = referenceAssemblyPackage;
             ReferenceAssemblyPath = referenceAssemblyPath;
             Assemblies = assemblies.IsDefault ? ImmutableArray<string>.Empty : assemblies;
+            FacadeAssemblies = facadeAssemblies.IsDefault ? ImmutableArray<string>.Empty : facadeAssemblies;
             LanguageSpecificAssemblies = languageSpecificAssemblies;
             Packages = packages.IsDefault ? ImmutableArray<PackageIdentity>.Empty : packages;
         }
@@ -99,21 +101,29 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public ImmutableArray<string> Assemblies { get; }
 
+        public ImmutableArray<string> FacadeAssemblies { get; }
+
         public ImmutableDictionary<string, ImmutableArray<string>> LanguageSpecificAssemblies { get; }
 
         public ImmutableArray<PackageIdentity> Packages { get; }
 
         public ReferenceAssemblies WithAssemblyIdentityComparer(AssemblyIdentityComparer assemblyIdentityComparer)
-            => new ReferenceAssemblies(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, LanguageSpecificAssemblies, Packages);
+            => new ReferenceAssemblies(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages);
 
         public ReferenceAssemblies WithAssemblies(ImmutableArray<string> assemblies)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, assemblies, LanguageSpecificAssemblies, Packages);
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages);
+
+        public ReferenceAssemblies WithFacadeAssemblies(ImmutableArray<string> facadeAssemblies)
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, facadeAssemblies, LanguageSpecificAssemblies, Packages);
 
         public ReferenceAssemblies AddAssemblies(ImmutableArray<string> assemblies)
             => WithAssemblies(Assemblies.AddRange(assemblies));
 
+        public ReferenceAssemblies AddFacadeAssemblies(ImmutableArray<string> facadeAssemblies)
+            => WithFacadeAssemblies(FacadeAssemblies.AddRange(facadeAssemblies));
+
         public ReferenceAssemblies WithLanguageSpecificAssemblies(ImmutableDictionary<string, ImmutableArray<string>> languageSpecificAssemblies)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, languageSpecificAssemblies, Packages);
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, languageSpecificAssemblies, Packages);
 
         public ReferenceAssemblies WithLanguageSpecificAssemblies(string language, ImmutableArray<string> assemblies)
             => WithLanguageSpecificAssemblies(LanguageSpecificAssemblies.SetItem(language, assemblies));
@@ -129,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         public ReferenceAssemblies WithPackages(ImmutableArray<PackageIdentity> packages)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, LanguageSpecificAssemblies, packages);
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, packages);
 
         public ReferenceAssemblies AddPackages(ImmutableArray<PackageIdentity> packages)
             => WithPackages(Packages.AddRange(packages));
@@ -407,7 +417,19 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         foreach (var path in Directory.GetFiles(facadesPath, "*.dll"))
                         {
+                            resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == Path.GetFileNameWithoutExtension(path));
                             resolvedAssemblies.Add(Path.GetFullPath(path));
+                        }
+                    }
+
+                    foreach (var assembly in FacadeAssemblies)
+                    {
+                        installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
+                            ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
+                        if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
+                        {
+                            resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == assembly);
+                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
                         }
                     }
                 }
@@ -776,7 +798,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "2.0.3"),
                     Path.Combine("build", "netstandard2.0", "ref"))
                 .AddAssemblies(ImmutableArray.Create("netstandard"))
-                .AddAssemblies(ImmutableArray.Create(
+                .AddFacadeAssemblies(ImmutableArray.Create(
                     "Microsoft.Win32.Primitives",
                     "System.AppContext",
                     "System.Collections.Concurrent",

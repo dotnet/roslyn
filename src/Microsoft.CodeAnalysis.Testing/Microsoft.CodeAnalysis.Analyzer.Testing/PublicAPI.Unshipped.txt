@@ -108,10 +108,12 @@ Microsoft.CodeAnalysis.Testing.ProjectState.ProjectState(string name, string def
 Microsoft.CodeAnalysis.Testing.ProjectState.Sources.get -> Microsoft.CodeAnalysis.Testing.SourceFileList
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AddAssemblies(System.Collections.Immutable.ImmutableArray<string> assemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AddFacadeAssemblies(System.Collections.Immutable.ImmutableArray<string> facadeAssemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AddLanguageSpecificAssemblies(string language, System.Collections.Immutable.ImmutableArray<string> assemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AddPackages(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.PackageIdentity> packages) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Assemblies.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AssemblyIdentityComparer.get -> Microsoft.CodeAnalysis.AssemblyIdentityComparer
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.FacadeAssemblies.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.LanguageSpecificAssemblies.get -> System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<string>>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework
@@ -137,6 +139,7 @@ Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.ResolveAsync(string language,
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.TargetFramework.get -> string
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithAssemblies(System.Collections.Immutable.ImmutableArray<string> assemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithAssemblyIdentityComparer(Microsoft.CodeAnalysis.AssemblyIdentityComparer assemblyIdentityComparer) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithFacadeAssemblies(System.Collections.Immutable.ImmutableArray<string> facadeAssemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithLanguageSpecificAssemblies(System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<string>> languageSpecificAssemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithLanguageSpecificAssemblies(string language, System.Collections.Immutable.ImmutableArray<string> assemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithPackages(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.PackageIdentity> packages) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
