@@ -508,49 +508,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             for (byte scale = 0; scale < 29; scale++)
             {
                 var l = new decimal(~0, ~0, ~0, false, scale);
-                Assert.False(ForDecimal.Related(LessThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(LessThanOrEqual, l).Any(Equal, l));
-                Assert.False(ForDecimal.Related(GreaterThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(GreaterThanOrEqual, l).Any(Equal, l));
+                check(l);
                 l = new decimal(~0, ~0, ~0, true, scale);
-                Assert.False(ForDecimal.Related(LessThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(LessThanOrEqual, l).Any(Equal, l));
-                Assert.False(ForDecimal.Related(GreaterThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(GreaterThanOrEqual, l).Any(Equal, l));
+                check(l);
             }
 
             for (byte scale = 0; scale < 29; scale++)
             {
                 var l = new decimal(unchecked((int)0x99999999), unchecked((int)0x99999999), 0x19999999, false, scale);
-                Assert.False(ForDecimal.Related(LessThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(LessThanOrEqual, l).Any(Equal, l));
-                Assert.False(ForDecimal.Related(GreaterThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(GreaterThanOrEqual, l).Any(Equal, l));
+                check(l);
                 l = new decimal(unchecked((int)0x99999999), unchecked((int)0x99999999), 0x19999999, true, scale);
-                Assert.False(ForDecimal.Related(LessThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(LessThanOrEqual, l).Any(Equal, l));
-                Assert.False(ForDecimal.Related(GreaterThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(GreaterThanOrEqual, l).Any(Equal, l));
+                check(l);
                 l = new decimal(unchecked((int)0x99999998), unchecked((int)0x99999999), 0x19999999, false, scale);
-                Assert.False(ForDecimal.Related(LessThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(LessThanOrEqual, l).Any(Equal, l));
-                Assert.False(ForDecimal.Related(GreaterThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(GreaterThanOrEqual, l).Any(Equal, l));
+                check(l);
                 l = new decimal(unchecked((int)0x99999998), unchecked((int)0x99999999), 0x19999999, true, scale);
-                Assert.False(ForDecimal.Related(LessThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(LessThanOrEqual, l).Any(Equal, l));
-                Assert.False(ForDecimal.Related(GreaterThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(GreaterThanOrEqual, l).Any(Equal, l));
+                check(l);
                 l = new decimal(unchecked((int)0x9999999A), unchecked((int)0x99999999), 0x19999999, false, scale);
-                Assert.False(ForDecimal.Related(LessThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(LessThanOrEqual, l).Any(Equal, l));
-                Assert.False(ForDecimal.Related(GreaterThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(GreaterThanOrEqual, l).Any(Equal, l));
+                check(l);
                 l = new decimal(unchecked((int)0x9999999A), unchecked((int)0x99999999), 0x19999999, true, scale);
-                Assert.False(ForDecimal.Related(LessThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(LessThanOrEqual, l).Any(Equal, l));
-                Assert.False(ForDecimal.Related(GreaterThan, l).Any(Equal, l));
-                Assert.True(ForDecimal.Related(GreaterThanOrEqual, l).Any(Equal, l));
+                check(l);
             }
 
             for (int high = 0; high < 2; high++)
@@ -561,29 +537,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         int low = 1 << p2;
                         var l = new decimal(low, mid, high, false, 28);
-                        Assert.False(ForDecimal.Related(LessThan, l).Any(Equal, l));
-                        Assert.True(ForDecimal.Related(LessThanOrEqual, l).Any(Equal, l));
-                        Assert.False(ForDecimal.Related(GreaterThan, l).Any(Equal, l));
-                        Assert.True(ForDecimal.Related(GreaterThanOrEqual, l).Any(Equal, l));
+                        check(l);
                         l = new decimal(low, mid, high, true, 28);
-                        Assert.False(ForDecimal.Related(LessThan, l).Any(Equal, l));
-                        Assert.True(ForDecimal.Related(LessThanOrEqual, l).Any(Equal, l));
-                        Assert.False(ForDecimal.Related(GreaterThan, l).Any(Equal, l));
-                        Assert.True(ForDecimal.Related(GreaterThanOrEqual, l).Any(Equal, l));
+                        check(l);
                     }
                 }
+            }
+
+            void check(decimal d)
+            {
+                Assert.False(ForDecimal.Related(LessThan, d).Any(Equal, d));
+                Assert.True(ForDecimal.Related(LessThanOrEqual, d).Any(Equal, d));
+                Assert.False(ForDecimal.Related(GreaterThan, d).Any(Equal, d));
+                Assert.True(ForDecimal.Related(GreaterThanOrEqual, d).Any(Equal, d));
             }
         }
 
         [Fact]
         public void TestDouble_Fuzz_01()
         {
-            const int K = 10;
-
             for (int i = 0; i < 100; i++)
             {
-                var s1 = ForDouble.Random(K, Random);
-                var s2 = ForDouble.Random(K, Random);
+                var s1 = ForDouble.Random(10, Random);
+                var s2 = ForDouble.Random(10, Random);
                 var u1 = s1.Union(s2);
                 var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
                 Assert.Equal(u1, u2);
@@ -596,12 +572,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestString_Fuzz_02()
         {
-            const int K = 13; // half of the alphabet
-
             for (int i = 0; i < 100; i++)
             {
-                var s1 = randomStringSet(K - 1);
-                var s2 = randomStringSet(K + 1);
+                var s1 = ForString.Random(9, Random);
+                var s2 = ForString.Random(11, Random);
 
                 var u1 = s1.Union(s2);
                 var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
@@ -655,83 +629,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Equal(i1, i3);
                 Assert.Equal(i1, i4);
             }
-
-            // produce a uniformly random subset of letters of the alphabet of the given size.
-            static IValueSet<string> randomStringSet(int size)
-            {
-                Assert.True(size > 0);
-                Assert.True(size < 26);
-                IValueSet<string> result = null;
-                int need = size;
-                for (char c = 'a'; c <= 'z'; c++)
-                {
-                    int cand = 'z' - c + 1;
-                    if (Random.NextDouble() < (1.0 * need / cand))
-                    {
-                        var added = ForString.Related(Equal, c.ToString());
-                        result = result?.Union(added) ?? added;
-                        need--;
-                    }
-                }
-
-                // check that we have `size` members
-                int found = 0;
-                for (char c = 'a'; c <= 'z'; c++)
-                {
-                    if (result.Any(Equal, c.ToString()))
-                        found++;
-                }
-                Assert.Equal(size, found);
-
-                Debug.Assert(need == 0);
-                return result;
-            }
         }
 
         [Fact]
         public void TestChar_Fuzz_03()
         {
-            const int K = 13; // half of the alphabet
-
             for (int i = 0; i < 100; i++)
             {
-                var s1 = randomCharSet();
-                var s2 = randomCharSet();
+                var s1 = ForChar.Random(10, Random);
+                var s2 = ForChar.Random(10, Random);
                 var u1 = s1.Union(s2);
                 var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
                 Assert.Equal(u1, u2);
                 var i1 = s1.Intersect(s2);
                 var i2 = s1.Complement().Union(s2.Complement()).Complement();
                 Assert.Equal(i1, i2);
-            }
-
-            // produce a uniformly random subset of 13 letters of the alphabet.
-            IValueSet<char> randomCharSet()
-            {
-                IValueSet<char> result = null;
-                int need = K;
-                for (char c = 'a'; c <= 'z'; c++)
-                {
-                    int cand = 'z' - c + 1;
-                    if (Random.NextDouble() < (1.0 * need / cand))
-                    {
-                        var added = ForChar.Related(Equal, c);
-                        result = result?.Union(added) ?? added;
-                        need--;
-                    }
-                }
-
-                // check that we have 13 members
-                int found = 0;
-                for (char c = 'a'; c <= 'z'; c++)
-                {
-                    if (result.Any(Equal, c))
-                        found++;
-                }
-                Assert.Equal(K, found);
-
-                Debug.Assert(need == 0);
-                return result;
             }
         }
 
@@ -740,48 +652,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             for (int i = 0; i < 100; i++)
             {
-                var s1 = randomDecimalSet();
-                var s2 = randomDecimalSet();
+                var s1 = ForDecimal.Random(10, Random);
+                var s2 = ForDecimal.Random(10, Random);
                 var u1 = s1.Union(s2);
                 var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
                 Assert.Equal(u1, u2);
                 var i1 = s1.Intersect(s2);
                 var i2 = s1.Complement().Union(s2.Complement()).Complement();
                 Assert.Equal(i1, i2);
-            }
-
-            IValueSet<decimal> randomDecimalSet()
-            {
-                const int n = 20;
-                decimal[] d = new decimal[n];
-                for (int i = 0; i < n; i++)
-                {
-                    d[i] = randomDecimal();
-                }
-                Array.Sort(d);
-
-                // start with an empty set
-                var result = ForDecimal.Related(Equal, 0m);
-                result = result.Intersect(result.Complement());
-                Debug.Assert(result.IsEmpty);
-
-                for (int i = 0; i < n; i += 2)
-                {
-                    // add some intervals
-                    result = result.Union(ForDecimal.Related(GreaterThanOrEqual, d[i]).Intersect(ForDecimal.Related(LessThanOrEqual, d[i + 1])));
-                }
-
-                return result;
-            }
-
-            decimal randomDecimal()
-            {
-                return new decimal(randomInt(), randomInt(), randomInt(), Random.NextDouble() < 0.5, (byte)Random.Next(29));
-            }
-
-            int randomInt()
-            {
-                return (Random.Next() << 5) ^ Random.Next();
             }
         }
     }

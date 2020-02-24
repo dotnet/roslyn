@@ -42,6 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasNan = random.Next(2) < 1;
                 bool hasMinusInf = random.Next(2) < 1;
                 bool hasPlusInf = random.Next(2) < 1;
+                if (hasNan)
+                    expectedSize--;
+                if (hasMinusInf)
+                    expectedSize--;
+                if (hasPlusInf)
+                    expectedSize--;
+                if (expectedSize < 1)
+                    expectedSize = 2;
                 return new FloatingValueSet<TFloating, TFloatingTC>(
                     hasNaN: hasNan, hasMinusInf: hasMinusInf, hasPlusInf: hasPlusInf, numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Random(expectedSize, random));
             }

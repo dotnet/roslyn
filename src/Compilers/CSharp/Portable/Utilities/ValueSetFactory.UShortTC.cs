@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct UShortTC : NumericTC<ushort>
+        private struct UShortTC : INumericTC<ushort>
         {
-            ushort NumericTC<ushort>.MinValue => ushort.MinValue;
+            ushort INumericTC<ushort>.MinValue => ushort.MinValue;
 
-            ushort NumericTC<ushort>.MaxValue => ushort.MaxValue;
+            ushort INumericTC<ushort>.MaxValue => ushort.MaxValue;
 
-            (ushort leftMax, ushort rightMin) NumericTC<ushort>.Partition(ushort min, ushort max)
+            (ushort leftMax, ushort rightMin) INumericTC<ushort>.Partition(ushort min, ushort max)
             {
                 Debug.Assert(min < max);
                 int half = (max - min) / 2;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (leftMax, rightMin);
             }
 
-            bool NumericTC<ushort>.Related(BinaryOperatorKind relation, ushort left, ushort right)
+            bool INumericTC<ushort>.Related(BinaryOperatorKind relation, ushort left, ushort right)
             {
                 switch (relation)
                 {
@@ -47,15 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ushort NumericTC<ushort>.Next(ushort value)
+            ushort INumericTC<ushort>.Next(ushort value)
             {
                 Debug.Assert(value != ushort.MaxValue);
                 return (ushort)(value + 1);
             }
 
-            ushort EqualableValueTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt16Value;
+            ushort INumericTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt16Value;
 
-            string NumericTC<ushort>.ToString(ushort value) => value.ToString();
+            string INumericTC<ushort>.ToString(ushort value) => value.ToString();
         }
     }
 }

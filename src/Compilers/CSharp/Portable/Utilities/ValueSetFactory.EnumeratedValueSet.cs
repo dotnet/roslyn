@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// relational operators for it; such a set can be formed only by including explicitly mentioned
         /// members (or the inverse, excluding them, by complementing the set).
         /// </summary>
-        private sealed class EnumeratedValueSet<T, TTC> : IValueSet<T> where TTC : struct, EqualableValueTC<T>
+        private sealed class EnumeratedValueSet<T, TTC> : IValueSet<T> where TTC : struct, IEqualableValueTC<T>
         {
             /// <summary>
             /// In <see cref="_included"/>, then members are listed by inclusion.  Otherwise all members

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct DecimalTC : NumericTC<decimal>
+        private struct DecimalTC : INumericTC<decimal>
         {
             // These are the smallest nonzero normal mantissa value (in three parts) below which you could use a higher scale.
             // This is the 96-bit representation of ((2^96)-1) / 10;
@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             private static readonly decimal normalZero = new decimal(lo: 0, mid: 0, hi: 0, isNegative: false, scale: maxScale);
             private static readonly decimal epsilon = new decimal(lo: 1, mid: 0, hi: 0, isNegative: false, scale: maxScale);
 
-            decimal NumericTC<decimal>.MinValue => decimal.MinValue;
+            decimal INumericTC<decimal>.MinValue => decimal.MinValue;
 
-            decimal NumericTC<decimal>.MaxValue => decimal.MaxValue;
+            decimal INumericTC<decimal>.MaxValue => decimal.MaxValue;
 
-            decimal EqualableValueTC<decimal>.FromConstantValue(ConstantValue constantValue) => constantValue.DecimalValue;
+            decimal INumericTC<decimal>.FromConstantValue(ConstantValue constantValue) => constantValue.DecimalValue;
 
             public decimal Next(decimal value)
             {
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (value, next);
             }
 
-            bool NumericTC<decimal>.Related(BinaryOperatorKind relation, decimal left, decimal right)
+            bool INumericTC<decimal>.Related(BinaryOperatorKind relation, decimal left, decimal right)
             {
                 switch (relation)
                 {
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            string NumericTC<decimal>.ToString(decimal value) => FormattableString.Invariant($"{value:G}");
+            string INumericTC<decimal>.ToString(decimal value) => FormattableString.Invariant($"{value:G}");
 
             private struct DecimalRep
             {

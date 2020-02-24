@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct DoubleTC : FloatingTC<double>, NumericTC<double>
+        private struct DoubleTC : FloatingTC<double>, INumericTC<double>
         {
-            double NumericTC<double>.MinValue => double.MinValue;
+            double INumericTC<double>.MinValue => double.MinValue;
 
-            double NumericTC<double>.MaxValue => double.MaxValue;
+            double INumericTC<double>.MaxValue => double.MaxValue;
 
             double FloatingTC<double>.NaN => double.NaN;
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// number.  Every bit sequence between the representation of 0 and MaxValue represents a distinct
             /// value, and the integer representations are ordered by value the same as the floating-point numbers they represent.
             /// </summary>
-            double NumericTC<double>.Next(double value)
+            double INumericTC<double>.Next(double value)
             {
                 Debug.Assert(!double.IsNaN(value));
                 Debug.Assert(!double.IsInfinity(value));
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// number.  Every bit sequence between the representation of 0 and MaxValue represents a distinct
             /// value, and the integer representations are ordered by value the same as the floating-point numbers they represent.
             /// </summary>
-            (double leftMax, double rightMin) NumericTC<double>.Partition(double min, double max)
+            (double leftMax, double rightMin) INumericTC<double>.Partition(double min, double max)
             {
                 Debug.Assert(min < max);
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool NumericTC<double>.Related(BinaryOperatorKind relation, double left, double right)
+            bool INumericTC<double>.Related(BinaryOperatorKind relation, double left, double right)
             {
                 switch (relation)
                 {
@@ -107,12 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            double EqualableValueTC<double>.FromConstantValue(ConstantValue constantValue) => constantValue.DoubleValue;
+            double INumericTC<double>.FromConstantValue(ConstantValue constantValue) => constantValue.DoubleValue;
 
             /// <summary>
             /// Produce a string for testing purposes that is likely to be the same independent of platform and locale.
             /// </summary>
-            string NumericTC<double>.ToString(double value) => FormattableString.Invariant($"{value:G17}");
+            string INumericTC<double>.ToString(double value) => FormattableString.Invariant($"{value:G17}");
         }
     }
 }

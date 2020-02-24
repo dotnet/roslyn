@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct LongTC : NumericTC<long>
+        private struct LongTC : INumericTC<long>
         {
-            long NumericTC<long>.MinValue => long.MinValue;
+            long INumericTC<long>.MinValue => long.MinValue;
 
-            long NumericTC<long>.MaxValue => long.MaxValue;
+            long INumericTC<long>.MaxValue => long.MaxValue;
 
-            (long leftMax, long rightMin) NumericTC<long>.Partition(long min, long max)
+            (long leftMax, long rightMin) INumericTC<long>.Partition(long min, long max)
             {
                 Debug.Assert(min < max);
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (leftMax, leftMax + 1);
             }
 
-            bool NumericTC<long>.Related(BinaryOperatorKind relation, long left, long right)
+            bool INumericTC<long>.Related(BinaryOperatorKind relation, long left, long right)
             {
                 switch (relation)
                 {
@@ -52,15 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            long NumericTC<long>.Next(long value)
+            long INumericTC<long>.Next(long value)
             {
                 Debug.Assert(value != long.MaxValue);
                 return value + 1;
             }
 
-            long EqualableValueTC<long>.FromConstantValue(ConstantValue constantValue) => constantValue.Int64Value;
+            long INumericTC<long>.FromConstantValue(ConstantValue constantValue) => constantValue.Int64Value;
 
-            string NumericTC<long>.ToString(long value) => value.ToString();
+            string INumericTC<long>.ToString(long value) => value.ToString();
         }
     }
 }

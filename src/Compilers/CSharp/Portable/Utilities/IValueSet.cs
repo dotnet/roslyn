@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// An interface representing a set of values of a specific type.  During construction of the state machine
     /// for pattern-matching, we track the set of values of each intermediate result that can reach each state.
-    /// That permits us to determine when tests can be eliminated either because they are impossible (can be
+    /// That permits us to determine when tests can be eliminated either because they are impossible (and can be
     /// replaced by an always-false test) or always true with the set of values that can reach that state (and
-    /// can be replaced by an always true test).
+    /// can be replaced by an always-true test).
     /// </summary>
     internal interface IValueSet
     {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Test if the value set contains any values that satisfy the given relation with the given value.  Supported values for <paramref name="relation"/>
-        /// Are <see cref="BinaryOperatorKind.Equal"/> for all supported types, and for numeric types (except decimal) we also support
+        /// are <see cref="BinaryOperatorKind.Equal"/> for all supported types, and for numeric types we also support
         /// <see cref="BinaryOperatorKind.LessThan"/>, <see cref="BinaryOperatorKind.LessThanOrEqual"/>, <see cref="BinaryOperatorKind.GreaterThan"/>, and
         /// <see cref="BinaryOperatorKind.GreaterThanOrEqual"/>.
         /// </summary>

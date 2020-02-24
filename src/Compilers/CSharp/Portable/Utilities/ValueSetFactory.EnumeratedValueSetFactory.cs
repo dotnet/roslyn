@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 #nullable enable
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A value set factory that only supports equality and works by including or excluding specific values.
         /// </summary>
-        private sealed class EnumeratedValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, EqualableValueTC<T>
+        private sealed class EnumeratedValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, IEqualableValueTC<T>
         {
             public static EnumeratedValueSetFactory<T, TTC> Instance = new EnumeratedValueSetFactory<T, TTC>();
 
@@ -38,7 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet<T> IValueSetFactory<T>.Random(int expectedSize, Random random)
             {
-                throw new NotImplementedException($"IValueSetFactory<{typeof(T).ToString()}>.Random");
+                TTC tc = default;
+                T[] values = tc.RandomValues(expectedSize, random, expectedSize * 2);
+                IValueSet<T> result = EnumeratedValueSet<T, TTC>.AllValues.Complement();
+                Debug.Assert(result.IsEmpty);
+                foreach (T value in values)
+                    result = result.Union(Related(Equal, value));
+
+                return result;
             }
         }
     }
