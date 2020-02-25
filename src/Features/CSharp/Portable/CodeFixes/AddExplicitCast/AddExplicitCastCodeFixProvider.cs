@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                             c => FixIt(context.Document, root, targetNode, convType)));
                     }
 
-                    if (potentialConvTypes.Length > 3)
+                    if (potentialConvTypes.Length > MaximumConversionOptions)
                     {
                         Logger.Log(FunctionId.CodeFixes_AddExplicitCast,
                             KeyValueLogMessage.Create(m =>
