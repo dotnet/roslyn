@@ -64,7 +64,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 {
                     using var itemKey = registryRoot.CreateSubKey(item.SectionName);
                     itemKey.SetValue(item.ValueName, item.ValueData);
+                    itemKey.Flush();
                 }
+
+                registryRoot.Flush();
 
                 _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.AppliedColorScheme, schemeName));
 
