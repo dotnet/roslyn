@@ -1468,6 +1468,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return result != (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY;
         }
 
+#nullable enable
+
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
@@ -1496,6 +1498,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
+                foreach (var documentId in solutionChangeAccumulator.DocumentIdsRemoved)
+                {
+                    this.ClearDocumentData(documentId);
+                }
+
                 SetCurrentSolution(solutionChangeAccumulator.Solution);
                 RaiseWorkspaceChangedEventAsync(
                     solutionChangeAccumulator.WorkspaceChangeKind,
@@ -1505,6 +1512,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     solutionChangeAccumulator.WorkspaceChangeDocumentId);
             }
         }
+
+#nullable restore
 
         private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
