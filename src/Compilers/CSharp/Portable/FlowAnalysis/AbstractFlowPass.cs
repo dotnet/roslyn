@@ -382,13 +382,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal class PendingBranch
         {
             public readonly BoundNode Branch;
+            public bool IsConditionalState;
             public TLocalState State;
+            public TLocalState StateWhenTrue;
+            public TLocalState StateWhenFalse;
             public readonly LabelSymbol Label;
 
-            public PendingBranch(BoundNode branch, TLocalState state, LabelSymbol label)
+            public PendingBranch(BoundNode branch, TLocalState state, LabelSymbol label, bool isConditionalState = false, TLocalState stateWhenTrue = default, TLocalState stateWhenFalse = default)
             {
                 this.Branch = branch;
                 this.State = state.Clone();
+                this.IsConditionalState = isConditionalState;
+                if (isConditionalState)
+                {
+                    this.StateWhenTrue = stateWhenTrue.Clone();
+                    this.StateWhenFalse = stateWhenFalse.Clone();
+                }
                 this.Label = label;
             }
         }
@@ -1706,10 +1715,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitBlock(node.FinallyBlock);
         }
 
-        public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
+        public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitReturnStatementNoAdjust(node);
-            AdjustStateAfterReturnStatement(node);
+            PendingBranches.Add(new PendingBranch(node, this.State, label: null));
+            SetUnreachable();
             return result;
         }
 
@@ -1724,12 +1734,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
-        }
-
-        private void AdjustStateAfterReturnStatement(BoundReturnStatement node)
-        {
-            PendingBranches.Add(new PendingBranch(node, this.State, null));
-            SetUnreachable();
         }
 
         public override BoundNode VisitThisReference(BoundThisReference node)

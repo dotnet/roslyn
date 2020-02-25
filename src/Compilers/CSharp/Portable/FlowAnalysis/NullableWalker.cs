@@ -449,8 +449,92 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             EnforceDoesNotReturn(syntaxOpt: null);
-            EnforceMemberNotNull(syntaxOpt: null);
+
+            foreach (var pendingReturn in pendingReturns)
+            {
+                enforceMemberNotNull(syntaxOpt: null, pendingReturn.State);
+
+                if (pendingReturn.Branch is BoundReturnStatement { ExpressionOpt: BoundExpression expr } returnStatement)
+                {
+                    if (pendingReturn.IsConditionalState)
+                    {
+                        if (!IsConstantFalse(expr))
+                        {
+                            // don't check MemberNotWhenTrue state on a 'return false;'
+                            enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue); // TODO2
+                        }
+                        if (!IsConstantTrue(expr))
+                        {
+                            // don't check MemberNotWhenFalse state on a 'return true;'
+                            enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse); // TODO2
+                        }
+                    }
+                }
+            }
+
             return pendingReturns;
+
+            void enforceMemberNotNull(SyntaxNode syntaxOpt, LocalState state)
+            {
+                if (_symbol is MethodSymbol method)
+                {
+                    foreach (var memberName in method.NotNullMembers)
+                    {
+                        foreach (var member in method.ContainingType.GetMembers(memberName))
+                        {
+                            if (memberHasBadState(member, state))
+                            {
+                                // Member '{name}' may not have a null value when exiting.
+                                ReportDiagnostic(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
+                            }
+                        }
+                    }
+                }
+            }
+
+            void enforceMemberNotNullWhen(SyntaxNode syntaxOpt, bool sense, LocalState state)
+            {
+                if (_symbol is MethodSymbol method)
+                {
+                    var notNullMembers = sense ? method.NotNullWhenTrueMembers : method.NotNullWhenFalseMembers;
+                    foreach (var memberName in notNullMembers)
+                    {
+                        foreach (var member in method.ContainingType.GetMembers(memberName))
+                        {
+                            if (memberHasBadState(member, state))
+                            {
+                                // Member '{name}' may not have a null value when exiting with '{sense}'.
+                                ReportDiagnostic(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense);
+                            }
+                        }
+                    }
+                }
+            }
+
+            bool memberHasBadState(Symbol member, LocalState state)
+            {
+                switch (member.Kind)
+                {
+                    case SymbolKind.Field:
+                    case SymbolKind.Property:
+                        if (GetSlotForFieldOrProperty(member) is int memberSlot &&
+                            memberSlot > 0)
+                        {
+                            var parameterState = state[memberSlot];
+                            return !parameterState.IsNotNull();
+                        }
+                        else
+                        {
+                            return false;
+                        }
+
+                    case SymbolKind.Event:
+                    case SymbolKind.Method:
+                        break;
+                }
+
+                return false;
+            }
 
             void makeNotNullMembersMaybeNull()
             {
@@ -514,49 +598,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void EnforceMemberNotNull(SyntaxNode? syntaxOpt)
-        {
-            if (_symbol is MethodSymbol method)
-            {
-                bool isStatic = method.IsStatic;
-                foreach (var memberName in method.NotNullMembers)
-                {
-                    foreach (var member in method.ContainingType.GetMembers(memberName))
-                    {
-                        if (MemberHasBadState(member, State))
-                        {
-                            // Member '{name}' may not have a null value when exiting.
-                            ReportDiagnostic(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
-                        }
-                    }
-                }
-            }
-        }
-
-        private bool MemberHasBadState(Symbol member, LocalState state)
-        {
-            switch (member.Kind)
-            {
-                case SymbolKind.Field:
-                case SymbolKind.Property:
-                    if (GetSlotForFieldOrProperty(member) is int memberSlot &&
-                        memberSlot > 0)
-                    {
-                        var parameterState = state[memberSlot];
-                        return !parameterState.IsNotNull();
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                case SymbolKind.Event:
-                case SymbolKind.Method:
-                    break;
-            }
-
-            return false;
-        }
 #nullable restore
 
         internal static void Analyze(
@@ -1722,10 +1763,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameterType.ToTypeWithState();
         }
 
-        protected override BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
+        public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             Debug.Assert(!IsConditionalState);
-            EnforceMemberNotNull(node.Syntax);
 
             BoundExpression expr = node.ExpressionOpt;
             if (expr == null)
@@ -1759,19 +1799,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 checkConditionalParameterState(node.Syntax, parameters, sense: false);
                             }
                         }
-
-                        if (!IsConstantFalse(expr))
-                        {
-                            // don't check MemberNotWhenTrue state on a 'return false;'
-                            checkConditionalMemberState(node.Syntax, sense: true);
-                        }
-                        if (!IsConstantTrue(expr))
-                        {
-                            // don't check MemberNotWhenFalse state on a 'return true;'
-                            checkConditionalMemberState(node.Syntax, sense: false);
-                        }
-
-                        Unsplit();
                     }
                 }
                 else
@@ -1802,27 +1829,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             EnforceDoesNotReturn(node.Syntax);
 
-            return null;
-
-            void checkConditionalMemberState(SyntaxNode syntaxOpt, bool sense)
+            // TODO2
+            if (IsConditionalState)
             {
-                if (_symbol is MethodSymbol method)
-                {
-                    var notNullMembers = sense ? method.NotNullWhenTrueMembers : method.NotNullWhenFalseMembers;
-                    LocalState state = sense ? StateWhenTrue : StateWhenFalse;
-                    foreach (var memberName in notNullMembers)
-                    {
-                        foreach (var member in method.ContainingType.GetMembers(memberName))
-                        {
-                            if (MemberHasBadState(member, state))
-                            {
-                                // Member '{name}' may not have a null value when exiting with '{sense}'.
-                                ReportDiagnostic(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense);
-                            }
-                        }
-                    }
-                }
+                var joinedState = this.StateWhenTrue.Clone();
+                Join(ref joinedState, ref this.StateWhenFalse);
+                PendingBranches.Add(new PendingBranch(node, joinedState, label: null, this.IsConditionalState, this.StateWhenTrue, this.StateWhenFalse));
             }
+            else
+            {
+                PendingBranches.Add(new PendingBranch(node, this.State, label: null));
+            }
+
+            SetUnreachable();
+            Unsplit();
+
+            return null;
 
             void checkConditionalParameterState(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense)
             {
