@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal abstract partial class AbstractImplementAbstractClassCodeFixProvider<TClassNode> : CodeFixProvider
+    internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode> : CodeFixProvider
         where TClassNode : SyntaxNode
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         }
 
         private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName)
-            => FeaturesResources.Implement_Abstract_Class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName;
+            => FeaturesResources.Implement_abstract_class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string id)
-                : base(FeaturesResources.Implement_Abstract_Class, createChangedDocument, id)
+                : base(FeaturesResources.Implement_abstract_class, createChangedDocument, id)
             {
             }
         }
