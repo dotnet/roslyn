@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+#nullable enable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +22,6 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#nullable enable
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
@@ -38,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         private const string CS1503 = nameof(CS1503);
         private const int MaximumConversionOptions = 3;
 
-        [ImportingConstructor]
         public AddExplicitCastCodeFixProvider()
         {
         }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidateSymbols = symbolInfo.CandidateSymbols;
 
-                var potentialConvTypes = new List<ITypeSymbol> { };
+                var mutablePotentialConversionTypes = new List<ITypeSymbol> { };
                 foreach (var candidcateSymbol in candidateSymbols)
                 {
                     var methodSymbol = candidcateSymbol as IMethodSymbol;
@@ -180,14 +180,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                             argumentConversionType = arrayType.ElementType;
                         }
 
-                        potentialConvTypes.Add(argumentConversionType);
+                        mutablePotentialConversionTypes.Add(argumentConversionType);
                     }
                 }
 
                 // Sort the potential conversion types by inheritance distance
                 var comparer = new InheritanceDistanceComparer(semanticModel, targetNodeType);
-                potentialConvTypes.Sort(comparer);
-                potentialConversionTypes = potentialConvTypes.Distinct().ToImmutableArray(); // clear up duplicate types
+                mutablePotentialConversionTypes.Sort(comparer);
+                potentialConversionTypes = mutablePotentialConversionTypes.Distinct().ToImmutableArray(); // clear up duplicate types
                 if (potentialConversionTypes.Length != 1)
                 {
                     return false;
