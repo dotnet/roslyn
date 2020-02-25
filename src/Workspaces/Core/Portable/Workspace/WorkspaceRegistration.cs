@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis
 
         public event EventHandler? WorkspaceChanged;
 
-        internal void SetWorkspaceAndRaiseEvents(Workspace workspace)
+        internal void SetWorkspaceAndRaiseEvents(Workspace? workspace)
         {
             SetWorkspace(workspace);
             RaiseEvents();
         }
 
-        internal void SetWorkspace(Workspace workspace)
+        internal void SetWorkspace(Workspace? workspace)
         {
             Workspace = workspace;
         }

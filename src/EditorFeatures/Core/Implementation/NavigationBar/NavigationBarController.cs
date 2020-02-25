@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _selectedItemInfoTask = Task.FromResult(new NavigationBarSelectedTypeAndMember(null, null));
         }
 
-        public void SetWorkspace(Workspace newWorkspace)
+        public void SetWorkspace(Workspace? newWorkspace)
         {
             DisconnectFromWorkspace();
 
@@ -162,10 +162,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // If the displayed project is being renamed, retrigger the update
             if (args.Kind == WorkspaceChangeKind.ProjectChanged && args.ProjectId != null)
             {
-                var oldProject = args.OldSolution.GetProject(args.ProjectId);
-                var newProject = args.NewSolution.GetProject(args.ProjectId);
+                var oldProject = args.OldSolution.GetRequiredProject(args.ProjectId);
+                var newProject = args.NewSolution.GetRequiredProject(args.ProjectId);
 
-                if (oldProject?.Name != newProject?.Name)
+                if (oldProject.Name != newProject.Name)
                 {
                     var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
 
