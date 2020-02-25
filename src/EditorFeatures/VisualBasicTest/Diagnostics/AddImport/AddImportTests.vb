@@ -32,10 +32,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                                                   placeSystemFirst As Boolean,
                                                   outOfProcess As Boolean) As Task
             Await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, priority,
+                initialMarkup, expectedMarkup, index,
                 parameters:=New TestParameters(
                     options:=[Option](GenerationOptions.PlaceSystemNamespaceFirst, placeSystemFirst),
-                    fixProviderData:=outOfProcess))
+                    fixProviderData:=outOfProcess,
+                    priority:=priority))
         End Function
     End Class
 
@@ -75,7 +76,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41484"), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         <WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")>
         Public Async Function TestAddImportWithCaseChange() As Task
             Await TestAsync(

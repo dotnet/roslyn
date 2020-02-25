@@ -9,6 +9,9 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CodeFixes</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" GenerateSource="true" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" GenerateSource="true" Link="CodeFixesResources.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)PredefinedCodeFixProviderNames.cs" />
   </ItemGroup>
 </Project>

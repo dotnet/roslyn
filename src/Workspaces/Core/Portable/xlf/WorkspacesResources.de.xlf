@@ -1317,6 +1317,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Arbeitsbereich ist nicht leer.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_is_in_a_different_project">
+        <source>{0} is in a different project.</source>
+        <target state="new">{0} is in a different project.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
         <source>'{0}' is not part of the workspace.</source>
         <target state="translated">'"{0}" ist nicht Teil des Arbeitsbereichs.</target>

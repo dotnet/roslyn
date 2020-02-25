@@ -79,6 +79,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\UsingsAndExternAliasesOrganizer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpWorkspaceExtensionsResources.resx" GenerateSource="true" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpWorkspaceExtensionsResources.resx" GenerateSource="true" Link="CSharpWorkspaceExtensionsResources.resx" />
   </ItemGroup>
 </Project>
