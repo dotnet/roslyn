@@ -50,8 +50,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
             End Function
 
             Protected Overrides Function CreateSplitComment(indentString As String) As SyntaxTriviaList
-                Dim prefix = _sourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, _cursorPosition)).ToString()
-                Dim suffix = _sourceText.GetSubText(TextSpan.FromBounds(_cursorPosition, _trivia.Span.End)).ToString()
+                Dim prefix = _sourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, _cursorPosition)).ToString().Trim(" "c)
+                Dim suffix = _sourceText.GetSubText(TextSpan.FromBounds(_cursorPosition, _trivia.Span.End)).ToString().Trim(" "c)
 
                 Dim triviaList = New List(Of SyntaxTrivia)
                 triviaList.Add(SyntaxFactory.CommentTrivia(prefix))

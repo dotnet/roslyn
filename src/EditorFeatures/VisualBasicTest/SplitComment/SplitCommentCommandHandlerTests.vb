@@ -133,8 +133,8 @@ End Module
 ",
 "Module Program
     Sub Main(args As String())
-        ' Test 
-        'Comment
+        ' Test
+        ' Comment
     End Sub
 End Module
 ")
@@ -143,17 +143,10 @@ End Module
         <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
         Public Sub TestSplitEndOfComment()
-            TestHandled(
+            TestNotHandled(
 "Module Program
     Sub Main(args As String())
-        ' Test Comment[||] 
-    End Sub
-End Module
-",
-"Module Program
-    Sub Main(args As String())
-        ' Test Comment
-        ' 
+        ' Test Comment[||]
     End Sub
 End Module
 ")
@@ -174,8 +167,8 @@ End Module
     Sub Main(args As String())
         
     End Sub
-    ' Test 
-    'Comment
+    ' Test
+    ' Comment
 End Module
 ")
         End Sub
@@ -196,8 +189,8 @@ End Module
         
     End Sub
 End Module
-' Test 
-'Comment
+' Test
+' Comment
 ")
         End Sub
 
@@ -217,8 +210,8 @@ End Class
         
     End Sub
 End Class
-' Test 
-'Comment
+' Test
+' Comment
 ")
         End Sub
 
@@ -242,8 +235,8 @@ End Namespace
         End Sub
     End Module
 End Namespace
-' Test 
-'Comment
+' Test
+' Comment
 ")
         End Sub
 
@@ -260,7 +253,7 @@ End Module
 ",
 "Module Program
     Sub Main(args As String())
-        Dim X As Integer _ ' Comment 
+        Dim X As Integer _ ' Comment
  _ ' is here
                        = 4
     End Sub

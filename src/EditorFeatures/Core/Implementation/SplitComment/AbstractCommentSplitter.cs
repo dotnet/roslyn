@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         {
             var nodeToReplace = GetNodeToReplace();
 
-            if (_cursorPosition <= nodeToReplace.SpanStart || _cursorPosition >= nodeToReplace.Span.End)
+            if (_cursorPosition <= nodeToReplace.SpanStart || _cursorPosition >= nodeToReplace.FullSpan.End)
             {
                 return null;
             }

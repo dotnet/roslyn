@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                Document document, int position,
                SyntaxNode root, SourceText sourceText,
                bool useTabs, int tabSize, SyntaxTrivia trivia,
-               IndentStyle indentStyle, 
+               IndentStyle indentStyle,
                bool hasSpaceAfterComment, CancellationToken cancellationToken)
             {
                 _document = document;
@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                     ? new CommentSplitter(
                         document, position, root,
                         sourceText, useTabs, tabSize,
-                        trivia, indentStyle, 
+                        trivia, indentStyle,
                         hasSpaceAfterComment, cancellationToken)
                     : null;
             }
 
             protected override SyntaxTriviaList CreateSplitComment(string indentString)
             {
-                var prefix = _sourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, _cursorPosition)).ToString();
-                var suffix = _sourceText.GetSubText(TextSpan.FromBounds(_cursorPosition, _trivia.Span.End)).ToString();
+                var prefix = _sourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, _cursorPosition)).ToString().Trim(' ');
+                var suffix = _sourceText.GetSubText(TextSpan.FromBounds(_cursorPosition, _trivia.Span.End)).ToString().Trim(' ');
 
                 var firstTrivia = SyntaxFactory.Comment(prefix);
                 var secondTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed;

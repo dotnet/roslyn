@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
         {
             var snapshot = line.Snapshot;
             var text = snapshot.GetText();
+            _hasSpaceAfterComment = text.Contains(CommentSplitter.CommentCharacter + ' ');
 
-            if (text.Contains(CommentSplitter.CommentCharacter + " "))
+            if (caretPosition > line.End.Position)
             {
-                _hasSpaceAfterComment = true;
-                return true;
+                return false;
             }
             else
             {

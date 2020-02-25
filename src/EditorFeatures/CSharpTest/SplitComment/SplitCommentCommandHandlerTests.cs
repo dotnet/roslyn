@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 {
     public static void Main(string[] args) 
     { 
-        // Test 
-        //Comment
+        // Test
+        // Comment
     }
 }");
         }
@@ -165,20 +165,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
         public void TestSplitEndOfComment()
         {
-            TestHandled(
+            TestNotHandled(
 @"public class Program
 {
     public static void Main(string[] args) 
     { 
-        // Test Comment[||] 
-    }
-}",
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        // Test Comment
-        // 
+        // Test Comment[||]
     }
 }");
         }
@@ -202,8 +194,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     { 
         
     }
-    // Test 
-    //Comment
+    // Test
+    // Comment
 }");
         }
 
@@ -228,8 +220,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         
     }
 }
-// Test 
-//Comment
+// Test
+// Comment
 ");
         }
 
@@ -260,8 +252,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
     }
 }
-// Test 
-//Comment
+// Test
+// Comment
 ");
         }
     }
