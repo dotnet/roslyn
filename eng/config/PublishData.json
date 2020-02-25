@@ -121,6 +121,16 @@
       "vsBranch": "master",
       "vsMajorVersion": 16,
       "ibcSourceBranch": "master-vs-deps"
+    },
+    "features/unitTesting": {
+      "nugetKind": [ "Shipping", "NonShipping" ],
+      "version": "3.3.*",
+      "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+      "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+      "channels": [ "unitTesting" ],
+      "vsBranch": "rel/d16.5",
+      "vsMajorVersion": 16,
+      "ibcSourceBranch": "master-vs-deps"
     }
   },
   "releases": {

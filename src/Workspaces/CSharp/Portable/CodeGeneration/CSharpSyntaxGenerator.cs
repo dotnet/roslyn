@@ -1178,6 +1178,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
+        internal static SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode declaration)
+            => declaration switch
+            {
+                MemberDeclarationSyntax memberDecl => memberDecl.AttributeLists,
+                AccessorDeclarationSyntax accessor => accessor.AttributeLists,
+                ParameterSyntax parameter => parameter.AttributeLists,
+                CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
+                StatementSyntax statement => statement.AttributeLists,
+                _ => default,
+            };
+
         private static SyntaxNode WithAttributeLists(SyntaxNode declaration, SyntaxList<AttributeListSyntax> attributeLists)
             => declaration switch
             {
@@ -1185,6 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AccessorDeclarationSyntax accessor => accessor.WithAttributeLists(attributeLists),
                 ParameterSyntax parameter => parameter.WithAttributeLists(attributeLists),
                 CompilationUnitSyntax compilationUnit => compilationUnit.WithAttributeLists(AsAssemblyAttributes(attributeLists)),
+                StatementSyntax statement => statement.WithAttributeLists(attributeLists),
                 _ => declaration,
             };
 

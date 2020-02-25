@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static ExpressionSyntax MakeDebuggerExpression(this InternalSyntax.ExpressionSyntax expression, SourceText text)
         {
-            var syntaxTree = InternalSyntax.SyntaxFactory.ExpressionStatement(expression, InternalSyntax.SyntaxFactory.Token(SyntaxKind.SemicolonToken)).CreateSyntaxTree(text);
+            var syntaxTree = InternalSyntax.SyntaxFactory.ExpressionStatement(attributeLists: default, expression, InternalSyntax.SyntaxFactory.Token(SyntaxKind.SemicolonToken)).CreateSyntaxTree(text);
             return ((ExpressionStatementSyntax)syntaxTree.GetRoot()).Expression;
         }
 

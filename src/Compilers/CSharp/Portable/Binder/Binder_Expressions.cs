@@ -8180,7 +8180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       conditional access is not really a binary operator.
             DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), access.Display);
             diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
-            access = BadExpression(access.Syntax, access);
+            receiver = BadExpression(receiver.Syntax, receiver);
 
             return new BoundConditionalAccess(node, receiver, access, CreateErrorType(), hasErrors: true);
         }

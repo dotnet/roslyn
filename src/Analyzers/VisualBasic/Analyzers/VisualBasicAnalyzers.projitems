@@ -9,6 +9,6 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Analyzers</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicAnalyzersResources.resx" GenerateSource="true" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicAnalyzersResources.resx" GenerateSource="true" Link="VisualBasicAnalyzersResources.resx" />
   </ItemGroup>
 </Project>
