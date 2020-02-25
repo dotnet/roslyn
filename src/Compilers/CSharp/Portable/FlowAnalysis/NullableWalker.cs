@@ -3736,6 +3736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = node.Arguments;
             if ((parameterCount != 1 && parameterCount != 2)
                 || parameterCount != arguments.Length
+                || receiverType.Type is null
                 || method.MethodKind != MethodKind.Ordinary
                 || method.ReturnType.SpecialType != SpecialType.System_Boolean
                 || (method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__Equals).Name
@@ -3766,7 +3767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, TypeSymbol receiverType, WellKnownMember wellKnownMember)
             {
-                var wellKnownMethod = compilation.GetWellKnownTypeMember(wellKnownMember);
+                var wellKnownMethod = (MethodSymbol)compilation.GetWellKnownTypeMember(wellKnownMember);
                 if (wellKnownMethod is null)
                 {
                     return false;
@@ -3775,18 +3776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var wellKnownType = wellKnownMethod.ContainingType;
                 var parameterType = method.Parameters[0].TypeWithAnnotations;
                 var constructedType = wellKnownType.Construct(ImmutableArray.Create(parameterType));
-
-                Symbol constructedMethod = null;
-                foreach (var member in constructedType.GetMembers(WellKnownMemberNames.ObjectEquals))
-                {
-                    if (member.OriginalDefinition.Equals(wellKnownMethod))
-                    {
-                        constructedMethod = member;
-                        break;
-                    }
-                }
-
-                Debug.Assert(constructedMethod != null, "the original definition is present but the constructed method isn't present");
+                var constructedMethod = wellKnownMethod.AsMember(constructedType);
 
                 // FindImplementationForInterfaceMember doesn't check if this method is itself the interface method we're looking for
                 if (constructedMethod.Equals(method))
