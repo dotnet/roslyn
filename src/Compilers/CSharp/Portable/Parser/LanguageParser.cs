@@ -558,12 +558,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 IsInAsync = true; // We are implicitly in an async context
             }
 
-            var topLevelUsingStatement = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUsingStatement()));
+            var topLevelUsingStatement = CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUsingStatement()));
             IsInAsync = wasInAsync;
             return topLevelUsingStatement;
         }
 
-        private GlobalStatementSyntax CheckFeatureAvailability(GlobalStatementSyntax globalStatementSyntax)
+        private GlobalStatementSyntax CheckSimpleProgramsFeatureAvailability(GlobalStatementSyntax globalStatementSyntax)
         {
             if (IsScript || _checkedSimpleProgramsFeatureAvailability)
             {
@@ -2017,14 +2017,14 @@ tryAgain:
                             case SyntaxKind.UnsafeKeyword:
                                 if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                                 {
-                                    return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUnsafeStatement()));
+                                    return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUnsafeStatement()));
                                 }
                                 break;
 
                             case SyntaxKind.FixedKeyword:
                                 if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                                 {
-                                    return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseFixedStatement()));
+                                    return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseFixedStatement()));
                                 }
                                 break;
 
@@ -2033,14 +2033,14 @@ tryAgain:
                                 {
                                     case SyntaxKind.OpenParenToken:
                                     case SyntaxKind.OpenBraceToken:
-                                        return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
+                                        return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
                                 }
                                 break;
 
                             case SyntaxKind.NewKeyword:
                                 if (IsPossibleNewExpression())
                                 {
-                                    return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
+                                    return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
                                 }
                                 break;
                         }
@@ -2159,7 +2159,7 @@ tryAgain:
 
                             if (statement != null)
                             {
-                                return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
+                                return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
                             }
                         }
 
@@ -2285,7 +2285,7 @@ parse_member_name:;
 
                 if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
                 {
-                    result = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
+                    result = CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
                     return true;
                 }
 

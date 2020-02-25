@@ -18,5 +18,3 @@ static class Program
 Proposal: https://github.com/dotnet/csharplang/blob/master/proposals/Simple-programs.md
 Open issues and TODOs are tracked at https://github.com/dotnet/roslyn/issues/41704.
 See also https://github.com/dotnet/csharplang/issues/3117.
-
-At the moment only simple single file scenarios are supported.

@@ -111,13 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binderUpdatedHandler(enclosing, null);
                 }
 
-                if (enclosing.ContainingMemberOrLambda is SynthesizedSimpleProgramEntryPointSymbol &&
-                    syntax is CompilationUnitSyntax compilationUnit)
-                {
-                    enclosing = new SimpleProgramBinder(enclosing, compilationUnit);
-                    builder.AddToMap(compilationUnit, enclosing);
-                }
-
                 builder.Visit((CSharpSyntaxNode)syntax, enclosing);
             }
 

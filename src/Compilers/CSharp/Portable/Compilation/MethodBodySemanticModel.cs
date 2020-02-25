@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable restore
 
+        internal readonly SimpleProgramBodySemanticModelMergedBoundNodeCache MergedBoundNodeCache;
+
         private MethodBodySemanticModel(
             Symbol owner,
             Binder rootBinder,
@@ -54,8 +56,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
             Debug.Assert(syntax != null);
-            Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit ||
-                         (syntax.SyntaxTree.Options.Kind == SourceCodeKind.Regular && ((CompilationUnitSyntax)syntax).Members.Any(SyntaxKind.GlobalStatement)));
+
+            if (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
+            {
+                Debug.Assert(syntax.Kind() == SyntaxKind.CompilationUnit);
+                MergedBoundNodeCache = entryPoint.GetSemanticModelMergedBoundNodeCache(rootBinder);
+            }
+            else
+            {
+                Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit);
+            }
         }
 
         /// <summary>
@@ -95,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.CompilationUnit:
+                    // When we are binding the root for a multi-unit simple program (for example to do a flow analysis),
+                    // here we are going to bind all units.
                     return binder.BindMethodBody(node, diagnostics);
             }
 

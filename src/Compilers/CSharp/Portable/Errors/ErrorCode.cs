@@ -1757,6 +1757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_DoesNotReturnMismatch = 8770,
 
         ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 9000,
+        ERR_SimpleProgramMultipleUnitsWithExecutableStatements = 9001,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

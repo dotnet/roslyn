@@ -417,6 +417,11 @@
         <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramMultipleUnitsWithExecutableStatements">
+        <source>In all but one compilation unit the top-level statements must all be local function declarations.</source>
+        <target state="new">In all but one compilation unit the top-level statements must all be local function declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Vzor deconstruct s jedním elementem vyžaduje určitou další syntaxi pro zajištění jednoznačnosti. Doporučuje se přidat označení discard „_“ za koncovou závorku „)“.</target>

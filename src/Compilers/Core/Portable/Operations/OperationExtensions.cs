@@ -36,8 +36,15 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             // if wrong compilation is given, GetSemanticModel will throw due to tree not belong to the given compilation.
-            var model = operation.SemanticModel ?? compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
-            if (model.IsSpeculativeSemanticModel)
+            var model = operation.SemanticModel;
+
+            // An IOperation tree for a simple program includes statements from all compilation units involved,
+            // but each model is tied to a single syntax tree.
+            if (model is null || model.SyntaxTree != operation.Syntax.SyntaxTree)
+            {
+                model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            }
+            else if (model.IsSpeculativeSemanticModel)
             {
                 // GetDiagnostics not supported for speculative semantic model.
                 // https://github.com/dotnet/roslyn/issues/28075

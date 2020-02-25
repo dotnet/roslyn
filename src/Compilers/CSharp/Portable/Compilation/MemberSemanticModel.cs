@@ -7,8 +7,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
@@ -334,15 +337,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (current == root)
-                {
-                    break;
-                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
                     // CanHaveAssociatedLocalBinder are in sync.
                     Debug.Assert(!current.CanHaveAssociatedLocalBinder());
+                }
+
+                if (current == root)
+                {
+                    break;
                 }
             }
 
@@ -1456,7 +1460,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // this may happen if we have races and in such case we are no longer interested in adding
             if (!alreadyInTree)
             {
-                NodeMapBuilder.AddToMap(bound, _guardedNodeMap);
+                NodeMapBuilder.AddToMap(bound, _guardedNodeMap, SyntaxTree);
+                Debug.Assert(syntax != _root || _guardedNodeMap.ContainsKey(bound.Syntax));
             }
 
             ImmutableArray<BoundNode> result;
@@ -1491,12 +1496,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If syntax is a statement, we need to add all its children.
                     // Node cache assumes that if statement is cached, then all 
                     // its children are cached too.
-                    NodeMapBuilder.AddToMap(bound, _guardedNodeMap);
+                    NodeMapBuilder.AddToMap(bound, _guardedNodeMap, SyntaxTree);
+                    Debug.Assert(syntax != _root || _guardedNodeMap.ContainsKey(bound.Syntax));
                 }
                 else
                 {
                     // expressions can be added individually.
-                    NodeMapBuilder.AddToMap(bound, _guardedNodeMap, syntax);
+                    NodeMapBuilder.AddToMap(bound, _guardedNodeMap, SyntaxTree, syntax);
                 }
 
                 Debug.Assert((manager is null && (!Compilation.NullableSemanticAnalysisEnabled || syntax != Root || syntax is TypeSyntax ||
@@ -1939,29 +1945,29 @@ done:
                 return;
             }
 
+            Debug.Assert(_guardedNodeMap.Count == 0);
+
             upgradeableLock.EnterWrite();
 
-            Debug.Assert(Root == GetBindableSyntaxNode(Root));
+            Debug.Assert(Root == bindableRoot);
 
             var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
-            var boundRoot = Bind(binder, bindableRoot, diagnostics);
-            if (IsSpeculativeSemanticModel)
-            {
-                ensureSpeculativeNodeBound();
-            }
-            else
-            {
-                bindAndRewrite();
-            }
 
-            void ensureSpeculativeNodeBound()
+            // PROTOTYPE(SimplePrograms): Instead of using an IncrementalBinder here and caching original bound nodes in 
+            //                            SimpleProgramBodySemanticModelMergedBoundNodeCache, we probably should cache
+            //                            just the rewritten root. Given the implementation of the NullableSemanticAnalysisEnabled
+            //                            used above, it looks like either all member models in the compilation perform
+            //                            the rewrite, or none of them do. 
+            var incrementalBinder = new IncrementalBinder(this, binder);
+            var boundRoot = Bind(incrementalBinder, bindableRoot, diagnostics);
+            if (IsSpeculativeSemanticModel)
             {
                 // Not all speculative models are created with existing snapshots. Attributes,
                 // TypeSyntaxes, and MethodBodies do not depend on existing state in a member,
                 // and so the SnapshotManager can be null in these cases.
                 if (_parentSnapshotManagerOpt is null)
                 {
-                    bindAndRewrite();
+                    rewrite();
                     return;
                 }
 
@@ -1969,8 +1975,12 @@ done:
                 boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _parentSnapshotManagerOpt, out var newSnapshots, ref remappedSymbols);
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, newSnapshots, remappedSymbols);
             }
+            else
+            {
+                rewrite();
+            }
 
-            void bindAndRewrite()
+            void rewrite()
             {
                 var remappedSymbols = _parentRemappedSymbolsOpt;
                 boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots: true, out var snapshotManager, ref remappedSymbols);
@@ -2061,6 +2071,7 @@ done:
             // to avoid duplicates in the map if a parent of this node comes through this code path also.
 
             var binder = GetEnclosingBinder(GetAdjustedNodePosition(node));
+            incrementalBinder = new IncrementalBinder(this, binder);
 
             using (_nodeMapLock.DisposableRead())
             {
@@ -2072,7 +2083,7 @@ done:
                 // https://github.com/dotnet/roslyn/issues/35038: We have to run analysis on this node in some manner
                 using (_nodeMapLock.DisposableWrite())
                 {
-                    var boundNode = this.Bind(binder, node, _ignoredDiagnostics);
+                    var boundNode = this.Bind(incrementalBinder, node, _ignoredDiagnostics);
                     GuardedAddBoundTreeForStandaloneSyntax(node, boundNode);
                     results = GuardedGetBoundNodesFromMap(node);
                 }
@@ -2322,49 +2333,128 @@ foundParent:;
 
             public override BoundStatement BindStatement(StatementSyntax node, DiagnosticBag diagnostics)
             {
+                BoundNode boundNode;
+
                 // Check the bound node cache to see if the statement was already bound.
-                BoundStatement synthesizedStatement = _semanticModel.GuardedGetSynthesizedStatementFromMap(node);
-
-                if (synthesizedStatement != null)
+                if (node.SyntaxTree == _semanticModel.SyntaxTree)
                 {
-                    return synthesizedStatement;
-                }
+                    BoundStatement synthesizedStatement = _semanticModel.GuardedGetSynthesizedStatementFromMap(node);
 
-                BoundNode boundNode = TryGetBoundNodeFromMap(node);
-
-                if (boundNode == null)
-                {
-                    // Not bound already. Bind it. It will get added to the cache later by a MemberSemanticModel.NodeMapBuilder.
-                    var statement = base.BindStatement(node, diagnostics);
-
-                    // Synthesized statements are not added to the _guardedNodeMap, we cache them explicitly here in  
-                    // _lazyGuardedSynthesizedStatementsMap
-                    if (statement.WasCompilerGenerated)
+                    if (synthesizedStatement != null)
                     {
-                        _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement);
+                        return synthesizedStatement;
                     }
 
-                    return statement;
+                    boundNode = TryGetBoundNodeFromMap(node);
+
+                    if (boundNode != null)
+                    {
+                        return (BoundStatement)boundNode;
+                    }
                 }
 
-                return (BoundStatement)boundNode;
+                BoundStatement statement;
+                ref WeakReference<BoundNode> refToWeakReference = ref TryGetNodeFromSimpleProgramCache(node, out statement, out bool refToWeakReferenceIsValid);
+
+                if (statement is null)
+                {
+                    statement = TryGetOrSetNodeInSimpleProgramCache(ref refToWeakReference, refToWeakReferenceIsValid, base.BindStatement(node, diagnostics));
+                }
+
+                // Synthesized statements are not added to the _guardedNodeMap, we cache them explicitly here in  
+                // _lazyGuardedSynthesizedStatementsMap
+                if (statement.WasCompilerGenerated && node.SyntaxTree == _semanticModel.SyntaxTree)
+                {
+                    _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement);
+                }
+
+                return statement;
+            }
+
+            /// <param name="node">Node to use as a key in the cache.</param>
+            /// <param name="boundNode">Not null if there is a cached bound node.</param>
+            /// <param name="resultRefIsValid">Indicates whether returned reference represents a valid reference into the cache, i.e. can be used to cache new bound node in the cache.</param>
+            private unsafe ref WeakReference<BoundNode> TryGetNodeFromSimpleProgramCache<TBoundNode>(SyntaxNode node, out TBoundNode boundNode, out bool resultRefIsValid) where TBoundNode : BoundNode
+            {
+                boundNode = null;
+
+                SimpleProgramBodySemanticModelMergedBoundNodeCache mergedBoundNodeCache = GetMergedBoundNodeCache();
+                if (mergedBoundNodeCache is null)
+                {
+                    resultRefIsValid = false;
+                    return ref System.Runtime.CompilerServices.Unsafe.AsRef<WeakReference<BoundNode>>(null);
+                }
+
+                ref WeakReference<BoundNode> refToWeakReference = ref mergedBoundNodeCache.GetValue(node);
+                WeakReference<BoundNode> weakReference = refToWeakReference;
+                BoundNode cached;
+                if (weakReference is object && weakReference.TryGetTarget(out cached))
+                {
+                    boundNode = (TBoundNode)cached;
+                }
+
+                resultRefIsValid = true;
+                return ref refToWeakReference;
+            }
+
+            private SimpleProgramBodySemanticModelMergedBoundNodeCache GetMergedBoundNodeCache()
+            {
+                return (_semanticModel as MethodBodySemanticModel)?.MergedBoundNodeCache;
+            }
+
+            private static TBoundNode TryGetOrSetNodeInSimpleProgramCache<TBoundNode>(ref WeakReference<BoundNode> refToWeakReference, bool refToWeakReferenceIsValid, TBoundNode value) where TBoundNode : BoundNode
+            {
+                if (!refToWeakReferenceIsValid)
+                {
+                    return value;
+                }
+
+                while (true)
+                {
+                    WeakReference<BoundNode> previousWeakReference = refToWeakReference;
+                    if (previousWeakReference != null && previousWeakReference.TryGetTarget(out BoundNode current))
+                    {
+                        return (TBoundNode)current;
+                    }
+
+                    if (Interlocked.CompareExchange(ref refToWeakReference, new WeakReference<BoundNode>(value), previousWeakReference) == previousWeakReference)
+                    {
+                        return value;
+                    }
+                }
             }
 
             internal override BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
             {
-                BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node) ?? base.BindEmbeddedBlock(node, diagnostics);
+                BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node);
+
+                if (block is object)
+                {
+                    return block;
+                }
+
+                ref WeakReference<BoundNode> refToWeakReference = ref TryGetNodeFromSimpleProgramCache(node, out block, out bool refToWeakReferenceIsValid);
+
+                if (block is null)
+                {
+                    block = TryGetOrSetNodeInSimpleProgramCache(ref refToWeakReference, refToWeakReferenceIsValid, base.BindEmbeddedBlock(node, diagnostics));
+                }
+
                 Debug.Assert(!block.WasCompilerGenerated);
                 return block;
             }
 
             private BoundNode TryGetBoundNodeFromMap(CSharpSyntaxNode node)
             {
-                ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
-
-                if (!boundNodes.IsDefaultOrEmpty)
+                if (node.SyntaxTree == _semanticModel.SyntaxTree)
                 {
-                    // Already bound. Return the top-most bound node associated with the statement. 
-                    return boundNodes[0];
+                    ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
+
+                    if (!boundNodes.IsDefaultOrEmpty)
+                    {
+                        // Already bound. Return the top-most bound node associated with the statement. 
+                        return boundNodes[0];
+                    }
                 }
 
                 return null;
@@ -2372,17 +2462,130 @@ foundParent:;
 
             public override BoundNode BindMethodBody(CSharpSyntaxNode node, DiagnosticBag diagnostics)
             {
-                return TryGetBoundNodeFromMap(node) ?? base.BindMethodBody(node, diagnostics);
+                BoundNode boundNode = TryGetBoundNodeFromMap(node);
+
+                if (boundNode is object)
+                {
+                    return boundNode;
+                }
+
+                ref WeakReference<BoundNode> refToWeakReference = ref TryGetNodeFromSimpleProgramCache(node, out boundNode, out bool refToWeakReferenceIsValid);
+
+                if (boundNode is null)
+                {
+                    boundNode = TryGetOrSetNodeInSimpleProgramCache(ref refToWeakReference, refToWeakReferenceIsValid, base.BindMethodBody(node, diagnostics));
+                }
+
+                return boundNode;
+            }
+
+            protected override ImmutableArray<BoundStatement> BindSimpleProgramUnits(CompilationUnitSyntax compilationUnit, SynthesizedSimpleProgramEntryPointSymbol simpleProgram, DiagnosticBag diagnostics)
+            {
+                SimpleProgramBodySemanticModelMergedBoundNodeCache mergedBoundNodeCache = GetMergedBoundNodeCache();
+                if (mergedBoundNodeCache is object)
+                {
+                    // See if we have a cached node for any of the compilation units
+                    foreach (var unit in simpleProgram.GetUnits())
+                    {
+                        if (mergedBoundNodeCache.TryGetValue(unit, out BoundNode cached))
+                        {
+                            return ((BoundBlock)cached).Statements;
+                        }
+                    }
+                }
+
+                return base.BindSimpleProgramUnits(compilationUnit, simpleProgram, diagnostics);
             }
 
             internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, DiagnosticBag diagnostics)
             {
+                Debug.Assert(GetMergedBoundNodeCache() is null);
                 return (BoundExpressionStatement)TryGetBoundNodeFromMap(node) ?? base.BindConstructorInitializer(node, diagnostics);
             }
 
             internal override BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax node, DiagnosticBag diagnostics)
             {
-                return (BoundBlock)TryGetBoundNodeFromMap(node) ?? base.BindExpressionBodyAsBlock(node, diagnostics);
+                BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node);
+
+                if (block is object)
+                {
+                    return block;
+                }
+
+                ref WeakReference<BoundNode> refToWeakReference = ref TryGetNodeFromSimpleProgramCache(node, out block, out bool refToWeakReferenceIsValid);
+
+                if (block is null)
+                {
+                    block = TryGetOrSetNodeInSimpleProgramCache(ref refToWeakReference, refToWeakReferenceIsValid, base.BindExpressionBodyAsBlock(node, diagnostics));
+                }
+
+                return block;
+            }
+        }
+
+#nullable enable
+
+        /// <summary>
+        /// This class implements a weak cache of bound nodes from a simple program method body.
+        /// Only bound nodes that can be reused by <see cref="IncrementalBinder"/> are supposed to be placed in this cache.
+        /// The cache is used to cache bound nodes across all compilation units with top-level statements. This
+        /// allows us to avoid re-binding over and over again (assuming nodes in the cache are still alive) compilation units
+        /// that are not associated with specific SemanticModel instance. Binding those compilation units is required
+        /// for getting complete simple program body. To do a flow analysis, for example.
+        /// 
+        /// The cache doesn't keep strong references to the syntax nodes used as keys and bound nodes used as values.
+        /// So, both can be collected when no one else uses them.
+        /// 
+        /// <see cref="SynthesizedSimpleProgramEntryPointSymbol"/> is responsible for creating this cache and sharing it
+        /// between different <see cref="MethodBodySemanticModel"/> instances.
+        /// </summary>
+        internal class SimpleProgramBodySemanticModelMergedBoundNodeCache
+        {
+            /// <summary>
+            /// A helper class that allows us to avoid exposing <see cref="_nodeMap"/> outside and 
+            /// simplifies storage of bound nodes.
+            /// </summary>
+            private class WeakReferenceWrapper
+            {
+                public WeakReference<BoundNode>? WeakReference;
+            }
+
+            /// <summary>
+            /// Different instances of <see cref="MethodBodySemanticModel"/> can use the cache as long as they are based  
+            /// on the same instance of <see cref="SimpleProgramBinder"/>. Otherwise, symbols for locals and labels won't match. 
+            /// We store a weak reference to the binder with the cache so that we can easily determine whether its
+            /// usage is appropriate.
+            /// </summary>
+            public readonly WeakReference<SimpleProgramBinder> WeakBodyBinder;
+
+            private readonly ConditionalWeakTable<SyntaxNode, WeakReferenceWrapper> _nodeMap = new ConditionalWeakTable<SyntaxNode, WeakReferenceWrapper>();
+
+            public SimpleProgramBodySemanticModelMergedBoundNodeCache(SimpleProgramBinder binder)
+            {
+                WeakBodyBinder = new WeakReference<SimpleProgramBinder>(binder);
+            }
+
+            /// <summary>
+            /// Returns a reference to a weak reference stored in the cache. The reference can be used to get/update the cached bound node.
+            /// </summary>
+            public ref WeakReference<BoundNode>? GetValue(SyntaxNode key)
+            {
+                return ref _nodeMap.GetValue(key, k => new WeakReferenceWrapper()).WeakReference;
+            }
+
+            public bool TryGetValue(SyntaxNode key, [MaybeNullWhen(false)] out BoundNode bound)
+            {
+                if (_nodeMap.TryGetValue(key, out WeakReferenceWrapper? value))
+                {
+                    WeakReference<BoundNode>? weakReference = value.WeakReference;
+                    if (weakReference is object && weakReference.TryGetTarget(out bound))
+                    {
+                        return true;
+                    }
+                }
+
+                bound = null;
+                return false;
             }
         }
     }

@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -62,14 +63,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SmallDictionary<SyntaxNode, Binder> map;
 
-            // Ensure that the member symbol is a method symbol.
-            if ((object)_memberSymbol != null && _root != null)
+            if (_memberSymbol is SynthesizedSimpleProgramEntryPointSymbol entryPoint && _root == entryPoint.SyntaxNode)
             {
-                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, _binderUpdatedHandler);
+                map = new SmallDictionary<SyntaxNode, Binder>(ReferenceEqualityComparer.Instance);
+                var scopeOwner = new SimpleProgramBinder(this, entryPoint);
+                map.Add(_root, scopeOwner);
+
+                Binder buckStopsHereBinder = Next;
+                while (buckStopsHereBinder.Next is object)
+                {
+                    buckStopsHereBinder = buckStopsHereBinder.Next;
+                }
+
+                Debug.Assert(buckStopsHereBinder is BuckStopsHereBinder);
+
+                // Due to different usings in each compilation unit with top level statements, each of the units
+                // gets dedicated binder to bind top level statements within it.
+                foreach (CompilationUnitSyntax unit in entryPoint.GetUnits())
+                {
+                    Binder result = new InContainerBinder(Compilation.GlobalNamespace, buckStopsHereBinder, unit, inUsing: false);
+                    result = new InContainerBinder(entryPoint.ContainingType, result);
+                    result = new InMethodBinder(entryPoint, result);
+                    result = new SimpleProgramUnitBinder(result, scopeOwner);
+
+                    // We create another ExecutableCodeBinder to deal with nested scopes within top level statements within this particular unit.
+                    map.Add(unit, new ExecutableCodeBinder(unit, entryPoint, result));
+                }
             }
             else
             {
-                map = SmallDictionary<SyntaxNode, Binder>.Empty;
+                // Ensure that the member symbol is a method symbol.
+                if ((object)_memberSymbol != null && _root != null)
+                {
+                    map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, _binderUpdatedHandler);
+                }
+                else
+                {
+                    map = SmallDictionary<SyntaxNode, Binder>.Empty;
+                }
             }
 
             Interlocked.CompareExchange(ref _lazyBinderMap, map, null);

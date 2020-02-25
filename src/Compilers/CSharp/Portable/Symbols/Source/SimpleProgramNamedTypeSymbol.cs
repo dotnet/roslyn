@@ -9,6 +9,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -180,5 +183,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override bool IsImplicitlyDeclared => true;
+
+        internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
+        {
+            foreach (var singleDecl in MergedDeclaration.Declarations)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (singleDecl.SyntaxReference.SyntaxTree == tree)
+                {
+                    if (!definedWithinSpan.HasValue)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        var span = definedWithinSpan.GetValueOrDefault();
+
+                        foreach (var global in ((CompilationUnitSyntax)tree.GetRoot()).Members.OfType<GlobalStatementSyntax>())
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            if (global.Span.IntersectsWith(span))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }

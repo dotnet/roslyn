@@ -178,6 +178,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case AccessorDeclarationSyntax accessor:
                     model = (accessor.Body != null || accessor.ExpressionBody != null) ? GetOrAddModel(node) : null;
                     break;
+
+                case CompilationUnitSyntax unit:
+                    // Allow getting IOperation tree for the entire simple program body by requesting a tree for any of the comilation units with top level statements.
+                    if (SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation)?.IsDefinedInSourceTree(unit.SyntaxTree, definedWithinSpan: null, cancellationToken) == true)
+                    {
+                        model = this.GetMemberModel(unit.Members.OfType<GlobalStatementSyntax>().First());
+                        break;
+                    }
+
+                    goto default;
+
                 default:
                     model = this.GetMemberModel(node);
                     break;
@@ -806,9 +817,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (memberDecl.Kind())
                 {
-                    case SyntaxKind.CompilationUnit:
-                        return GetOrAddModel(memberDecl);
-
                     case SyntaxKind.MethodDeclaration:
                     case SyntaxKind.ConversionOperatorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
@@ -885,6 +893,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                     case SyntaxKind.GlobalStatement:
+                        if (SyntaxFacts.IsSimpleProgramTopLevelStatement((GlobalStatementSyntax)memberDecl))
+                        {
+                            return GetOrAddModel((CompilationUnitSyntax)memberDecl.Parent);
+                        }
+
                         return GetOrAddModel(memberDecl);
 
                     case SyntaxKind.Attribute:
@@ -978,14 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static CSharpSyntaxNode GetMemberDeclaration(SyntaxNode node)
         {
-            CSharpSyntaxNode result = node.FirstAncestorOrSelf(s_isMemberDeclarationFunction);
-
-            if (SyntaxFacts.IsSimpleProgramTopLevelStatement(result as GlobalStatementSyntax))
-            {
-                result = result.Parent;
-            }
-
-            return result;
+            return node.FirstAncestorOrSelf(s_isMemberDeclarationFunction);
         }
 
         private MemberSemanticModel GetOrAddModelIfContains(CSharpSyntaxNode node, TextSpan span)
@@ -1179,6 +1185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberSemanticModel createMethodBodySemanticModel(BinderFlags additionalFlags, CSharpSyntaxNode memberDecl, SourceMemberMethodSymbol symbol)
             {
                 ExecutableCodeBinder binder = symbol?.TryGetBodyBinder(_binderFactory, additionalFlags);
+
+                if (memberDecl.IsKind(SyntaxKind.CompilationUnit))
+                {
+                    binder = (ExecutableCodeBinder)binder?.GetBinder(memberDecl);
+                }
 
                 if (binder == null)
                 {

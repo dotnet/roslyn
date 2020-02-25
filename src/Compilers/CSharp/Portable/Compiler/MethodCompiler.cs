@@ -1676,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (bodyBinder != null)
                 {
-                    importChain = bodyBinder.ImportChain;
+                    importChain = bodyBinder.ImportChain; // PROTOTYPE(SimplePrograms): Need special handling (this is similar to https://github.com/dotnet/roslyn/issues/2846)
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
                     BoundNode methodBodyForSemanticModel = methodBody;

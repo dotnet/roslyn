@@ -6,6 +6,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -47,15 +49,40 @@ Console.Write(""async main"");
         [Fact]
         public void Simple_03()
         {
-            var text1 = @"System.Console.WriteLine(""1"");";
-            var text2 = @"System.Console.WriteLine(""2"");";
+            var text1 = @"
+System.Console.Write(""1"");
+";
+            var text2 = @"
+//
+System.Console.Write(""2"");
+System.Console.WriteLine();
+System.Console.WriteLine();
+";
+            var text3 = @"
+//
+//
+System.Console.Write(""3"");
+System.Console.WriteLine();
+System.Console.WriteLine();
+";
 
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (1,1): error CS8751: Internal error in the C# compiler.
-                // System.Console.WriteLine("2");
-                Diagnostic(ErrorCode.ERR_InternalError, @"System.Console.WriteLine(""2"");").WithLocation(1, 1)
+                // (3,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // System.Console.Write("2");
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "System").WithLocation(3, 1)
+                );
+
+            comp = CreateCompilation(new[] { text1, text2, text3 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (3,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // System.Console.Write("2");
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "System").WithLocation(3, 1),
+                // (4,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // System.Console.Write("3");
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "System").WithLocation(4, 1)
                 );
         }
 
@@ -106,27 +133,279 @@ static class Type
         public void Simple_06()
         {
             var text1 = @"local();";
-            var text2 = @"void local() => System.Console.WriteLine(""2"");";
+            var text2 = @"void local() => System.Console.WriteLine(2);";
 
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (1,1): error CS8751: Internal error in the C# compiler.
-                // void local() => System.Console.WriteLine("2");
-                Diagnostic(ErrorCode.ERR_InternalError, @"void local() => System.Console.WriteLine(""2"");").WithLocation(1, 1),
-                // (1,1): error CS0103: The name 'local' does not exist in the current context
-                // local();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(1, 1)
-                );
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2");
+
+            verifyModel(comp, comp.SyntaxTrees[0], comp.SyntaxTrees[1]);
 
             comp = CreateCompilation(new[] { text2, text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
-                // (1,1): error CS8751: Internal error in the C# compiler.
-                // local();
-                Diagnostic(ErrorCode.ERR_InternalError, "local();").WithLocation(1, 1),
-                // (1,6): warning CS8321: The local function 'local' is declared but never used
-                // void local() => System.Console.WriteLine("2");
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(1, 6)
-                );
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2");
+
+            verifyModel(comp, comp.SyntaxTrees[1], comp.SyntaxTrees[0]);
+
+            static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, SyntaxTree tree2)
+            {
+                Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                var model1 = comp.GetSemanticModel(tree1);
+
+                verifyModelForGlobalStatements(tree1, model1);
+
+                var unit1 = (CompilationUnitSyntax)tree1.GetRoot();
+                var localRef = unit1.DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+                var refSymbol = model1.GetSymbolInfo(localRef).Symbol;
+                Assert.Equal("void local()", refSymbol.ToTestDisplayString());
+                Assert.Contains(refSymbol.Name, model1.LookupNames(localRef.SpanStart));
+                Assert.Contains(refSymbol, model1.LookupSymbols(localRef.SpanStart));
+                Assert.Same(refSymbol, model1.LookupSymbols(localRef.SpanStart, name: refSymbol.Name).Single());
+                var operation1 = model1.GetOperation(localRef.Parent);
+                Assert.NotNull(operation1);
+                Assert.IsAssignableFrom<IInvocationOperation>(operation1);
+
+                Assert.NotNull(ControlFlowGraph.Create((IBlockOperation)operation1.Parent.Parent));
+
+                // PROTOTYPE(SimplePrograms): Asking IOperation for one compilation unit returns a node
+                //                            for complete method body, with statements from other compilation units.
+                //                            Is this going to be confusing?
+                model1.VerifyOperationTree(unit1,
+@"
+IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'local();')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local();')
+    Expression: 
+      IInvocationOperation (void local()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'local()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+  ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null) (Syntax: 'void local( ... iteLine(2);')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> System.C ... riteLine(2)')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'System.Cons ... riteLine(2)')
+        Expression: 
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(2)')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '=> System.C ... riteLine(2)')
+        ReturnedValue: 
+          null
+");
+
+                SyntaxTreeSemanticModel syntaxTreeModel = ((SyntaxTreeSemanticModel)model1);
+                MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit1];
+
+                var root1 = (BoundBlock)mm.TestOnlyTryGetBoundNodesFromMap(unit1).Single();
+                var stmt1 = mm.TestOnlyTryGetBoundNodesFromMap(unit1.Members.OfType<GlobalStatementSyntax>().Single().Statement).Single();
+
+                var model2 = comp.GetSemanticModel(tree2);
+
+                verifyModelForGlobalStatements(tree2, model2);
+
+                var unit2 = (CompilationUnitSyntax)tree2.GetRoot();
+                var localDecl = unit2.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+                var declSymbol = model2.GetDeclaredSymbol(localDecl);
+                Assert.Same(refSymbol, declSymbol);
+                Assert.Contains(declSymbol.Name, model2.LookupNames(localDecl.SpanStart));
+                Assert.Contains(declSymbol, model2.LookupSymbols(localDecl.SpanStart));
+                Assert.Same(declSymbol, model2.LookupSymbols(localDecl.SpanStart, name: declSymbol.Name).Single());
+                var operation2 = model2.GetOperation(localDecl);
+                Assert.NotNull(operation2);
+                Assert.IsAssignableFrom<ILocalFunctionOperation>(operation2);
+
+                Assert.NotNull(ControlFlowGraph.Create((IBlockOperation)operation2.Parent));
+
+                // PROTOTYPE(SimplePrograms): Asking IOperation for one compilation unit returns a node
+                //                            for complete method body, with statements from other compilation units.
+                //                            Is this going to be confusing?
+                //                            Note that IBlockOperation for the following tree uses different syntax
+                //                            by comparison to the tree above. This is the only difference between them.
+                model2.VerifyOperationTree(unit2,
+@"
+IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'void local( ... iteLine(2);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local();')
+    Expression: 
+      IInvocationOperation (void local()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'local()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+  ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null) (Syntax: 'void local( ... iteLine(2);')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> System.C ... riteLine(2)')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'System.Cons ... riteLine(2)')
+        Expression: 
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(2)')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '=> System.C ... riteLine(2)')
+        ReturnedValue: 
+          null
+");
+
+                Assert.True(mm.TestOnlyTryGetBoundNodesFromMap(unit2.Members.OfType<GlobalStatementSyntax>().Single().Statement).IsDefault);
+
+                syntaxTreeModel = ((SyntaxTreeSemanticModel)model2);
+                mm = syntaxTreeModel.TestOnlyMemberModels[unit2];
+
+                var root2 = (BoundBlock)mm.TestOnlyTryGetBoundNodesFromMap(unit2).Single();
+                var stmt2 = mm.TestOnlyTryGetBoundNodesFromMap(unit2.Members.OfType<GlobalStatementSyntax>().Single().Statement).Single();
+
+                Assert.NotEqual(root1, root2);
+                Assert.True(root1.Locals.Equals(root2.Locals));
+                Assert.True(root1.LocalFunctions.Equals(root2.LocalFunctions));
+                Assert.True(root1.Statements.Equals(root2.Statements));
+                Assert.Same(stmt1, root1.Statements[0]);
+                Assert.Same(stmt2, root1.Statements[1]);
+
+                Assert.True(mm.TestOnlyTryGetBoundNodesFromMap(unit1.Members.OfType<GlobalStatementSyntax>().Single().Statement).IsDefault);
+
+                var model3 = comp.GetSemanticModel(tree1);
+                model3.GetOperation(unit1);
+
+                syntaxTreeModel = ((SyntaxTreeSemanticModel)model3);
+                mm = syntaxTreeModel.TestOnlyMemberModels[unit1];
+                var root3 = (BoundBlock)mm.TestOnlyTryGetBoundNodesFromMap(unit1).Single();
+                Assert.Same(root1, root3);
+
+                var model4 = comp.GetSemanticModel(tree2);
+                model4.GetOperation(unit2);
+
+                syntaxTreeModel = ((SyntaxTreeSemanticModel)model4);
+                mm = syntaxTreeModel.TestOnlyMemberModels[unit2];
+                var root4 = (BoundBlock)mm.TestOnlyTryGetBoundNodesFromMap(unit2).Single();
+                Assert.Same(root2, root4);
+
+                static void verifyModelForGlobalStatements(SyntaxTree tree1, SemanticModel model1)
+                {
+                    var symbolInfo = model1.GetSymbolInfo(tree1.GetRoot());
+                    Assert.Null(symbolInfo.Symbol);
+                    Assert.Empty(symbolInfo.CandidateSymbols);
+                    Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                    var typeInfo = model1.GetTypeInfo(tree1.GetRoot());
+                    Assert.Null(typeInfo.Type);
+                    Assert.Null(typeInfo.ConvertedType);
+
+                    foreach (var globalStatement in tree1.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>())
+                    {
+                        symbolInfo = model1.GetSymbolInfo(globalStatement);
+                        Assert.Null(model1.GetOperation(globalStatement));
+                        Assert.Null(symbolInfo.Symbol);
+                        Assert.Empty(symbolInfo.CandidateSymbols);
+                        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                        typeInfo = model1.GetTypeInfo(globalStatement);
+                        Assert.Null(typeInfo.Type);
+                        Assert.Null(typeInfo.ConvertedType);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void Simple_07()
+        {
+            var text1 = @"
+var i = 1;
+local();
+";
+            var text2 = @"
+void local() => System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1");
+
+            verifyModel(comp, comp.SyntaxTrees[0], comp.SyntaxTrees[1]);
+
+            comp = CreateCompilation(new[] { text2, text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1");
+
+            verifyModel(comp, comp.SyntaxTrees[1], comp.SyntaxTrees[0]);
+
+            static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, SyntaxTree tree2)
+            {
+                Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+                var model1 = comp.GetSemanticModel(tree1);
+                var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+                var declSymbol = model1.GetDeclaredSymbol(localDecl);
+                Assert.Equal("System.Int32 i", declSymbol.ToTestDisplayString());
+                Assert.Contains(declSymbol.Name, model1.LookupNames(localDecl.SpanStart));
+                Assert.Contains(declSymbol, model1.LookupSymbols(localDecl.SpanStart));
+                Assert.Same(declSymbol, model1.LookupSymbols(localDecl.SpanStart, name: declSymbol.Name).Single());
+                Assert.NotNull(model1.GetOperation(tree1.GetRoot()));
+                var operation1 = model1.GetOperation(localDecl);
+                Assert.NotNull(operation1);
+                Assert.IsAssignableFrom<IVariableDeclaratorOperation>(operation1);
+
+                var localFuncRef = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "local").Single();
+                Assert.Contains(declSymbol.Name, model1.LookupNames(localFuncRef.SpanStart));
+                Assert.Contains(declSymbol, model1.LookupSymbols(localFuncRef.SpanStart));
+                Assert.Same(declSymbol, model1.LookupSymbols(localFuncRef.SpanStart, name: declSymbol.Name).Single());
+
+                Assert.Contains(declSymbol, model1.AnalyzeDataFlow(localDecl.Ancestors().OfType<StatementSyntax>().First()).DataFlowsOut);
+
+                var model2 = comp.GetSemanticModel(tree2);
+                var localRef = tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "i").Single();
+                var refSymbol = model2.GetSymbolInfo(localRef).Symbol;
+                Assert.Same(declSymbol, refSymbol);
+                Assert.Contains(refSymbol.Name, model2.LookupNames(localRef.SpanStart));
+                Assert.Contains(refSymbol, model2.LookupSymbols(localRef.SpanStart));
+                Assert.Same(refSymbol, model2.LookupSymbols(localRef.SpanStart, name: refSymbol.Name).Single());
+                Assert.NotNull(model2.GetOperation(tree2.GetRoot()));
+                var operation2 = model2.GetOperation(localRef);
+                Assert.NotNull(operation2);
+                Assert.IsAssignableFrom<ILocalReferenceOperation>(operation2);
+
+                // PROTOTYPE(SimplePrograms): The following assert fails due to https://github.com/dotnet/roslyn/issues/41853, enable once the issue is fixed.
+                //Assert.Contains(declSymbol, model2.AnalyzeDataFlow(localRef).DataFlowsIn);
+            }
+        }
+
+        [Fact]
+        public void Simple_08()
+        {
+            var text1 = @"
+var i = 1;
+System.Console.Write(i++);
+System.Console.Write(i);
+";
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "12");
+
+            var tree1 = comp.SyntaxTrees[0];
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var model1 = comp.GetSemanticModel(tree1);
+            var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var declSymbol = model1.GetDeclaredSymbol(localDecl);
+            Assert.Equal("System.Int32 i", declSymbol.ToTestDisplayString());
+            Assert.Contains(declSymbol.Name, model1.LookupNames(localDecl.SpanStart));
+            Assert.Contains(declSymbol, model1.LookupSymbols(localDecl.SpanStart));
+            Assert.Same(declSymbol, model1.LookupSymbols(localDecl.SpanStart, name: declSymbol.Name).Single());
+
+            var localRefs = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "i").ToArray();
+            Assert.Equal(2, localRefs.Length);
+
+            foreach (var localRef in localRefs)
+            {
+                var refSymbol = model1.GetSymbolInfo(localRef).Symbol;
+                Assert.Same(declSymbol, refSymbol);
+                Assert.Contains(declSymbol.Name, model1.LookupNames(localRef.SpanStart));
+                Assert.Contains(declSymbol, model1.LookupSymbols(localRef.SpanStart));
+                Assert.Same(declSymbol, model1.LookupSymbols(localRef.SpanStart, name: declSymbol.Name).Single());
+            }
         }
 
         [Fact]
@@ -216,6 +495,8 @@ System.Console.WriteLine(s);
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -374,6 +655,200 @@ string a = ""2"";
         }
 
         [Fact]
+        public void LocalDeclarationStatement_07()
+        {
+            var text1 = @"
+string x = ""1"";
+System.Console.Write(x);
+";
+            var text2 = @"
+int x = 1;
+System.Console.Write(x);
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // int x = 1;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "int").WithLocation(2, 1),
+                // (2,5): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // int x = 1;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(2, 5),
+                // (2,5): warning CS0219: The variable 'x' is assigned but its value is never used
+                // int x = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(2, 5)
+                );
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var symbol1 = model1.GetDeclaredSymbol(tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single());
+            Assert.Equal("System.String x", symbol1.ToTestDisplayString());
+            Assert.Same(symbol1, model1.GetSymbolInfo(tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single()).Symbol);
+
+            var tree2 = comp.SyntaxTrees[1];
+            var model2 = comp.GetSemanticModel(tree2);
+            var symbol2 = model2.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single());
+            Assert.Equal("System.Int32 x", symbol2.ToTestDisplayString());
+            Assert.Same(symbol1, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single()).Symbol);
+        }
+
+        [Fact]
+        public void LocalUsedBeforeDeclaration_01()
+        {
+            var text1 = @"
+const string x = y;
+System.Console.Write(x);
+";
+            var text2 = @"
+const string y = x;
+System.Console.Write(y);
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // const string y = x;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "const").WithLocation(2, 1),
+                // (2,18): error CS0841: Cannot use local variable 'y' before it is declared
+                // const string x = y;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(2, 18)
+                );
+
+            comp = CreateCompilation(new[] { "System.Console.WriteLine();", text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // const string x = y;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "const").WithLocation(2, 1),
+                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // const string y = x;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "const").WithLocation(2, 1),
+                // (2,18): error CS0841: Cannot use local variable 'y' before it is declared
+                // const string x = y;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(2, 18)
+                );
+        }
+
+        [Fact]
+        public void LocalUsedBeforeDeclaration_02()
+        {
+            var text1 = @"
+var x = y;
+System.Console.Write(x);
+";
+            var text2 = @"
+var y = x;
+System.Console.Write(y);
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // var y = x;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "var").WithLocation(2, 1),
+                // (2,9): error CS0841: Cannot use local variable 'y' before it is declared
+                // var x = y;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(2, 9)
+                );
+
+            comp = CreateCompilation(new[] { "System.Console.WriteLine();", text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // var x = y;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "var").WithLocation(2, 1),
+                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // var y = x;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "var").WithLocation(2, 1),
+                // (2,9): error CS0841: Cannot use local variable 'y' before it is declared
+                // var x = y;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(2, 9)
+                );
+        }
+
+        [Fact]
+        public void LocalUsedBeforeDeclaration_03()
+        {
+            var text1 = @"
+string x = ""x"";
+System.Console.Write(x);
+";
+            var text2 = @"
+class C1
+{
+    void Test()
+    {
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,30): error CS9000: Cannot use local variable or local function 'x' declared in a top-level statement in this context.
+                //         System.Console.Write(x);
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "x").WithArguments("x").WithLocation(6, 30)
+                );
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree2 = comp.SyntaxTrees[1];
+            var model2 = comp.GetSemanticModel(tree2);
+            var nameRef = tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            var symbol2 = model2.GetSymbolInfo(nameRef).Symbol;
+            Assert.Equal("System.String x", symbol2.ToTestDisplayString());
+            Assert.Equal("System.String", model2.GetTypeInfo(nameRef).Type.ToTestDisplayString());
+            Assert.Null(model2.GetOperation(tree2.GetRoot()));
+
+            comp = CreateCompilation(new[] { text2, text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,30): error CS9000: Cannot use local variable or local function 'x' declared in a top-level statement in this context.
+                //         System.Console.Write(x);
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "x").WithArguments("x").WithLocation(6, 30)
+                );
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            tree2 = comp.SyntaxTrees[0];
+            model2 = comp.GetSemanticModel(tree2);
+            nameRef = tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            symbol2 = model2.GetSymbolInfo(nameRef).Symbol;
+            Assert.Equal("System.String x", symbol2.ToTestDisplayString());
+            Assert.Equal("System.String", model2.GetTypeInfo(nameRef).Type.ToTestDisplayString());
+            Assert.Null(model2.GetOperation(tree2.GetRoot()));
+        }
+
+        [Fact]
+        public void LocalUsedBeforeDeclaration_04()
+        {
+            var text1 = @"
+string x = ""x"";
+local();
+";
+            var text2 = @"
+void local()
+{
+    System.Console.Write(x);
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "x");
+
+            comp = CreateCompilation(new[] { text2, text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "x");
+        }
+
+        [Fact]
         public void FlowAnalysis_01()
         {
             var text = @"
@@ -481,6 +956,97 @@ namespace N1
                 //             _ = nameof(Test); // 8
                 Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(37, 24)
                 );
+
+            var getHashCode = ((Compilation)comp).GetMember("System.Object." + nameof(GetHashCode));
+            var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var declSymbol = model1.GetDeclaredSymbol(localDecl);
+            Assert.Equal("System.String Test", declSymbol.ToTestDisplayString());
+            var names = model1.LookupNames(localDecl.SpanStart);
+            Assert.Contains(getHashCode.Name, names);
+            var symbols = model1.LookupSymbols(localDecl.SpanStart);
+            Assert.Contains(getHashCode, symbols);
+            Assert.Same(getHashCode, model1.LookupSymbols(localDecl.SpanStart, name: getHashCode.Name).Single());
+
+            Assert.Contains("Test", names);
+            Assert.DoesNotContain(testType, symbols);
+            Assert.Contains(declSymbol, symbols);
+            Assert.Same(declSymbol, model1.LookupSymbols(localDecl.SpanStart, name: "Test").Single());
+
+            symbols = model1.LookupNamespacesAndTypes(localDecl.SpanStart);
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model1.LookupNamespacesAndTypes(localDecl.SpanStart, name: "Test").Single());
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nameRefs = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test").ToArray();
+
+            var nameRef = nameRefs[0];
+            Assert.Equal("using alias1 = Test;", nameRef.Parent.ToString());
+
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            names = model.LookupNames(nameRef.SpanStart);
+            Assert.DoesNotContain(getHashCode.Name, names);
+            Assert.Contains("Test", names);
+
+            symbols = model.LookupSymbols(nameRef.SpanStart);
+            Assert.DoesNotContain(getHashCode, symbols);
+            Assert.Empty(model.LookupSymbols(nameRef.SpanStart, name: getHashCode.Name));
+
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+
+            nameRef = nameRefs[2];
+            Assert.Equal(": Test", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            Assert.DoesNotContain(getHashCode.Name, model.LookupNames(nameRef.SpanStart));
+            verifyModel(declSymbol, model, nameRef);
+
+            nameRef = nameRefs[4];
+            Assert.Equal("System.Console.WriteLine(Test)", nameRef.Parent.Parent.Parent.ToString());
+            Assert.Same(declSymbol, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model, nameRef);
+
+            nameRef = nameRefs[8];
+            Assert.Equal("using alias2 = Test;", nameRef.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model, nameRef);
+
+            nameRef = nameRefs[9];
+            Assert.Equal(": Test", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model.GetSymbolInfo(nameRef).Symbol);
+            Assert.DoesNotContain(getHashCode.Name, model.LookupNames(nameRef.SpanStart));
+            verifyModel(declSymbol, model, nameRef);
+
+            nameRef = nameRefs[11];
+            Assert.Equal("System.Console.WriteLine(Test)", nameRef.Parent.Parent.Parent.ToString());
+            Assert.Same(declSymbol, model.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model, nameRef);
+
+            void verifyModel(ISymbol declSymbol, SemanticModel model, IdentifierNameSyntax nameRef)
+            {
+                var names = model.LookupNames(nameRef.SpanStart);
+                Assert.Contains("Test", names);
+
+                var symbols = model.LookupSymbols(nameRef.SpanStart);
+                Assert.DoesNotContain(testType, symbols);
+                Assert.Contains(declSymbol, symbols);
+                Assert.Same(declSymbol, model.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+
+                symbols = model.LookupNamespacesAndTypes(nameRef.SpanStart);
+                Assert.Contains(testType, symbols);
+                Assert.DoesNotContain(declSymbol, symbols);
+                Assert.Same(testType, model.LookupNamespacesAndTypes(nameRef.SpanStart, name: "Test").Single());
+            }
         }
 
         [Fact]
@@ -531,27 +1097,123 @@ namespace N1
 
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
-            // PROTOTYPE(SimplePrograms): All errors should be ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement
             comp.VerifyDiagnostics(
-                // (13,34): error CS0119: 'Test' is a type, which is not valid in the given context
+                // (13,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //         System.Console.WriteLine(Test); // 1
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "Test").WithArguments("Test", "type").WithLocation(13, 34),
-                // (14,9): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(13, 34),
+                // (14,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //         Test.ToString(); // 2
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test.ToString").WithArguments("object.ToString()").WithLocation(14, 9),
-                // (15,14): error CS0117: 'Test' does not contain a definition for 'EndsWith'
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(14, 9),
+                // (15,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //         Test.EndsWith(null); // 3
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "EndsWith").WithArguments("Test", "EndsWith").WithLocation(15, 14),
-                // (31,38): error CS0119: 'Test' is a type, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(15, 9),
+                // (16,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 20),
+                // (31,38): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //             System.Console.WriteLine(Test); // 5
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "Test").WithArguments("Test", "type").WithLocation(31, 38),
-                // (32,13): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(31, 38),
+                // (32,13): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //             Test.ToString(); // 6
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test.ToString").WithArguments("object.ToString()").WithLocation(32, 13),
-                // (33,18): error CS0117: 'Test' does not contain a definition for 'EndsWith'
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(32, 13),
+                // (33,13): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //             Test.EndsWith(null); // 7
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "EndsWith").WithArguments("Test", "EndsWith").WithLocation(33, 18)
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(33, 13),
+                // (34,24): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //             _ = nameof(Test); // 8
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(34, 24)
                 );
+
+            var getHashCode = ((Compilation)comp).GetMember("System.Object." + nameof(GetHashCode));
+            var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var declSymbol = model1.GetDeclaredSymbol(localDecl);
+            Assert.Equal("System.String Test", declSymbol.ToTestDisplayString());
+            var names = model1.LookupNames(localDecl.SpanStart);
+            Assert.Contains(getHashCode.Name, names);
+            var symbols = model1.LookupSymbols(localDecl.SpanStart);
+            Assert.Contains(getHashCode, symbols);
+            Assert.Same(getHashCode, model1.LookupSymbols(localDecl.SpanStart, name: getHashCode.Name).Single());
+
+            Assert.Contains("Test", names);
+            Assert.DoesNotContain(testType, symbols);
+            Assert.Contains(declSymbol, symbols);
+            Assert.Same(declSymbol, model1.LookupSymbols(localDecl.SpanStart, name: "Test").Single());
+
+            symbols = model1.LookupNamespacesAndTypes(localDecl.SpanStart);
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model1.LookupNamespacesAndTypes(localDecl.SpanStart, name: "Test").Single());
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree2 = comp.SyntaxTrees[1];
+            var model2 = comp.GetSemanticModel(tree2);
+            var nameRefs = tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test").ToArray();
+
+            var nameRef = nameRefs[0];
+            Assert.Equal("using alias1 = Test;", nameRef.Parent.ToString());
+
+            Assert.Same(testType, model2.GetSymbolInfo(nameRef).Symbol);
+            names = model2.LookupNames(nameRef.SpanStart);
+            Assert.DoesNotContain(getHashCode.Name, names);
+            Assert.Contains("Test", names);
+
+            symbols = model2.LookupSymbols(nameRef.SpanStart);
+            Assert.DoesNotContain(getHashCode, symbols);
+            Assert.Empty(model2.LookupSymbols(nameRef.SpanStart, name: getHashCode.Name));
+
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model2.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+
+            nameRef = nameRefs[1];
+            Assert.Equal(": Test", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model2.GetSymbolInfo(nameRef).Symbol);
+            Assert.DoesNotContain(getHashCode.Name, model2.LookupNames(nameRef.SpanStart));
+            verifyModel(declSymbol, model2, nameRef);
+
+            nameRef = nameRefs[3];
+            Assert.Equal("System.Console.WriteLine(Test)", nameRef.Parent.Parent.Parent.ToString());
+            Assert.Same(declSymbol, model2.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model2, nameRef);
+
+            nameRef = nameRefs[7];
+            Assert.Equal("using alias2 = Test;", nameRef.Parent.ToString());
+            Assert.Same(testType, model2.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model2, nameRef);
+
+            nameRef = nameRefs[8];
+            Assert.Equal(": Test", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model2.GetSymbolInfo(nameRef).Symbol);
+            Assert.DoesNotContain(getHashCode.Name, model2.LookupNames(nameRef.SpanStart));
+            verifyModel(declSymbol, model2, nameRef);
+
+            nameRef = nameRefs[10];
+            Assert.Equal("System.Console.WriteLine(Test)", nameRef.Parent.Parent.Parent.ToString());
+            Assert.Same(declSymbol, model2.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model2, nameRef);
+
+            void verifyModel(ISymbol declSymbol, SemanticModel model2, IdentifierNameSyntax nameRef)
+            {
+                var names = model2.LookupNames(nameRef.SpanStart);
+                Assert.Contains("Test", names);
+
+                var symbols = model2.LookupSymbols(nameRef.SpanStart);
+                Assert.DoesNotContain(testType, symbols);
+                Assert.Contains(declSymbol, symbols);
+                Assert.Same(declSymbol, model2.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+
+                symbols = model2.LookupNamespacesAndTypes(nameRef.SpanStart);
+                Assert.Contains(testType, symbols);
+                Assert.DoesNotContain(declSymbol, symbols);
+                Assert.Same(testType, model2.LookupNamespacesAndTypes(nameRef.SpanStart, name: "Test").Single());
+            }
         }
 
         [Fact]
@@ -687,6 +1349,84 @@ namespace N1
                 //             _ = nameof(Test); // 10
                 Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(41, 24)
                 );
+
+            var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var localDecl = tree1.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var declSymbol = model1.GetDeclaredSymbol(localDecl);
+            Assert.Equal("System.String Test()", declSymbol.ToTestDisplayString());
+            var names = model1.LookupNames(localDecl.SpanStart);
+            var symbols = model1.LookupSymbols(localDecl.SpanStart);
+
+            Assert.Contains("Test", names);
+            Assert.DoesNotContain(testType, symbols);
+            Assert.Contains(declSymbol, symbols);
+            Assert.Same(declSymbol, model1.LookupSymbols(localDecl.SpanStart, name: "Test").Single());
+
+            symbols = model1.LookupNamespacesAndTypes(localDecl.SpanStart);
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model1.LookupNamespacesAndTypes(localDecl.SpanStart, name: "Test").Single());
+
+            var nameRefs = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test").ToArray();
+
+            var nameRef = nameRefs[0];
+            Assert.Equal("using alias1 = Test;", nameRef.Parent.ToString());
+
+            Assert.Same(testType, model1.GetSymbolInfo(nameRef).Symbol);
+            names = model1.LookupNames(nameRef.SpanStart);
+            Assert.Contains("Test", names);
+
+            symbols = model1.LookupSymbols(nameRef.SpanStart);
+
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model1.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+
+            nameRef = nameRefs[2];
+            Assert.Equal(": Test", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model1.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model1, nameRef);
+
+            nameRef = nameRefs[4];
+            Assert.Equal("System.Console.WriteLine(Test())", nameRef.Parent.Parent.Parent.Parent.ToString());
+            Assert.Same(declSymbol, model1.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model1, nameRef);
+
+            nameRef = nameRefs[9];
+            Assert.Equal("using alias2 = Test;", nameRef.Parent.ToString());
+            Assert.Same(testType, model1.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model1, nameRef);
+
+            nameRef = nameRefs[10];
+            Assert.Equal(": Test", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model1.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model1, nameRef);
+
+            nameRef = nameRefs[12];
+            Assert.Equal("System.Console.WriteLine(Test())", nameRef.Parent.Parent.Parent.Parent.ToString());
+            Assert.Same(declSymbol, model1.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model1, nameRef);
+
+            void verifyModel(ISymbol declSymbol, SemanticModel model2, IdentifierNameSyntax nameRef)
+            {
+                var names = model2.LookupNames(nameRef.SpanStart);
+                Assert.Contains("Test", names);
+
+                var symbols = model2.LookupSymbols(nameRef.SpanStart);
+                Assert.DoesNotContain(testType, symbols);
+                Assert.Contains(declSymbol, symbols);
+                Assert.Same(declSymbol, model2.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+
+                symbols = model2.LookupNamespacesAndTypes(nameRef.SpanStart);
+                Assert.Contains(testType, symbols);
+                Assert.DoesNotContain(declSymbol, symbols);
+                Assert.Same(testType, model2.LookupNamespacesAndTypes(nameRef.SpanStart, name: "Test").Single());
+            }
         }
 
         [Fact]
@@ -741,33 +1481,118 @@ namespace N1
 
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
-            // PROTOTYPE(SimplePrograms): All errors should be ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement
             comp.VerifyDiagnostics(
-                // (13,34): error CS1955: Non-invocable member 'Test' cannot be used like a method.
+                // (13,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //         System.Console.WriteLine(Test()); // 1
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Test").WithArguments("Test").WithLocation(13, 34),
-                // (14,9): error CS1955: Non-invocable member 'Test' cannot be used like a method.
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(13, 34),
+                // (14,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //         Test().ToString(); // 2
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Test").WithArguments("Test").WithLocation(14, 9),
-                // (15,9): error CS1955: Non-invocable member 'Test' cannot be used like a method.
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(14, 9),
+                // (15,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //         Test().EndsWith(null); // 3
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Test").WithArguments("Test").WithLocation(15, 9),
-                // (16,33): error CS0119: 'Test' is a type, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(15, 9),
+                // (16,33): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //         System.Func<string> d = Test; // 4
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "Test").WithArguments("Test", "type").WithLocation(16, 33),
-                // (33,38): error CS1955: Non-invocable member 'Test' cannot be used like a method.
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 33),
+                // (18,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 5
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 20),
+                // (33,38): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //             System.Console.WriteLine(Test()); // 6
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Test").WithArguments("Test").WithLocation(33, 38),
-                // (34,13): error CS1955: Non-invocable member 'Test' cannot be used like a method.
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(33, 38),
+                // (34,13): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //             Test().ToString(); // 7
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Test").WithArguments("Test").WithLocation(34, 13),
-                // (35,13): error CS1955: Non-invocable member 'Test' cannot be used like a method.
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(34, 13),
+                // (35,13): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //             Test().EndsWith(null); // 8
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Test").WithArguments("Test").WithLocation(35, 13),
-                // (36,45): error CS0119: 'Test' is a type, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(35, 13),
+                // (36,45): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
                 //             var d = new System.Func<string>(Test); // 9
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "Test").WithArguments("Test", "type").WithLocation(36, 45)
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(36, 45),
+                // (38,24): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //             _ = nameof(Test); // 10
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(38, 24)
                 );
+
+            var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var localDecl = tree1.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var declSymbol = model1.GetDeclaredSymbol(localDecl);
+            Assert.Equal("System.String Test()", declSymbol.ToTestDisplayString());
+            var names = model1.LookupNames(localDecl.SpanStart);
+            var symbols = model1.LookupSymbols(localDecl.SpanStart);
+
+            Assert.Contains("Test", names);
+            Assert.DoesNotContain(testType, symbols);
+            Assert.Contains(declSymbol, symbols);
+            Assert.Same(declSymbol, model1.LookupSymbols(localDecl.SpanStart, name: "Test").Single());
+
+            symbols = model1.LookupNamespacesAndTypes(localDecl.SpanStart);
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model1.LookupNamespacesAndTypes(localDecl.SpanStart, name: "Test").Single());
+
+            var tree2 = comp.SyntaxTrees[1];
+            var model2 = comp.GetSemanticModel(tree2);
+            var nameRefs = tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test").ToArray();
+
+            var nameRef = nameRefs[0];
+            Assert.Equal("using alias1 = Test;", nameRef.Parent.ToString());
+
+            Assert.Same(testType, model2.GetSymbolInfo(nameRef).Symbol);
+            names = model2.LookupNames(nameRef.SpanStart);
+            Assert.Contains("Test", names);
+
+            symbols = model2.LookupSymbols(nameRef.SpanStart);
+
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model2.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+
+            nameRef = nameRefs[1];
+            Assert.Equal(": Test", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model2.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model2, nameRef);
+
+            nameRef = nameRefs[3];
+            Assert.Equal("System.Console.WriteLine(Test())", nameRef.Parent.Parent.Parent.Parent.ToString());
+            Assert.Same(declSymbol, model2.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model2, nameRef);
+
+            nameRef = nameRefs[8];
+            Assert.Equal("using alias2 = Test;", nameRef.Parent.ToString());
+            Assert.Same(testType, model2.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model2, nameRef);
+
+            nameRef = nameRefs[9];
+            Assert.Equal(": Test", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model2.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model2, nameRef);
+
+            nameRef = nameRefs[11];
+            Assert.Equal("System.Console.WriteLine(Test())", nameRef.Parent.Parent.Parent.Parent.ToString());
+            Assert.Same(declSymbol, model2.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(declSymbol, model2, nameRef);
+
+            void verifyModel(ISymbol declSymbol, SemanticModel model2, IdentifierNameSyntax nameRef)
+            {
+                var names = model2.LookupNames(nameRef.SpanStart);
+                Assert.Contains("Test", names);
+
+                var symbols = model2.LookupSymbols(nameRef.SpanStart);
+                Assert.DoesNotContain(testType, symbols);
+                Assert.Contains(declSymbol, symbols);
+                Assert.Same(declSymbol, model2.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+
+                symbols = model2.LookupNamespacesAndTypes(nameRef.SpanStart);
+                Assert.Contains(testType, symbols);
+                Assert.DoesNotContain(declSymbol, symbols);
+                Assert.Same(testType, model2.LookupNamespacesAndTypes(nameRef.SpanStart, name: "Test").Single());
+            }
         }
 
         [Fact]
@@ -866,6 +1691,108 @@ namespace N1
                 //             goto Test; // 2
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "Test").WithArguments("Test").WithLocation(30, 18)
                 );
+
+            var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var labelDecl = tree1.GetRoot().DescendantNodes().OfType<LabeledStatementSyntax>().Single();
+            var declSymbol = model1.GetDeclaredSymbol(labelDecl);
+            Assert.Equal("Test", declSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Label, declSymbol.Kind);
+            var names = model1.LookupNames(labelDecl.SpanStart);
+            var symbols = model1.LookupSymbols(labelDecl.SpanStart);
+
+            Assert.Contains("Test", names);
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model1.LookupSymbols(labelDecl.SpanStart, name: "Test").Single());
+
+            symbols = model1.LookupNamespacesAndTypes(labelDecl.SpanStart);
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model1.LookupNamespacesAndTypes(labelDecl.SpanStart, name: "Test").Single());
+
+            Assert.Same(declSymbol, model1.LookupLabels(labelDecl.SpanStart).Single());
+            Assert.Same(declSymbol, model1.LookupLabels(labelDecl.SpanStart, name: "Test").Single());
+
+            var nameRefs = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test").ToArray();
+
+            var nameRef = nameRefs[0];
+            Assert.Equal("using alias1 = Test;", nameRef.Parent.ToString());
+
+            Assert.Same(testType, model1.GetSymbolInfo(nameRef).Symbol);
+            names = model1.LookupNames(nameRef.SpanStart);
+            Assert.Contains("Test", names);
+
+            symbols = model1.LookupSymbols(nameRef.SpanStart);
+
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model1.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+            Assert.Empty(model1.LookupLabels(nameRef.SpanStart));
+            Assert.Empty(model1.LookupLabels(nameRef.SpanStart, name: "Test"));
+
+            nameRef = nameRefs[1];
+            Assert.Equal("goto Test;", nameRef.Parent.ToString());
+            Assert.Same(declSymbol, model1.GetSymbolInfo(nameRef).Symbol);
+
+            names = model1.LookupNames(nameRef.SpanStart);
+            Assert.Contains("Test", names);
+
+            symbols = model1.LookupSymbols(nameRef.SpanStart);
+
+            Assert.Contains(testType, symbols);
+            Assert.DoesNotContain(declSymbol, symbols);
+            Assert.Same(testType, model1.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+            Assert.Same(declSymbol, model1.LookupLabels(nameRef.SpanStart).Single());
+            Assert.Same(declSymbol, model1.LookupLabels(nameRef.SpanStart, name: "Test").Single());
+
+            nameRef = nameRefs[2];
+            Assert.Equal(": Test", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model1.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(model1, nameRef);
+
+            nameRef = nameRefs[4];
+            Assert.Equal("goto Test;", nameRef.Parent.ToString());
+            Assert.Null(model1.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(model1, nameRef);
+
+            nameRef = nameRefs[5];
+            Assert.Equal("using alias2 = Test;", nameRef.Parent.ToString());
+            Assert.Same(testType, model1.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(model1, nameRef);
+
+            nameRef = nameRefs[6];
+            Assert.Equal(": Test", nameRef.Parent.Parent.ToString());
+            Assert.Same(testType, model1.GetSymbolInfo(nameRef).Symbol);
+            verifyModel(model1, nameRef);
+
+            nameRef = nameRefs[8];
+            Assert.Null(model1.GetSymbolInfo(nameRef).Symbol);
+            Assert.Equal("goto Test;", nameRef.Parent.ToString());
+            verifyModel(model1, nameRef);
+
+            void verifyModel(SemanticModel model2, IdentifierNameSyntax nameRef)
+            {
+                var names = model2.LookupNames(nameRef.SpanStart);
+                Assert.Contains("Test", names);
+
+                var symbols = model2.LookupSymbols(nameRef.SpanStart);
+                Assert.Contains(testType, symbols);
+                Assert.DoesNotContain(declSymbol, symbols);
+                Assert.Same(testType, model2.LookupSymbols(nameRef.SpanStart, name: "Test").Single());
+
+                symbols = model2.LookupNamespacesAndTypes(nameRef.SpanStart);
+                Assert.Contains(testType, symbols);
+                Assert.DoesNotContain(declSymbol, symbols);
+                Assert.Same(testType, model2.LookupNamespacesAndTypes(nameRef.SpanStart, name: "Test").Single());
+
+                Assert.Empty(model2.LookupLabels(nameRef.SpanStart));
+                Assert.Empty(model2.LookupLabels(nameRef.SpanStart, name: "Test"));
+            }
         }
 
         [Fact]
@@ -1218,6 +2145,81 @@ namespace N1
         }
 
         [Fact]
+        public void Scope_16()
+        {
+            var text1 = @"
+using alias1 = System.String;
+alias1 x = ""1"";
+alias2 y = ""1"";
+System.Console.WriteLine(x);
+System.Console.WriteLine(y);
+local();
+";
+            var text2 = @"
+using alias2 = System.String;
+void local()
+{
+    alias1 a = ""2"";
+    alias2 b = ""2"";
+    System.Console.WriteLine(a);
+    System.Console.WriteLine(b);
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (4,1): error CS0246: The type or namespace name 'alias2' could not be found (are you missing a using directive or an assembly reference?)
+                // alias2 y = "1";
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias2").WithArguments("alias2").WithLocation(4, 1),
+                // (5,5): error CS0246: The type or namespace name 'alias1' could not be found (are you missing a using directive or an assembly reference?)
+                //     alias1 a = "2";
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias1").WithArguments("alias1").WithLocation(5, 5)
+                );
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+
+            var nameRef = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "alias1" && !id.Parent.IsKind(SyntaxKind.NameEquals)).Single();
+
+            Assert.NotEmpty(model1.LookupNamespacesAndTypes(nameRef.SpanStart, name: "alias1"));
+            Assert.Empty(model1.LookupNamespacesAndTypes(nameRef.SpanStart, name: "alias2"));
+
+            nameRef = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "alias2").Single();
+            model1.GetDiagnostics(nameRef.Ancestors().OfType<StatementSyntax>().First().Span).Verify(
+                // (4,1): error CS0246: The type or namespace name 'alias2' could not be found (are you missing a using directive or an assembly reference?)
+                // alias2 y = "1";
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias2").WithArguments("alias2").WithLocation(4, 1)
+                );
+            model1.GetDiagnostics().Verify(
+                // (4,1): error CS0246: The type or namespace name 'alias2' could not be found (are you missing a using directive or an assembly reference?)
+                // alias2 y = "1";
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias2").WithArguments("alias2").WithLocation(4, 1)
+                );
+
+            var tree2 = comp.SyntaxTrees[1];
+            var model2 = comp.GetSemanticModel(tree2);
+            nameRef = tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "alias2" && !id.Parent.IsKind(SyntaxKind.NameEquals)).Single();
+
+            Assert.Empty(model2.LookupNamespacesAndTypes(nameRef.SpanStart, name: "alias1"));
+            Assert.NotEmpty(model2.LookupNamespacesAndTypes(nameRef.SpanStart, name: "alias2"));
+
+            nameRef = tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "alias1").Single();
+            model2.GetDiagnostics(nameRef.Ancestors().OfType<StatementSyntax>().First().Span).Verify(
+                // (5,5): error CS0246: The type or namespace name 'alias1' could not be found (are you missing a using directive or an assembly reference?)
+                //     alias1 a = "2";
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias1").WithArguments("alias1").WithLocation(5, 5)
+                );
+            model2.GetDiagnostics().Verify(
+                // (5,5): error CS0246: The type or namespace name 'alias1' could not be found (are you missing a using directive or an assembly reference?)
+                //     alias1 a = "2";
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias1").WithArguments("alias1").WithLocation(5, 5)
+                );
+        }
+
+        [Fact]
         public void LocalFunctionStatement_01()
         {
             var text = @"
@@ -1232,6 +2234,8 @@ void local()
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -1441,6 +2445,71 @@ static void local()
         }
 
         [Fact]
+        public void LocalFunctionStatement_07()
+        {
+            var text1 = @"
+local1(1);
+void local1(int x)
+{}
+local2();
+";
+            var text2 = @"
+void local1(byte y)
+{}
+
+void local2()
+{
+    local1(2);
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,6): error CS0136: A local or parameter named 'local1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // void local1(byte y)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "local1").WithArguments("local1").WithLocation(2, 6),
+                // (2,6): warning CS8321: The local function 'local1' is declared but never used
+                // void local1(byte y)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(2, 6)
+                );
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var symbol1 = model1.GetDeclaredSymbol(tree1.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single());
+            Assert.Equal("void local1(System.Int32 x)", symbol1.ToTestDisplayString());
+            Assert.Same(symbol1, model1.GetSymbolInfo(tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "local1").Single()).Symbol);
+
+            var tree2 = comp.SyntaxTrees[1];
+            var model2 = comp.GetSemanticModel(tree2);
+            var symbol2 = model2.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().First());
+            Assert.Equal("void local1(System.Byte y)", symbol2.ToTestDisplayString());
+            Assert.Same(symbol1, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "local1").Single()).Symbol);
+        }
+
+        [Fact]
+        public void LocalFunctionStatement_08()
+        {
+            var text = @"
+void local()
+{
+    System.Console.WriteLine(""Hi!"");
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (2,6): warning CS8321: The local function 'local' is declared but never used
+                // void local()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(2, 6)
+                );
+
+            CompileAndVerify(comp, expectedOutput: "");
+        }
+
+        [Fact]
         public void PropertyDeclaration_01()
         {
             var text = @"
@@ -1561,6 +2630,8 @@ label1: System.Console.WriteLine(""Hi!"");
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
 
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<LabeledStatementSyntax>().Single();
@@ -1594,6 +2665,45 @@ label1: System.Console.WriteLine();
                 // label1: System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_DuplicateLabel, "label1").WithArguments("label1").WithLocation(4, 1)
                 );
+        }
+
+        [Fact]
+        public void LabeledStatement_03()
+        {
+            var text1 = @"
+goto label1;
+label1: System.Console.Write(1);
+";
+            var text2 = @"
+label1: System.Console.Write(2);
+goto label1;
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // label1: System.Console.Write(2);
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "label1").WithLocation(2, 1),
+                // (2,1): error CS0140: The label 'label1' is a duplicate
+                // label1: System.Console.Write(2);
+                Diagnostic(ErrorCode.ERR_DuplicateLabel, "label1").WithArguments("label1").WithLocation(2, 1)
+                );
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var symbol1 = model1.GetDeclaredSymbol(tree1.GetRoot().DescendantNodes().OfType<LabeledStatementSyntax>().Single());
+            Assert.Equal("label1", symbol1.ToTestDisplayString());
+            Assert.Same(symbol1, model1.GetSymbolInfo(tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "label1").Single()).Symbol);
+
+            var tree2 = comp.SyntaxTrees[1];
+            var model2 = comp.GetSemanticModel(tree2);
+            var symbol2 = model2.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<LabeledStatementSyntax>().Single());
+            Assert.Equal("label1", symbol2.ToTestDisplayString());
+            Assert.NotEqual(symbol1, symbol2);
+            Assert.Same(symbol1, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "label1").Single()).Symbol);
         }
 
         [Fact]
@@ -1841,11 +2951,10 @@ class Program
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
-            // PROTOTYPE(SimplePrograms): Do not leak unspeakable names through diagnostics
             comp.VerifyDiagnostics(
-                // (1,1): error CS1624: The body of '$Program.$Main()' cannot be an iterator block because 'void' is not an iterator interface type
+                // (1,1): error CS1624: The body of '<simple-program-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
                 // yield break;
-                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "yield break;").WithArguments("$Program.$Main()", "void").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "yield break;").WithArguments("<simple-program-entry-point>", "void").WithLocation(1, 1)
                 );
         }
 
@@ -1856,11 +2965,10 @@ class Program
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
-            // PROTOTYPE(SimplePrograms): Do not leak unspeakable names through diagnostics
             comp.VerifyDiagnostics(
-                // (1,1): error CS1624: The body of '$Program.$Main()' cannot be an iterator block because 'void' is not an iterator interface type
+                // (1,1): error CS1624: The body of '<simple-program-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
                 // {yield return 0;}
-                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "{yield return 0;}").WithArguments("$Program.$Main()", "void").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "{yield return 0;}").WithArguments("<simple-program-entry-point>", "void").WithLocation(1, 1)
                 );
         }
     }

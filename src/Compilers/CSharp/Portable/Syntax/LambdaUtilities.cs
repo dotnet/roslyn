@@ -382,6 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind())
             {
+                case SyntaxKind.CompilationUnit:
                 case SyntaxKind.Block:
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.ArrowExpressionClause:  // expression-bodied member

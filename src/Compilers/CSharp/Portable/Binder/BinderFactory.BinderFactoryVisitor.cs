@@ -94,6 +94,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ((CSharpSyntaxNode)node).Accept(this);
             }
 
+            public override Binder VisitGlobalStatement(GlobalStatementSyntax node)
+            {
+                if (SyntaxFacts.IsSimpleProgramTopLevelStatement(node))
+                {
+                    var compilationUnit = (CompilationUnitSyntax)node.Parent;
+
+                    if (compilationUnit != syntaxTree.GetRoot())
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(GlobalStatementSyntax), "node not part of tree");
+                    }
+
+                    var key = CreateBinderCacheKey(compilationUnit, NodeUsage.MethodBody);
+
+                    Binder result;
+                    if (!binderCache.TryGetValue(key, out result))
+                    {
+                        SynthesizedSimpleProgramEntryPointSymbol simpleProgram = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation);
+                        ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder();
+                        result = bodyBinder.GetBinder(compilationUnit);
+                        result = (SimpleProgramUnitBinder)result.Next;
+
+                        binderCache.TryAdd(key, result);
+                    }
+
+                    return result;
+                }
+
+                return base.VisitGlobalStatement(node);
+            }
+
             // This is used mainly by the method body binder.  During construction of the method symbol,
             // the contexts are built "by hand" rather than by this builder (see
             // MethodMemberBuilder.EnsureDeclarationBound).
@@ -385,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private NamedTypeSymbol GetContainerType(Binder binder, CSharpSyntaxNode node)
             {
-                Symbol containingSymbol = ContainingMemberOrLambdaSkippingSimpleProgramEntryPoint(binder);
+                Symbol containingSymbol = binder.ContainingMemberOrLambda;
                 var container = containingSymbol as NamedTypeSymbol;
                 if ((object)container == null)
                 {
@@ -585,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!binderCache.TryGetValue(key, out resultBinder))
                 {
                     Binder outer = VisitCore(parent.Parent); // a binder for the body of the enclosing type or namespace
-                    var container = ((NamespaceOrTypeSymbol)ContainingMemberOrLambdaSkippingSimpleProgramEntryPoint(outer)).GetSourceTypeMember(parent);
+                    var container = ((NamespaceOrTypeSymbol)outer.ContainingMemberOrLambda).GetSourceTypeMember(parent);
 
                     // NOTE: Members of the delegate type are in scope in the entire delegate declaration syntax.
                     // NOTE: Hence we can assume that we are in body of the delegate type and explicitly insert the InContainerBinder in the binder chain.
@@ -620,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!binderCache.TryGetValue(key, out resultBinder))
                 {
                     Binder outer = VisitCore(parent.Parent); // a binder for the body of the type enclosing this type
-                    var container = ((NamespaceOrTypeSymbol)ContainingMemberOrLambdaSkippingSimpleProgramEntryPoint(outer)).GetSourceTypeMember(parent.Identifier.ValueText, 0, SyntaxKind.EnumDeclaration, parent);
+                    var container = ((NamespaceOrTypeSymbol)outer.ContainingMemberOrLambda).GetSourceTypeMember(parent.Identifier.ValueText, 0, SyntaxKind.EnumDeclaration, parent);
 
                     resultBinder = new InContainerBinder(container, outer);
 
@@ -680,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (extraInfo != NodeUsage.Normal)
                     {
-                        var typeSymbol = ((NamespaceOrTypeSymbol)ContainingMemberOrLambdaSkippingSimpleProgramEntryPoint(resultBinder)).GetSourceTypeMember(parent);
+                        var typeSymbol = ((NamespaceOrTypeSymbol)resultBinder.ContainingMemberOrLambda).GetSourceTypeMember(parent);
 
                         if (extraInfo == NodeUsage.NamedTypeBaseList)
                         {
@@ -705,23 +735,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return resultBinder;
-            }
-
-            private static Symbol ContainingMemberOrLambdaSkippingSimpleProgramEntryPoint(Binder binder)
-            {
-                var containingMemberOrLambda = binder.ContainingMemberOrLambda;
-
-                if (containingMemberOrLambda is SynthesizedSimpleProgramEntryPointSymbol)
-                {
-                    containingMemberOrLambda = binder.Compilation.GlobalNamespace;
-
-                    if (containingMemberOrLambda is MergedNamespaceSymbol merged)
-                    {
-                        containingMemberOrLambda = merged.GetConstituentForCompilation(binder.Compilation);
-                    }
-                }
-
-                return containingMemberOrLambda;
             }
 
             public override Binder VisitClassDeclaration(ClassDeclarationSyntax node)
@@ -814,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(outer.ContainingMemberOrLambda is SynthesizedSimpleProgramEntryPointSymbol);
+                    Debug.Assert(outer is SimpleProgramUnitBinder);
                     container = outer.Compilation.GlobalNamespace;
                 }
 
@@ -846,7 +859,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder result;
                 if (!binderCache.TryGetValue(key, out result))
                 {
-                    result = this.buckStopsHereBinder;
+                    var buckStopsHereBinder = this.buckStopsHereBinder;
+                    result = buckStopsHereBinder;
 
                     if (inScript)
                     {
@@ -908,12 +922,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // 
                         result = new InContainerBinder(compilation.GlobalNamespace, result, compilationUnit, inUsing: inUsing);
 
-                        SynthesizedSimpleProgramEntryPointSymbol simpleProgram = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation);
-                        if (simpleProgram is object)
+                        SynthesizedSimpleProgramEntryPointSymbol simpleProgram;
+                        if (!inUsing && (simpleProgram = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation)) is object)
                         {
-                            result = new InContainerBinder(simpleProgram.ContainingType, result);
-                            result = new InMethodBinder(simpleProgram, result);
-                            result = new ExecutableCodeBinder(compilationUnit, simpleProgram, result).GetBinder(compilationUnit);
+                            ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder();
+                            result = new SimpleProgramUnitBinder(result, (SimpleProgramBinder)bodyBinder.GetBinder(simpleProgram.SyntaxNode));
                         }
                     }
 
@@ -1149,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (memberKind == SyntaxKind.DelegateDeclaration)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
-                    SourceNamedTypeSymbol delegateType = ((NamespaceOrTypeSymbol)ContainingMemberOrLambdaSkippingSimpleProgramEntryPoint(outerBinder)).GetSourceTypeMember((DelegateDeclarationSyntax)memberSyntax);
+                    SourceNamedTypeSymbol delegateType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((DelegateDeclarationSyntax)memberSyntax);
                     Debug.Assert((object)delegateType != null);
                     MethodSymbol invokeMethod = delegateType.DelegateInvokeMethod;
                     Debug.Assert((object)invokeMethod != null);
@@ -1186,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)typeDeclSyntax != null && typeDeclSyntax.Arity > 0)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
-                    SourceNamedTypeSymbol typeSymbol = ((NamespaceOrTypeSymbol)ContainingMemberOrLambdaSkippingSimpleProgramEntryPoint(outerBinder)).GetSourceTypeMember(typeDeclSyntax);
+                    SourceNamedTypeSymbol typeSymbol = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember(typeDeclSyntax);
 
                     // NOTE: don't include anything else in the binder chain.
                     return new WithClassTypeParametersBinder(typeSymbol, nextBinder);
@@ -1205,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (memberSyntax.Kind() == SyntaxKind.DelegateDeclaration)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
-                    SourceNamedTypeSymbol delegateType = ((NamespaceOrTypeSymbol)ContainingMemberOrLambdaSkippingSimpleProgramEntryPoint(outerBinder)).GetSourceTypeMember((DelegateDeclarationSyntax)memberSyntax);
+                    SourceNamedTypeSymbol delegateType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((DelegateDeclarationSyntax)memberSyntax);
                     ImmutableArray<TypeParameterSymbol> typeParameters = delegateType.TypeParameters;
                     if (typeParameters.Any())
                     {
