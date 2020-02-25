@@ -831,6 +831,7 @@ Microsoft.CodeAnalysis.Host.Mef.MefHostServices.MefHostServices(System.Compositi
 Microsoft.CodeAnalysis.Host.Mef.ServiceLayer
 Microsoft.CodeAnalysis.Options.DocumentOptionSet
 Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option) -> T
+Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, T value) -> Microsoft.CodeAnalysis.Options.DocumentOptionSet
 Microsoft.CodeAnalysis.Options.IOption
 Microsoft.CodeAnalysis.Options.IOption.DefaultValue.get -> object
 Microsoft.CodeAnalysis.Options.IOption.Feature.get -> string
@@ -1087,6 +1088,7 @@ Microsoft.CodeAnalysis.Solution.WithDocumentText(Microsoft.CodeAnalysis.Document
 Microsoft.CodeAnalysis.Solution.WithDocumentText(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextAndVersion textAndVersion, Microsoft.CodeAnalysis.PreservationMode mode = Microsoft.CodeAnalysis.PreservationMode.PreserveValue) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithDocumentText(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId> documentIds, Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.PreservationMode mode = Microsoft.CodeAnalysis.PreservationMode.PreserveValue) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithDocumentTextLoader(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader loader, Microsoft.CodeAnalysis.PreservationMode mode) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Solution.WithOptions(Microsoft.CodeAnalysis.Options.OptionSet options) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithProjectAnalyzerReferences(Microsoft.CodeAnalysis.ProjectId projectId, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithProjectAssemblyName(Microsoft.CodeAnalysis.ProjectId projectId, string assemblyName) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithProjectCompilationOptions(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.CompilationOptions options) -> Microsoft.CodeAnalysis.Solution
@@ -1125,8 +1127,6 @@ Microsoft.CodeAnalysis.TextDocument.GetTextVersionAsync(System.Threading.Cancell
 Microsoft.CodeAnalysis.TextDocument.Id.get -> Microsoft.CodeAnalysis.DocumentId
 Microsoft.CodeAnalysis.TextDocument.Name.get -> string
 Microsoft.CodeAnalysis.TextDocument.Project.get -> Microsoft.CodeAnalysis.Project
-Microsoft.CodeAnalysis.TextDocument.Project.set -> void
-Microsoft.CodeAnalysis.TextDocument.TextDocument() -> void
 Microsoft.CodeAnalysis.TextDocument.TryGetText(out Microsoft.CodeAnalysis.Text.SourceText text) -> bool
 Microsoft.CodeAnalysis.TextDocument.TryGetTextVersion(out Microsoft.CodeAnalysis.VersionStamp version) -> bool
 Microsoft.CodeAnalysis.TextDocumentKind
@@ -1444,6 +1444,7 @@ static Microsoft.CodeAnalysis.Formatting.Formatter.FormatAsync(Microsoft.CodeAna
 static Microsoft.CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>
 static Microsoft.CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>
 static Microsoft.CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(Microsoft.CodeAnalysis.SyntaxNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan> spans, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>
+static Microsoft.CodeAnalysis.Formatting.Formatter.OrganizeImportsAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
 static Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentationSize.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<int>
 static Microsoft.CodeAnalysis.Formatting.FormattingOptions.NewLine.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
 static Microsoft.CodeAnalysis.Formatting.FormattingOptions.SmartIndent.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle>
@@ -1486,6 +1487,7 @@ static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyFieldA
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyMemberAccessWithThisOrMe.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyMethodAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyPropertyAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
+static Microsoft.CodeAnalysis.Simplification.Simplifier.AddImportsAnnotation.get -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.Simplification.Simplifier.Annotation.get -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.Simplification.Simplifier.Expand(Microsoft.CodeAnalysis.SyntaxToken token, Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Workspace workspace, System.Func<Microsoft.CodeAnalysis.SyntaxNode, bool> expandInsideNode = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.Simplification.Simplifier.Expand<TNode>(TNode node, Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Workspace workspace, System.Func<Microsoft.CodeAnalysis.SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> TNode
