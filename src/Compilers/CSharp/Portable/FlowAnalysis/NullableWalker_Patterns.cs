@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var tempMap = PooledDictionary<BoundDagTemp, (int slot, TypeSymbol type)>.GetInstance();
             Debug.Assert(originalInputSlot > 0);
+            Debug.Assert(isDerivedType(NominalSlotType(originalInputSlot), expressionType.Type));
             tempMap.Add(rootTemp, (originalInputSlot, expressionType.Type));
 
             var nodeStateMap = PooledDictionary<BoundDecisionDagNode, (LocalState state, bool believedReachable)>.GetInstance();
@@ -277,8 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         {
                                             case ConversionKind.Identity:
                                             case ConversionKind.ImplicitReference:
-                                            case ConversionKind.NoConversion:
-                                            case ConversionKind.ExplicitReference:
                                                 outputSlot = inputSlot;
                                                 break;
                                             case ConversionKind.ExplicitNullable when AreNullableAndUnderlyingTypes(inputType, e.Type, out _):
@@ -405,13 +404,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(foundTemp);
                             var (tempSlot, tempType) = tempSlotAndType;
                             var tempState = this.State[tempSlot];
-                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local })
+                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
                             {
-                                var inferredType = TypeWithState.Create(tempType, tempState).ToTypeWithAnnotations();
+                                var value = TypeWithState.Create(tempType, tempState);
+                                var inferredType = boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType ? value.ToAnnotatedTypeWithAnnotations() : value.ToTypeWithAnnotations();
                                 if (_variableTypes.TryGetValue(local, out var existingType))
                                 {
                                     // merge inferred nullable annotation from different branches of the decision tree
-                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
+                                    _variableTypes[local] = TypeWithAnnotations.Create(inferredType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
                                 }
                                 else
                                 {
@@ -465,12 +465,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // The dag temp has already been allocated on another branch of the dag
                     Debug.Assert(outputSlotAndType.slot == slot);
-                    Debug.Assert(outputSlotAndType.type.Equals(type, TypeCompareKind.AllIgnoreOptions));
+                    Debug.Assert(isDerivedType(outputSlotAndType.type, type));
                 }
                 else
                 {
+                    Debug.Assert(NominalSlotType(slot) is var slotType && (slotType.IsErrorType() || isDerivedType(slotType, type)));
                     tempMap.Add(output, (slot, type));
                 }
+            }
+
+            bool isDerivedType(TypeSymbol derivedType, TypeSymbol baseType)
+            {
+                HashSet<DiagnosticInfo> discardedDiagnostics = null;
+                return _conversions.WithNullability(false).ClassifyConversionFromType(derivedType, baseType, ref discardedDiagnostics).Kind switch
+                {
+                    ConversionKind.Identity => true,
+                    ConversionKind.ImplicitReference => true,
+                    ConversionKind.Boxing => true,
+                    _ => false,
+                };
             }
 
             void gotoNode(BoundDecisionDagNode node, LocalState state, bool believedReachable)

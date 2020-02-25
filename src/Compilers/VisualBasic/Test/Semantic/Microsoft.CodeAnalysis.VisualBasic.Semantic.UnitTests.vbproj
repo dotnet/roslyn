@@ -39,11 +39,6 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Resource.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resource.resx</DependentUpon>
-    </Compile>
     <Content Include="Semantics\Async_Overload_Change_3.vb.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline1.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline2.txt" />
@@ -51,12 +46,6 @@
     <Content Include="Semantics\BinaryOperatorsTestBaseline4.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline5.txt" />
     <Compile Remove="Binding\T_68086.vb" />
-    <EmbeddedResource Update="Resource.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources</CustomToolNamespace>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resource.Designer.vb</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <EmbeddedResource Include="Semantics\Async_Overload_Change_3.vb.txt" />
     <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline1.txt" />
     <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline2.txt" />

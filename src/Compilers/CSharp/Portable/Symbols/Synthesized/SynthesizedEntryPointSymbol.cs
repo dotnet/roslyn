@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // The diagnostics that would be produced here will already have been captured and returned.
                 var droppedBag = DiagnosticBag.GetInstance();
-                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, droppedBag);
+                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall!, _userMainReturnTypeSyntax, droppedBag);
                 droppedBag.Free();
 
                 Debug.Assert(
@@ -471,6 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _containingType)
                 { WasCompilerGenerated = true };
 
+                Debug.Assert(!initializer.ReturnType.IsDynamic());
                 var initializeCall = CreateParameterlessCall(syntax, scriptLocal, initializer);
                 BoundExpression getAwaiterGetResultCall;
                 if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, syntax, diagnostics))

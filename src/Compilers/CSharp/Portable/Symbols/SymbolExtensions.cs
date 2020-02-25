@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
         }
 
-        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeWithAnnotations type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeWithAnnotations type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
         }
@@ -187,6 +187,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+        }
+
+        public static bool IsSourceParameterWithEnumeratorCancellationAttribute(this ParameterSymbol parameter)
+        {
+            switch (parameter)
+            {
+                case SourceComplexParameterSymbol source:
+                    return source.HasEnumeratorCancellationAttribute;
+                case SynthesizedComplexParameterSymbol synthesized:
+                    return synthesized.HasEnumeratorCancellationAttribute;
+                default:
+                    return false;
             }
         }
 

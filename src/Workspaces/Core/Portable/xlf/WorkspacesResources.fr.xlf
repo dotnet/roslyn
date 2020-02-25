@@ -27,11 +27,6 @@
         <target state="translated">Le changement du document '{0}' n'est pas pris en charge.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
-        <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
-        <target state="translated">Une compilation est nécessaire pour accomplir la tâche, mais elle n'est pas prise en charge par le projet {0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">Options EditorConfig principales</target>
@@ -57,29 +52,9 @@
         <target state="translated">Erreur durant la lecture du contenu du fichier source '{0}' -- '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expression_level_preferences">
-        <source>Expression-level preferences</source>
-        <target state="translated">Préférences de niveau expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences">
-        <source>Field preferences</source>
-        <target state="translated">Préférences de champ</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Indentation et espacement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
-        <source>Language keywords vs BCL types preferences</source>
-        <target state="translated">Préférences des mots clés de langage par rapport aux types BCL</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifier_preferences">
-        <source>Modifier preferences</source>
-        <target state="translated">Préférences de modificateur</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_rules">
@@ -102,16 +77,6 @@
         <target state="translated">Les options ne proviennent pas de la solution spécifiée</target>
         <note />
       </trans-unit>
-      <trans-unit id="Organize_usings">
-        <source>Organize usings</source>
-        <target state="translated">Organiser les instructions Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_preferences">
-        <source>Parentheses preferences</source>
-        <target state="translated">Préférences de parenthèses</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
         <source>Prefix '{0}' does not match expected prefix '{1}'</source>
         <target state="translated">Le préfixe « {0} » ne correspond pas au préfixe attendu « {1} »</target>
@@ -120,11 +85,6 @@
       <trans-unit id="Prefix_0_is_not_expected">
         <source>Prefix '{0}' is not expected</source>
         <target state="translated">Le préfixe « {0} » n'est pas attendu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
-        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
-        <target state="translated">Le projet de l'ID {0} est nécessaire pour accomplir la tâche mais n'est pas disponible dans la solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -1337,11 +1297,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Spécifications de symboles</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
-        <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
-        <target state="translated">Une arborescence de syntaxe est nécessaire pour accomplir la tâche, mais elle n'est pas prise en charge par le document {0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Fichiers Visual Basic</target>
@@ -1360,6 +1315,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">L'espace de travail n'est pas vide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_in_a_different_project">
+        <source>{0} is in a different project.</source>
+        <target state="new">{0} is in a different project.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
@@ -1440,11 +1400,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">La solution contient déjà le document spécifié.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">La solution ne contient pas le document spécifié.</target>
         <note />
       </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
@@ -1542,11 +1497,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">{0} est toujours ouvert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">Il existe déjà un élément utilisant la même clé mais une autre valeur.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
         <target state="translated">Impossible de sérialiser les tableaux de plus d'une dimension.</target>
@@ -1592,11 +1542,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Nombre de paramètres non valide pour l'opérateur unaire.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Absolute_path_expected">
-        <source>Absolute path expected.</source>
-        <target state="translated">Chemin d'accès absolu attendu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
         <target state="translated">Impossible d'ouvrir le projet '{0}', car l'extension de fichier '{1}' n'est pas associée à un langage.</target>
@@ -1635,21 +1580,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Added_colon">
         <source>Added:</source>
         <target state="translated">Ajouté :</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="translated">Corriger tous les '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">Pour toutes les '{0}' dans '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="translated">Corriger tous les '{0}' dans la solution</target>
         <note />
       </trans-unit>
       <trans-unit id="After_colon">
@@ -1740,11 +1670,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
         <target state="translated">Le service de type '{0}' est nécessaire pour accomplir la tâche mais n'est pas disponible dans l'espace de travail.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="translated">Le diagnostic fourni ne peut pas être null.</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
@@ -2217,11 +2142,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Conventions de codage .NET</target>
         <note />
       </trans-unit>
-      <trans-unit id="this_dot_and_Me_dot_preferences">
-        <source>this. and Me. preferences</source>
-        <target state="translated">Préférences de this. et Me.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">Intervalle [x-y] dans l'ordre inverse</target>
@@ -2236,11 +2156,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <source>Regex issue: {0}</source>
         <target state="translated">Problème de regex : {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="Parameter_preferences">
-        <source>Parameter preferences</source>
-        <target state="translated">Préférences de paramètre</target>
-        <note />
       </trans-unit>
     </body>
   </file>

@@ -225,9 +225,6 @@
   <data name="The_solution_already_contains_the_specified_document" xml:space="preserve">
     <value>The solution already contains the specified document.</value>
   </data>
-  <data name="The_solution_does_not_contain_the_specified_document" xml:space="preserve">
-    <value>The solution does not contain the specified document.</value>
-  </data>
   <data name="Temporary_storage_cannot_be_written_more_than_once" xml:space="preserve">
     <value>Temporary storage cannot be written more than once.</value>
   </data>
@@ -285,9 +282,6 @@
   <data name="_0_is_still_open" xml:space="preserve">
     <value>{0} is still open.</value>
   </data>
-  <data name="An_element_with_the_same_key_but_a_different_value_already_exists" xml:space="preserve">
-    <value>An element with the same key but a different value already exists.</value>
-  </data>
   <data name="Arrays_with_more_than_one_dimension_cannot_be_serialized" xml:space="preserve">
     <value>Arrays with more than one dimension cannot be serialized.</value>
   </data>
@@ -315,9 +309,6 @@
   <data name="Invalid_number_of_parameters_for_unary_operator" xml:space="preserve">
     <value>Invalid number of parameters for unary operator.</value>
   </data>
-  <data name="Absolute_path_expected" xml:space="preserve">
-    <value>Absolute path expected.</value>
-  </data>
   <data name="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language" xml:space="preserve">
     <value>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</value>
   </data>
@@ -341,15 +332,6 @@
   </data>
   <data name="Added_colon" xml:space="preserve">
     <value>Added:</value>
-  </data>
-  <data name="Fix_all_0" xml:space="preserve">
-    <value>Fix all '{0}'</value>
-  </data>
-  <data name="Fix_all_0_in_1" xml:space="preserve">
-    <value>Fix all '{0}' in '{1}'</value>
-  </data>
-  <data name="Fix_all_0_in_Solution" xml:space="preserve">
-    <value>Fix all '{0}' in Solution</value>
   </data>
   <data name="After_colon" xml:space="preserve">
     <value>After:</value>
@@ -413,9 +395,6 @@
   </data>
   <data name="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace" xml:space="preserve">
     <value>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</value>
-  </data>
-  <data name="Supplied_diagnostic_cannot_be_null" xml:space="preserve">
-    <value>Supplied diagnostic cannot be null.</value>
   </data>
   <data name="At_least_one_diagnostic_must_be_supplied" xml:space="preserve">
     <value>At least one diagnostic must be supplied.</value>
@@ -1425,41 +1404,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="dot_NET_Coding_Conventions" xml:space="preserve">
     <value>.NET Coding Conventions</value>
   </data>
-  <data name="Expression_level_preferences" xml:space="preserve">
-    <value>Expression-level preferences</value>
-  </data>
-  <data name="Field_preferences" xml:space="preserve">
-    <value>Field preferences</value>
-  </data>
   <data name="Indentation_and_spacing" xml:space="preserve">
     <value>Indentation and spacing</value>
   </data>
-  <data name="Language_keywords_vs_BCL_types_preferences" xml:space="preserve">
-    <value>Language keywords vs BCL types preferences</value>
-  </data>
-  <data name="Modifier_preferences" xml:space="preserve">
-    <value>Modifier preferences</value>
-  </data>
   <data name="New_line_preferences" xml:space="preserve">
     <value>New line preferences</value>
-  </data>
-  <data name="Organize_usings" xml:space="preserve">
-    <value>Organize usings</value>
-  </data>
-  <data name="Parentheses_preferences" xml:space="preserve">
-    <value>Parentheses preferences</value>
-  </data>
-  <data name="this_dot_and_Me_dot_preferences" xml:space="preserve">
-    <value>this. and Me. preferences</value>
   </data>
   <data name="Visual_Basic_files" xml:space="preserve">
     <value>Visual Basic files</value>
   </data>
   <data name="Changing_document_0_is_not_supported" xml:space="preserve">
     <value>Changing document '{0}' is not supported.</value>
-  </data>
-  <data name="Parameter_preferences" xml:space="preserve">
-    <value>Parameter preferences</value>
   </data>
   <data name="Prefix_0_does_not_match_expected_prefix_1" xml:space="preserve">
     <value>Prefix '{0}' does not match expected prefix '{1}'</value>
@@ -1485,13 +1440,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Document_does_not_support_syntax_trees" xml:space="preserve">
     <value>Document does not support syntax trees</value>
   </data>
-  <data name="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0" xml:space="preserve">
-    <value>Compilation is required to accomplish the task but is not supported by project {0}.</value>
-  </data>
-  <data name="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0" xml:space="preserve">
-    <value>Syntax tree is required to accomplish the task but is not supported by document {0}.</value>
-  </data>
-  <data name="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution" xml:space="preserve">
-    <value>Project of ID {0} is required to accomplish the task but is not available from the solution</value>
+  <data name="_0_is_in_a_different_project" xml:space="preserve">
+    <value>{0} is in a different project.</value>
   </data>
 </root>

@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isForOverride = false)
         {
             Debug.Assert(this.Flags.Includes(BinderFlags.GenericConstraintsClause));
-            Debug.Assert((object)containingSymbol != null);
+            RoslynDebug.Assert((object)containingSymbol != null);
             Debug.Assert((containingSymbol.Kind == SymbolKind.NamedType) || (containingSymbol.Kind == SymbolKind.Method));
             Debug.Assert(typeParameters.Length > 0);
             Debug.Assert(clauses.Count > 0);
@@ -51,20 +52,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // An array of constraint clauses, one for each type parameter, indexed by ordinal.
-            var results = ArrayBuilder<TypeParameterConstraintClause>.GetInstance(n, fillWithValue: null);
-            var syntaxNodes = ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>>.GetInstance(n, fillWithValue: null);
+            var results = ArrayBuilder<TypeParameterConstraintClause?>.GetInstance(n, fillWithValue: null);
+            var syntaxNodes = ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>?>.GetInstance(n, fillWithValue: null);
 
             // Bind each clause and add to the results.
             foreach (var clause in clauses)
             {
                 var name = clause.Name.Identifier.ValueText;
+                RoslynDebug.Assert(name is object);
                 int ordinal;
                 if (names.TryGetValue(name, out ordinal))
                 {
                     Debug.Assert(ordinal >= 0);
                     Debug.Assert(ordinal < n);
 
-                    (TypeParameterConstraintClause constraintClause, ArrayBuilder<TypeConstraintSyntax> typeConstraintNodes) = this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, diagnostics);
+                    (TypeParameterConstraintClause constraintClause, ArrayBuilder<TypeConstraintSyntax>? typeConstraintNodes) = this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, diagnostics);
                     if (results[ordinal] == null)
                     {
                         results[ordinal] = constraintClause;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeParameterConstraintClause.AdjustConstraintTypes(containingSymbol, typeParameters, results, ref isValueTypeOverride);
 
-            RemoveInvalidConstraints(typeParameters, results, syntaxNodes, diagnostics);
+            RemoveInvalidConstraints(typeParameters, results!, syntaxNodes, diagnostics);
 
             foreach (var typeConstraintsSyntaxes in syntaxNodes)
             {
@@ -109,17 +111,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             syntaxNodes.Free();
 
-            return results.ToImmutableAndFree();
+            return results.ToImmutableAndFree()!;
         }
 
         /// <summary>
         /// Bind and return a single type parameter constraint clause along with syntax nodes corresponding to type constraints.
         /// </summary>
-        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>) BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, DiagnosticBag diagnostics)
+        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
-            ArrayBuilder<TypeWithAnnotations> constraintTypes = null;
-            ArrayBuilder<TypeConstraintSyntax> syntaxBuilder = null;
+            ArrayBuilder<TypeWithAnnotations>? constraintTypes = null;
+            ArrayBuilder<TypeConstraintSyntax>? syntaxBuilder = null;
             SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax = constraintClauseSyntax.Constraints;
             Debug.Assert(!InExecutableBinder); // Cannot eagerly report diagnostics handled by LazyMissingNonNullTypesContextDiagnosticInfo 
             bool hasTypeLikeConstraint = false;
@@ -258,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             constraintTypes.Add(type);
-                            syntaxBuilder.Add(typeConstraintSyntax);
+                            syntaxBuilder!.Add(typeConstraintSyntax);
                         }
                         continue;
                     default:
@@ -309,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void RemoveInvalidConstraints(
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ArrayBuilder<TypeParameterConstraintClause> constraintClauses,
-            ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>> syntaxNodes,
+            ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>?> syntaxNodes,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(typeParameters.Length > 0);
@@ -324,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static TypeParameterConstraintClause RemoveInvalidConstraints(
             TypeParameterSymbol typeParameter,
             TypeParameterConstraintClause constraintClause,
-            ArrayBuilder<TypeConstraintSyntax> syntaxNodesOpt,
+            ArrayBuilder<TypeConstraintSyntax>? syntaxNodesOpt,
             DiagnosticBag diagnostics)
         {
             if (syntaxNodesOpt != null)
@@ -367,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations constraintType,
             DiagnosticBag diagnostics)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteDiagnostics))
             {
                 // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"

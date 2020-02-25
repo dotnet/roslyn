@@ -184,31 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var location = this.Locations[0];
-            if (IsAsync)
-            {
-                var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
-                var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
-                var enumeratorCancellationCount = Parameters.Count(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true });
-                if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
-                    (Bodies.blockBody != null || Bodies.arrowBody != null))
-                {
-                    if (enumeratorCancellationCount == 0 &&
-                        ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
-                    {
-                        // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
-                        // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
-                        diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);
-                    }
-
-                    if (enumeratorCancellationCount > 1)
-                    {
-                        // The [EnumeratorCancellation] attribute can only be used on one parameter
-                        diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, location);
-                    }
-                }
-            }
-
             var returnsVoid = _lazyReturnType.IsVoidType();
             if (this.RefKind != RefKind.None && returnsVoid)
             {
@@ -220,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
 
+            var location = locations[0];
             // Checks taken from MemberDefiner::defineMethod
             if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
             {
@@ -474,27 +450,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
-        internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, Location location)
-        {
-            foreach (var parameter in parameters)
-            {
-                var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
-                if (parameter.RefKind != RefKind.None)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
-                }
-                else if (parameter.Type.IsUnsafe())
-                {
-                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
-                }
-                else if (parameter.Type.IsRestrictedType())
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
-                }
-            }
-        }
-
         protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
             Debug.Assert(this.IsPartial == state.HasComplete(CompletionPart.FinishMethodChecks),
@@ -508,36 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            Location errorLocation = this.Locations[0];
-
-            if (this.RefKind != RefKind.None)
-            {
-                ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
-            }
-            else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
-            {
-                diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
-            }
-
-            for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
-            {
-                var sourceNamedTypeSymbol = curr as SourceNamedTypeSymbol;
-                if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
-                {
-                    diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
-                    break;
-                }
-            }
-
-            if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
-            {
-                diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
-            }
-
-            if (!diagnostics.HasAnyResolvedErrors())
-            {
-                ReportAsyncParameterErrors(_lazyParameters, diagnostics, errorLocation);
-            }
+            AsyncMethodChecks(diagnostics);
 
             CompleteAsyncMethodChecks(diagnostics, cancellationToken);
             diagnostics.Free();
@@ -1219,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 implementation,
                 diagnostics,
                 reportMismatchInReturnType: null,
-                (diagnostics, implementedMethod, implementingMethod, implementingParameter, arg) =>
+                (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
