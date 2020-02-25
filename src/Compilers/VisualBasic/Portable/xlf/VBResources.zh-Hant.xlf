@@ -775,6 +775,11 @@
         <target state="translated">字元無效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
         <source>Option Strict On prohibits operands of type Object for operator '{0}'.</source>
         <target state="translated">Option Strict 為 On 時，禁止為運算子 '{0}' 使用 Object 類型的運算元。</target>

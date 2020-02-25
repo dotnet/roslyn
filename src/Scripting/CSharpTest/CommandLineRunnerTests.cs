@@ -566,6 +566,31 @@ $@"{LogoAndHelpPrompt}
             }
         }
 
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(null, null)]
+        [InlineData("c:", null)]
+        [InlineData("c:\\", null)]
+        [InlineData("c:\\first", "c:\\")]
+        [InlineData("c:\\first\\", "c:\\first")]
+        [InlineData("c:\\first\\second", "c:\\first")]
+        [InlineData("c:\\first\\second\\", "c:\\first\\second")]
+        [InlineData("c:\\first\\second\\third", "c:\\first\\second")]
+        [InlineData("\\", null)]
+        [InlineData("\\first", "\\")]
+        [InlineData("\\first\\", "\\first")]
+        [InlineData("\\first\\second", "\\first")]
+        [InlineData("\\first\\second\\", "\\first\\second")]
+        [InlineData("\\first\\second\\third", "\\first\\second")]
+        [InlineData("first", "")]
+        [InlineData("first\\", "first")]
+        [InlineData("first\\second", "first")]
+        [InlineData("first\\second\\", "first\\second")]
+        [InlineData("first\\second\\third", "first\\second")]
+        public void TestGetDirectoryName_Windows(string path, string expectedOutput)
+        {
+            Assert.Equal(expectedOutput, PathUtilities.GetDirectoryName(path, isUnixLike: false));
+        }
+
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SourceSearchPaths1()
         {

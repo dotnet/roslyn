@@ -990,10 +990,7 @@ public class Program
             comp.VerifyDiagnostics(
                 // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
                 //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9),
-                // (13,19): warning CS0219: The variable 'local' is assigned but its value is never used
-                //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local").WithArguments("local").WithLocation(13, 19)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
             );
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
@@ -1001,10 +998,7 @@ public class Program
             comp.VerifyDiagnostics(
                 // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
                 //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9),
-                // (13,19): warning CS0219: The variable 'local' is assigned but its value is never used
-                //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local").WithArguments("local").WithLocation(13, 19)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
             );
         }
 

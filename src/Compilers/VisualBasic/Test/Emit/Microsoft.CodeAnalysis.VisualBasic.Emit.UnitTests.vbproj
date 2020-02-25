@@ -25,11 +25,6 @@
     <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Resource.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resource.resx</DependentUpon>
-    </Compile>
     <Content Include="CodeGen\ConversionsILGenTestBaseline.txt" />
     <Content Include="CodeGen\ConversionsILGenTestBaseline1.txt" />
     <Content Include="ExpressionTrees\Results\CheckedAndOrXor.txt" />
@@ -106,15 +101,6 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="ExpressionTrees\ExpTreeTestResources.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resource.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources</CustomToolNamespace>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>Resource.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Include="CodeGen\ConversionsILGenTestBaseline.txt" />
     <EmbeddedResource Include="CodeGen\ConversionsILGenTestBaseline1.txt" />
     <EmbeddedResource Include="CodeGen\ConversionsILGenTestSource.vb" />
