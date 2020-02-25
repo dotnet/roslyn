@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static AnalyzerConfig Parse(SourceText text, string pathToFile)
         {
-            if (!Path.IsPathRooted(pathToFile) || string.IsNullOrEmpty(Path.GetFileName(pathToFile)))
+            if (!Path.IsPathFullyQualified(pathToFile) || string.IsNullOrEmpty(Path.GetFileName(pathToFile)))
             {
                 throw new ArgumentException("Must be an absolute path to an editorconfig file", nameof(pathToFile));
             }
