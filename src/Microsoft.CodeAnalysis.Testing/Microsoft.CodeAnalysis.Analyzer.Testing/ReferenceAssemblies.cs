@@ -481,6 +481,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     continue;
                 }
 
+                dependencyInfo = new SourcePackageDependencyInfo(new NuGet.Packaging.Core.PackageIdentity(dependencyInfo.Id, dependencyInfo.Version), FilterDependencies(dependencyInfo.Dependencies), dependencyInfo.Listed, dependencyInfo.Source, dependencyInfo.DownloadUri, dependencyInfo.PackageHash);
                 dependencies.Add(packageIdentity, dependencyInfo);
                 foreach (var dependency in dependencyInfo.Dependencies)
                 {
@@ -488,6 +489,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 break;
+            }
+
+            static IEnumerable<PackageDependency> FilterDependencies(IEnumerable<PackageDependency> dependencies)
+            {
+                return dependencies.Where(dependency => !dependency.Exclude.Contains("Compile"));
             }
         }
 
