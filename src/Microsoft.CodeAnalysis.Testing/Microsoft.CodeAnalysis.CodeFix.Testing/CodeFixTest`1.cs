@@ -144,6 +144,12 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <seealso href="https://github.com/dotnet/roslyn-sdk/issues/147">#147: Figure out Fix All iteration counts by context</seealso>
         public int? NumberOfFixAllInDocumentIterations { get; set; }
 
+        /// <summary>
+        /// Gets or sets the code fix test behaviors applying to this test. The default value is
+        /// <see cref="CodeFixTestBehaviors.None"/>.
+        /// </summary>
+        public CodeFixTestBehaviors CodeFixTestBehaviors { get; set; }
+
         /// <inheritdoc cref="CodeActionTest{TVerifier}.CodeActionValidationMode"/>
         [Obsolete("Use " + nameof(CodeActionValidationMode) + " instead.")]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -213,12 +219,14 @@ namespace Microsoft.CodeAnalysis.Testing
             var fixedState = rawFixedState.WithProcessedMarkup(MarkupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, DefaultFilePath);
             var batchFixedState = rawBatchFixedState.WithProcessedMarkup(MarkupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, DefaultFilePath);
 
+            var allowFixAll = (CodeFixTestBehaviors & CodeFixTestBehaviors.SkipFixAllCheck) != CodeFixTestBehaviors.SkipFixAllCheck;
+
             await VerifyDiagnosticsAsync(testState.Sources.ToArray(), testState.AdditionalFiles.ToArray(), testState.AdditionalProjects.ToArray(), testState.AdditionalReferences.ToArray(), testState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of test state"), cancellationToken).ConfigureAwait(false);
 
             if (CodeFixExpected())
             {
                 await VerifyDiagnosticsAsync(fixedState.Sources.ToArray(), fixedState.AdditionalFiles.ToArray(), fixedState.AdditionalProjects.ToArray(), fixedState.AdditionalReferences.ToArray(), fixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of fixed state"), cancellationToken).ConfigureAwait(false);
-                if (CodeActionExpected(BatchFixedState))
+                if (allowFixAll && CodeActionExpected(BatchFixedState))
                 {
                     await VerifyDiagnosticsAsync(batchFixedState.Sources.ToArray(), batchFixedState.AdditionalFiles.ToArray(), batchFixedState.AdditionalProjects.ToArray(), batchFixedState.AdditionalReferences.ToArray(), batchFixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of batch fixed state"), cancellationToken).ConfigureAwait(false);
                 }
@@ -306,19 +314,25 @@ namespace Microsoft.CodeAnalysis.Testing
                     await t1;
                 }
 
-                var t2 = VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllInDocumentIterations, FixAllAnalyzerDiagnosticsInDocumentAsync, verifier.PushContext("Fix all in document"), cancellationToken).ConfigureAwait(false);
+                var t2 = CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.SkipFixAllInDocumentCheck)
+                    ? ((Task)Task.FromResult(true)).ConfigureAwait(false)
+                    : VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllInDocumentIterations, FixAllAnalyzerDiagnosticsInDocumentAsync, verifier.PushContext("Fix all in document"), cancellationToken).ConfigureAwait(false);
                 if (Debugger.IsAttached)
                 {
                     await t2;
                 }
 
-                var t3 = VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllIterations, FixAllAnalyzerDiagnosticsInProjectAsync, verifier.PushContext("Fix all in project"), cancellationToken).ConfigureAwait(false);
+                var t3 = CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.SkipFixAllInProjectCheck)
+                    ? ((Task)Task.FromResult(true)).ConfigureAwait(false)
+                    : VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllIterations, FixAllAnalyzerDiagnosticsInProjectAsync, verifier.PushContext("Fix all in project"), cancellationToken).ConfigureAwait(false);
                 if (Debugger.IsAttached)
                 {
                     await t3;
                 }
 
-                var t4 = VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllIterations, FixAllAnalyzerDiagnosticsInSolutionAsync, verifier.PushContext("Fix all in solution"), cancellationToken).ConfigureAwait(false);
+                var t4 = CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.SkipFixAllInSolutionCheck)
+                    ? ((Task)Task.FromResult(true)).ConfigureAwait(false)
+                    : VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllIterations, FixAllAnalyzerDiagnosticsInSolutionAsync, verifier.PushContext("Fix all in solution"), cancellationToken).ConfigureAwait(false);
                 if (Debugger.IsAttached)
                 {
                     await t4;
@@ -333,6 +347,16 @@ namespace Microsoft.CodeAnalysis.Testing
                     await t4;
                 }
             }
+        }
+
+        /// <summary>
+        /// Selects the diagnostic to fix when <see cref="CodeFixTestBehaviors.FixOne"/> is used.
+        /// </summary>
+        /// <param name="fixableDiagnostics">The diagnostics available for fixing.</param>
+        /// <returns>The diagnostic to fix; otherwise, <see langword="null"/> if no diagnostics should be fixed.</returns>
+        protected virtual Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
+        {
+            return fixableDiagnostics.FirstOrDefault();
         }
 
         private async Task VerifyFixAsync(
@@ -418,9 +442,18 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 previousDiagnostics = analyzerDiagnostics;
 
+                var fixableDiagnostics = analyzerDiagnostics.Where(
+                    diagnostic => codeFixProviders.Any(provider => provider.FixableDiagnosticIds.Contains(diagnostic.Id))).ToImmutableArray();
+
+                if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
+                {
+                    var diagnosticToFix = TrySelectDiagnosticToFix(fixableDiagnostics);
+                    fixableDiagnostics = diagnosticToFix is object ? ImmutableArray.Create(diagnosticToFix) : ImmutableArray<Diagnostic>.Empty;
+                }
+
                 done = true;
                 var anyActions = false;
-                foreach (var diagnostic in analyzerDiagnostics)
+                foreach (var diagnostic in fixableDiagnostics)
                 {
                     var actions = new List<CodeAction>();
 
@@ -457,6 +490,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     // Avoid counting iterations that do not provide any code actions
                     numberOfIterations++;
+                }
+
+                if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
+                {
+                    break;
                 }
             }
             while (!done);
@@ -587,6 +625,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     done = false;
                     project = fixedProject;
+                }
+
+                if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
+                {
+                    break;
                 }
             }
             while (!done);
