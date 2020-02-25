@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
             var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             if (root != null && syntaxFacts != null && semanticModel != null &&
                 TryGetTargetNode(root, diagnostic.Location.SourceSpan) is ExpressionSyntax targetNode)
