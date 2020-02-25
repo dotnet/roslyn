@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -127,12 +129,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, params (PerLanguageOption<bool> option, bool enabled)[] options)
         {
             using var workspace = TestWorkspace.CreateCSharp(codeWithMarker);
+
             if (options != null)
             {
+                var optionSet = workspace.Options;
                 foreach (var option in options)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
+                    optionSet = optionSet.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
                 }
+
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet));
             }
 
             // set up caret position

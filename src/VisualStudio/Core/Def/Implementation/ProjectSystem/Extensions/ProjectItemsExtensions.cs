@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -23,6 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
         public static string GetUniqueName(this ProjectItems items, string itemName, string extension)
         {
             return NameGenerator.GenerateUniqueName(itemName, extension, n => items.FindItem(n, StringComparer.OrdinalIgnoreCase) == null);
+        }
+
+        public static string GetUniqueNameIgnoringProjectItem(this ProjectItems items, ProjectItem itemToIgnore, string itemName, string extension)
+        {
+            return NameGenerator.GenerateUniqueName(itemName, extension, n =>
+            {
+                var foundItem = items.FindItem(n, StringComparer.OrdinalIgnoreCase);
+                return foundItem == null ||
+                    foundItem == itemToIgnore;
+            });
         }
     }
 }

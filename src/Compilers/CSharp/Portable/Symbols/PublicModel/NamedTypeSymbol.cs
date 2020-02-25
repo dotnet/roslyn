@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -160,14 +163,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         }
 
         /// <summary>
-        /// If this is a tuple type symbol, returns the symbol for its underlying type.
+        /// If this is a tuple type with element names, returns the symbol for the tuple type without names.
         /// Otherwise, returns null.
         /// </summary>
         INamedTypeSymbol INamedTypeSymbol.TupleUnderlyingType
         {
             get
             {
-                return UnderlyingNamedTypeSymbol.TupleUnderlyingType.GetPublicSymbol();
+                var type = UnderlyingNamedTypeSymbol;
+                var tupleUnderlyingType = type.TupleUnderlyingType;
+                return type.Equals(tupleUnderlyingType, TypeCompareKind.ConsiderEverything) ?
+                    null :
+                    tupleUnderlyingType.GetPublicSymbol();
             }
         }
 

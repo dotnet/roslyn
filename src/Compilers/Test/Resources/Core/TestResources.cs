@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace TestResources
 {
@@ -51,6 +53,30 @@ namespace TestResources
 
         private static byte[] s_nativeApp;
         public static byte[] NativeApp => ResourceLoader.GetOrCreateResource(ref s_nativeApp, "MetadataTests.NativeApp.exe");
+    }
+
+    public static class ExpressionCompiler
+    {
+        private static byte[] s_empty;
+        public static byte[] Empty => ResourceLoader.GetOrCreateResource(ref s_empty, "ExpressionCompiler.Empty.dll");
+
+        private static byte[] s_libraryA;
+        public static byte[] LibraryA => ResourceLoader.GetOrCreateResource(ref s_libraryA, "ExpressionCompiler.LibraryA.winmd");
+
+        private static byte[] s_libraryB;
+        public static byte[] LibraryB => ResourceLoader.GetOrCreateResource(ref s_libraryB, "ExpressionCompiler.LibraryB.winmd");
+
+        private static byte[] s_noValidTables;
+        public static byte[] NoValidTables => ResourceLoader.GetOrCreateResource(ref s_noValidTables, "ExpressionCompiler.NoValidTables.metadata");
+
+        private static byte[] s_windows;
+        public static byte[] Windows => ResourceLoader.GetOrCreateResource(ref s_windows, "ExpressionCompiler.Windows.winmd");
+
+        private static byte[] s_windowsData;
+        public static byte[] WindowsData => ResourceLoader.GetOrCreateResource(ref s_windowsData, "ExpressionCompiler.Windows.Data.winmd");
+
+        private static byte[] s_windowsStorage;
+        public static byte[] WindowsStorage => ResourceLoader.GetOrCreateResource(ref s_windowsStorage, "ExpressionCompiler.Windows.Storage.winmd");
     }
 }
 

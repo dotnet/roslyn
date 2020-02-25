@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -341,20 +343,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string title = null)
         {
             return TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, priority,
-                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, title: title));
+                initialMarkup, expectedMarkup, index,
+                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, title: title, priority: priority));
         }
 
         internal async Task TestInRegularAndScript1Async(
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            CodeActionPriority? priority = null,
             TestParameters parameters = default)
         {
             parameters = parameters.WithIndex(index);
-            await TestAsync(initialMarkup, expectedMarkup, priority, WithRegularOptions(parameters));
-            await TestAsync(initialMarkup, expectedMarkup, priority, WithScriptOptions(parameters));
+            await TestAsync(initialMarkup, expectedMarkup, WithRegularOptions(parameters));
+            await TestAsync(initialMarkup, expectedMarkup, WithScriptOptions(parameters));
         }
 
         internal Task TestAsync(
@@ -367,15 +368,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             return TestAsync(
                 initialMarkup,
-                expectedMarkup, priority,
+                expectedMarkup,
                 new TestParameters(
-                    parseOptions, compilationOptions, options, fixProviderData, index));
+                    parseOptions, compilationOptions, options, fixProviderData, index, priority));
         }
 
         private async Task TestAsync(
             string initialMarkup,
             string expectedMarkup,
-            CodeActionPriority? priority,
             TestParameters parameters)
         {
             MarkupTestFile.GetSpans(

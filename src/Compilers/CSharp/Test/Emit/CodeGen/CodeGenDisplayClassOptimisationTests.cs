@@ -1409,7 +1409,7 @@ public class Program
 		.method assembly hidebysig 
 			instance void '<M>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x20a0
+			// Method begins at RVA 0x209e
 			// Code size 35 (0x23)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -1438,7 +1438,7 @@ public class Program
 		.method private hidebysig specialname rtspecialname static 
 			void .cctor () cil managed 
 		{
-			// Method begins at RVA 0x20c4
+			// Method begins at RVA 0x20c2
 			// Code size 11 (0xb)
 			.maxstack 8
 			IL_0000: newobj instance void Program/'<>c'::.ctor()
@@ -1458,7 +1458,7 @@ public class Program
 		.method assembly hidebysig 
 			instance void '<M>b__0_1' () cil managed 
 		{
-			// Method begins at RVA 0x20d0
+			// Method begins at RVA 0x20ce
 			// Code size 1 (0x1)
 			.maxstack 8
 			IL_0000: ret
@@ -1484,7 +1484,7 @@ public class Program
 			instance void MoveNext () cil managed 
 		{
 			.override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
-			// Method begins at RVA 0x20d4
+			// Method begins at RVA 0x20d0
 			// Code size 416 (0x1a0)
 			.maxstack 4
 			.locals init (
@@ -1647,7 +1647,7 @@ public class Program
 				01 00 00 00
 			)
 			.override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
-			// Method begins at RVA 0x229c
+			// Method begins at RVA 0x2298
 			// Code size 13 (0xd)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -1668,11 +1668,10 @@ public class Program
 			5f 30 00 00
 		)
 		// Method begins at RVA 0x205c
-		// Code size 45 (0x2d)
+		// Code size 43 (0x2b)
 		.maxstack 2
 		.locals init (
-			[0] valuetype Program/'<M>d__0',
-			[1] valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder
+			[0] valuetype Program/'<M>d__0'
 		)
 		IL_0000: ldloca.s 0
 		IL_0002: ldarg.0
@@ -1683,13 +1682,11 @@ public class Program
 		IL_0014: ldloca.s 0
 		IL_0016: ldc.i4.m1
 		IL_0017: stfld int32 Program/'<M>d__0'::'<>1__state'
-		IL_001c: ldloc.0
-		IL_001d: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program/'<M>d__0'::'<>t__builder'
-		IL_0022: stloc.1
-		IL_0023: ldloca.s 1
-		IL_0025: ldloca.s 0
-		IL_0027: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::Start<valuetype Program/'<M>d__0'>(!!0&)
-		IL_002c: ret
+		IL_001c: ldloca.s 0
+		IL_001e: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program/'<M>d__0'::'<>t__builder'
+		IL_0023: ldloca.s 0
+		IL_0025: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::Start<valuetype Program/'<M>d__0'>(!!0&)
+		IL_002a: ret
 	} // end of method Program::M
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
@@ -8057,7 +8054,7 @@ public class C {
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x208d
+			// Method begins at RVA 0x208b
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -8079,7 +8076,7 @@ public class C {
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x208d
+			// Method begins at RVA 0x208b
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -8100,7 +8097,7 @@ public class C {
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x208d
+			// Method begins at RVA 0x208b
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -8110,7 +8107,7 @@ public class C {
 		.method assembly hidebysig 
 			instance void '<M>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x2095
+			// Method begins at RVA 0x2093
 			// Code size 53 (0x35)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -8471,11 +8468,10 @@ public class C {
 			01 00 09 43 2b 3c 4d 3e 64 5f 5f 30 00 00
 		)
 		// Method begins at RVA 0x2050
-		// Code size 49 (0x31)
+		// Code size 47 (0x2f)
 		.maxstack 2
 		.locals init (
-			[0] valuetype C/'<M>d__0',
-			[1] valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder
+			[0] valuetype C/'<M>d__0'
 		)
 		IL_0000: ldloca.s 0
 		IL_0002: call valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::Create()
@@ -8483,21 +8479,19 @@ public class C {
 		IL_000c: ldloca.s 0
 		IL_000e: ldc.i4.m1
 		IL_000f: stfld int32 C/'<M>d__0'::'<>1__state'
-		IL_0014: ldloc.0
-		IL_0015: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder C/'<M>d__0'::'<>t__builder'
-		IL_001a: stloc.1
-		IL_001b: ldloca.s 1
-		IL_001d: ldloca.s 0
-		IL_001f: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::Start<valuetype C/'<M>d__0'>(!!0&)
-		IL_0024: ldloca.s 0
-		IL_0026: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder C/'<M>d__0'::'<>t__builder'
-		IL_002b: call instance class [mscorlib]System.Threading.Tasks.Task [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::get_Task()
-		IL_0030: ret
+		IL_0014: ldloca.s 0
+		IL_0016: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder C/'<M>d__0'::'<>t__builder'
+		IL_001b: ldloca.s 0
+		IL_001d: call instance void [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::Start<valuetype C/'<M>d__0'>(!!0&)
+		IL_0022: ldloca.s 0
+		IL_0024: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder C/'<M>d__0'::'<>t__builder'
+		IL_0029: call instance class [mscorlib]System.Threading.Tasks.Task [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder::get_Task()
+		IL_002e: ret
 	} // end of method C::M
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x208d
+		// Method begins at RVA 0x208b
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0

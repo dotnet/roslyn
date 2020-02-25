@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -92,6 +94,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
+            // We shouldn't qualify if it is inside a property pattern
+            if (context.Operation.Parent.Kind == OperationKind.PropertySubpattern)
+            {
+                return;
+            }
+
             // Initializer lists are IInvocationOperation which if passed to GetApplicableOptionFromSymbolKind
             // will incorrectly fetch the options for method call.
             // We still want to handle InstanceReferenceKind.ContainingTypeInstance
@@ -118,16 +126,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(operation);
-            var optionValue = optionSet.GetOption(applicableOption, context.Operation.Syntax.Language);
+            var optionValue = context.GetOption(applicableOption, context.Operation.Syntax.Language);
 
             var shouldOptionBePresent = optionValue.Value;
             var severity = optionValue.Notification.Severity;

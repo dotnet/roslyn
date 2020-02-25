@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -189,6 +191,72 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp);
 
             Assert.ThrowsAny<InvalidOperationException>(() => solution.AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveZeroDocuments()
+        {
+            var solution = CreateSolution();
+
+            Assert.Same(solution, solution.RemoveDocuments(ImmutableArray<DocumentId>.Empty));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task RemoveTwoDocuments()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId), "file1.cs");
+            var documentInfo2 = DocumentInfo.Create(DocumentId.CreateNewId(projectId), "file2.cs");
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2));
+
+            solution = solution.RemoveDocuments(ImmutableArray.Create(documentInfo1.Id, documentInfo2.Id));
+
+            var finalProject = solution.Projects.Single();
+            Assert.Empty(finalProject.Documents);
+            Assert.Empty((await finalProject.GetCompilationAsync()).SyntaxTrees);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveTwoDocumentsFromDifferentProjects()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "file1.cs");
+            var documentInfo2 = DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "file2.cs");
+
+            var solution = CreateSolution()
+                .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
+                .AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2));
+
+            Assert.All(solution.Projects, p => Assert.Single(p.Documents));
+
+            solution = solution.RemoveDocuments(ImmutableArray.Create(documentInfo1.Id, documentInfo2.Id));
+
+            Assert.All(solution.Projects, p => Assert.Empty(p.Documents));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveDocumentFromUnrelatedProject()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "file1.cs");
+
+            var solution = CreateSolution()
+                .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
+                .AddDocument(documentInfo1);
+
+            // This should throw if we're removing one document from the wrong project. Right now we don't test the RemoveDocument
+            // API due to https://github.com/dotnet/roslyn/issues/41211.
+            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveDocuments(ImmutableArray.Create(documentInfo1.Id)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -726,7 +794,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private Solution CreateNotKeptAliveSolution()
         {
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), "NotKeptAlive");
-            workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
             return workspace.CurrentSolution;
         }
 
@@ -1243,75 +1312,38 @@ End Class";
         }
 
         [Fact]
-        public void TestDocumentFileAccessFailureMissingFile()
-        {
-            var solution = new AdhocWorkspace().CurrentSolution;
-
-            WorkspaceDiagnostic diagnostic = null;
-
-            solution.Workspace.WorkspaceFailed += (sender, args) =>
-            {
-                diagnostic = args.Diagnostic;
-            };
-
-            var pid = ProjectId.CreateNewId();
-            var did = DocumentId.CreateNewId(pid);
-
-            solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
-
-            var doc = solution.GetDocument(did);
-            var text = doc.GetTextAsync().Result;
-
-            WaitFor(() => diagnostic != null, TimeSpan.FromSeconds(5));
-
-            Assert.NotNull(diagnostic);
-            var dd = diagnostic as DocumentDiagnostic;
-            Assert.NotNull(dd);
-            Assert.Equal(did, dd.DocumentId);
-            Assert.Equal(WorkspaceDiagnosticKind.Failure, dd.Kind);
-        }
-
-        [Fact]
         [WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
-        public void TestWorkspaceDiagnosticHasDebuggerText()
+        public async Task TestDocumentFileAccessFailureMissingFile()
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            var workspace = new AdhocWorkspace();
+            var solution = workspace.CurrentSolution;
 
-            WorkspaceDiagnostic diagnostic = null;
-
+            WorkspaceDiagnostic diagnosticFromEvent = null;
             solution.Workspace.WorkspaceFailed += (sender, args) =>
             {
-                diagnostic = args.Diagnostic;
+                diagnosticFromEvent = args.Diagnostic;
             };
 
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
+                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8))
+                               .WithDocumentFilePath(did, "document path");
 
             var doc = solution.GetDocument(did);
-            var text = doc.GetTextAsync().Result;
+            var text = await doc.GetTextAsync().ConfigureAwait(false);
 
-            WaitFor(() => diagnostic != null, TimeSpan.FromSeconds(5));
+            var diagnostic = await doc.State.GetLoadDiagnosticAsync(CancellationToken.None).ConfigureAwait(false);
 
-            Assert.NotNull(diagnostic);
-            var dd = diagnostic as DocumentDiagnostic;
-            Assert.NotNull(dd);
-            Assert.Equal(dd.ToString(), string.Format("[{0}] {1}", WorkspacesResources.Failure, dd.Message));
-        }
+            Assert.Equal(@"C:\doesnotexist.cs: (0,0)-(0,0)", diagnostic.Location.GetLineSpan().ToString());
+            Assert.Equal(WorkspaceDiagnosticKind.Failure, diagnosticFromEvent.Kind);
+            Assert.Equal("", text.ToString());
 
-        private bool WaitFor(Func<bool> condition, TimeSpan timeout)
-        {
-            var start = DateTime.UtcNow;
-
-            while ((DateTime.UtcNow - start) < timeout && !condition())
-            {
-                Thread.Sleep(TimeSpan.FromMilliseconds(10));
-            }
-
-            return condition();
+            // Verify invariant: The compilation is guaranteed to have a syntax tree for each document of the project (even if the contnet fails to load).
+            var compilation = await solution.State.GetCompilationAsync(doc.Project.State, CancellationToken.None).ConfigureAwait(false);
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            Assert.Equal("", syntaxTree.ToString());
         }
 
         [Fact]
@@ -1486,7 +1518,8 @@ public class C : A {
             // set max file length to 1 bytes
             var maxLength = 1;
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), ServiceLayer.Host);
-            workspace.Options = workspace.Options.WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength)));
 
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");

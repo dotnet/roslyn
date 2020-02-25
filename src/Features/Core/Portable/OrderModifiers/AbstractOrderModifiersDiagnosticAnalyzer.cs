@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -39,22 +41,13 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var syntaxTree = context.Tree;
-            var root = syntaxTree.GetRoot(cancellationToken);
-
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(_option);
+            var option = context.GetOption(_option);
             if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;
             }
 
+            var root = context.Tree.GetRoot(context.CancellationToken);
             Recurse(context, preferredOrder, option.Notification.Severity, root);
         }
 

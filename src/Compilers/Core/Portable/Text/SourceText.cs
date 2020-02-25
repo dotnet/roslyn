@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            if (!stream.CanRead || !stream.CanSeek)
+            if (!stream.CanRead)
             {
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(stream));
             }
@@ -188,10 +190,13 @@ namespace Microsoft.CodeAnalysis.Text
 
             encoding = encoding ?? s_utf8EncodingWithNoBOM;
 
-            // If the resulting string would end up on the large object heap, then use LargeEncodedText.
-            if (encoding.GetMaxCharCountOrThrowIfHuge(stream) >= LargeObjectHeapLimitInChars)
+            if (stream.CanSeek)
             {
-                return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
+                // If the resulting string would end up on the large object heap, then use LargeEncodedText.
+                if (encoding.GetMaxCharCountOrThrowIfHuge(stream) >= LargeObjectHeapLimitInChars)
+                {
+                    return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
+                }
             }
 
             string text = Decode(stream, encoding, out encoding);
@@ -278,14 +283,21 @@ namespace Microsoft.CodeAnalysis.Text
         {
             RoslynDebug.Assert(stream != null);
             RoslynDebug.Assert(encoding != null);
+            const int maxBufferSize = 4096;
+            int bufferSize = maxBufferSize;
 
-            stream.Seek(0, SeekOrigin.Begin);
-
-            int length = (int)stream.Length;
-            if (length == 0)
+            if (stream.CanSeek)
             {
-                actualEncoding = encoding;
-                return string.Empty;
+                stream.Seek(0, SeekOrigin.Begin);
+
+                int length = (int)stream.Length;
+                if (length == 0)
+                {
+                    actualEncoding = encoding;
+                    return string.Empty;
+                }
+
+                bufferSize = Math.Min(maxBufferSize, length);
             }
 
             // Note: We are setting the buffer size to 4KB instead of the default 1KB. That's
@@ -293,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Text
             // buffer allocations for small files, we may intentionally be using a FileStream
             // with a very small (1 byte) buffer. Using 4KB here matches the default buffer
             // size for FileStream and means we'll still be doing file I/O in 4KB chunks.
-            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: Math.Min(4096, length), leaveOpen: true))
+            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: bufferSize, leaveOpen: true))
             {
                 string text = reader.ReadToEnd();
                 actualEncoding = reader.CurrentEncoding;

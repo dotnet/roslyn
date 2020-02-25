@@ -99,7 +99,24 @@ The `Interlocked.CompareExchange` methods have special handling in flow analysis
 
 When simple pre- and post-condition attributes are applied to a property, and an allowed input state is assigned to the property, the property's state is updated to be an allowed output state. For instance an `[AllowNull] string` property can be assigned `null` and still return not-null values.
 
-The use of any member returning `[MaybeNull]T` for an unconstrained type parameter `T` produces a warning, just like `default(T)` (see below). For instance, `listT.FirstOrDefault();` would produce a warning.
+
+Enforcing nullability attributes within method bodies:
+- An input parameter marked with `[AllowNull]` is initialized with a maybe-null (or maybe-default) state.
+- An input parameter marked with `[DisallowNull]` is initialized with a not-null state.
+- A parameter marked with `[MaybeNull]` or `[MaybeNullWhen]` can be assigned a maybe-null value, without warning. Same for return values. Same for a nullable parameter marked with `[NotNullWhen]` (the attribute is ignored).
+- A parameter marked with `[NotNull]` will produce a warning when assigned a maybe-null value. Same for return values.
+- The state of a parameter marked with `[MaybeNullWhen]`/`[NotNullWhen]` is checked upon exiting the method instead.
+- A method marked with `[DoesNotReturn]` will produce a warning if it returns or exits normally.
+
+Note: we don't validate the internal consistency of auto-properties, so it is possible to misuse attributes on auto-props as on fields. For example: `[AllowNull, NotNull] public TOpen P { get; set; }`.
+
+Enforcing nullability attributes when overriding and implementing:
+In addition to checking the types in overrides/implementations are compatible with overridden/implemented members, we also check that the nullability attributes are compatible.
+- For input parameters (by-value and `in`), we check that the widest allowed value by the overridden/implemented parameter can be assigned to the overriding/implementing parameter.
+- For output parameters (`out` and return values), we check that the widest produced value by the overriding/implementing parameter can be assigned to the overridden/implemented parameter.
+- For `ref` parameters and return values, we check both.
+- We check that the post-condition contract `[NotNull]`/`[MaybeNull]` on input parameters is enforced by overriding/implementing members.
+- We check that overrides/implementations have the `[DoesNotReturn]` attribute if the overridden/implemented member has it.
 
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.
@@ -146,11 +163,11 @@ Nullablilty follows from assignment above. Assigning `?` to `!` is a W warning.
 ```c#
 string notNull = maybeNull; // assigns ?, warning
 ```
-Nullability of `var` declarations is determined from flow analysis.
+The nullability of `var` declarations is the nullable version of the inferred type.
 ```c#
 var s = maybeNull; // s is ?, no warning
 if (maybeNull == null) return;
-var t = maybeNull; // t is !
+var t = maybeNull; // t is ? too
 ```
 
 ### Suppression operator (`!`)
