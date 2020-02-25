@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public virtual void True(bool assert, string? message = null)
+        public virtual void True([DoesNotReturnIf(false)] bool assert, string? message = null)
         {
             if (message is null && Context.IsEmpty)
             {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public virtual void False(bool assert, string? message = null)
+        public virtual void False([DoesNotReturnIf(true)] bool assert, string? message = null)
         {
             if (message is null && Context.IsEmpty)
             {
@@ -63,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
+        [DoesNotReturn]
         public virtual void Fail(string? message = null)
         {
             if (message is null && Context.IsEmpty)
@@ -73,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             {
                 Assert.Fail(CreateMessage(message));
             }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
         public virtual void LanguageIsSupported(string language)
