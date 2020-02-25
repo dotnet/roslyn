@@ -282,8 +282,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 foreach (var packageToInstall in packagesToInstall)
                 {
                     PackageReaderBase packageReader;
-                    var installedPath = GetInstalledPath(localPathResolver, packageToInstall)
-                        ?? GetInstalledPath(globalPathResolver, packageToInstall);
+                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
                     if (installedPath is null)
                     {
                         var downloadResource = await availablePackages[packageToInstall].Source.GetResourceAsync<DownloadResource>(cancellationToken);
@@ -313,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Testing
                             packageExtractionContext,
                             cancellationToken);
 
-                        installedPath = localPathResolver.GetInstalledPath(packageToInstall);
+                        installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
                         packageReader = downloadResult.PackageReader;
                     }
                     else
@@ -364,8 +363,7 @@ namespace Microsoft.CodeAnalysis.Testing
                                 throw new InvalidOperationException($"Cannot resolve framework item '{item}' without a reference assembly package");
                             }
 
-                            var installedFrameworkPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
-                                ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
+                            var installedFrameworkPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
                             if (File.Exists(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")))
                             {
                                 resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")));
@@ -381,8 +379,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         throw new InvalidOperationException($"Cannot resolve assembly '{assembly}' without a reference assembly package");
                     }
 
-                    var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
-                        ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
+                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
                     if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
                     {
                         resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
@@ -398,8 +395,7 @@ namespace Microsoft.CodeAnalysis.Testing
                             throw new InvalidOperationException($"Cannot resolve language-specific assembly '{assembly}' without a reference assembly package");
                         }
 
-                        var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
-                            ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
+                        var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
                         if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
                         {
                             resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
@@ -410,8 +406,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 // Add the facade assemblies
                 if (ReferenceAssemblyPackage is object)
                 {
-                    var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
-                        ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
+                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
                     var facadesPath = Path.Combine(installedPath, ReferenceAssemblyPath, "Facades");
                     if (Directory.Exists(facadesPath))
                     {
@@ -424,8 +419,6 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     foreach (var assembly in FacadeAssemblies)
                     {
-                        installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
-                            ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
                         if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
                         {
                             resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == assembly);
@@ -436,15 +429,21 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 return resolvedAssemblies.Select(MetadataReferences.CreateReferenceFromFile).ToImmutableArray();
 
-                static string? GetInstalledPath(PackagePathResolver resolver, NuGet.Packaging.Core.PackageIdentity id)
+                static string? GetInstalledPath(PackagePathResolver localPathResolver, PackagePathResolver globalPathResolver, NuGet.Packaging.Core.PackageIdentity packageIdentity)
                 {
-                    try
+                    return GetInstalledPath(localPathResolver, packageIdentity)
+                        ?? GetInstalledPath(globalPathResolver, packageIdentity);
+
+                    static string? GetInstalledPath(PackagePathResolver resolver, NuGet.Packaging.Core.PackageIdentity id)
                     {
-                        return resolver.GetInstalledPath(id);
-                    }
-                    catch (PathTooLongException)
-                    {
-                        return null;
+                        try
+                        {
+                            return resolver.GetInstalledPath(id);
+                        }
+                        catch (PathTooLongException)
+                        {
+                            return null;
+                        }
                     }
                 }
             }
