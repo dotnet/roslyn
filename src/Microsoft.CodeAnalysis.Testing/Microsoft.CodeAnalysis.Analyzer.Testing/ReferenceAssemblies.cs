@@ -201,7 +201,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
             using (var cacheContext = new SourceCacheContext())
             {
+                var temporaryPackagesFolder = Path.Combine(Path.GetTempPath(), "test-packages");
+                Directory.CreateDirectory(temporaryPackagesFolder);
+
                 var repositories = sourceRepositoryProvider.GetRepositories().ToImmutableArray();
+                repositories = repositories.Insert(0, new SourceRepository(new PackageSource(temporaryPackagesFolder, "test-packages"), Repository.Provider.GetCoreV3(), FeedType.FileSystemPackagesConfig));
+                repositories = repositories.Insert(0, sourceRepositoryProvider.CreateRepository(new PackageSource(new Uri(SettingsUtility.GetGlobalPackagesFolder(settings)).AbsoluteUri, "global"), FeedType.FileSystemV3));
                 var dependencies = ImmutableDictionary.CreateBuilder<NuGet.Packaging.Core.PackageIdentity, SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
 
                 if (ReferenceAssemblyPackage is object)
@@ -247,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Enumerable.Empty<PackageReference>(),
                         preferredVersions,
                         availablePackages.Values,
-                        sourceRepositoryProvider.GetRepositories().Select(repository => repository.PackageSource),
+                        repositories.Select(repository => repository.PackageSource),
                         logger);
                     var resolver = new PackageResolver();
 
@@ -255,8 +260,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 var globalPathResolver = new PackagePathResolver(SettingsUtility.GetGlobalPackagesFolder(settings));
-                var temporaryPackagesFolder = Path.Combine(Path.GetTempPath(), "test-packages");
-                Directory.CreateDirectory(temporaryPackagesFolder);
                 var localPathResolver = new PackagePathResolver(temporaryPackagesFolder);
 #if NET452
                 var packageExtractionContext = new PackageExtractionContext(logger)
