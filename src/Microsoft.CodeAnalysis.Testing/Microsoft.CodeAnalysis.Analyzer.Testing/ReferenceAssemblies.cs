@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Testing
         private static ImmutableDictionary<NuGet.Packaging.Core.PackageIdentity, string> s_packageToInstalledLocation
             = ImmutableDictionary.Create<NuGet.Packaging.Core.PackageIdentity, string>(PackageIdentityComparer.Default);
 
+        private static ImmutableHashSet<NuGet.Packaging.Core.PackageIdentity> s_emptyPackages
+            = ImmutableHashSet.Create<NuGet.Packaging.Core.PackageIdentity>(PackageIdentityComparer.Default);
+
         private readonly Dictionary<string, ImmutableArray<MetadataReference>> _references
             = new Dictionary<string, ImmutableArray<MetadataReference>>();
 
@@ -284,6 +287,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 var resolvedAssemblies = new HashSet<string>();
                 foreach (var packageToInstall in packagesToInstall)
                 {
+                    if (s_emptyPackages.Contains(packageToInstall))
+                    {
+                        continue;
+                    }
+
                     PackageReaderBase packageReader;
                     var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
                     if (installedPath is null)
@@ -301,6 +309,7 @@ namespace Microsoft.CodeAnalysis.Testing
                             && !downloadResult.PackageReader.GetItems(PackagingConstants.Folders.Ref).Any())
                         {
                             // This package has no compile time impact
+                            ImmutableInterlocked.Update(ref s_emptyPackages, (emptyPackages, package) => emptyPackages.Add(package), packageToInstall);
                             continue;
                         }
 
