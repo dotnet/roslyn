@@ -436,7 +436,7 @@ class CustomAttribute : System.Attribute
 
         [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ChangeSignature_Formatting_PreserveCommentsAndIndentation_ManyComments()
+        public async Task ChangeSignature_Formatting_PreserveCommentsAndIndentation_MultipleComments()
         {
             var markup = @"
 class C
@@ -468,7 +468,7 @@ class C
 
         [WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ChangeSignature_Formatting_PreserveCommentsAndIndentation_ManyComments2()
+        public async Task ChangeSignature_Formatting_PreserveCommentsAndIndentation_MultipleComments2()
         {
             var markup = @"
 class C

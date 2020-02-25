@@ -360,5 +360,85 @@ End Class
 ]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function ChangeSignature_Formatting_PreserveCommentsAndIndentation_MultipleComments() As Task
+            Dim markup = <Text><![CDATA[
+Class Program
+    Sub M$$(a As Integer,     ' a
+          b As Integer, ' b
+          c As Integer) ' c
+        M(1, '     one
+          2, ' two
+          3) ' three
+    End Sub
+End Class
+]]></Text>.NormalizedValue()
+            Dim updatedSignature = {1, 2, 0}
+            Dim expectedUpdatedCode = <Text><![CDATA[
+Class Program
+    Sub M(b As Integer, ' b
+          c As Integer, ' c
+          a As Integer)     ' a
+        M(2, ' two
+          3, ' three
+          1) '     one
+    End Sub
+End Class
+]]></Text>.NormalizedValue()
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function ChangeSignature_Formatting_PreserveCommentsAndIndentation_RemoveParam() As Task
+            Dim markup = <Text><![CDATA[
+Class Program
+    Sub M$$(a As Integer, ' a
+          b As Integer, ' b
+          c As Integer) ' c
+        M(1, '     one
+          2, ' two
+          3) ' three
+    End Sub
+End Class
+]]></Text>.NormalizedValue()
+            Dim updatedSignature = {1, 2}
+            Dim expectedUpdatedCode = <Text><![CDATA[
+Class Program
+    Sub M(b As Integer, ' b
+          c As Integer) ' c
+        M(2, ' two
+          3) ' three
+    End Sub
+End Class
+]]></Text>.NormalizedValue()
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function ChangeSignature_Formatting_PreserveCommentsAndIndentation_MixedFormatting() As Task
+            Dim markup = <Text><![CDATA[
+Class Program
+    Sub M$$(a As Integer, b As Integer, ' b
+          c As Integer) ' c
+        M(1, 2, ' two
+          3) ' three
+    End Sub
+End Class
+]]></Text>.NormalizedValue()
+            Dim updatedSignature = {2, 0, 1}
+            Dim expectedUpdatedCode = <Text><![CDATA[
+Class Program
+    Sub M(c As Integer, ' c
+          a As Integer,
+          b As Integer) ' b
+        M(3, ' three
+          1,
+          2) ' two
+    End Sub
+End Class
+]]></Text>.NormalizedValue()
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
+        End Function
     End Class
 End Namespace
