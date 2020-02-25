@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' global pool which may be highly contested on high-proc machines.
     ''' <para/>
     ''' TemporaryLookupResults instances can be created effectively as high up in the binding stack
-    ''' as is convenient.  Ideally, they are  created at any public entry-point into the binding
+    ''' as is convenient.  Ideally, they are created at any public entry-point into the binding
     ''' process and passed along to any code that needs them.
     ''' </summary>
     Friend Structure TemporaryLookupResults
