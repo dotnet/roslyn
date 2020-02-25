@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
                            sourceText As SourceText, root As SyntaxNode,
                            tabSize As Integer, useTabs As Boolean,
                            trivia As SyntaxTrivia, indentStyle As IndentStyle,
+                           hasSpaceAfterComment As Boolean,
                            cancellationToken As CancellationToken)
                 _document = document
                 _cursorPosition = cursorPosition
@@ -26,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
                 _root = root
                 _tabSize = tabSize
                 _useTabs = useTabs
+                _hasSpaceAfterComment = hasSpaceAfterComment
                 _cancellationToken = cancellationToken
                 _trivia = trivia
                 _indentStyle = indentStyle
@@ -35,12 +37,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
                                       root As SyntaxNode, sourceText As SourceText,
                                       useTabs As Boolean, tabSize As Integer,
                                       indentStyle As IndentStyle,
-                                      cancellationToken As CancellationToken) As CommentSplitter
+                                      hasSpaceAfterComment As Boolean,
+                                      CancellationToken As CancellationToken) As CommentSplitter
                 Dim trivia = root.FindTrivia(position)
                 If trivia.IsKind(SyntaxKind.CommentTrivia) Then
                     Return New CommentSplitter(document, position, sourceText,
                                                root, tabSize, useTabs, trivia,
-                                               indentStyle, cancellationToken)
+                                               indentStyle, hasSpaceAfterComment, CancellationToken)
                 Else
                     Return Nothing
                 End If
@@ -59,7 +62,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
                     triviaList.Add(SyntaxFactory.LineContinuationTrivia("_"))
                 End If
 
-                triviaList.Add(SyntaxFactory.CommentTrivia(indentString + CommentCharacter + suffix))
+                If _hasSpaceAfterComment Then
+                    triviaList.Add(SyntaxFactory.CommentTrivia(indentString + CommentCharacter + " " + suffix))
+                Else
+                    triviaList.Add(SyntaxFactory.CommentTrivia(indentString + CommentCharacter + suffix))
+                End If
 
                 Return SyntaxFactory.TriviaList(triviaList)
             End Function

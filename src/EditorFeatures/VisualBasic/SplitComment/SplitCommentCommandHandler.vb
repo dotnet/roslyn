@@ -29,7 +29,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
 
         Protected Overrides Function LineContainsComment(line As ITextSnapshotLine, caretPosition As Integer) As Boolean
             Dim snapshot = line.Snapshot
-            Return snapshot.GetText.Contains(CommentSplitter.CommentCharacter)
+            Dim text = line.Snapshot.GetText()
+
+            If text.Contains(CommentSplitter.CommentCharacter + " ") Then
+                _hasSpaceAfterComment = True
+                Return True
+            Else
+                Return text.Contains(CommentSplitter.CommentCharacter)
+            End If
         End Function
 
         Protected Overrides Function SplitComment(document As Document, options As DocumentOptionSet, position As Integer, cancellationToken As CancellationToken) As Integer?

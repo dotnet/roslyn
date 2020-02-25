@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         protected bool _useTabs;
         protected CancellationToken _cancellationToken;
         protected SyntaxTrivia _trivia;
+        protected bool _hasSpaceAfterComment;
         protected IndentStyle _indentStyle;
 
         protected SyntaxNode GetNodeToReplace() => _trivia.SyntaxTree.GetRoot();

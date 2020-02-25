@@ -32,7 +32,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
         protected override bool LineContainsComment(ITextSnapshotLine line, int caretPosition)
         {
             var snapshot = line.Snapshot;
-            return snapshot.GetText().Contains(CommentSplitter.CommentCharacter);
+            var text = snapshot.GetText();
+
+            if (text.Contains(CommentSplitter.CommentCharacter + " "))
+            {
+                _hasSpaceAfterComment = true;
+                return true;
+            }
+            else
+            {
+                return text.Contains(CommentSplitter.CommentCharacter);
+            }
         }
 
         protected override int? SplitComment(
@@ -47,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 
             var splitter = CommentSplitter.Create(
                 document, position, root, sourceText,
-                useTabs, tabSize, indentStyle, cancellationToken);
+                useTabs, tabSize, indentStyle, _hasSpaceAfterComment, cancellationToken);
 
             if (splitter == null)
             {

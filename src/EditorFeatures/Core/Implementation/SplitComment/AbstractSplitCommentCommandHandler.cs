@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
     {
         protected ITextUndoHistoryRegistry _undoHistoryRegistry;
         protected IEditorOperationsFactoryService _editorOperationsFactoryService;
+        protected bool _hasSpaceAfterComment;
 
         protected abstract bool LineContainsComment(ITextSnapshotLine line, int caretPosition);
         protected abstract int? SplitComment(Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken);

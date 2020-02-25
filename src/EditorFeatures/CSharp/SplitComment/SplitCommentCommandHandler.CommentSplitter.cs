@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                Document document, int position,
                SyntaxNode root, SourceText sourceText,
                bool useTabs, int tabSize, SyntaxTrivia trivia,
-               IndentStyle indentStyle, CancellationToken cancellationToken)
+               IndentStyle indentStyle, 
+               bool hasSpaceAfterComment, CancellationToken cancellationToken)
             {
                 _document = document;
                 _cursorPosition = position;
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                 _tabSize = tabSize;
                 _trivia = trivia;
                 _indentStyle = indentStyle;
+                _hasSpaceAfterComment = hasSpaceAfterComment;
                 _cancellationToken = cancellationToken;
             }
 
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText,
                 bool useTabs, int tabSize, IndentStyle indentStyle,
+                bool hasSpaceAfterComment,
                 CancellationToken cancellationToken)
             {
                 var trivia = root.FindTrivia(position);
@@ -46,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                     ? new CommentSplitter(
                         document, position, root,
                         sourceText, useTabs, tabSize,
-                        trivia, indentStyle, cancellationToken)
+                        trivia, indentStyle, 
+                        hasSpaceAfterComment, cancellationToken)
                     : null;
             }
 
@@ -57,7 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 
                 var firstTrivia = SyntaxFactory.Comment(prefix);
                 var secondTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed;
-                var thirdTrivia = SyntaxFactory.Comment(indentString + CommentCharacter + suffix);
+                var thirdTrivia = _hasSpaceAfterComment ?
+                    SyntaxFactory.Comment(indentString + CommentCharacter + " " + suffix) :
+                    SyntaxFactory.Comment(indentString + CommentCharacter + suffix);
 
                 return SyntaxFactory.TriviaList(firstTrivia, secondTrivia, thirdTrivia);
             }
