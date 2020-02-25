@@ -1296,8 +1296,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Do not call for a local function.
+        /// </summary>
         protected virtual void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
         {
+            Debug.Assert(!(method.OriginalDefinition is LocalFunctionSymbol));
             VisitArgumentsBeforeCall(arguments, refKindsOpt);
             VisitArgumentsAfterCall(arguments, refKindsOpt, method);
         }

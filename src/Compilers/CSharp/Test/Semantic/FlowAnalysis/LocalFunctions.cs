@@ -1594,5 +1594,25 @@ public class C
     }
 }").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void UseOfCapturedVariableAssignedInArgument()
+        {
+            CreateCompilation(@"
+public class C
+{
+    void M()
+    {
+        string s0;
+        local1(s0 = ""hello"", out s0);
+    
+        void local1(string s1, out string s2)
+        {
+               s0.ToString();
+               s2 = ""bye"";
+        }
+    }
+}").VerifyDiagnostics();
+        }
     }
 }
