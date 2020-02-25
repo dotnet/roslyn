@@ -113,5 +113,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool IsUnmanagedType => throw new NotImplementedException();
 
         public bool IsRefLikeType => Modifiers.IsRef;
+
+        public bool IsNativeInteger => false;
+
+        public INamedTypeSymbol NativeIntegerUnderlyingType => null;
     }
 }

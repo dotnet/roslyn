@@ -892,9 +892,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     return typeRef;
                 }
-                else if (namedTypeSymbol.IsNativeInt)
+                else if (namedTypeSymbol.NativeIntegerUnderlyingType is NamedTypeSymbol underlyingType)
                 {
-                    return namedTypeSymbol.AsNativeInt(asNativeInt: false);
+                    return underlyingType;
                 }
             }
 
@@ -1524,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            if ((type as NamedTypeSymbol)?.IsNativeInt == true)
+            if (type.IsNativeIntegerType())
             {
                 return SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor, ImmutableArray<TypedConstant>.Empty);
             }

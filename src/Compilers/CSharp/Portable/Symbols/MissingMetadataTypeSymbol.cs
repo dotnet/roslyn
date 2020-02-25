@@ -326,7 +326,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Hash.Combine(MetadataName, Hash.Combine(_containingModule, Hash.Combine(_namespaceName, arity)));
             }
 
-            internal override NamedTypeSymbol AsNativeInt(bool asNativeInt)
+            internal override NamedTypeSymbol AsNativeInteger() => AsNativeInteger(asNativeInt: true);
+
+            private TopLevel AsNativeInteger(bool asNativeInt)
             {
                 Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
@@ -340,7 +342,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return other;
             }
 
-            internal override bool IsNativeInt => _isNativeInt;
+            internal override bool IsNativeInteger => _isNativeInt;
+
+            internal override NamedTypeSymbol? NativeIntegerUnderlyingType => _isNativeInt ? AsNativeInteger(asNativeInt: false) : null;
 
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
             {

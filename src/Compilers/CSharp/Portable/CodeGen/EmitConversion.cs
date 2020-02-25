@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
                 case Cci.PrimitiveTypeCode.IntPtr:
                 case Cci.PrimitiveTypeCode.UIntPtr:
-                    return ((NamedTypeSymbol)type).IsNativeInt;
+                    return type.IsNativeIntegerType();
                 default:
                     return false;
             }

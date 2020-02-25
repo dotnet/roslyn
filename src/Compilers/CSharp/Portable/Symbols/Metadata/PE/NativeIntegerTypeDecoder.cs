@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 case SpecialType.System_IntPtr:
                 case SpecialType.System_UIntPtr:
-                    return type.AsNativeInt(true);
+                    return type.AsNativeInteger();
                 default:
                     throw new ArgumentException();
             }

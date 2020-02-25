@@ -1511,18 +1511,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // PROTOTYPE: Should be abstract.
         /// <summary>
-        /// Returns an instance of a symbol that has <see cref="IsNativeInt"/> set to <paramref name="asNativeInt"/>
-        /// if the underlying symbol represents System.IntPtr or System.UIntPtr.
+        /// Returns an instance of a symbol that represents an native integer
+        /// if this underlying symbol represents System.IntPtr or System.UIntPtr.
         /// For other symbols, throws <see cref="System.InvalidOperationException"/>.
         /// </summary>
-        internal virtual NamedTypeSymbol AsNativeInt(bool asNativeInt) => throw ExceptionUtilities.Unreachable;
+        internal virtual NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 
         // PROTOTYPE: Should be abstract.
         /// <summary>
-        /// Returns true if the symbol represents a native integer
-        /// (corresponding to the language tokens nint or nuint).
+        /// True if the type represents a native integer. In C#, the types represented
+        /// by language tokens 'nint' and 'nuint'.
         /// </summary>
-        internal virtual bool IsNativeInt => false;
+        internal virtual bool IsNativeInteger => false;
+
+        // PROTOTYPE: Should be abstract.
+        /// <summary>
+        /// If this is a native integer, returns the symbol for the underlying type,
+        /// either <see cref="System.IntPtr"/> or  <see cref="System.UIntPtr"/>.
+        /// Otherwise, returns null.
+        /// </summary>
+        internal virtual NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
         protected override ISymbol CreateISymbol()
         {

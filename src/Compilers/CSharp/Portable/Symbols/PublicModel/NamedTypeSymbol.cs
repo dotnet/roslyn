@@ -187,6 +187,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool INamedTypeSymbol.IsSerializable => UnderlyingNamedTypeSymbol.IsSerializable;
 
+        bool INamedTypeSymbol.IsNativeInteger => UnderlyingNamedTypeSymbol.IsNativeIntegerType();
+
+        INamedTypeSymbol INamedTypeSymbol.NativeIntegerUnderlyingType => UnderlyingNamedTypeSymbol.NativeIntegerUnderlyingType.GetPublicSymbol();
+
         #region ISymbol Members
 
         protected sealed override void Accept(SymbolVisitor visitor)

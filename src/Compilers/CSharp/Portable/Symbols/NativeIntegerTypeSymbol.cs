@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal NativeIntegerTypeSymbol(NamedTypeSymbol underlying) : base(underlying, tupleData: null)
         {
             Debug.Assert(underlying.TupleData is null);
-            Debug.Assert(!underlying.IsNativeInt);
+            Debug.Assert(!underlying.IsNativeInteger);
             Debug.Assert(underlying.SpecialType == SpecialType.System_IntPtr || underlying.SpecialType == SpecialType.System_UIntPtr);
             Debug.Assert(this.Equals(underlying));
             Debug.Assert(underlying.Equals(this));
@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
 
-        internal override bool IsNativeInt => true;
+        internal override bool IsNativeInteger => true;
 
-        internal override NamedTypeSymbol AsNativeInt(bool asNativeInt) => asNativeInt ? this : _underlyingType;
+        internal override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
 
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null) => _underlyingType.Equals(t2, comparison, isValueTypeOverrideOpt);
 

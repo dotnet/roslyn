@@ -3151,6 +3151,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull(nameof(elementType)), elementType.NullableAnnotation.ToInternalAnnotation()).GetPublicSymbol();
         }
 
+        protected override INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return CreateNativeIntegerTypeSymbol(signed).GetPublicSymbol();
+        }
+
+        new internal NamedTypeSymbol CreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return GetSpecialType(signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr).AsNativeInteger();
+        }
+
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string?> elementNames,

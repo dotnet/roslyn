@@ -937,6 +937,16 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
 
+        /// <summary>
+        /// Returns a new INamedTypeSymbol representing a native integer.
+        /// </summary>
+        public INamedTypeSymbol CreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return CommonCreateNativeIntegerTypeSymbol(signed);
+        }
+
+        protected abstract INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed);
+
         // PERF: ETW Traces show that analyzers may use this method frequently, often requesting
         // the same symbol over and over again. XUnit analyzers, in particular, were consuming almost
         // 1% of CPU time when building Roslyn itself. This is an extremely simple cache that evicts on

@@ -2325,13 +2325,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            internal override NamedTypeSymbol AsNativeInt(bool asNativeInt)
+            internal override NamedTypeSymbol AsNativeInteger()
             {
                 Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
-                return asNativeInt ?
-                    ContainingAssembly.GetNativeIntegerType(this) :
-                    this;
+                return ContainingAssembly.GetNativeIntegerType(this);
             }
 
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
