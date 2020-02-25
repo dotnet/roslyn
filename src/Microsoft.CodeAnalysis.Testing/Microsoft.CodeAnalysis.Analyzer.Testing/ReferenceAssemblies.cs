@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private static readonly FileSystemSemaphore Semaphore = new FileSystemSemaphore(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
 
+        private static ImmutableDictionary<NuGet.Packaging.Core.PackageIdentity, string> s_packageToInstalledLocation
+            = ImmutableDictionary.Create<NuGet.Packaging.Core.PackageIdentity, string>(PackageIdentityComparer.Default);
+
         private readonly Dictionary<string, ImmutableArray<MetadataReference>> _references
             = new Dictionary<string, ImmutableArray<MetadataReference>>();
 
@@ -433,8 +436,18 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 static string? GetInstalledPath(PackagePathResolver localPathResolver, PackagePathResolver globalPathResolver, NuGet.Packaging.Core.PackageIdentity packageIdentity)
                 {
-                    return GetInstalledPath(localPathResolver, packageIdentity)
-                        ?? GetInstalledPath(globalPathResolver, packageIdentity);
+                    string? installedPath = s_packageToInstalledLocation.GetValueOrDefault(packageIdentity);
+                    if (installedPath is null)
+                    {
+                        installedPath = GetInstalledPath(localPathResolver, packageIdentity)
+                            ?? GetInstalledPath(globalPathResolver, packageIdentity);
+                        if (installedPath is object)
+                        {
+                            installedPath = ImmutableInterlocked.GetOrAdd(ref s_packageToInstalledLocation, packageIdentity, installedPath);
+                        }
+                    }
+
+                    return installedPath;
 
                     static string? GetInstalledPath(PackagePathResolver resolver, NuGet.Packaging.Core.PackageIdentity id)
                     {
