@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
         }
 
-        private async Task<Document> ApplyFixAsync(Document document, SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
+        private static async Task<Document> ApplyFixAsync(Document document, SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
         {
             var castExpression = targetNode.Cast(conversionType);
             var newRoot = currentRoot.ReplaceNode(targetNode, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// True, if the target node has exactly one conversion type, and it is assigned to <paramref name="targetNodeConversionType"/>
         /// False, if the target node has no conversion type or multiple conversion types. Multiple conversion types are assigned to <paramref name="potentialConversionTypes"/>
         /// </returns>
-        private bool GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken,
+        private static bool GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken,
             out ITypeSymbol? targetNodeType, out ITypeSymbol? targetNodeConversionType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
         {
             targetNodeType = null;
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// True, if arguments and parameters match perfectly.
         /// False, otherwise.
         /// </returns>
-        private bool IsArgumentListAndParameterListPerfactMatch(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
+        private static bool IsArgumentListAndParameterListPerfactMatch(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
             ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument, CancellationToken cancellationToken, out int targetParamIndex)
         {
             targetParamIndex = -1; // return invalid index if it is not a perfact match
@@ -289,10 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return Array.TrueForAll(matchedTypes, (item => item));
         }
 
-        
 
-
-        private SyntaxNode? TryGetTargetNode(SyntaxNode root, TextSpan span)
+        private static SyntaxNode? TryGetTargetNode(SyntaxNode root, TextSpan span)
         {
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
 
@@ -300,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return node;
         }
 
-        private bool TryGetNode(SyntaxNode root, TextSpan span, SyntaxKind kind, SyntaxNode target, out SyntaxNode? node)
+        private static bool TryGetNode(SyntaxNode root, TextSpan span, SyntaxKind kind, SyntaxNode target, out SyntaxNode? node)
         {
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
 
