@@ -39,10 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         private const string CS1503 = nameof(CS1503);
         private const int MaximumConversionOptions = 3;
 
-        public AddExplicitCastCodeFixProvider()
-        {
-        }
-
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
@@ -57,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            if (root != null && syntaxFacts != null && semanticModel != null &&
-                TryGetTargetNode(root, diagnostic.Location.SourceSpan) is ExpressionSyntax targetNode)
+            if (TryGetTargetNode(root, diagnostic.Location.SourceSpan) is ExpressionSyntax targetNode)
             {
                 var exactSolution = GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var conversionType, out var potentialConvTypes);
                 if (exactSolution)
@@ -75,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     {
                         var convType = potentialConvTypes[i];
                         actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToDisplayString()),
-                            c => FixIt(context.Document, root, targetNode, convType)));
+                            c => ApplyFixAsync(context.Document, root, targetNode, convType)));
                     }
 
                     if (potentialConvTypes.Length > MaximumConversionOptions)
@@ -89,13 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                     context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
                         CSharpFeaturesResources.Add_explicit_cast,
-                        actions.ToImmutableArray(), false),
+                        actions.ToImmutableAndFree(), false),
                         context.Diagnostics);
                 }
             }
         }
 
-        private async Task<Document> FixIt(Document document, SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
+        private async Task<Document> ApplyFixAsync(Document document, SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
         {
             var castExpression = targetNode.Cast(conversionType);
             var newRoot = currentRoot.ReplaceNode(targetNode, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
@@ -294,7 +289,65 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return Array.TrueForAll(matchedTypes, (item => item));
         }
 
-        class InheritanceDistanceComparer : IComparer<ITypeSymbol>
+        
+
+
+        private SyntaxNode? TryGetTargetNode(SyntaxNode root, TextSpan span)
+        {
+            var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
+
+            var node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root);
+            return node;
+        }
+
+        private bool TryGetNode(SyntaxNode root, TextSpan span, SyntaxKind kind, SyntaxNode target, out SyntaxNode? node)
+        {
+            var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
+
+            node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root && n != target && n.IsKind(kind));
+            return node != null;
+        }
+
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var targetNodes = diagnostics.SelectAsArray(
+                d => TryGetTargetNode(root, d.Location.SourceSpan) is ExpressionSyntax node ? node : null);
+
+            await editor.ApplyExpressionLevelSemanticEditsAsync(
+                document, targetNodes,
+                (semanticModel, targetNode) => true,
+                (semanticModel, currentRoot, targetNode) =>
+                {
+                    if (GetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var conversionType, out var potentialConvTypes) &&
+                    nodeType != null && conversionType != null && !nodeType.Equals(conversionType) &&
+                        targetNode is ExpressionSyntax expression)
+                    {
+                        var castExpression = expression.Cast(conversionType);
+
+                        // TODO: castExpression.WithAdditionalAnnotations(Simplifier.Annotation) 
+                        // - the Simplifier doesn't remove the redundant cast from the expression
+                        // Issue link: https://github.com/dotnet/roslyn/issues/41500
+                        return currentRoot.ReplaceNode(expression, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
+                    }
+
+                    return currentRoot;
+                },
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, equivalenceKey: title)
+            {
+            }
+        }
+
+        private sealed class InheritanceDistanceComparer : IComparer<ITypeSymbol>
         {
             private ITypeSymbol baseType;
             private SemanticModel semanticModel;
@@ -331,65 +384,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             {
                 this.semanticModel = semanticModel;
                 this.baseType = baseType;
-            }
-        }
-
-
-        protected SyntaxNode? TryGetTargetNode(SyntaxNode root, TextSpan span)
-        {
-            var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
-
-            var node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root);
-            return node;
-        }
-
-        protected bool TryGetNode(SyntaxNode root, TextSpan span, SyntaxKind kind, SyntaxNode target, out SyntaxNode? node)
-        {
-            var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
-
-            node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root && n != target && n.IsKind(kind));
-            return node != null;
-        }
-
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root == null)
-            {
-                return;
-            }
-            var targetNodes = diagnostics.SelectAsArray(
-                d => TryGetTargetNode(root, d.Location.SourceSpan) is ExpressionSyntax node ? node : null);
-
-            await editor.ApplyExpressionLevelSemanticEditsAsync(
-                document, targetNodes,
-                (semanticModel, targetNode) => true,
-                (semanticModel, currentRoot, targetNode) =>
-                {
-                    if (GetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var conversionType, out var potentialConvTypes) &&
-                    nodeType != null && conversionType != null && !nodeType.Equals(conversionType) &&
-                        targetNode is ExpressionSyntax expression)
-                    {
-                        var castExpression = expression.Cast(conversionType);
-
-                        // TODO: castExpression.WithAdditionalAnnotations(Simplifier.Annotation) 
-                        // - the Simplifier doesn't remove the redundant cast from the expression
-                        // Issue link: https://github.com/dotnet/roslyn/issues/41500
-                        return currentRoot.ReplaceNode(expression, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
-                    }
-
-                    return currentRoot;
-                },
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
             }
         }
     }
