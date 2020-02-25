@@ -43,10 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         {
         }
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get => ImmutableArray.Create(CS0266, CS1503);
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
@@ -78,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     {
                         var convType = potentialConvTypes[i];
                         actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToDisplayString()),
-                            c => FixIt(context.Document, root, targetNode, convType, c)));
+                            c => FixIt(context.Document, root, targetNode, convType)));
                     }
 
                     if (potentialConvTypes.Length > 3)
@@ -98,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
         }
 
-        private async Task<Document> FixIt(Document document, SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType, CancellationToken cancellationToken)
+        private async Task<Document> FixIt(Document document, SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
         {
             var castExpression = targetNode.Cast(conversionType);
             var newRoot = currentRoot.ReplaceNode(targetNode, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
@@ -117,17 +114,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// <param name="cancellationToken"></param>
         /// <param name="targetNodeType">Output the type of <paramref name="targetNode"/>.</param>
         /// <param name="targetNodeConversionType">Output the exact conversion type that <paramref name="targetNode"/> is going to be cast.</param>
-        /// <param name="potentialConvTypes">>Output the potential conversions types that <paramref name="targetNode"/> can be cast</param>
+        /// <param name="potentialConversionTypes">>Output the potential conversions types that <paramref name="targetNode"/> can be cast</param>
         /// <returns>
         /// True, if the target node has exactly one conversion type, and it is assigned to <paramref name="targetNodeConversionType"/>
-        /// False, if the target node has no conversion type or multiple conversion types. Multiple conversion types are assigned to <paramref name="potentialConvTypes"/>
+        /// False, if the target node has no conversion type or multiple conversion types. Multiple conversion types are assigned to <paramref name="potentialConversionTypes"/>
         /// </returns>
         private bool GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken,
-            out ITypeSymbol? targetNodeType, out ITypeSymbol? targetNodeConversionType, out ImmutableArray<ITypeSymbol> potentialConvTypes)
+            out ITypeSymbol? targetNodeType, out ITypeSymbol? targetNodeConversionType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
         {
             targetNodeType = null;
             targetNodeConversionType = null;
-            potentialConvTypes = ImmutableArray<ITypeSymbol>.Empty;
+            potentialConversionTypes = ImmutableArray<ITypeSymbol>.Empty;
             if (targetNode == null)
             {
                 return false;
@@ -150,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidateSymbols = symbolInfo.CandidateSymbols;
 
-                var potentialConversionTypes = new List<ITypeSymbol> { };
+                var potentialConvTypes = new List<ITypeSymbol> { };
                 foreach (var candidcateSymbol in candidateSymbols)
                 {
                     var methodSymbol = candidcateSymbol as IMethodSymbol;
@@ -183,20 +180,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                             argumentConversionType = arrayType.ElementType;
                         }
 
-                        potentialConversionTypes.Add(argumentConversionType);
+                        potentialConvTypes.Add(argumentConversionType);
                     }
                 }
 
                 // Sort the potential conversion types by inheritance distance
                 var comparer = new InheritanceDistanceComparer(semanticModel, targetNodeType);
-                potentialConversionTypes.Sort(comparer);
-                potentialConvTypes = potentialConversionTypes.Distinct().ToImmutableArray(); // clear up duplicate types
-                if (potentialConvTypes.Length != 1)
+                potentialConvTypes.Sort(comparer);
+                potentialConversionTypes = potentialConvTypes.Distinct().ToImmutableArray(); // clear up duplicate types
+                if (potentialConversionTypes.Length != 1)
                 {
                     return false;
                 }
 
-                targetNodeConversionType = potentialConvTypes[0];
+                targetNodeConversionType = potentialConversionTypes[0];
             }
 
             if (targetNodeConversionType == null)
