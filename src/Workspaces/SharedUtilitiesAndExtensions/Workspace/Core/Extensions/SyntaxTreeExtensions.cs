@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (trivia.HasStructure)
                 {
-                    var token = trivia.GetStructure().GetLastToken(includeZeroWidth: true);
+                    var token = trivia.GetStructure()!.GetLastToken(includeZeroWidth: true);
                     if (token.Span.End == position)
                     {
                         return token;
