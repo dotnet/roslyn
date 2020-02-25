@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.FindSymbols
-Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -463,7 +462,7 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
                     ' Update separator trivia if we're not at the last node
                     newSeparators(newIndex) = TransferTrivia(arguments, closeParenToken, originalIndex, newIndex, False)
                 Else
-                    ' If we're at the last node, we instead append the original separator trivia to the close paren toke
+                    ' If we're at the last node, we instead append the original separator trivia to the close paren token
                     closeParenToken = TransferTrivia(arguments, closeParenToken, originalIndex, newIndex, True)
                 End If
             Next
@@ -489,7 +488,7 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
                     ' Update separator trivia if we're not at the last node
                     newSeparators(newIndex) = TransferTrivia(list, closeParenToken, originalIndex, newIndex, False)
                 Else
-                    ' If we're at the last node, we instead append the original separator trivia to the close paren toke
+                    ' If we're at the last node, we instead append the original separator trivia to the close paren token
                     closeParenToken = TransferTrivia(list, closeParenToken, originalIndex, newIndex, True)
                 End If
             Next

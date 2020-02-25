@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 var objectCreation = matchingNode as ObjectCreationExpressionSyntax;
 
-                if (token.Parent.AncestorsAndSelf().Any<SyntaxNode>(a => a == objectCreation.Type))
+                if (token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
                 {
                     var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
                     if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return null;
             }
 
-            return node.AncestorsAndSelf().Any<SyntaxNode>(n => n == nodeContainingOriginal) ? matchingNode : null;
+            return node.AncestorsAndSelf().Any(n => n == nodeContainingOriginal) ? matchingNode : null;
         }
 
         private SyntaxNode GetNodeContainingTargetNode(SyntaxNode matchingNode)
@@ -267,8 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Update declarations parameter lists.
-            // We move the trailing trivia on the open param token since the trailing trivia should instead be the leading trivia of the original first node,
-            // which may have switched positions.
+            // Since nodes are being reordered and we want to preserve existing comments, we must move the trailing trivia on the open param token to the leading trivia of the original first node.
 
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax method))
             {
@@ -330,8 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     // No parameters. Change to a parenthesized lambda expression
 
                     var emptyParameterList = SyntaxFactory.ParameterList()
-                        .WithLeadingTrivia<ParameterListSyntax>(lambda.Parameter.GetLeadingTrivia())
-                        .WithTrailingTrivia<ParameterListSyntax>(lambda.Parameter.GetTrailingTrivia());
+                        .WithLeadingTrivia(lambda.Parameter.GetLeadingTrivia())
+                        .WithTrailingTrivia(lambda.Parameter.GetTrailingTrivia());
 
                     return SyntaxFactory.ParenthesizedLambdaExpression(lambda.AsyncKeyword, emptyParameterList, lambda.ArrowToken, lambda.Body);
                 }
@@ -755,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     // Found a param tag, so insert the next one from the reordered list
                     if (index < permutedParamNodes.Count)
                     {
-                        updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia<XmlElementSyntax>(content.GetLeadingTrivia()).WithTrailingTrivia<XmlElementSyntax>(content.GetTrailingTrivia()));
+                        updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia(content.GetLeadingTrivia()).WithTrailingTrivia<XmlElementSyntax>(content.GetTrailingTrivia()));
                         index++;
                     }
                     else
@@ -766,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 var newDocComments = SyntaxFactory.DocumentationCommentTrivia(structuredTrivia.Kind(), SyntaxFactory.List(updatedNodeList.AsEnumerable()));
                 newDocComments = newDocComments.WithEndOfComment(structuredTrivia.EndOfComment);
-                newDocComments = newDocComments.WithLeadingTrivia<DocumentationCommentTriviaSyntax>(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia<DocumentationCommentTriviaSyntax>(structuredTrivia.GetTrailingTrivia());
+                newDocComments = newDocComments.WithLeadingTrivia(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia<DocumentationCommentTriviaSyntax>(structuredTrivia.GetTrailingTrivia());
                 var newTrivia = SyntaxFactory.Trivia(newDocComments);
 
                 updatedLeadingTrivia.Add(newTrivia);
@@ -786,11 +785,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             var nodes = root.DescendantNodes().ToImmutableArray();
             var convertedMethodGroups = nodes
-                .WhereAsArray<SyntaxNode>(
+                .WhereAsArray(
                     n =>
                         {
                             if (!n.IsKind(SyntaxKind.IdentifierName) ||
-                                !semanticModel.GetMemberGroup(n, cancellationToken).Any<ISymbol>())
+                                !semanticModel.GetMemberGroup(n, cancellationToken).Any())
                             {
                                 return false;
                             }
@@ -809,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                             return Equals(convertedType, symbol.ContainingType);
                         })
-                .SelectAsArray<SyntaxNode, ISymbol>(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
+                .SelectAsArray(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
 
             return convertedMethodGroups.SelectAsArray(symbolAndProjectId.WithSymbol);
         }

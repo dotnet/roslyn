@@ -361,6 +361,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
+        <WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ChangeSignature_Formatting_PreserveCommentsAndIndentation_MultipleComments() As Task
             Dim markup = <Text><![CDATA[
@@ -389,6 +390,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
+        <WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ChangeSignature_Formatting_PreserveCommentsAndIndentation_RemoveParam() As Task
             Dim markup = <Text><![CDATA[
@@ -415,6 +417,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
+        <WorkItem(33801, "https://github.com/dotnet/roslyn/issues/33801")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ChangeSignature_Formatting_PreserveCommentsAndIndentation_MixedFormatting() As Task
             Dim markup = <Text><![CDATA[
