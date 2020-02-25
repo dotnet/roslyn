@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Inherits AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer(Of MultiLineIfBlockSyntax)
 
         Public Sub New()
-            MyBase.New(New LocalizableResourceString(NameOf(VBFeaturesResources.If_statement_can_be_simplified), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources)))
+            MyBase.New(New LocalizableResourceString(NameOf(VBFeaturesResources.If_statement_can_be_simplified), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources)))
         End Sub
 
         Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService

@@ -82,11 +82,6 @@
         <target state="translated">Calcolo dei dipendenti...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Classifications">
-        <source>Classifications</source>
-        <target state="translated">Classificazioni</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
         <source>Code analysis completed for '{0}'.</source>
         <target state="translated">Analisi codice completata per '{0}'.</target>
@@ -117,9 +112,24 @@
         <target state="translated">Documento corrente</target>
         <note />
       </trans-unit>
+      <trans-unit id="Editor_Color_Scheme">
+        <source>Editor Color Scheme</source>
+        <target state="new">Editor Color Scheme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
+        <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
+        <target state="new">Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">L'elemento non è valido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enhanced">
+        <source>Enhanced</source>
+        <target state="new">Enhanced</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_solution">
@@ -527,6 +537,11 @@
         <target state="translated">Mostra l'elenco di completamento</target>
         <note />
       </trans-unit>
+      <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
+        <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
+        <target state="new">Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Spazio dei nomi di destinazione:</target>
@@ -557,11 +572,6 @@
         <target state="translated">Usa la modalità di compatibilità di .editorconfig (richiede il riavvio)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
-        <source>Use enhanced colors for C# and Basic</source>
-        <target state="translated">Usa colori migliorati per C# e Basic</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">Usa il corpo dell'espressione per le espressioni lambda</target>
@@ -585,6 +595,11 @@
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
         <target state="translated">Il valore restituito dalla chiamata viene ignorato in modo implicito</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_2017">
+        <source>Visual Studio 2017</source>
+        <target state="new">Visual Studio 2017</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">

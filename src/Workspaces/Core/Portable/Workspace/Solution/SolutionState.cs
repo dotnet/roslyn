@@ -1217,23 +1217,18 @@ namespace Microsoft.CodeAnalysis
             foreach (var documentInfosInProject in documentInfosByProjectId)
             {
                 CheckContainsProject(documentInfosInProject.Key);
-                var oldProject = this.GetProjectState(documentInfosInProject.Key);
-
-                if (oldProject == null)
-                {
-                    throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentInfosInProject.Key));
-                }
+                var oldProjectState = this.GetProjectState(documentInfosInProject.Key)!;
 
                 var newDocumentStatesForProjectBuilder = ArrayBuilder<T>.GetInstance();
 
                 foreach (var documentInfo in documentInfosInProject)
                 {
-                    newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProject));
+                    newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState));
                 }
 
                 var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
 
-                var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProject, newDocumentStatesForProject);
+                var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
 
                 newSolutionState = newSolutionState.ForkProject(newProjectState,
                     compilationTranslationAction,
@@ -1263,51 +1258,85 @@ namespace Microsoft.CodeAnalysis
                 });
         }
 
-        public SolutionState RemoveAnalyzerConfigDocument(DocumentId documentId)
+        public SolutionState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            CheckContainsAnalyzerConfigDocument(documentId);
-
-            var oldProject = this.GetProjectState(documentId.ProjectId)!;
-            var newProject = oldProject.RemoveAnalyzerConfigDocument(documentId);
-            var removedDocumentStates = SpecializedCollections.SingletonEnumerable(oldProject.GetAnalyzerConfigDocumentState(documentId)!);
-
-            return this.ForkProject(
-                newProject,
-                new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject),
-                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStates));
+            return RemoveDocumentsFromMultipleProjects(documentIds,
+                (projectState, documentId) => { CheckContainsAnalyzerConfigDocument(documentId); return projectState.GetAnalyzerConfigDocumentState(documentId)!; },
+                (oldProject, documentIds, _) =>
+                {
+                    var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
+                    return (newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                });
         }
 
         /// <summary>
         /// Creates a new solution instance that no longer includes the specified document.
         /// </summary>
-        public SolutionState RemoveDocument(DocumentId documentId)
+        public SolutionState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            CheckContainsDocument(documentId);
+            return RemoveDocumentsFromMultipleProjects(documentIds,
+                (projectState, documentId) => { CheckContainsDocument(documentId); return projectState.GetDocumentState(documentId)!; },
+                (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationTranslationAction.RemoveDocumentsAction(documentStates)));
+        }
 
-            var oldProject = this.GetProjectState(documentId.ProjectId)!;
-            var oldDocument = oldProject.GetDocumentState(documentId);
-            var newProject = oldProject.RemoveDocument(documentId);
-            var removedDocumentStates = SpecializedCollections.SingletonEnumerable(oldProject.GetDocumentState(documentId)!);
+        private SolutionState RemoveDocumentsFromMultipleProjects<T>(
+            ImmutableArray<DocumentId> documentIds,
+            Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
+            Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, CompilationTranslationAction? translationAction)> removeDocumentsFromProjectState)
+            where T : TextDocumentState
+        {
+            if (documentIds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
 
-            return this.ForkProject(
-                newProject,
-                new CompilationTranslationAction.RemoveDocumentAction(oldDocument),
-                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStates));
+            if (documentIds.IsEmpty)
+            {
+                return this;
+            }
+
+            // The documents might be contributing to multiple different projects; split them by project and then we'll process
+            // project-at-a-time.
+            var documentIdsByProjectId = documentIds.ToLookup(id => id.ProjectId);
+
+            var newSolutionState = this;
+
+            foreach (var documentIdsInProject in documentIdsByProjectId)
+            {
+                var oldProjectState = this.GetProjectState(documentIdsInProject.Key);
+
+                if (oldProjectState == null)
+                {
+                    throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentIdsInProject.Key));
+                }
+
+                var removedDocumentStatesBuilder = ArrayBuilder<T>.GetInstance();
+
+                foreach (var documentId in documentIdsInProject)
+                {
+                    removedDocumentStatesBuilder.Add(getExistingTextDocumentState(oldProjectState, documentId));
+                }
+
+                var removedDocumentStatesForProject = removedDocumentStatesBuilder.ToImmutableAndFree();
+
+                var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+
+                newSolutionState = newSolutionState.ForkProject(newProjectState,
+                    compilationTranslationAction,
+                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
+            }
+
+            return newSolutionState;
         }
 
         /// <summary>
-        /// Creates a new solution instance that no longer includes the specified additional document.
+        /// Creates a new solution instance that no longer includes the specified additional documents.
         /// </summary>
-        public SolutionState RemoveAdditionalDocument(DocumentId documentId)
+        public SolutionState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            CheckContainsAdditionalDocument(documentId);
-
-            var oldProject = this.GetProjectState(documentId.ProjectId)!;
-            var newProject = oldProject.RemoveAdditionalDocument(documentId);
-            var documentStates = SpecializedCollections.SingletonEnumerable(GetAdditionalDocumentState(documentId)!);
-
-            return this.ForkProject(newProject,
-                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentStates));
+            return RemoveDocumentsFromMultipleProjects(documentIds,
+                (projectState, documentId) => { CheckContainsAdditionalDocument(documentId); return projectState.GetAdditionalDocumentState(documentId)!; },
+                (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), translationAction: null));
         }
 
         /// <summary>
@@ -2231,7 +2260,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!this.ContainsDocument(documentId))
             {
-                throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
             }
         }
 
@@ -2241,7 +2270,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!this.ContainsAdditionalDocument(documentId))
             {
-                throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
             }
         }
 
@@ -2251,7 +2280,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!this.ContainsAnalyzerConfigDocument(documentId))
             {
-                throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
             }
         }
 

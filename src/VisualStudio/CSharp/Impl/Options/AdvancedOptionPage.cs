@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -13,7 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            return new AdvancedOptionPageControl(optionStore);
+            var componentModel = (IComponentModel)this.Site.GetService(typeof(SComponentModel));
+            return new AdvancedOptionPageControl(optionStore, componentModel);
         }
     }
 }
