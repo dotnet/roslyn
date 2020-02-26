@@ -2,8 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Windows
+Imports System.Windows.Media
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -14,13 +17,19 @@ Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.ValidateFormatString
+Imports Microsoft.VisualStudio.ComponentModelHost
+Imports Microsoft.VisualStudio.LanguageServices.ColorSchemes
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
-        Public Sub New(optionStore As OptionStore)
+        Private _colorSchemeApplier As ColorSchemeApplier
+
+        Public Sub New(optionStore As OptionStore, componentModel As IComponentModel)
             MyBase.New(optionStore)
+
+            _colorSchemeApplier = componentModel.GetService(Of ColorSchemeApplier)()
 
             InitializeComponent()
 
@@ -71,7 +80,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Highlight_related_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.VisualBasic)
             BindToOption(Show_completion_list, RegularExpressionsOptions.ProvideRegexCompletions, LanguageNames.VisualBasic)
 
-            BindToOption(Use_enhanced_colors, FeatureOnOffOptions.UseEnhancedColors)
+            BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme)
+        End Sub
+
+        ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
+        ' we need to update the visibility of our combobox and warnings based on the current VS theme before being rendered.
+        Friend Overrides Sub OnLoad()
+            Dim isSupportedTheme = _colorSchemeApplier.IsSupportedTheme()
+            Dim isCustomized = _colorSchemeApplier.IsThemeCustomized()
+
+            Editor_color_scheme.Visibility = If(isSupportedTheme, Visibility.Visible, Visibility.Collapsed)
+            Customized_Theme_Warning.Visibility = If(isSupportedTheme AndAlso isCustomized, Visibility.Visible, Visibility.Collapsed)
+            Custom_VS_Theme_Warning.Visibility = If(isSupportedTheme, Visibility.Collapsed, Visibility.Visible)
+
+            MyBase.OnLoad()
         End Sub
     End Class
 End Namespace

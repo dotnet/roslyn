@@ -12,12 +12,11 @@ using Microsoft.CodeAnalysis.Formatting;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
 #endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    extern alias CodeStyle;
-    using Formatter = CodeStyle::Microsoft.CodeAnalysis.Formatting.Formatter;
     using ISyntaxFormattingService = ISyntaxFormattingService;
 
     internal abstract class AbstractFormattingCodeFixProvider : CodeFixProvider

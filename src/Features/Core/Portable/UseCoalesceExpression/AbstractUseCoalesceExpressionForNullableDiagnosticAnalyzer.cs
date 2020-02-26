@@ -49,16 +49,10 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
-            if (option == null || !option.Value)
+            var option = context.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
+            if (!option.Value)
             {
                 return;
             }

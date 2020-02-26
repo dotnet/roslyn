@@ -1961,6 +1961,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         yield return errorCode;
                     }
+
+                    yield return CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation);
+                    yield return CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode);
                 }
                 else if (ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out ushort number) &&
                        ErrorFacts.IsWarning((ErrorCode)number))

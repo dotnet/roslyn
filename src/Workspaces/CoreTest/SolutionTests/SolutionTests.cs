@@ -194,6 +194,72 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveZeroDocuments()
+        {
+            var solution = CreateSolution();
+
+            Assert.Same(solution, solution.RemoveDocuments(ImmutableArray<DocumentId>.Empty));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task RemoveTwoDocuments()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId), "file1.cs");
+            var documentInfo2 = DocumentInfo.Create(DocumentId.CreateNewId(projectId), "file2.cs");
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2));
+
+            solution = solution.RemoveDocuments(ImmutableArray.Create(documentInfo1.Id, documentInfo2.Id));
+
+            var finalProject = solution.Projects.Single();
+            Assert.Empty(finalProject.Documents);
+            Assert.Empty((await finalProject.GetCompilationAsync()).SyntaxTrees);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveTwoDocumentsFromDifferentProjects()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "file1.cs");
+            var documentInfo2 = DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "file2.cs");
+
+            var solution = CreateSolution()
+                .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
+                .AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2));
+
+            Assert.All(solution.Projects, p => Assert.Single(p.Documents));
+
+            solution = solution.RemoveDocuments(ImmutableArray.Create(documentInfo1.Id, documentInfo2.Id));
+
+            Assert.All(solution.Projects, p => Assert.Empty(p.Documents));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveDocumentFromUnrelatedProject()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "file1.cs");
+
+            var solution = CreateSolution()
+                .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
+                .AddDocument(documentInfo1);
+
+            // This should throw if we're removing one document from the wrong project. Right now we don't test the RemoveDocument
+            // API due to https://github.com/dotnet/roslyn/issues/41211.
+            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveDocuments(ImmutableArray.Create(documentInfo1.Id)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOneCSharpProjectAsync()
         {
             var sol = CreateSolutionWithOneCSharpProject();

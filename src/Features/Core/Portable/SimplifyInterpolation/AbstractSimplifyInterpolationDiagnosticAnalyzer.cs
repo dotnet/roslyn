@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             var syntaxTree = interpolation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             if (optionSet == null)
             {
                 return;

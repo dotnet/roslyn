@@ -87,16 +87,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var syntaxTree = conditionalExpression.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);
-            if (option == null || !option.Value)
+            var option = context.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);
+            if (!option.Value)
             {
                 return;
             }
@@ -166,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 // converting to c?.nullable doesn't affect the type
             }
 
-            if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, cancellationToken))
+            if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, context.CancellationToken))
             {
                 return;
             }

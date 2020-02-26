@@ -63,14 +63,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
-            if (option == null || !option.Value)
+            var option = context.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
+            if (!option.Value)
             {
                 return;
             }
