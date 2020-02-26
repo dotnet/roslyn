@@ -1763,6 +1763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_MemberNotNull = 8774,
         WRN_MemberNotNullWhen = 8775,
+        WRN_MemberNotNullBadMember = 8776,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullBadMember));
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullWhen));
 
+            NullableWarnings = nullableWarnings.ToImmutable();
+
             static string getId(ErrorCode errorCode)
             {
                 return MessageProvider.Instance.GetIdForErrorCode((int)errorCode);
@@ -446,6 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
                 case ErrorCode.WRN_MemberNotNull:
+                case ErrorCode.WRN_MemberNotNullBadMember:
                 case ErrorCode.WRN_MemberNotNullWhen:
                     return 1;
                 default:

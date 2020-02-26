@@ -103,6 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsExpressionBodied
             => _isExpressionBodied;
 
+        internal override ImmutableArray<string> NotNullMembers
+            => MethodKind == MethodKind.PropertyGet ? _property.NotNullMembers : ImmutableArray<string>.Empty;
+
         internal override ImmutableArray<string> NotNullWhenTrueMembers
             => MethodKind == MethodKind.PropertyGet ? _property.NotNullWhenTrueMembers : ImmutableArray<string>.Empty;
 

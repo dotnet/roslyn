@@ -3885,10 +3885,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
                 node.Expanded, node.InvokedAsExtensionMethod, method);
 
-            // TODO2 test with hidden method
             if (method.IsStatic || node.ReceiverOpt is BoundThisReference || node.ReceiverOpt is BoundBaseReference)
             {
-                // TODO2 tweak for base?
                 ApplyMemberPostConditions(method);
             }
 
@@ -7446,7 +7444,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!IsAnalyzingAttribute &&
                 (property.IsStatic || node.ReceiverOpt is BoundThisReference || node.ReceiverOpt is BoundBaseReference))
             {
-                // TODO2 tweak for base?
                 ApplyMemberPostConditions(property.GetMethod);
             }
 

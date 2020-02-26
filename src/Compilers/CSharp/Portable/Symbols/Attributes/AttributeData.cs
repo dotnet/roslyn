@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attributeType.IsErrorType());
 
             int argumentCount = (attributeSyntax.ArgumentList != null) ?
-                attributeSyntax.ArgumentList.Arguments.Count((arg) => arg.NameEquals == null) :
+                attributeSyntax.ArgumentList.Arguments.Count<AttributeArgumentSyntax>((arg) => arg.NameEquals == null) :
                 0;
             return AttributeData.IsTargetEarlyAttribute(attributeType, argumentCount, description);
         }
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        static internal void DecodeMemberNotNullAttribute<T>(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        static internal void DecodeMemberNotNullAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
         {
             var membersArray = arguments.Attribute.CommonConstructorArguments[0];
@@ -258,14 +259,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<string>.GetInstance();
             foreach (var member in membersArray.Values)
             {
-                builder.Add(member.DecodeValue<string>(SpecialType.System_String));
+                var memberName = member.DecodeValue<string>(SpecialType.System_String);
+                builder.Add(memberName);
+                ReportBadNotNullMemberIfNeeded(type, arguments, memberName);
             }
 
             arguments.GetOrCreateData<T>().AddNotNullMember(builder);
             builder.Free();
         }
 
-        static internal void DecodeMemberNotNullWhenAttribute<T>(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private static void ReportBadNotNullMemberIfNeeded(TypeSymbol type, DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, string memberName)
+        {
+            bool found = false;
+            foreach (Symbol foundMember in type.GetMembers(memberName))
+            {
+                if (foundMember.Kind == SymbolKind.Field || foundMember.Kind == SymbolKind.Property)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                arguments.Diagnostics.Add(ErrorCode.WRN_MemberNotNullBadMember, arguments.AttributeSyntaxOpt.Location, memberName);
+            }
+        }
+
+        static internal void DecodeMemberNotNullWhenAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
         {
             var membersArray = arguments.Attribute.CommonConstructorArguments[1];
@@ -277,7 +298,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<string>.GetInstance();
             foreach (var member in membersArray.Values)
             {
-                builder.Add(member.DecodeValue<string>(SpecialType.System_String));
+                var memberName = member.DecodeValue<string>(SpecialType.System_String);
+                builder.Add(memberName);
+                ReportBadNotNullMemberIfNeeded(type, arguments, memberName);
             }
 
             var sense = arguments.Attribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean);

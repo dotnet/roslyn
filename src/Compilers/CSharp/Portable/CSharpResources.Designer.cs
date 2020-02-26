@@ -14959,6 +14959,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Field or property &apos;{0}&apos; cannot be used in this attribute because it is a member of a base type..
+        /// </summary>
+        internal static string WRN_MemberNotNullBadMember {
+            get {
+                return ResourceManager.GetString("WRN_MemberNotNullBadMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field or property cannot be used in this attribute because it is a member of a base type..
+        /// </summary>
+        internal static string WRN_MemberNotNullBadMember_Title {
+            get {
+                return ResourceManager.GetString("WRN_MemberNotNullBadMember_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Member &apos;{0}&apos; may not have a null value when exiting with `{1}`..
         /// </summary>
         internal static string WRN_MemberNotNullWhen {

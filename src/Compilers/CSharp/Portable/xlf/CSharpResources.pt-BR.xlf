@@ -1487,6 +1487,16 @@
         <target state="new">Member '{0}' may not have a null value when exiting.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MemberNotNullBadMember">
+        <source>Field or property '{0}' cannot be used in this attribute because it is a member of a base type.</source>
+        <target state="new">Field or property '{0}' cannot be used in this attribute because it is a member of a base type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNullBadMember_Title">
+        <source>Field or property cannot be used in this attribute because it is a member of a base type.</source>
+        <target state="new">Field or property cannot be used in this attribute because it is a member of a base type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen">
         <source>Member '{0}' may not have a null value when exiting with `{1}`.</source>
         <target state="new">Member '{0}' may not have a null value when exiting with `{1}`.</target>
