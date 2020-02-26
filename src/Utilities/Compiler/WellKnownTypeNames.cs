@@ -360,7 +360,6 @@ namespace Analyzer.Utilities
         public const string SystemNetHttpHttpClient = "System.Net.Http.HttpClient";
         public const string SystemNetHttpHttpClientHandler = "System.Net.Http.HttpClientHandler";
         public const string SystemNetHttpWinHttpHandler = "System.Net.Http.WinHttpHandler";
-        public const string SystemNetHttpCurlHandler = "System.Net.Http.CurlHandler";
         public const string SystemNetServicePointManager = "System.Net.ServicePointManager";
         public const string SystemRandom = "System.Random";
         public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
