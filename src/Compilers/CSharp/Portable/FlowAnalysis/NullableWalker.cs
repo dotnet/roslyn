@@ -3784,8 +3784,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                var implementationMethod = receiverType.FindImplementationForInterfaceMember(constructedMethod);
-                return method.Equals(implementationMethod);
+                // check whether 'method', when called on this receiver, is an implementation of 'constructedMethod'.
+                for (var baseType = receiverType; baseType is object; baseType = baseType.BaseTypeNoUseSiteDiagnostics)
+                {
+                    var implementationMethod = baseType.FindImplementationForInterfaceMember(constructedMethod);
+                    for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
+                    {
+                        if (overriddenMethod.Equals(implementationMethod))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
 
             void learnFromEqualsMethodArguments(BoundExpression left, TypeWithState leftType, BoundExpression right, TypeWithState rightType)
