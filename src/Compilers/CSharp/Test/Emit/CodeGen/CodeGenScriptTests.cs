@@ -497,10 +497,9 @@ public abstract class C
             Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
             methodData.VerifyIL(
 @"{
-  // Code size       60 (0x3c)
+  // Code size       57 (0x39)
   .maxstack  2
-  .locals init (<<Initialize>>d__0 V_0,
-                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+  .locals init (<<Initialize>>d__0 V_0)
   IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -513,16 +512,14 @@ public abstract class C
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
   IL_001f:  ldloc.0
-  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_0025:  stloc.1
-  IL_0026:  ldloca.s   V_1
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
-  IL_002f:  nop
-  IL_0030:  ldloc.0
-  IL_0031:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_0036:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
-  IL_003b:  ret
+  IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
+  IL_002c:  nop
+  IL_002d:  ldloc.0
+  IL_002e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0033:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_0038:  ret
 }");
             methodData = verifier.TestData.GetMethodData("<Main>");
             Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
@@ -560,10 +557,9 @@ public abstract class C
             Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
             methodData.VerifyIL(
 @"{
-  // Code size       60 (0x3c)
+  // Code size       57 (0x39)
   .maxstack  2
-  .locals init (<<Initialize>>d__0 V_0,
-                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+  .locals init (<<Initialize>>d__0 V_0)
   IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -576,16 +572,14 @@ public abstract class C
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
   IL_001f:  ldloc.0
-  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_0025:  stloc.1
-  IL_0026:  ldloca.s   V_1
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
-  IL_002f:  nop
-  IL_0030:  ldloc.0
-  IL_0031:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_0036:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
-  IL_003b:  ret
+  IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
+  IL_002c:  nop
+  IL_002d:  ldloc.0
+  IL_002e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0033:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_0038:  ret
 }");
             methodData = verifier.TestData.GetMethodData("<Factory>");
             Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());

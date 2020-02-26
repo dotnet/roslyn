@@ -677,13 +677,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var length = reader.MetadataLength;
-
-            // TODO: any way to avoid allocating byte array here?
-            var bytes = new byte[length];
-            Marshal.Copy((IntPtr)reader.MetadataPointer, bytes, 0, length);
-
-            writer.WriteValue(bytes);
+            writer.WriteValue(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
         }
 
         private static void WriteUnresolvedAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)

@@ -500,6 +500,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => TestWritingPrimitiveArrays(w), r => TestReadingPrimitiveArrays(r));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void TestByteSpan([CombinatorialValues(0, 1, 2, 3, 1000, 1000000)] int size)
+        {
+            var data = new byte[size];
+            for (int i = 0; i < data.Length; i++)
+            {
+                data[i] = (byte)i;
+            }
+
+            TestRoundTrip(w => TestWritingByteSpan(data, w), r => TestReadingByteSpan(data, r));
+        }
+
         [Fact]
         public void TestPrimitiveArrayMembers()
         {
@@ -548,7 +561,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var inputString = new string[] { "h", "e", "l", "l", "o" };
 
             writer.WriteValue(inputBool);
-            writer.WriteValue(inputByte);
+            writer.WriteValue((object)inputByte);
             writer.WriteValue(inputChar);
             writer.WriteValue(inputDecimal);
             writer.WriteValue(inputDouble);
@@ -594,6 +607,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(Enumerable.SequenceEqual(inputULong, (ulong[])reader.ReadValue()));
             Assert.True(Enumerable.SequenceEqual(inputUShort, (ushort[])reader.ReadValue()));
             Assert.True(Enumerable.SequenceEqual(inputString, (string[])reader.ReadValue()));
+        }
+
+        private static void TestWritingByteSpan(byte[] data, ObjectWriter writer)
+        {
+            writer.WriteValue(data.AsSpan());
+        }
+
+        private static void TestReadingByteSpan(byte[] expected, ObjectReader reader)
+        {
+            Assert.True(Enumerable.SequenceEqual(expected, (byte[])reader.ReadValue()));
         }
 
         [Fact]

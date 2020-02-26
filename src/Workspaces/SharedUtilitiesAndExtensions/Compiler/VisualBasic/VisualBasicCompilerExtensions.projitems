@@ -16,6 +16,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxKindsService.vb" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" GenerateSource="true" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" GenerateSource="true" Link="VisualBasicCompilerExtensionsResources.resx" />
   </ItemGroup>
 </Project>

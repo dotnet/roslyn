@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            var newCompilation = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException, reportSuppressedDiagnostics, includeCompilerDiagnostics: false, out var diagnostics);
+            var newCompilation = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException, reportSuppressedDiagnostics, includeCompilerDiagnostics: false, CancellationToken.None, out var diagnostics);
             diagnostics.Verify(expected);
             return newCompilation;
         }
@@ -170,10 +170,11 @@ namespace Microsoft.CodeAnalysis
             this TCompilation c,
             DiagnosticAnalyzer[] analyzers,
             AnalyzerOptions options = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            CancellationToken cancellationToken = default)
             where TCompilation : Compilation
         {
-            return GetAnalyzerDiagnostics(c, analyzers, reportSuppressedDiagnostics: false, options, onAnalyzerException);
+            return GetAnalyzerDiagnostics(c, analyzers, reportSuppressedDiagnostics: false, options, onAnalyzerException, cancellationToken);
         }
 
         public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(
@@ -181,10 +182,11 @@ namespace Microsoft.CodeAnalysis
             DiagnosticAnalyzer[] analyzers,
             bool reportSuppressedDiagnostics,
             AnalyzerOptions options = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            CancellationToken cancellationToken = default)
             where TCompilation : Compilation
         {
-            _ = GetCompilationWithAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, reportSuppressedDiagnostics, includeCompilerDiagnostics: false, out var diagnostics);
+            _ = GetCompilationWithAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, reportSuppressedDiagnostics, includeCompilerDiagnostics: false, cancellationToken, out var diagnostics);
             return diagnostics;
         }
 
@@ -193,6 +195,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticAnalyzer[] analyzers,
             AnalyzerOptions options = null,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            CancellationToken cancellationToken = default,
             params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
@@ -202,10 +205,10 @@ namespace Microsoft.CodeAnalysis
             if (c.Options.GeneralDiagnosticOption == ReportDiagnostic.Default &&
                 c.Options.SpecificDiagnosticOptions.IsEmpty)
             {
-                _ = c.VerifySuppressedDiagnostics(toggleWarnAsError: true, analyzers, options, onAnalyzerException, expected);
+                _ = c.VerifySuppressedDiagnostics(toggleWarnAsError: true, analyzers, options, onAnalyzerException, expected, cancellationToken);
             }
 
-            return c.VerifySuppressedDiagnostics(toggleWarnAsError: false, analyzers, options, onAnalyzerException, expected);
+            return c.VerifySuppressedDiagnostics(toggleWarnAsError: false, analyzers, options, onAnalyzerException, expected, cancellationToken);
         }
 
         private static TCompilation VerifySuppressedDiagnostics<TCompilation>(
@@ -214,7 +217,8 @@ namespace Microsoft.CodeAnalysis
             DiagnosticAnalyzer[] analyzers,
             AnalyzerOptions options,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
-            DiagnosticDescription[] expectedDiagnostics)
+            DiagnosticDescription[] expectedDiagnostics,
+            CancellationToken cancellationToken)
             where TCompilation : Compilation
         {
             if (toggleWarnAsError)
@@ -260,7 +264,7 @@ namespace Microsoft.CodeAnalysis
                 expectedDiagnostics = builder.ToArrayAndFree();
             }
 
-            c = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException, reportSuppressedDiagnostics: true, includeCompilerDiagnostics: true, out var diagnostics);
+            c = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException, reportSuppressedDiagnostics: true, includeCompilerDiagnostics: true, cancellationToken, out var diagnostics);
             diagnostics = diagnostics.WhereAsArray(d => d.IsSuppressed);
             diagnostics.Verify(expectedDiagnostics);
             return c; // note this is a new compilation
@@ -273,6 +277,7 @@ namespace Microsoft.CodeAnalysis
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             bool reportSuppressedDiagnostics,
             bool includeCompilerDiagnostics,
+            CancellationToken cancellationToken,
             out ImmutableArray<Diagnostic> diagnostics)
             where TCompilation : Compilation
         {
@@ -283,9 +288,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             var analyzerManager = new AnalyzerManager(analyzersArray);
-            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException, null, false, out var newCompilation, CancellationToken.None);
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException, null, false, out var newCompilation, cancellationToken);
 
-            var compilerDiagnostics = newCompilation.GetDiagnostics();
+            var compilerDiagnostics = newCompilation.GetDiagnostics(cancellationToken);
             var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation).Result;
             var allDiagnostics = includeCompilerDiagnostics ?
                 compilerDiagnostics.AddRange(analyzerDiagnostics) :

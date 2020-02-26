@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     [Export(typeof(IDebugStateChangeListener))]
+    [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class VisualStudioDebugStateChangeListener : IDebugStateChangeListener
     {
         private readonly Workspace _workspace;
