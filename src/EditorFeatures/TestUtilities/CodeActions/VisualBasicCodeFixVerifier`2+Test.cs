@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -53,9 +55,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
 
+            public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
+
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
             {
                 return new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+            }
+
+            protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
+            {
+                return DiagnosticSelector?.Invoke(fixableDiagnostics)
+                    ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
             }
         }
     }
