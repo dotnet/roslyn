@@ -199,7 +199,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasDisposeSignatureByConvention(this IMethodSymbol method)
         {
             return method.HasDisposeMethodSignature()
-                && !method.GetSymbolModifiers().HasFlag(SymbolModifiers.Static)
+                && !method.IsStatic
                 && !method.IsPrivate();
         }
 
