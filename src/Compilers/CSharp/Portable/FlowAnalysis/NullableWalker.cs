@@ -3736,7 +3736,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = node.Arguments;
             if ((parameterCount != 1 && parameterCount != 2)
                 || parameterCount != arguments.Length
-                || receiverType.Type is null
                 || method.MethodKind != MethodKind.Ordinary
                 || method.ReturnType.SpecialType != SpecialType.System_Boolean
                 || (method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__Equals).Name
@@ -3768,7 +3767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, TypeSymbol receiverType, WellKnownMember wellKnownMember)
             {
                 var wellKnownMethod = (MethodSymbol)compilation.GetWellKnownTypeMember(wellKnownMember);
-                if (wellKnownMethod is null)
+                if (wellKnownMethod is null || receiverType is null)
                 {
                     return false;
                 }
