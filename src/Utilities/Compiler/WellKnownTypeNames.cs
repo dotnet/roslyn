@@ -480,5 +480,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisDiagnosticsOperationBlockAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext";
         public const string MicrosoftCodeAnalysisDiagnosticsOperationAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext";
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
+        public const string SystemCollectionsObjectModelReadOnlyCollection1 = "System.Collections.ObjectModel.ReadOnlyCollection`1";
+        public const string SystemCollectionsObjectModelReadOnlyDictionary2 = "System.Collections.ObjectModel.ReadOnlyDictionary`2";
+        public const string SystemCollectionsObjectModelReadOnlyObservableCollection1 = "System.Collections.ObjectModel.ReadOnlyObservableCollection`1";
     }
 }
