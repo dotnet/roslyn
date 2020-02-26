@@ -17,7 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly HostWorkspaceServices _workspaceServices;
         private readonly ICommandLineParserService _commandLineParserService;
         private readonly ITemporaryStorageService _temporaryStorageService;
-        private ITemporaryStreamStorage _commandLineStorage;
 
         /// <summary>
         /// Gate to guard all mutable fields in this class.
@@ -31,6 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// actually changes and we need to make any downstream updates.
         /// </summary>
         private Checksum _commandLineChecksum;
+
+        /// <summary>
+        /// To save space in the managed heap, we dump the entire command-line string to our
+        /// temp-storage-service. This is helpful as compiler command-lines can grow extremely large
+        /// (especially in cases with many references).
+        /// </summary>
+        private ITemporaryStreamStorage _commandLineStorage;
 
         private CommandLineArguments _commandLineArgumentsForCommandLine;
         private string _explicitRuleSetFilePath;
@@ -58,10 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_commandLineChecksum == checksum)
                 return false;
 
-            // Persist the command line to our storage service so we can recover it later while not
-            // having to keep it all in memory.  This is valuable in some scenarios where the
-            // command line can actually end up being enormous (i.e. because of tons of dlls that
-            // are referenced).
+            // Persist the command line to our storage service so we can recover it later.
             using (var memoryStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memoryStream))
             {
