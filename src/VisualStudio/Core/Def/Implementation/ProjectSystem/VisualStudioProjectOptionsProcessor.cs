@@ -64,19 +64,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_commandLineChecksum == checksum)
                 return false;
 
-            // Persist the command line to our storage service so we can recover it later.
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
-            {
-                streamWriter.Write(commandLine);
-                streamWriter.Flush();
-                memoryStream.Position = 0;
+            // Dispose the existing stored command-line and then persist the new one so we can
+            // recover it later.
 
-                // Dispose and replace the persisted command line.
-                _commandLineStorage.Dispose();
-                _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
-                _commandLineStorage.WriteStream(memoryStream);
-            }
+            _commandLineStorage.Dispose();
+            _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
+            _commandLineStorage.WriteString(commandLine);
 
             _commandLineChecksum = checksum;
             ReparseCommandLine_NoLock(commandLine);
@@ -226,9 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
                 // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
                 // includes in the IDE so we can be watching for changes again.
-                using var commandLineStream = _commandLineStorage.ReadStream();
-                using var stringStream = new StreamReader(commandLineStream);
-                var commandLine = stringStream.ReadToEnd();
+                var commandLine = _commandLineStorage.ReadString();
 
                 DisposeOfRuleSetFile_NoLock();
                 ReparseCommandLine_NoLock(commandLine);
