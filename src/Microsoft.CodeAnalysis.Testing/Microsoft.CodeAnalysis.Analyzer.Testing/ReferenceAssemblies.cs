@@ -287,6 +287,13 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 var frameworkReducer = new FrameworkReducer();
 
+                var frameworkAssemblies = new HashSet<string>();
+                frameworkAssemblies.UnionWith(Assemblies);
+                if (LanguageSpecificAssemblies.TryGetValue(language, out var languageSpecificAssemblies))
+                {
+                    frameworkAssemblies.UnionWith(languageSpecificAssemblies);
+                }
+
                 var resolvedAssemblies = new HashSet<string>();
                 foreach (var packageToInstall in packagesToInstall)
                 {
@@ -373,23 +380,11 @@ namespace Microsoft.CodeAnalysis.Testing
                     if (nearestFramework is { IsAny: false })
                     {
                         var nearestFrameworkItems = frameworkItems.Single(x => x.TargetFramework == nearestFramework);
-                        foreach (var item in nearestFrameworkItems.Items)
-                        {
-                            if (ReferenceAssemblyPackage is null)
-                            {
-                                throw new InvalidOperationException($"Cannot resolve framework item '{item}' without a reference assembly package");
-                            }
-
-                            var installedFrameworkPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
-                            if (File.Exists(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")))
-                            {
-                                resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")));
-                            }
-                        }
+                        frameworkAssemblies.UnionWith(nearestFrameworkItems.Items);
                     }
                 }
 
-                foreach (var assembly in Assemblies)
+                foreach (var assembly in frameworkAssemblies)
                 {
                     if (ReferenceAssemblyPackage is null)
                     {
@@ -400,23 +395,6 @@ namespace Microsoft.CodeAnalysis.Testing
                     if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
                     {
                         resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
-                    }
-                }
-
-                if (LanguageSpecificAssemblies.TryGetValue(language, out var languageSpecificAssemblies))
-                {
-                    foreach (var assembly in languageSpecificAssemblies)
-                    {
-                        if (ReferenceAssemblyPackage is null)
-                        {
-                            throw new InvalidOperationException($"Cannot resolve language-specific assembly '{assembly}' without a reference assembly package");
-                        }
-
-                        var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
-                        if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
-                        {
-                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
-                        }
                     }
                 }
 
