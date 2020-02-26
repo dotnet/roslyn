@@ -1579,10 +1579,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private class ProjectReferenceInformation
+        private sealed class ProjectReferenceInformation
         {
-            public List<string> OutputPaths = new List<string>();
-            public List<(string path, ProjectReference projectReference)> ConvertedProjectReferences = new List<(string path, ProjectReference)>();
+            public readonly List<string> OutputPaths = new List<string>();
+            public readonly List<(string path, ProjectReference projectReference)> ConvertedProjectReferences = new List<(string path, ProjectReference)>();
         }
 
         /// <summary>
