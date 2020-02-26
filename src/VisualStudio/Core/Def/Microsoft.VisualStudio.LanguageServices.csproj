@@ -50,7 +50,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VSPackage.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="ColorSchemes\Enhanced.xml" />
+    <EmbeddedResource Include="ColorSchemes\VisualStudio2019.xml" />
     <EmbeddedResource Include="ColorSchemes\VisualStudio2017.xml" />
   </ItemGroup>
   <ItemGroup Label="Project References">

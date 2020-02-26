@@ -242,14 +242,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations As String =
             ServicesVSResources.Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations
 
-        Public ReadOnly Property Option_Color_Scheme_Enhanced As String =
-            ServicesVSResources.Enhanced
+        Public ReadOnly Property Option_Color_Scheme_VisualStudio2019 As String =
+            ServicesVSResources.Visual_Studio_2019
 
         Public ReadOnly Property Option_Color_Scheme_VisualStudio2017 As String =
             ServicesVSResources.Visual_Studio_2017
 
-        Public ReadOnly Property Color_Scheme_Enhanced_Tag As SchemeName =
-            SchemeName.Enhanced
+        Public ReadOnly Property Color_Scheme_VisualStudio2019_Tag As SchemeName =
+            SchemeName.VisualStudio2019
 
         Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As SchemeName =
             SchemeName.VisualStudio2017

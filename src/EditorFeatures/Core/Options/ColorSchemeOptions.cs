@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         public static readonly Option<SchemeName> ColorScheme = new Option<SchemeName>(nameof(ColorSchemeOptions),
             nameof(ColorScheme),
-            defaultValue: SchemeName.Enhanced,
+            defaultValue: SchemeName.VisualStudio2019,
             storageLocations: new RoamingProfileStorageLocation(ColorSchemeSettingKey));
 
         // The applied color scheme is a local setting because it is the scheme that is applied to 

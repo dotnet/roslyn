@@ -1360,8 +1360,8 @@ I agree to all of the foregoing:</value>
   <data name="Editor_Color_Scheme" xml:space="preserve">
     <value>Editor Color Scheme</value>
   </data>
-  <data name="Enhanced" xml:space="preserve">
-    <value>Enhanced</value>
+  <data name="Visual_Studio_2019" xml:space="preserve">
+    <value>Visual Studio 2019</value>
   </data>
   <data name="Visual_Studio_2017" xml:space="preserve">
     <value>Visual Studio 2017</value>
