@@ -14,11 +14,11 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
+Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnnecessaryCast), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateEndConstruct)>
-    Partial Friend Class RemoveUnnecessaryCastCodeFixProvider
+    Partial Friend Class VisualBasicRemoveUnnecessaryCastCodeFixProvider
         Inherits SyntaxEditorBasedCodeFixProvider
 
         <ImportingConstructor>

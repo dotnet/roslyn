@@ -5,15 +5,15 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
+Imports Microsoft.CodeAnalysis.RemoveUnnecessaryCast
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryCast
+Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer
-        Inherits RemoveUnnecessaryCastDiagnosticAnalyzerBase(Of SyntaxKind, ExpressionSyntax)
+        Inherits AbstractRemoveUnnecessaryCastDiagnosticAnalyzer(Of SyntaxKind, ExpressionSyntax)
 
         Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) =
             ImmutableArray.Create(SyntaxKind.CTypeExpression,

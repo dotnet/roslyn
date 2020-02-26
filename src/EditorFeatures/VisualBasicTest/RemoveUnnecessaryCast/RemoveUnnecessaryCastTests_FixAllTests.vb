@@ -3,10 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.RemoveUnnecessaryCast
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryCast
     Partial Public Class RemoveUnnecessaryCastTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
-
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
