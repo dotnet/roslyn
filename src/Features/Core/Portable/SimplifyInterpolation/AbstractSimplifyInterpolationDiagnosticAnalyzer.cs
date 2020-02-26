@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()),
                 properties: null));
 
-            foreach (var subsequentLocation in unnecessaryLocations.Skip(1))
+            for (var i = 1; i < unnecessaryLocations.Length; i++)
             {
                 context.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, subsequentLocation));
             }

@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
                     ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
                     ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
                 },
-                from diagnostic in diagnostics
-                select (diagnostic.Descriptor.Id, diagnostic.Severity));
+                diagnostics.Select(d => (d.Descriptor.Id, d.Severity)));
         }
 
         [Fact]
