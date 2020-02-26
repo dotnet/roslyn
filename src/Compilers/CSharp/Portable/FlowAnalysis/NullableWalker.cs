@@ -462,12 +462,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!IsConstantFalse(expr))
                         {
                             // don't check MemberNotWhenTrue state on a 'return false;'
-                            enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue); // TODO2
+                            enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
                         }
                         if (!IsConstantTrue(expr))
                         {
                             // don't check MemberNotWhenFalse state on a 'return true;'
-                            enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse); // TODO2
+                            enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
                         }
                     }
                 }
@@ -1832,7 +1832,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             EnforceDoesNotReturn(node.Syntax);
 
-            // TODO2
             if (IsConditionalState)
             {
                 var joinedState = this.StateWhenTrue.Clone();
@@ -3869,9 +3868,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
                 node.Expanded, node.InvokedAsExtensionMethod, method);
 
+            // TODO2 test with hidden method
             if (method.IsStatic || node.ReceiverOpt is BoundThisReference)
             {
-                ApplyMemberPostConditions(method.NotNullMembers, method.NotNullWhenTrueMembers, method.NotNullWhenFalseMembers);
+                ApplyMemberPostConditions(method);
             }
 
             LearnFromEqualsMethod(method, node, receiverType, results);
@@ -4341,23 +4341,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (method, results, shouldReturnNotNull);
         }
 
-        private void ApplyMemberPostConditions(
-            ImmutableArray<string> notNullMembers,
-            ImmutableArray<string> notNullWhenTrueMembers,
-            ImmutableArray<string> notNullWhenFalseMembers)
+        private void ApplyMemberPostConditions(MethodSymbol method)
         {
-            if (notNullWhenTrueMembers.IsEmpty && notNullWhenFalseMembers.IsEmpty)
+            do
             {
-                applyMemberPostConditions(notNullMembers, ref State);
-            }
-            else
-            {
-                Split();
-                applyMemberPostConditions(notNullWhenTrueMembers, ref StateWhenTrue);
-                applyMemberPostConditions(notNullWhenFalseMembers, ref StateWhenFalse);
-            }
+                var type = method.ContainingType;
+                var notNullMembers = method.NotNullMembers;
+                var notNullWhenTrueMembers = method.NotNullWhenTrueMembers;
+                var notNullWhenFalseMembers = method.NotNullWhenFalseMembers;
 
-            void applyMemberPostConditions(ImmutableArray<string> members, ref LocalState state)
+                if (notNullWhenTrueMembers.IsEmpty && notNullWhenFalseMembers.IsEmpty)
+                {
+                    applyMemberPostConditions(type, notNullMembers, ref State);
+                }
+                else
+                {
+                    Split();
+                    applyMemberPostConditions(type, notNullWhenTrueMembers, ref StateWhenTrue);
+                    applyMemberPostConditions(type, notNullWhenFalseMembers, ref StateWhenFalse);
+                }
+
+                method = method.OverriddenMethod;
+            }
+            while (method != null);
+
+            void applyMemberPostConditions(TypeSymbol type, ImmutableArray<string> members, ref LocalState state)
             {
                 if (members.IsEmpty)
                 {
@@ -4366,13 +4374,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var memberName in members)
                 {
-                    markMembersAsNotNull(memberName, ref state);
+                    markMembersAsNotNull(type, memberName, ref state);
                 }
             }
 
-            void markMembersAsNotNull(string memberName, ref LocalState state)
+            void markMembersAsNotNull(TypeSymbol type, string memberName, ref LocalState state)
             {
-                foreach (Symbol member in CurrentSymbol.ContainingType.GetMembers(memberName))
+                foreach (Symbol member in type.GetMembers(memberName))
                 {
                     switch (member.Kind)
                     {
@@ -7420,7 +7428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!IsAnalyzingAttribute &&
                 (property.IsStatic || node.ReceiverOpt is BoundThisReference))
             {
-                ApplyMemberPostConditions(property.NotNullMembers, property.NotNullWhenTrueMembers, property.NotNullWhenFalseMembers);
+                ApplyMemberPostConditions(property.GetMethod);
             }
 
             SetUpdatedSymbol(node, property, updatedMember);
