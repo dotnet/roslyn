@@ -34,7 +34,7 @@ namespace Test.Utilities.CodeMetrics
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
             var defaultReferences = ReferenceAssemblies.NetFramework.Net48.Default;
-            var references = Task.Run(() => defaultReferences.ResolveAsync(LanguageNames.CSharp, CancellationToken.None)).GetAwaiter().GetResult();
+            var references = Task.Run(() => defaultReferences.ResolveAsync(language, CancellationToken.None)).GetAwaiter().GetResult();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope - Current solution/project takes the dispose ownership of the created AdhocWorkspace
             var solution = new AdhocWorkspace()
