@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             // All the rest are used to just fade out the correct portions of the user's code.
             for (var i = 1; i < unnecessaryLocations.Length; i++)
             {
-                context.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, subsequentLocation));
+                context.ReportDiagnostic(Diagnostic.Create(
+                    UnnecessaryWithoutSuggestionDescriptor, unnecessaryLocations[i]));
             }
         }
     }
