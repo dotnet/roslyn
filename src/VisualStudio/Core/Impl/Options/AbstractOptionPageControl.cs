@@ -54,11 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             radioButtonStyle.Setters.Add(new Setter(RadioButton.MarginProperty, new Thickness() { Bottom = 7 }));
             radioButtonStyle.Setters.Add(new Setter(RadioButton.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(RadioButton), radioButtonStyle);
-
-            var comboBoxStyle = new System.Windows.Style(typeof(ComboBox));
-            comboBoxStyle.Setters.Add(new Setter(ComboBox.MarginProperty, new Thickness() { Bottom = 7 }));
-            comboBoxStyle.Setters.Add(new Setter(ComboBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
-            Resources.Add(typeof(ComboBox), comboBoxStyle);
         }
 
         protected void BindToOption(CheckBox checkbox, Option<bool> optionKey)
@@ -68,6 +63,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 Source = new OptionBinding<bool>(OptionStore, optionKey),
                 Path = new PropertyPath("Value"),
                 UpdateSourceTrigger = UpdateSourceTrigger.Default
+            };
+
+            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        protected void BindToOption(CheckBox checkbox, Option<int> optionKey)
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<int>(OptionStore, optionKey),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new CheckBoxCheckedToIntConverter(),
             };
 
             var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
@@ -110,34 +119,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             };
 
             var bindingExpression = textBox.SetBinding(TextBox.TextProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
-
-        protected void BindToOption<T>(ComboBox comboBox, Option<T> optionKey)
-        {
-            var binding = new Binding()
-            {
-                Source = new OptionBinding<T>(OptionStore, optionKey),
-                Path = new PropertyPath("Value"),
-                Converter = new ComboBoxItemTagToIndexConverter(),
-                ConverterParameter = comboBox
-            };
-
-            var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
-
-        protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption<T> optionKey, string languageName)
-        {
-            var binding = new Binding()
-            {
-                Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
-                Path = new PropertyPath("Value"),
-                Converter = new ComboBoxItemTagToIndexConverter(),
-                ConverterParameter = comboBox
-            };
-
-            var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
             _bindingExpressions.Add(bindingExpression);
         }
 
@@ -188,35 +169,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
     }
 
-    public class ComboBoxItemTagToIndexConverter : IValueConverter
+    public class CheckBoxCheckedToIntConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter,
+            System.Globalization.CultureInfo culture)
         {
-            var comboBox = (ComboBox)parameter;
-
-            for (var index = 0; index < comboBox.Items.Count; index++)
-            {
-                var item = (ComboBoxItem)comboBox.Items[index];
-                if (item.Tag.Equals(value))
-                {
-                    return index;
-                }
-            }
-
-            return -1;
+            return !value.Equals(-1);
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter,
+            System.Globalization.CultureInfo culture)
         {
-            var index = (int)value;
-            if (index == -1)
-            {
-                return null;
-            }
-
-            var comboBox = (ComboBox)parameter;
-            var item = (ComboBoxItem)comboBox.Items[index];
-            return item.Tag;
+            return value.Equals(true) ? 1 : -1;
         }
     }
 }
