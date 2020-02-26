@@ -364,10 +364,10 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
                     }
 
-                    if (stream.Length == 0)
-                    {
-                        throw new ArgumentOutOfRangeException();
-                    }
+                    //if (stream.Length == 0)
+                    //{
+                    //    throw new ArgumentOutOfRangeException();
+                    //}
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
                     {

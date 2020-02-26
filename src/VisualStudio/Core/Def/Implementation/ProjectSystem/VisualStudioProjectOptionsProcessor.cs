@@ -16,7 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly VisualStudioProject _project;
         private readonly HostWorkspaceServices _workspaceServices;
         private readonly ICommandLineParserService _commandLineParserService;
-        private readonly ITemporaryStreamStorage _commandLineStorage;
+        private readonly ITemporaryStorageService _temporaryStorageService;
+        private ITemporaryStreamStorage _commandLineStorage;
 
         /// <summary>
         /// Gate to guard all mutable fields in this class.
@@ -42,8 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _workspaceServices = workspaceServices;
             _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
-            var temporaryStorageService = workspaceServices.GetService<ITemporaryStorageService>();
-            _commandLineStorage = temporaryStorageService.CreateTemporaryStreamStorage();
+            _temporaryStorageService = workspaceServices.GetService<ITemporaryStorageService>();
+            _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
 
             // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in
             // the constructor so nothing can race.
@@ -67,6 +68,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 streamWriter.Write(commandLine);
                 streamWriter.Flush();
                 memoryStream.Position = 0;
+
+                // Dispose and replace the persisted command line.
+                _commandLineStorage.Dispose();
+                _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
                 _commandLineStorage.WriteStream(memoryStream);
             }
 
@@ -263,6 +268,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 DisposeOfRuleSetFile_NoLock();
+                _commandLineStorage.Dispose();
             }
         }
     }
