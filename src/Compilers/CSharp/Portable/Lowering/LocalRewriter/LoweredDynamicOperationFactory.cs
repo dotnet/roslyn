@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!synthesizedContainer.TypeParameters.IsEmpty)
             {
-                return synthesizedContainer.Construct(synthesizedContainer.ConstructedFromTypeParameters);
+                return synthesizedContainer.Construct(synthesizedContainer.ConstructedFromTypeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
             }
 
             return synthesizedContainer;
