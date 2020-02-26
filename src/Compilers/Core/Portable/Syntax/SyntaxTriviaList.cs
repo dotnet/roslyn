@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis
 
         public SyntaxTriviaList(SyntaxTrivia trivia)
         {
-            Debug.Assert(trivia.UnderlyingNode is object);
             Token = default(SyntaxToken);
             Node = trivia.UnderlyingNode;
             Position = 0;
