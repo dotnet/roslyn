@@ -443,6 +443,13 @@ namespace Microsoft.CodeAnalysis.Testing
                         }
                     }
                 }
+                else
+                {
+                    if (!FacadeAssemblies.IsEmpty)
+                    {
+                        throw new InvalidOperationException($"Cannot resolve facade assemblies without a reference assembly package");
+                    }
+                }
 
                 return resolvedAssemblies.Select(MetadataReferences.CreateReferenceFromFile).ToImmutableArray();
 
