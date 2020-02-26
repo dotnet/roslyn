@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public void Add<T>(PerLanguageOption<CodeStyleOption<T>> option, T value, NotificationOption notification)
             => _options.Add(new OptionKey(option, _languageName), new CodeStyleOption<T>(value, notification));
 
+        public void Add(OptionKey key, object value)
+            => _options.Add(key, value);
+
         public IEnumerator<KeyValuePair<OptionKey, object>> GetEnumerator()
             => _options.GetEnumerator();
 

@@ -710,8 +710,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
             => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
 
-        internal (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
+        internal static (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
             => (new OptionKey(option), enabled);
+
+        internal static (OptionKey, object) SingleOption<T>(PerLanguageOption<T> option, string language, T value)
+            => (new OptionKey(option, language), value);
 
         protected (OptionKey, object) SingleOption<T>(PerLanguageOption<T> option, T value)
             => (new OptionKey(option, this.GetLanguage()), value);

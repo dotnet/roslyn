@@ -236,43 +236,43 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private static readonly CodeStyleOption<ParenthesesPreference> RemoveIfUnnecessaryPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.Suggestion);
 
-        private static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
+        internal static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
         {
             yield return CodeStyleOptions.ArithmeticBinaryParentheses;
             yield return CodeStyleOptions.RelationalBinaryParentheses;
             yield return CodeStyleOptions.OtherBinaryParentheses;
         }
 
-        protected IDictionary<OptionKey, object> RequireArithmeticBinaryParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.ArithmeticBinaryParentheses);
+        public static IDictionary<OptionKey, object> RequireArithmeticBinaryParenthesesForClarity(string language)
+            => GetSingleRequireOption(CodeStyleOptions.ArithmeticBinaryParentheses, language);
 
-        protected IDictionary<OptionKey, object> RequireRelationalBinaryParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.RelationalBinaryParentheses);
+        public static IDictionary<OptionKey, object> RequireRelationalBinaryParenthesesForClarity(string language)
+            => GetSingleRequireOption(CodeStyleOptions.RelationalBinaryParentheses, language);
 
-        protected IDictionary<OptionKey, object> RequireOtherBinaryParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.OtherBinaryParentheses);
+        public static IDictionary<OptionKey, object> RequireOtherBinaryParenthesesForClarity(string language)
+            => GetSingleRequireOption(CodeStyleOptions.OtherBinaryParentheses, language);
 
-        private IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllParenthesesOptions()
+        internal static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllParenthesesOptions()
             => GetAllExceptOtherParenthesesOptions().Concat(CodeStyleOptions.OtherParentheses);
 
-        protected IDictionary<OptionKey, object> IgnoreAllParentheses
+        public static IDictionary<OptionKey, object> IgnoreAllParentheses(string language)
             => OptionsSet(GetAllParenthesesOptions().Select(
-                o => SingleOption(o, IgnorePreference)).ToArray());
+                o => SingleOption(o, language, IgnorePreference)).ToArray());
 
-        protected IDictionary<OptionKey, object> RemoveAllUnnecessaryParentheses
+        public static IDictionary<OptionKey, object> RemoveAllUnnecessaryParentheses(string language)
             => OptionsSet(GetAllParenthesesOptions().Select(
-                o => SingleOption(o, RemoveIfUnnecessaryPreference)).ToArray());
+                o => SingleOption(o, language, RemoveIfUnnecessaryPreference)).ToArray());
 
-        protected IDictionary<OptionKey, object> RequireAllParenthesesForClarity
+        public static IDictionary<OptionKey, object> RequireAllParenthesesForClarity(string language)
             => OptionsSet(GetAllExceptOtherParenthesesOptions()
-                    .Select(o => SingleOption(o, RequireForPrecedenceClarityPreference))
-                    .Concat(SingleOption(CodeStyleOptions.OtherParentheses, RemoveIfUnnecessaryPreference)).ToArray());
+                    .Select(o => SingleOption(o, language, RequireForPrecedenceClarityPreference))
+                    .Concat(SingleOption(CodeStyleOptions.OtherParentheses, language, RemoveIfUnnecessaryPreference)).ToArray());
 
-        private IDictionary<OptionKey, object> GetSingleRequireOption(PerLanguageOption<CodeStyleOption<ParenthesesPreference>> option)
+        private static IDictionary<OptionKey, object> GetSingleRequireOption(PerLanguageOption<CodeStyleOption<ParenthesesPreference>> option, string language)
             => OptionsSet(GetAllParenthesesOptions()
                     .Where(o => o != option)
-                    .Select(o => SingleOption(o, RemoveIfUnnecessaryPreference))
-                    .Concat(SingleOption(option, RequireForPrecedenceClarityPreference)).ToArray());
+                    .Select(o => SingleOption(o, language, RemoveIfUnnecessaryPreference))
+                    .Concat(SingleOption(option, language, RequireForPrecedenceClarityPreference)).ToArray());
 
         #endregion
     }
