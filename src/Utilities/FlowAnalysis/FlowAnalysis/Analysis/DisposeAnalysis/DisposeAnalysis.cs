@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor,
                 disposeOwnershipTransferAtMethodCall, trackInstanceFields, exceptionPathsAnalysis,
                 performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
-                // StringReader doesn't need to be disposed: https://docs.microsoft.com/en-us/dotnet/api/system.io.stringreader?view=netframework-4.8
-                excludedSymbols: analyzerOptions.GetExcludedSymbolNamesWithValueOption(rule, wellKnownTypeProvider.Compilation, cancellationToken, defaultForcedValue: $"T:{WellKnownTypeNames.SystemIOStringReader}"),
+                excludedSymbols: analyzerOptions.GetExcludedSymbolNamesWithValueOption(rule, wellKnownTypeProvider.Compilation, cancellationToken),
                 out pointsToAnalysisResult);
         }
 
