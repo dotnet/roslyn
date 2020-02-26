@@ -3787,11 +3787,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (var baseType = receiverType; baseType is object; baseType = baseType.BaseTypeNoUseSiteDiagnostics)
                 {
                     var implementationMethod = baseType.FindImplementationForInterfaceMember(constructedMethod);
-                    for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
+                    if (implementationMethod is object)
                     {
-                        if (overriddenMethod.Equals(implementationMethod))
+                        for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
                         {
-                            return true;
+                            if (overriddenMethod.Equals(implementationMethod))
+                            {
+                                return true;
+                            }
                         }
                     }
                 }
