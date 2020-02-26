@@ -1953,13 +1953,8 @@ done:
 
             var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
 
-            // PROTOTYPE(SimplePrograms): Instead of using an IncrementalBinder here and caching original bound nodes in 
-            //                            SimpleProgramBodySemanticModelMergedBoundNodeCache, we probably should cache
-            //                            just the rewritten root. Given the implementation of the NullableSemanticAnalysisEnabled
-            //                            used above, it looks like either all member models in the compilation perform
-            //                            the rewrite, or none of them do. 
-            var incrementalBinder = new IncrementalBinder(this, binder);
-            var boundRoot = Bind(incrementalBinder, bindableRoot, diagnostics);
+            // PROTOTYPE(SimplePrograms): Figure out the caching needed here. 
+            var boundRoot = Bind(binder, bindableRoot, diagnostics);
             if (IsSpeculativeSemanticModel)
             {
                 // Not all speculative models are created with existing snapshots. Attributes,

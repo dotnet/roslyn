@@ -290,6 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (((SimpleProgramNamedTypeSymbol)ContainingSymbol).MergedDeclaration.Declarations.Length == 1)
             {
                 // No need to merge
+                // PROTOTYPE(SimplePrograms): Should we still use the cache? Otherwise, we have single-unit programs at disadvantage.
+                //                            Different models will rebind again, but in case of a multi-unit program the result of binding will be 
+                //                            reused.
                 return null;
             }
 

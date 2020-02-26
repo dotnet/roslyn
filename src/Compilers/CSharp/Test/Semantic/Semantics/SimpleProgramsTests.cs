@@ -147,9 +147,13 @@ static class Type
 
             verifyModel(comp, comp.SyntaxTrees[1], comp.SyntaxTrees[0]);
 
-            static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, SyntaxTree tree2)
+            // PROTOTYPE(SimplePrograms): Uncomment code below once we figure out caching in MemberSemanticModel.EnsureNullabilityAnalysisPerformedIfNecessary
+            //comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Enable), parseOptions: DefaultParseOptions);
+            //(comp, comp.SyntaxTrees[0], comp.SyntaxTrees[1], nullableEnabled: true);
+
+            static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, SyntaxTree tree2, bool nullableEnabled = false)
             {
-                Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                Assert.Equal(nullableEnabled, comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
                 var model1 = comp.GetSemanticModel(tree1);
 
                 verifyModelForGlobalStatements(tree1, model1);
@@ -881,6 +885,65 @@ string e() => ""1"";
                 // string e() => "1";
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "e").WithArguments("e").WithLocation(9, 8)
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var reference = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "c").Single();
+
+            var model1 = comp.GetSemanticModel(tree);
+            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, model1.GetTypeInfo(reference).Nullability.FlowState);
+
+            var model2 = comp.GetSemanticModel(tree);
+            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, model1.GetTypeInfo(reference).Nullability.FlowState);
+        }
+
+        [Fact]
+        public void NullableRewrite_01()
+        {
+            var text1 = @"
+void local1()
+{
+    System.Console.WriteLine(""local1 - "" + s);
+}
+";
+            var text2 = @"
+using System;
+
+string s = ""Hello world!"";
+
+foreach (var c in s)
+{
+    Console.Write(c);
+}
+
+goto label1;
+label1: Console.WriteLine();
+
+local1();
+local2();
+";
+            var text3 = @"
+void local2()
+{
+    System.Console.WriteLine(""local2 - "" + s);
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2, text3 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree);
+
+            foreach (var id in tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
+            {
+                _ = model1.GetTypeInfo(id).Nullability;
+            }
+
+            var model2 = comp.GetSemanticModel(tree);
+            foreach (var id in tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
+            {
+                _ = model2.GetTypeInfo(id).Nullability;
+            }
         }
 
         [Fact]

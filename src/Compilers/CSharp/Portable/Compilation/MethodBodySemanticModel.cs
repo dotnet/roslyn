@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
             Debug.Assert(syntax != null);
+            Debug.Assert(parentRemappedSymbolsOpt is null || IsSpeculativeSemanticModel);
 
             if (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
             {
@@ -78,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initialState.Body != null)
             {
+                // PROTOTYPE(SimplePrograms): At the moment this code path is not reachable for Simple Programs.
+                //                            However, once/if we adjust MethodCompiler.CompileMethod to change that, we should also make sure we adjust
+                //                            content of SimpleProgramBodySemanticModelMergedBoundNodeCache as appropriate. See what
+                //                            MemberSemanticModel.EnsureNullabilityAnalysisPerformedIfNecessary and IncrementalBinder are doing.
+                Debug.Assert(!(owner is SynthesizedSimpleProgramEntryPointSymbol));
                 result.UnguardedAddBoundTreeForStandaloneSyntax(initialState.Syntax, initialState.Body, initialState.SnapshotManager, initialState.RemappedSymbols);
             }
 
