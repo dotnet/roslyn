@@ -449,10 +449,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             EnforceDoesNotReturn(syntaxOpt: null);
+            enforceMemberNotNull(syntaxOpt: null, this.State);
 
             foreach (var pendingReturn in pendingReturns)
             {
-                enforceMemberNotNull(syntaxOpt: null, pendingReturn.State);
+                enforceMemberNotNull(syntaxOpt: pendingReturn.Branch.Syntax, pendingReturn.State);
 
                 if (pendingReturn.Branch is BoundReturnStatement { ExpressionOpt: BoundExpression expr } returnStatement)
                 {
@@ -485,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (memberHasBadState(member, state))
                             {
                                 // Member '{name}' may not have a null value when exiting.
-                                ReportDiagnostic(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
+                                Diagnostics.Add(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
                             }
                         }
                     }
@@ -504,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (memberHasBadState(member, state))
                             {
                                 // Member '{name}' may not have a null value when exiting with '{sense}'.
-                                ReportDiagnostic(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense);
+                                Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense);
                             }
                         }
                     }
@@ -1770,6 +1771,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expr = node.ExpressionOpt;
             if (expr == null)
             {
+                PendingBranches.Add(new PendingBranch(node, this.State, label: null));
+                SetUnreachable();
                 return null;
             }
 
@@ -1841,8 +1844,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PendingBranches.Add(new PendingBranch(node, this.State, label: null));
             }
 
-            SetUnreachable();
             Unsplit();
+            SetUnreachable();
 
             return null;
 
