@@ -1155,16 +1155,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Method);
+            VisitArgumentsBeforeCall(node.Arguments, node.ArgumentRefKindsOpt);
+
+            if (!callsAreOmitted && node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+            {
+                VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
+            }
+
+            VisitArgumentsAfterCall(node.Arguments, node.ArgumentRefKindsOpt, node.Method);
             VisitReceiverAfterCall(node.ReceiverOpt, node.Method);
 
             if (callsAreOmitted)
             {
                 this.State = savedState;
-            }
-            else if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
-            {
-                VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
             }
 
             return null;
@@ -1293,7 +1296,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Do not call for a local function.
+        /// </summary>
         protected virtual void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        {
+            Debug.Assert(method?.OriginalDefinition.MethodKind != MethodKind.LocalFunction);
+            VisitArgumentsBeforeCall(arguments, refKindsOpt);
+            VisitArgumentsAfterCall(arguments, refKindsOpt, method);
+        }
+
+        private void VisitArgumentsBeforeCall(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt)
         {
             // first value and ref parameters are read...
             for (int i = 0; i < arguments.Length; i++)
@@ -1308,7 +1321,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitLvalue(arguments[i]);
                 }
             }
-            // and then ref and out parameters are written...
+        }
+
+        /// <summary>
+        /// Writes ref and out parameters
+        /// </summary>
+        private void VisitArgumentsAfterCall(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        {
             for (int i = 0; i < arguments.Length; i++)
             {
                 RefKind refKind = GetRefKind(refKindsOpt, i);
