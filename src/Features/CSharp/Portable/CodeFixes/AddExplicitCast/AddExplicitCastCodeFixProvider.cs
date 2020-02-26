@@ -24,7 +24,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.ChangeToYield, Before = PredefinedCodeFixProviderNames.GenerateConstructor)]
     internal sealed partial class AddExplicitCastCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         /// <summary>
@@ -51,9 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             var span = diagnostic.Location.SourceSpan;
-            var node = root.FindNode(span);
-            if (TryGetTargetNode(root, diagnostic.Location.SourceSpan) is ExpressionSyntax targetNode)
+            var targetNode = root.FindToken(span.Start).GetAncestors<ExpressionSyntax>().FirstOrDefault(n => n.Span.Contains(span));
+            if (targetNode != null)
             {
                 var hasSolution = GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes);
                 if (hasSolution && potentialConversionTypes.Length == 1)
