@@ -72,55 +72,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(path, info.FilePath);
         }
 
-        private static void TestProperty<T>(Func<DocumentInfo, T, DocumentInfo> factory, Func<DocumentInfo, T> getter, T validNonDefaultValue, bool defaultThrows = false)
-        {
-            Assert.NotEqual<T>(default, validNonDefaultValue);
-
-            var instance = DocumentInfo.Create(DocumentId.CreateNewId(ProjectId.CreateNewId()), "doc");
-
-            var instanceWithValue = factory(instance, validNonDefaultValue);
-            Assert.Equal(validNonDefaultValue, getter(instanceWithValue));
-
-            var instanceWithValue2 = factory(instanceWithValue, validNonDefaultValue);
-            Assert.Same(instanceWithValue2, instanceWithValue);
-
-            if (defaultThrows)
-            {
-                Assert.Throws<ArgumentNullException>(() => factory(instance, default));
-            }
-            else
-            {
-                Assert.NotNull(factory(instance, default));
-            }
-        }
-
-        private static void TestListProperty<T>(Func<DocumentInfo, IEnumerable<T>, DocumentInfo> factory, Func<DocumentInfo, IEnumerable<T>> getter, T item)
-        {
-            TestProperty(factory, getter, ImmutableArray.Create(item), defaultThrows: false);
-
-            var instanceWithNoItem = DocumentInfo.Create(DocumentId.CreateNewId(ProjectId.CreateNewId()), "doc");
-            Assert.Empty(getter(instanceWithNoItem));
-
-            var instanceWithItem = factory(instanceWithNoItem, ImmutableArray.Create(item));
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, default));
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, Array.Empty<T>()));
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, ImmutableArray<T>.Empty));
-
-            Assert.Throws<ArgumentNullException>(() => factory(instanceWithNoItem, new T[] { item, default }));
-        }
-
         [Fact]
         public void TestProperties()
         {
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
+            var instance = DocumentInfo.Create(DocumentId.CreateNewId(ProjectId.CreateNewId()), "doc");
 
-            TestProperty((old, value) => old.WithId(value), opt => opt.Id, documentId, defaultThrows: true);
-            TestProperty((old, value) => old.WithName(value), opt => opt.Name, "New", defaultThrows: true);
-            TestProperty((old, value) => old.WithSourceCodeKind(value), opt => opt.SourceCodeKind, SourceCodeKind.Script);
-            TestProperty((old, value) => old.WithTextLoader(value), opt => opt.TextLoader, new FileTextLoader(Path.GetTempPath(), defaultEncoding: null));
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithId(value), opt => opt.Id, documentId, defaultThrows: true);
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithName(value), opt => opt.Name, "New", defaultThrows: true);
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithSourceCodeKind(value), opt => opt.SourceCodeKind, SourceCodeKind.Script);
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithTextLoader(value), opt => opt.TextLoader, (TextLoader)new FileTextLoader(Path.GetTempPath(), defaultEncoding: null));
 
-            TestListProperty((old, value) => old.WithFolders(value), opt => opt.Folders, "folder");
+            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithFolders(value), opt => opt.Folders, "folder");
         }
     }
 }
