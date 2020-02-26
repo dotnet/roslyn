@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        public sealed override FixAllProvider GetFixAllProvider() =>
-            WellKnownFixAllProviders.BatchFixer;
+        public sealed override FixAllProvider GetFixAllProvider()
+            => WellKnownFixAllProviders.BatchFixer;
 
         protected AbstractImplementAbstractClassCodeFixProvider(string diagnosticId)
             => FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
@@ -44,10 +44,11 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (data == null)
                 return;
 
-            var abstractClassType = data.ClassType.BaseType!;
+            var abstractClassType = data.AbstractClassType;
             var id = GetCodeActionId(abstractClassType.ContainingAssembly.Name, abstractClassType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
             context.RegisterCodeFix(
                 new MyCodeAction(
+                    FeaturesResources.Implement_abstract_class,
                     c => data.ImplementAbstractClassAsync(c), id),
                 context.Diagnostics);
         }
@@ -57,8 +58,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string id)
-                : base(FeaturesResources.Implement_abstract_class, createChangedDocument, id)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id)
+                : base(title, createChangedDocument, id)
             {
             }
         }

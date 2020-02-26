@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var getAccessor = GenerateGetAccessor(
                     compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
-                    propertyGenerationBehavior, attributesToRemove, cancellationToken);
+                    propertyGenerationBehavior, attributesToRemove);
 
                 var setAccessor = GenerateSetAccessor(
                     compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
-                    propertyGenerationBehavior, attributesToRemove, cancellationToken);
+                    propertyGenerationBehavior, attributesToRemove);
 
                 var syntaxFacts = Document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 updatedProperty = updatedProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(compilation.Assembly, attributesToRemove);
 
-                // TODO(cyrusn): Delegate through throughMember if it's non-null.
                 return CodeGenerationSymbolFactory.CreatePropertySymbol(
                     updatedProperty,
                     accessibility: accessibility,
@@ -84,8 +83,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                INamedTypeSymbol[] attributesToRemove,
-                CancellationToken cancellationToken)
+                INamedTypeSymbol[] attributesToRemove)
             {
                 if (property.SetMethod == null)
                 {
@@ -118,8 +116,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                INamedTypeSymbol[] attributesToRemove,
-                CancellationToken cancellationToken)
+                INamedTypeSymbol[] attributesToRemove)
             {
                 if (property.GetMethod == null)
                 {
@@ -146,40 +143,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (generateAbstractly)
-                {
                     return default;
-                }
 
-                var factory = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
-                if (ThroughMember != null)
-                {
-                    var throughExpression = CreateThroughExpression(factory);
-                    SyntaxNode expression;
-
-                    if (property.IsIndexer)
-                    {
-                        expression = throughExpression;
-                    }
-                    else
-                    {
-                        expression = factory.MemberAccessExpression(
-                                                throughExpression, factory.IdentifierName(property.Name));
-                    }
-
-                    if (property.Parameters.Length > 0)
-                    {
-                        var arguments = factory.CreateArguments(property.Parameters.As<IParameterSymbol>());
-                        expression = factory.ElementAccessExpression(expression, arguments);
-                    }
-
-                    expression = factory.AssignmentStatement(expression, factory.IdentifierName("value"));
-
-                    return ImmutableArray.Create(factory.ExpressionStatement(expression));
-                }
-
-                return propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default
-                    : factory.CreateThrowNotImplementedStatementBlock(compilation);
+                var generator = Document.GetRequiredLanguageService<SyntaxGenerator>();
+                return generator.GetSetAccessorStatements(compilation, property, this.ThroughMember,
+                    propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }
 
             private ImmutableArray<SyntaxNode> GetGetAccessorStatements(
@@ -189,38 +157,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (generateAbstractly)
-                {
                     return default;
-                }
 
-                var factory = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
-                if (ThroughMember != null)
-                {
-                    var throughExpression = CreateThroughExpression(factory);
-                    SyntaxNode expression;
-
-                    if (property.IsIndexer)
-                    {
-                        expression = throughExpression;
-                    }
-                    else
-                    {
-                        expression = factory.MemberAccessExpression(
-                                                throughExpression, factory.IdentifierName(property.Name));
-                    }
-
-                    if (property.Parameters.Length > 0)
-                    {
-                        var arguments = factory.CreateArguments(property.Parameters.As<IParameterSymbol>());
-                        expression = factory.ElementAccessExpression(expression, arguments);
-                    }
-
-                    return ImmutableArray.Create(factory.ReturnStatement(expression));
-                }
-
-                return propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default
-                    : factory.CreateThrowNotImplementedStatementBlock(compilation);
+                var generator = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+                return generator.GetGetAccessorStatements(compilation, property, ThroughMember,
+                    propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }
         }
     }

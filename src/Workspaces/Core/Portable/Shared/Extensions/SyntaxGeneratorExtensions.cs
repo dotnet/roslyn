@@ -545,5 +545,155 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         : ImmutableArray.Create(codeFactory.ReturnStatement(body)));
             }
         }
+
+        /// <summary>
+        /// Generates a call to a method *through* an existing field or property symbol.
+        /// </summary>
+        /// <returns></returns>
+        public static SyntaxNode GenerateDelegateThroughMemberStatement(
+            this SyntaxGenerator generator, IMethodSymbol method, ISymbol throughMember)
+        {
+            var through = CreateDelegateThroughExpression(generator, method, throughMember);
+
+            var memberName = method.IsGenericMethod
+                ? generator.GenericName(method.Name, method.TypeArguments)
+                : generator.IdentifierName(method.Name);
+
+            through = generator.MemberAccessExpression(through, memberName);
+
+            var arguments = generator.CreateArguments(method.Parameters.As<IParameterSymbol>());
+            var invocationExpression = generator.InvocationExpression(through, arguments);
+
+            return method.ReturnsVoid
+                ? generator.ExpressionStatement(invocationExpression)
+                : generator.ReturnStatement(invocationExpression);
+        }
+
+        public static SyntaxNode CreateDelegateThroughExpression(
+            this SyntaxGenerator generator, ISymbol member, ISymbol throughMember)
+        {
+            var through = throughMember.IsStatic
+                ? GenerateContainerName(generator, throughMember)
+                : generator.ThisExpression();
+
+            through = generator.MemberAccessExpression(
+                through, generator.IdentifierName(throughMember.Name));
+
+            var throughMemberType = throughMember.GetMemberType();
+            if (member.ContainingType.IsInterfaceType() && throughMemberType != null)
+            {
+                // In the case of 'implement interface through field / property', we need to know what
+                // interface we are implementing so that we can insert casts to this interface on every
+                // usage of the field in the generated code. Without these casts we would end up generating
+                // code that fails compilation in certain situations.
+                // 
+                // For example consider the following code.
+                //      class C : IReadOnlyList<int> { int[] field; }
+                // When applying the 'implement interface through field' code fix in the above example,
+                // we need to generate the following code to implement the Count property on IReadOnlyList<int>
+                //      class C : IReadOnlyList<int> { int[] field; int Count { get { ((IReadOnlyList<int>)field).Count; } ...}
+                // as opposed to the following code which will fail to compile (because the array field
+                // doesn't have a property named .Count) -
+                //      class C : IReadOnlyList<int> { int[] field; int Count { get { field.Count; } ...}
+                //
+                // The 'InterfaceTypes' property on the state object always contains only one item
+                // in the case of C# i.e. it will contain exactly the interface we are trying to implement.
+                // This is also the case most of the time in the case of VB, except in certain error conditions
+                // (recursive / circular cases) where the span of the squiggle for the corresponding 
+                // diagnostic (BC30149) changes and 'InterfaceTypes' ends up including all interfaces
+                // in the Implements clause. For the purposes of inserting the above cast, we ignore the
+                // uncommon case and optimize for the common one - in other words, we only apply the cast
+                // in cases where we can unambiguously figure out which interface we are trying to implement.
+                var interfaceBeingImplemented = member.ContainingType;
+                if (!throughMemberType.Equals(interfaceBeingImplemented))
+                {
+                    through = generator.CastExpression(interfaceBeingImplemented,
+                        through.WithAdditionalAnnotations(Simplifier.Annotation));
+                }
+                else if (!throughMember.IsStatic &&
+                    throughMember is IPropertySymbol throughMemberProperty &&
+                    throughMemberProperty.ExplicitInterfaceImplementations.Any())
+                {
+                    // If we are implementing through an explicitly implemented property, we need to cast 'this' to
+                    // the explicitly implemented interface type before calling the member, as in:
+                    //       ((IA)this).Prop.Member();
+                    //
+                    var explicitlyImplementedProperty = throughMemberProperty.ExplicitInterfaceImplementations[0];
+
+                    var explicitImplementationCast = generator.CastExpression(
+                        explicitlyImplementedProperty.ContainingType,
+                        generator.ThisExpression());
+
+                    through = generator.MemberAccessExpression(explicitImplementationCast,
+                        generator.IdentifierName(explicitlyImplementedProperty.Name));
+
+                    through = through.WithAdditionalAnnotations(Simplifier.Annotation);
+                }
+            }
+
+            return through.WithAdditionalAnnotations(Simplifier.Annotation);
+
+            // local functions
+
+            static SyntaxNode GenerateContainerName(SyntaxGenerator factory, ISymbol throughMember)
+            {
+                var classOrStructType = throughMember.ContainingType;
+                return classOrStructType.IsGenericType
+                    ? factory.GenericName(classOrStructType.Name, classOrStructType.TypeArguments)
+                    : factory.IdentifierName(classOrStructType.Name);
+            }
+        }
+
+        public static ImmutableArray<SyntaxNode> GetGetAccessorStatements(
+            this SyntaxGenerator generator, Compilation compilation,
+            IPropertySymbol property, ISymbol throughMember, bool preferAutoProperties)
+        {
+            if (throughMember != null)
+            {
+                var throughExpression = CreateDelegateThroughExpression(generator, property, throughMember);
+                var expression = property.IsIndexer
+                    ? throughExpression
+                    : generator.MemberAccessExpression(
+                        throughExpression, generator.IdentifierName(property.Name));
+
+                if (property.Parameters.Length > 0)
+                {
+                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    expression = generator.ElementAccessExpression(expression, arguments);
+                }
+
+                return ImmutableArray.Create(generator.ReturnStatement(expression));
+            }
+
+            return preferAutoProperties ? default : generator.CreateThrowNotImplementedStatementBlock(compilation);
+        }
+
+        public static ImmutableArray<SyntaxNode> GetSetAccessorStatements(
+            this SyntaxGenerator generator, Compilation compilation,
+            IPropertySymbol property, ISymbol throughMember, bool preferAutoProperties)
+        {
+            if (throughMember != null)
+            {
+                var throughExpression = CreateDelegateThroughExpression(generator, property, throughMember);
+                var expression = property.IsIndexer
+                    ? throughExpression
+                    : generator.MemberAccessExpression(
+                        throughExpression, generator.IdentifierName(property.Name));
+
+                if (property.Parameters.Length > 0)
+                {
+                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    expression = generator.ElementAccessExpression(expression, arguments);
+                }
+
+                expression = generator.AssignmentStatement(expression, generator.IdentifierName("value"));
+
+                return ImmutableArray.Create(generator.ExpressionStatement(expression));
+            }
+
+            return preferAutoProperties
+                ? default
+                : generator.CreateThrowNotImplementedStatementBlock(compilation);
+        }
     }
 }

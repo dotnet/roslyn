@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -24,14 +26,16 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers;
 
         public readonly INamedTypeSymbol ClassType;
+        public readonly INamedTypeSymbol AbstractClassType;
 
         public ImplementAbstractClassData(
-            Document document, SyntaxNode classNode, INamedTypeSymbol classType,
+            Document document, SyntaxNode classNode, INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
         {
             _document = document;
             _classNode = classNode;
             ClassType = classType;
+            AbstractClassType = abstractClassType;
             _unimplementedMembers = unimplementedMembers;
         }
 
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (unimplementedMembers.IsEmpty)
                 return null;
 
-            return new ImplementAbstractClassData(document, classNode, classType, unimplementedMembers);
+            return new ImplementAbstractClassData(document, classNode, classType, abstractClassType, unimplementedMembers);
         }
 
         public static async Task<Document?> TryImplementAbstractClassAsync(Document document, SyntaxNode classNode, CancellationToken cancellationToken)
@@ -129,18 +133,18 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             {
                 IMethodSymbol method => GenerateMethod(compilation, method, modifiers, accessibility),
                 IPropertySymbol property => GenerateProperty(compilation, property, modifiers, accessibility, propertyGenerationBehavior),
-                IEventSymbol @event => CodeGenerationSymbolFactory.CreateEventSymbol(
-                    @event, accessibility: accessibility, modifiers: modifiers),
+                IEventSymbol @event => GenerateEvent(@event, accessibility, modifiers),
                 _ => null,
             };
         }
 
         private ISymbol GenerateMethod(
-            Compilation compilation, IMethodSymbol method, DeclarationModifiers modifiers, Accessibility accessibility)
+            Compilation compilation, IMethodSymbol method,
+            DeclarationModifiers modifiers, Accessibility accessibility)
         {
             var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var syntaxFactory = _document.GetRequiredLanguageService<SyntaxGenerator>();
-            var throwingBody = syntaxFactory.CreateThrowNotImplementedStatementBlock(compilation);
+            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+            var body = generator.CreateThrowNotImplementedStatement(compilation);
 
             method = method.EnsureNonConflictingNames(this.ClassType, syntaxFacts);
 
@@ -148,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 method,
                 accessibility: accessibility,
                 modifiers: modifiers,
-                statements: throwingBody);
+                statements: ImmutableArray.Create(body));
         }
 
         private IPropertySymbol GenerateProperty(
@@ -164,18 +168,16 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
             }
 
-            var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
-
-            var accessorBody = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                ? default
-                : syntaxFactory.CreateThrowNotImplementedStatementBlock(compilation);
+            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+            var preferAutoProperties = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties;
 
             var getMethod = ShouldGenerateAccessor(property.GetMethod)
                 ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     property.GetMethod,
                     attributes: default,
                     accessibility: property.GetMethod.ComputeResultantAccessibility(this.ClassType),
-                    statements: accessorBody)
+                    statements: generator.GetGetAccessorStatements(
+                        compilation, property, throughMember: null, preferAutoProperties))
                 : null;
 
             var setMethod = ShouldGenerateAccessor(property.SetMethod)
@@ -183,7 +185,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     property.SetMethod,
                     attributes: default,
                     accessibility: property.SetMethod.ComputeResultantAccessibility(this.ClassType),
-                    statements: accessorBody)
+                    statements: generator.GetSetAccessorStatements(
+                        compilation, property, throughMember: null, preferAutoProperties))
                 : null;
 
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
@@ -192,6 +195,14 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 modifiers: modifiers,
                 getMethod: getMethod,
                 setMethod: setMethod);
+        }
+
+        private IEventSymbol GenerateEvent(
+            IEventSymbol @event, Accessibility accessibility, DeclarationModifiers modifiers)
+        {
+            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+            return CodeGenerationSymbolFactory.CreateEventSymbol(
+                @event, accessibility: accessibility, modifiers: modifiers);
         }
 
         private bool ShouldGenerateAccessor(IMethodSymbol? method)
