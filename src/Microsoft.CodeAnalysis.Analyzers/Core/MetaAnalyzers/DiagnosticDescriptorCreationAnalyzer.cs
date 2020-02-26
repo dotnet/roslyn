@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableDoNotUseReservedDiagnosticIdTitle,
             s_localizableDoNotUseReservedDiagnosticIdMessage,
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
-            DiagnosticSeverity.Error,
+            DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDoNotUseReservedDiagnosticIdDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
