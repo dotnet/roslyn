@@ -324,6 +324,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
+            if (analyzer is DiagnosticSuppressor)
+            {
+                // Always execute diagnostic suppressors.
+                return true;
+            }
+
             // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
             return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions!) != ReportDiagnostic.Hidden);
