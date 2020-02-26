@@ -479,16 +479,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_symbol is MethodSymbol method)
                 {
-                    foreach (var memberName in method.NotNullMembers)
+                    do
                     {
-                        foreach (var member in method.ContainingType.GetMembers(memberName))
+                        foreach (var memberName in method.NotNullMembers)
                         {
-                            if (memberHasBadState(member, state))
-                            {
-                                // Member '{name}' may not have a null value when exiting.
-                                Diagnostics.Add(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
-                            }
+                            enforceMemberNotNullOnMember(syntaxOpt, state, method, memberName);
                         }
+
+                        method = method.OverriddenMethod;
+                    }
+                    while (method != null);
+                }
+            }
+
+            void enforceMemberNotNullOnMember(SyntaxNode syntaxOpt, LocalState state, MethodSymbol method, string memberName)
+            {
+                foreach (var member in method.ContainingType.GetMembers(memberName))
+                {
+                    if (memberHasBadState(member, state))
+                    {
+                        // Member '{name}' may not have a null value when exiting.
+                        Diagnostics.Add(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
                     }
                 }
             }
@@ -541,9 +552,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_symbol is MethodSymbol method)
                 {
-                    makeMembersMaybeNull(method, method.NotNullMembers);
-                    makeMembersMaybeNull(method, method.NotNullWhenTrueMembers);
-                    makeMembersMaybeNull(method, method.NotNullWhenFalseMembers);
+                    do
+                    {
+                        makeMembersMaybeNull(method, method.NotNullMembers);
+                        makeMembersMaybeNull(method, method.NotNullWhenTrueMembers);
+                        makeMembersMaybeNull(method, method.NotNullWhenFalseMembers);
+                        method = method.OverriddenMethod;
+                    }
+                    while (method != null);
                 }
             }
 
@@ -557,7 +573,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void makeMemberMaybeNull(MethodSymbol method, string memberName)
             {
-                foreach (var member in method.ContainingType.GetMembers(memberName))
+                var type = method.ContainingType;
+                foreach (var member in type.GetMembers(memberName))
                 {
                     if (GetSlotForFieldOrProperty(member) is int memberSlot &&
                         memberSlot > 0)
@@ -3869,8 +3886,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Expanded, node.InvokedAsExtensionMethod, method);
 
             // TODO2 test with hidden method
-            if (method.IsStatic || node.ReceiverOpt is BoundThisReference)
+            if (method.IsStatic || node.ReceiverOpt is BoundThisReference || node.ReceiverOpt is BoundBaseReference)
             {
+                // TODO2 tweak for base?
                 ApplyMemberPostConditions(method);
             }
 
@@ -7426,8 +7444,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var updatedMember = VisitMemberAccess(node, node.ReceiverOpt, property);
 
             if (!IsAnalyzingAttribute &&
-                (property.IsStatic || node.ReceiverOpt is BoundThisReference))
+                (property.IsStatic || node.ReceiverOpt is BoundThisReference || node.ReceiverOpt is BoundBaseReference))
             {
+                // TODO2 tweak for base?
                 ApplyMemberPostConditions(property.GetMethod);
             }
 
