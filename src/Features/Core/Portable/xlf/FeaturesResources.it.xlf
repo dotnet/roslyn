@@ -287,6 +287,11 @@
         <target state="translated">Implementa '{0}' in modo implicito</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
         <target state="new">Implement all interfaces explicitly</target>
@@ -2113,11 +2118,6 @@ Questa versione è usata {2}</target>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Sconosciuto)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Implementa classe astratta</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

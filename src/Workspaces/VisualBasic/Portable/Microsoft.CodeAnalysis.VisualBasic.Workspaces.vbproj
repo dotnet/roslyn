@@ -41,18 +41,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="VBWorkspaceResources.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>VBWorkspaceResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="VBWorkspaceResources.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.VBWorkspaceResources</CustomToolNamespace>
-      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
-      <LastGenOutput>VBWorkspaceResources.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="VBWorkspaceResources.resx" GenerateSource="true" NAmespace="Microsoft.CodeAnalysis.VisualBasic"/>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Workspace\LanguageServices\" />

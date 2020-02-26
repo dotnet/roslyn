@@ -742,6 +742,49 @@ namespace N
         }
 
         [Fact]
+        public void CheckSecurityAttributeOnLocalFunction()
+        {
+            string source = @"
+using System.Security.Permissions;
+
+namespace N
+{
+    public class C
+    {
+        void M()
+        {
+            [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
+            static void local1() {}
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"<M>g__local1|0_0",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                });
+            });
+        }
+
+        [Fact]
         public void CheckMultipleSecurityAttributes_SameType_SameAction()
         {
             string source = @"

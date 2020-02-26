@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal abstract partial class AbstractImplementAbstractClassCodeFixProvider<TClassNode> : CodeFixProvider
+    internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode> : CodeFixProvider
         where TClassNode : SyntaxNode
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             var id = GetCodeActionId(abstractClassType.ContainingAssembly.Name, abstractClassType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    FeaturesResources.Implement_Abstract_Class,
+                    FeaturesResources.Implement_abstract_class,
                     c => data.ImplementAbstractClassAsync(throughMember: null, c), id),
                 context.Diagnostics);
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         }
 
         private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName, string through = "")
-            => FeaturesResources.Implement_Abstract_Class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName + ";" + through;
+            => FeaturesResources.Implement_abstract_class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName + ";" + through;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
