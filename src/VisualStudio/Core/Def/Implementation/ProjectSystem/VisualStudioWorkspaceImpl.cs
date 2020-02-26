@@ -275,7 +275,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal ContainedDocument TryGetContainedDocument(DocumentId documentId)
         {
-            // TODO: move everybody off of this method
+            // TODO: move everybody off of this instance method and replace them with calls to
+            // ContainedDocument.TryGetContainedDocument
             return ContainedDocument.TryGetContainedDocument(documentId);
         }
 
