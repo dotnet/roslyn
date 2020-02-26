@@ -62,18 +62,12 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         protected override void OnDocumentTextChanged(Document document)
         {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.Parse(document);
-            }
+            _backgroundParser.Parse(document);
         }
 
         protected override void OnDocumentClosing(DocumentId documentId)
         {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelParse(documentId);
-            }
+            _backgroundParser.CancelParse(documentId);
         }
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges => true;
