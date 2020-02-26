@@ -13,8 +13,6 @@ namespace Test.Utilities.CodeMetrics
 {
     public abstract class CodeMetricsTestBase
     {
-        private static readonly MetadataReference s_corlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        private static readonly MetadataReference s_systemCoreReference = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
         private static readonly CompilationOptions s_CSharpDefaultOptions = new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         private static readonly CompilationOptions s_visualBasicDefaultOptions = new Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
@@ -45,8 +43,6 @@ namespace Test.Utilities.CodeMetrics
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .WithProjectCompilationOptions(projectId, options)
                 .AddMetadataReferences(projectId, references);
-                //.AddMetadataReference(projectId, s_corlibReference)
-                //.AddMetadataReference(projectId, s_systemCoreReference);
 
             int count = 0;
             foreach (var source in sources)
