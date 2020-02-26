@@ -693,12 +693,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             int generation = factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
             var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, generation);
 
-            var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod);
+            var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod, factory.CurrentFunction);
             factory.AddNestedType(synthesizedContainer);
 
-            if (factory.TopLevelMethod.IsGenericMethod)
+            if (!synthesizedContainer.TypeParameters.IsEmpty)
             {
-                return synthesizedContainer.Construct(factory.TopLevelMethod.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
+                return synthesizedContainer.Construct(synthesizedContainer.ConstructedFromTypeParameters);
             }
 
             return synthesizedContainer;
