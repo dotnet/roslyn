@@ -276,7 +276,6 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private static bool InheritsFromOrEquals(ITypeSymbol type, ITypeSymbol baseType)
             => GetBaseTypesAndThis(type).Contains(t => SymbolEquivalenceComparer.Instance.Equals(t, baseType));
 
-
         private static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(ITypeSymbol? type)
         {
             var current = type;
