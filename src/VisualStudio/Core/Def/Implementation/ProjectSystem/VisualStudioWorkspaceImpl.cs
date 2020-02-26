@@ -1158,7 +1158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (IsDocumentOpen(documentId))
                 {
-                    var textBuffer = this.CurrentSolution.GetTextDocument(documentId).GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Container.TryGetTextBuffer();
+                    var textBuffer = this.CurrentSolution.GetTextDocument(documentId).GetTextSynchronously(CancellationToken.None).Container.TryGetTextBuffer();
 
                     if (textBuffer != null)
                     {
