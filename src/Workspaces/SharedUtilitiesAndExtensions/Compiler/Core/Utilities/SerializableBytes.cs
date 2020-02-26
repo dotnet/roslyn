@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis
         internal static PooledStream CreateReadableStream(byte[] bytes)
             => CreateReadableStream(bytes, bytes.Length);
 
-
         internal static PooledStream CreateReadableStream(byte[] bytes, int length)
         {
             var stream = CreateWritableStream();

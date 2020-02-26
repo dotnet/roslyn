@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.Host
     {
         public static void WriteString(this ITemporaryStreamStorage storage, string value)
         {
-            using var memoryStream = new MemoryStream();
-            using var streamWriter = new StreamWriter(memoryStream);
+            using var stream = SerializableBytes.CreateWritableStream();
+            using var writer = new StreamWriter(stream);
 
-            streamWriter.Write(value);
-            streamWriter.Flush();
-            memoryStream.Position = 0;
+            writer.Write(value);
+            writer.Flush();
+            stream.Position = 0;
 
-            storage.WriteStream(memoryStream);
+            storage.WriteStream(stream);
         }
 
         public static string ReadString(this ITemporaryStreamStorage storage)
