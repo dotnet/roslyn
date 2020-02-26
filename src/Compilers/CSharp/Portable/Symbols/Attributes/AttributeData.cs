@@ -270,20 +270,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void ReportBadNotNullMemberIfNeeded(TypeSymbol type, DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, string memberName)
         {
-            bool found = false;
             foreach (Symbol foundMember in type.GetMembers(memberName))
             {
                 if (foundMember.Kind == SymbolKind.Field || foundMember.Kind == SymbolKind.Property)
                 {
-                    found = true;
-                    break;
+                    return;
                 }
             }
 
-            if (!found)
-            {
-                arguments.Diagnostics.Add(ErrorCode.WRN_MemberNotNullBadMember, arguments.AttributeSyntaxOpt.Location, memberName);
-            }
+            arguments.Diagnostics.Add(ErrorCode.WRN_MemberNotNullBadMember, arguments.AttributeSyntaxOpt.Location, memberName);
         }
 
         static internal void DecodeMemberNotNullWhenAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
