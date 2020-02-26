@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
                             unwrapped = invocation.Instance;
                             alignment = alignmentSyntax as TExpressionSyntax;
-                            negate = targetName == nameof(string.PadLeft);
+                            negate = targetName == nameof(string.PadRight);
 
                             unnecessarySpans.AddRange(invocation.Syntax.Span
                                 .Subtract(invocation.Instance.Syntax.FullSpan)
