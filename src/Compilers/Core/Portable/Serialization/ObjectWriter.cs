@@ -266,6 +266,11 @@ namespace Roslyn.Utilities
             }
         }
 
+        /// <summary>
+        /// Write an array of bytes. The array data is provided as a
+        /// <see cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="byte"/>&gt;, and deserialized to a byte array.
+        /// </summary>
+        /// <param name="span">The array data.</param>
         public void WriteValue(ReadOnlySpan<byte> span)
         {
             int length = span.Length;
@@ -297,6 +302,9 @@ namespace Roslyn.Utilities
 #if NETCOREAPP
             _writer.Write(span);
 #else
+            // BinaryWriter in .NET Framework does not support ReadOnlySpan<byte>, so we use a temporary buffer to write
+            // arrays of data. The buffer is chosen to be no larger than 8K, which avoids allocations in the large
+            // object heap.
             var buffer = new byte[Math.Min(length, 8192)];
             for (int offset = 0; offset < length; offset += buffer.Length)
             {
