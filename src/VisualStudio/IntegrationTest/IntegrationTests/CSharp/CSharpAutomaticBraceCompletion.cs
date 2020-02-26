@@ -469,7 +469,10 @@ class B : A
 }
 ");
 
-            VisualStudio.Editor.SendKeys("override Goo(");
+            VisualStudio.Editor.SendKeys("override ");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys("Goo(");
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 class B : A
@@ -497,7 +500,10 @@ class C
 }
 ");
 
-            VisualStudio.Editor.SendKeys("new Li(", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys("new Li");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys("(", VirtualKey.Tab);
             VisualStudio.Editor.Verify.CurrentLineText("List<int> li = new List<int>()$$", assertCaretPosition: true);
         }
 
