@@ -167,13 +167,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string[] chosenSymbols,
             Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
-            CodeActionPriority? priority = null,
             TestParameters parameters = default)
         {
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
-                index, priority,
+                index,
                 parameters.WithFixProviderData(pickMembersService));
         }
     }

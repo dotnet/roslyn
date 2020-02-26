@@ -171,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
                 nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
                 nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                nodeToBind.Kind() == SyntaxKind.GotoCaseStatement || // for error recovery
                 nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
@@ -742,6 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                     nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
                     nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
+                    nodeToBind.Kind() == SyntaxKind.GotoCaseStatement ||
                     nodeToBind is ExpressionSyntax);
                 Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
                 this._nodeBinder = nodeBinder;
@@ -782,6 +784,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var arm = (SwitchExpressionArmSyntax)_nodeToBind;
                         var armBinder = (SwitchExpressionArmBinder)_nodeBinder;
                         armBinder.BindSwitchExpressionArm(arm, diagnostics);
+                        break;
+                    case SyntaxKind.GotoCaseStatement:
+                        _nodeBinder.BindStatement((GotoStatementSyntax)_nodeToBind, diagnostics);
                         break;
                     default:
                         _nodeBinder.BindExpression((ExpressionSyntax)_nodeToBind, diagnostics);

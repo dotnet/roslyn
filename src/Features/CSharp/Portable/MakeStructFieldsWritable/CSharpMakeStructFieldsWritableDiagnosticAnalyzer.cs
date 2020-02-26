@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             IDEDiagnosticIds.MakeStructFieldsWritable,
             new LocalizableResourceString(nameof(FeaturesResources.Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: false);
+            isUnnecessary: false);
 
         public CSharpMakeStructFieldsWritableDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_diagnosticDescriptor), GeneratedCodeAnalysisFlags.ReportDiagnostics)

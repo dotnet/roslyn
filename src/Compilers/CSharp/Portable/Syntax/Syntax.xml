@@ -2000,9 +2000,11 @@
     <TypeComment>
       <summary>Represents the base class for all statements syntax classes.</summary>
     </TypeComment>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;"/> 
   </AbstractNode>
   <Node Name="BlockSyntax" Base="StatementSyntax">
     <Kind Name="Block"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>
@@ -2013,6 +2015,7 @@
   </Node>
   <Node Name="LocalFunctionStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalFunctionStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
     <Field Name="ReturnType" Type="TypeSyntax"/>
     <Field Name="Identifier" Type="SyntaxToken">
@@ -2040,6 +2043,7 @@
 
   <Node Name="LocalDeclarationStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalDeclarationStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="AwaitKeyword"/>
     </Field>
@@ -2108,6 +2112,7 @@
 
   <Node Name="ExpressionStatementSyntax" Base="StatementSyntax">
     <Kind Name="ExpressionStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Expression" Type="ExpressionSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
@@ -2116,12 +2121,14 @@
 
   <Node Name="EmptyStatementSyntax" Base="StatementSyntax">
     <Kind Name="EmptyStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
   <Node Name="LabeledStatementSyntax" Base="StatementSyntax">
     <Kind Name="LabeledStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Identifier" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the identifier.</summary>
@@ -2146,6 +2153,7 @@
     <Kind Name="GotoStatement"/>
     <Kind Name="GotoCaseStatement"/>
     <Kind Name="GotoDefaultStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="GotoKeyword" Type="SyntaxToken">
       <Kind Name="GotoKeyword"/>
       <PropertyComment>
@@ -2191,6 +2199,7 @@
   </Node>
   <Node Name="BreakStatementSyntax" Base="StatementSyntax">
     <Kind Name="BreakStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="BreakKeyword" Type="SyntaxToken">
       <Kind Name="BreakKeyword"/>
     </Field>
@@ -2200,6 +2209,7 @@
   </Node>
   <Node Name="ContinueStatementSyntax" Base="StatementSyntax">
     <Kind Name="ContinueStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="ContinueKeyword" Type="SyntaxToken">
       <Kind Name="ContinueKeyword"/>
     </Field>
@@ -2209,6 +2219,7 @@
   </Node>
   <Node Name="ReturnStatementSyntax" Base="StatementSyntax">
     <Kind Name="ReturnStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="ReturnKeyword" Type="SyntaxToken">
       <Kind Name="ReturnKeyword"/>
     </Field>
@@ -2219,6 +2230,7 @@
   </Node>
   <Node Name="ThrowStatementSyntax" Base="StatementSyntax">
     <Kind Name="ThrowStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="ThrowKeyword" Type="SyntaxToken">
       <Kind Name="ThrowKeyword"/>
     </Field>
@@ -2229,6 +2241,7 @@
   </Node>
   <Node Name="YieldStatementSyntax" Base="StatementSyntax">
     <Kind Name="YieldReturnStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Kind Name="YieldBreakStatement"/>
     <Field Name="YieldKeyword" Type="SyntaxToken">
       <Kind Name="YieldKeyword"/>
@@ -2244,6 +2257,7 @@
   </Node>
   <Node Name="WhileStatementSyntax" Base="StatementSyntax">
     <Kind Name="WhileStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="WhileKeyword" Type="SyntaxToken">
       <Kind Name="WhileKeyword"/>
     </Field>
@@ -2258,6 +2272,7 @@
   </Node>
   <Node Name="DoStatementSyntax" Base="StatementSyntax">
     <Kind Name="DoStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="DoKeyword" Type="SyntaxToken">
       <Kind Name="DoKeyword"/>
     </Field>
@@ -2278,6 +2293,7 @@
   </Node>
   <Node Name="ForStatementSyntax" Base="StatementSyntax">
     <Kind Name="ForStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="ForKeyword" Type="SyntaxToken">
       <Kind Name="ForKeyword"/>
     </Field>
@@ -2327,6 +2343,7 @@
   <Node Name="ForEachStatementSyntax" Base="CommonForEachStatementSyntax">
     <!-- This is the existing C# 6 node. -->
     <Kind Name="ForEachStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="AwaitKeyword"/>
     </Field>
@@ -2357,6 +2374,7 @@
        into) the old one. -->
   <Node Name="ForEachVariableStatementSyntax" Base="CommonForEachStatementSyntax">
     <Kind Name="ForEachVariableStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="AwaitKeyword"/>
     </Field>
@@ -2392,6 +2410,7 @@
   -->
   <Node Name="UsingStatementSyntax" Base="StatementSyntax">
     <Kind Name="UsingStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="AwaitKeyword"/>
     </Field>
@@ -2413,6 +2432,7 @@
 
   <Node Name="FixedStatementSyntax" Base="StatementSyntax">
     <Kind Name="FixedStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="FixedKeyword" Type="SyntaxToken">
       <Kind Name="FixedKeyword"/>
     </Field>
@@ -2428,6 +2448,7 @@
   <Node Name="CheckedStatementSyntax" Base="StatementSyntax">
     <Kind Name="CheckedStatement"/>
     <Kind Name="UncheckedStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Keyword" Type="SyntaxToken">
       <Kind Name="CheckedKeyword"/>
       <Kind Name="UncheckedKeyword"/>
@@ -2436,6 +2457,7 @@
   </Node>
   <Node Name="UnsafeStatementSyntax" Base="StatementSyntax">
     <Kind Name="UnsafeStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="UnsafeKeyword" Type="SyntaxToken">
       <Kind Name="UnsafeKeyword"/>
     </Field>
@@ -2443,6 +2465,7 @@
   </Node>
   <Node Name="LockStatementSyntax" Base="StatementSyntax">
     <Kind Name="LockStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="LockKeyword" Type="SyntaxToken">
       <Kind Name="LockKeyword"/>
     </Field>
@@ -2457,6 +2480,7 @@
   </Node>
   <Node Name="IfStatementSyntax" Base="StatementSyntax">
     <Kind Name="IfStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="IfKeyword" Type="SyntaxToken">
       <Kind Name="IfKeyword"/>
       <PropertyComment>
@@ -2532,6 +2556,7 @@
 
   <Node Name="SwitchStatementSyntax" Base="StatementSyntax" SkipConvenienceFactories="true">
     <Kind Name="SwitchStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="SwitchKeyword" Type="SyntaxToken">
       <Kind Name="SwitchKeyword"/>
       <PropertyComment>
@@ -2726,6 +2751,7 @@
 
   <Node Name="TryStatementSyntax" Base="StatementSyntax">
     <Kind Name="TryStatement"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="TryKeyword" Type="SyntaxToken">
       <Kind Name="TryKeyword"/>
     </Field>

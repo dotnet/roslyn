@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// The rewriter for removing lambda expressions from method bodies and introducing closure classes
     /// as containers for captured variables along the lines of the example in section 6.5.3 of the
-    /// C# language specification.
+    /// C# language specification. A closure is the lowered form of a nested function, consisting of a
+    /// synthesized method and a set of environments containing the captured variables.
     /// 
     /// The entry point is the public method <see cref="Rewrite"/>.  It operates as follows:
     /// 
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// have captured variables.  The result of this analysis is left in <see cref="_analysis"/>.
     /// 
     /// Then we make a frame, or compiler-generated class, represented by an instance of
-    /// <see cref="SynthesizedClosureEnvironment"/> for each scope with captured variables.  The generated frames are kept
+    /// <see cref="SynthesizedClosureEnvironment"/> for each scope with captured variables. The generated frames are kept
     /// in <see cref="_frames"/>.  Each frame is given a single field for each captured
     /// variable in the corresponding scope.  These are maintained in <see cref="MethodToClassRewriter.proxies"/>.
     /// 
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the returned bound node.  For example, the caller will typically perform iterator method and
     /// asynchronous method transformations, and emit IL instructions into an assembly.
     /// </summary>
-    internal sealed partial class LambdaRewriter : MethodToClassRewriter
+    internal sealed partial class ClosureConversion : MethodToClassRewriter
     {
         private readonly Analysis _analysis;
         private readonly MethodSymbol _topLevelMethod;
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private LambdaRewriter(
+        private ClosureConversion(
             Analysis analysis,
             NamedTypeSymbol thisType,
             ParameterSymbol thisParameterOpt,
@@ -182,9 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _synthesizedFieldNameIdDispenser = 1;
 
             var allCapturedVars = ImmutableHashSet.CreateBuilder<Symbol>();
-            Analysis.VisitClosures(analysis.ScopeTree, (scope, closure) =>
+            Analysis.VisitNestedFunctions(analysis.ScopeTree, (scope, function) =>
             {
-                allCapturedVars.UnionWith(closure.CapturedVariables);
+                allCapturedVars.UnionWith(function.CapturedVariables);
             });
             _allCapturedVariables = allCapturedVars.ToImmutable();
         }
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics);
 
             CheckLocalsDefined(loweredBody);
-            var rewriter = new LambdaRewriter(
+            var rewriter = new ClosureConversion(
                 analysis,
                 thisType,
                 thisParameter,
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assignLocals);
 
             rewriter.SynthesizeClosureEnvironments(closureDebugInfoBuilder);
-            rewriter.SynthesizeLoweredFunctionMethods();
+            rewriter.SynthesizeClosureMethods();
 
             var body = rewriter.AddStatementsIfNeeded(
                 (BoundStatement)rewriter.Visit(loweredBody));
@@ -362,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DebugId methodId = _analysis.GetTopLevelMethodId();
                 DebugId closureId = _analysis.GetClosureId(syntax, closureDebugInfo);
 
-                var containingMethod = scope.ContainingClosureOpt?.OriginalMethodSymbol ?? _topLevelMethod;
+                var containingMethod = scope.ContainingFunctionOpt?.OriginalMethodSymbol ?? _topLevelMethod;
                 if ((object)_substitutedSourceMethod != null && containingMethod == _topLevelMethod)
                 {
                     containingMethod = _substitutedSourceMethod;
@@ -391,13 +392,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Synthesize the final signature for all closures.
+        /// Synthesize closure methods for all nested functions.
         /// </summary>
-        private void SynthesizeLoweredFunctionMethods()
+        private void SynthesizeClosureMethods()
         {
-            Analysis.VisitClosures(_analysis.ScopeTree, (scope, closure) =>
+            Analysis.VisitNestedFunctions(_analysis.ScopeTree, (scope, nestedFunction) =>
             {
-                var originalMethod = closure.OriginalMethodSymbol;
+                var originalMethod = nestedFunction.OriginalMethodSymbol;
                 var syntax = originalMethod.DeclaringSyntaxReferences[0].GetSyntax();
 
                 int closureOrdinal;
@@ -407,22 +408,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DebugId topLevelMethodId;
                 DebugId lambdaId;
 
-                if (closure.ContainingEnvironmentOpt != null)
+                if (nestedFunction.ContainingEnvironmentOpt != null)
                 {
-                    containerAsFrame = closure.ContainingEnvironmentOpt.SynthesizedEnvironment;
+                    containerAsFrame = nestedFunction.ContainingEnvironmentOpt.SynthesizedEnvironment;
 
                     closureKind = ClosureKind.General;
                     translatedLambdaContainer = containerAsFrame;
                     closureOrdinal = containerAsFrame.ClosureOrdinal;
                 }
-                else if (closure.CapturesThis)
+                else if (nestedFunction.CapturesThis)
                 {
                     containerAsFrame = null;
                     translatedLambdaContainer = _topLevelMethod.ContainingType;
                     closureKind = ClosureKind.ThisOnly;
                     closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
                 }
-                else if ((closure.CapturedEnvironments.Count == 0 &&
+                else if ((nestedFunction.CapturedEnvironments.Count == 0 &&
                           originalMethod.MethodKind == MethodKind.LambdaMethod &&
                           _analysis.MethodsConvertedToDelegates.Contains(originalMethod)) ||
                          // If we are in a variant interface, runtime might not consider the 
@@ -454,29 +455,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var synthesizedMethod = new SynthesizedClosureMethod(
                     translatedLambdaContainer,
-                    getStructClosures(closure),
+                    getStructEnvironments(nestedFunction),
                     closureKind,
                     _topLevelMethod,
                     topLevelMethodId,
                     originalMethod,
-                    closure.BlockSyntax,
+                    nestedFunction.BlockSyntax,
                     lambdaId);
-                closure.SynthesizedLoweredMethod = synthesizedMethod;
+                nestedFunction.SynthesizedLoweredMethod = synthesizedMethod;
             });
 
-            static ImmutableArray<SynthesizedClosureEnvironment> getStructClosures(Analysis.Closure closure)
+            static ImmutableArray<SynthesizedClosureEnvironment> getStructEnvironments(Analysis.NestedFunction function)
             {
-                var closuresBuilder = ArrayBuilder<SynthesizedClosureEnvironment>.GetInstance();
+                var environments = ArrayBuilder<SynthesizedClosureEnvironment>.GetInstance();
 
-                foreach (var env in closure.CapturedEnvironments)
+                foreach (var env in function.CapturedEnvironments)
                 {
                     if (env.IsStruct)
                     {
-                        closuresBuilder.Add(env.SynthesizedEnvironment);
+                        environments.Add(env.SynthesizedEnvironment);
                     }
                 }
 
-                return closuresBuilder.ToImmutableAndFree();
+                return environments.ToImmutableAndFree();
             }
         }
 
@@ -835,8 +836,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(localFunc.MethodKind == MethodKind.LocalFunction);
 
-            var closure = Analysis.GetClosureInTree(_analysis.ScopeTree, localFunc.OriginalDefinition);
-            var loweredSymbol = closure.SynthesizedLoweredMethod;
+            var function = Analysis.GetNestedFunctionInTree(_analysis.ScopeTree, localFunc.OriginalDefinition);
+            var loweredSymbol = function.SynthesizedLoweredMethod;
 
             // If the local function captured variables then they will be stored
             // in frames and the frames need to be passed as extra parameters.
@@ -1357,19 +1358,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
 
             SyntaxNode lambdaOrLambdaBodySyntax;
-            var anonymousFunction = syntax as AnonymousFunctionExpressionSyntax;
-            var localFunction = syntax as LocalFunctionStatementSyntax;
             bool isLambdaBody;
 
-            if (anonymousFunction != null)
+            if (syntax is AnonymousFunctionExpressionSyntax anonymousFunction)
             {
                 lambdaOrLambdaBodySyntax = anonymousFunction.Body;
                 isLambdaBody = true;
             }
-            else if (localFunction != null)
+            else if (syntax is LocalFunctionStatementSyntax localFunction)
             {
                 lambdaOrLambdaBodySyntax = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody?.Expression;
-                isLambdaBody = true;
+
+                if (lambdaOrLambdaBodySyntax is null)
+                {
+                    lambdaOrLambdaBodySyntax = localFunction;
+                    isLambdaBody = false;
+                }
+                else
+                {
+                    isLambdaBody = true;
+                }
             }
             else if (LambdaUtilities.IsQueryPairLambda(syntax))
             {
@@ -1414,8 +1422,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out DebugId topLevelMethodId,
             out DebugId lambdaId)
         {
-            Analysis.Closure closure = Analysis.GetClosureInTree(_analysis.ScopeTree, node.Symbol);
-            var synthesizedMethod = closure.SynthesizedLoweredMethod;
+            Analysis.NestedFunction function = Analysis.GetNestedFunctionInTree(_analysis.ScopeTree, node.Symbol);
+            var synthesizedMethod = function.SynthesizedLoweredMethod;
             Debug.Assert(synthesizedMethod != null);
 
             closureKind = synthesizedMethod.ClosureKind;
@@ -1424,13 +1432,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             topLevelMethodId = _analysis.GetTopLevelMethodId();
             lambdaId = synthesizedMethod.LambdaId;
 
-            if (closure.ContainingEnvironmentOpt != null)
+            if (function.ContainingEnvironmentOpt != null)
             {
                 // Find the scope of the containing environment
                 BoundNode tmpScope = null;
                 Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
                 {
-                    if (scope.DeclaredEnvironment == closure.ContainingEnvironmentOpt)
+                    if (scope.DeclaredEnvironment == function.ContainingEnvironmentOpt)
                     {
                         tmpScope = scope.BoundNode;
                     }
@@ -1478,9 +1486,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentTypeParameters = containerAsFrame?.TypeParameters.Concat(synthesizedMethod.TypeParameters) ?? synthesizedMethod.TypeParameters;
             _currentLambdaBodyTypeMap = synthesizedMethod.TypeMap;
 
-            var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(node.Body));
-            CheckLocalsDefined(body);
-            AddSynthesizedMethod(synthesizedMethod, body);
+            if (node.Body is BoundBlock block)
+            {
+                var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(block));
+                CheckLocalsDefined(body);
+                AddSynthesizedMethod(synthesizedMethod, body);
+            }
 
             // return to the old method
 

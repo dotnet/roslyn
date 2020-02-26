@@ -78,8 +78,9 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">닫힌 파일에 대한 진단 표시;
+Use enhanced colors;
+Editor Color Scheme;</source>
+        <target state="needs-review-translation">닫힌 파일에 대한 진단 표시;
 정규식 색 지정; 
 커서 아래의 관련 구성 요소 강조; 
 잘못된 정규식 보고;

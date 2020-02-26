@@ -6,14 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class LambdaRewriter
+    internal partial class ClosureConversion
     {
         internal sealed partial class Analysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
@@ -33,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public readonly ArrayBuilder<Scope> NestedScopes = ArrayBuilder<Scope>.GetInstance();
 
                 /// <summary>
-                /// A list of all closures (all lambdas and local functions) declared in this scope.
+                /// A list of all nested functions (all lambdas and local functions) declared in this scope.
                 /// </summary>
-                public readonly ArrayBuilder<Closure> Closures = ArrayBuilder<Closure>.GetInstance();
+                public readonly ArrayBuilder<NestedFunction> NestedFunctions = ArrayBuilder<NestedFunction>.GetInstance();
 
                 /// <summary>
                 /// A list of all locals or parameters that were declared in this scope and captured
@@ -53,16 +52,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <summary>
                 /// The bound node representing this scope. This roughly corresponds to the bound
                 /// node for the block declaring locals for this scope, although parameters of
-                /// methods/closures are introduced into their Body's scope and do not get their
+                /// methods/functions are introduced into their Body's scope and do not get their
                 /// own scope.
                 /// </summary>
                 public readonly BoundNode BoundNode;
 
                 /// <summary>
-                /// The closure that this scope is nested inside. Null if this scope is not nested
-                /// inside a closure.
+                /// The nested function that this scope is nested inside. Null if this scope is not nested
+                /// inside a nested function.
                 /// </summary>
-                public readonly Closure ContainingClosureOpt;
+                public readonly NestedFunction ContainingFunctionOpt;
 
 #nullable enable
 
@@ -75,13 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable restore
 
-                public Scope(Scope parent, BoundNode boundNode, Closure containingClosure)
+                public Scope(Scope parent, BoundNode boundNode, NestedFunction containingFunction)
                 {
                     Debug.Assert(boundNode != null);
 
                     Parent = parent;
                     BoundNode = boundNode;
-                    ContainingClosureOpt = containingClosure;
+                    ContainingFunctionOpt = containingFunction;
                 }
 
                 /// <summary>
@@ -98,26 +97,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     NestedScopes.Free();
 
-                    foreach (var closure in Closures)
+                    foreach (var function in NestedFunctions)
                     {
-                        closure.Free();
+                        function.Free();
                     }
-                    Closures.Free();
+                    NestedFunctions.Free();
                 }
 
                 public override string ToString() => BoundNode.Syntax.GetText().ToString();
             }
 
             /// <summary>
-            /// The Closure type represents a lambda or local function and stores
-            /// information related to that closure. After initially building the
+            /// The NestedFunction type represents a lambda or local function and stores
+            /// information related to that function. After initially building the
             /// <see cref="Scope"/> tree the only information available is
             /// <see cref="OriginalMethodSymbol"/> and <see cref="CapturedVariables"/>.
             /// Subsequent passes are responsible for translating captured
             /// variables into captured environments and for calculating
             /// the rewritten signature of the method.
             /// </summary>
-            public sealed class Closure
+            public sealed class NestedFunction
             {
                 /// <summary>
                 /// The method symbol for the original lambda or local function.
@@ -139,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private bool _capturesThis;
 
                 /// <summary>
-                /// True if this closure directly or transitively captures 'this' (captures
+                /// True if this function directly or transitively captures 'this' (captures
                 /// a local function which directly or indirectly captures 'this').
                 /// Calculated in <see cref="MakeAndAssignEnvironments"/>.
                 /// </summary>
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public SynthesizedClosureMethod SynthesizedLoweredMethod;
 
-                public Closure(MethodSymbol symbol, SyntaxReference blockSyntax)
+                public NestedFunction(MethodSymbol symbol, SyntaxReference blockSyntax)
                 {
                     Debug.Assert(symbol != null);
                     OriginalMethodSymbol = symbol;
@@ -195,30 +194,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Visit all closures in all nested scopes and run the <paramref name="action"/>.
+            /// Visit all nested functions in all nested scopes and run the <paramref name="action"/>.
             /// </summary>
-            public static void VisitClosures(Scope scope, Action<Scope, Closure> action)
+            public static void VisitNestedFunctions(Scope scope, Action<Scope, NestedFunction> action)
             {
-                foreach (var closure in scope.Closures)
+                foreach (var function in scope.NestedFunctions)
                 {
-                    action(scope, closure);
+                    action(scope, function);
                 }
 
                 foreach (var nested in scope.NestedScopes)
                 {
-                    VisitClosures(nested, action);
+                    VisitNestedFunctions(nested, action);
                 }
             }
 
             /// <summary>
-            /// Visit all the closures and return true when the <paramref name="func"/> returns
+            /// Visit all the functions and return true when the <paramref name="func"/> returns
             /// true. Otherwise, returns false.
             /// </summary>
-            public static bool CheckClosures(Scope scope, Func<Scope, Closure, bool> func)
+            public static bool CheckNestedFunctions(Scope scope, Func<Scope, NestedFunction, bool> func)
             {
-                foreach (var closure in scope.Closures)
+                foreach (var function in scope.NestedFunctions)
                 {
-                    if (func(scope, closure))
+                    if (func(scope, function))
                     {
                         return true;
                     }
@@ -226,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var nested in scope.NestedScopes)
                 {
-                    if (CheckClosures(nested, func))
+                    if (CheckNestedFunctions(nested, func))
                     {
                         return true;
                     }
@@ -275,9 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private Scope _currentScope;
 
                 /// <summary>
-                /// Null if we're not inside a closure scope, otherwise the nearest closure scope
+                /// Null if we're not inside a nested function, otherwise the nearest nested function.
                 /// </summary>
-                private Closure _currentClosure = null;
+                private NestedFunction _currentFunction = null;
                 private bool _inExpressionTree = false;
 
                 /// <summary>
@@ -355,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(node == FindNodeToAnalyze(node));
                     Debug.Assert(topLevelMethod != null);
 
-                    var rootScope = new Scope(parent: null, boundNode: node, containingClosure: null);
+                    var rootScope = new Scope(parent: null, boundNode: node, containingFunction: null);
                     var builder = new ScopeTreeBuilder(
                         rootScope,
                         topLevelMethod,
@@ -427,14 +426,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _inExpressionTree |= node.Type.IsExpressionTree();
 
                     _methodsConvertedToDelegates.Add(node.Symbol.OriginalDefinition);
-                    var result = VisitClosure(node.Symbol, node.Body);
+                    var result = VisitNestedFunction(node.Symbol, node.Body);
 
                     _inExpressionTree = oldInExpressionTree;
                     return result;
                 }
 
                 public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
-                    => VisitClosure(node.Symbol.OriginalDefinition, node.Body);
+                    => VisitNestedFunction(node.Symbol.OriginalDefinition, node.Body);
 
                 public override BoundNode VisitCall(BoundCall node)
                 {
@@ -545,34 +544,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                private BoundNode VisitClosure(MethodSymbol closureSymbol, BoundBlock body)
+#nullable enable
+                private BoundNode? VisitNestedFunction(MethodSymbol functionSymbol, BoundBlock? body)
                 {
-                    Debug.Assert((object)closureSymbol != null);
+                    RoslynDebug.Assert(functionSymbol is object);
 
-                    // Closure is declared (lives) in the parent scope, but its
+                    if (body is null)
+                    {
+                        // extern closure
+                        _currentScope.NestedFunctions.Add(new NestedFunction(functionSymbol, blockSyntax: null));
+                        return null;
+                    }
+
+                    // Nested function is declared (lives) in the parent scope, but its
                     // variables are in a nested scope
-                    var closure = new Closure(closureSymbol, body.Syntax.GetReference());
-                    _currentScope.Closures.Add(closure);
+                    var function = new NestedFunction(functionSymbol, body.Syntax.GetReference());
+                    _currentScope.NestedFunctions.Add(function);
 
-                    var oldClosure = _currentClosure;
-                    _currentClosure = closure;
+                    var oldFunction = _currentFunction;
+                    _currentFunction = function;
 
                     var oldScope = _currentScope;
                     CreateAndPushScope(body);
 
                     // For the purposes of scoping, parameters live in the same scope as the
-                    // closure block. Expression tree variables are free variables for the
+                    // nested function block. Expression tree variables are free variables for the
                     // purposes of closure conversion
-                    DeclareLocals(_currentScope, closureSymbol.Parameters, _inExpressionTree);
+                    DeclareLocals(_currentScope, functionSymbol.Parameters, _inExpressionTree);
 
                     var result = _inExpressionTree
                         ? base.VisitBlock(body)
                         : VisitBlock(body);
 
                     PopScope(oldScope);
-                    _currentClosure = oldClosure;
+                    _currentFunction = oldFunction;
                     return result;
                 }
+#nullable restore
 
                 private void AddIfCaptured(Symbol symbol, SyntaxNode syntax)
                 {
@@ -581,9 +589,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbol.Kind == SymbolKind.Parameter ||
                         symbol.Kind == SymbolKind.Method);
 
-                    if (_currentClosure == null)
+                    if (_currentFunction == null)
                     {
-                        // Can't be captured if we're not in a closure
+                        // Can't be captured if we're not in a nested function
                         return;
                     }
 
@@ -594,37 +602,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     if (symbol is MethodSymbol method &&
-                        _currentClosure.OriginalMethodSymbol == method)
+                        _currentFunction.OriginalMethodSymbol == method)
                     {
                         // Is this recursion? If so there's no capturing
                         return;
                     }
 
                     Debug.Assert(symbol.ContainingSymbol != null);
-                    if (symbol.ContainingSymbol != _currentClosure.OriginalMethodSymbol)
+                    if (symbol.ContainingSymbol != _currentFunction.OriginalMethodSymbol)
                     {
                         // Restricted types can't be hoisted, so they are not permitted to be captured
                         AddDiagnosticIfRestrictedType(symbol, syntax);
 
                         // Record the captured variable where it's captured
                         var scope = _currentScope;
-                        var closure = _currentClosure;
-                        while (closure != null && symbol.ContainingSymbol != closure.OriginalMethodSymbol)
+                        var function = _currentFunction;
+                        while (function != null && symbol.ContainingSymbol != function.OriginalMethodSymbol)
                         {
-                            closure.CapturedVariables.Add(symbol);
+                            function.CapturedVariables.Add(symbol);
 
                             // Also mark captured in enclosing scopes
-                            while (scope.ContainingClosureOpt == closure)
+                            while (scope.ContainingFunctionOpt == function)
                             {
                                 scope = scope.Parent;
                             }
-                            closure = scope.ContainingClosureOpt;
+                            function = scope.ContainingFunctionOpt;
                         }
 
                         // Also record where the captured variable lives
 
                         // No need to record where local functions live: that was recorded
-                        // in the Closures list in each scope
+                        // in the NestedFunctions list in each scope
                         if (symbol.Kind == SymbolKind.Method)
                         {
                             return;
@@ -680,10 +688,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private void PushOrReuseScope<TSymbol>(BoundNode node, ImmutableArray<TSymbol> locals)
                     where TSymbol : Symbol
                 {
-                    // We should never create a new scope with the same bound
-                    // node. We can get into this situation for methods and
-                    // closures where a new scope is created to add parameters
-                    // and a new scope would be created for the method block,
+                    // We should never create a new scope with the same bound node. We can get into
+                    // this situation for methods and nested functions where a new scope is created
+                    // to add parameters and a new scope would be created for the method block,
                     // despite the fact that they should be the same scope.
                     if (!locals.IsEmpty && _currentScope.BoundNode != node)
                     {
@@ -700,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <param name="node"></param>
                 private void CreateAndPushScope(BoundNode node)
                 {
-                    var scope = CreateNestedScope(_currentScope, _currentClosure);
+                    var scope = CreateNestedScope(_currentScope, _currentFunction);
 
                     foreach (var label in _labelsInScope.Peek())
                     {
@@ -711,11 +718,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     _currentScope = scope;
 
-                    Scope CreateNestedScope(Scope parentScope, Closure currentClosure)
+                    Scope CreateNestedScope(Scope parentScope, NestedFunction currentFunction)
                     {
                         Debug.Assert(parentScope.BoundNode != node);
 
-                        var newScope = new Scope(parentScope, node, currentClosure);
+                        var newScope = new Scope(parentScope, node, currentFunction);
                         parentScope.NestedScopes.Add(newScope);
                         return newScope;
                     }
