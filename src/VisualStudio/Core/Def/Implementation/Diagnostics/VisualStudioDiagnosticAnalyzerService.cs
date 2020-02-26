@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             if (visible)
             {
                 if (command.CommandID.ID == RunCodeAnalysisForSelectedProjectCommandId &&
-                    hierarchy.TryGetProject(out var project))
+                    hierarchy!.TryGetProject(out var project))
                 {
                     // Change to show the name of the project as part of the menu item display text.
                     command.Text = string.Format(ServicesVSResources.Run_Code_Analysis_on_0, project.Name);
