@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-#nullable enable
-
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,33 +51,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
+            var span = diagnostic.Location.SourceSpan;
+            var node = root.FindNode(span);
             if (TryGetTargetNode(root, diagnostic.Location.SourceSpan) is ExpressionSyntax targetNode)
             {
-                var exactSolution = GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var conversionType, out var potentialConvTypes);
-                if (exactSolution)
+                var hasSolution = GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes);
+                if (hasSolution && potentialConversionTypes.Length == 1)
                 {
                     context.RegisterCodeFix(new MyCodeAction(
                         CSharpFeaturesResources.Add_explicit_cast,
                         c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                         context.Diagnostics);
                 }
-                else if (potentialConvTypes.Length > 1)
+                else if (hasSolution && potentialConversionTypes.Length > 1)
                 {
                     var actions = ArrayBuilder<CodeAction>.GetInstance();
-                    for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConvTypes.Length); i++)
+
+                    // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
+                    for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
                     {
-                        var convType = potentialConvTypes[i];
+                        var convType = potentialConversionTypes[i];
                         actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToDisplayString()),
                             c => ApplyFixAsync(context.Document, root, targetNode, convType)));
                     }
 
-                    if (potentialConvTypes.Length > MaximumConversionOptions)
+                    // If the number of potential conversion types is larger than options we could show, report telemetry
+                    if (potentialConversionTypes.Length > MaximumConversionOptions)
                     {
                         Logger.Log(FunctionId.CodeFixes_AddExplicitCast,
                             KeyValueLogMessage.Create(m =>
                             {
-                                m["NumberOfCandidates"] = potentialConvTypes.Length;
+                                m["NumberOfCandidates"] = potentialConversionTypes.Length;
                             }));
                     }
 
@@ -108,18 +111,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// <param name="targetNode">The node to be cast.</param>
         /// <param name="cancellationToken"></param>
         /// <param name="targetNodeType">Output the type of <paramref name="targetNode"/>.</param>
-        /// <param name="targetNodeConversionType">Output the exact conversion type that <paramref name="targetNode"/> is going to be cast.</param>
-        /// <param name="potentialConversionTypes">>Output the potential conversions types that <paramref name="targetNode"/> can be cast</param>
+        /// <param name="potentialConversionTypes">>Output the potential conversions types that <paramref name="targetNode"/> can be cast to</param>
         /// <returns>
-        /// True, if the target node has exactly one conversion type, and it is assigned to <paramref name="targetNodeConversionType"/>
-        /// False, if the target node has no conversion type or multiple conversion types. Multiple conversion types are assigned to <paramref name="potentialConversionTypes"/>
+        /// True, if the target node has at least one conversion type, and they are assigned to <paramref name="potentialConversionTypes"/>
+        /// False, if the target node has no conversion type.
         /// </returns>
         private static bool GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken,
-            out ITypeSymbol? targetNodeType, out ITypeSymbol? targetNodeConversionType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
+            out ITypeSymbol? targetNodeType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
         {
             targetNodeType = null;
-            targetNodeConversionType = null;
             potentialConversionTypes = ImmutableArray<ITypeSymbol>.Empty;
+            var mutablePotentialConversionTypes = new List<ITypeSymbol>();
             if (targetNode == null)
             {
                 return false;
@@ -127,22 +129,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
             var targetNodeInfo = semanticModel.GetTypeInfo(targetNode, cancellationToken);
             targetNodeType = targetNodeInfo.Type;
-            targetNodeConversionType = targetNodeInfo.ConvertedType;
+
             if (targetNodeType == null)
             {
                 return false;
             }
 
+            if (targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
+            {
+                mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
+            }
+
             var textSpan = targetNode.GetLocation().SourceSpan;
-            if (TryGetNode(root, textSpan, SyntaxKind.Argument, targetNode, out var argumentNode) && argumentNode is ArgumentSyntax targetArgument &&
+            if (targetNode.GetAncestors<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument &&
                 targetArgument.Parent is ArgumentListSyntax argumentList && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
                 // Implicit downcast appears on the argument of invocation node, get all candidate functions and extract potential conversion types 
-                targetNodeConversionType = null;
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidateSymbols = symbolInfo.CandidateSymbols;
 
-                var mutablePotentialConversionTypes = new List<ITypeSymbol> { };
                 foreach (var candidcateSymbol in candidateSymbols)
                 {
                     var methodSymbol = candidcateSymbol as IMethodSymbol;
@@ -182,29 +187,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 // Sort the potential conversion types by inheritance distance
                 var comparer = new InheritanceDistanceComparer(semanticModel, targetNodeType);
                 mutablePotentialConversionTypes.Sort(comparer);
-                potentialConversionTypes = mutablePotentialConversionTypes.Distinct().ToImmutableArray(); // clear up duplicate types
-                if (potentialConversionTypes.Length != 1)
+                mutablePotentialConversionTypes = mutablePotentialConversionTypes.Distinct().ToList(); // clear up duplicate types
+            }
+
+            // For cases like object creation expression. for example:
+            // Derived d = [||]new Base();
+            // It is always invalid except the target node has explicit conversion operator.
+            // filter function is going to filter the cases that is invalid
+            var nodeType = targetNodeType;
+            Func<ITypeSymbol, bool> filter = (targetNodeConversionType =>
+            {
+                var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(nodeType, targetNodeConversionType);
+                if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression) && !commonConversion.IsUserDefined)
                 {
                     return false;
                 }
+                return commonConversion.Exists;
+            });
 
-                targetNodeConversionType = potentialConversionTypes[0];
-            }
-
-            if (targetNodeConversionType == null)
-            {
-                return false;
-            }
-
-            var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(targetNodeType, targetNodeConversionType);
-            // example: Derived d = [||]new Base();
-            // It is invalid except the target node has explicit conversion operator 
-            if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression) && !commonConversion.IsUserDefined)
-            {
-                targetNodeConversionType = null;
-                return false;
-            }
-            return commonConversion.Exists;
+            potentialConversionTypes = mutablePotentialConversionTypes.Where<ITypeSymbol>(filter).ToImmutableArray();
+            return !potentialConversionTypes.IsEmpty;
         }
 
         /// <summary>
@@ -237,6 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 var nameSyntax = arguments[i].NameColon?.Name;
                 if (nameSyntax != null)
                 {
+                    var param = arguments[i].DetermineParameter(semanticModel, allowParams: true, cancellationToken);
                     var name = nameSyntax.ToString();
                     var found = false;
                     for (var j = 0; j < parameters.Length; j++)
@@ -294,16 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         {
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
 
-            var node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root);
+            var node = ancestors.FirstOrDefault(n => n.Span.Contains(span));
             return node;
-        }
-
-        private static bool TryGetNode(SyntaxNode root, TextSpan span, SyntaxKind kind, SyntaxNode target, out SyntaxNode? node)
-        {
-            var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
-
-            node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root && n != target && n.IsKind(kind));
-            return node != null;
         }
 
         protected override async Task FixAllAsync(
@@ -320,10 +315,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 (semanticModel, targetNode) => true,
                 (semanticModel, currentRoot, targetNode) =>
                 {
-                    if (GetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var conversionType, out var potentialConvTypes) &&
-                    nodeType != null && conversionType != null && !nodeType.Equals(conversionType) &&
+                    if (GetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes) &&
+                    potentialConversionTypes.Length == 1 && nodeType != null && !nodeType.Equals(potentialConversionTypes[0]) &&
                         targetNode is ExpressionSyntax expression)
                     {
+                        var conversionType = potentialConversionTypes[0];
                         var castExpression = expression.Cast(conversionType);
 
                         // TODO: castExpression.WithAdditionalAnnotations(Simplifier.Annotation) 

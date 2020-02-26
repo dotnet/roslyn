@@ -2698,5 +2698,27 @@ class Program
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MultipleOptions9()
+        {
+            var initialMarkup =
+                @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(Derived d1) { }
+    void Foo(Derived2 d2) { }
+
+    void M() {
+        Foo([||]new Base());
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(initialMarkup);
+        }
     }
 }

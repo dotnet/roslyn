@@ -17,6 +17,11 @@
         <target state="translated">添加 await</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
         <target state="translated">添加缺少的 using</target>
@@ -90,6 +95,11 @@
       <trans-unit id="Convert_to_switch_statement">
         <source>Convert to 'switch' statement</source>
         <target state="translated">转换为 \"switch\" 语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="new">Convert type to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
