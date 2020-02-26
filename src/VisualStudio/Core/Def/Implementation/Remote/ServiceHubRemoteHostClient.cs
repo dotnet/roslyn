@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var hostGroup = new HostGroup(clientId);
                 var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
-                // user the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
+                // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
                 WatsonReporter.InitializeLogger(hubClient.Logger);
 
                 // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
