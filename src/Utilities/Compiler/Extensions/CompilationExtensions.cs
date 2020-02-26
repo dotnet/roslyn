@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.Extensions
@@ -39,7 +37,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <param name="compilation">The compilation</param>
         /// <returns><c>True</c> if the compilation targets .NET Framework; otherwise <c>false</c>.</returns>
-        internal static bool DoesTargetDotNetFramework(this Compilation compilation)
+        internal static bool TargetsDotNetFramework(this Compilation compilation)
         {
             var objectType = compilation.GetSpecialType(SpecialType.System_Object);
             var assemblyIdentity = objectType.ContainingAssembly.Identity;
