@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     {
         int ICompilerOptionsHostObject.SetCompilerOptions(string compilerOptions, out bool supported)
         {
-            VisualStudioProjectOptionsProcessor.CommandLine = compilerOptions;
+            VisualStudioProjectOptionsProcessor.SetCommandLine(compilerOptions);
             supported = true;
             return VSConstants.S_OK;
         }
