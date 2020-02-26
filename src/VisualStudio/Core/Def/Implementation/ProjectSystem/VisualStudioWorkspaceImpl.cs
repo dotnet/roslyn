@@ -519,12 +519,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal bool TryAddReferenceToProject(ProjectId projectId, string assemblyName)
         {
-            EnvDTE.Project project;
-            try
-            {
-                GetProjectData(projectId, out var hierarchy, out project);
-            }
-            catch (ArgumentException)
+            if (!TryGetProjectData(projectId, out _, out var project))
             {
                 return false;
             }
