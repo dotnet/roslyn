@@ -1690,7 +1690,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (projectWithMetadataReference.LanguageServices.GetService<ICompilationFactoryService>() != null &&
                     referencedProject.LanguageServices.GetService<ICompilationFactoryService>() == null)
                 {
-                    // We're referencing something that we can't create a compilation from something that can, so keep the metadtata reference
+                    // We're referencing something that we can't create a compilation from something that can, so keep the metadata reference
                     return false;
                 }
             }
