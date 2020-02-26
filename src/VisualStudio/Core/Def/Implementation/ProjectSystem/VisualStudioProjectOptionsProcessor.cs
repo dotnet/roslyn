@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -29,18 +31,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// as a low cost (in terms of memory) way to determine if the command line
         /// actually changes and we need to make any downstream updates.
         /// </summary>
-        private Checksum _commandLineChecksum;
+        private Checksum? _commandLineChecksum;
 
         /// <summary>
         /// To save space in the managed heap, we dump the entire command-line string to our
         /// temp-storage-service. This is helpful as compiler command-lines can grow extremely large
         /// (especially in cases with many references).
         /// </summary>
-        private ITemporaryStreamStorage _commandLineStorage;
+        /// <remarks>Note: this will be null in the case that the command line is an empty string.</remarks>
+        private ITemporaryStreamStorage? _commandLineStorage;
 
         private CommandLineArguments _commandLineArgumentsForCommandLine;
-        private string _explicitRuleSetFilePath;
-        private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> _ruleSetFile = null;
+        private string? _explicitRuleSetFilePath;
+        private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>>? _ruleSetFile = null;
 
         public VisualStudioProjectOptionsProcessor(
             VisualStudioProject project,
@@ -49,11 +52,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _workspaceServices = workspaceServices;
             _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
-            _temporaryStorageService = workspaceServices.GetService<ITemporaryStorageService>();
-            _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
+            _temporaryStorageService = workspaceServices.GetRequiredService<ITemporaryStorageService>();
 
             // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in
             // the constructor so nothing can race.
+
+            // Silence NRT warning.  This will be initialized by the call below to ReparseCommandLineIfChanged_NoLock.
+            _commandLineArgumentsForCommandLine = null!;
             ReparseCommandLineIfChanged_NoLock(commandLine: "");
         }
 
@@ -64,14 +69,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_commandLineChecksum == checksum)
                 return false;
 
-            // Dispose the existing stored command-line and then persist the new one so we can
-            // recover it later.
-
-            _commandLineStorage.Dispose();
-            _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
-            _commandLineStorage.WriteString(commandLine);
-
             _commandLineChecksum = checksum;
+
+            // Dispose the existing stored command-line and then persist the new one so we can
+            // recover it later.  Only bother persisting things if we have a non-empty string.
+
+            _commandLineStorage?.Dispose();
+            _commandLineStorage = null;
+            if (commandLine.Length > 0)
+            {
+                _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
+                _commandLineStorage.WriteString(commandLine);
+            }
+
             ReparseCommandLine_NoLock(commandLine);
             return true;
         }
@@ -92,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public string ExplicitRuleSetFilePath
+        public string? ExplicitRuleSetFilePath
         {
             get => _explicitRuleSetFilePath;
 
@@ -115,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Returns the active path to the rule set file that is being used by this project, or null if there isn't a rule set file.
         /// </summary>
-        public string EffectiveRuleSetFilePath
+        public string? EffectiveRuleSetFilePath
         {
             get
             {
@@ -219,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
                 // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
                 // includes in the IDE so we can be watching for changes again.
-                var commandLine = _commandLineStorage.ReadString();
+                var commandLine = _commandLineStorage?.ReadString() ?? "";
 
                 DisposeOfRuleSetFile_NoLock();
                 ReparseCommandLine_NoLock(commandLine);
@@ -231,10 +241,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Overridden by derived classes to provide a hook to modify a <see cref="CompilationOptions"/> with any host-provided values that didn't come from
         /// the command line string.
         /// </summary>
-        protected virtual CompilationOptions ComputeCompilationOptionsWithHostValues(CompilationOptions compilationOptions, IRuleSetFile ruleSetFileOpt)
-        {
-            return compilationOptions;
-        }
+        protected virtual CompilationOptions ComputeCompilationOptionsWithHostValues(CompilationOptions compilationOptions, IRuleSetFile? ruleSetFileOpt)
+            => compilationOptions;
 
         /// <summary>
         /// Override by derived classes to provide a hook to modify a <see cref="ParseOptions"/> with any host-provided values that didn't come from 
@@ -262,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 DisposeOfRuleSetFile_NoLock();
-                _commandLineStorage.Dispose();
+                _commandLineStorage?.Dispose();
             }
         }
     }
