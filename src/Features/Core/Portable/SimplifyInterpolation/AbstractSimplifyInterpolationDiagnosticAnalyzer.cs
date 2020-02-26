@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()),
                 properties: null));
 
+            // We start at 1 because the 0th element was used above to make the main diagnostic descriptor.
+            // All the rest are used to just fade out the correct portions of the user's code.
             for (var i = 1; i < unnecessaryLocations.Length; i++)
             {
                 context.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, subsequentLocation));
