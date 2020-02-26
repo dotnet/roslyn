@@ -52,11 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
             return currentItems.AddFolder(folderName);
         }
 
-        public static ProjectItem FindItem(this EnvDTE.Project project, string itemName, StringComparer comparer)
-        {
-            return project.ProjectItems.FindItem(itemName, comparer);
-        }
-
         public static ProjectItem FindItemByPath(this EnvDTE.Project project, string itemFilePath, StringComparer comparer)
         {
             var stack = new Stack<ProjectItems>();
