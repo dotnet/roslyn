@@ -84,7 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            var originalCompilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var currentCompilation = currentProject.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
