@@ -58,7 +58,6 @@
     <EmbeddedResource Update="VBFeaturesResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CodeFixes\RemoveUnnecessaryCast\" />
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
