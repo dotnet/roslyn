@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -15,9 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public static BoundExpression GenerateEqualsComparisons<TList>(
             NamedTypeSymbol containingType,
             BoundExpression otherAccess,
-            TList componentProperties,
+            TList componentFields,
             SyntheticBoundNodeFactory F) where TList : IReadOnlyList<FieldSymbol>
         {
+            Debug.Assert(componentFields.Count > 0);
+
             //  Expression:
             //
             //      System.Collections.Generic.EqualityComparer<T_1>.Default.Equals(this.backingFld_1, value.backingFld_1)
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             BoundExpression? retExpression = null;
 
             // Compare fields
-            foreach (var field in componentProperties)
+            foreach (var field in componentFields)
             {
                 // Prepare constructed symbols
                 var constructedEqualityComparer = equalityComparerType.Construct(field.Type);

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
             => CSharpTestBase.CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
-        private CompilationVerifier CompileAndVerify(CSharpTestSource src, string expectedOutput)
+        private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
             => base.CompileAndVerify(src, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularPreview);
 
         [Fact]
@@ -349,25 +349,62 @@ False");
 }");
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       49 (0x31)
+  // Code size       54 (0x36)
   .maxstack  3
-  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0005:  ldarg.0
-  IL_0006:  ldfld      ""int C.<X>k__BackingField""
-  IL_000b:  ldarg.1
-  IL_000c:  ldfld      ""int C.<X>k__BackingField""
-  IL_0011:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0016:  brfalse.s  IL_002f
-  IL_0018:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001d:  ldarg.0
-  IL_001e:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0023:  ldarg.1
-  IL_0024:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0029:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002e:  ret
-  IL_002f:  ldc.i4.0
-  IL_0030:  ret
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0034
+  IL_0003:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0008:  ldarg.0
+  IL_0009:  ldfld      ""int C.<X>k__BackingField""
+  IL_000e:  ldarg.1
+  IL_000f:  ldfld      ""int C.<X>k__BackingField""
+  IL_0014:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0019:  brfalse.s  IL_0032
+  IL_001b:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0020:  ldarg.0
+  IL_0021:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0026:  ldarg.1
+  IL_0027:  ldfld      ""int C.<Y>k__BackingField""
+  IL_002c:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0031:  ret
+  IL_0032:  ldc.i4.0
+  IL_0033:  ret
+  IL_0034:  ldc.i4.0
+  IL_0035:  ret
 }");
+        }
+
+        [Fact]
+        public void RecordEquals_06()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+data class C(int X, int Y)
+{
+    public static void Main()
+    {
+        var c = new C(0, 0);
+        object c2 = null;
+        C c3 = null;
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals(c3));
+    }
+}", expectedOutput: @"False
+False");
+        }
+
+        [Fact]
+        public void EmptyRecord()
+        {
+            var src = @"
+data class C(); ";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,13): error CS8770: Records must have both a 'data' modifier and non-empty parameter list
+                // data class C(); 
+                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 13)
+            );
         }
     }
 }

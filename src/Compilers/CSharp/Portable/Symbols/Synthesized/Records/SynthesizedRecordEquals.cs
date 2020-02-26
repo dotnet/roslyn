@@ -145,14 +145,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     recordProperties.Add(p.BackingField);
                 }
             }
-            var comparisons = EqualityMethodBodySynthesizer.GenerateEqualsComparisons(
-                ContainingType,
-                other,
-                recordProperties,
-                F);
+            if (recordProperties.Count > 0)
+            {
+                var comparisons = EqualityMethodBodySynthesizer.GenerateEqualsComparisons(
+                    ContainingType,
+                    other,
+                    recordProperties,
+                    F);
+                retExpr = F.LogicalAnd(retExpr, comparisons);
+            }
             recordProperties.Free();
 
-            F.CloseMethod(F.Block(F.Return(comparisons)));
+            F.CloseMethod(F.Block(F.Return(retExpr)));
         }
     }
 }

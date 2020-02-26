@@ -2920,7 +2920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (!_declModifiers.HasFlag(DeclarationModifiers.Data))
+            if (paramList.ParameterCount == 0 || !_declModifiers.HasFlag(DeclarationModifiers.Data))
             {
                 diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
             }

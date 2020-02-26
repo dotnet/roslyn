@@ -88,8 +88,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordDeclaration">
-        <source>Records must have both a 'data' modifier and parameter list</source>
-        <target state="new">Records must have both a 'data' modifier and parameter list</target>
+        <source>Records must have both a 'data' modifier and non-empty parameter list</source>
+        <target state="new">Records must have both a 'data' modifier and non-empty parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">

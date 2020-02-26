@@ -5952,7 +5952,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>records</value>
   </data>
   <data name="ERR_BadRecordDeclaration" xml:space="preserve">
-    <value>Records must have both a 'data' modifier and parameter list</value>
+    <value>Records must have both a 'data' modifier and non-empty parameter list</value>
   </data>
   <data name="ERR_DuplicateRecordConstructor" xml:space="preserve">
     <value>There cannot be a primary constructor and a member constructor with the same parameter types.</value>
