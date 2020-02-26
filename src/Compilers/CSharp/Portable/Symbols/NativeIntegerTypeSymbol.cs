@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +12,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol
+    // PROTOTYPE: Handle retargeting these types.
+    internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol, Cci.IReference
     {
         internal NativeIntegerTypeSymbol(NamedTypeSymbol underlying) : base(underlying, tupleData: null)
         {
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // PROTOTYPE: Include certain interfaces defined on the underlying type, with substitution
         // of [U]IntPtr (for instance, IEquatable<nint> rather than IEquatable<IntPtr>).
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData) => throw ExceptionUtilities.Unreachable;
 
@@ -82,8 +85,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol AsNativeInt(bool asNativeInt) => asNativeInt ? this : _underlyingType;
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null) => _underlyingType.Equals(t2, comparison, isValueTypeOverrideOpt);
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null) => _underlyingType.Equals(t2, comparison, isValueTypeOverrideOpt);
 
         public override int GetHashCode() => _underlyingType.GetHashCode();
+
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            // NativeIntegerTypeSymbol should not be used in emit.
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 }

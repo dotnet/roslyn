@@ -88,7 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var result = _lazyUncommonProperties;
             if (result != null)
             {
+#if DEBUG
                 Debug.Assert(result != s_noUncommonProperties || result.IsDefaultValue(), "default value was modified");
+#endif
                 return result;
             }
 
@@ -138,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
 
+#if DEBUG
             internal bool IsDefaultValue()
             {
                 return lazyInstanceEnumFields.IsDefault &&
@@ -151,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
                     !lazyHasEmbeddedAttribute.HasValue();
             }
+#endif
         }
 
         #endregion  // Uncommon properties
@@ -322,30 +326,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
             }
-        }
-
-        // PROTOTYPE: Temporary approach for AsNativeInt().
-        // Replace with an approach that handles source symbols as well.
-        protected PENamedTypeSymbol(PENamedTypeSymbol other)
-        {
-            _container = other._container;
-            _handle = other._handle;
-            _name = other._name;
-            _flags = other._flags;
-            _corTypeId = other._corTypeId;
-            _lazyMemberNames = other._lazyMemberNames;
-            _lazyMembersInDeclarationOrder = other._lazyMembersInDeclarationOrder;
-            _lazyMembersByName = other._lazyMembersByName;
-            _lazyNestedTypes = other._lazyNestedTypes;
-            _lazyKind = other._lazyKind;
-            _lazyNullableContextValue = other._lazyNullableContextValue;
-            _lazyBaseType = other._lazyBaseType;
-            _lazyInterfaces = other._lazyInterfaces;
-            _lazyDeclaredBaseType = other._lazyDeclaredBaseType;
-            _lazyDeclaredInterfaces = other._lazyDeclaredInterfaces;
-            _lazyDocComment = other._lazyDocComment;
-            _lazyUseSiteDiagnostic = other._lazyUseSiteDiagnostic;
-            _lazyUncommonProperties = other._lazyUncommonProperties;
         }
 
         public override SpecialType SpecialType
@@ -2350,7 +2330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
                 return asNativeInt ?
-                    (NamedTypeSymbol)new NativeIntegerTypeSymbol(this) : // PROTOTYPE: Consider caching instance, perhaps on containing assembly.
+                    ContainingAssembly.GetNativeIntegerType(this) :
                     this;
             }
 
