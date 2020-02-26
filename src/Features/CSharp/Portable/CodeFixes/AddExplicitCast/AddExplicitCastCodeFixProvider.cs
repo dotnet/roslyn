@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var span = diagnostic.Location.SourceSpan;
-            var targetNode = root.FindToken(span.Start).GetAncestors<ExpressionSyntax>().FirstOrDefault(n => n.Span.Contains(span));
+            var targetNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true)
+                .GetAncestorsOrThis<ExpressionSyntax>().FirstOrDefault();
             if (targetNode != null)
             {
                 var hasSolution = GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes);
@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
             }
 
-            var textSpan = targetNode.GetLocation().SourceSpan;
             if (targetNode.GetAncestors<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument &&
                 targetArgument.Parent is ArgumentListSyntax argumentList && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
@@ -150,8 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 foreach (var candidcateSymbol in candidateSymbols)
                 {
-                    var methodSymbol = candidcateSymbol as IMethodSymbol;
-                    if (methodSymbol == null)
+                    if (!(candidcateSymbol is IMethodSymbol methodSymbol))
                     {
                         continue;
                     }
@@ -193,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             // For cases like object creation expression. for example:
             // Derived d = [||]new Base();
             // It is always invalid except the target node has explicit conversion operator.
-            // filter function is going to filter the cases that is invalid
+            // filter function is going to filter the cases that are invalid
             var nodeType = targetNodeType;
             Func<ITypeSymbol, bool> filter = (targetNodeConversionType =>
             {
@@ -205,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 return commonConversion.Exists;
             });
 
-            potentialConversionTypes = mutablePotentialConversionTypes.Where<ITypeSymbol>(filter).ToImmutableArray();
+            potentialConversionTypes = mutablePotentialConversionTypes.Where(filter).ToImmutableArray();
             return !potentialConversionTypes.IsEmpty;
         }
 
@@ -239,7 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 var nameSyntax = arguments[i].NameColon?.Name;
                 if (nameSyntax != null)
                 {
-                    var param = arguments[i].DetermineParameter(semanticModel, allowParams: true, cancellationToken);
                     var name = nameSyntax.ToString();
                     var found = false;
                     for (var j = 0; j < parameters.Length; j++)
@@ -292,23 +289,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return Array.TrueForAll(matchedTypes, (item => item));
         }
 
-
-        private static SyntaxNode? TryGetTargetNode(SyntaxNode root, TextSpan span)
-        {
-            var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
-
-            var node = ancestors.FirstOrDefault(n => n.Span.Contains(span));
-            return node;
-        }
-
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
             var targetNodes = diagnostics.SelectAsArray(
-                d => TryGetTargetNode(root, d.Location.SourceSpan) is ExpressionSyntax node ? node : null);
+                d => root.FindNode(d.Location.SourceSpan, getInnermostNodeForTie: true)
+                         .GetAncestorsOrThis<ExpressionSyntax>().FirstOrDefault());
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, targetNodes,
@@ -343,8 +331,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         private sealed class InheritanceDistanceComparer : IComparer<ITypeSymbol>
         {
-            private ITypeSymbol baseType;
-            private SemanticModel semanticModel;
+            private readonly ITypeSymbol _baseType;
+            private readonly SemanticModel _semanticModel;
 
             private int GetInheritanceDistance(ITypeSymbol baseType, ITypeSymbol? derivedType)
             {
@@ -367,17 +355,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             public int Compare(ITypeSymbol x, ITypeSymbol y)
             {
                 // if the node has the explicit conversion operator, then it has the shortest distance
-                var x_dist = semanticModel.Compilation.ClassifyCommonConversion(baseType, x).IsUserDefined ?
-                    0 : GetInheritanceDistance(baseType, x);
-                var y_dist = semanticModel.Compilation.ClassifyCommonConversion(baseType, y).IsUserDefined ?
-                    0 : GetInheritanceDistance(baseType, y);
+                var x_dist = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, x).IsUserDefined ?
+                    0 : GetInheritanceDistance(_baseType, x);
+                var y_dist = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, y).IsUserDefined ?
+                    0 : GetInheritanceDistance(_baseType, y);
                 return x_dist.CompareTo(y_dist);
             }
 
             public InheritanceDistanceComparer(SemanticModel semanticModel, ITypeSymbol baseType)
             {
-                this.semanticModel = semanticModel;
-                this.baseType = baseType;
+                _semanticModel = semanticModel;
+                _baseType = baseType;
             }
         }
     }
