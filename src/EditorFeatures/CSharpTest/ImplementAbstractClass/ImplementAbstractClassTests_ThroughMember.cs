@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
 class [|Derived|] : Base
 {
-}", new[] { FeaturesResources.Implement_Abstract_Class });
+}", new[] { FeaturesResources.Implement_abstract_class });
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -83,7 +83,7 @@ abstract class Middle : Base
 
 class [|Derived|] : Base
 {
-}", new[] { FeaturesResources.Implement_Abstract_Class });
+}", new[] { FeaturesResources.Implement_abstract_class });
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -202,7 +202,7 @@ class [|Derived|] : Base, IInterface
     Base IInterface.Inner { get; }
 }", new[]
 {
-    FeaturesResources.Implement_Abstract_Class,
+    FeaturesResources.Implement_abstract_class,
     string.Format(FeaturesResources.Implement_through_0, "Inner"),
     string.Format(FeaturesResources.Implement_through_0, "IInterface.Inner"),
 });
@@ -220,7 +220,7 @@ class [|Derived|] : Base, IInterface
 class [|Derived|] : Base
 {
     dynamic inner;
-}", new[] { FeaturesResources.Implement_Abstract_Class });
+}", new[] { FeaturesResources.Implement_abstract_class });
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -473,7 +473,7 @@ class Derived : Base
 class [|Derived|] : Base
 {
     Base inner;
-}", new[] { FeaturesResources.Implement_Abstract_Class });
+}", new[] { FeaturesResources.Implement_abstract_class });
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -575,7 +575,7 @@ class Derived : Base
 class [|Derived|] : Base
 {
     Base inner;
-}", new[] { FeaturesResources.Implement_Abstract_Class });
+}", new[] { FeaturesResources.Implement_abstract_class });
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
