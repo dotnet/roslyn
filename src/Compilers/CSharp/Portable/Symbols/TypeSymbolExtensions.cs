@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 #nullable enable
 
 using System;
@@ -143,11 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TypeSymbol StrippedType(this TypeSymbol type)
         {
             return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
-        }
-
-        public static TypeSymbol TupleUnderlyingTypeOrSelf(this TypeSymbol type)
-        {
-            return type.TupleUnderlyingType ?? type;
         }
 
         public static TypeSymbol EnumUnderlyingTypeOrSelf(this TypeSymbol type)
@@ -421,58 +418,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return invokeMethod.Parameters;
         }
 
-        public static bool TryGetElementTypesWithAnnotationsIfTupleOrCompatible(this TypeSymbol type, out ImmutableArray<TypeWithAnnotations> elementTypes)
+        public static bool TryGetElementTypesWithAnnotationsIfTupleType(this TypeSymbol type, out ImmutableArray<TypeWithAnnotations> elementTypes)
         {
             if (type.IsTupleType)
             {
-                elementTypes = ((TupleTypeSymbol)type).TupleElementTypesWithAnnotations;
+                elementTypes = ((NamedTypeSymbol)type).TupleElementTypesWithAnnotations;
                 return true;
             }
 
-            // The following codepath should be very uncommon since it would be rare
-            // to see a tuple underlying type not represented as a tuple.
-            // It still might happen since tuple underlying types are creatable via public APIs 
-            // and it is also possible that they would be passed in.
-
-            // PERF: if allocations here become nuisance, consider caching the results
-            //       in the type symbols that can actually be tuple compatible
-            int cardinality;
-            if (!type.IsTupleCompatible(out cardinality))
-            {
-                // source not a tuple or compatible
-                elementTypes = default(ImmutableArray<TypeWithAnnotations>);
-                return false;
-            }
-
-            var elementTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(cardinality);
-            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
-
-            RoslynDebug.Assert(elementTypesBuilder.Count == cardinality);
-
-            elementTypes = elementTypesBuilder.ToImmutableAndFree();
-            return true;
-        }
-
-        public static ImmutableArray<TypeWithAnnotations> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
-        {
-            if (type.IsTupleType)
-            {
-                return ((TupleTypeSymbol)type).TupleElementTypesWithAnnotations;
-            }
-
-            // The following codepath should be very uncommon since it would be rare
-            // to see a tuple underlying type not represented as a tuple.
-            // It still might happen since tuple underlying types are creatable via public APIs 
-            // and it is also possible that they would be passed in.
-
-            RoslynDebug.Assert(type.IsTupleCompatible());
-
-            // PERF: if allocations here become nuisance, consider caching the results
-            //       in the type symbols that can actually be tuple compatible
-            var elementTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
-
-            return elementTypesBuilder.ToImmutableAndFree();
+            // source not a tuple
+            elementTypes = default(ImmutableArray<TypeWithAnnotations>);
+            return false;
         }
 
         public static MethodSymbol DelegateInvokeMethod(this TypeSymbol type)
@@ -532,21 +488,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        public static SpecialType GetSpecialTypeSafe(this TypeSymbol type)
+        public static SpecialType GetSpecialTypeSafe(this TypeSymbol? type)
         {
-            return (object)type != null ? type.SpecialType : SpecialType.None;
+            return type is object ? type.SpecialType : SpecialType.None;
         }
 
-        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
-            HashSet<DiagnosticInfo> localUseSiteDiagnostics = useSiteDiagnostics;
+            HashSet<DiagnosticInfo>? localUseSiteDiagnostics = useSiteDiagnostics;
             var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym,
                                         canDigThroughNullable: true); // System.Nullable is public
             useSiteDiagnostics = localUseSiteDiagnostics;
             return result is null;
         }
 
-        private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             switch (type.TypeKind)
             {
@@ -674,12 +630,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
-                        if (current.IsTupleType)
-                        {
-                            // turn tuple type elements into parameters
-                            current = current.TupleUnderlyingType;
-                        }
-
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                         {
                             // Let's try to avoid early resolution of nullable types
@@ -716,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -982,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TypeSymbol? GetNonErrorGuess(this TypeSymbol type)
         {
             var result = ExtendedErrorTypeSymbol.ExtractNonErrorType(type);
-            RoslynDebug.Assert((object)result == null || !result.IsErrorType());
+            RoslynDebug.Assert((object?)result == null || !result.IsErrorType());
             return result;
         }
 
@@ -1525,7 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         && attr.CommonConstructorArguments.Length == 1
                         && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                     {
-                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal;
+                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
                         return true;
                     }
                 }
@@ -1555,9 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                     {
                         var namedType = (NamedTypeSymbol)type;
-                        var changed = type.IsTupleType ?
-                            NormalizeTaskTypesInTuple(compilation, ref namedType) :
-                            NormalizeTaskTypesInNamedType(compilation, ref namedType);
+                        var changed = NormalizeTaskTypesInNamedType(compilation, ref namedType);
                         type = namedType;
                         return changed;
                     }
@@ -1613,10 +1561,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 if (hasChanged)
                 {
-                    var originalDefinition = type.OriginalDefinition;
+                    var originalType = type;
+                    var originalDefinition = originalType.OriginalDefinition;
                     var typeParameters = originalDefinition.GetAllTypeParameters();
                     var typeMap = new TypeMap(typeParameters, typeArgumentsBuilder.ToImmutable(), allowAlpha: true);
-                    type = typeMap.SubstituteNamedType(originalDefinition);
+                    type = typeMap.SubstituteNamedType(originalDefinition).WithTupleDataFrom(originalType);
                 }
                 typeArgumentsBuilder.Free();
             }
@@ -1643,18 +1592,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return hasChanged;
-        }
-
-        private static bool NormalizeTaskTypesInTuple(CSharpCompilation compilation, ref NamedTypeSymbol type)
-        {
-            RoslynDebug.Assert(type.IsTupleType);
-            var underlyingType = type.TupleUnderlyingType;
-            if (!NormalizeTaskTypesInNamedType(compilation, ref underlyingType))
-            {
-                return false;
-            }
-            type = TupleTypeSymbol.Create(underlyingType, type.TupleElementNames);
-            return true;
         }
 
         private static bool NormalizeTaskTypesInArray(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)
@@ -1693,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type.Type.ContainsTupleNames())
                 {
-                    SynthesizedAttributeData attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
+                    SynthesizedAttributeData? attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
                     if (attr != null)
                     {
                         builder.Add(attr);
@@ -1702,14 +1639,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
                 {
-                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    SynthesizedAttributeData? attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
                     if (attr != null)
                     {
                         builder.Add(attr);
                     }
                 }
             }
-
 
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }

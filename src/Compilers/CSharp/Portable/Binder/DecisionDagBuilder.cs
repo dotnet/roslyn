@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -313,18 +314,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             tests.Add(valueAsITupleEvaluation);
             var valueAsITuple = new BoundDagTemp(syntax, iTupleType, valueAsITupleEvaluation);
 
-            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, valueAsITuple);
+            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, OriginalInput(valueAsITuple, getLengthProperty));
             tests.Add(lengthEvaluation);
             var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
             tests.Add(new BoundDagValueTest(syntax, ConstantValue.Create(patternLength), lengthTemp));
 
+            var getItemPropertyInput = OriginalInput(valueAsITuple, getItemProperty);
             for (int i = 0; i < patternLength; i++)
             {
-                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, valueAsITuple);
+                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, getItemPropertyInput);
                 tests.Add(indexEvaluation);
                 var indexTemp = new BoundDagTemp(syntax, objectType, indexEvaluation);
                 MakeTestsAndBindings(indexTemp, pattern.Subpatterns[i].Pattern, tests, bindings);
             }
+        }
+
+        /// <summary>
+        /// Get the earliest input of which the symbol is a member.
+        /// A BoundDagTypeEvaluation doesn't change the underlying object being pointed to.
+        /// So two evaluations act on the same input so long as they have the same original input.
+        /// We use this method to compute the original input for an evaluation.
+        /// </summary>
+        private BoundDagTemp OriginalInput(BoundDagTemp input, Symbol symbol)
+        {
+            while (input.Source is BoundDagTypeEvaluation source && IsDerivedType(source.Input.Type, symbol.ContainingType))
+            {
+                input = source.Input;
+            }
+
+            return input;
+        }
+
+        bool IsDerivedType(TypeSymbol possibleDerived, TypeSymbol possibleBase)
+        {
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref useSiteDiagnostics);
         }
 
         private void MakeTestsAndBindings(
@@ -339,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add a null and type test if needed.
             if (!declaration.IsVar)
             {
-                input = MakeConvertToType(input, declaration.Syntax, type, tests);
+                input = MakeConvertToType(input, declaration.Syntax, type, isExplicitTest: false, tests);
             }
 
             BoundExpression variableAccess = declaration.VariableAccess;
@@ -357,12 +381,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void MakeCheckNotNull(
             BoundDagTemp input,
             SyntaxNode syntax,
+            bool isExplicitTest,
             ArrayBuilder<BoundDagTest> tests)
         {
             if (input.Type.CanContainNull())
             {
                 // Add a null test
-                tests.Add(new BoundDagNonNullTest(syntax, input));
+                tests.Add(new BoundDagNonNullTest(syntax, isExplicitTest, input));
             }
         }
 
@@ -373,9 +398,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             SyntaxNode syntax,
             TypeSymbol type,
+            bool isExplicitTest,
             ArrayBuilder<BoundDagTest> tests)
         {
-            MakeCheckNotNull(input, syntax, tests);
+            MakeCheckNotNull(input, syntax, isExplicitTest, tests);
             if (!input.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
@@ -412,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type, tests);
+                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type, isExplicitTest: false, tests);
                 tests.Add(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput));
             }
         }
@@ -438,8 +464,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundPatternBinding> bindings)
         {
             Debug.Assert(input.Type.IsErrorType() || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
+
             var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
-            input = MakeConvertToType(input, recursive.Syntax, inputType, tests);
+            input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests);
 
             if (!recursive.Deconstruction.IsDefault)
             {
@@ -447,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (recursive.DeconstructMethod != null)
                 {
                     MethodSymbol method = recursive.DeconstructMethod;
-                    var evaluation = new BoundDagDeconstructEvaluation(recursive.Syntax, method, input);
+                    var evaluation = new BoundDagDeconstructEvaluation(recursive.Syntax, method, OriginalInput(input, method));
                     tests.Add(evaluation);
                     int extensionExtra = method.IsStatic ? 1 : 0;
                     int count = Math.Min(method.ParameterCount - extensionExtra, recursive.Deconstruction.Length);
@@ -477,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundPattern pattern = recursive.Deconstruction[i].Pattern;
                         SyntaxNode syntax = pattern.Syntax;
                         FieldSymbol field = elements[i];
-                        var evaluation = new BoundDagFieldEvaluation(syntax, field, input); // fetch the ItemN field
+                        var evaluation = new BoundDagFieldEvaluation(syntax, field, OriginalInput(input, field)); // fetch the ItemN field
                         tests.Add(evaluation);
                         var output = new BoundDagTemp(syntax, field.Type, evaluation);
                         MakeTestsAndBindings(output, pattern, tests, bindings);
@@ -504,10 +531,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (symbol)
                     {
                         case PropertySymbol property:
-                            evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, input);
+                            evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(input, property));
                             break;
                         case FieldSymbol field:
-                            evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, input);
+                            evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(input, field));
                             break;
                         default:
                             Debug.Assert(recursive.HasAnyErrors);

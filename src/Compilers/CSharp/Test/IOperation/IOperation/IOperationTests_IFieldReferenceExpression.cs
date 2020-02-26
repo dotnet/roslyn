@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -664,6 +668,44 @@ Block[B2] - Exit
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(38195, "https://github.com/dotnet/roslyn/issues/38195")]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.NullableReferenceTypes)]
+        public void NullableFieldReference()
+        {
+            var program = @"
+class C<T>
+{
+    private C<T> _field;
+    public static void M(C<T> p)
+    {
+        _ = p._field;
+    }
+}";
+
+            var compWithoutNullable = CreateCompilation(program);
+            var compWithNullable = CreateCompilation(program, options: WithNonNullTypesTrue());
+
+            testCore(compWithoutNullable);
+            testCore(compWithNullable);
+
+            static void testCore(CSharpCompilation comp)
+            {
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var root = syntaxTree.GetRoot();
+                var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+                var classSym = (INamedTypeSymbol)model.GetDeclaredSymbol(classDecl);
+                var fieldSym = classSym.GetMembers("_field").Single();
+
+                var methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+                var methodBlockOperation = model.GetOperation(methodDecl);
+                var fieldReferenceOperation = methodBlockOperation.Descendants().OfType<IFieldReferenceOperation>().Single();
+                Assert.True(fieldSym.Equals(fieldReferenceOperation.Field));
+                Assert.Equal(fieldSym.GetHashCode(), fieldReferenceOperation.Field.GetHashCode());
+            }
         }
     }
 }

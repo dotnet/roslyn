@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -229,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // This is an evaluation of an indexed property with a constant int value.
                             // The input type must be ITuple, and the property must be a property of ITuple.
-                            Debug.Assert(e.Property.ContainingSymbol.Equals(input.Type));
                             Debug.Assert(e.Property.GetMethod.ParameterCount == 1);
                             Debug.Assert(e.Property.GetMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
                             TypeSymbol type = e.Property.GetMethod.ReturnType;
@@ -397,7 +398,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundExpression savedInputExpression)
             {
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
-                if (loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
+                if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
+                    && loweredInput.GetRefKind() == RefKind.None)
                 {
                     // If we're switching on a local variable and there is no when clause (checked by the caller),
                     // we assume the value of the local variable does not change during the execution of the

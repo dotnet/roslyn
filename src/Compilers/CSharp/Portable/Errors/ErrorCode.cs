@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1605,6 +1607,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
         ERR_VarianceInterfaceNesting = 8427,
+        ERR_ImplicitIndexIndexerWithName = 8428,
+        ERR_ImplicitRangeIndexerWithName = 8429,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1738,6 +1742,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InternalError = 8751,
 
         ERR_ExternEventInitializer = 8760,
+        ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
+        WRN_ParameterConditionallyDisallowsNull = 8762,
+        WRN_ShouldNotReturn = 8763,
+
+        WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes = 8764,
+        WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes = 8765,
+
+        WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes = 8766,
+        WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes = 8767,
+        WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes = 8768,
+        WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes = 8769,
+
+        WRN_DoesNotReturnMismatch = 8770,
+        ERR_NoOutputDirectory = 8771,
+
+        ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
+
+        ERR_ConditionalOnLocalFunction = 8783,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

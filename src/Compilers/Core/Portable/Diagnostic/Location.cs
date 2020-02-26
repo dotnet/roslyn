@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -35,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The syntax tree this location is located in or <c>null</c> if not in a syntax tree.
         /// </summary>
-        public virtual SyntaxTree SourceTree { get { return null; } }
+        public virtual SyntaxTree? SourceTree { get { return null; } }
 
         /// <summary>
         /// Returns the metadata module the location is associated with or <c>null</c> if the module is not available.
@@ -44,9 +48,9 @@ namespace Microsoft.CodeAnalysis
         /// Might return null even if <see cref="IsInMetadata"/> returns true. The module symbol might not be available anymore, 
         /// for example, if the location is serialized and deserialized.
         /// </remarks>
-        public IModuleSymbol MetadataModule { get { return (IModuleSymbol)MetadataModuleInternal?.GetISymbol(); } }
+        public IModuleSymbol? MetadataModule { get { return (IModuleSymbol?)MetadataModuleInternal?.GetISymbol(); } }
 
-        internal virtual IModuleSymbolInternal MetadataModuleInternal { get { return null; } }
+        internal virtual IModuleSymbolInternal? MetadataModuleInternal { get { return null; } }
 
         /// <summary>
         /// The location within the syntax tree that this location is associated with.
@@ -85,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // Derived classes should provide value equality semantics.
-        public abstract override bool Equals(object obj);
+        public abstract override bool Equals(object? obj);
         public abstract override int GetHashCode();
 
         public override string ToString()
@@ -115,7 +119,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        public static bool operator ==(Location left, Location right)
+        public static bool operator ==(Location? left, Location? right)
         {
             if (object.ReferenceEquals(left, null))
             {
@@ -125,7 +129,7 @@ namespace Microsoft.CodeAnalysis
             return left.Equals(right);
         }
 
-        public static bool operator !=(Location left, Location right)
+        public static bool operator !=(Location? left, Location? right)
         {
             return !(left == right);
         }

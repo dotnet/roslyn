@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     internal class AsyncAwaitHighlighter : AbstractKeywordHighlighter
     {
         private static readonly ObjectPool<Stack<SyntaxNode>> s_stackPool
-            = new ObjectPool<Stack<SyntaxNode>>(() => new Stack<SyntaxNode>());
+            = SharedPools.Default<Stack<SyntaxNode>>();
 
         [ImportingConstructor]
         public AsyncAwaitHighlighter()
@@ -27,17 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         protected override bool IsHighlightableNode(SyntaxNode node)
             => node.IsReturnableConstruct();
 
-        protected override IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken)
+        protected override void AddHighlightsForNode(SyntaxNode node, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            var spans = new List<TextSpan>();
-
             foreach (var current in WalkChildren(node))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                HighlightRelatedKeywords(current, spans);
+                HighlightRelatedKeywords(current, highlights);
             }
-
-            return spans;
         }
 
         private IEnumerable<SyntaxNode> WalkChildren(SyntaxNode node)
@@ -108,10 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                 if (spans.Count > 0)
                 {
                     var previousToken = mod.GetPreviousToken();
-                    var lastSpan = spans[spans.Count - 1];
+                    var lastSpan = spans[^1];
                     if (lastSpan == previousToken.Span)
                     {
-                        spans[spans.Count - 1] = TextSpan.FromBounds(lastSpan.Start, mod.Span.End);
+                        spans[^1] = TextSpan.FromBounds(lastSpan.Start, mod.Span.End);
                         return true;
                     }
                 }

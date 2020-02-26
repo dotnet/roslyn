@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -166,6 +168,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)declarator));
             Assert.NotEqual(symbol, model.LookupSymbols(declarator.SpanStart, name: declarator.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(declarator.SpanStart).Contains(declarator.Identifier.ValueText));
+        }
+
+        internal static void VerifyModelForDuplicateVariableDeclarationInSameScope(
+            SemanticModel model,
+            SingleVariableDesignationSyntax designation,
+            LocalDeclarationKind kind)
+        {
+            var symbol = model.GetDeclaredSymbol(designation);
+            Assert.Equal(designation.Identifier.ValueText, symbol.Name);
+            Assert.Equal(designation, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Equal(kind, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
+            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)designation));
+            Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
         }
 
         protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -54,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
     End Class
 
     Friend NotInheritable Class VisualBasicCodeStyleOptionGroups
-        Public Shared ReadOnly Modifier As New OptionGroup(WorkspacesResources.Modifier_preferences, priority:=1)
-        Public Shared ReadOnly ExpressionLevelPreferences As New OptionGroup(WorkspacesResources.Expression_level_preferences, priority:=2)
+        Public Shared ReadOnly Modifier As New OptionGroup(CompilerExtensionsResources.Modifier_preferences, priority:=1)
+        Public Shared ReadOnly ExpressionLevelPreferences As New OptionGroup(CompilerExtensionsResources.Expression_level_preferences, priority:=2)
     End Class
 End Namespace

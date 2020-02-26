@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     var storage = _assetStorages.CreateStorage(solution.State);
                     var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                    return new PinnedRemotableDataScope(_assetStorages, storage, checksum);
+                    return PinnedRemotableDataScope.Create(_assetStorages, storage, checksum);
                 }
             }
 
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>?> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+            public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationService_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {

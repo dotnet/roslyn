@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -223,7 +225,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         foreach (var baseName in baseNames)
                         {
                             var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
-                            if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
+
+                            // Don't add multiple items for the same name and only add valid identifiers
+                            if (name.Length > 1 && CSharpSyntaxFactsService.Instance.IsValidIdentifier(name) && !result.ContainsKey(name))
                             {
                                 var targetToken = context.TargetToken;
                                 var uniqueName = semanticFactsService.GenerateUniqueName(

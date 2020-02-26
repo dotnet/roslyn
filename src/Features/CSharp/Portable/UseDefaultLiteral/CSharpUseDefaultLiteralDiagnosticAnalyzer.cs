@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -30,17 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;
-
             var syntaxTree = context.Node.SyntaxTree;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
+            var preference = context.Options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, syntaxTree, cancellationToken);
 
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var defaultExpression = (DefaultExpressionSyntax)context.Node;
-            if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, optionSet, context.SemanticModel, cancellationToken))
+            if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, preference.Value, context.SemanticModel, cancellationToken))
             {
                 return;
             }
@@ -52,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                 DiagnosticHelper.Create(
                     Descriptor,
                     defaultExpression.GetLocation(),
-                    optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Notification.Severity,
+                    preference.Notification.Severity,
                     additionalLocations: null,
                     properties: null));
 

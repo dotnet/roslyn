@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -1985,26 +1987,23 @@ class Test
 
             c.VerifyIL("Test.F", @"
 {
-  // Code size       49 (0x31)
+  // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (Test.<F>d__0 V_0,
-                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> V_1)
+  .locals init (Test.<F>d__0 V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Create()""
   IL_0007:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
   IL_000c:  ldloca.s   V_0
   IL_000e:  ldc.i4.m1
   IL_000f:  stfld      ""int Test.<F>d__0.<>1__state""
-  IL_0014:  ldloc.0
-  IL_0015:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-  IL_001a:  stloc.1
-  IL_001b:  ldloca.s   V_1
-  IL_001d:  ldloca.s   V_0
-  IL_001f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Start<Test.<F>d__0>(ref Test.<F>d__0)""
-  IL_0024:  ldloca.s   V_0
-  IL_0026:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-  IL_002b:  call       ""System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get""
-  IL_0030:  ret
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Start<Test.<F>d__0>(ref Test.<F>d__0)""
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+  IL_0029:  call       ""System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get""
+  IL_002e:  ret
 }
 ");
 
@@ -2133,26 +2132,23 @@ class Test
 
             c.VerifyIL("Test.F", @"
 {
-  // Code size       49 (0x31)
+  // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (Test.<F>d__0 V_0,
-                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> V_1)
+  .locals init (Test.<F>d__0 V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Create()""
   IL_0007:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
   IL_000c:  ldloca.s   V_0
   IL_000e:  ldc.i4.m1
   IL_000f:  stfld      ""int Test.<F>d__0.<>1__state""
-  IL_0014:  ldloc.0
-  IL_0015:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-  IL_001a:  stloc.1
-  IL_001b:  ldloca.s   V_1
-  IL_001d:  ldloca.s   V_0
-  IL_001f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Start<Test.<F>d__0>(ref Test.<F>d__0)""
-  IL_0024:  ldloca.s   V_0
-  IL_0026:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-  IL_002b:  call       ""System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get""
-  IL_0030:  ret
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Start<Test.<F>d__0>(ref Test.<F>d__0)""
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+  IL_0029:  call       ""System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get""
+  IL_002e:  ret
 }
 ");
 
@@ -2284,10 +2280,9 @@ class Test
 
             c.VerifyIL("Test.F", @"
 {
-  // Code size       52 (0x34)
+  // Code size       49 (0x31)
   .maxstack  2
-  .locals init (Test.<F>d__0 V_0,
-                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> V_1)
+  .locals init (Test.<F>d__0 V_0)
   IL_0000:  newobj     ""Test.<F>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -2297,15 +2292,13 @@ class Test
   IL_0012:  ldc.i4.m1
   IL_0013:  stfld      ""int Test.<F>d__0.<>1__state""
   IL_0018:  ldloc.0
-  IL_0019:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-  IL_001e:  stloc.1
-  IL_001f:  ldloca.s   V_1
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Start<Test.<F>d__0>(ref Test.<F>d__0)""
-  IL_0028:  ldloc.0
-  IL_0029:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-  IL_002e:  call       ""System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get""
-  IL_0033:  ret
+  IL_0019:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Start<Test.<F>d__0>(ref Test.<F>d__0)""
+  IL_0025:  ldloc.0
+  IL_0026:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+  IL_002b:  call       ""System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get""
+  IL_0030:  ret
 }
 ");
 
@@ -2442,26 +2435,23 @@ class Test
 
             c.VerifyIL("Test.F", @"
 {
-  // Code size       49 (0x31)
+  // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (Test.<F>d__0 V_0,
-                System.Runtime.CompilerServices.AsyncTaskMethodBuilder V_1)
+  .locals init (Test.<F>d__0 V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
   IL_0007:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Test.<F>d__0.<>t__builder""
   IL_000c:  ldloca.s   V_0
   IL_000e:  ldc.i4.m1
   IL_000f:  stfld      ""int Test.<F>d__0.<>1__state""
-  IL_0014:  ldloc.0
-  IL_0015:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Test.<F>d__0.<>t__builder""
-  IL_001a:  stloc.1
-  IL_001b:  ldloca.s   V_1
-  IL_001d:  ldloca.s   V_0
-  IL_001f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<Test.<F>d__0>(ref Test.<F>d__0)""
-  IL_0024:  ldloca.s   V_0
-  IL_0026:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Test.<F>d__0.<>t__builder""
-  IL_002b:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
-  IL_0030:  ret
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Test.<F>d__0.<>t__builder""
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<Test.<F>d__0>(ref Test.<F>d__0)""
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Test.<F>d__0.<>t__builder""
+  IL_0029:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+  IL_002e:  ret
 }
 ");
             c.VerifyIL("Test.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
@@ -2580,10 +2570,9 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected).VerifyIL("Test.F", @"
 {
-  // Code size       45 (0x2d)
+  // Code size       43 (0x2b)
   .maxstack  2
-  .locals init (Test.<F>d__1 V_0,
-  System.Runtime.CompilerServices.AsyncVoidMethodBuilder V_1)
+  .locals init (Test.<F>d__1 V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldarg.0
   IL_0003:  stfld      ""System.Threading.AutoResetEvent Test.<F>d__1.handle""
@@ -2593,13 +2582,11 @@ class Test
   IL_0014:  ldloca.s   V_0
   IL_0016:  ldc.i4.m1
   IL_0017:  stfld      ""int Test.<F>d__1.<>1__state""
-  IL_001c:  ldloc.0
-  IL_001d:  ldfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
-  IL_0022:  stloc.1
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldloca.s   V_0
-  IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<Test.<F>d__1>(ref Test.<F>d__1)""
-  IL_002c:  ret
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<Test.<F>d__1>(ref Test.<F>d__1)""
+  IL_002a:  ret
 }
 ").VerifyIL("Test.<F>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {

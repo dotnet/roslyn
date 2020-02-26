@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -63,8 +65,8 @@ namespace Microsoft.CodeAnalysis
 
             _writer.Write("level", GetLevel(diagnostic.Severity));
 
-            string message = diagnostic.GetMessage(_culture);
-            if (!string.IsNullOrEmpty(message))
+            string? message = diagnostic.GetMessage(_culture);
+            if (!RoslynString.IsNullOrEmpty(message))
             {
                 _writer.Write("message", message);
             }
@@ -149,14 +151,14 @@ namespace Microsoft.CodeAnalysis
                     _writer.WriteObjectStart(pair.Key); // rule
                     _writer.Write("id", descriptor.Id);
 
-                    string shortDescription = descriptor.Title.ToString(_culture);
-                    if (!string.IsNullOrEmpty(shortDescription))
+                    string? shortDescription = descriptor.Title.ToString(_culture);
+                    if (!RoslynString.IsNullOrEmpty(shortDescription))
                     {
                         _writer.Write("shortDescription", shortDescription);
                     }
 
-                    string fullDescription = descriptor.Description.ToString(_culture);
-                    if (!string.IsNullOrEmpty(fullDescription))
+                    string? fullDescription = descriptor.Description.ToString(_culture);
+                    if (!RoslynString.IsNullOrEmpty(fullDescription))
                     {
                         _writer.Write("fullDescription", fullDescription);
                     }
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis
             public string Add(DiagnosticDescriptor descriptor)
             {
                 // Case 1: Descriptor has already been seen -> retrieve key from cache.
-                if (_keys.TryGetValue(descriptor, out string key))
+                if (_keys.TryGetValue(descriptor, out string? key))
                 {
                     return key;
                 }

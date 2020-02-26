@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -26,10 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         Protected Overrides Function AreObjectInitializersSupported(context As SyntaxNodeAnalysisContext) As Boolean
             'Object Initializers are supported in all the versions of Visual Basic we support
             Return True
-        End Function
-
-        Protected Overrides Function GetObjectCreationSyntaxKind() As SyntaxKind
-            Return SyntaxKind.ObjectCreationExpression
         End Function
 
         Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService

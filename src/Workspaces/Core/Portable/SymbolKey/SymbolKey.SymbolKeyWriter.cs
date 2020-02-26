@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -48,8 +50,7 @@ namespace Microsoft.CodeAnalysis
 
         private class SymbolKeyWriter : SymbolVisitor<object>, IDisposable
         {
-            private static readonly ObjectPool<SymbolKeyWriter> s_writerPool =
-                new ObjectPool<SymbolKeyWriter>(() => new SymbolKeyWriter());
+            private static readonly ObjectPool<SymbolKeyWriter> s_writerPool = SharedPools.Default<SymbolKeyWriter>();
 
             private readonly Action<ISymbol> _writeSymbolKey;
             private readonly Action<string> _writeString;
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis
             internal int _nestingCount;
             private int _nextId;
 
-            private SymbolKeyWriter()
+            public SymbolKeyWriter()
             {
                 _writeSymbolKey = WriteSymbolKey;
                 _writeString = WriteString;
@@ -421,8 +422,11 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.ErrorType);
                     ErrorTypeSymbolKey.Create(namedTypeSymbol, this);
                 }
-                else if (namedTypeSymbol.IsTupleType)
+                else if (namedTypeSymbol.IsTupleType && namedTypeSymbol.TupleUnderlyingType is INamedTypeSymbol underlyingType && underlyingType != namedTypeSymbol)
                 {
+                    // A tuple is a named type with some added information
+                    // We only need to store this extra information if there is some
+                    // (ie. the current type differs from the underlying type, which has no element names)
                     WriteType(SymbolKeyType.TupleType);
                     TupleTypeSymbolKey.Create(namedTypeSymbol, this);
                 }

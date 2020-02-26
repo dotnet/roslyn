@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -47,10 +49,95 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public async Task TestInEmptyStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticInStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"static $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributesInStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr] $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributesInSwitchCase()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"switch (c)
+{
+    case 0:
+         [Foo]
+         $$
+}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributesAndStaticInStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr] static $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndReturnStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr]
+$$
+return x;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndLocalDeclarationStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr]
+$$
+x y = bar();"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndAwaitExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr]
+$$
+await bar;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndAssignmentStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Foo]
+$$
+y = bar();"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndCallStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Foo]
+$$
+bar();"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterExternInStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"$$"));
+@"extern $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
