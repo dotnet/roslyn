@@ -3,7 +3,9 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -33,14 +35,18 @@ namespace Test.Utilities.CodeMetrics
 
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
+            var defaultReferences = ReferenceAssemblies.NetFramework.Net48.Default;
+            var references = Task.Run(() => defaultReferences.ResolveAsync(LanguageNames.CSharp, CancellationToken.None)).GetAwaiter().GetResult();
+
 #pragma warning disable CA2000 // Dispose objects before losing scope - Current solution/project takes the dispose ownership of the created AdhocWorkspace
             var solution = new AdhocWorkspace()
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 .CurrentSolution
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .WithProjectCompilationOptions(projectId, options)
-                .AddMetadataReference(projectId, s_corlibReference)
-                .AddMetadataReference(projectId, s_systemCoreReference);
+                .AddMetadataReferences(projectId, references);
+                //.AddMetadataReference(projectId, s_corlibReference)
+                //.AddMetadataReference(projectId, s_systemCoreReference);
 
             int count = 0;
             foreach (var source in sources)
