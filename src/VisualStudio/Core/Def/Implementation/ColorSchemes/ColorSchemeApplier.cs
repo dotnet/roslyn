@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private readonly ForegroundColorDefaulter _colorDefaulter;
 
         private bool _isInitialized = false;
+        private bool _migrationAttempted = false;
         private bool _isDisposed = false;
 
         [ImportingConstructor]
@@ -79,9 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
-                // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
-                _settings.MigrateToColorSchemeSetting(IsThemeCustomized());
-
                 QueueColorSchemeUpdate(themeChanged: true);
             }
         }
@@ -116,6 +114,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             if (_isDisposed || SystemParameters.HighContrast)
             {
                 return;
+            }
+
+            if (!_migrationAttempted)
+            {
+                _migrationAttempted = true;
+
+                // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
+                _settings.MigrateToColorSchemeSetting(IsThemeCustomized());
             }
 
             if (themeChanged)

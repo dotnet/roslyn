@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.ColorSchemes
     {
         None,
         VisualStudio2017,
-        Enhanced
+        VisualStudio2019
     }
 }

@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             {
                 return new[]
                 {
-                    SchemeName.Enhanced,
+                    SchemeName.VisualStudio2019,
                     SchemeName.VisualStudio2017
                 }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
             }
@@ -64,7 +64,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 {
                     using var itemKey = registryRoot.CreateSubKey(item.SectionName);
                     itemKey.SetValue(item.ValueName, item.ValueData);
+                    itemKey.Flush();
                 }
+
+                registryRoot.Flush();
 
                 _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.AppliedColorScheme, schemeName));
 
@@ -99,9 +102,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     return;
                 }
 
-                // Since we did not apply enhanced colors if the theme had been customized, default customized themes to classic colors.
+                // Since we did not apply 2019 colors if the theme had been customized, default customized themes to 2017 colors.
                 var colorScheme = (useEnhancedColorsSetting != ColorSchemeOptions.UseEnhancedColors.DoNotUse && !isThemeCustomized)
-                    ? SchemeName.Enhanced
+                    ? SchemeName.VisualStudio2019
                     : SchemeName.VisualStudio2017;
 
                 _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.ColorScheme, colorScheme));
