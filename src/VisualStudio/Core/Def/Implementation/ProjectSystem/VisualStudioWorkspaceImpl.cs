@@ -956,7 +956,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            var document = this.CurrentSolution.GetDocument(documentId);
+            var document = this.CurrentSolution.GetTextDocument(documentId);
             var hierarchy = this.GetHierarchy(documentId.ProjectId);
             if (document != null)
             {
@@ -1052,7 +1052,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
 
-            var document = this.CurrentSolution.GetDocument(documentId);
+            var document = this.CurrentSolution.GetTextDocument(documentId);
             if (document != null)
             {
                 if (TryGetFrame(document, out var frame))
@@ -1069,7 +1069,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private bool TryGetFrame(CodeAnalysis.Document document, out IVsWindowFrame frame)
+        private bool TryGetFrame(CodeAnalysis.TextDocument document, out IVsWindowFrame frame)
         {
             frame = null;
 
@@ -1117,7 +1117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (this.IsDocumentOpen(documentId))
             {
-                var filePath = this.CurrentSolution.GetDocument(documentId).FilePath;
+                var filePath = this.GetFilePath(documentId);
                 if (filePath != null)
                 {
                     var openDocumentService = ServiceProvider.GlobalProvider.GetService<IVsUIShellOpenDocument, SVsUIShellOpenDocument>();
