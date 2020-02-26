@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterlockedNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingInterlocked);
             SerializationInfoNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
             GenericIEquatableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
+            StringReaderType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOStringReader);
             CollectionNamedTypes = GetWellKnownCollectionTypes();
 
             _lValueFlowCaptures = LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(analysisContext.ControlFlowGraph);
@@ -3637,6 +3638,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.IEquatable{T}"/>
         /// </summary>
         protected INamedTypeSymbol? GenericIEquatableNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.IO.StringReader"/>
+        /// </summary>
+        protected INamedTypeSymbol? StringReaderType { get; }
 
         /// <summary>
         /// Set containing following named types, if not null:

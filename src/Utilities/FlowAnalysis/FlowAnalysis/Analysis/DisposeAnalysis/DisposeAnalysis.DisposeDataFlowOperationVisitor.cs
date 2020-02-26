@@ -97,6 +97,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     return defaultValue;
                 }
 
+                // StringReader doesn't need to be disposed: https://docs.microsoft.com/en-us/dotnet/api/system.io.stringreader?view=netframework-4.8
+                if (StringReaderType != null &&
+                    instanceType.Equals(StringReaderType))
+                {
+                    return defaultValue;
+                }
+
                 // Handle user option for additional excluded types
                 if (DataFlowAnalysisContext.ExcludedSymbols.Contains(instanceType))
                 {
