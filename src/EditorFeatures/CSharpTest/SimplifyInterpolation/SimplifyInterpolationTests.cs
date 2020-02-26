@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation;
@@ -18,6 +19,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyInterpolationDiagnosticAnalyzer(), new CSharpSimplifyInterpolationCodeFixProvider());
+
+        [Fact]
+        public async Task SubsequentUnnecessarySpansDoNotRepeatTheSmartTag()
+        {
+            var parameters = new TestParameters(retainNonFixableDiagnostics: true, includeDiagnosticsOutsideSelection: true);
+
+            using var workspace = CreateWorkspaceFromOptions(@"class C
+{
+    void M(string someValue)
+    {
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString()|}{|Unnecessary:.PadLeft(|}3{|Unnecessary:)|}} suffix"";
+    }
+}", parameters);
+
+            var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters);
+
+            Assert.Equal(
+                new[] {
+                    ("IDE0071", DiagnosticSeverity.Info),
+                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
+                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
+                },
+                diagnostics.Select(d => (d.Descriptor.Id, d.Severity)));
+        }
 
         [Fact]
         public async Task ToStringWithNoParameter()
