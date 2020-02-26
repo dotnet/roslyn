@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected virtual void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
         {
-            Debug.Assert(!(method.OriginalDefinition is LocalFunctionSymbol));
+            Debug.Assert(method?.OriginalDefinition.MethodKind != MethodKind.LocalFunction);
             VisitArgumentsBeforeCall(arguments, refKindsOpt);
             VisitArgumentsAfterCall(arguments, refKindsOpt, method);
         }
