@@ -394,6 +394,26 @@ False");
         }
 
         [Fact]
+        public void RecordEquals_07()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+data class C(int[] X, string Y)
+{
+    public static void Main()
+    {
+        var arr = new[] {1, 2};
+        var c = new C(arr, ""abc"");
+        var c2 = new C(new[] {1, 2}, ""abc"");
+        var c3 = new C(arr, ""abc"");
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals(c3));
+    }
+}", expectedOutput: @"False
+True");
+        }
+
+        [Fact]
         public void EmptyRecord()
         {
             var src = @"
