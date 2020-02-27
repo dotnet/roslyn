@@ -27,6 +27,7 @@
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Remove="Storage\Sqlite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\SourceCodeKindExtensions.cs" Link="Utilities\Compiler\SourceCodeKindExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="AnalyzerRunner" />
