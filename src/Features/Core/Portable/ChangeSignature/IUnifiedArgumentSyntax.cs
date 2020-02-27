@@ -9,7 +9,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         bool IsDefault { get; }
         bool IsNamed { get; }
         string GetName();
+
+        /// <summary>The original index of the argument in the list.</summary>
         int Index { get; }
+
         IUnifiedArgumentSyntax WithName(string name);
         IUnifiedArgumentSyntax WithAdditionalAnnotations(SyntaxAnnotation annotation);
     }
