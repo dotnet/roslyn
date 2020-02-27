@@ -469,8 +469,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal void CheckSubSpan(TextSpan span)
         {
-            // TextSpan guarantees that Start >= 0.
-            if (span.Start > this.Length || span.End > this.Length)
+            // TextSpan guarantees that Start >= 0 and that Start <= End.
+            if (span.End > this.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(span));
             }
