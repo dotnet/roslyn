@@ -223,7 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#nullable enable
         /// <summary>
         /// Rewrite the expressions in the switch expression arms to add a conversion to the destination type.
         /// </summary>
