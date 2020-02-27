@@ -19,6 +19,7 @@ namespace Analyzer.Utilities
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksValueTask = "System.Threading.Tasks.ValueTask";
+        public const string SystemThreadingTasksGenericValueTask = "System.Threading.Tasks.ValueTask`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
@@ -437,6 +438,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
         public const string SystemFlagsAttribute = "System.FlagsAttribute";
         public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
+        public const string SystemDiagnosticsDebug = "System.Diagnostics.Debug";
         public const string SystemReflectionAssemblyVersionAttribute = "System.Reflection.AssemblyVersionAttribute";
         public const string SystemCLSCompliantAttribute = "System.CLSCompliantAttribute";
         public const string SystemIComparable = "System.IComparable";
