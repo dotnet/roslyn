@@ -264,21 +264,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
         {
-            var tree = await document.GetSyntaxTreeAsync();
+            var service = document.GetRequiredLanguageService<IClassificationService>();
 
-            var service = document.GetLanguageService<ISyntaxClassificationService>();
-            var classifiers = service.GetDefaultSyntaxClassifiers();
-            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
-
-            var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
-
-            await service.AddSemanticClassificationsAsync(document, span,
-                extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
-                extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                results,
-                CancellationToken.None);
-
-            return results.ToImmutableAndFree();
+            var result = new List<ClassifiedSpan>();
+            await service.AddSemanticClassificationsAsync(document, span, result, CancellationToken.None);
+            return result.ToImmutableArray();
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)

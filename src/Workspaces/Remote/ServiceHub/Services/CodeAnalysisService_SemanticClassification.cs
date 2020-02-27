@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteSemanticClassificationService
     {
-        public Task<IList<ClassifiedSpan>> AddSemanticClassificationsAsync(
+        public Task<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo, DocumentId documentId,
             TextSpan span, CancellationToken cancellationToken)
         {
@@ -23,11 +24,13 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
                     var document = solution.GetDocument(documentId);
-                    var result = new List<ClassifiedSpan>();
+                    var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
                     await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
-                        document, span, result, cancellationToken).ConfigureAwait(false);
+                        document, span, temp, cancellationToken).ConfigureAwait(false);
 
-                    return (IList<ClassifiedSpan>)result;
+                    var result = SerializableClassifiedSpans.Dehydrate(temp);
+                    temp.Free();
+                    return result;
                 }
             }, cancellationToken);
         }

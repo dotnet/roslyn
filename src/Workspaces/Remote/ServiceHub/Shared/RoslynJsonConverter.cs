@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var builder = ImmutableDictionary.CreateBuilder<Type, JsonConverter>();
 
             Add(builder, new ChecksumJsonConverter());
-            Add(builder, new ClassifiedSpanJsonConverter());
             Add(builder, new SolutionIdJsonConverter());
             Add(builder, new ProjectIdJsonConverter());
             Add(builder, new DocumentIdJsonConverter());
@@ -96,40 +95,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 Contract.ThrowIfFalse(reader.Read());
                 return (U)reader.Value;
-            }
-        }
-
-        private class ClassifiedSpanJsonConverter : BaseJsonConverter<ClassifiedSpan>
-        {
-            protected override ClassifiedSpan ReadValue(JsonReader reader, JsonSerializer serializer)
-            {
-                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
-
-                // all integer is long
-                var type = ReadProperty<string>(reader);
-                var start = ReadProperty<long>(reader);
-                var length = ReadProperty<long>(reader);
-
-                Contract.ThrowIfFalse(reader.Read());
-                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
-
-                return new ClassifiedSpan(type, new TextSpan((int)start, (int)length));
-            }
-
-            protected override void WriteValue(JsonWriter writer, ClassifiedSpan span, JsonSerializer serializer)
-            {
-                writer.WriteStartObject();
-
-                writer.WritePropertyName(nameof(ClassifiedSpan.ClassificationType));
-                writer.WriteValue(span.ClassificationType);
-
-                writer.WritePropertyName(nameof(TextSpan.Start));
-                writer.WriteValue(span.TextSpan.Start);
-
-                writer.WritePropertyName(nameof(TextSpan.Length));
-                writer.WriteValue(span.TextSpan.Length);
-
-                writer.WriteEndObject();
             }
         }
 
