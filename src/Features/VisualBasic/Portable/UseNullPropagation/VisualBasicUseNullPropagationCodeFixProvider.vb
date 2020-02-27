@@ -18,10 +18,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             InvocationExpressionSyntax,
             MemberAccessExpressionSyntax,
             ConditionalAccessExpressionSyntax,
-            InvocationExpressionSyntax)
+            InvocationExpressionSyntax,
+            InvocationExpressionSyntax,
+            ArgumentListSyntax)
 
         <ImportingConstructor>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function ElementBindingExpression(argumentList As ArgumentListSyntax) As InvocationExpressionSyntax
+            Return SyntaxFactory.InvocationExpression(Nothing, argumentList)
+        End Function
     End Class
 End Namespace
