@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Classification
             temp.Free();
         }
 
-        /// <returns><see langword="true"/> if the remote call was made successfully and we should 
+        /// <returns><see langword="true"/> if the remote call was made successfully and we should
         /// use the results of it. Otherwise, fall back to processing locally</returns>
         private async Task<bool> TryAddSemanticClassificationsInRemoteProcessAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {

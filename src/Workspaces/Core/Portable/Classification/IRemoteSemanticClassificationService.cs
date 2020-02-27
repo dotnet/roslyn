@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Classification
     }
 
     /// <summary>
-    /// For space efficiency, we encode classified spans as triples of ints in one large
-    /// array.  The first int is the index of classification type in <see cref="ClassificationTypes"/>, and the 
+    /// For space efficiency, we encode classified spans as triples of ints in one large array.  The
+    /// first int is the index of classification type in <see cref="ClassificationTypes"/>, and the
     /// second and third ints encode the span.
     /// </summary>
     internal class SerializableClassifiedSpans
