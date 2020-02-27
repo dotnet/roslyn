@@ -708,7 +708,7 @@ base_object_creation_expression
   ;
 
 implicit_object_creation_expression
-  : 'new' argument_list? initializer_expression?
+  : 'new' argument_list initializer_expression?
   ;
 
 object_creation_expression

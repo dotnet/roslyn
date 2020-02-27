@@ -1456,7 +1456,7 @@
               <summary>SyntaxToken representing the new keyword.</summary>
           </PropertyComment>
       </Field>
-      <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true" Override="true">
+      <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="false" Override="true">
           <PropertyComment>
               <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
           </PropertyComment>

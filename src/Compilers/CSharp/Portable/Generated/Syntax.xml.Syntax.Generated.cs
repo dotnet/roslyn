@@ -2734,7 +2734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override SyntaxToken NewKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ImplicitObjectCreationExpressionSyntax)this.Green).newKeyword, Position, 0);
 
         /// <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
-        public override ArgumentListSyntax? ArgumentList => GetRed(ref this.argumentList, 1);
+        public override ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 1)!;
 
         /// <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
         public override InitializerExpressionSyntax? Initializer => GetRed(ref this.initializer, 2);
@@ -2742,7 +2742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.argumentList, 1),
+                1 => GetRed(ref this.argumentList, 1)!,
                 2 => GetRed(ref this.initializer, 2),
                 _ => null,
             };
@@ -2758,7 +2758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitObjectCreationExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitObjectCreationExpression(this);
 
-        public ImplicitObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, ArgumentListSyntax? argumentList, InitializerExpressionSyntax? initializer)
+        public ImplicitObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer)
         {
             if (newKeyword != this.NewKeyword || argumentList != this.ArgumentList || initializer != this.Initializer)
             {
@@ -2772,17 +2772,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal override BaseObjectCreationExpressionSyntax WithNewKeywordCore(SyntaxToken newKeyword) => WithNewKeyword(newKeyword);
         public new ImplicitObjectCreationExpressionSyntax WithNewKeyword(SyntaxToken newKeyword) => Update(newKeyword, this.ArgumentList, this.Initializer);
-        internal override BaseObjectCreationExpressionSyntax WithArgumentListCore(ArgumentListSyntax? argumentList) => WithArgumentList(argumentList);
-        public new ImplicitObjectCreationExpressionSyntax WithArgumentList(ArgumentListSyntax? argumentList) => Update(this.NewKeyword, argumentList, this.Initializer);
+        internal override BaseObjectCreationExpressionSyntax WithArgumentListCore(ArgumentListSyntax? argumentList) => WithArgumentList(argumentList ?? throw new ArgumentNullException(nameof(argumentList)));
+        public new ImplicitObjectCreationExpressionSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.NewKeyword, argumentList, this.Initializer);
         internal override BaseObjectCreationExpressionSyntax WithInitializerCore(InitializerExpressionSyntax? initializer) => WithInitializer(initializer);
         public new ImplicitObjectCreationExpressionSyntax WithInitializer(InitializerExpressionSyntax? initializer) => Update(this.NewKeyword, this.ArgumentList, initializer);
 
         internal override BaseObjectCreationExpressionSyntax AddArgumentListArgumentsCore(params ArgumentSyntax[] items) => AddArgumentListArguments(items);
-        public new ImplicitObjectCreationExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
-        {
-            var argumentList = this.ArgumentList ?? SyntaxFactory.ArgumentList();
-            return WithArgumentList(argumentList.WithArguments(argumentList.Arguments.AddRange(items)));
-        }
+        public new ImplicitObjectCreationExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
 
     /// <summary>Class which represents the syntax node for object creation expression.</summary>

@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression, InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static Syntax.InternalSyntax.ImplicitObjectCreationExpressionSyntax GenerateImplicitObjectCreationExpression()
-            => InternalSyntaxFactory.ImplicitObjectCreationExpression(InternalSyntaxFactory.Token(SyntaxKind.NewKeyword), null, null);
+            => InternalSyntaxFactory.ImplicitObjectCreationExpression(InternalSyntaxFactory.Token(SyntaxKind.NewKeyword), GenerateArgumentList(), null);
 
         private static Syntax.InternalSyntax.ObjectCreationExpressionSyntax GenerateObjectCreationExpression()
             => InternalSyntaxFactory.ObjectCreationExpression(InternalSyntaxFactory.Token(SyntaxKind.NewKeyword), GenerateIdentifierName(), null, null);
@@ -1266,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateImplicitObjectCreationExpression();
 
             Assert.Equal(SyntaxKind.NewKeyword, node.NewKeyword.Kind);
-            Assert.Null(node.ArgumentList);
+            Assert.NotNull(node.ArgumentList);
             Assert.Null(node.Initializer);
 
             AttachAndCheckDiagnostics(node);
@@ -9212,7 +9212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static ImplicitObjectCreationExpressionSyntax GenerateImplicitObjectCreationExpression()
-            => SyntaxFactory.ImplicitObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), default(ArgumentListSyntax), default(InitializerExpressionSyntax));
+            => SyntaxFactory.ImplicitObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), GenerateArgumentList(), default(InitializerExpressionSyntax));
 
         private static ObjectCreationExpressionSyntax GenerateObjectCreationExpression()
             => SyntaxFactory.ObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), GenerateIdentifierName(), default(ArgumentListSyntax), default(InitializerExpressionSyntax));
@@ -10314,7 +10314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateImplicitObjectCreationExpression();
 
             Assert.Equal(SyntaxKind.NewKeyword, node.NewKeyword.Kind());
-            Assert.Null(node.ArgumentList);
+            Assert.NotNull(node.ArgumentList);
             Assert.Null(node.Initializer);
             var newNode = node.WithNewKeyword(node.NewKeyword).WithArgumentList(node.ArgumentList).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);

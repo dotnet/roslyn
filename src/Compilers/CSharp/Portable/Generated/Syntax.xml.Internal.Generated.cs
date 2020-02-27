@@ -6266,20 +6266,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal sealed partial class ImplicitObjectCreationExpressionSyntax : BaseObjectCreationExpressionSyntax
     {
         internal readonly SyntaxToken newKeyword;
-        internal readonly ArgumentListSyntax? argumentList;
+        internal readonly ArgumentListSyntax argumentList;
         internal readonly InitializerExpressionSyntax? initializer;
 
-        internal ImplicitObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, ArgumentListSyntax? argumentList, InitializerExpressionSyntax? initializer, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal ImplicitObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 3;
             this.AdjustFlagsAndWidth(newKeyword);
             this.newKeyword = newKeyword;
-            if (argumentList != null)
-            {
-                this.AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
             if (initializer != null)
             {
                 this.AdjustFlagsAndWidth(initializer);
@@ -6287,18 +6284,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ImplicitObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, ArgumentListSyntax? argumentList, InitializerExpressionSyntax? initializer, SyntaxFactoryContext context)
+        internal ImplicitObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 3;
             this.AdjustFlagsAndWidth(newKeyword);
             this.newKeyword = newKeyword;
-            if (argumentList != null)
-            {
-                this.AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
             if (initializer != null)
             {
                 this.AdjustFlagsAndWidth(initializer);
@@ -6306,17 +6300,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ImplicitObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, ArgumentListSyntax? argumentList, InitializerExpressionSyntax? initializer)
+        internal ImplicitObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer)
           : base(kind)
         {
             this.SlotCount = 3;
             this.AdjustFlagsAndWidth(newKeyword);
             this.newKeyword = newKeyword;
-            if (argumentList != null)
-            {
-                this.AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
             if (initializer != null)
             {
                 this.AdjustFlagsAndWidth(initializer);
@@ -6327,7 +6318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>SyntaxToken representing the new keyword.</summary>
         public override SyntaxToken NewKeyword => this.newKeyword;
         /// <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
-        public override ArgumentListSyntax? ArgumentList => this.argumentList;
+        public override ArgumentListSyntax ArgumentList => this.argumentList;
         /// <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
         public override InitializerExpressionSyntax? Initializer => this.initializer;
 
@@ -6375,12 +6366,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var newKeyword = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(newKeyword);
             this.newKeyword = newKeyword;
-            var argumentList = (ArgumentListSyntax?)reader.ReadValue();
-            if (argumentList != null)
-            {
-                AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
+            var argumentList = (ArgumentListSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
             var initializer = (InitializerExpressionSyntax?)reader.ReadValue();
             if (initializer != null)
             {
@@ -33355,11 +33343,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public ImplicitObjectCreationExpressionSyntax ImplicitObjectCreationExpression(SyntaxToken newKeyword, ArgumentListSyntax? argumentList, InitializerExpressionSyntax? initializer)
+        public ImplicitObjectCreationExpressionSyntax ImplicitObjectCreationExpression(SyntaxToken newKeyword, ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer)
         {
             #if DEBUG
             if (newKeyword == null) throw new ArgumentNullException(nameof(newKeyword));
             if (newKeyword.Kind != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
+            if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
             #endif
 
             int hash;
@@ -37899,11 +37888,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static ImplicitObjectCreationExpressionSyntax ImplicitObjectCreationExpression(SyntaxToken newKeyword, ArgumentListSyntax? argumentList, InitializerExpressionSyntax? initializer)
+        public static ImplicitObjectCreationExpressionSyntax ImplicitObjectCreationExpression(SyntaxToken newKeyword, ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer)
         {
             #if DEBUG
             if (newKeyword == null) throw new ArgumentNullException(nameof(newKeyword));
             if (newKeyword.Kind != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
+            if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
             #endif
 
             int hash;
