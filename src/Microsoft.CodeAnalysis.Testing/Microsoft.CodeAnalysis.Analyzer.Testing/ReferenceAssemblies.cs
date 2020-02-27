@@ -353,9 +353,8 @@ namespace Microsoft.CodeAnalysis.Testing
                         }
                     }
 
-                    // Ignore framework references for 'Any,Version=v0.0' until we know how NuGet is supposed to handle
-                    // them. https://github.com/dotnet/roslyn-sdk/issues/482
-                    if (nearestFramework is { IsAny: false })
+                    // Include framework references except for package based frameworks
+                    if (!targetFramework.IsPackageBased && nearestFramework is object)
                     {
                         var nearestFrameworkItems = frameworkItems.Single(x => x.TargetFramework == nearestFramework);
                         foreach (var item in nearestFrameworkItems.Items)
