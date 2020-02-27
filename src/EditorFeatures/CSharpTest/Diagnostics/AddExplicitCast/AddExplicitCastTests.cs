@@ -2090,6 +2090,52 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MethodCandidates19_ArgumentsInOrder_NoLabels_Params()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(params Derived2[] d2list) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var dlist = new Derived[] {};
+        Foo([||]dlist, new Derived2());
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MethodCandidates20_ArgumentsInOrder_NoLabels_Params()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void Foo(params Derived2[] d2list) { }
+
+    void M()
+    {
+        Base b = new Base();
+        var dlist = new Derived[] {};
+        Foo([||]dlist, dlist);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task ConstructorCandidates1()
         {
             await TestInRegularAndScriptAsync(

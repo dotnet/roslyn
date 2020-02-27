@@ -147,9 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidateSymbols = symbolInfo.CandidateSymbols;
 
-                foreach (var candidcateSymbol in candidateSymbols)
+                foreach (var candidateSymbol in candidateSymbols)
                 {
-                    if (!(candidcateSymbol is IMethodSymbol methodSymbol))
+                    if (!(candidateSymbol is IMethodSymbol methodSymbol))
                     {
                         continue;
                     }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     // *void DoSomething(string s, Derived2 d) { }* is not the perfect match candidate function for
                     // *DoSomething(1, [||]b)* because int and string are not ancestor-descendant relationship. Thus,
                     // Derived2 is not a potential conversion type
-                    if (IsArgumentListAndParameterListPerfactMatch(semanticModel, argumentList.Arguments, methodSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
+                    if (IsArgumentListAndParameterListPerfectMatch(semanticModel, argumentList.Arguments, methodSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
                     {
                         var correspondingParameter = methodSymbol.Parameters[paramIndex];
                         var argumentConversionType = correspondingParameter.Type;
@@ -220,13 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// True, if arguments and parameters match perfectly.
         /// False, otherwise.
         /// </returns>
-        private static bool IsArgumentListAndParameterListPerfactMatch(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
+        private static bool IsArgumentListAndParameterListPerfectMatch(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
             ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument, CancellationToken cancellationToken, out int targetParamIndex)
         {
-            targetParamIndex = -1; // return invalid index if it is not a perfact match
+            targetParamIndex = -1; // return invalid index if it is not a perfect match
 
             var matchedTypes = new bool[parameters.Length]; // default value is false
-            var inOrder = true; // assume the arguments are in order
+            var paramsMatchedByArray = false; // the parameter with keyword params can be either matched by an array type or a variable number of arguments
+            var inOrder = true; // assume the arguments are in order in default
 
             for (var i = 0; i < arguments.Count; i++)
             {
@@ -256,19 +257,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 // The argument is either in order with parameters, or have a matched name with parameters
                 var argType = semanticModel.GetTypeInfo(arguments[i].Expression, cancellationToken);
-                if (argType.Type != null && (inOrder || !(nameSyntax is null)))
+                if (argType.Type != null && (inOrder || nameSyntax is object))
                 {
                     // The type of argument must be convertible to the type of parameter
-                    if (semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
+                    if (!parameters[parameterIndex].IsParams
+                        && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
                     {
                         if (matchedTypes[parameterIndex]) return false;
                         matchedTypes[parameterIndex] = true;
                     }
+                    else if (parameters[parameterIndex].IsParams
+                        && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
+                    {
+                        // The parameter with keyword params takes an array type, then it cannot be matched more than once
+                        if (matchedTypes[parameterIndex]) return false;
+                        matchedTypes[parameterIndex] = true;
+                        paramsMatchedByArray = true;
+                    }
                     else if (parameters[parameterIndex].IsParams && parameters.Last().Type is IArrayTypeSymbol paramsType &&
                       semanticModel.Compilation.ClassifyCommonConversion(argType.Type, paramsType.ElementType).Exists)
                     {
-                        // For the parameter with keyword params, compare its element type.
+                        // The parameter with keyword params takes a variable number of arguments, compare its element type with the argument's type.
+                        if (matchedTypes[parameterIndex] && paramsMatchedByArray) return false;
                         matchedTypes[parameterIndex] = true;
+                        paramsMatchedByArray = false;
                     }
                     else return false;
 
