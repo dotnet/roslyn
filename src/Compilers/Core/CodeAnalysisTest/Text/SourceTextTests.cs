@@ -315,5 +315,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             Assert.Equal("BCDEFGHIJKLMNOPQRSTUVWXYZ", writer.ToString());
         }
+
+        public static IEnumerable<object[]> AllRanges(int totalLength) =>
+            from start in Enumerable.Range(0, totalLength)
+            from length in Enumerable.Range(0, totalLength - start)
+            select new object[] { new TextSpan(start, length) };
+
+        [Theory]
+        [MemberData(nameof(AllRanges), 10)]
+        [WorkItem(41903, "https://github.com/dotnet/roslyn/issues/41903")]
+        public void WriteWithAllRanges(TextSpan span)
+        {
+            const string Text = "0123456789";
+            var sourceText = SourceText.From(Text);
+
+            var writer = new StringWriter();
+            sourceText.Write(writer, span);
+
+            Assert.Equal(Text.Substring(span.Start, span.Length), writer.ToString());
+        }
     }
 }

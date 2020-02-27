@@ -536,12 +536,12 @@ namespace Microsoft.CodeAnalysis.Text
             try
             {
                 int offset = Math.Min(this.Length, span.Start);
-                int length = Math.Min(this.Length, span.End) - offset;
-                while (offset < length)
+                int end = Math.Min(this.Length, span.End);
+                while (offset < end)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    int count = Math.Min(buffer.Length, length - offset);
+                    int count = Math.Min(buffer.Length, end - offset);
                     this.CopyTo(offset, buffer, 0, count);
                     writer.Write(buffer, 0, count);
                     offset += count;
