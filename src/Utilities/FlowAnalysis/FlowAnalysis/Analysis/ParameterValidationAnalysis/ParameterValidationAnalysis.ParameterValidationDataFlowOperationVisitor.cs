@@ -287,11 +287,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     // FxCop compat: special cases handled by FxCop.
                     //  1. First argument of type System.Runtime.Serialization.SerializationInfo to System.Exception.GetObjectData or its override is validated.
                     //  2. First argument of type System.Runtime.Serialization.SerializationInfo to constructor of System.Exception or its subtype is validated.
-                    if (targetMethod.IsGetObjectData(SerializationInfoNamedType, StreamingContextNamedType) ||
-                        targetMethod.IsSerializationConstructor(SerializationInfoNamedType, StreamingContextNamedType))
+                    if (Equals(targetMethod.Parameters[0].Type, SerializationInfoNamedType))
                     {
-                        MarkValidatedLocations(arguments[0]);
+                        switch (targetMethod.MethodKind)
+                        {
+                            case MethodKind.Ordinary:
+                                if (targetMethod.Name.Equals("GetObjectData", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    MarkValidatedLocations(arguments[0]);
+                                }
+                                break;
+
+                            case MethodKind.Constructor:
+                                MarkValidatedLocations(arguments[0]);
+                                break;
+                        }
                     }
+                    // TODO: Remove the previous code block and use the following code when ready for potential breaking change
+                    // See https://github.com/dotnet/roslyn-analyzers/issues/3331
+                    //if (targetMethod.IsGetObjectData(SerializationInfoNamedType, StreamingContextNamedType) ||
+                    //    targetMethod.IsSerializationConstructor(SerializationInfoNamedType, StreamingContextNamedType))
+                    //{
+                    //    MarkValidatedLocations(arguments[0]);
+                    //}
                 }
                 else if (_hazardousParameterUsageBuilderOpt != null &&
                          !targetMethod.IsExternallyVisible() &&
