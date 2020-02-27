@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var root = editor.OriginalRoot;
 
