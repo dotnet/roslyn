@@ -23,6 +23,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return option;
         }
 
+        private static Option<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+        {
+            var option = new Option<T>(nameof(CodeStyleOptions), group, name, defaultValue, storageLocations);
+            s_allOptionsBuilder.Add(option);
+            return option;
+        }
+
         /// <remarks>
         /// When user preferences are not yet set for a style, we fall back to the default value.
         /// One such default(s), is that the feature is turned on, so that codegen consumes it,
@@ -244,6 +251,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation[]{
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_readonly_field"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferReadonly") });
+
+        internal static readonly Option<string> FileHeaderTemplate = CreateCommonOption(
+            CodeStyleOptionGroups.Usings, nameof(FileHeaderTemplate),
+            defaultValue: "",
+            EditorConfigStorageLocation.ForStringOption("file_header_template"));
 
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new BidirectionalMap<string, AccessibilityModifiersRequired>(new[]
