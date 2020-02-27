@@ -4,16 +4,16 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryCast
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.RemoveUnnecessaryCast
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryCast
     Partial Public Class RemoveUnnecessaryCastTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer(),
-                    New RemoveUnnecessaryCastCodeFixProvider())
+                    New VisualBasicRemoveUnnecessaryCastCodeFixProvider())
         End Function
 
         <WorkItem(545979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545979")>

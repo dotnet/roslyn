@@ -9,14 +9,14 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryCast;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryCast
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpRemoveUnnecessaryCastDiagnosticAnalyzer
-        : RemoveUnnecessaryCastDiagnosticAnalyzerBase<SyntaxKind, CastExpressionSyntax>
+        : AbstractRemoveUnnecessaryCastDiagnosticAnalyzer<SyntaxKind, CastExpressionSyntax>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.CastExpression);
 

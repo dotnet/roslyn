@@ -2,21 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
+namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
 {
-    internal abstract class RemoveUnnecessaryCastDiagnosticAnalyzerBase<
+    internal abstract class AbstractRemoveUnnecessaryCastDiagnosticAnalyzer<
         TLanguageKindEnum,
         TCastExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TCastExpression : SyntaxNode
     {
-        protected RemoveUnnecessaryCastDiagnosticAnalyzerBase()
+        protected AbstractRemoveUnnecessaryCastDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
                    option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_Unnecessary_Cast), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
             }
         }
 
-        private Diagnostic TryRemoveCastExpression(SemanticModel model, TCastExpression node, CancellationToken cancellationToken)
+        private Diagnostic? TryRemoveCastExpression(SemanticModel model, TCastExpression node, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
