@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -301,6 +302,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xfe });
             TestTryReadByteOrderMark(expectedEncoding: Encoding.BigEndianUnicode, expectedPreambleLength: 2, data: new byte[] { 0xfe, 0xff });
+        }
+
+        [Fact]
+        [WorkItem(41903, "https://github.com/dotnet/roslyn/issues/41903")]
+        public void WriteWithRangeStartingLaterThanZero()
+        {
+            var sourceText = SourceText.From("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+            var writer = new StringWriter();
+            sourceText.Write(writer, TextSpan.FromBounds(1, sourceText.Length));
+
+            Assert.Equal("BCDEFGHIJKLMNOPQRSTUVWXYZ", writer.ToString());
         }
     }
 }
