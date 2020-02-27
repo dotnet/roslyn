@@ -3797,6 +3797,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+
+                    // No point checking beyond the base type in which this method is actually declared.
+                    if (baseType.Equals(method.ContainingType))
+                    {
+                        break;
+                    }
                 }
 
                 return false;
