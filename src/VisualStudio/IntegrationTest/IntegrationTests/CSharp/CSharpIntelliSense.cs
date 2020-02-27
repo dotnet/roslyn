@@ -103,19 +103,46 @@ public static class NavigateTo
         {
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
-            VisualStudio.Editor.SendKeys("nam Goo", VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys("pu cla Program", VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys("pub stati voi Main(string[] args)", VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys("System.Console.writeline();");
-            VisualStudio.Editor.Verify.CurrentLineText("System.Console.WriteLine();$$", assertCaretPosition: true);
-            VisualStudio.Editor.SendKeys(VirtualKey.Home, Shift(VirtualKey.End), VirtualKey.Delete);
+            VisualStudio.Editor.SendKeys("nam");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
+            VisualStudio.Editor.SendKeys(" Goo", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
+
+            VisualStudio.Editor.SendKeys("pu");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys(" cla");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys(" Program", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
+
+            VisualStudio.Editor.SendKeys("pub");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys(" stati");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys(" voi");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys(" Main(string[] args)", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
+
+            VisualStudio.Editor.SendKeys("System.Console.");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys("writeline();");
+            VisualStudio.Editor.Verify.CurrentLineText("System.Console.WriteLine();$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Home, Shift(VirtualKey.End), VirtualKey.Delete);
             VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.Space, ShiftState.Ctrl | ShiftState.Alt));
 
-            VisualStudio.Editor.SendKeys("System.Console.writeline();");
+            VisualStudio.Editor.SendKeys("System.Console.");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys("writeline();");
             VisualStudio.Editor.Verify.CurrentLineText("System.Console.writeline();$$", assertCaretPosition: true);
         }
 
@@ -124,13 +151,19 @@ public static class NavigateTo
         {
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
-            VisualStudio.Editor.SendKeys("nam Goo");
+            VisualStudio.Editor.SendKeys("nam");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys(" Goo");
             VisualStudio.Editor.Verify.CurrentLineText("namespace Goo$$", assertCaretPosition: true);
 
             ClearEditor();
             VisualStudio.Editor.SetUseSuggestionMode(true);
 
-            VisualStudio.Editor.SendKeys("nam Goo");
+            VisualStudio.Editor.SendKeys("nam");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys(" Goo");
             VisualStudio.Editor.Verify.CurrentLineText("nam Goo$$", assertCaretPosition: true);
         }
 
@@ -220,7 +253,10 @@ class Class1
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
-            VisualStudio.Editor.SendKeys("Mai(");
+            VisualStudio.Editor.SendKeys("Mai");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys("(");
 
             VisualStudio.Editor.Verify.CurrentSignature("void Class1.Main(string[] args)");
             VisualStudio.Editor.Verify.CurrentParameter("args", "");
@@ -332,7 +368,10 @@ class Class1
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
-            VisualStudio.Editor.SendKeys("int P { g{");
+            VisualStudio.Editor.SendKeys("int P { g");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys("{");
 
             VisualStudio.Editor.Verify.TextContains(@"
 class Class1
