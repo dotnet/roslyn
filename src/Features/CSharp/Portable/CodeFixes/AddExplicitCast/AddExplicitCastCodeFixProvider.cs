@@ -68,16 +68,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     var actions = ArrayBuilder<CodeAction>.GetInstance();
 
                     // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
-                    for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
+                    if (potentialConversionTypes.Length <= MaximumConversionOptions)
                     {
-                        var convType = potentialConversionTypes[i];
-                        actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToDisplayString()),
-                            c => ApplyFixAsync(context.Document, root, targetNode, convType)));
+                        for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
+                        {
+                            var convType = potentialConversionTypes[i];
+                            actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToDisplayString()),
+                                c => ApplyFixAsync(context.Document, root, targetNode, convType)));
+                        }
                     }
-
-                    // If the number of potential conversion types is larger than options we could show, report telemetry
-                    if (potentialConversionTypes.Length > MaximumConversionOptions)
+                    else
                     {
+                        // If the number of potential conversion types is larger than options we could show, report telemetry
                         Logger.Log(FunctionId.CodeFixes_AddExplicitCast,
                             KeyValueLogMessage.Create(m =>
                             {
@@ -121,7 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         {
             targetNodeType = null;
             potentialConversionTypes = ImmutableArray<ITypeSymbol>.Empty;
-            var mutablePotentialConversionTypes = new List<ITypeSymbol>();
             if (targetNode == null)
             {
                 return false;
@@ -135,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 return false;
             }
 
+            var mutablePotentialConversionTypes = new List<ITypeSymbol>();
             if (targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
             {
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
@@ -351,14 +353,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 if (derivedType == null) return int.MaxValue;
                 if (derivedType.Equals(baseType)) return 0;
 
-                var distance = int.MaxValue;
-                distance = Math.Min(GetInheritanceDistance(baseType, derivedType.BaseType), distance);
+                var distance = GetInheritanceDistance(baseType, derivedType.BaseType);
 
                 if (derivedType.Interfaces.Length != 0)
                 {
-                    foreach (var interface_type in derivedType.Interfaces)
+                    foreach (var interfaceType in derivedType.Interfaces)
                     {
-                        distance = Math.Min(GetInheritanceDistance(baseType, interface_type), distance);
+                        distance = Math.Min(GetInheritanceDistance(baseType, interfaceType), distance);
                     }
                 }
 
