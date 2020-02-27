@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var totalSymbols = await base.GetPerContextSymbols(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             foreach (var (documentId, syntaxContext, symbols) in totalSymbols)
             {
-                var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name);
+                var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name && isGeneric == (s.GetArity() != 0));
 
                 switch (kind)
                 {
