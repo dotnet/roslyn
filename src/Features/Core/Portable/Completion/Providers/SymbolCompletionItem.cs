@@ -59,11 +59,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return item.AddProperty("Symbols", EncodeSymbols(symbols));
         }
 
-        public static CompletionItem AddSymbolNameAndKind(IReadOnlyList<ISymbol> symbols, CompletionItem item)
+        public static CompletionItem AddSymbolInfo(IReadOnlyList<ISymbol> symbols, CompletionItem item)
         {
             var symbol = symbols[0];
+            var isGeneric = symbol switch
+            {
+                IMethodSymbol methodSymbol => methodSymbol.Arity != 0,
+                INamedTypeSymbol typeSymbol => typeSymbol.Arity != 0,
+                _ => false
+            };
+
             return item.AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
-                       .AddProperty("SymbolName", symbol.Name);
+                       .AddProperty("SymbolName", symbol.Name)
+                       .AddProperty("IsGeneric", isGeneric.ToString());
         }
 
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)
@@ -302,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
-                AddSymbolNameAndKind, sortText, insertionText,
+                AddSymbolInfo, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
 
@@ -321,6 +329,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (item.Properties.TryGetValue("SymbolKind", out var kind))
             {
                 return (SymbolKind)int.Parse(kind);
+            }
+
+            return null;
+        }
+
+        internal static string GetSymbolIsGeneric(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("IsGeneric", out var name))
+            {
+                return name;
             }
 
             return null;

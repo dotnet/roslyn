@@ -122,15 +122,31 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
             var name = SymbolCompletionItem.GetSymbolName(item);
             var kind = SymbolCompletionItem.GetKind(item);
+            bool.TryParse(SymbolCompletionItem.GetSymbolIsGeneric(item), out var isGeneric);
             var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
             var options = document.Project.Solution.Workspace.Options;
             var totalSymbols = await base.GetPerContextSymbols(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             foreach (var (documentId, syntaxContext, symbols) in totalSymbols)
             {
-                var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
+                var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name);
+
+                switch (kind)
+                {
+                    case SymbolKind.Method:
+                        bestSymbols = isGeneric
+                            ? bestSymbols.Where(s => ((IMethodSymbol)s).Arity != 0)
+                            : bestSymbols.Where(s => ((IMethodSymbol)s).Arity == 0);
+                        break;
+                    case SymbolKind.NamedType:
+                        bestSymbols = isGeneric
+                            ? bestSymbols.Where(s => ((INamedTypeSymbol)s).Arity != 0)
+                            : bestSymbols.Where(s => ((INamedTypeSymbol)s).Arity == 0);
+                        break;
+                }
+
                 if (bestSymbols.Any())
                 {
-                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
+                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols.ToImmutableArray(), document, syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
                 }
             }
 
