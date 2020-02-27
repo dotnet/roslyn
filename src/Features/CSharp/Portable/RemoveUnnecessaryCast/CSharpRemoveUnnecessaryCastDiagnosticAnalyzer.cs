@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryCast;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
         protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => s_kindsOfInterest;
 
         protected override bool IsUnnecessaryCast(SemanticModel model, CastExpressionSyntax cast, CancellationToken cancellationToken)
-            => cast.IsUnnecessaryCast(model, cancellationToken);
+            => CastSimplifier.IsUnnecessaryCast(cast, model, cancellationToken);
 
         protected override TextSpan GetFadeSpan(CastExpressionSyntax node)
             => TextSpan.FromBounds(node.OpenParenToken.SpanStart, node.CloseParenToken.Span.End);
