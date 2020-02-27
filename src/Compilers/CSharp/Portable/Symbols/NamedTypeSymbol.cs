@@ -1520,14 +1520,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // PROTOTYPE: Should be abstract.
         /// <summary>
         /// True if the type represents a native integer. In C#, the types represented
-        /// by language tokens 'nint' and 'nuint'.
+        /// by language keywords 'nint' and 'nuint'.
         /// </summary>
         internal virtual bool IsNativeInteger => false;
 
         // PROTOTYPE: Should be abstract.
         /// <summary>
         /// If this is a native integer, returns the symbol for the underlying type,
-        /// either <see cref="System.IntPtr"/> or  <see cref="System.UIntPtr"/>.
+        /// either <see cref="System.IntPtr"/> or <see cref="System.UIntPtr"/>.
         /// Otherwise, returns null.
         /// </summary>
         internal virtual NamedTypeSymbol NativeIntegerUnderlyingType => null;

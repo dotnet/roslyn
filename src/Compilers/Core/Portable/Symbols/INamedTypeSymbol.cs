@@ -189,13 +189,13 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// True if the type represents a native integer. In C#, the types represented
-        /// by language tokens 'nint' and 'nuint'.
+        /// by language keywords 'nint' and 'nuint'.
         /// </summary>
         bool IsNativeInteger { get; }
 
         /// <summary>
         /// If this is a native integer, returns the symbol for the underlying type,
-        /// either <see cref="System.IntPtr"/> or  <see cref="System.UIntPtr"/>.
+        /// either <see cref="System.IntPtr"/> or <see cref="System.UIntPtr"/>.
         /// Otherwise, returns null.
         /// </summary>
         INamedTypeSymbol NativeIntegerUnderlyingType { get; }

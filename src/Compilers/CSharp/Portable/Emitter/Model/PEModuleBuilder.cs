@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
                 else if (namedTypeSymbol.NativeIntegerUnderlyingType is NamedTypeSymbol underlyingType)
                 {
-                    return underlyingType;
+                    namedTypeSymbol = underlyingType;
                 }
             }
 

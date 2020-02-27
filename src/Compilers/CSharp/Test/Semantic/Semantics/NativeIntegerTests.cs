@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(SymbolKind.NamedType, type.Kind);
             Assert.Equal(TypeKind.Struct, type.TypeKind);
             Assert.Same(type, type.ConstructedFrom);
-            Assert.Equal(isNativeInt, type.IsNativeIntegerType());
+            Assert.Equal(isNativeInt, type.IsNativeInteger);
 
             if (isNativeInt)
             {
@@ -181,12 +181,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(SymbolKind.NamedType, type.Kind);
             Assert.Equal(TypeKind.Struct, type.TypeKind);
             Assert.Same(type, type.ConstructedFrom);
+            Assert.Equal(isNativeInt, type.IsNativeInteger);
         }
 
         private static void VerifyTypes(INamedTypeSymbol underlyingType, INamedTypeSymbol nativeIntegerType, bool signed)
         {
             VerifyType(underlyingType, signed, isNativeInt: false);
-            VerifyType(nativeIntegerType, signed, isNativeInt: false);
+            VerifyType(nativeIntegerType, signed, isNativeInt: true);
+
+            Assert.Same(underlyingType.ContainingSymbol, nativeIntegerType.ContainingSymbol);
+            Assert.Same(underlyingType.Name, nativeIntegerType.Name); // PROTOTYPE: Should Name return "nint"/"nuint" or perhaps null?
 
             Assert.Empty(nativeIntegerType.GetTypeMembers());
 
@@ -204,6 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Same(underlyingType, nativeIntegerType.NativeIntegerUnderlyingType);
             Assert.Equal(underlyingType, nativeIntegerType);
             Assert.Equal(nativeIntegerType, underlyingType);
+            Assert.True(underlyingType.Equals(nativeIntegerType));
+            Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.Default));
+            Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.IncludeNullability));
+            Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.ConsiderEverything));
             Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
         }
 
@@ -211,6 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         {
             VerifyType(underlyingType, signed, isNativeInt: false);
             VerifyType(nativeIntegerType, signed, isNativeInt: true);
+
+            Assert.Same(underlyingType.ContainingSymbol, nativeIntegerType.ContainingSymbol);
+            Assert.Same(underlyingType.Name, nativeIntegerType.Name); // PROTOTYPE: Should Name return "nint"/"nuint" or perhaps null?
 
             Assert.Empty(nativeIntegerType.GetTypeMembers());
 
@@ -227,11 +238,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Null(underlyingType.NativeIntegerUnderlyingType);
             Assert.Same(nativeIntegerType, underlyingType.AsNativeInteger());
             Assert.Same(underlyingType, nativeIntegerType.NativeIntegerUnderlyingType);
-            VerifyEqualButDistinct(underlyingType, underlyingType.AsNativeInteger());
-            VerifyEqualButDistinct(nativeIntegerType, nativeIntegerType.NativeIntegerUnderlyingType);
-            VerifyEqualButDistinct(underlyingType, nativeIntegerType);
+            verifyEqualButDistinct(underlyingType, underlyingType.AsNativeInteger());
+            verifyEqualButDistinct(nativeIntegerType, nativeIntegerType.NativeIntegerUnderlyingType);
+            verifyEqualButDistinct(underlyingType, nativeIntegerType);
 
             VerifyTypes(underlyingType.GetPublicSymbol(), nativeIntegerType.GetPublicSymbol(), signed);
+
+            static void verifyEqualButDistinct(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
+            {
+                Assert.NotSame(underlyingType, nativeIntegerType);
+                Assert.Equal(underlyingType, nativeIntegerType);
+                Assert.Equal(nativeIntegerType, underlyingType);
+                Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.ConsiderEverything));
+                Assert.True(nativeIntegerType.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
+                Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
+            }
         }
 
         private static void VerifyMembers(NamedTypeSymbol type)
@@ -271,16 +292,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.Same(type, member.ContainingSymbol);
                 Assert.Same(type, member.ContainingType);
             }
-        }
-
-        private static void VerifyEqualButDistinct(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
-        {
-            Assert.NotSame(underlyingType, nativeIntegerType);
-            Assert.Equal(underlyingType, nativeIntegerType);
-            Assert.Equal(nativeIntegerType, underlyingType);
-            Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.ConsiderEverything));
-            Assert.True(nativeIntegerType.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
-            Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
         }
 
         [Fact]
@@ -348,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         {
             Assert.Equal(SymbolKind.ErrorType, type.Kind);
             Assert.Equal(TypeKind.Error, type.TypeKind);
-            Assert.Equal(isNativeInt, type.IsNativeIntegerType());
+            Assert.Equal(isNativeInt, type.IsNativeInteger);
             Assert.Equal(specialType, type.SpecialType);
         }
 

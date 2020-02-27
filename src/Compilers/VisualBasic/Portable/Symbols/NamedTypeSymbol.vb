@@ -192,18 +192,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public MustOverride ReadOnly Property IsSerializable As Boolean Implements INamedTypeSymbol.IsSerializable
 
-        Public ReadOnly Property IsNativeInteger As Boolean Implements INamedTypeSymbol.IsNativeInteger
-            Get
-                Return False
-            End Get
-        End Property
-
-        Public ReadOnly Property NativeIntegerUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.NativeIntegerUnderlyingType
-            Get
-                Return Nothing
-            End Get
-        End Property
-
         ''' <summary>
         ''' Type layout information (ClassLayout metadata and layout kind flags).
         ''' </summary>
@@ -1230,6 +1218,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property INamedTypeSymbol_IsComImport As Boolean Implements INamedTypeSymbol.IsComImport
             Get
                 Return IsComImport
+            End Get
+        End Property
+
+        Private ReadOnly Property INamedTypeSymbol_IsNativeInteger As Boolean Implements INamedTypeSymbol.IsNativeInteger
+            Get
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property INamedTypeSymbol_NativeIntegerUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.NativeIntegerUnderlyingType
+            Get
+                Return Nothing
             End Get
         End Property
 
