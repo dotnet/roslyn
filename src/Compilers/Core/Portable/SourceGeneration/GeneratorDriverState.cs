@@ -14,21 +14,20 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct GeneratorDriverState
     {
         internal GeneratorDriverState(Compilation compilation, ParseOptions parseOptions)
-            : this(compilation, parseOptions, ImmutableArray<GeneratorProvider>.Empty, ImmutableArray<AdditionalText>.Empty, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>>.Empty, null, false)
+            : this(compilation, parseOptions, ImmutableArray<ISourceGenerator>.Empty, ImmutableArray<AdditionalText>.Empty, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>>.Empty, null, false)
         {
         }
 
         internal GeneratorDriverState(Compilation compilation,
                                       ParseOptions parseOptions,
-                                      ImmutableArray<GeneratorProvider> providers,
+                                      ImmutableArray<ISourceGenerator> generators,
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableArray<PendingEdit> edits,
-                                      ImmutableDictionary<GeneratorProvider,
-                                      ImmutableArray<GeneratedSourceText>> sources,
+                                      ImmutableDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>> sources,
                                       Compilation? finalCompilation,
                                       bool editsFailed)
         {
-            Providers = providers;
+            Generators = generators;
             AdditionalTexts = additionalTexts;
             Sources = sources;
             Edits = edits;
@@ -39,13 +38,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The set of <see cref="GeneratorProvider"/>s associated with this state.
+        /// The set of <see cref="ISourceGenerator"/>s associated with this state.
         /// </summary>
         /// <remarks>
         /// This is the set of generators that will run on next generation.
-        /// If there are any sources present in <see cref="Sources" />, they were produced by these generators.
+        /// If there are any sources present in <see cref="Sources" />, they were produced by a subset of these generators.
         /// </remarks>
-        internal readonly ImmutableArray<GeneratorProvider> Providers;
+        internal readonly ImmutableArray<ISourceGenerator> Generators;
 
         /// <summary>
         /// The set of <see cref="AdditionalText"/>s available to source generators during a run
@@ -62,10 +61,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <remarks>
         /// If this state has not been used to perform generation, this collection will be empty.
-        /// The keys here will be a subset of the <see cref="Providers"/> collection; only providers
+        /// The keys here will be a subset of the <see cref="Generators"/> collection; only genertors
         /// that produced at least 1 source will have an entry.
         /// </remarks>
-        internal readonly ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>> Sources;
+        internal readonly ImmutableDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>> Sources;
 
         /// <summary>
         /// When set, this contains the <see cref="Compilation"/> with the generated sources applied
@@ -90,9 +89,9 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorDriverState With(
             Compilation? compilation = null,
             ParseOptions? parseOptions = null,
-            ImmutableArray<GeneratorProvider>? providers = null,
+            ImmutableArray<ISourceGenerator>? generators = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
-            ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>>? sources = null,
+            ImmutableDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>>? sources = null,
             ImmutableArray<PendingEdit>? edits = null,
             Compilation? finalCompilation = null,
             bool? editsFailed = null)
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis
             return new GeneratorDriverState(
                 compilation ?? this.Compilation,
                 parseOptions ?? this.ParseOptions,
-                providers ?? this.Providers,
+                generators ?? this.Generators,
                 additionalTexts ?? this.AdditionalTexts,
                 edits ?? this.Edits,
                 sources ?? this.Sources,

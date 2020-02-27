@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(Compilation compilation, ParseOptions parseOptions)
         {
-            _state = new GeneratorDriverState(compilation, parseOptions, ImmutableArray<GeneratorProvider>.Empty, ImmutableArray<AdditionalText>.Empty, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>>.Empty, finalCompilation: null, editsFailed: true);
+            _state = new GeneratorDriverState(compilation, parseOptions, ImmutableArray<ISourceGenerator>.Empty, ImmutableArray<AdditionalText>.Empty, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>>.Empty, finalCompilation: null, editsFailed: true);
         }
 
         public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, CancellationToken cancellationToken = default)
         {
-            // with no providers, there is no work to do
-            if (_state.Providers.Length == 0)
+            // with no generators, there is no work to do
+            if (_state.Generators.Length == 0)
             {
                 outputCompilation = compilation;
                 return this;
@@ -63,19 +63,18 @@ namespace Microsoft.CodeAnalysis
 
             // run the actual generation
             var state = StateWithPendingEditsApplied(_state);
-            var sourcesBuilder = PooledDictionary<GeneratorProvider, ImmutableArray<GeneratedSourceText>>.GetInstance();
+            var sourcesBuilder = PooledDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>>.GetInstance();
 
             //PROTOTYPE: should be possible to parallelize this
-            foreach (var provider in state.Providers)
+            foreach (var generator in state.Generators)
             {
                 try
                 {
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
                     var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), CompilerAnalyzerConfigOptionsProvider.Empty));
 
-                    // PROTOTYPE: we call provider.GetGenerator(). Should we cache it here, or rely on the provider to do so?
-                    provider.GetGenerator().Execute(context);
-                    sourcesBuilder.Add(provider, context.AdditionalSources.ToImmutableAndFree());
+                    generator.Execute(context);
+                    sourcesBuilder.Add(generator, context.AdditionalSources.ToImmutableAndFree());
                 }
                 catch
                 {
@@ -116,9 +115,15 @@ namespace Microsoft.CodeAnalysis
             return BuildFinalCompilation(compilation, out outputCompilation, state, cancellationToken);
         }
 
-        public GeneratorDriver WithGeneratorProviders(ImmutableArray<GeneratorProvider> providers)
+        public GeneratorDriver WithGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            var newState = _state.With(providers: _state.Providers.AddRange(providers));
+            var newState = _state.With(generators: _state.Generators.AddRange(generators));
+            return FromState(newState);
+        }
+
+        public GeneratorDriver RemoveGenerator(ISourceGenerator generator)
+        {
+            var newState = _state.With(generators: _state.Generators.Remove(generator));
             return FromState(newState);
         }
 
@@ -135,21 +140,17 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
-        //PROTOTYPE
-        public bool ContainsAdditionalText(AdditionalText text) => _state.AdditionalTexts.Contains(text);
-
         private static GeneratorDriverState ApplyPartialEdit(GeneratorDriverState state, PendingEdit edit, CancellationToken cancellationToken = default)
         {
             var initialState = state;
 
             // see if any generators accept this particular edit
-            foreach (var provider in state.Providers)
+            foreach (var generator in state.Generators)
             {
-                var generator = provider.GetGenerator();
                 if (edit.AcceptedBy(generator))
                 {
                     // attempt to apply the edit
-                    var context = new UpdateContext(state.Sources[provider], cancellationToken);
+                    var context = new UpdateContext(state.Sources[generator], cancellationToken);
                     var succeeded = edit.TryApply(generator, context);
                     if (!succeeded)
                     {
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // update the state with the new edits
-                    state = state.With(sources: state.Sources.SetItem(provider, context.AdditionalSources.ToImmutableAndFree()));
+                    state = state.With(sources: state.Sources.SetItem(generator, context.AdditionalSources.ToImmutableAndFree()));
                 }
             }
 

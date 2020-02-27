@@ -62,7 +62,7 @@ class GeneratedClass { }
 
             SingleFileTestGenerator testGenerator = new SingleFileTestGenerator(generatorSource);
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions).WithGeneratorProviders(ImmutableArray.Create<GeneratorProvider>(new InMemoryGeneratorProvider(testGenerator)));
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions).WithGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator));
             driver.RunFullGeneration(compilation, out var outputCompilation);
 
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
@@ -88,7 +88,7 @@ class GeneratedClass { }
 
             SingleFileTestGenerator testGenerator = new SingleFileTestGenerator(generatorSource);
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions).WithGeneratorProviders(ImmutableArray.Create<GeneratorProvider>(new InMemoryGeneratorProvider(testGenerator)));
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions).WithGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator));
             driver = driver.RunFullGeneration(compilation, out var outputCompilation1);
             driver = driver.RunFullGeneration(compilation, out var outputCompilation2);
             driver = driver.RunFullGeneration(compilation, out var outputCompilation3);
@@ -120,7 +120,7 @@ class C { }
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator() { CanApplyChanges = false };
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions)
-                .WithGeneratorProviders(ImmutableArray.Create<GeneratorProvider>(new InMemoryGeneratorProvider(testGenerator)));
+                .WithGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator));
 
             // try apply edits should fail if we've not run a full compilation yet
             driver = driver.TryApplyEdits(compilation, out var outputCompilation, out var succeeded);
@@ -143,7 +143,7 @@ class C { }
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions)
-                .WithGeneratorProviders(ImmutableArray.Create<GeneratorProvider>(new InMemoryGeneratorProvider(testGenerator)));
+                .WithGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator));
 
             // run an initial generation pass
             driver = driver.RunFullGeneration(compilation, out var outputCompilation);
@@ -170,7 +170,7 @@ class C { }
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator() { CanApplyChanges = false };
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions)
-                .WithGeneratorProviders(ImmutableArray.Create<GeneratorProvider>(new InMemoryGeneratorProvider(testGenerator)));
+                .WithGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator));
 
             driver.RunFullGeneration(compilation, out var outputCompilation);
             Assert.Single(outputCompilation.SyntaxTrees);
@@ -201,7 +201,7 @@ class C { }
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions)
-                .WithGeneratorProviders(ImmutableArray.Create<GeneratorProvider>(new InMemoryGeneratorProvider(testGenerator)));
+                .WithGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator));
 
             // run initial generation pass
             driver = driver.RunFullGeneration(compilation, out var outputCompilation);
@@ -232,7 +232,7 @@ class C { }
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions)
-                .WithGeneratorProviders(ImmutableArray.Create<GeneratorProvider>(new InMemoryGeneratorProvider(testGenerator)))
+                .WithGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator))
                 .WithAdditionalTexts(ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("c:\\a\\file1.cs", "")));
 
             // run initial generation pass
@@ -279,7 +279,7 @@ class C { }
 
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions)
-                .WithGeneratorProviders(ImmutableArray.Create<GeneratorProvider>(new InMemoryGeneratorProvider(testGenerator)))
+                .WithGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator))
                 .WithAdditionalTexts(ImmutableArray.Create<AdditionalText>(text));
 
             driver = driver.RunFullGeneration(compilation, out var outputCompilation);
@@ -325,7 +325,7 @@ class C { }
             var text = new InMemoryAdditionalText("c:\\a\\file1.cs", "");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions)
-                .WithGeneratorProviders(ImmutableArray.Create<GeneratorProvider>(new InMemoryGeneratorProvider(testGenerator)))
+                .WithGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator))
                 .WithAdditionalTexts(ImmutableArray.Create<AdditionalText>(text));
 
             driver.RunFullGeneration(compilation, out var outputCompilation);
@@ -339,21 +339,6 @@ class C { }
             // but just do a full generation (don't try apply)
             driver.RunFullGeneration(compilation, out outputCompilation);
             Assert.Equal(5, outputCompilation.SyntaxTrees.Count());
-        }
-    }
-
-    internal class InMemoryGeneratorProvider : GeneratorProvider
-    {
-        private ISourceGenerator _generator;
-
-        public InMemoryGeneratorProvider(ISourceGenerator generator)
-        {
-            this._generator = generator;
-        }
-
-        public override ISourceGenerator GetGenerator()
-        {
-            return _generator;
         }
     }
 
