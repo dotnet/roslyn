@@ -24,13 +24,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
                     var document = solution.GetDocument(documentId);
-                    var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
                     await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
                         document, span, temp, cancellationToken).ConfigureAwait(false);
 
-                    var result = SerializableClassifiedSpans.Dehydrate(temp);
-                    temp.Free();
-                    return result;
+                    return SerializableClassifiedSpans.Dehydrate(temp);
                 }
             }, cancellationToken);
         }
