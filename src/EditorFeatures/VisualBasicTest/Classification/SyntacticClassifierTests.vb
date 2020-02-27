@@ -5,8 +5,6 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
@@ -14,11 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         Inherits AbstractVisualBasicClassifierTests
 
         Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, outOfProcess As Boolean) As Task(Of ImmutableArray(Of ClassifiedSpan))
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
+            Using workspace = CreateWorkspace(code, outOfProcess)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                    workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
-
                 Return GetSyntacticClassificationsAsync(document, span)
             End Using
         End Function
