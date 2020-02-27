@@ -393,7 +393,4 @@
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" Link="CompilerExtensionsResources.resx" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\" />
-  </ItemGroup>
 </Project>

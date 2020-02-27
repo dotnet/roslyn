@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var castNodes = diagnostics.SelectAsArray(
-                d => (CastExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
+                d => (ExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, castNodes,
@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
                 // parens will be removed if unnecessary. 
                 return castExpression.Uncast().WithAdditionalAnnotations(Formatter.Annotation)
                                      .Parenthesize();
+            }
+            else if (old is BinaryExpressionSyntax binaryExpression)
+            {
+                return binaryExpression.Left.WithTrailingTrivia(binaryExpression.GetTrailingTrivia())
+                                       .WithAdditionalAnnotations(Simplifier.Annotation);
             }
             else
             {
