@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -333,6 +334,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             sourceText.Write(writer, span);
 
             Assert.Equal(Text.Substring(span.Start, span.Length), writer.ToString());
+        }
+
+        [Fact]
+        public void WriteWithSpanStartingAfterEndThrowsOutOfRange()
+        {
+            var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(() =>
+                SourceText.From("ABC").Write(TextWriter.Null, TextSpan.FromBounds(4, 4)));
+
+            Assert.Equal("span", ex.ParamName);
+        }
+
+        [Fact]
+        public void WriteWithSpanEndingAfterEndThrowsOutOfRange()
+        {
+            var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(() =>
+                SourceText.From("ABC").Write(TextWriter.Null, TextSpan.FromBounds(2, 4)));
+
+            Assert.Equal("span", ex.ParamName);
         }
     }
 }

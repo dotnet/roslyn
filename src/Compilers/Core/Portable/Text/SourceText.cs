@@ -535,8 +535,8 @@ namespace Microsoft.CodeAnalysis.Text
             var buffer = s_charArrayPool.Allocate();
             try
             {
-                int offset = Math.Min(this.Length, span.Start);
-                int end = Math.Min(this.Length, span.End);
+                int offset = span.Start;
+                int end = span.End;
                 while (offset < end)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
