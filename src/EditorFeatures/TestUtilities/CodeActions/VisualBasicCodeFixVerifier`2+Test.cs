@@ -61,16 +61,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 
+#if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
             {
-                var analyzerOptions = base.GetAnalyzerOptions(project);
-
-#if !CODE_STYLE
-                analyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, project.Solution);
-#endif
-
-                return analyzerOptions;
+                return new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
             }
+#endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
             {
