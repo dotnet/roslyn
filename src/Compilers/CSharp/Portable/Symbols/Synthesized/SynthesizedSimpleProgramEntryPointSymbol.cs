@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// A synthetic syntax tree associated with this method. An empty <see cref="CompilationUnitSyntax"/>
         /// is the root of this tree. In several places in the compiler (like for example in 
         /// <see cref="MethodCompiler.BindMethodBody(MethodSymbol, TypeCompilationState, DiagnosticBag, out ImportChain, out bool, out MethodBodySemanticModel.InitialState)"/>)
-        /// we expect that a <see cref="SourceMemberMethodSymbol"/> that contains user code is assosiated with 
+        /// we expect that a <see cref="SourceMemberMethodSymbol"/> that contains user code is associated with 
         /// a single syntax node. We are using the empty <see cref="CompilationUnitSyntax"/> for this purpose.
         /// Also, since multiple compilation units contribute locals and local functions to a single scope, we
         /// need a single syntax node that can be used as a <see cref="Binder.ScopeDesignator"/> for it without
