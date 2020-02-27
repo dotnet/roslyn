@@ -10159,6 +10159,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Top-level statements must precede namespace and type declarations..
+        /// </summary>
+        internal static string ERR_TopLevelStatementAfterNamespaceOrType {
+            get {
+                return ResourceManager.GetString("ERR_TopLevelStatementAfterNamespaceOrType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A format specifier may not contain trailing whitespace..
         /// </summary>
         internal static string ERR_TrailingWhitespaceInFormatSpecifier {

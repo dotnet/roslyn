@@ -53,6 +53,12 @@ class Test : Itest
                 // (10,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
                 //    {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(10, 4),
+                // (12,4): error CS9002: Top-level statements must precede namespace and type declarations.
+                //    public static int Main()
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"public static int Main()
+   {
+       return 1;
+   }").WithLocation(12, 4),
                 // (12,4): error CS0106: The modifier 'public' is not valid for this item
                 //    public static int Main()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(12, 4),
@@ -646,6 +652,9 @@ partial delegate E { }
                 // (2,20): error CS1002: ; expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS9002: Top-level statements must precede namespace and type declarations.
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20),
                 // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20),
@@ -3919,6 +3928,10 @@ namespace x
    // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
    // public class S.D 
    Diagnostic(ErrorCode.ERR_EOFExpected, "."),
+   // (1,16): error CS9002: Top-level statements must precede namespace and type declarations.
+   // public class S.D 
+   Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D 
+").WithLocation(1, 16),
    // (1,17): error CS1002: ; expected
    // public class S.D 
    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 17),

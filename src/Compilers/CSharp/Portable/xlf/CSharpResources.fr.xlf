@@ -462,6 +462,11 @@
         <target state="translated">Des parenthèses sont obligatoires autour de l'expression régissant switch.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
+        <source>Top-level statements must precede namespace and type declarations.</source>
+        <target state="new">Top-level statements must precede namespace and type declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">
         <source>Unexpected character sequence '...'</source>
         <target state="translated">Séquence de caractères inattendue '...'</target>

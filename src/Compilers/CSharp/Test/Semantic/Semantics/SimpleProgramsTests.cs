@@ -3008,6 +3008,75 @@ class Program
         }
 
         [Fact]
+        public void ExplicitMain_09()
+        {
+            var text1 = @"
+using System;
+using System.Threading.Tasks;
+
+string s = ""Hello world!"";
+
+foreach (var c in s)
+{
+    await N1.Helpers.Wait();
+    Console.Write(c);
+}
+
+Console.WriteLine();
+
+namespace N1
+{
+    class Helpers
+    {
+        static void Main()
+        { }
+
+        public static async Task Wait()
+        {
+            await Task.Delay(500);
+        }
+    }
+}";
+            var text2 = @"
+void local1()
+{
+    System.Console.WriteLine(""local1 - "" + s);
+}
+";
+            var text3 = @"
+void local2()
+{
+    System.Console.WriteLine(""local2 - "" + s);
+}
+";
+            var text4 = @"
+using System.Threading.Tasks;
+
+class Helpers
+{
+    public static async Task Wait()
+    {
+        await Task.Delay(500);
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text2, text1, text3, text4 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyEmitDiagnostics(
+                // (2,6): warning CS8321: The local function 'local1' is declared but never used
+                // void local1()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(2, 6),
+                // (2,6): warning CS8321: The local function 'local2' is declared but never used
+                // void local2()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(2, 6),
+                // (19,21): warning CS7022: The entry point of the program is global code; ignoring 'Helpers.Main()' entry point.
+                //         static void Main()
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("N1.Helpers.Main()").WithLocation(19, 21)
+                );
+        }
+
+        [Fact]
         public void Yield_01()
         {
             var text = @"yield break;";
@@ -3032,6 +3101,269 @@ class Program
                 // (1,1): error CS1624: The body of '<simple-program-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
                 // {yield return 0;}
                 Diagnostic(ErrorCode.ERR_BadIteratorReturn, "{yield return 0;}").WithArguments("<simple-program-entry-point>", "void").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_01()
+        {
+            var text = @"
+class C {}
+
+System.Console.WriteLine(1);
+System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (4,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "System.Console.WriteLine(1);").WithLocation(4, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_02()
+        {
+            var text = @"
+System.Console.WriteLine(0);
+
+namespace C {}
+
+System.Console.WriteLine(1);
+System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "System.Console.WriteLine(1);").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_03()
+        {
+            var text = @"
+class C {}
+
+System.Console.WriteLine(1);
+System.Console.WriteLine(2);
+
+class D {}
+
+System.Console.WriteLine(3);
+System.Console.WriteLine(4);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (4,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "System.Console.WriteLine(1);").WithLocation(4, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_04()
+        {
+            var text = @"
+System.Console.WriteLine(0);
+
+namespace C {}
+
+System.Console.WriteLine(1);
+System.Console.WriteLine(2);
+
+namespace D {}
+
+System.Console.WriteLine(3);
+System.Console.WriteLine(4);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "System.Console.WriteLine(1);").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_05()
+        {
+            var text = @"
+System.Console.WriteLine(0);
+
+struct S {}
+
+System.Console.WriteLine(1);
+System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "System.Console.WriteLine(1);").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_06()
+        {
+            var text = @"
+System.Console.WriteLine(0);
+
+enum C { V }
+
+System.Console.WriteLine(1);
+System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "System.Console.WriteLine(1);").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_07()
+        {
+            var text = @"
+System.Console.WriteLine(0);
+
+interface C {}
+
+System.Console.WriteLine(1);
+System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "System.Console.WriteLine(1);").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_08()
+        {
+            var text = @"
+System.Console.WriteLine(0);
+
+delegate void D ();
+
+System.Console.WriteLine(1);
+System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (6,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "System.Console.WriteLine(1);").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_09()
+        {
+            var text = @"
+System.Console.WriteLine(0);
+
+using System;
+
+Console.WriteLine(1);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (4,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // using System;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using System;").WithLocation(4, 1),
+                // (6,1): error CS0103: The name 'Console' does not exist in the current context
+                // Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Console").WithArguments("Console").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_10()
+        {
+            var text = @"
+System.Console.WriteLine(0);
+
+[module: MyAttribute]
+
+class MyAttribute : System.Attribute
+{}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (4,2): error CS1730: Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations
+                // [module: MyAttribute]
+                Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "module").WithLocation(4, 2)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_11()
+        {
+            var text = @"
+System.Console.WriteLine(0);
+
+extern alias A;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (4,1): error CS0439: An extern alias declaration must precede all other elements defined in the namespace
+                // extern alias A;
+                Diagnostic(ErrorCode.ERR_ExternAfterElements, "extern").WithLocation(4, 1)
+                );
+        }
+
+        [Fact]
+        public void OutOfOrder_12()
+        {
+            var text = @"
+extern alias A;
+using System;
+
+[module: MyAttribute]
+
+Console.WriteLine(1);
+
+class MyAttribute : System.Attribute
+{}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8020: Unused extern alias.
+                // extern alias A;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A;").WithLocation(2, 1),
+                // (2,14): error CS0430: The extern alias 'A' was not specified in a /reference option
+                // extern alias A;
+                Diagnostic(ErrorCode.ERR_BadExternAlias, "A").WithArguments("A").WithLocation(2, 14)
                 );
         }
     }

@@ -353,6 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Usings = 2,
             GlobalAttributes = 3,
             MembersAndStatements = 4,
+            TypesAndNamespaces = 5,
+            TopLevelStatementsAfterTypesAndNamespaces = 6,
         }
 
         private void ParseNamespaceBody(ref SyntaxToken openBrace, ref NamespaceBodyBuilder body, ref SyntaxListBuilder initialBadNodes, SyntaxKind parentKind)
@@ -381,12 +383,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             var attributeLists = _pool.Allocate<AttributeListSyntax>();
                             var modifiers = _pool.Allocate();
 
-                            body.Members.Add(this.ParseNamespaceDeclaration(attributeLists, modifiers));
+                            body.Members.Add(adjustStateAndReportStatementOutOfOrder(ref seen, this.ParseNamespaceDeclaration(attributeLists, modifiers)));
 
                             _pool.Free(attributeLists);
                             _pool.Free(modifiers);
 
-                            seen = NamespaceParts.MembersAndStatements;
                             reportUnexpectedToken = true;
                             break;
 
@@ -452,9 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 // incomplete members must be processed before we add any nodes to the body:
                                 AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
-
-                                body.Members.Add(ParseTopLevelUsingStatement());
-                                seen = NamespaceParts.MembersAndStatements;
+                                body.Members.Add(adjustStateAndReportStatementOutOfOrder(ref seen, ParseTopLevelUsingStatement()));
                             }
                             else
                             {
@@ -531,8 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // incomplete members must be processed before we add any nodes to the body:
                                 AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
 
-                                body.Members.Add(memberOrStatement);
-                                seen = NamespaceParts.MembersAndStatements;
+                                body.Members.Add(adjustStateAndReportStatementOutOfOrder(ref seen, memberOrStatement));
                                 reportUnexpectedToken = true;
                             }
                             break;
@@ -546,6 +544,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // adds pending incomplete nodes:
                 AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
                 _pool.Free(pendingIncompleteMembers);
+            }
+
+            MemberDeclarationSyntax adjustStateAndReportStatementOutOfOrder(ref NamespaceParts seen, MemberDeclarationSyntax memberOrStatement)
+            {
+                switch (memberOrStatement.Kind)
+                {
+                    case SyntaxKind.GlobalStatement:
+                        if (seen < NamespaceParts.MembersAndStatements)
+                        {
+                            seen = NamespaceParts.MembersAndStatements;
+                        }
+                        else if (seen == NamespaceParts.TypesAndNamespaces)
+                        {
+                            seen = NamespaceParts.TopLevelStatementsAfterTypesAndNamespaces;
+
+                            if (!IsScript)
+                            {
+                                memberOrStatement = this.AddError(memberOrStatement, ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType);
+                            }
+                        }
+
+                        break;
+
+                    case SyntaxKind.NamespaceDeclaration:
+                    case SyntaxKind.EnumDeclaration:
+                    case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.InterfaceDeclaration:
+                    case SyntaxKind.DelegateDeclaration:
+                        if (seen < NamespaceParts.TypesAndNamespaces)
+                        {
+                            seen = NamespaceParts.TypesAndNamespaces;
+                        }
+                        break;
+
+                    default:
+                        if (seen < NamespaceParts.MembersAndStatements)
+                        {
+                            seen = NamespaceParts.MembersAndStatements;
+                        }
+                        break;
+                }
+
+                return memberOrStatement;
             }
         }
 
