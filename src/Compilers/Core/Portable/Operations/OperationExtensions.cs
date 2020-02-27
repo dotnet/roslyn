@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
             }
-            else if (model.IsSpeculativeSemanticModel)
+
+            if (model.IsSpeculativeSemanticModel)
             {
                 // GetDiagnostics not supported for speculative semantic model.
                 // https://github.com/dotnet/roslyn/issues/28075

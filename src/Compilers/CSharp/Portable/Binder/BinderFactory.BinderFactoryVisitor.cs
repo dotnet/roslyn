@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (compilationUnit != syntaxTree.GetRoot())
                     {
-                        throw new ArgumentOutOfRangeException(nameof(GlobalStatementSyntax), "node not part of tree");
+                        throw new ArgumentOutOfRangeException(nameof(node), "node not part of tree");
                     }
 
                     var key = CreateBinderCacheKey(compilationUnit, NodeUsage.MethodBody);
@@ -859,8 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder result;
                 if (!binderCache.TryGetValue(key, out result))
                 {
-                    var buckStopsHereBinder = this.buckStopsHereBinder;
-                    result = buckStopsHereBinder;
+                    result = this.buckStopsHereBinder;
 
                     if (inScript)
                     {

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// compilation unit. It ensures that locals and labels are in scope, however it is not responsible
     /// for creating the symbols. That task is actually owned by <see cref="SimpleProgramBinder"/> and
     /// this binder simply delegates to it when appropriate. That ensures that the same set of symbols is 
-    /// shared across all compilation usints.
+    /// shared across all compilation units.
     /// </summary>
     internal sealed class SimpleProgramUnitBinder : LocalScopeBinder
     {

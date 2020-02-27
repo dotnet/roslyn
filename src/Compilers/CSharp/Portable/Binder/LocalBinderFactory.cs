@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }, (localBinderFactory: this, binder: enclosing));
         }
 
-        // methodsWithYields will contain all function-declaration-like CSharpSyntaxNodes with yield statements contained within them.
         // Currently the types of these are restricted to only be whatever the syntax parameter is, plus any LocalFunctionStatementSyntax contained within it.
         // This may change if the language is extended to allow iterator lambdas, in which case the lambda would also be returned.
         // (lambdas currently throw a diagnostic in WithLambdaParametersBinder.GetIteratorElementType when a yield is used within them)

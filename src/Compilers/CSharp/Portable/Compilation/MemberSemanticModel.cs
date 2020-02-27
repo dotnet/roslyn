@@ -2328,8 +2328,6 @@ foundParent:;
 
             public override BoundStatement BindStatement(StatementSyntax node, DiagnosticBag diagnostics)
             {
-                BoundNode boundNode;
-
                 // Check the bound node cache to see if the statement was already bound.
                 if (node.SyntaxTree == _semanticModel.SyntaxTree)
                 {
@@ -2340,7 +2338,7 @@ foundParent:;
                         return synthesizedStatement;
                     }
 
-                    boundNode = TryGetBoundNodeFromMap(node);
+                    BoundNode boundNode = TryGetBoundNodeFromMap(node);
 
                     if (boundNode != null)
                     {
@@ -2534,7 +2532,7 @@ foundParent:;
         /// <see cref="SynthesizedSimpleProgramEntryPointSymbol"/> is responsible for creating this cache and sharing it
         /// between different <see cref="MethodBodySemanticModel"/> instances.
         /// </summary>
-        internal class SimpleProgramBodySemanticModelMergedBoundNodeCache
+        internal sealed class SimpleProgramBodySemanticModelMergedBoundNodeCache
         {
             /// <summary>
             /// A helper class that allows us to avoid exposing <see cref="_nodeMap"/> outside and 

@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case CompilationUnitSyntax unit:
-                    // Allow getting IOperation tree for the entire simple program body by requesting a tree for any of the comilation units with top level statements.
+                    // Allow getting IOperation tree for the entire simple program body by requesting a tree for any of the compilation units with top level statements.
                     if (SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation)?.IsDefinedInSourceTree(unit.SyntaxTree, definedWithinSpan: null, cancellationToken) == true)
                     {
                         model = this.GetMemberModel(unit.Members.OfType<GlobalStatementSyntax>().First());

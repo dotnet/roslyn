@@ -68,21 +68,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (acceptSimpleProgram && member.IsKind(SyntaxKind.GlobalStatement))
                 {
                     firstTopLevelStatement ??= _syntaxTree.GetReference(member);
-                    var globalStatement = (GlobalStatementSyntax)member;
+                    var topLevelStatement = ((GlobalStatementSyntax)member).Statement;
 
-                    if (globalStatement.Statement.Kind() != SyntaxKind.LocalFunctionStatement)
+                    if (topLevelStatement.Kind() != SyntaxKind.LocalFunctionStatement)
                     {
                         allTopLevelStatementsLocalFunctions = false;
                     }
 
                     if (!hasAwaitExpressions)
                     {
-                        hasAwaitExpressions = SyntaxFacts.HasAwaitOperations(globalStatement.Statement);
+                        hasAwaitExpressions = SyntaxFacts.HasAwaitOperations(topLevelStatement);
                     }
 
                     if (!isIterator)
                     {
-                        isIterator = SyntaxFacts.HasYieldOperations(globalStatement.Statement);
+                        isIterator = SyntaxFacts.HasYieldOperations(topLevelStatement);
                     }
                 }
                 else if (!hasGlobalMembers && member.Kind() != SyntaxKind.IncompleteMember)

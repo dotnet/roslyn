@@ -1765,7 +1765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (localSymbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
                 {
-                    // Primary tree "preceedes" other trees in a simple program
+                    // Primary tree "precedes" other trees in a simple program
                     if (node.SyntaxTree == entryPoint.PrimarySyntaxTree)
                     {
                         return true;
