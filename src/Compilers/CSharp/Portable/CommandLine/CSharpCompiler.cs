@@ -399,7 +399,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts)
         {
-            //PROTOTYPE: this needs to be behind a feature flag
+            if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
+            {
+                return input;
+            }
             //PROTOTYPE: we need to actually read the generators in via the provider mechanism
             var driver = new CSharpGeneratorDriver(input, parseOptions).WithAdditionalTexts(additionalTexts);
             driver.RunFullGeneration(input, out var compilationOut);

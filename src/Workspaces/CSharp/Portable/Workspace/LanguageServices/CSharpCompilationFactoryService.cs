@@ -53,8 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         //PROTOTYPE
-        GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(Compilation compilation, ParseOptions parseOptions)
+#nullable enable
+        GeneratorDriver? ICompilationFactoryService.CreateGeneratorDriver(Compilation compilation, ParseOptions parseOptions)
         {
+            if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
+            {
+                return null;
+            }
             return new CSharpGeneratorDriver(compilation, parseOptions);
         }
     }
