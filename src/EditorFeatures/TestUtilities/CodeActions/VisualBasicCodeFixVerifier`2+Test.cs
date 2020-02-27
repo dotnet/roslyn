@@ -2,8 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
@@ -23,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId).ParseOptions;
+                    var parseOptions = (VisualBasicParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
                     var options = solution.Options;
@@ -50,9 +55,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
 
+            public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
+
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
             {
                 return new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+            }
+
+            protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
+            {
+                return DiagnosticSelector?.Invoke(fixableDiagnostics)
+                    ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
             }
         }
     }

@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Roslyn.Utilities;
 
@@ -34,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    var parseOptions = (CSharpParseOptions)solution.GetProject(projectId).ParseOptions;
+                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    var compilationOptions = solution.GetProject(projectId).CompilationOptions;
+                    var compilationOptions = solution.GetRequiredProject(projectId).CompilationOptions!;
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_nullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
@@ -79,9 +82,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
 
+            public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
+
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
             {
                 return new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+            }
+
+            protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
+            {
+                return DiagnosticSelector?.Invoke(fixableDiagnostics)
+                    ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
             }
         }
     }
