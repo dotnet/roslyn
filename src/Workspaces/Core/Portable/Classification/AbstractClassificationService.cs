@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -43,6 +44,44 @@ namespace Microsoft.CodeAnalysis.Classification
                 // here would still belong to the special "-xaml" project.
                 return;
             }
+
+            var remoteSuccess = await TryAddSemanticClassificationsInRemoteProcessAsync(
+                document, textSpan, result, cancellationToken).ConfigureAwait(false);
+            if (remoteSuccess)
+                return;
+
+            await AddSemanticClassificationsInCurrentProcessAsync(
+                document, textSpan, result, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <returns><see langword="true"/> if the remote call was made successfully and we should 
+        /// use the results of it. Otherwise, fall back to processing locally</returns>
+        private async Task<bool> TryAddSemanticClassificationsInRemoteProcessAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+                return false;
+
+            var solution = document.Project.Solution;
+
+            var classifiedSpans = await client.TryRunRemoteAsync<IList<ClassifiedSpan>>(
+                WellKnownServiceHubServices.CodeAnalysisService,
+                nameof(IRemoteSemanticClassificationService.AddSemanticClassificationsAsync),
+                solution,
+                new object[] { document.Id, textSpan },
+                callbackTarget: null,
+                cancellationToken).ConfigureAwait(false);
+
+            if (!classifiedSpans.HasValue)
+                return false;
+
+            result.AddRange(classifiedSpans.Value);
+            return true;
+        }
+
+        public static async Task AddSemanticClassificationsInCurrentProcessAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        {
+            var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
             var classifiers = classificationService.GetDefaultSyntaxClassifiers();
@@ -88,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Classification
             temp.Free();
         }
 
-        protected void AddRange(ArrayBuilder<ClassifiedSpan> temp, List<ClassifiedSpan> result)
+        protected static void AddRange(ArrayBuilder<ClassifiedSpan> temp, List<ClassifiedSpan> result)
         {
             foreach (var span in temp)
             {

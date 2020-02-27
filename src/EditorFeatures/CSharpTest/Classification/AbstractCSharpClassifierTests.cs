@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public abstract class AbstractCSharpClassifierTests : AbstractClassifierTests
     {
-        protected override async Task DefaultTestAsync(string code, string allCode, FormattedClassification[] expected)
+        protected override async Task DefaultTestAsync(string code, string allCode, bool outOfProcess, FormattedClassification[] expected)
         {
-            await TestAsync(code, allCode, parseOptions: null, expected);
-            await TestAsync(code, allCode, parseOptions: Options.Script, expected);
+            await TestAsync(code, allCode, parseOptions: null, outOfProcess, expected);
+            await TestAsync(code, allCode, parseOptions: Options.Script, outOfProcess, expected);
         }
 
         protected override string WrapInClass(string className, string code) =>

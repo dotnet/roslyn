@@ -25,14 +25,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     {
         protected AbstractClassifierTests() { }
 
-        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions parseOptions);
+        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions parseOptions, bool outOfProcess);
 
         protected abstract string WrapInClass(string className, string code);
         protected abstract string WrapInExpression(string code);
         protected abstract string WrapInMethod(string className, string methodName, string code);
         protected abstract string WrapInNamespace(string code);
 
-        protected abstract Task DefaultTestAsync(string code, string allCode, FormattedClassification[] expected);
+        protected async Task DefaultTestAsync(string code, string allCode, FormattedClassification[] expected)
+        {
+            await DefaultTestAsync(code, allCode, outOfProcess: true, expected);
+            await DefaultTestAsync(code, allCode, outOfProcess: false, expected);
+        }
+
+        protected abstract Task DefaultTestAsync(string code, string allCode, bool outOfProcess, FormattedClassification[] expected);
 
         protected async Task TestAsync(
            string code,
@@ -40,10 +46,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
            ParseOptions parseOptions,
            params FormattedClassification[] expected)
         {
+            await TestAsync(code, allCode, parseOptions, outOfProcess: true, expected);
+            await TestAsync(code, allCode, parseOptions, outOfProcess: false, expected);
+        }
+
+        protected async Task TestAsync(
+           string code,
+           string allCode,
+           ParseOptions parseOptions,
+           bool outOfProcess,
+           params FormattedClassification[] expected)
+        {
             var start = allCode.IndexOf(code, StringComparison.Ordinal);
             var length = code.Length;
             var span = new TextSpan(start, length);
-            var actual = await GetClassificationSpansAsync(allCode, span, parseOptions);
+            var actual = await GetClassificationSpansAsync(allCode, span, parseOptions, outOfProcess);
 
             actual = actual.Sort((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
 
@@ -57,9 +74,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
            ParseOptions[] parseOptionsSet,
            params FormattedClassification[] expected)
         {
+            await TestAsync(code, allCode, parseOptionsSet, outOfProcess: true, expected);
+            await TestAsync(code, allCode, parseOptionsSet, outOfProcess: false, expected);
+        }
+
+        private async Task TestAsync(
+           string code,
+           string allCode,
+           ParseOptions[] parseOptionsSet,
+           bool outOfProcess,
+           params FormattedClassification[] expected)
+        {
             foreach (var parseOptions in parseOptionsSet)
             {
-                await TestAsync(code, allCode, parseOptions, expected);
+                await TestAsync(code, allCode, parseOptions, outOfProcess, expected);
             }
         }
 
@@ -68,9 +96,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
            ParseOptions[] parseOptionsSet,
            params FormattedClassification[] expected)
         {
+            await TestAsync(code, parseOptionsSet, outOfProcess: true, expected);
+            await TestAsync(code, parseOptionsSet, outOfProcess: false, expected);
+        }
+
+        private async Task TestAsync(
+           string code,
+           ParseOptions[] parseOptionsSet,
+           bool outOfProcess,
+           params FormattedClassification[] expected)
+        {
             foreach (var parseOptions in parseOptionsSet)
             {
-                await TestAsync(code, code, parseOptions, expected);
+                await TestAsync(code, code, parseOptions, outOfProcess, expected);
             }
         }
 

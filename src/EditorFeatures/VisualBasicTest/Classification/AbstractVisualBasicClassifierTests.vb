@@ -8,8 +8,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public MustInherit Class AbstractVisualBasicClassifierTests
         Inherits AbstractClassifierTests
 
-        Protected Overrides Function DefaultTestAsync(code As String, allCode As String, expected() As FormattedClassification) As Task
-            Return TestAsync(code, allCode, parseOptions:=Nothing, expected)
+        Protected Overrides Function DefaultTestAsync(code As String, allCode As String, outOfProcess As Boolean, expected() As FormattedClassification) As Task
+            Return TestAsync(code, allCode, parseOptions:=Nothing, outOfProcess, expected)
         End Function
 
         Protected Overrides Function WrapInClass(className As String, code As String) As String
