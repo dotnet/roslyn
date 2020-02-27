@@ -6,8 +6,8 @@ namespace Microsoft.CodeAnalysis.Editor.ColorSchemes
 {
     internal enum SchemeName
     {
-        None,
-        VisualStudio2017,
-        VisualStudio2019
+        None = 0,
+        VisualStudio2017 = 1,
+        VisualStudio2019 = 2
     }
 }

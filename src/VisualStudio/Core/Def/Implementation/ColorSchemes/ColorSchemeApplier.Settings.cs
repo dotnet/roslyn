@@ -22,6 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     {
         private class ColorSchemeSettings
         {
+            private const string ColorSchemeApplierKey = @"Roslyn\ColorSchemeApplier";
+
             private readonly IServiceProvider _serviceProvider;
             private readonly VisualStudioWorkspace _workspace;
 
@@ -34,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 HasThemeBeenDefaulted = new HasThemeBeenDefaultedIndexer(visualStudioWorkspace);
             }
+
 
             public ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
             {
@@ -69,18 +72,34 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 registryRoot.Flush();
 
-                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.AppliedColorScheme, schemeName));
+                SetAppliedColorScheme(schemeName);
 
                 // Broadcast that system color settings have changed to force the ColorThemeService to reload colors.
                 NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_SYSCOLORCHANGE, wparam: IntPtr.Zero, lparam: IntPtr.Zero);
             }
 
+            /// <summary>
+            /// Get the color scheme that is applied to the configuration registry.
+            /// </summary>
             public SchemeName GetAppliedColorScheme()
             {
-                var schemeName = _workspace.Options.GetOption(ColorSchemeOptions.AppliedColorScheme);
-                return schemeName != SchemeName.None
-                    ? schemeName
-                    : ColorSchemeOptions.AppliedColorScheme.DefaultValue;
+                // The applied color scheme is stored in the configuration registry with the color theme information because
+                // when the hive gets rebuilt during upgrades, we need to reapply the color scheme information.
+                using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: false);
+                using var itemKey = registryRoot.OpenSubKey(ColorSchemeApplierKey);
+                return itemKey is object
+                    ? (SchemeName)itemKey.GetValue("AppliedColorScheme")
+                    : default;
+            }
+
+            private void SetAppliedColorScheme(SchemeName schemeName)
+            {
+                // The applied color scheme is stored in the configuration registry with the color theme information because
+                // when the hive gets rebuilt during upgrades, we need to reapply the color scheme information.
+                using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: true);
+                using var itemKey = registryRoot.CreateSubKey(ColorSchemeApplierKey);
+                itemKey.SetValue("AppliedColorScheme", (int)schemeName);
+                itemKey.Flush();
             }
 
             public SchemeName GetConfiguredColorScheme()
