@@ -6,10 +6,12 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Roslyn.Utilities;
@@ -28,6 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
+                    if (EditorConfig is object)
+                    {
+                        var documentId = DocumentId.CreateNewId(projectId, "/.editorconfig");
+                        solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", SourceText.From(EditorConfig, Encoding.UTF8), filePath: "/.editorconfig");
+                    }
+
                     var parseOptions = (VisualBasicParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
@@ -58,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
 #endif
+
+            public string? EditorConfig { get; set; }
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 
