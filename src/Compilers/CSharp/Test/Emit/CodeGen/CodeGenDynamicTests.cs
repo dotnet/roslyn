@@ -15490,7 +15490,7 @@ class C
             var comp = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { CSharpRef });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
         public void DynamicInGenericLocalFunction1()
         {
@@ -15508,10 +15508,8 @@ class Program
         }
     }
 }";
-            VerifyTypeIL(
-                CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef }),
-                "Program",
-                @"
+            CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef })
+                .VerifyTypeIL("Program", @"
 .class private auto ansi beforefieldinit Program
 	extends [netstandard]System.Object
 {
@@ -15584,7 +15582,7 @@ class Program
 } // end of class Program");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
         public void DynamicInGenericLocalFunction2()
         {
@@ -15611,10 +15609,8 @@ class Program
         }
     }
 }";
-            VerifyTypeIL(
-                CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef }),
-                "Program",
-                @"
+            CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef })
+                .VerifyTypeIL("Program", @"
 .class private auto ansi beforefieldinit Program
 	extends [netstandard]System.Object
 {
@@ -15714,7 +15710,7 @@ class Program
 } // end of class Program");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
         public void DynamicInGenericLocalFunction3()
         {
@@ -15737,10 +15733,8 @@ class Program
         }
     }
 }";
-            VerifyTypeIL(
-                CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef }),
-                "Program",
-                @"
+            CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef })
+                .VerifyTypeIL("Program", @"
 .class private auto ansi beforefieldinit Program
 	extends [netstandard]System.Object
 {
@@ -15825,7 +15819,7 @@ class Program
 } // end of class Program");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
         public void DynamicInGenericLocalFunction4()
         {
@@ -15848,10 +15842,8 @@ class Program
         }
     }
 }";
-            VerifyTypeIL(
-                CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef }),
-                "Program",
-                @"
+            CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef })
+                .VerifyTypeIL("Program", @"
 .class private auto ansi beforefieldinit Program
     	extends [netstandard]System.Object
 {
@@ -15937,16 +15929,6 @@ class Program
 		IL_0050: ret
 	} // end of method Program::'<Main>g__M2|0_1'
 } // end of class Program");
-        }
-
-        private static void VerifyTypeIL(CompilationVerifier compilation, string typeName, string expected)
-        {
-            // .Net Core has different assemblies for the same standard library types as .Net Framework, meaning that that the emitted output will be different to the expected if we run them .Net Framework
-            // Since we do not expect there to be any meaningful differences between output for .Net Core and .Net Framework, we will skip these tests on .Net Framework
-            if (ExecutionConditionUtil.IsCoreClr)
-            {
-                compilation.VerifyTypeIL(typeName, expected);
-            }
         }
 
         #endregion
