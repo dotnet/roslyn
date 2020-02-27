@@ -128,25 +128,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var totalSymbols = await base.GetPerContextSymbols(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             foreach (var (documentId, syntaxContext, symbols) in totalSymbols)
             {
-                var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name);
-
-                switch (kind)
-                {
-                    case SymbolKind.Method:
-                        bestSymbols = isGeneric
-                            ? bestSymbols.Where(s => ((IMethodSymbol)s).Arity != 0)
-                            : bestSymbols.Where(s => ((IMethodSymbol)s).Arity == 0);
-                        break;
-                    case SymbolKind.NamedType:
-                        bestSymbols = isGeneric
-                            ? bestSymbols.Where(s => ((INamedTypeSymbol)s).Arity != 0)
-                            : bestSymbols.Where(s => ((INamedTypeSymbol)s).Arity == 0);
-                        break;
-                }
+                var bestSymbols = symbols.WhereAsArray(s => kind != null && s.Kind == kind && s.Name == name && isGeneric == (s.GetArity() > 0));
 
                 if (bestSymbols.Any())
                 {
-                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols.ToImmutableArray(), document, syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
+                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
                 }
             }
 

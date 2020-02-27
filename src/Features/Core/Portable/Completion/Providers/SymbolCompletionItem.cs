@@ -62,12 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static CompletionItem AddSymbolInfo(IReadOnlyList<ISymbol> symbols, CompletionItem item)
         {
             var symbol = symbols[0];
-            var isGeneric = symbol switch
-            {
-                IMethodSymbol methodSymbol => methodSymbol.Arity != 0,
-                INamedTypeSymbol typeSymbol => typeSymbol.Arity != 0,
-                _ => false
-            };
+            var isGeneric = symbol.GetArity() > 0;
 
             return item.AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
                        .AddProperty("SymbolName", symbol.Name)
@@ -315,34 +310,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         internal static string GetSymbolName(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("SymbolName", out var name))
-            {
-                return name;
-            }
-
-            return null;
-        }
+            => item.Properties.TryGetValue("SymbolName", out var name) ? name : null;
 
         internal static SymbolKind? GetKind(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("SymbolKind", out var kind))
-            {
-                return (SymbolKind)int.Parse(kind);
-            }
-
-            return null;
-        }
+            => item.Properties.TryGetValue("SymbolKind", out var kind) ? (SymbolKind?)int.Parse(kind) : null;
 
         internal static string GetSymbolIsGeneric(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("IsGeneric", out var name))
-            {
-                return name;
-            }
-
-            return null;
-        }
+            => item.Properties.TryGetValue("IsGeneric", out var isGeneric) ? isGeneric : null;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
