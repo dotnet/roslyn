@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (UserOperationBooster.Boost())
                 {
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-
                     var document = solution.GetDocument(documentId);
+
                     using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
                     await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
                         document, span, temp, cancellationToken).ConfigureAwait(false);
