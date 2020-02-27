@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"System.Console.WriteLine(""Hi!"");";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            Assert.Equal("void $Program.$Main()", SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp).ToTestDisplayString());
+            Assert.Equal("System.Void", SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp).ReturnType.ToTestDisplayString());
             CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
@@ -42,7 +42,7 @@ Console.Write(""async main"");
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            Assert.Equal("System.Threading.Tasks.Task $Program.$Main()", SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp).ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task", SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp).ReturnType.ToTestDisplayString());
             CompileAndVerify(comp, expectedOutput: "hello async main");
         }
 

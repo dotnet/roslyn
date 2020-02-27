@@ -229,9 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Do not leak unspeakable name of a Simple Program entry point through diagnostics,
-            // and, for consistency, with other display options, excluding TestFormat
-            if (format != (object)SymbolDisplayFormat.TestFormat &&
-                (symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SynthesizedSimpleProgramEntryPointSymbol)
+            // and, for consistency, with other display options.
+            if ((symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SynthesizedSimpleProgramEntryPointSymbol)
             {
                 return ImmutableArray.Create<SymbolDisplayPart>(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, symbol, "<simple-program-entry-point>"));
             }
