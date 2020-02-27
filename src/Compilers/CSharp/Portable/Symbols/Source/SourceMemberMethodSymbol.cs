@@ -1549,7 +1549,6 @@ done:
 
         #endregion
 
->>>>>>> d74c05a... Add support for MemberNotNull/When attributes
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);

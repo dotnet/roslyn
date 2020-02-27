@@ -298,12 +298,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# preview features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
-<<<<<<< HEAD
                 case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
                 case MessageID.IDS_FeatureExternLocalFunctions: // syntax check
-=======
                 case MessageID.IDS_FeatureMemberNotNull:
->>>>>>> d74c05a... Add support for MemberNotNull/When attributes
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.
