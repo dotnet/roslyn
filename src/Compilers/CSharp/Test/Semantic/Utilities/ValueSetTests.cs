@@ -3,15 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
-using ICSharpCode.Decompiler.IL.Transforms;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    using static Microsoft.CodeAnalysis.CSharp.ValueSetFactory;
     using static BinaryOperatorKind;
+    using static Microsoft.CodeAnalysis.CSharp.ValueSetFactory;
 
     /// <summary>
     /// Test some internal implementation data structures used in <see cref="DecisionDagBuilder"/>.

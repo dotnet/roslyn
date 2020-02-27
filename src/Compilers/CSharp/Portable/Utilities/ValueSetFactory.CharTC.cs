@@ -59,13 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string INumericTC<char>.ToString(char c)
             {
-                // The set of Unicode character categories containing non-rendering,
-                // unknown, or incomplete characters.
-                var nonRenderingCategories = new UnicodeCategory[] {
-                    UnicodeCategory.Control,
-                    UnicodeCategory.OtherNotAssigned,
-                    UnicodeCategory.Surrogate };
-                var isPrintable = char.IsWhiteSpace(c) || !nonRenderingCategories.Contains(char.GetUnicodeCategory(c));
+                var isPrintable = char.IsWhiteSpace(c) ||
+                    // exclude the Unicode character categories containing non-rendering,
+                    // unknown, or incomplete characters.
+                    char.GetUnicodeCategory(c) switch { UnicodeCategory.Control => false, UnicodeCategory.OtherNotAssigned => false, UnicodeCategory.Surrogate => false, _ => true };
                 return isPrintable ? $"'{c}'" : $"\\u{(int)c:X4}";
             }
         }

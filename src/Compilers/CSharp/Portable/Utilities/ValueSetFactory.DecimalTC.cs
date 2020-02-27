@@ -5,9 +5,7 @@
 #nullable enable
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -67,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (high != uint.MaxValue)
                         return new DecimalRep(low: 0, mid: 0, high: high + 1, isNegative: isNegative, scale: scale).Value;
 
-                    // the mantissa it at maximum value.  Divide the mantissa by 10 and decrease the scale.
+                    // the mantissa it at its maximum value.  Divide the mantissa by 10 and decrease the scale.
                     // Since we know the value of the mantissa, we can simply assign mantissa/10 here.
                     low = transitionLow;
                     mid = transitionMid;
