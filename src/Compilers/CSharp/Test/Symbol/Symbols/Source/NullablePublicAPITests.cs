@@ -4200,5 +4200,91 @@ class C
             var symbol2 = (IMethodSymbol)model.GetSpeculativeSymbolInfo(initializer.Position, expression, SpeculativeBindingOption.BindAsExpression).Symbol;
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, symbol2.Parameters.Single().Type.NullableAnnotation);
         }
+
+        [Fact]
+        [WorkItem(41488, "https://github.com/dotnet/roslyn/issues/41488")]
+        public void AssignmentLeftStateIsAfterAssignment()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        string? local = null;
+        if (local != null)
+        {
+            local = null;
+            local = string.Empty;
+        }
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var assignmentsLefts = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Select(a => a.Left).ToList();
+
+            Assert.Equal(2, assignmentsLefts.Count);
+            Assert.Equal(PublicNullableAnnotation.Annotated, model.GetTypeInfo(assignmentsLefts[0]).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, model.GetTypeInfo(assignmentsLefts[1]).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)model.GetSymbolInfo(assignmentsLefts[0]).Symbol).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)model.GetSymbolInfo(assignmentsLefts[1]).Symbol).Type.NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(41488, "https://github.com/dotnet/roslyn/issues/41488")]
+        public void CompoundAssignmentLeftStateIsAfterAssignment()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        string? local = null;
+        local += string.Empty;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localReference = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Select(a => a.Left).Single();
+
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, model.GetTypeInfo(localReference).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)model.GetSymbolInfo(localReference).Symbol).Type.NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(41488, "https://github.com/dotnet/roslyn/issues/41488")]
+        public void NullCoalescingAssignmentLeftStateIsAfterAssignment()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        string? local = null;
+        if (local != null)
+        {
+            local ??= null;
+            local ??= string.Empty;
+        }
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var assignmentsLefts = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Select(a => a.Left).ToList();
+
+            Assert.Equal(2, assignmentsLefts.Count);
+            Assert.Equal(PublicNullableAnnotation.Annotated, model.GetTypeInfo(assignmentsLefts[0]).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, model.GetTypeInfo(assignmentsLefts[1]).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)model.GetSymbolInfo(assignmentsLefts[0]).Symbol).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)model.GetSymbolInfo(assignmentsLefts[1]).Symbol).Type.NullableAnnotation);
+        }
     }
 }
