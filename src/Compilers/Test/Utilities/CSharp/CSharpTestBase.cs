@@ -154,7 +154,7 @@ namespace System.Diagnostics.CodeAnalysis
         protected const string MemberNotNullAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
     public sealed class MemberNotNullAttribute : Attribute
     {
         public MemberNotNullAttribute(params string[] members) { }
@@ -165,7 +165,7 @@ namespace System.Diagnostics.CodeAnalysis
         protected const string MemberNotNullWhenAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
     public sealed class MemberNotNullWhenAttribute : Attribute
     {
         public MemberNotNullWhenAttribute(bool when, params string[] members) { }

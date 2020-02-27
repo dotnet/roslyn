@@ -141,10 +141,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var property = node.PropertySymbol;
             if (property.IsStatic || node.ReceiverOpt is BoundThisReference)
             {
+                var accessor = property.GetMethod;
+
                 ApplyMemberPostConditions(property.ContainingType,
-                    property.NotNullMembers, property.NotNullWhenTrueMembers, property.NotNullWhenFalseMembers);
+                    accessor.NotNullMembers, accessor.NotNullWhenTrueMembers, accessor.NotNullWhenFalseMembers);
             }
+
             return result;
+        }
+
+        protected override void PropertySetter(BoundExpression node, BoundExpression receiver, MethodSymbol setter, BoundExpression value = null)
+        {
+            base.PropertySetter(node, receiver, setter, value);
+
+            if (receiver is null || receiver is BoundThisReference)
+            {
+                ApplyMemberPostConditions(setter.ContainingType, setter.NotNullMembers, notNullWhenTrueMembers: default, notNullWhenFalseMembers: default);
+            }
         }
 
         private void ApplyMemberPostConditions(
@@ -153,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> notNullWhenTrueMembers,
             ImmutableArray<string> notNullWhenFalseMembers)
         {
-            if (notNullWhenTrueMembers.IsEmpty && notNullWhenFalseMembers.IsEmpty)
+            if (notNullWhenTrueMembers.IsDefaultOrEmpty && notNullWhenFalseMembers.IsDefaultOrEmpty)
             {
                 applyMemberPostConditions(notNullMembers, ref State);
             }

@@ -236,6 +236,7 @@
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
                 case ErrorCode.WRN_DoesNotReturnMismatch:
                 case ErrorCode.WRN_MemberNotNull:
+                case ErrorCode.WRN_MemberNotNullBadMember:
                 case ErrorCode.WRN_MemberNotNullWhen:
                     return true;
                 default:

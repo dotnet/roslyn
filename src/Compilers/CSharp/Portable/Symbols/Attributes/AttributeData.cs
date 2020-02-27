@@ -260,8 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in membersArray.Values)
             {
                 var memberName = member.DecodeValue<string>(SpecialType.System_String);
-                builder.Add(memberName);
-                ReportBadNotNullMemberIfNeeded(type, arguments, memberName);
+                if (memberName is object)
+                {
+                    builder.Add(memberName);
+                    ReportBadNotNullMemberIfNeeded(type, arguments, memberName);
+                }
             }
 
             arguments.GetOrCreateData<T>().AddNotNullMember(builder);
@@ -294,8 +297,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in membersArray.Values)
             {
                 var memberName = member.DecodeValue<string>(SpecialType.System_String);
-                builder.Add(memberName);
-                ReportBadNotNullMemberIfNeeded(type, arguments, memberName);
+                if (memberName is object)
+                {
+                    builder.Add(memberName);
+                    ReportBadNotNullMemberIfNeeded(type, arguments, memberName);
+                }
             }
 
             var sense = arguments.Attribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean);

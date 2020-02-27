@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
+        /// If a property is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
         /// listed in those attributes.
         /// Otherwise, an empty array.
         /// </summary>

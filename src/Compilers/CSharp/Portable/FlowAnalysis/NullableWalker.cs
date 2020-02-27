@@ -3597,7 +3597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var receiver = node.Receiver;
-            var receiverType = VisitRvalueWithState(receiver);
+            _ = VisitRvalueWithState(receiver);
             _currentConditionalReceiverVisitResult = _visitResult;
             var previousConditionalAccessSlot = _lastConditionalAccessSlot;
 
@@ -4359,6 +4359,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ApplyMemberPostConditions(MethodSymbol method)
         {
+            if (method is null)
+            {
+                return;
+            }
+
             do
             {
                 var type = method.ContainingType;
@@ -7444,7 +7449,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!IsAnalyzingAttribute &&
                 (property.IsStatic || node.ReceiverOpt is BoundThisReference || node.ReceiverOpt is BoundBaseReference))
             {
-                ApplyMemberPostConditions(property.GetMethod);
+                if (_expressionIsRead)
+                {
+                    ApplyMemberPostConditions(property.GetMethod);
+                }
+                else
+                {
+                    ApplyMemberPostConditions(property.SetMethod);
+                }
             }
 
             SetUpdatedSymbol(node, property, updatedMember);

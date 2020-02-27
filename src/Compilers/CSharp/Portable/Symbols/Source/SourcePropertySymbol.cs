@@ -1487,8 +1487,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceAttributeData NotNullAttributeIfExists
             => FindAttribute(AttributeDescription.NotNullAttribute);
 
+        internal ImmutableArray<SourceAttributeData> MemberNotNullAttributeIfExists
+            => FindAttributes(AttributeDescription.MemberNotNullAttribute);
+
+        internal ImmutableArray<SourceAttributeData> MemberNotNullWhenAttributeIfExists
+            => FindAttributes(AttributeDescription.MemberNotNullWhenAttribute);
+
         private SourceAttributeData FindAttribute(AttributeDescription attributeDescription)
             => (SourceAttributeData)GetAttributes().First(a => a.IsTargetAttribute(this, attributeDescription));
+
+        private ImmutableArray<SourceAttributeData> FindAttributes(AttributeDescription attributeDescription)
+            => GetAttributes().Where(a => a.IsTargetAttribute(this, attributeDescription)).Cast<SourceAttributeData>().ToImmutableArray();
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
