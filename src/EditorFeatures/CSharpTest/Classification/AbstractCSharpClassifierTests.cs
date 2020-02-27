@@ -4,11 +4,23 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public abstract class AbstractCSharpClassifierTests : AbstractClassifierTests
     {
+        protected TestWorkspace CreateWorkspace(string code, TextSpan span, ParseOptions options, bool outOfProcess)
+        {
+            var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)));
+
+            return workspace;
+        }
+
         protected override async Task DefaultTestAsync(string code, string allCode, bool outOfProcess, FormattedClassification[] expected)
         {
             await TestAsync(code, allCode, parseOptions: null, outOfProcess, expected);

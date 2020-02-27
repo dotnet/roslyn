@@ -34,10 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, bool outOfProcess)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, options);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)));
-
+            using var workspace = CreateWorkspace(code, span, options, outOfProcess);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
             return GetSemanticClassificationsAsync(document, span);
