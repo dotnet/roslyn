@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         private const string CS0266 = nameof(CS0266);
 
         /// <summary>
-        /// CS1503: Argument 1: cannot convert from 'double' to 'int'
+        /// CS1503: Argument 1: cannot convert from 'x' to 'y'
         /// </summary>
         private const string CS1503 = nameof(CS1503);
         private const int MaximumConversionOptions = 3;
