@@ -1660,6 +1660,82 @@ class C
 }");
         }
 
+        [Fact, WorkItem(40776, "https://github.com/dotnet/roslyn/issues/40776")]
+        public void FakeIndexIndexerOnDefaultStruct()
+        {
+            var verifier = CompileAndVerifyWithIndexAndRange(@"
+using System;
+
+struct NotASpan
+{
+    public int Length => 1;
+
+    public int this[int index] => 0;
+}
+
+class C
+{
+    static int Repro() => default(NotASpan)[^0];
+
+    static void Main() => Repro();
+}");
+
+            verifier.VerifyIL("C.Repro", @"
+{
+    // Code size       25 (0x19)
+    .maxstack  3
+    .locals init (int V_0,
+                  NotASpan V_1)
+    IL_0000:  ldloca.s   V_1
+    IL_0002:  dup
+    IL_0003:  initobj    ""NotASpan""
+    IL_0009:  dup
+    IL_000a:  call       ""int NotASpan.Length.get""
+    IL_000f:  ldc.i4.0
+    IL_0010:  sub
+    IL_0011:  stloc.0
+    IL_0012:  ldloc.0
+    IL_0013:  call       ""int NotASpan.this[int].get""
+    IL_0018:  ret
+}");
+        }
+
+        [Fact, WorkItem(40776, "https://github.com/dotnet/roslyn/issues/40776")]
+        public void FakeIndexIndexerOnStructConstructor()
+        {
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+
+class C
+{
+    static byte Repro() => new Span<byte>(new byte[] { })[^1];
+}");
+
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("C.Repro", @"
+ {
+    // Code size       31 (0x1f)
+    .maxstack  3
+    .locals init (int V_0,
+                  System.Span<byte> V_1)
+    IL_0000:  ldc.i4.0
+    IL_0001:  newarr     ""byte""
+    IL_0006:  newobj     ""System.Span<byte>..ctor(byte[])""
+    IL_000b:  stloc.1
+    IL_000c:  ldloca.s   V_1
+    IL_000e:  dup
+    IL_000f:  call       ""int System.Span<byte>.Length.get""
+    IL_0014:  ldc.i4.1
+    IL_0015:  sub
+    IL_0016:  stloc.0
+    IL_0017:  ldloc.0
+    IL_0018:  call       ""ref byte System.Span<byte>.this[int].get""
+    IL_001d:  ldind.u1
+    IL_001e:  ret
+}");
+        }
+
         [Fact]
         public void FakeRangeIndexerStringOpenEnd()
         {
