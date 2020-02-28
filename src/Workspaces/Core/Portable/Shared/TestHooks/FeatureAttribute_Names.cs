@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string Snippets = nameof(Snippets);
         public const string SolutionCrawler = nameof(SolutionCrawler);
         public const string TodoCommentList = nameof(TodoCommentList);
-        public const string LanguageServerWorkspaceSymbolSearch = nameof(LanguageServerWorkspaceSymbolSearch);
+        public const string LanguageServer = nameof(LanguageServer);
         public const string Workspace = nameof(Workspace);
     }
 }

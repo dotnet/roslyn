@@ -1375,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement bodyWithoutLambdas = loweredBody;
                 if (sawLambdas || sawLocalFunctions)
                 {
-                    bodyWithoutLambdas = LambdaRewriter.Rewrite(
+                    bodyWithoutLambdas = ClosureConversion.Rewrite(
                         loweredBody,
                         method.ContainingType,
                         method.ThisParameter,
@@ -1669,8 +1669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock body;
 
-            var sourceMethod = method as SourceMemberMethodSymbol;
-            if ((object)sourceMethod != null)
+            if (method is SourceMemberMethodSymbol sourceMethod)
             {
                 CSharpSyntaxNode syntaxNode = sourceMethod.SyntaxNode;
                 var constructorSyntax = syntaxNode as ConstructorDeclarationSyntax;
@@ -1687,20 +1686,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ExecutableCodeBinder bodyBinder = sourceMethod.TryGetBodyBinder();
 
-                if (sourceMethod.IsExtern)
+                if (sourceMethod.IsExtern || sourceMethod.IsDefaultValueTypeConstructor())
                 {
-                    if (bodyBinder == null)
-                    {
-                        // Generate warnings only if we are not generating ERR_ExternHasBody or ERR_ExternHasConstructorInitializer errors
-                        GenerateExternalMethodWarnings(sourceMethod, diagnostics);
-                    }
-
-                    return null;
-                }
-
-                if (sourceMethod.IsDefaultValueTypeConstructor())
-                {
-                    // No body for default struct constructor.
                     return null;
                 }
 
@@ -1984,18 +1971,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: baseConstructor.ReturnType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
-        }
-
-        private static void GenerateExternalMethodWarnings(SourceMemberMethodSymbol methodSymbol, BindingDiagnosticBag diagnostics)
-        {
-            if (methodSymbol.GetAttributes().IsEmpty && !methodSymbol.ContainingType.IsComImport)
-            {
-                // external method with no attributes
-                var errorCode = (methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) ?
-                    ErrorCode.WRN_ExternCtorNoImplementation :
-                    ErrorCode.WRN_ExternMethodNoImplementation;
-                diagnostics.Add(errorCode, methodSymbol.Locations[0], methodSymbol);
-            }
         }
 
         /// <summary>

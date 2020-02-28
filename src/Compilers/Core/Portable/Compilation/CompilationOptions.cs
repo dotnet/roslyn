@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis
             get { return _lazyErrors.Value; }
         }
 
-        public abstract override bool Equals(object obj);
+        public abstract override bool Equals(object? obj);
 
         protected bool EqualsHelper(CompilationOptions other)
         {

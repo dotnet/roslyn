@@ -309,6 +309,13 @@ class X
                         case ErrorCode.WRN_NullReferenceInitializer:
                         case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                         case ErrorCode.WRN_ShouldNotReturn:
+                        case ErrorCode.WRN_DoesNotReturnMismatch:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

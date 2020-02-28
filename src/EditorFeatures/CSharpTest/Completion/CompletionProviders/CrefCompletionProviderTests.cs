@@ -35,17 +35,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null)
+            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             await VerifyAtPositionAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters);
+                matchingFilters, flags);
 
             await VerifyAtEndOfFileAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters);
+                matchingFilters, flags);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)

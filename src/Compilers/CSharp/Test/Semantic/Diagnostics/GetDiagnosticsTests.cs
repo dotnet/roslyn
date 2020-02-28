@@ -7,9 +7,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -419,6 +419,44 @@ namespace N1
 
             // Verify diagnostics for the second tree. This should have triggered the assert
             compilation.GetSemanticModel(tree2).GetDeclarationDiagnostics().Verify();
+        }
+
+        [Fact]
+        [WorkItem(39094, "https://github.com/dotnet/roslyn/issues/39094")]
+        public void TestSuppressMessageAttributeDoesNotSuppressCompilerDiagnostics()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage("""", ""CS0168"", Justification = """", Scope = ""type"", Target = ""~T:C"")]
+
+class C
+{
+    void M()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            // Verify unsuppressed CS0168 in 'Compilation.GetDiagnostics'
+            var compilation = CreateCompilation(source);
+            var diagnostics = compilation.GetDiagnostics();
+            var expected = Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(11, 13);
+            diagnostics.Verify(expected);
+            Assert.False(diagnostics.Single().IsSuppressed);
+
+            // Verify 'GetEffectiveDiagnostics' does not apply SuppressMessage suppression to compiler diagnostics.
+            var effectiveDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation);
+            effectiveDiagnostics.Verify(expected);
+            Assert.False(effectiveDiagnostics.Single().IsSuppressed);
+
+            // Verify CS0168 is not suppressed for compiler diagnostics computed
+            // using CompilerDiagnosticAnalyzer
+            var analyzers = new DiagnosticAnalyzer[] { new CSharpCompilerDiagnosticAnalyzer() };
+            var analyzerDiagnostics = compilation.GetAnalyzerDiagnostics(analyzers);
+            analyzerDiagnostics.Verify(expected);
+            Assert.False(analyzerDiagnostics.Single().IsSuppressed);
         }
     }
 }

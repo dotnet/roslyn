@@ -104,20 +104,5 @@ namespace Microsoft.CodeAnalysis.Execution
 
             return builder.ToImmutableAndFree();
         }
-
-        public static async Task<List<T>> CreateCollectionAsync<T>(this IAssetProvider assetProvider, ChecksumCollection collections, CancellationToken cancellationToken)
-        {
-            var assets = new List<T>();
-
-            foreach (var checksum in collections)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var asset = await assetProvider.GetAssetAsync<T>(checksum, cancellationToken).ConfigureAwait(false);
-                assets.Add(asset);
-            }
-
-            return assets;
-        }
     }
 }

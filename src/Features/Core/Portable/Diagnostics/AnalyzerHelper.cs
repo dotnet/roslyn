@@ -13,6 +13,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -91,6 +93,122 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
             => analyzer.GetType().Assembly.GetName().Name;
+
+        public static OptionSet GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            return GetAnalyzerOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+        }
+
+        public static async ValueTask<OptionSet> GetAnalyzerOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+#pragma warning disable CS0612 // Type or member is obsolete
+            var optionSet = await GetDocumentOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken).ConfigureAwait(false);
+#pragma warning restore CS0612 // Type or member is obsolete
+
+            return new AnalyzerConfigOptionSet(configOptions, optionSet);
+        }
+
+        public static T GetOption<T>(this SemanticModelAnalysisContext context, Option<T> option)
+        {
+            var analyzerOptions = context.Options;
+            var syntaxTree = context.SemanticModel.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+
+            return GetOption(analyzerOptions, option, syntaxTree, cancellationToken);
+        }
+
+        public static T GetOption<T>(this SyntaxNodeAnalysisContext context, Option<T> option)
+        {
+            var analyzerOptions = context.Options;
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+
+            return GetOption(analyzerOptions, option, syntaxTree, cancellationToken);
+        }
+
+        public static T GetOption<T>(this SyntaxTreeAnalysisContext context, Option<T> option)
+        {
+            var analyzerOptions = context.Options;
+            var syntaxTree = context.Tree;
+            var cancellationToken = context.CancellationToken;
+
+            return GetOption(analyzerOptions, option, syntaxTree, cancellationToken);
+        }
+
+        public static T GetOption<T>(this OperationAnalysisContext context, Option<T> option)
+        {
+            var analyzerOptions = context.Options;
+            var syntaxTree = context.Operation.Syntax.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+
+            return GetOption(analyzerOptions, option, syntaxTree, cancellationToken);
+        }
+
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, Option<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            return GetOptionAsync<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+        }
+
+        public static T GetOption<T>(this SemanticModelAnalysisContext context, PerLanguageOption<T> option, string language)
+        {
+            var analyzerOptions = context.Options;
+            var syntaxTree = context.SemanticModel.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+
+            return GetOption(analyzerOptions, option, language, syntaxTree, cancellationToken);
+        }
+
+        public static T GetOption<T>(this SyntaxNodeAnalysisContext context, PerLanguageOption<T> option, string language)
+        {
+            var analyzerOptions = context.Options;
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+
+            return GetOption(analyzerOptions, option, language, syntaxTree, cancellationToken);
+        }
+
+        public static T GetOption<T>(this SyntaxTreeAnalysisContext context, PerLanguageOption<T> option, string language)
+        {
+            var analyzerOptions = context.Options;
+            var syntaxTree = context.Tree;
+            var cancellationToken = context.CancellationToken;
+
+            return GetOption(analyzerOptions, option, language, syntaxTree, cancellationToken);
+        }
+
+        public static T GetOption<T>(this OperationAnalysisContext context, PerLanguageOption<T> option, string language)
+        {
+            var analyzerOptions = context.Options;
+            var syntaxTree = context.Operation.Syntax.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+
+            return GetOption(analyzerOptions, option, language, syntaxTree, cancellationToken);
+        }
+
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption<T> option, string language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            return GetOptionAsync<T>(analyzerOptions, option, language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+        }
+
+        public static async ValueTask<T> GetOptionAsync<T>(this AnalyzerOptions analyzerOptions, IOption option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+            if (configOptions.TryGetEditorConfigOption<T>(option, out var value))
+            {
+                return value;
+            }
+
+#pragma warning disable CS0612 // Type or member is obsolete
+            var optionSet = await analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).ConfigureAwait(false);
+#pragma warning restore CS0612 // Type or member is obsolete
+            return (T)optionSet?.GetOption(new OptionKey(option, language)) ?? (T)option.DefaultValue!;
+        }
+
+        [Obsolete]
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public static OptionSet? GetOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+            => analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public static ValueTask<OptionSet?> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)

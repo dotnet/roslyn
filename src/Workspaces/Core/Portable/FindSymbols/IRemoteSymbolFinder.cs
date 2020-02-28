@@ -12,25 +12,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface IRemoteSymbolFinder
     {
-        Task FindReferencesAsync(
-            SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs,
+        Task FindReferencesAsync(PinnedSolutionInfo solutionInfo, SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs,
             SerializableFindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        Task FindLiteralReferencesAsync(object value, TypeCode typeCode, CancellationToken cancellationToken);
+        Task FindLiteralReferencesAsync(PinnedSolutionInfo solutionInfo, object value, TypeCode typeCode, CancellationToken cancellationToken);
 
         Task<IList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
-            ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria, CancellationToken cancellationToken);
 
         Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
-            string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken);
 
         Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
-            ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken);
 
         Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithPatternAsync(
-            string pattern, SymbolFilter criteria, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, string pattern, SymbolFilter criteria, CancellationToken cancellationToken);
 
         Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
-            ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken);
     }
 }

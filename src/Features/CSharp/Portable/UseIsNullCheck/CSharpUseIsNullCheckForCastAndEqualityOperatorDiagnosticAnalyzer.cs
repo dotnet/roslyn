@@ -43,13 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return;
             }
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
+            var option = context.Options.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;

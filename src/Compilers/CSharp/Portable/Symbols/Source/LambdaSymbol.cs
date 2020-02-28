@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { return AreContainingSymbolLocalsZeroed; }
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
