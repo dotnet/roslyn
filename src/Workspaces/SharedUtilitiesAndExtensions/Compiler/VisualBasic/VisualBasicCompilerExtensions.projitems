@@ -13,9 +13,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsProvider.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxKindsService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxKinds.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" GenerateSource="true" Link="VisualBasicCompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" />
   </ItemGroup>
 </Project>

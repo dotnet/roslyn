@@ -5,7 +5,6 @@
 #nullable enable
 
 using Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
             AnonymousObjectCreationExpressionSyntax>
     {
         public CSharpConvertAnonymousTypeToTupleDiagnosticAnalyzer()
-            : base(CSharpSyntaxKindsService.Instance)
+            : base(CSharpSyntaxKinds.Instance)
         {
         }
 
