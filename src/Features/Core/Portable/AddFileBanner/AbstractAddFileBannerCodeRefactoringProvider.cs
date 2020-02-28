@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,9 +33,18 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return;
             }
 
-            var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
+            var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
+            if (options.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, out var fileHeaderTemplate)
+                && !string.IsNullOrEmpty(fileHeaderTemplate))
+            {
+                // If we have a defined file header template, allow the analyzer and code fix to handle it
+                return;
+            }
+
+            var position = span.Start;
             var firstToken = root.GetFirstToken();
             if (!firstToken.FullSpan.IntersectsWith(position))
             {
