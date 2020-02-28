@@ -106,29 +106,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken)
         {
             // If everything classifies the same way, then just pick that classification.
-            var set = PooledHashSet<ClassifiedSpan>.GetInstance();
-            try
+            using var _ = PooledHashSet<ClassifiedSpan>.GetInstance(out var set);
+            foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                foreach (var symbol in symbolInfo.CandidateSymbols)
+                if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
                 {
-                    if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
-                    {
-                        set.Add(classifiedSpan);
-                    }
+                    set.Add(classifiedSpan);
                 }
-
-                if (set.Count == 1)
-                {
-                    result.Add(set.First());
-                    return true;
-                }
-
-                return false;
             }
-            finally
+
+            if (set.Count == 1)
             {
-                set.Free();
+                result.Add(set.First());
+                return true;
             }
+
+            return false;
         }
 
         private bool TryClassifySymbol(

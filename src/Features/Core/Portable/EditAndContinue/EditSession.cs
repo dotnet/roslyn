@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             out ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
             out ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
         {
-            var changedNonRemappableSpans = PooledDictionary<(int MethodToken, int MethodVersion, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance();
+            using var _1 = PooledDictionary<(int MethodToken, int MethodVersion, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance(out var changedNonRemappableSpans);
             var activeStatementsInUpdatedMethodsBuilder = ArrayBuilder<(Guid, ActiveInstructionId, LinePositionSpan)>.GetInstance();
             var nonRemappableRegionsBuilder = ArrayBuilder<(ActiveMethodId Method, NonRemappableRegion Region)>.GetInstance();
 
@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             activeStatementsInUpdatedMethods = activeStatementsInUpdatedMethodsBuilder.ToImmutableAndFree();
 
             // Gather all active method instances contained in this project/module that are not up-to-date:
-            var unremappedActiveMethods = PooledHashSet<ActiveMethodId>.GetInstance();
+            using var _2 = PooledHashSet<ActiveMethodId>.GetInstance(out var unremappedActiveMethods);
             foreach (var (instruction, baseActiveStatement) in baseActiveStatements.InstructionMap)
             {
                 if (moduleId == instruction.MethodId.ModuleId && !baseActiveStatement.IsMethodUpToDate)
@@ -1075,8 +1075,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             nonRemappableRegions = nonRemappableRegionsBuilder.ToImmutableAndFree();
-            changedNonRemappableSpans.Free();
-            unremappedActiveMethods.Free();
         }
 
         internal void ChangesApplied()
