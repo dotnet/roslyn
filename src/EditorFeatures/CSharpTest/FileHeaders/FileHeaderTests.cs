@@ -397,6 +397,66 @@ namespace Bar
             }.RunAsync();
         }
 
+        [Theory]
+        [InlineData("", "")]
+        [InlineData(" Header", "")]
+        [InlineData(" Header", " Header")]
+        public async Task TestValidFileHeaderInRegionAsync(string startLabel, string endLabel)
+        {
+            var testCode = $@"#region{startLabel}
+// Copyright (c) SomeCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+#endregion{endLabel}
+
+namespace Bar
+{{
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                EditorConfig = TestSettings,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("", "")]
+        [InlineData(" Header", "")]
+        [InlineData(" Header", " Header")]
+        public async Task TestInvalidFileHeaderWithWrongTextInRegionAsync(string startLabel, string endLabel)
+        {
+            var testCode = $@"#region{startLabel}
+[|//|] Copyright (c) OtherCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+#endregion{endLabel}
+
+namespace Bar
+{{
+}}
+";
+            var fixedCode = $@"// Copyright (c) SomeCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+
+#region{startLabel}
+// Copyright (c) OtherCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+#endregion{endLabel}
+
+namespace Bar
+{{
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                EditorConfig = TestSettings,
+            }.RunAsync();
+        }
+
         /// <summary>
         /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
         /// </summary>

@@ -264,6 +264,69 @@ End Namespace
         ''' </summary>
         ''' <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         <Theory>
+        <InlineData("", "")>
+        <InlineData(" ' Header", "")>
+        <InlineData(" ' Header", " ' Header")>
+        Public Async Function TestValidFileHeaderInRegionAsync(startLabel As String, endLabel As String) As Task
+            Dim testCode = $"#Region ""Header""{startLabel}
+' Copyright (c) SomeCorp. All rights reserved.
+' Licensed under the ??? license. See LICENSE file in the project root for full license information.
+#End Region{endLabel}
+
+Namespace Bar
+End Namespace
+"
+
+            Await New VerifyVB.Test With
+            {
+                .TestCode = testCode,
+                .FixedCode = testCode,
+                .EditorConfig = TestSettings
+            }.RunAsync()
+        End Function
+
+        ''' <summary>
+        ''' Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        <Theory>
+        <InlineData("", "")>
+        <InlineData(" ' Header", "")>
+        <InlineData(" ' Header", " ' Header")>
+        Public Async Function TestInvalidFileHeaderWithWrongTextInRegionAsync(startLabel As String, endLabel As String) As Task
+            Dim testCode = $"#Region ""Header""{startLabel}
+[|'|] Copyright (c) OtherCorp. All rights reserved.
+' Licensed under the ??? license. See LICENSE file in the project root for full license information.
+#End Region{endLabel}
+
+Namespace Bar
+End Namespace
+"
+            Dim fixedCode = $"' Copyright (c) SomeCorp. All rights reserved.
+' Licensed under the ??? license. See LICENSE file in the project root for full license information.
+
+#Region ""Header""{startLabel}
+' Copyright (c) OtherCorp. All rights reserved.
+' Licensed under the ??? license. See LICENSE file in the project root for full license information.
+#End Region{endLabel}
+
+Namespace Bar
+End Namespace
+"
+
+            Await New VerifyVB.Test With
+            {
+                .TestCode = testCode,
+                .FixedCode = fixedCode,
+                .EditorConfig = TestSettings
+            }.RunAsync()
+        End Function
+
+        ''' <summary>
+        ''' Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        <Theory>
         <InlineData("")>
         <InlineData("    ")>
         Public Async Function TestInvalidFileHeaderWithWrongTextAfterBlankLineAsync(firstLine As String) As Task
