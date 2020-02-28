@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                             TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
                             TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel, conditionalPart, currentWhenPartToCheck);
+                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel!, conditionalPart, currentWhenPartToCheck);
                         if (match == null)
                         {
                             return c;
