@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree()
         {
+            // PROTOTYPE: This needs to be consistently ordered
             ArrayBuilder<GeneratedSourceText> builder = ArrayBuilder<GeneratedSourceText>.GetInstance();
             foreach (var (hintName, sourceText) in _sourcesAdded)
             {
