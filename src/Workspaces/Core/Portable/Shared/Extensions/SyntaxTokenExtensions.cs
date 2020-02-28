@@ -170,6 +170,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return token.WithTrailingTrivia(token.TrailingTrivia.Concat(trivia));
         }
 
+        public static SyntaxToken WithoutTrailingTrivia(this SyntaxToken token) => token.WithTrailingTrivia();
+
         public static SyntaxTrivia[] GetTrivia(this IEnumerable<SyntaxToken> tokens)
             => tokens.SelectMany(token => SyntaxNodeOrTokenExtensions.GetTrivia(token)).ToArray();
     }

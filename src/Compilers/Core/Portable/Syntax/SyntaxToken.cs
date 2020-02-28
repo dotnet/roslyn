@@ -504,15 +504,6 @@ namespace Microsoft.CodeAnalysis
                 : default(SyntaxToken);
         }
 
-
-        /// <summary>
-        /// Creates a new token from this token with the trailing trivia removed.
-        /// </summary>
-        public SyntaxToken WithoutTrailingTrivia()
-        {
-            return this.WithTrailingTrivia();
-        }
-
         /// <summary>
         /// Gets a list of all the trivia (both leading and trailing) for this token.
         /// </summary>

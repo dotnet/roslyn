@@ -20,7 +20,6 @@ Microsoft.CodeAnalysis.SarifVersion.Sarif1 = 1 -> Microsoft.CodeAnalysis.SarifVe
 Microsoft.CodeAnalysis.SarifVersion.Sarif2 = 2 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersionFacts
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier = 256 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
-Microsoft.CodeAnalysis.SyntaxToken.WithoutTrailingTrivia() -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.SarifVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.SarifVersion result) -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsConditional.get -> bool
 Microsoft.CodeAnalysis.Operations.IForEachLoopOperation.IsAsynchronous.get -> bool
