@@ -3784,11 +3784,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // check whether 'method', when called on this receiver, is an implementation of 'constructedMethod'.
-                for (var baseType = receiverType; baseType is object; baseType = baseType.BaseTypeNoUseSiteDiagnostics)
+                for (var baseType = receiverType; baseType is object && method is object; baseType = baseType.BaseTypeNoUseSiteDiagnostics)
                 {
                     var implementationMethod = baseType.FindImplementationForInterfaceMember(constructedMethod);
+
                     if (implementationMethod is object)
                     {
+                        if (implementationMethod.ContainingType.IsInterface)
+                        {
+                            break;
+                        }
+
                         for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
                         {
                             if (overriddenMethod.Equals(implementationMethod))
@@ -3796,12 +3802,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return true;
                             }
                         }
+
+                        var oldBase = baseType;
+                        baseType = implementationMethod.ContainingType;
+
+                        for (; oldBase is object && !oldBase.Equals(baseType);)
+                        {
+                            // skip unnecessary override methods
+                        }
+                    }
+                    else
+                    {
+                        // we know no base type will implement this interface member either
+                        break;
                     }
 
                     // No point checking beyond the base type in which this method is actually declared.
                     if (baseType.Equals(method.ContainingType))
                     {
-                        break;
+                        method = method.OverriddenMethod;
                     }
                 }
 

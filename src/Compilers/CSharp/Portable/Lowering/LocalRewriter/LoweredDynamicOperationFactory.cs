@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (factory.TopLevelMethod.IsGenericMethod)
             {
-                return synthesizedContainer.Construct(factory.TopLevelMethod.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
+                return synthesizedContainer.Construct(factory.TopLevelMethod.TypeParameters);
             }
 
             return synthesizedContainer;
