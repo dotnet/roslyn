@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 #nullable enable
@@ -36,13 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (this)
             {
                 case BoundEvaluationDecisionDagNode n:
-                    return n.Evaluation.GetHashCode();
+                    return Hash.Combine(n.Evaluation.GetHashCode(), RuntimeHelpers.GetHashCode(n.Next));
                 case BoundTestDecisionDagNode n:
-                    return n.Test.GetHashCode();
+                    return Hash.Combine(n.Test.GetHashCode(), Hash.Combine(RuntimeHelpers.GetHashCode(n.WhenFalse), RuntimeHelpers.GetHashCode(n.WhenTrue)));
                 case BoundWhenDecisionDagNode n:
-                    return Hash.Combine(n.WhenExpression?.GetHashCode() ?? 0, n.WhenTrue.GetHashCode());
+                    // See https://github.com/dotnet/runtime/pull/31819 for why ! is temporarily required below.
+                    return Hash.Combine(RuntimeHelpers.GetHashCode(n.WhenExpression!), Hash.Combine(RuntimeHelpers.GetHashCode(n.WhenFalse!), RuntimeHelpers.GetHashCode(n.WhenTrue)));
                 case BoundLeafDecisionDagNode n:
-                    return n.Label.GetHashCode();
+                    return RuntimeHelpers.GetHashCode(n.Label);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this);
             }
