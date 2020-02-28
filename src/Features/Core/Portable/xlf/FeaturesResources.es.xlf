@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="A_source_file_contains_a_header_that_does_not_match_the_required_text">
+        <source>A source file contains a header that does not match the required text</source>
+        <target state="new">A source file contains a header that does not match the required text</target>
+        <note />
+      </trans-unit>
       <trans-unit id="A_source_file_is_missing_a_required_header">
         <source>A source file is missing a required header.</source>
         <target state="new">A source file is missing a required header.</target>
@@ -577,9 +582,14 @@
         <target state="translated">El tipo de destino coincide con</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_file_header_is_missing_not_located_at_the_top_of_the_file_or_does_not_match_the_required_text">
-        <source>The file header is missing, not located at the top of the file, or does not match the required text</source>
-        <target state="new">The file header is missing, not located at the top of the file, or does not match the required text</target>
+      <trans-unit id="The_file_header_does_not_match_the_required_text">
+        <source>The file header does not match the required text</source>
+        <target state="new">The file header does not match the required text</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_file_header_is_missing_or_not_located_at_the_top_of_the_file">
+        <source>The file header is missing or not located at the top of the file</source>
+        <target state="new">The file header is missing or not located at the top of the file</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">

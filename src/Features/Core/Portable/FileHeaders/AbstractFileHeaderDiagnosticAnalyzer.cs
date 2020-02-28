@@ -17,10 +17,17 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 IDEDiagnosticIds.FileHeaderMismatch,
                 CodeStyleOptions.FileHeaderTemplate,
                 LanguageNames.CSharp,
-                new LocalizableResourceString(nameof(FeaturesResources.The_file_header_is_missing_not_located_at_the_top_of_the_file_or_does_not_match_the_required_text), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                new LocalizableResourceString(nameof(FeaturesResources.The_file_header_is_missing_or_not_located_at_the_top_of_the_file), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 new LocalizableResourceString(nameof(FeaturesResources.A_source_file_is_missing_a_required_header), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
+            var invalidHeaderTitle = new LocalizableResourceString(nameof(FeaturesResources.The_file_header_does_not_match_the_required_text), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            var invalidHeaderMessage = new LocalizableResourceString(nameof(FeaturesResources.A_source_file_contains_a_header_that_does_not_match_the_required_text), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            InvalidHeaderDescriptor = CreateDescriptorWithId(DescriptorId, invalidHeaderTitle, invalidHeaderMessage);
         }
+
+        internal DiagnosticDescriptor MissingHeaderDescriptor => Descriptor;
+
+        internal DiagnosticDescriptor InvalidHeaderDescriptor { get; }
 
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
@@ -51,14 +58,14 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var fileHeader = FileHeaderHelper.ParseFileHeader(root);
             if (fileHeader.IsMissing)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, fileHeader.GetLocation(tree)));
+                context.ReportDiagnostic(Diagnostic.Create(MissingHeaderDescriptor, fileHeader.GetLocation(tree)));
                 return;
             }
 
             var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(tree.FilePath));
             if (!CompareCopyrightText(expectedFileHeader, fileHeader.CopyrightText))
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, fileHeader.GetLocation(tree)));
+                context.ReportDiagnostic(Diagnostic.Create(InvalidHeaderDescriptor, fileHeader.GetLocation(tree)));
                 return;
             }
         }
