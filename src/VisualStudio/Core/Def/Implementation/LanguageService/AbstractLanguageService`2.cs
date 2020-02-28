@@ -398,6 +398,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 project.Id,
                 project,
                 filePath,
+                project.Language,
                 this.LanguageServiceId);
         }
     }

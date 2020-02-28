@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    internal static class NoCompilationContentTypeDefinitions
+    internal static class TestContentTypeDefinitions
     {
         /// <summary>
         /// Definition of the primary C# content type.
@@ -16,5 +16,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         [Name(NoCompilationConstants.LanguageName)]
         [BaseDefinition(ContentTypeNames.RoslynContentType)]
         public static readonly ContentTypeDefinition NoCompilationContentTypeDefinition;
+
+        /// <summary>
+        /// Definition of HTML content type.
+        /// </summary>
+        [System.ComponentModel.Composition.Export]
+        [Name("HTML")]
+        [BaseDefinition("text")]
+        public static readonly ContentTypeDefinition Html;
+
+        /// <summary>
+        /// Definition of HTML content type.
+        /// </summary>
+        [System.ComponentModel.Composition.Export]
+        [Name("Razor")]
+        [BaseDefinition("text")]
+        public static readonly ContentTypeDefinition Razor;
     }
 }

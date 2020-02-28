@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             {
                 // ROSLYN
                 typeof(CodeAnalysis.UnitTests.NoCompilationLanguageServiceFactory),
-                typeof(Workspaces.NoCompilationContentTypeDefinitions),
+                typeof(Workspaces.TestContentTypeDefinitions),
                 typeof(Workspaces.NoCompilationContentTypeLanguageService),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),

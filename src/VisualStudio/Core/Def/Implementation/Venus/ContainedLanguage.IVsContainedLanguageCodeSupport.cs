@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     if (ContainedLanguageCodeSupport.TryGetMemberNavigationPoint(GetThisDocument(), pszClassName, pszUniqueMemberID, out textSpan, out var targetDocument, c.CancellationToken))
                     {
                         succeeded = true;
-                        itemId = this.ContainedDocument.FindItemIdOfDocument(targetDocument);
+                        itemId = this.ContainedDocument.FindItemIdOfDocument(targetDocument.Id);
                     }
                 });
 

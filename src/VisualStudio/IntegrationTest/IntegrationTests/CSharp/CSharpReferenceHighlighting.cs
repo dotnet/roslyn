@@ -37,7 +37,7 @@ class {|definition:C|}
         {|reference:C|} c = new {|reference:C|}();
     }
 }";
-            Test.Utilities.MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            Test.Utilities.MarkupTestFile.GetNamedSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
             VisualStudio.Editor.SetText(text);
             Verify("C", spans);
 
@@ -57,7 +57,7 @@ class C
         {|writtenreference:x|} = 3;
     }
 }";
-            Test.Utilities.MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            Test.Utilities.MarkupTestFile.GetNamedSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
             VisualStudio.Editor.SetText(text);
             Verify("x", spans);
 

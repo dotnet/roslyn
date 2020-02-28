@@ -38,7 +38,7 @@ class {|target:C|}
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
-            MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
+            MarkupTestFile.GetPositionAndNamedSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNavigated(workspace, position.Value, spans)
@@ -52,7 +52,7 @@ class {|target:C|}
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
-            MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
+            MarkupTestFile.GetPositionAndNamedSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNotNavigated(workspace, position.Value, spans)
@@ -66,7 +66,7 @@ class {|target:C|}
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
-            MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
+            MarkupTestFile.GetPositionAndNamedSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNotNavigated(workspace, position.Value, spans)
@@ -82,7 +82,7 @@ End Class"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
-            MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
+            MarkupTestFile.GetPositionAndNamedSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNavigated(workspace, position.Value, spans)
@@ -96,7 +96,7 @@ End Class"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
-            MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
+            MarkupTestFile.GetPositionAndNamedSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNotNavigated(workspace, position.Value, spans)
@@ -110,7 +110,7 @@ End Class"
             Dim text As String = Nothing
             Dim position As Integer? = Nothing
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
-            MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
+            MarkupTestFile.GetPositionAndNamedSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNotNavigated(workspace, position.Value, spans)

@@ -66,7 +66,7 @@ class PurchaseTransaction
         CommitHelper();
     }
 }";
-            Test.Utilities.MarkupTestFile.GetSpans(
+            Test.Utilities.MarkupTestFile.GetNamedSpans(
                 input,
                 out var text,
                 out IDictionary<string, ImmutableArray<TextSpan>> spans);

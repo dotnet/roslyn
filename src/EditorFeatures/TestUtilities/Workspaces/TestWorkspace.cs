@@ -360,8 +360,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         /// <summary>
-        /// Creates a TestHostDocument backed by a projection buffer. The surface buffer is 
-        /// described by a markup string with {|name:|} style pointers to annotated spans that can
+        /// Creates a TestHostDocument backed by a projection buffer.
+        /// </summary>
+        /// <remarks>
+        /// The surface buffer is described by a markup string with {|name:|} style pointers to annotated spans that can
         /// be found in one of a set of provided documents. Unnamed spans in the documents (which
         /// must have both endpoints inside an annotated spans) and in the surface buffer markup are
         /// mapped and included in the resulting document.
@@ -401,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = goo; [|MNOint [|def|] = goo;PQR S$$TU|] 456789123
         ///       -----1       -----2            -------4                    -----6
         ///               ------------3     --------------5         --------------------------------7
-        /// </summary>
+        /// </remarks>
         /// <param name="markup">Describes the surface buffer, and contains a mix of inert text, 
         /// named spans and unnamed spans. Any named spans must contain only the name portion 
         /// (e.g. {|Span1:|} which must match the name of a span in one of the baseDocuments. 
@@ -414,11 +416,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string markup,
             IList<TestHostDocument> baseDocuments,
             string path = "projectionbufferdocumentpath",
+            Func<string, ITextBuffer>? surroundingBufferFactory = null,
             ProjectionBufferOptions options = ProjectionBufferOptions.None,
             IProjectionEditResolver? editResolver = null)
         {
-            GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
-                out var projectionBufferSpans, out var mappedSpans, out var mappedCaretLocation);
+            GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments, surroundingBufferFactory,
+                out var projectionBufferSpans, out var projectionBufferSpanStartingPositions, out var markupSpans, out var mappedCaretLocation);
+
+            MapMarkupSpans(markupSpans, out var mappedSpans, projectionBufferSpans, projectionBufferSpanStartingPositions);
 
             var projectionBufferFactory = this.GetService<IProjectionBufferFactoryService>();
             var projectionBuffer = projectionBufferFactory.CreateProjectionBuffer(editResolver, projectionBufferSpans, options);
@@ -463,64 +468,90 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             var projectionDocument = new TestHostDocument(
-                ExportProvider,
-                languageServiceProvider: null,
                 projectionBuffer.CurrentSnapshot.GetText(),
                 path,
-                mappedCaretLocation,
-                mappedSpans,
+                cursorPosition: mappedCaretLocation,
+                selectedSpans: mappedSpans,
+                exportProvider: ExportProvider,
                 textBuffer: projectionBuffer);
 
             this.ProjectionDocuments.Add(projectionDocument);
             return projectionDocument;
         }
 
+        public IProjectionBuffer CreateProjectionBuffer(
+            string markup,
+            IList<TestHostDocument> baseDocuments,
+            Func<string, ITextBuffer>? surroundingBufferFactory,
+            ProjectionBufferOptions options = ProjectionBufferOptions.None,
+            IProjectionEditResolver? editResolver = null)
+        {
+            GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments, surroundingBufferFactory, out var projectionBufferSpans, out _, out _, out _);
+
+            var projectionBufferFactory = this.GetService<IProjectionBufferFactoryService>();
+            return projectionBufferFactory.CreateProjectionBuffer(editResolver, projectionBufferSpans, options);
+        }
+
         private void GetSpansAndCaretFromSurfaceBufferMarkup(
-            string markup, IList<TestHostDocument> baseDocuments,
+            string markup,
+            IList<TestHostDocument> baseDocuments,
+            Func<string, ITextBuffer>? surroundingBufferFactory,
             out IList<object> projectionBufferSpans,
-            out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
+            out List<int> projectionBufferSpanStartingPositions,
+            out IDictionary<string, ImmutableArray<TextSpan>> markupSpans,
+            out int? mappedCaretLocation)
         {
             projectionBufferSpans = new List<object>();
-            var projectionBufferSpanStartingPositions = new List<int>();
+            projectionBufferSpanStartingPositions = new List<int>();
             mappedCaretLocation = null;
 
-            MarkupTestFile.GetPositionAndSpans(markup,
-                out var inertText, out int? markupCaretLocation, out var markupSpans);
+            MarkupTestFile.GetPositionAndNamedSpans(markup, out var text, out int? markupCaretLocation, out markupSpans);
 
-            var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
-            var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
-                                                .ThenBy(kvp => markup.IndexOf("{|" + kvp.Key + ":", StringComparison.Ordinal));
+            var namedMarkupSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
+            var sortedNamedMarkupSpans = namedMarkupSpans
+                .OrderBy(kvp => kvp.Value.Single().Start)
+                .ThenBy(kvp => markup.IndexOf("{|" + kvp.Key + ":", StringComparison.Ordinal));
 
-            var currentPositionInInertText = 0;
+            // If we are given content type for the text buffer create one.
+            // Otherwise, we will generate inert text spans.
+            var textSnapshot = (surroundingBufferFactory != null) ? surroundingBufferFactory(text).CurrentSnapshot : null;
+
+            var currentPositionInText = 0;
             var currentPositionInProjectionBuffer = 0;
+
+            object createTextSpanAtCurrentPosition(int length)
+            {
+                return (textSnapshot == null) ?
+                    text.Substring(currentPositionInText, length) :
+                    (object)textSnapshot.CreateTrackingSpan(new Span(currentPositionInText, length), SpanTrackingMode.EdgeExclusive);
+            }
 
             // If the markup points to k spans, these k spans divide the inert text into k + 1
             // possibly empty substrings. When handling each span, also handle the inert text that
             // immediately precedes it. At the end, handle the trailing inert text
-            foreach (var spanNameToListMap in sortedAndNamedSpans)
+            foreach (var (spanName, spanArray) in sortedNamedMarkupSpans)
             {
-                var spanName = spanNameToListMap.Key;
-                var spanLocation = spanNameToListMap.Value.Single().Start;
+                var markupSpan = spanArray.Single();
 
                 // Get any inert text between this and the previous span
-                if (currentPositionInInertText < spanLocation)
+                if (currentPositionInText < markupSpan.Start)
                 {
-                    var textToAdd = inertText.Substring(currentPositionInInertText, spanLocation - currentPositionInInertText);
-                    projectionBufferSpans.Add(textToAdd);
+                    int textLength = markupSpan.Start - currentPositionInText;
+                    projectionBufferSpans.Add(createTextSpanAtCurrentPosition(textLength));
                     projectionBufferSpanStartingPositions.Add(currentPositionInProjectionBuffer);
 
                     // If the caret is in the markup and in this substring, calculate the final
                     // caret location
                     if (mappedCaretLocation == null &&
                         markupCaretLocation != null &&
-                        currentPositionInInertText + textToAdd.Length >= markupCaretLocation)
+                        currentPositionInText + textLength >= markupCaretLocation)
                     {
-                        var caretOffsetInCurrentText = markupCaretLocation.Value - currentPositionInInertText;
+                        var caretOffsetInCurrentText = markupCaretLocation.Value - currentPositionInText;
                         mappedCaretLocation = currentPositionInProjectionBuffer + caretOffsetInCurrentText;
                     }
 
-                    currentPositionInInertText += textToAdd.Length;
-                    currentPositionInProjectionBuffer += textToAdd.Length;
+                    currentPositionInText += textLength;
+                    currentPositionInProjectionBuffer += textLength;
                 }
 
                 // Find and insert the span from the corresponding document
@@ -553,23 +584,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     mappedCaretLocation = currentPositionInProjectionBuffer + caretOffsetInSpan;
                 }
 
+                currentPositionInText += markupSpan.Length;
                 currentPositionInProjectionBuffer += matchingSpan.Length;
             }
 
             // Handle any inert text after the final projected span
-            if (currentPositionInInertText < inertText.Length - 1)
+            if (currentPositionInText < text.Length - 1)
             {
-                projectionBufferSpans.Add(inertText.Substring(currentPositionInInertText));
+                projectionBufferSpans.Add(createTextSpanAtCurrentPosition(text.Length - currentPositionInText));
                 projectionBufferSpanStartingPositions.Add(currentPositionInProjectionBuffer);
 
-                if (mappedCaretLocation == null && markupCaretLocation != null && markupCaretLocation >= currentPositionInInertText)
+                if (mappedCaretLocation == null && markupCaretLocation != null && markupCaretLocation >= currentPositionInText)
                 {
-                    var caretOffsetInCurrentText = markupCaretLocation.Value - currentPositionInInertText;
+                    var caretOffsetInCurrentText = markupCaretLocation.Value - currentPositionInText;
                     mappedCaretLocation = currentPositionInProjectionBuffer + caretOffsetInCurrentText;
                 }
             }
-
-            MapMarkupSpans(markupSpans, out mappedMarkupSpans, projectionBufferSpans, projectionBufferSpanStartingPositions);
         }
 
         private void MapMarkupSpans(
