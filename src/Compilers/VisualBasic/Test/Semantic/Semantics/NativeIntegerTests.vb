@@ -23,10 +23,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim type = comp.GlobalNamespace.GetTypeMembers("I").Single()
             Dim method = DirectCast(type.GetMembers("F1").Single(), IMethodSymbol)
+            Assert.Equal("Sub I.F1(x As System.IntPtr, y As System.IntPtr)", SymbolDisplay.ToDisplayString(method, SymbolDisplayFormat.TestFormat))
             VerifyType(DirectCast(method.Parameters(0).Type, INamedTypeSymbol), signed:=True, isNativeInteger:=False)
             VerifyType(DirectCast(method.Parameters(1).Type, INamedTypeSymbol), signed:=True, isNativeInteger:=True)
 
             method = DirectCast(type.GetMembers("F2").Single(), IMethodSymbol)
+            Assert.Equal("Sub I.F2(x As System.UIntPtr, y As System.UIntPtr)", SymbolDisplay.ToDisplayString(method, SymbolDisplayFormat.TestFormat))
             VerifyType(DirectCast(method.Parameters(0).Type, INamedTypeSymbol), signed:=False, isNativeInteger:=False)
             VerifyType(DirectCast(method.Parameters(1).Type, INamedTypeSymbol), signed:=False, isNativeInteger:=True)
 
@@ -35,10 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             type = comp.GlobalNamespace.GetTypeMembers("I").Single()
             method = DirectCast(type.GetMembers("F1").Single(), IMethodSymbol)
+            Assert.Equal("Sub I.F1(x As System.IntPtr, y As System.IntPtr)", SymbolDisplay.ToDisplayString(method, SymbolDisplayFormat.TestFormat))
             VerifyType(DirectCast(method.Parameters(0).Type, INamedTypeSymbol), signed:=True, isNativeInteger:=False)
             VerifyType(DirectCast(method.Parameters(1).Type, INamedTypeSymbol), signed:=True, isNativeInteger:=False)
 
             method = DirectCast(type.GetMembers("F2").Single(), IMethodSymbol)
+            Assert.Equal("Sub I.F2(x As System.UIntPtr, y As System.UIntPtr)", SymbolDisplay.ToDisplayString(method, SymbolDisplayFormat.TestFormat))
             VerifyType(DirectCast(method.Parameters(0).Type, INamedTypeSymbol), signed:=False, isNativeInteger:=False)
             VerifyType(DirectCast(method.Parameters(1).Type, INamedTypeSymbol), signed:=False, isNativeInteger:=False)
         End Sub
