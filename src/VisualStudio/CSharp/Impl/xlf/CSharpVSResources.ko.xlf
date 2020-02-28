@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="translated">폐기</target>
+        <target state="translated">무시 항목</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">

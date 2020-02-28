@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -71,7 +70,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             IVirtualCharService virtualCharService, IOperation expression, out IOperation unwrapped,
             out string? formatString, List<TextSpan> unnecessarySpans)
         {
-            if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
+            if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation &&
+                HasNonImplicitInstance(invocation))
             {
                 if (invocation.Arguments.Length == 1 &&
                     invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal)
@@ -115,7 +115,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             out TExpressionSyntax? alignment, out bool negate, List<TextSpan> unnecessarySpans)
             where TExpressionSyntax : SyntaxNode
         {
-            if (expression is IInvocationOperation invocation)
+            if (expression is IInvocationOperation invocation &&
+                HasNonImplicitInstance(invocation))
             {
                 var targetName = invocation.TargetMethod.Name;
                 if (targetName == nameof(string.PadLeft) || targetName == nameof(string.PadRight))
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
                             unwrapped = invocation.Instance;
                             alignment = alignmentSyntax as TExpressionSyntax;
-                            negate = targetName == nameof(string.PadLeft);
+                            negate = targetName == nameof(string.PadRight);
 
                             unnecessarySpans.AddRange(invocation.Syntax.Span
                                 .Subtract(invocation.Instance.Syntax.FullSpan)
@@ -145,6 +146,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             alignment = null;
             negate = false;
         }
+
+        private static bool HasNonImplicitInstance(IInvocationOperation invocation)
+            => invocation.Instance != null && !invocation.Instance.IsImplicit;
 
         private static bool IsSpaceChar(IArgumentOperation argument)
             => argument.Value.ConstantValue is { HasValue: true, Value: ' ' };

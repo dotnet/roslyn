@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ConflictMarkerResolution;
@@ -15,17 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 
         [ImportingConstructor]
         public CSharpResolveConflictMarkerCodeFixProvider()
-            : base(CS8300)
+            : base(CSharpSyntaxKinds.Instance, CS8300)
         {
         }
-
-        protected override bool IsConflictMarker(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.ConflictMarkerTrivia;
-
-        protected override bool IsDisabledText(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.DisabledTextTrivia;
-
-        protected override bool IsEndOfLine(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
     }
 }

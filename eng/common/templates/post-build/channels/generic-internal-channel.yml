@@ -46,7 +46,7 @@ stages:
           buildId: $(AzDOBuildId)
           downloadType: 'specific'
           itemPattern: |
-            PDBArtifacts/**
+            PdbArtifacts/**
             BlobArtifacts/**
           downloadPath: '$(Build.ArtifactStagingDirectory)'
 
@@ -84,6 +84,7 @@ stages:
   - job: publish_assets
     displayName: Publish Assets
     dependsOn: setupMaestroVars
+    timeoutInMinutes: 120
     variables:
       - name: BARBuildId
         value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.BARBuildId'] ]

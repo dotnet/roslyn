@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
 
         public class SwitchLabelsComparer : EqualityComparer<object>
         {
-            public override bool Equals(object first, object second)
+            public override bool Equals(object? first, object? second)
             {
                 RoslynDebug.Assert(first != null && second != null);
 

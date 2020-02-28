@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
-        <target state="translated">Se si aggiunge '{0}' in metodo di interfaccia, la sessione di debug non potrà continuare.</target>
+        <target state="translated">Se si aggiunge '{0}' in un metodo di interfaccia, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">Il contenuto corrente del file di origine '{0}' non corrisponde all'origine compilata. Tutte le modifiche apportate a questo file durante il debug non verranno applicate finché il relativo contenuto non corrisponde all'origine compilata.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -277,16 +277,6 @@
         <target state="translated">L'implementazione di 'GetHashCode' può essere semplificata</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="translated">Implementa tutte le interfacce in modo esplicito</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="translated">Implementa in modo esplicito</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">Implementa '{0}' in modo esplicito</target>
@@ -297,14 +287,34 @@
         <target state="translated">Implementa '{0}' in modo implicito</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">Implementa tutte le interfacce in modo implicito</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Implementa in modo implicito</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -434,12 +444,12 @@
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <target state="translated">È possibile rimuovere il parametro '{0}' se non fa parte di un'API pubblica. Il relativo valore iniziale non viene mai usato</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <target state="translated">È possibile rimuovere il parametro '{0}'. Il relativo valore iniziale non viene mai usato</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -569,7 +579,7 @@
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">Non è possibile leggere il file di origine '{0}' o il file PDB compilato per il progetto contenitore. Tutte le modifiche apportate a questo file durante il debug non verranno applicate finché il relativo contenuto non corrisponde all'origine compilata.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -702,6 +712,11 @@
         <target state="translated">Usa l'istruzione 'using' semplice</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Avviso: la modifica dello spazio dei nomi può comportare la creazione di codice non valido e modificare il significato del codice.</target>
@@ -774,7 +789,7 @@
       </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
-        <target state="translated">discard</target>
+        <target state="translated">variabile discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -2103,11 +2118,6 @@ Questa versione è usata {2}</target>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Sconosciuto)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Implementa classe astratta</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

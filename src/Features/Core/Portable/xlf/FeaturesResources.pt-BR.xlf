@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">O conteúdo atual do arquivo de origem '{0}' não corresponde à origem criada. Todas as alterações feitas neste arquivo durante a depuração não serão aplicadas até que o conteúdo corresponda à origem criada.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -277,16 +277,6 @@
         <target state="translated">A implementação de 'GetHashCode' pode ser simplificada</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="translated">Implementar todas as interfaces explicitamente</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="translated">Implementar explicitamente</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">Implementar '{0}' explicitamente</target>
@@ -297,14 +287,34 @@
         <target state="translated">Implementar '{0}' implicitamente</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">Implementar todas as interfaces implicitamente</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Implementar implicitamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -434,12 +444,12 @@
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <target state="translated">O parâmetro '{0}' pode ser removido se ele não fizer parte de uma API pública enviada. Seu valor inicial nunca é usado</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <target state="translated">O parâmetro '{0}' pode ser removido. Seu valor inicial nunca é usado</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -569,7 +579,7 @@
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">Não é possível ler o arquivo de origem '{0}' ou o PDB criado para o projeto que o contém. Todas as alterações feitas neste arquivo durante a depuração não serão aplicadas até que o conteúdo corresponda à origem criada.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -702,6 +712,11 @@
         <target state="translated">Usar a instrução 'using' simples</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Aviso: a alteração do namespace pode produzir código inválido e mudar o significado do código.</target>
@@ -774,7 +789,7 @@
       </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
-        <target state="translated">descartar</target>
+        <target state="translated">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -2103,11 +2118,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Desconhecido)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Implementar Classe Abstrata</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

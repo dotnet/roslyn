@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
             }
         }
 
-        public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, Workspace workspace, Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, CodeAnalysis.Workspace workspace, Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {

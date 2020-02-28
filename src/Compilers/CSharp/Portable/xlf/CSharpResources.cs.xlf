@@ -102,6 +102,11 @@
         <target state="translated">Parametr typu {1} má omezení unmanaged, takže není možné používat {1} jako omezení pro {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalOnLocalFunction">
+        <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
+        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
         <target state="translated">Výraz typu {0} nelze zpracovat vzorem typu {1}. Použijte prosím verzi jazyka {2} nebo vyšší, aby odpovídala otevřenému typu se vzorem konstanty.</target>
@@ -170,6 +175,21 @@
       <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
         <source>Expression tree cannot contain value of ref struct or restricted type '{0}'.</source>
         <target state="translated">Strom výrazu nemůže obsahovat hodnotu struktury REF ani zakázaný typ {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
+        <source>An expression tree may not contain a from-end index ('^') expression.</source>
+        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+        <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
+        <source>An expression tree may not contain a range ('..') expression.</source>
+        <target state="new">An expression tree may not contain a range ('..') expression.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -322,6 +342,11 @@
         <target state="translated">{0}: Typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable. Neměli jste v úmyslu použít await using místo using?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoOutputDirectory">
+        <source>Output directory could not be determined</source>
+        <target state="new">Output directory could not be determined</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
         <target state="translated">Omezení notnull musí být zadané před všemi ostatními omezeními.</target>
@@ -430,6 +455,11 @@
       <trans-unit id="ERR_StaticMemberCantBeReadOnly">
         <source>Static member '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">Statický člen {0} se nedá označit modifikátorem readonly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -574,12 +604,14 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
-
+ 
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
 -warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
@@ -659,7 +691,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Parametry kompilátoru Visual C#
 
                        - VÝSTUPNÍ SOUBORY -
@@ -857,6 +889,11 @@
         <target state="translated">rozšiřitelný příkaz fixed</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="translated">operátor indexu</target>
@@ -865,6 +902,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">indexování mobilních vyrovnávacích pamětí pevné velikosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLocalFunctionAttributes">
+        <source>local function attributes</source>
+        <target state="new">local function attributes</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
@@ -1384,12 +1426,22 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">Do cíle označeného atributem [DisallowNull] se nedá předat možná hodnota null</target>
+        <target state="translated">Možnou hodnotu null není možné použít pro typ označený jako [NotNull] nebo [DisallowNull].</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">Do cíle označeného atributem [DisallowNull] se nedá předat možná hodnota null</target>
+        <target state="translated">Možnou hodnotu null není možné použít pro typ označený jako [NotNull] nebo [DisallowNull].</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoesNotReturnMismatch">
+        <source>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
+        <target state="new">Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoesNotReturnMismatch_Title">
+        <source>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
+        <target state="new">Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1607,6 +1659,16 @@
         <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru {0} neodpovídá implementovanému členu {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member.</source>
         <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru neodpovídá implementovanému členu.</target>
@@ -1617,6 +1679,16 @@
         <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru {0} z {1} neodpovídá implicitně implementovanému členu {2}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</source>
         <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru neodpovídá implicitně implementovanému členu.</target>
@@ -1625,6 +1697,16 @@
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</source>
         <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru {0} neodpovídá přepsanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes">
+        <source>Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes_Title">
+        <source>Type of parameter doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Type of parameter doesn't match overridden member because of nullability attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride_Title">
@@ -1657,6 +1739,16 @@
         <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá implementovanému členu {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member.</source>
         <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá implementovanému členu.</target>
@@ -1667,6 +1759,16 @@
         <target state="translated">Typ odkazu s možnou hodnotou null v návratovém typu {0} neodpovídá implicitně implementovanému členu {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member.</source>
         <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá implicitně implementovanému členu.</target>
@@ -1675,6 +1777,16 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá přepsanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes">
+        <source>Return type doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Return type doesn't match overridden member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes_Title">
+        <source>Return type doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Return type doesn't match overridden member because of nullability attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
@@ -1754,22 +1866,22 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
-        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <target state="translated">Parametr {0} nemusí mít při ukončení s {1} hodnotu null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter may not have a null value when exiting in some condition.</source>
-        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
+        <target state="translated">Parametr nemusí mít při ukončení za určité podmínky hodnotu null</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">Metoda označená jako [DoesNotReturn] by neměla vracet hodnotu</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">Metoda označená jako [DoesNotReturn] by neměla vracet hodnotu</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -4087,8 +4199,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
-        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</source>
-        <target state="translated">Atribut DllImport nejde použít u metody, která je obecná nebo obsažená v obecném typu.</target>
+        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
+        <target state="needs-review-translation">Atribut DllImport nejde použít u metody, která je obecná nebo obsažená v obecném typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -9589,8 +9701,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'{0} je lokální funkce a musí proto vždy obsahovat text.</target>
+        <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
+        <target state="needs-review-translation">'{0} je lokální funkce a musí proto vždy obsahovat text.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

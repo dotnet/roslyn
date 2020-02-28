@@ -189,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public void RunAnalyzers(IVsHierarchy? hierarchy)
         {
             var project = GetProject(hierarchy);
-            var solution = _workspace.CurrentSolution;
+            Solution solution = _workspace.CurrentSolution;
             string? projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
 
             // Add a message to VS status bar that we are running code analysis.
