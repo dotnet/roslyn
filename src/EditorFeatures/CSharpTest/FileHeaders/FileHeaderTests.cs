@@ -312,6 +312,39 @@ namespace Bar
         /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        [Theory]
+        [InlineData("")]
+        [InlineData("    ")]
+        public async Task TestInvalidFileHeaderWithWrongTextAfterBlankLineAsync(string firstLine)
+        {
+            var testCode = $@"{firstLine}
+[|//|] Copyright (c) OtherCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+
+namespace Bar
+{{
+}}
+";
+            var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+
+namespace Bar
+{
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                EditorConfig = TestSettings,
+            }.RunAsync();
+        }
+
+        /// <summary>
+        /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         [Fact]
         public async Task TestInvalidFileHeaderWithWrongTextFollowedByCommentAsync()
         {

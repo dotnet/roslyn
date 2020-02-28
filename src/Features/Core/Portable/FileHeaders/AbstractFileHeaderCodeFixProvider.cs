@@ -117,6 +117,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 }
                 else if (triviaLine.RawKind == EndOfLineTriviaKind)
                 {
+                    possibleLeadingSpaces = string.Empty;
+
                     if (inCopyright)
                     {
                         removalList.Add(i);
