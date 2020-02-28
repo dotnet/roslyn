@@ -78,26 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsPreprocessorKeyword(SyntaxToken token)
             => SyntaxFacts.IsPreprocessorKeyword(token.Kind());
 
-        public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            if (syntaxTree == null)
-            {
-                return false;
-            }
-
-            return syntaxTree.IsInInactiveRegion(position, cancellationToken);
-        }
-
-        public bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            if (syntaxTree == null)
-            {
-                return false;
-            }
-
-            return syntaxTree.IsInNonUserCode(position, cancellationToken);
-        }
-
         public bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             if (syntaxTree == null)
@@ -1449,12 +1429,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsExpressionOfForeach(SyntaxNode node)
             => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
 
-        public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            return syntaxTree.IsPossibleTupleContext(token, position);
-        }
-
         public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;
 
@@ -1667,9 +1641,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-
-        public ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection)
-            => ImmutableArray<SyntaxNode>.CastUp(root.GetFieldsAndPropertiesInSpan(textSpan, allowPartialSelection));
 
         protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
             => token.ContainsInterleavedDirective(span, cancellationToken);

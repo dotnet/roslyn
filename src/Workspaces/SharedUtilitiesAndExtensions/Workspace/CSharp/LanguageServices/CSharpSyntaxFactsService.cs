@@ -2,18 +2,43 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class CSharpSyntaxFactsService : CSharpSyntaxFacts, ISyntaxFactsService
     {
         internal static readonly new CSharpSyntaxFactsService Instance = new CSharpSyntaxFactsService();
+
+        public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            if (syntaxTree == null)
+            {
+                return false;
+            }
+
+            return syntaxTree.IsInInactiveRegion(position, cancellationToken);
+        }
+
+        public bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            if (syntaxTree == null)
+            {
+                return false;
+            }
+
+            return syntaxTree.IsInNonUserCode(position, cancellationToken);
+        }
 
         public SyntaxToken ToIdentifierToken(string name)
         {
@@ -31,6 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             newRoot = new AddFirstMissingCloseBraceRewriter(contextNode).Visit(root);
             newContextNode = (TContextNode)newRoot.GetAnnotatedNodes(s_annotation).Single();
+        }
+
+        public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            return syntaxTree.IsPossibleTupleContext(token, position);
         }
 
         private class AddFirstMissingCloseBraceRewriter : CSharpSyntaxRewriter
@@ -102,5 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewritten;
             }
         }
+
+        public ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection)
+            => ImmutableArray<SyntaxNode>.CastUp(root.GetFieldsAndPropertiesInSpan(textSpan, allowPartialSelection));
     }
 }

@@ -2,15 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal interface ISyntaxFactsService : ISyntaxFacts, ILanguageService
     {
+        bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+
+        bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+
+        bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+
         SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
 
         SyntaxToken ToIdentifierToken(string name);
+
+        ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
 
         // Walks the tree, starting from contextNode, looking for the first construct
         // with a missing close brace.  If found, the close brace will be added and the

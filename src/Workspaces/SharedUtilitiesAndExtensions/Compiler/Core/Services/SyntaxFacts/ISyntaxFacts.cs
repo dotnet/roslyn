@@ -98,10 +98,7 @@ namespace Microsoft.CodeAnalysis
         bool IsLiteralExpression(SyntaxNode node);
 
         string GetText(int kind);
-        bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-        bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-        bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type);
         bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op);
@@ -387,7 +384,6 @@ namespace Microsoft.CodeAnalysis
         bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);
 
-        ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
         bool IsOnTypeHeader(SyntaxNode root, int position, out SyntaxNode typeDeclaration);
 
         bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration);

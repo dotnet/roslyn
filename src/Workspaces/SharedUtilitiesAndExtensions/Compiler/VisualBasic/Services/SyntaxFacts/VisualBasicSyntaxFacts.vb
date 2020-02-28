@@ -102,22 +102,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function IsInInactiveRegion(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsInInactiveRegion
-            If syntaxTree Is Nothing Then
-                Return False
-            End If
-
-            Return syntaxTree.IsInInactiveRegion(position, cancellationToken)
-        End Function
-
-        Public Function IsInNonUserCode(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsInNonUserCode
-            If syntaxTree Is Nothing Then
-                Return False
-            End If
-
-            Return syntaxTree.IsInNonUserCode(position, cancellationToken)
-        End Function
-
         Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral
             If syntaxTree Is Nothing Then
                 Return False
@@ -1473,15 +1457,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node IsNot Nothing AndAlso TryCast(node.Parent, ForEachStatementSyntax)?.Expression Is node
         End Function
 
-        Public Function IsPossibleTupleContext(
-            syntaxTree As SyntaxTree,
-            position As Integer,
-            cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsPossibleTupleContext
-
-            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-            Return syntaxTree.IsPossibleTupleContext(token, position)
-        End Function
-
         Public Function GetExpressionOfExpressionStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfExpressionStatement
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
@@ -1720,10 +1695,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return False
-        End Function
-
-        Public Function GetSelectedFieldsAndProperties(root As SyntaxNode, textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFacts.GetSelectedFieldsAndProperties
-            Return ImmutableArray(Of SyntaxNode).CastUp(root.GetSelectedFieldsAndPropertiesInSpan(textSpan, allowPartialSelection))
         End Function
 
         Private Function ISyntaxFacts_GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFacts.GetFileBanner
