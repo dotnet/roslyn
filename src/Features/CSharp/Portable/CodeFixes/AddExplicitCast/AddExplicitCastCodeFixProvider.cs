@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -247,7 +248,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         {
                             // Check if the argument is in order with parameters.
                             // If the argument breaks the order, the rest arguments of matched functions must have names
-                            if (i != j) inOrder = false;
+                            if (i != j)
+                                inOrder = false;
                             parameterIndex = j;
                             found = true;
                             break;

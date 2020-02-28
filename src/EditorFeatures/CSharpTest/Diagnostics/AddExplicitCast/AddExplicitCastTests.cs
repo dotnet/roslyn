@@ -622,7 +622,6 @@ class Program
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task BaseConstructorArgument()
         {
@@ -652,7 +651,6 @@ class Program
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task ThisConstructorArgument()
@@ -1501,7 +1499,6 @@ class Program
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task MethodCandidates2_ArgumentsInOrder_NoLabels()
