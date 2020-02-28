@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.FileHeaders.CSharpFileHeaderDiagnosticAnalyzer,
@@ -46,7 +45,6 @@ namespace N
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -78,7 +76,6 @@ namespace N
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -111,7 +108,6 @@ namespace N
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -144,7 +140,6 @@ namespace N
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -177,7 +172,6 @@ namespace N
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = editorConfig,
             }.RunAsync();
         }
@@ -201,7 +195,6 @@ namespace Bar
             {
                 TestCode = testCode,
                 FixedCode = testCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -226,7 +219,6 @@ namespace Bar
             {
                 TestCode = testCode,
                 FixedCode = testCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -250,7 +242,6 @@ namespace Bar
             {
                 TestCode = testCode,
                 FixedCode = testCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -283,7 +274,6 @@ namespace Bar
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -314,7 +304,6 @@ namespace Bar
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -349,7 +338,6 @@ namespace Bar
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -379,7 +367,6 @@ namespace Bar
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 EditorConfig = TestSettingsWithEmptyLines,
             }.RunAsync();
         }

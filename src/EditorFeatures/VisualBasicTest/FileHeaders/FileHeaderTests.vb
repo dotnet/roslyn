@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Testing
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.FileHeaders.VisualBasicFileHeaderDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.VisualBasic.FileHeaders.VisualBasicFileHeaderCodeFixProvider)
@@ -40,7 +39,6 @@ End Namespace
             {
                 .TestCode = testCode,
                 .FixedCode = fixedCode,
-                .TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 .EditorConfig = TestSettings
             }.RunAsync()
         End Function
@@ -69,7 +67,6 @@ End Namespace
             {
                 .TestCode = testCode,
                 .FixedCode = fixedCode,
-                .TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 .EditorConfig = TestSettings
             }.RunAsync()
         End Function
@@ -99,7 +96,6 @@ End Namespace
             {
                 .TestCode = testCode,
                 .FixedCode = fixedCode,
-                .TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 .EditorConfig = TestSettings
             }.RunAsync()
         End Function
@@ -129,7 +125,6 @@ End Namespace
             {
                 .TestCode = testCode,
                 .FixedCode = fixedCode,
-                .TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 .EditorConfig = TestSettings
             }.RunAsync()
         End Function
@@ -159,7 +154,6 @@ End Namespace
             {
                 .TestCode = testCode,
                 .FixedCode = fixedCode,
-                .TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 .EditorConfig = editorConfig
             }.RunAsync()
         End Function
@@ -181,7 +175,6 @@ End Namespace
             {
                 .TestCode = testCode,
                 .FixedCode = testCode,
-                .TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 .EditorConfig = TestSettings
             }.RunAsync()
         End Function
@@ -211,7 +204,6 @@ End Namespace
             {
                 .TestCode = testCode,
                 .FixedCode = fixedCode,
-                .TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 .EditorConfig = TestSettings
             }.RunAsync()
         End Function
@@ -239,7 +231,6 @@ End Namespace
             {
                 .TestCode = testCode,
                 .FixedCode = fixedCode,
-                .TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 .EditorConfig = TestSettings
             }.RunAsync()
         End Function
@@ -271,7 +262,6 @@ End Namespace
             {
                 .TestCode = testCode,
                 .FixedCode = fixedCode,
-                .TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 .EditorConfig = TestSettings
             }.RunAsync()
         End Function
@@ -298,7 +288,6 @@ End Namespace
             {
                 .TestCode = testCode,
                 .FixedCode = fixedCode,
-                .TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 .EditorConfig = TestSettingsWithEmptyLines
             }.RunAsync()
         End Function

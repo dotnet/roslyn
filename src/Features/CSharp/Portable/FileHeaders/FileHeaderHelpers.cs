@@ -25,12 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
 
             if (firstNonWhitespaceTrivia == -1)
             {
-                return FileHeader.MissingFileHeader;
+                return FileHeader.MissingFileHeader(0);
             }
 
             var sb = StringBuilderPool.Allocate();
             var endOfLineCount = 0;
             var done = false;
+            var missingHeaderOffset = 0;
             var fileHeaderStart = int.MaxValue;
             var fileHeaderEnd = int.MinValue;
 
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
                             if (endIndex == -1)
                             {
                                 // While editing, it is possible to have a multiline comment trivia that does not contain the closing '*/' yet.
-                                return FileHeader.MissingFileHeader;
+                                return FileHeader.MissingFileHeader(missingHeaderOffset);
                             }
 
                             var commentContext = triviaString.Substring(startIndex, endIndex - startIndex).Trim();
@@ -88,6 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
                         done = endOfLineCount > 1;
                         break;
                     default:
+                        if (trivia.IsDirective)
+                        {
+                            missingHeaderOffset = trivia.FullSpan.End;
+                        }
+
                         done = (fileHeaderStart < fileHeaderEnd) || !trivia.IsDirective;
                         break;
                 }
@@ -96,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
             if (fileHeaderStart > fileHeaderEnd)
             {
                 StringBuilderPool.Free(sb);
-                return FileHeader.MissingFileHeader;
+                return FileHeader.MissingFileHeader(missingHeaderOffset);
             }
 
             if (sb.Length > 0)

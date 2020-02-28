@@ -23,32 +23,25 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// <param name="fileHeaderStart">The offset within the file at which the header started.</param>
         /// <param name="fileHeaderEnd">The offset within the file at which the header ended.</param>
         internal FileHeader(string copyrightText, int fileHeaderStart, int fileHeaderEnd, int commentPrefixLength)
-            : this(isMissing: false)
+            : this(fileHeaderStart, isMissing: false)
         {
             // Currently unused
             _ = fileHeaderEnd;
 
             CopyrightText = copyrightText;
-            _fileHeaderStart = fileHeaderStart;
             _commentPrefixLength = commentPrefixLength;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileHeader"/> class.
         /// </summary>
-        private FileHeader(bool isMissing)
+        private FileHeader(int fileHeaderStart, bool isMissing)
         {
+            _fileHeaderStart = fileHeaderStart;
+
             IsMissing = isMissing;
             CopyrightText = "";
         }
-
-        /// <summary>
-        /// Gets a <see cref="FileHeader"/> instance representing a missing file header.
-        /// </summary>
-        /// <value>
-        /// A <see cref="FileHeader"/> instance representing a missing file header.
-        /// </value>
-        internal static FileHeader MissingFileHeader { get; } = new FileHeader(isMissing: true);
 
         /// <summary>
         /// Gets a value indicating whether the file header is missing.
@@ -67,6 +60,19 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         internal string CopyrightText { get; }
 
         /// <summary>
+        /// Gets a <see cref="FileHeader"/> instance representing a missing file header starting at the specified
+        /// position.
+        /// </summary>
+        /// <param name="fileHeaderStart">The location at which a file header was expected. This will typically be the
+        /// start of the first line after any directive trivia (<see cref="SyntaxTrivia.IsDirective"/>) to account for
+        /// source suppressions.</param>
+        /// <returns>
+        /// A <see cref="FileHeader"/> instance representing a missing file header.
+        /// </returns>
+        internal static FileHeader MissingFileHeader(int fileHeaderStart)
+            => new FileHeader(fileHeaderStart, isMissing: true);
+
+        /// <summary>
         /// Gets the location representing the start of the file header.
         /// </summary>
         /// <param name="syntaxTree">The syntax tree to use for generating the location.</param>
@@ -75,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         {
             if (IsMissing)
             {
-                return Location.Create(syntaxTree, new TextSpan(0, 0));
+                return Location.Create(syntaxTree, new TextSpan(_fileHeaderStart, 0));
             }
 
             return Location.Create(syntaxTree, TextSpan.FromBounds(_fileHeaderStart, _fileHeaderStart + _commentPrefixLength));

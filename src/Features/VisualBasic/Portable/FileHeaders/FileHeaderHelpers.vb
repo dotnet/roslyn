@@ -12,12 +12,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
             Dim firstNonWhitespaceTrivia = IndexOfFirstNonWhitespaceTrivia(firstToken.LeadingTrivia, True)
 
             If firstNonWhitespaceTrivia = -1 Then
-                Return FileHeader.MissingFileHeader
+                Return FileHeader.MissingFileHeader(0)
             End If
 
             Dim sb = StringBuilderPool.Allocate()
             Dim endOfLineCount = 0
             Dim done = False
+            Dim missingHeaderOffset = 0
             Dim fileHeaderStart = Integer.MaxValue
             Dim fileHeaderEnd = Integer.MinValue
 
@@ -47,13 +48,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
                         done = endOfLineCount > 1
 
                     Case Else
+                        If trivia.IsDirective Then
+                            missingHeaderOffset = trivia.FullSpan.End
+                        End If
+
                         done = fileHeaderStart < fileHeaderEnd OrElse Not trivia.IsDirective
                 End Select
             Next
 
             If fileHeaderStart > fileHeaderEnd Then
                 StringBuilderPool.Free(sb)
-                Return FileHeader.MissingFileHeader
+                Return FileHeader.MissingFileHeader(missingHeaderOffset)
             End If
 
             If sb.Length > 0 Then
