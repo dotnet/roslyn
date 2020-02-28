@@ -7,7 +7,6 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ConflictMarkerResolution;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 {

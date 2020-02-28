@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -164,6 +162,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 syntaxTree.IsTypeOfExpressionContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsDefaultExpressionContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsSizeOfExpressionContext(position, tokenOnLeftOfPosition);
+        }
+
+        public static bool IsTypeOfExpressionContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
+        {
+            var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.TypeOfExpression))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsDefaultExpressionContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
+        {
+            var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.DefaultExpression))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsSizeOfExpressionContext(
+            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
+        {
+            var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.SizeOfExpression))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static bool IsAfterKeyword(this SyntaxTree syntaxTree, int position, SyntaxKind kind, CancellationToken cancellationToken)
@@ -375,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
             {
-                throw new ArgumentException(CSharpWorkspaceExtensionsResources.Expected_string_or_char_literal, nameof(token));
+                throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
             }
 
             var startLength = 1;
@@ -735,6 +770,155 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return token.Parent is GenericNameSyntax genericName && genericName.TypeArgumentList != null &&
                    genericName.TypeArgumentList.LessThanToken == lessThanToken && !genericName.TypeArgumentList.GreaterThanToken.IsMissing;
+        }
+
+        public static bool IsPreProcessorDirectiveContext(this SyntaxTree syntaxTree, int position, SyntaxToken preProcessorTokenOnLeftOfPosition, CancellationToken cancellationToken)
+        {
+            var token = preProcessorTokenOnLeftOfPosition;
+            var directive = token.GetAncestor<DirectiveTriviaSyntax>();
+
+            // Directives contain the EOL, so if the position is within the full span of the
+            // directive, then it is on that line, the only exception is if the directive is on the
+            // last line, the position at the end if technically not contained by the directive but
+            // its also not on a new line, so it should be considered part of the preprocessor
+            // context.
+            if (directive == null)
+            {
+                return false;
+            }
+
+            return
+                directive.FullSpan.Contains(position) ||
+                directive.FullSpan.End == syntaxTree.GetRoot(cancellationToken).FullSpan.End;
+        }
+
+        public static bool IsPreProcessorDirectiveContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true);
+
+            return syntaxTree.IsPreProcessorDirectiveContext(position, leftToken, cancellationToken);
+        }
+
+        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            return IsPreProcessorKeywordContext(
+                syntaxTree, position,
+                syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true));
+        }
+
+        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, SyntaxToken preProcessorTokenOnLeftOfPosition)
+        {
+            // cases:
+            //  #|
+            //  #d|
+            //  # |
+            //  # d|
+
+            // note: comments are not allowed between the # and item.
+            var token = preProcessorTokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.HashToken))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Are you possibly typing a tuple type or expression?
+        /// This is used to suppress colon as a completion trigger (so that you can type element names).
+        /// This is also used to recommend some keywords (like var).
+        /// </summary>
+        public static bool IsPossibleTupleContext(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
+        {
+            leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            // ($$
+            // (a, $$
+            if (IsPossibleTupleOpenParenOrComma(leftToken))
+            {
+                return true;
+            }
+
+            // ((a, b) $$
+            // (..., (a, b) $$
+            if (leftToken.IsKind(SyntaxKind.CloseParenToken))
+            {
+                if (leftToken.Parent.IsKind(
+                        SyntaxKind.ParenthesizedExpression,
+                        SyntaxKind.TupleExpression,
+                        SyntaxKind.TupleType))
+                {
+                    var possibleCommaOrParen = FindTokenOnLeftOfNode(leftToken.Parent);
+                    if (IsPossibleTupleOpenParenOrComma(possibleCommaOrParen))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // (a $$
+            // (..., b $$
+            if (leftToken.IsKind(SyntaxKind.IdentifierToken))
+            {
+                var possibleCommaOrParen = FindTokenOnLeftOfNode(leftToken.Parent);
+                if (IsPossibleTupleOpenParenOrComma(possibleCommaOrParen))
+                {
+                    return true;
+                }
+            }
+
+            // (a.b $$
+            // (..., a.b $$
+            if (leftToken.IsKind(SyntaxKind.IdentifierToken) &&
+                leftToken.Parent.IsKind(SyntaxKind.IdentifierName) &&
+                leftToken.Parent.IsParentKind(SyntaxKind.QualifiedName, SyntaxKind.SimpleMemberAccessExpression))
+            {
+                var possibleCommaOrParen = FindTokenOnLeftOfNode(leftToken.Parent.Parent);
+                if (IsPossibleTupleOpenParenOrComma(possibleCommaOrParen))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsPossibleTupleOpenParenOrComma(this SyntaxToken possibleCommaOrParen)
+        {
+            if (!possibleCommaOrParen.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+            {
+                return false;
+            }
+
+            if (possibleCommaOrParen.Parent.IsKind(
+                    SyntaxKind.ParenthesizedExpression,
+                    SyntaxKind.TupleExpression,
+                    SyntaxKind.TupleType,
+                    SyntaxKind.CastExpression))
+            {
+                return true;
+            }
+
+            // in script
+            if (possibleCommaOrParen.Parent.IsKind(SyntaxKind.ParameterList) &&
+                possibleCommaOrParen.Parent.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression))
+            {
+                var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)possibleCommaOrParen.Parent.Parent;
+                if (parenthesizedLambda.ArrowToken.IsMissing)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static SyntaxToken FindTokenOnLeftOfNode(SyntaxNode node)
+        {
+            return node.FindTokenOnLeftOfPosition(node.SpanStart);
         }
     }
 }

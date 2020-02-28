@@ -6,7 +6,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have

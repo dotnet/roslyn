@@ -5,13 +5,111 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SyntaxTreeExtensions
+        ''' <summary>
+        ''' check whether given token is the last token of a statement that ends with end of line trivia or an elastic trivia
+        ''' </summary>
+        <Extension()>
+        Public Function IsLastTokenOfStatementWithEndOfLine(token As SyntaxToken) As Boolean
+            If Not token.HasTrailingTrivia Then
+                Return False
+            End If
+
+            ' easy case
+            Dim trailing = token.TrailingTrivia
+            If trailing.Count = 1 Then
+                Dim trivia = trailing.First()
+
+                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+                    Return token.IsLastTokenOfStatement()
+                End If
+
+                Return False
+            End If
+
+            ' little bit more expansive case
+            For Each trivia In trailing
+                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+                    Return token.IsLastTokenOfStatement()
+                End If
+            Next
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' check whether given token is the last token of a statement by walking up the spine
+        ''' </summary>
+        <Extension()>
+        Public Function IsLastTokenOfStatement(token As SyntaxToken, Optional checkColonTrivia As Boolean = False) As Boolean
+            Dim current = token.Parent
+            While current IsNot Nothing
+                If current.FullSpan.End <> token.FullSpan.End Then
+                    Return False
+                End If
+
+                If TypeOf current Is StatementSyntax Then
+                    Dim colonTrivia = GetTrailingColonTrivia(DirectCast(current, StatementSyntax))
+                    If Not PartOfSingleLineLambda(current) AndAlso Not PartOfMultilineLambdaFooter(current) Then
+                        If checkColonTrivia Then
+                            If colonTrivia Is Nothing Then
+                                Return current.GetLastToken(includeZeroWidth:=True) = token
+                            End If
+                        Else
+                            Return current.GetLastToken(includeZeroWidth:=True) = token
+                        End If
+                    End If
+                End If
+
+                current = current.Parent
+            End While
+
+            Return False
+        End Function
+
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowImplicitBoxing:=False)>
+        Private Function GetTrailingColonTrivia(statement As StatementSyntax) As SyntaxTrivia?
+            If Not statement.HasTrailingTrivia Then
+                Return Nothing
+            End If
+
+            Return statement _
+                    .GetTrailingTrivia() _
+                    .FirstOrNull(Function(t) t.Kind = SyntaxKind.ColonTrivia)
+        End Function
+
+        Private Function PartOfSingleLineLambda(node As SyntaxNode) As Boolean
+            While node IsNot Nothing
+                If TypeOf node Is MultiLineLambdaExpressionSyntax Then Return False
+                If TypeOf node Is SingleLineLambdaExpressionSyntax Then Return True
+                node = node.Parent
+            End While
+            Return False
+        End Function
+
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False)>
+        Private Function PartOfMultilineLambdaFooter(node As SyntaxNode) As Boolean
+            For Each n In node.AncestorsAndSelf
+                Dim multiLine = TryCast(n, MultiLineLambdaExpressionSyntax)
+                If multiLine Is Nothing Then
+                    Continue For
+                End If
+
+                If (multiLine.EndSubOrFunctionStatement Is node) Then
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
         ''' <summary>
         ''' Finds the token being touched by this position. Unlike the normal FindTrivia helper, this helper will prefer
         ''' trivia to the left rather than the right if the position is on the border.
@@ -338,6 +436,24 @@ recurse:
         <Extension()>
         Public Function GetFirstEnclosingStatement(node As SyntaxNode) As StatementSyntax
             Return node.AncestorsAndSelf().Where(Function(n) TypeOf n Is StatementSyntax).OfType(Of StatementSyntax).FirstOrDefault()
+        End Function
+
+        ' Tuple literals aren't recognized by the parser until there is a comma
+        ' So a parenthesized expression is a possible tuple context too
+        <Extension>
+        Friend Function IsPossibleTupleContext(syntaxTree As SyntaxTree,
+                                               tokenOnLeftOfPosition As SyntaxToken,
+                                               position As Integer) As Boolean
+
+            tokenOnLeftOfPosition = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position)
+
+            If tokenOnLeftOfPosition.IsKind(SyntaxKind.OpenParenToken) Then
+                Return tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParenthesizedExpression,
+                                                           SyntaxKind.TupleExpression, SyntaxKind.TupleType)
+            End If
+
+            Return tokenOnLeftOfPosition.IsKind(SyntaxKind.CommaToken) AndAlso
+                tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.TupleType)
         End Function
     End Module
 End Namespace

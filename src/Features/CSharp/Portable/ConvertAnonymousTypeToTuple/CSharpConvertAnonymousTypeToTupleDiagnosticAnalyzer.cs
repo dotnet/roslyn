@@ -5,7 +5,6 @@
 #nullable enable
 
 using Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 

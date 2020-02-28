@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared ReadOnly Instance As New VisualBasicDocumentationCommentService()
 
         Private Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance)
+            MyBase.New(VisualBasicSyntaxFacts.Instance)
         End Sub
 
         Protected Overrides Function GetIdentifier(xmlName As XmlNameAttributeSyntax) As SyntaxToken

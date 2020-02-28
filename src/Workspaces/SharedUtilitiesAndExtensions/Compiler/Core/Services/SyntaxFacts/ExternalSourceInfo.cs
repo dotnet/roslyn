@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis
 {
     internal struct ExternalSourceInfo
     {

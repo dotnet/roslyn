@@ -5,7 +5,6 @@
 Imports Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

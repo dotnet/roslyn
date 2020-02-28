@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlTextAttributeSyntax>
     {
         private CSharpDocumentationCommentService()
-            : base(CSharpSyntaxFactsService.Instance)
+            : base(CSharpSyntaxFacts.Instance)
         {
         }
 
