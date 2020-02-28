@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The implementation of a value set factory of any numeric type <typeparamref name="T"/>,
         /// parameterized by a type class
-        /// <see cref="NumericTC{T}"/> that provides the primitives for that type.
+        /// <see cref="INumericTC{T}"/> that provides the primitives for that type.
         /// </summary>
-        private sealed class NumericValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, NumericTC<T>
+        private sealed class NumericValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, INumericTC<T>
         {
             public static readonly NumericValueSetFactory<T, TTC> Instance = new NumericValueSetFactory<T, TTC>();
 

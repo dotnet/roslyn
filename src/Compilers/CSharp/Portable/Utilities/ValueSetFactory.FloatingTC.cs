@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A type class providing primitive operations needed to support a value set for a floating-point type.
         /// </summary>
-        private interface FloatingTC<T> : NumericTC<T>
+        private interface FloatingTC<T> : INumericTC<T>
         {
             /// <summary>
             /// A "not a number" value for the floating-point type <typeparamref name="T"/>.
