@@ -410,6 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.PreserveSigAttribute))
@@ -434,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
             {
-                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
             {
@@ -453,22 +454,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
                 // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+                diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
             {
                 // IsUnmanagedAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
+                diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
             {
                 // IsByRefLikeAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
+                diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
             {
                 // [Extension] attribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
+                diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
             {
@@ -479,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (IsAsync)
                 {
-                    arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                    diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
@@ -519,15 +520,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsAccessor())
                 {
+                    var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+
                     if (this is SourceEventAccessorSymbol)
                     {
                         // CS1667: Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.
                         AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
-                        arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnEventAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
+                        diagnostics.Add(ErrorCode.ERR_AttributeNotOnEventAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
                     }
                     else
                     {
-                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                     }
                 }
 
@@ -537,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, DiagnosticBag diagnostics)
+        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsConditional);
 
@@ -607,6 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
@@ -617,31 +621,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
                 // DynamicAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+                diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
             {
                 // IsUnmanagedAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
+                diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
                 // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+                diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
             {
                 // IsByRefLikeAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
+                diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
+                diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+                diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
             {
@@ -663,12 +667,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RoslynDebug.Assert(arguments.AttributeSyntaxOpt?.ArgumentList is object);
 
             var attribute = arguments.Attribute;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
             bool hasErrors = false;
 
             if (!this.IsExtern || !this.IsStatic)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
+                diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
             }
 
@@ -684,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isAnyNestedMethodGeneric || ContainingType?.IsGenericType == true)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
+                diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
             }
 
@@ -693,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Dev10 reports CS0647: "Error emitting attribute ..."
                 CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
-                arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 hasErrors = true;
                 moduleName = null;
             }
@@ -722,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!MetadataHelpers.IsValidMetadataIdentifier(importName))
                         {
                             // Dev10 reports CS0647: "Error emitting attribute ..."
-                            arguments.Diagnostics.Add(ErrorCode.ERR_InvalidNamedArgument, arguments.AttributeSyntaxOpt.ArgumentList.Arguments[position].Location, namedArg.Key);
+                            diagnostics.Add(ErrorCode.ERR_InvalidNamedArgument, arguments.AttributeSyntaxOpt.ArgumentList.Arguments[position].Location, namedArg.Key);
                             hasErrors = true;
                             importName = null;
                         }
@@ -783,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable restore
 
-        internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -837,11 +842,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        protected void AsyncMethodChecks(DiagnosticBag diagnostics)
+        protected void AsyncMethodChecks(BindingDiagnosticBag diagnostics)
         {
             if (IsAsync)
             {
                 var errorLocation = this.Locations[0];
+                bool hasErrors = false;
 
                 if (this.RefKind != RefKind.None)
                 {
@@ -853,10 +859,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     };
 
                     ReportBadRefToken(returnTypeSyntax, diagnostics);
+                    hasErrors = true;
                 }
                 else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
+                    hasErrors = true;
                 }
 
                 for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
@@ -865,6 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
                     {
                         diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
+                        hasErrors = true;
                         break;
                     }
                 }
@@ -872,9 +881,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
                 {
                     diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
+                    hasErrors = true;
                 }
 
-                if (!diagnostics.HasAnyResolvedErrors())
+                if (!hasErrors)
                 {
                     ReportAsyncParameterErrors(diagnostics, errorLocation);
                 }

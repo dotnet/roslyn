@@ -476,8 +476,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isDerivedType(TypeSymbol derivedType, TypeSymbol baseType)
             {
-                HashSet<DiagnosticInfo> discardedDiagnostics = null;
-                return _conversions.WithNullability(false).ClassifyConversionFromType(derivedType, baseType, ref discardedDiagnostics).Kind switch
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return _conversions.WithNullability(false).ClassifyConversionFromType(derivedType, baseType, ref discardedUseSiteInfo).Kind switch
                 {
                     ConversionKind.Identity => true,
                     ConversionKind.ImplicitReference => true,

@@ -347,8 +347,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IsDerivedType(TypeSymbol possibleDerived, TypeSymbol possibleBase)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo);
         }
 
         private void MakeTestsAndBindings(

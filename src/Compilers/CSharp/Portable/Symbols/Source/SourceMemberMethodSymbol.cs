@@ -791,7 +791,7 @@ done:
             state.NotePartComplete(part);
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 

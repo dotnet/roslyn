@@ -882,11 +882,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check that the slot represents a value of an equivalent type to the node
                 TypeSymbol slotType = NominalSlotType(result);
                 TypeSymbol nodeType = node.Type;
-                HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var conversionsWithoutNullability = this.compilation.Conversions;
                 Debug.Assert(node.HasErrors || nodeType.IsErrorType() ||
-                       conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(slotType, nodeType, ref discardedUseSiteDiagnostics) ||
-                       conversionsWithoutNullability.HasBoxingConversion(slotType, nodeType, ref discardedUseSiteDiagnostics));
+                       conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(slotType, nodeType, ref discardedUseSiteInfo) ||
+                       conversionsWithoutNullability.HasBoxingConversion(slotType, nodeType, ref discardedUseSiteInfo));
             }
 #endif
             return result;
@@ -1429,11 +1429,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol possibleBase = possibleMember.ContainingType;
             TypeSymbol possibleDerived = NominalSlotType(slot);
-            HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var conversionsWithoutNullability = _conversions.WithNullability(false);
             return
-                conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteDiagnostics) ||
-                conversionsWithoutNullability.HasBoxingConversion(possibleDerived, possibleBase, ref discardedUseSiteDiagnostics);
+                conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo) ||
+                conversionsWithoutNullability.HasBoxingConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo);
         }
 
         // 'skipSlot' is the original target slot that should be skipped in case of cycles.

@@ -14,8 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal delegate void ReportMismatchinReturnType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool blameAttributes, TArg arg);
-    internal delegate void ReportMismatchInParameterType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol parameter, bool blameAttributes, TArg arg);
+    internal delegate void ReportMismatchinReturnType<TArg>(BindingDiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool blameAttributes, TArg arg);
+    internal delegate void ReportMismatchInParameterType<TArg>(BindingDiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol parameter, bool blameAttributes, TArg arg);
 
     internal partial class SourceMemberContainerTypeSymbol
     {
@@ -1054,14 +1054,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         static readonly ReportMismatchinReturnType<Location> ReportBadReturn =
-            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool blameAttributes, Location location)
+            (BindingDiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool blameAttributes, Location location)
             => diagnostics.Add(blameAttributes ?
                 ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes :
                 ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride,
                 location);
 
         static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
-            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool blameAttributes, Location location)
+            (BindingDiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool blameAttributes, Location location)
             => diagnostics.Add(
                 blameAttributes ? ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
                 location,

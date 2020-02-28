@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             AsyncMethodChecks(diagnostics);
 
             CompleteAsyncMethodChecks(diagnostics, cancellationToken);

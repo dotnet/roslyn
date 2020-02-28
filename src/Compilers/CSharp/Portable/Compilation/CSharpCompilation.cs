@@ -1284,8 +1284,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Interlocked.CompareExchange(ref _externAliasTargets, new ConcurrentDictionary<string, NamespaceSymbol>(), null);
             }
-            else if (_externAliasTargets.TryGetValue(aliasName, out @namespace))
+            else if (_externAliasTargets.TryGetValue(aliasName, out var cached))
             {
+                @namespace = cached;
                 return !(@namespace is MissingNamespaceSymbol);
             }
 

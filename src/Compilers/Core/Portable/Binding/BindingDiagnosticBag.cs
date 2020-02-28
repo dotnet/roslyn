@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis
             return !(first == second);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return (obj as ImmutableBindingDiagnostic<TAssemblySymbol>?)?.Equals(this) ?? false;
         }
