@@ -226,8 +226,8 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var localVariables = ArrayBuilder<ISymbol>.GetInstance();
 
             // Map a symbol to an index into the statementsFromDeclarationToEnd array.
-            var variableDeclarationIndex = PooledDictionary<ISymbol, int>.GetInstance();
-            var lastVariableUsageIndex = PooledDictionary<ISymbol, int>.GetInstance();
+            using var _1 = PooledDictionary<ISymbol, int>.GetInstance(out var variableDeclarationIndex);
+            using var _2 = PooledDictionary<ISymbol, int>.GetInstance(out var lastVariableUsageIndex);
 
             // Loop through the statements from the trigger declaration to the end of the containing body.
             // By starting with the trigger declaration it will add the trigger variable to the list of
@@ -285,8 +285,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
 
             localVariables.Free();
-            variableDeclarationIndex.Free();
-            lastVariableUsageIndex.Free();
 
             return statementsFromDeclarationToEnd[endOfUsingStatementIndex];
         }

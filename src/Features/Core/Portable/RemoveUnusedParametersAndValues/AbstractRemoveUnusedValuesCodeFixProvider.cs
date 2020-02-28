@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             // For both the above cases, if the original diagnostic was reported on a local declaration, i.e. redundant initialization
             // at declaration, then we also add a new variable declaration statement without initializer for this local.
 
-            var nodeReplacementMap = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();
+            using var _1 = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance(out var nodeReplacementMap);
             var nodesToRemove = PooledHashSet<SyntaxNode>.GetInstance();
             var nodesToAdd = PooledHashSet<(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)>.GetInstance();
             // Indicates if the node's trivia was processed.
@@ -601,7 +601,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
             finally
             {
-                nodeReplacementMap.Free();
                 nodesToRemove.Free();
                 nodesToAdd.Free();
                 processedNodes.Free();
@@ -712,22 +711,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             var newDocument = document.WithSyntaxRoot(currentRoot);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var memberDeclReplacementsMap = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();
-            try
-            {
-                foreach (var memberDecl in newRoot.DescendantNodes().Where(n => n.HasAnnotation(s_memberAnnotation)))
-                {
-                    var newMemberDecl = await processMemberDeclarationAsync(memberDecl, newDocument, cancellationToken).ConfigureAwait(false);
-                    memberDeclReplacementsMap.Add(memberDecl, newMemberDecl);
-                }
+            using var _1 = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance(out var memberDeclReplacementsMap);
 
-                return newRoot.ReplaceNodes(memberDeclReplacementsMap.Keys,
-                    computeReplacementNode: (node, _) => memberDeclReplacementsMap[node]);
-            }
-            finally
+            foreach (var memberDecl in newRoot.DescendantNodes().Where(n => n.HasAnnotation(s_memberAnnotation)))
             {
-                memberDeclReplacementsMap.Free();
+                var newMemberDecl = await processMemberDeclarationAsync(memberDecl, newDocument, cancellationToken).ConfigureAwait(false);
+                memberDeclReplacementsMap.Add(memberDecl, newMemberDecl);
             }
+
+            return newRoot.ReplaceNodes(memberDeclReplacementsMap.Keys,
+                computeReplacementNode: (node, _) => memberDeclReplacementsMap[node]);
         }
 
         /// <summary>

@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             out ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
             out ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
         {
-            var changedNonRemappableSpans = PooledDictionary<(int MethodToken, int MethodVersion, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance();
+            using var _ = PooledDictionary<(int MethodToken, int MethodVersion, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance(out var changedNonRemappableSpans);
             var activeStatementsInUpdatedMethodsBuilder = ArrayBuilder<(Guid, ActiveInstructionId, LinePositionSpan)>.GetInstance();
             var nonRemappableRegionsBuilder = ArrayBuilder<(ActiveMethodId Method, NonRemappableRegion Region)>.GetInstance();
 
@@ -1075,7 +1075,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             nonRemappableRegions = nonRemappableRegionsBuilder.ToImmutableAndFree();
-            changedNonRemappableSpans.Free();
             unremappedActiveMethods.Free();
         }
 

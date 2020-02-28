@@ -3173,8 +3173,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // - Lambda methods are generated to the same frame as before, so they can be updated in-place.
             // - "Parent" links between closure scopes are preserved.
 
-            var oldCapturesIndex = PooledDictionary<ISymbol, int>.GetInstance();
-            var newCapturesIndex = PooledDictionary<ISymbol, int>.GetInstance();
+            using var _1 = PooledDictionary<ISymbol, int>.GetInstance(out var oldCapturesIndex);
+            using var _2 = PooledDictionary<ISymbol, int>.GetInstance(out var newCapturesIndex);
 
             BuildIndex(oldCapturesIndex, oldCaptures);
             BuildIndex(newCapturesIndex, newCaptures);
@@ -3309,8 +3309,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             reverseCapturesMap.Free();
             newCapturesToClosureScopes.Free();
             oldCapturesToClosureScopes.Free();
-            oldCapturesIndex.Free();
-            newCapturesIndex.Free();
         }
 
         private void ReportMultiScopeCaptures(
@@ -3512,8 +3510,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             //   the closure tree of the previous version and then map 
             //   closure scopes in the new version to the previous ones, keeping empty closures around.
 
-            var oldLocalCapturesBySyntax = PooledDictionary<SyntaxNode, int>.GetInstance();
-            var oldParameterCapturesByLambdaAndOrdinal = PooledDictionary<(SyntaxNode? Node, int Ordinal), int>.GetInstance();
+            using var _1 = PooledDictionary<SyntaxNode, int>.GetInstance(out var oldLocalCapturesBySyntax);
+            using var _2 = PooledDictionary<(SyntaxNode? Node, int Ordinal), int>.GetInstance(out var oldParameterCapturesByLambdaAndOrdinal);
 
             for (var i = 0; i < oldCaptures.Length; i++)
             {
@@ -3732,8 +3730,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 hasErrors = true;
             }
-
-            oldLocalCapturesBySyntax.Free();
         }
 
         protected virtual void ReportLambdaSignatureRudeEdits(
