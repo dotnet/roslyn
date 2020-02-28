@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageServiceFactory(GetType(ISyntaxKindsService), LanguageNames.VisualBasic), [Shared]>
@@ -14,5 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return VisualBasicSyntaxKindsService.Instance
         End Function
+
+        Private NotInheritable Class VisualBasicSyntaxKindsService
+            Inherits VisualBasicSyntaxKinds
+            Implements ISyntaxKindsService
+
+            Public Shared Shadows ReadOnly Instance As New VisualBasicSyntaxKindsService
+        End Class
     End Class
 End Namespace

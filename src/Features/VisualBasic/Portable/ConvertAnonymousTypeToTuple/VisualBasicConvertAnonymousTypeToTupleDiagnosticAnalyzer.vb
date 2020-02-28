@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
             SyntaxKind, AnonymousObjectCreationExpressionSyntax)
 
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxKindsService.Instance)
+            MyBase.New(VisualBasicSyntaxKinds.Instance)
         End Sub
 
         Protected Overrides Function GetInitializerCount(anonymousType As AnonymousObjectCreationExpressionSyntax) As Integer

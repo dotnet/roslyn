@@ -6,11 +6,11 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class CSharpSyntaxKindsService : ISyntaxKindsService
+    internal class CSharpSyntaxKinds : ISyntaxKinds
     {
-        public static readonly CSharpSyntaxKindsService Instance = new CSharpSyntaxKindsService();
+        public static readonly CSharpSyntaxKinds Instance = new CSharpSyntaxKinds();
 
-        private CSharpSyntaxKindsService()
+        protected CSharpSyntaxKinds()
         {
         }
 

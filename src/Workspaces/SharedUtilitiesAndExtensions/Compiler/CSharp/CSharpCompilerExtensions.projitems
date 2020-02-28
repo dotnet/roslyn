@@ -71,9 +71,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\TokenBasedFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\WrappingFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\CSharpUnnecessaryImportsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxFacts.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxKindsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\FormattingRangeHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpTypeStyleHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpTypeStyleHelper.State.cs" />
@@ -82,5 +82,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" GenerateSource="true" Link="CSharpCompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" />
   </ItemGroup>
 </Project>

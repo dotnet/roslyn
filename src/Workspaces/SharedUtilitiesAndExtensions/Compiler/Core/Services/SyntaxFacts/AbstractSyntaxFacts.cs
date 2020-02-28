@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private readonly static ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
             = SharedPools.Default<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>();
 
-        public abstract ISyntaxKindsService SyntaxKinds { get; }
+        public abstract ISyntaxKinds SyntaxKinds { get; }
 
         // Matches the following:
         //

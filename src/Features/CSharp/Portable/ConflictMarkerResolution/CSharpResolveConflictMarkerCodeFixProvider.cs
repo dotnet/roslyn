@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 
         [ImportingConstructor]
         public CSharpResolveConflictMarkerCodeFixProvider()
-            : base(CSharpSyntaxKindsService.Instance, CS8300)
+            : base(CSharpSyntaxKinds.Instance, CS8300)
         {
         }
     }

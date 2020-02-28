@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution
 
         <ImportingConstructor>
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxKindsService.Instance, BC37284)
+            MyBase.New(VisualBasicSyntaxKinds.Instance, BC37284)
         End Sub
     End Class
 End Namespace

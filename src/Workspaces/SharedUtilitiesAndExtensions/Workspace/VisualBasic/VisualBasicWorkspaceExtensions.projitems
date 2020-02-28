@@ -52,6 +52,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSymbolDeclarationService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxFactsServiceFactory.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxKindsServiceFactory.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.TypeInferrer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\VisualBasicSimplificationHelpers.vb" />
@@ -78,5 +79,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicWorkspaceExtensionsResources.resx" GenerateSource="true" Link="VisualBasicWorkspaceExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)VisualBasicWorkspaceExtensionsResources.resx" />
   </ItemGroup>
 </Project>

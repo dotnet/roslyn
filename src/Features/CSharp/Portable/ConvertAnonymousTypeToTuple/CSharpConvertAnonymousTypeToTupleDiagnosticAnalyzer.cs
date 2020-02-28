@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
             AnonymousObjectCreationExpressionSyntax>
     {
         public CSharpConvertAnonymousTypeToTupleDiagnosticAnalyzer()
-            : base(CSharpSyntaxKindsService.Instance)
+            : base(CSharpSyntaxKinds.Instance)
         {
         }
 
