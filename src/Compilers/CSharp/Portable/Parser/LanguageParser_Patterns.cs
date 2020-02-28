@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             while (this.CurrentToken.ContextualKind == SyntaxKind.AndKeyword)
             {
                 var orToken = ConvertToKeyword(this.EatToken());
-                var right = ParseConjunctivePattern(precedence, afterIs, whenIsKeyword);
+                var right = ParseNegatedPattern(precedence, afterIs, whenIsKeyword);
                 result = _syntaxFactory.BinaryPattern(SyntaxKind.AndPattern, result, orToken, right);
                 result = CheckFeatureAvailability(result, MessageID.IDS_FeatureAndPattern);
             }
