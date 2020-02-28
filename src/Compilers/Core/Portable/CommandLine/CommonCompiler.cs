@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
-        protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts) { return input; }
+        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts) { return input; }
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {

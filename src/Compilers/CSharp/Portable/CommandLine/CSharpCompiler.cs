@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts)
+        private protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts)
         {
             //PROTOTYPE: this needs to be behind a feature flag
             //PROTOTYPE: we need to actually read the generators in via the provider mechanism
