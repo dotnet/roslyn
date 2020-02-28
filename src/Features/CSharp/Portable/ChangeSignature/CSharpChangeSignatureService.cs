@@ -388,8 +388,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     isReducedExtensionMethod = true;
                 }
 
+                bool isParamsArrayExpanded = false;
+                // TODO can't use symbol this way
+                if (((IMethodSymbol)symbolInfo.Symbol).Parameters.Last().IsParams)
+                {
+                    if (invocation.ArgumentList.Arguments.Count > ((IMethodSymbol)symbolInfo.Symbol).Parameters.Length)
+                    {
+                        isParamsArrayExpanded = true;
+                    }
+                    else if (invocation.ArgumentList.Arguments.Count == ((IMethodSymbol)symbolInfo.Symbol).Parameters.Length)
+                    {
+                        if (invocation.ArgumentList.Arguments.Last().NameColon == null)
+                        {
+                            var type = semanticModel.GetTypeInfo(invocation.ArgumentList.Arguments[invocation.ArgumentList.Arguments.Count - 1].Expression);
+                            var toType = ((IMethodSymbol)symbolInfo.Symbol).Parameters.Last().Type;
+                            isParamsArrayExpanded = !semanticModel.Compilation.HasImplicitConversion(type.Type, toType);
+                        }
+                    }
+                }
+
                 var newArguments = PermuteArgumentList(declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters(), isReducedExtensionMethod);
-                newArguments = AddNewArgumentsToList(newArguments, signaturePermutation, isReducedExtensionMethod);
+                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod, isParamsArrayExpanded);
                 return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -406,7 +425,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 }
 
                 var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
-                newArguments = AddNewArgumentsToList(newArguments, signaturePermutation, isReducedExtensionMethod);
+
+                // TODO
+                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod, false);
                 return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -679,5 +700,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
             => SpecializedCollections.SingletonEnumerable<AbstractFormattingRule>(new ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
+
+        internal override SyntaxNode AddName(SyntaxNode newArgument, string name)
+        {
+            return (newArgument as ArgumentSyntax).WithNameColon(SyntaxFactory.NameColon(name));
+        }
+
+        internal override SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
+        {
+            var listOfArguments = SyntaxFactory.SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
+            var initializerExpression = SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
+            var objectCreation = SyntaxFactory.ArrayCreationExpression((ArrayTypeSyntax)parameterSymbol.Type.GenerateTypeSyntax(allowVar: false), initializerExpression);
+            return SyntaxFactory.Argument(objectCreation);
+        }
     }
 }

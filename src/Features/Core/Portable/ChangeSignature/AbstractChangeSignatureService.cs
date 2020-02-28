@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -513,17 +514,24 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 expectedIndex++;
             }
 
-            // 5. Add added arguments (only at end for the moment)
-            var brandNewParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters().OfType<AddedParameter>();
+            // TODO: I don't think this does anything.
+            //// 5. Add added arguments (only at end for the moment)
+            //var brandNewParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters().OfType<AddedParameter>();
 
-            foreach (var brandNewParameter in brandNewParameters)
-            {
-                var callSiteValue = brandNewParameter.IsCallsiteError
-                    ? "TODO"
-                    : brandNewParameter.CallSiteValue;
+            //foreach (var brandNewParameter in brandNewParameters)
+            //{
+            //    if (brandNewParameter.IsCallsiteOmitted)
+            //    {
+            //        seenNamedArgument = true;
+            //        continue;
+            //    }
 
-                newArguments.Add(createIUnifiedArgument(callSiteValue).WithName(brandNewParameter.Name));
-            }
+            //    var callSiteValue = brandNewParameter.IsCallsiteError
+            //        ? "TODO"
+            //        : brandNewParameter.CallSiteValue;
+
+            //    newArguments.Add(createIUnifiedArgument(callSiteValue).WithName(brandNewParameter.Name));
+            //}
 
             // 6. Add the params argument with the first value:
             if (paramsArrayArgument != default)
@@ -550,7 +558,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     break;
                 }
 
-                if (!arguments[i].IsNamed || updatedSignature.UpdatedConfiguration.ToListOfParameters().Any(p => p.Name == arguments[i].GetName()))
+                if (!arguments[i].IsNamed || updatedSignature.UpdatedConfiguration.ToListOfParameters().Any<Parameter>(p => p.Name == arguments[i].GetName()))
                 {
                     newArguments.Add(arguments[i]);
                 }
@@ -734,9 +742,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected abstract ISyntaxFactsService SyntaxFacts { get; }
 
         protected SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
-          SeparatedSyntaxList<SyntaxNode> newArguments,
-          SignatureChange signaturePermutation,
-          bool isReducedExtensionMethod)
+            ISymbol declarationSymbol,
+            SeparatedSyntaxList<SyntaxNode> newArguments,
+            SignatureChange signaturePermutation,
+            bool isReducedExtensionMethod,
+            bool isParamsArrayExpanded)
         {
             List<SyntaxNode> fullList = new List<SyntaxNode>();
             List<SyntaxToken> separators = new List<SyntaxToken>();
@@ -746,6 +756,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             int indexInExistingList = 0;
 
             bool seenNameEquals = false;
+            bool seenOmitted = false;
+            bool paramsHandled = false;
 
             for (int i = 0; i < updatedParameters.Count; i++)
             {
@@ -755,6 +767,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     if (updatedParameters[i] is AddedParameter addedParameter)
                     {
+                        if (addedParameter.IsCallsiteOmitted)
+                        {
+                            seenOmitted = true;
+                            seenNameEquals = true;
+                            continue;
+                        }
+
                         fullList.Add(
                             Generator.Argument(
                                 name: seenNameEquals || addedParameter.UseNamedArguments ? addedParameter.Name : default,
@@ -764,7 +783,28 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     }
                     else
                     {
-                        if (indexInExistingList < newArguments.Count)
+                        if (indexInExistingList == (declarationSymbol as IMethodSymbol).Parameters.Length - 1 &&
+                            (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList].IsParams)
+                        {
+                            if (seenOmitted)
+                            {
+                                if (isParamsArrayExpanded)
+                                {
+                                    var newArgument = CreateArray(newArguments, indexInExistingList, (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList]);
+                                    newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList].Name);
+                                    fullList.Add(newArgument);
+                                }
+                                else
+                                {
+                                    var newArgument = newArguments[indexInExistingList];
+                                    newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList].Name);
+                                    fullList.Add(newArgument);
+                                }
+
+                                paramsHandled = true;
+                            }
+                        }
+                        else if (indexInExistingList < newArguments.Count)
                         {
                             if (SyntaxFacts.IsNamedParameter(newArguments[indexInExistingList]))
                             {
@@ -776,21 +816,32 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                                 separators.Add(newArguments.GetSeparator(indexInExistingList));
                             }
 
-                            fullList.Add(newArguments[indexInExistingList++]);
+                            var newArgument = newArguments[indexInExistingList];
+
+                            if (seenNameEquals && !SyntaxFacts.IsNamedParameter(newArgument))
+                            {
+                                newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList].Name);
+                            }
+
+                            fullList.Add(newArgument);
+                            indexInExistingList++;
                         }
                     }
                 }
             }
 
-            // Add the rest of existing parameters, e.g. from the params argument.
-            while (indexInExistingList < newArguments.Count)
+            if (!paramsHandled)
             {
-                if (indexInExistingList < newArguments.SeparatorCount)
+                // Add the rest of existing parameters, e.g. from the params argument.
+                while (indexInExistingList < newArguments.Count)
                 {
-                    separators.Add(newArguments.GetSeparator(indexInExistingList));
-                }
+                    if (indexInExistingList < newArguments.SeparatorCount)
+                    {
+                        separators.Add(newArguments.GetSeparator(indexInExistingList));
+                    }
 
-                fullList.Add(newArguments[indexInExistingList++]);
+                    fullList.Add(newArguments[indexInExistingList++]);
+                }
             }
 
             if (fullList.Count == separators.Count && separators.Count != 0)
@@ -800,6 +851,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return Generator.SeparatedList(fullList, separators);
         }
+
+        internal abstract SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol);
+        internal abstract SyntaxNode AddName(SyntaxNode newArgument, string name);
 
         protected List<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, List<SyntaxNode> permutedParamNodes)
         {
@@ -843,7 +897,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     // Found a param tag, so insert the next one from the reordered list
                     if (index < permutedParamNodes.Count)
                     {
-                        updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia(content.GetLeadingTrivia()).WithTrailingTrivia(content.GetTrailingTrivia()));
+                        updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia<SyntaxNode>(content.GetLeadingTrivia()).WithTrailingTrivia<SyntaxNode>(content.GetTrailingTrivia()));
                         index++;
                     }
                     else
@@ -853,7 +907,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
 
                 var newDocComments = Generator.DocumentationCommentTriviaWithUpdatedContent(trivia, updatedNodeList.AsEnumerable());
-                newDocComments = newDocComments.WithLeadingTrivia(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia(structuredTrivia.GetTrailingTrivia());
+                newDocComments = newDocComments.WithLeadingTrivia<SyntaxNode>(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia<SyntaxNode>(structuredTrivia.GetTrailingTrivia());
                 var newTrivia = Generator.Trivia(newDocComments);
                 updatedLeadingTrivia.Add(newTrivia);
             }

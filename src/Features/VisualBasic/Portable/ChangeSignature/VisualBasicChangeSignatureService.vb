@@ -342,7 +342,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
 
                 Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
-                newArguments = AddNewArgumentsToList(newArguments, updatedSignature, isReducedExtensionMethod)
+                ' TODO
+                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod, False)
                 Return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -370,7 +371,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
 
                 Dim newArguments = PermuteArgumentList(objectCreation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
-                newArguments = AddNewArgumentsToList(newArguments, updatedSignature, isReducedExtensionMethod)
+                ' TODO
+                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod, False)
                 Return objectCreation.WithArgumentList(objectCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -613,6 +615,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return newArgument
         End Function
 
+        Friend Overrides Function AddName(newArgument As SyntaxNode, name As String) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
         Protected Overrides ReadOnly Property Generator As SyntaxGenerator
             Get
                 Return VisualBasicSyntaxGenerator.Instance
@@ -630,6 +636,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return LanguageNames.VisualBasic
             End Get
         End Property
+
+        Friend Overrides Function CreateArray(newArguments As SeparatedSyntaxList(Of SyntaxNode), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
 
     End Class
 End Namespace
