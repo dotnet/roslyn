@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             activeStatementsInUpdatedMethods = activeStatementsInUpdatedMethodsBuilder.ToImmutableAndFree();
 
             // Gather all active method instances contained in this project/module that are not up-to-date:
-            var unremappedActiveMethods = PooledHashSet<ActiveMethodId>.GetInstance();
+            using var _ = PooledHashSet<ActiveMethodId>.GetInstance(out var unremappedActiveMethods);
             foreach (var (instruction, baseActiveStatement) in baseActiveStatements.InstructionMap)
             {
                 if (moduleId == instruction.MethodId.ModuleId && !baseActiveStatement.IsMethodUpToDate)
@@ -1075,7 +1075,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             nonRemappableRegions = nonRemappableRegionsBuilder.ToImmutableAndFree();
-            unremappedActiveMethods.Free();
         }
 
         internal void ChangesApplied()

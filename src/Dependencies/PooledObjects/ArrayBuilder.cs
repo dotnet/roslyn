@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void RemoveDuplicates()
         {
-            var set = PooledHashSet<T>.GetInstance();
+            using var _ = PooledHashSet<T>.GetInstance(out var set);
 
             var j = 0;
             for (var i = 0; i < Count; i++)
@@ -523,7 +523,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
 
             Clip(j);
-            set.Free();
         }
 
         public void SortAndRemoveDuplicates(IComparer<T> comparer)
@@ -551,7 +550,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         public ImmutableArray<S> SelectDistinct<S>(Func<T, S> selector)
         {
             var result = ArrayBuilder<S>.GetInstance(Count);
-            var set = PooledHashSet<S>.GetInstance();
+            using var _ = PooledHashSet<S>.GetInstance(out var set);
 
             foreach (var item in this)
             {
@@ -562,7 +561,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 }
             }
 
-            set.Free();
             return result.ToImmutableAndFree();
         }
     }

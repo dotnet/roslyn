@@ -149,56 +149,49 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var documentIds = containersFromAllDocuments.SelectAsArray(pair => pair.id);
             var solutionAfterNamespaceChange = annotatedSolution;
-            var referenceDocuments = PooledHashSet<DocumentId>.GetInstance();
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var referenceDocuments);
 
-            try
+            foreach (var documentId in documentIds)
             {
-                foreach (var documentId in documentIds)
-                {
-                    var (newSolution, refDocumentIds) =
-                        await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken)
-                            .ConfigureAwait(false);
-                    solutionAfterNamespaceChange = newSolution;
-                    referenceDocuments.AddRange(refDocumentIds);
-                }
-
-                var solutionAfterFirstMerge = await MergeDiffAsync(solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
-
-                // After changing documents, we still need to remove unnecessary imports related to our change.
-                // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
-                // just ones that fully match the old/new namespace. Because it's hard to get it right and will almost 
-                // certainly cause perf issue.
-                // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
-                // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
-                //
-                //      namespace Foo
-                //      {
-                //          using Bar;
-                //          ~~~~~~~~~
-                //      }
-                //
-                // Also, because we may have added different imports to document that triggered the refactoring
-                // and the documents that reference affected types declared in changed namespace, we try to remove
-                // unnecessary imports separately.
-
-                var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
-                    solutionAfterFirstMerge,
-                    documentIds,
-                    GetAllNamespaceImportsForDeclaringDocument(declaredNamespace, targetNamespace),
-                    cancellationToken).ConfigureAwait(false);
-
-                solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
-                    solutionAfterImportsRemoved,
-                    referenceDocuments.ToImmutableArray(),
-                    ImmutableArray.Create(declaredNamespace, targetNamespace),
-                    cancellationToken).ConfigureAwait(false);
-
-                return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+                var (newSolution, refDocumentIds) =
+                    await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken)
+                        .ConfigureAwait(false);
+                solutionAfterNamespaceChange = newSolution;
+                referenceDocuments.AddRange(refDocumentIds);
             }
-            finally
-            {
-                referenceDocuments.Free();
-            }
+
+            var solutionAfterFirstMerge = await MergeDiffAsync(solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
+
+            // After changing documents, we still need to remove unnecessary imports related to our change.
+            // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
+            // just ones that fully match the old/new namespace. Because it's hard to get it right and will almost 
+            // certainly cause perf issue.
+            // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
+            // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
+            //
+            //      namespace Foo
+            //      {
+            //          using Bar;
+            //          ~~~~~~~~~
+            //      }
+            //
+            // Also, because we may have added different imports to document that triggered the refactoring
+            // and the documents that reference affected types declared in changed namespace, we try to remove
+            // unnecessary imports separately.
+
+            var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
+                solutionAfterFirstMerge,
+                documentIds,
+                GetAllNamespaceImportsForDeclaringDocument(declaredNamespace, targetNamespace),
+                cancellationToken).ConfigureAwait(false);
+
+            solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
+                solutionAfterImportsRemoved,
+                referenceDocuments.ToImmutableArray(),
+                ImmutableArray.Create(declaredNamespace, targetNamespace),
+                cancellationToken).ConfigureAwait(false);
+
+            return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
         }
 
         protected async Task<ImmutableArray<(DocumentId, SyntaxNode)>> TryGetApplicableContainersFromAllDocumentsAsync(
@@ -635,7 +628,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         {
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var root = editor.OriginalRoot;
-            var containers = PooledHashSet<SyntaxNode>.GetInstance();
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var containers);
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -693,7 +686,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             root = await fixedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var result = (fixedDocument, containers.SelectAsArray(c => root.GetCurrentNode(c)));
 
-            containers.Free();
             return result;
         }
 
@@ -703,18 +695,18 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             ImmutableArray<string> names,
             CancellationToken cancellationToken)
         {
-            var LinkedDocumentsToSkip = PooledHashSet<DocumentId>.GetInstance();
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var linkedDocumentsToSkip);
             var documentsToProcessBuilder = ArrayBuilder<Document>.GetInstance();
 
             foreach (var id in ids)
             {
-                if (LinkedDocumentsToSkip.Contains(id))
+                if (linkedDocumentsToSkip.Contains(id))
                 {
                     continue;
                 }
 
                 var document = solution.GetDocument(id);
-                LinkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
+                linkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
                 documentsToProcessBuilder.Add(document);
 
                 document = await RemoveUnnecessaryImportsWorker(
@@ -725,7 +717,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             }
 
             var documentsToProcess = documentsToProcessBuilder.ToImmutableAndFree();
-            LinkedDocumentsToSkip.Free();
 
             var changeDocuments = await Task.WhenAll(documentsToProcess.Select(
                     doc => RemoveUnnecessaryImportsWorker(

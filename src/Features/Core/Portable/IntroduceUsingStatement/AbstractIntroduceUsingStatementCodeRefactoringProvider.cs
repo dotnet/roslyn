@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 var currentStatement = statementsFromDeclarationToEnd[statementIndex];
 
                 // Determine which local variables were referenced in this statement.
-                var referencedVariables = PooledHashSet<ISymbol>.GetInstance();
+                using var _ = PooledHashSet<ISymbol>.GetInstance(out var referencedVariables);
                 AddReferencedLocalVariables(referencedVariables, currentStatement, localVariables, semanticModel, syntaxFactsService, cancellationToken);
 
                 // Update the last usage index for each of the referenced variables.
@@ -245,8 +245,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 {
                     lastVariableUsageIndex[referencedVariable] = statementIndex;
                 }
-
-                referencedVariables.Free();
 
                 // Determine if new variables were declared in this statement.
                 var declaredVariables = semanticModel.GetAllDeclaredSymbols(currentStatement, cancellationToken);
