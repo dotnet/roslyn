@@ -113,6 +113,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // These exceptions can happen when the nuget.config file is broken.
                 packageSources = ImmutableArray<PackageSource>.Empty;
             }
+            catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
+            {
+                // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
+                // https://github.com/dotnet/roslyn/issues/40857
+                packageSources = ImmutableArray<PackageSource>.Empty;
+            }
 
             var previousPackageSources = ImmutableInterlocked.InterlockedCompareExchange(ref _packageSources, packageSources, default);
             if (previousPackageSources != null)

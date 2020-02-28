@@ -486,6 +486,7 @@ class D { }
             var solutionZ = workspace.CurrentSolution;
             var docZ = solutionZ.GetDocument(document1.Id);
             var docZText = await docZ.GetTextAsync();
+            Assert.Equal("public class X { }", docZText.ToString());
 
             var compilation2Z = await solutionZ.GetProject(id2).GetCompilationAsync();
             var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();

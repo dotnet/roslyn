@@ -157,9 +157,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
                 var generator = _document.GetLanguageService<SyntaxGenerator>();
 
+                // add nullable annotation to the parameter reference type, so that (in)equality operator implementations allow comparison against null
                 var parameters = ImmutableArray.Create(
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, LeftName),
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, RightName));
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType.IsValueType ? _containingType : _containingType.WithNullableAnnotation(NullableAnnotation.Annotated), LeftName),
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType.IsValueType ? _containingType : _containingType.WithNullableAnnotation(NullableAnnotation.Annotated), RightName));
 
                 members.Add(CreateEqualityOperator(compilation, generator, parameters));
                 members.Add(CreateInequalityOperator(compilation, generator, parameters));

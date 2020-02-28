@@ -4,7 +4,12 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
+
+#If CODE_STYLE Then
+Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+#Else
 Imports Microsoft.CodeAnalysis.Options
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicStructuredTriviaFormatEngine

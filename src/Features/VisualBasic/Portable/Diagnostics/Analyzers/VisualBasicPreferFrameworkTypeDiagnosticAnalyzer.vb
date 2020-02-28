@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
             ImmutableArray.Create(SyntaxKind.PredefinedType)
 
         Protected Overrides Function IsInMemberAccessOrCrefReferenceContext(node As ExpressionSyntax) As Boolean
-            Return node.IsInMemberAccessContext() OrElse node.InsideCrefReference()
+            Return node.IsDirectChildOfMemberAccessExpression() OrElse node.InsideCrefReference()
         End Function
 
         Protected Overrides Function IsPredefinedTypeReplaceableWithFrameworkType(node As PredefinedTypeSyntax) As Boolean

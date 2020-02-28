@@ -106,9 +106,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         Private Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
                 Function(document As Document, cursorPosition As Integer, presenter As IStreamingFindUsagesPresenter)
+                    Dim lazyPresenter = New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(presenter), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(presenter))
+                        DirectCast(New CSharpGoToDefinitionService(lazyPresenter), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(lazyPresenter))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)

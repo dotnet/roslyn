@@ -188,8 +188,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     _ = await client.TryRunRemoteAsync(
                         WellKnownRemoteHostServices.RemoteHostService,
                         nameof(IRemoteHostService.SynchronizeTextAsync),
-                        new object[] { oldDocument.Id, state.Text, textChanges },
                         solution: null,
+                        new object[] { oldDocument.Id, state.Text, textChanges },
                         callbackTarget: null,
                         CancellationToken).ConfigureAwait(false);
 

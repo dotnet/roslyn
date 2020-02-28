@@ -22,10 +22,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public ImmutableDictionary<K, V> ToImmutableDictionaryAndFree()
         {
-            var result = this.ToImmutableDictionary();
+            var result = this.ToImmutableDictionary(this.Comparer);
             this.Free();
             return result;
         }
+
+        public ImmutableDictionary<K, V> ToImmutableDictionary() => this.ToImmutableDictionary(this.Comparer);
 
         public void Free()
         {

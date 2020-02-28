@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             try
             {
-                await _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), cancellationToken).ConfigureAwait(false);
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             try
             {
-                return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments?.AsArray(), cancellationToken).ConfigureAwait(false);
+                return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {

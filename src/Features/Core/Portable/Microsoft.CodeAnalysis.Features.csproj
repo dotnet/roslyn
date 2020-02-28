@@ -95,23 +95,13 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(CompletionTestsKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\CodeStyle\Core\Analyzers\AbstractCodeStyleDiagnosticAnalyzer.cs" Link="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="..\..\..\CodeStyle\Core\Analyzers\FormattingAnalyzerHelper.cs" Link="Formatting\FormattingAnalyzerHelper.cs" />
     <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\FormattingCodeFixHelper.cs" Link="Formatting\FormattingCodeFixHelper.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\TextUtilities.cs" Link="Shared\Utilities\TextUtilities.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Debugging\SourceHashAlgorithms.cs" Link="Debugging\SourceHashAlgorithms.cs" />
-    <Compile Update="FeaturesResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>FeaturesResources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="FeaturesResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>FeaturesResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="FeaturesResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
@@ -124,4 +114,6 @@
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
+  <Import Project="..\..\..\Analyzers\Core\Analyzers\Analyzers.projitems" Label="Shared" />
+  <Import Project="..\..\..\Analyzers\Core\CodeFixes\CodeFixes.projitems" Label="Shared" />
 </Project>

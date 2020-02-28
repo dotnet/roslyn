@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // process changed projects
             foreach (var projectChanges in solutionChanges.GetProjectChanges())
             {
-                var documentsToProcess = projectChanges.GetChangedDocuments(true).Concat(
+                var documentsToProcess = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(
                     projectChanges.GetAddedDocuments());
 
                 foreach (var documentId in documentsToProcess)

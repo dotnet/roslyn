@@ -9,7 +9,9 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 
-#If Not CODE_STYLE Then
+#If CODE_STYLE Then
+Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+#Else
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
@@ -46,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return _rules
         End Function
 
-        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan) = Nothing) As IFormattingResult
+        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector) = Nothing) As IFormattingResult
             Return New AggregatedFormattingResult(node, results, formattingSpans)
         End Function
 

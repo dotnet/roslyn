@@ -2,21 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Shared.Collections
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class TriviaDataFactory
@@ -24,14 +14,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _node As SyntaxNode
-            Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan)
+            Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
             Private ReadOnly _lastToken As SyntaxToken
             Private ReadOnly _cancellationToken As CancellationToken
 
             Private ReadOnly _trailingTriviaMap As Dictionary(Of SyntaxToken, SyntaxTriviaList)
             Private ReadOnly _leadingTriviaMap As Dictionary(Of SyntaxToken, SyntaxTriviaList)
 
-            Public Sub New(node As SyntaxNode, spanToFormat As SimpleIntervalTree(Of TextSpan), map As Dictionary(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData), cancellationToken As CancellationToken)
+            Public Sub New(node As SyntaxNode, spanToFormat As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector), map As Dictionary(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData), cancellationToken As CancellationToken)
                 Contract.ThrowIfNull(node)
                 Contract.ThrowIfNull(map)
 

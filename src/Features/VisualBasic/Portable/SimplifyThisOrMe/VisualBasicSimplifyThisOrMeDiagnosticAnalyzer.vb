@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.SimplifyThisOrMe
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
@@ -19,10 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             ExpressionSyntax,
             MeExpressionSyntax,
             MemberAccessExpressionSyntax)
-
-        Public Sub New()
-            MyBase.New(ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression))
-        End Sub
 
         Protected Overrides Function GetLanguageName() As String
             Return LanguageNames.VisualBasic
@@ -38,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
                 cancellationToken As CancellationToken) As Boolean
 
             Dim replacementSyntax As ExpressionSyntax = Nothing
-            Return memberAccess.TryReduceOrSimplifyExplicitName(model, replacementSyntax, issueSpan, optionSet, cancellationToken)
+            Return ExpressionSimplifier.Instance.TrySimplify(memberAccess, model, optionSet, replacementSyntax, issueSpan, cancellationToken)
         End Function
     End Class
 End Namespace

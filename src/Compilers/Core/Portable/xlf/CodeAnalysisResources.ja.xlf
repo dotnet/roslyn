@@ -24,6 +24,11 @@
 '{1}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="DisableAnalyzerDiagnosticsMessage">
+        <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
+        <target state="new">Suppress the following diagnostics to disable this analyzer: {0}</target>
+        <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="translated">抑制された診断 ID '{0}' が、指定された抑制記述子の抑制可能な ID '{1}' と一致しません。</target>
@@ -576,12 +581,17 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="translated">アナライザー エラー</target>
-        <note />
+        <target state="needs-review-translation">アナライザー エラー</target>
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
-        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">アナライザー '{0}' が型 '{1}' の例外をメッセージ '{2}' 付きでスローしました。</target>
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="new">Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">

@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis
         /// A verbose format for displaying symbols (useful for testing).
         /// </summary>
         internal static readonly SymbolDisplayFormat TestFormatWithConstraints = TestFormat.WithGenericsOptions(TestFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeTypeConstraints).
-                                                                                            AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier).
+                                                                                            AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier).
                                                                                             WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         /// <summary>

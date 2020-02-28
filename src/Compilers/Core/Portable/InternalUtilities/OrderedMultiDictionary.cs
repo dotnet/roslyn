@@ -25,7 +25,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                SetWithInsertionOrder<V> set;
+                SetWithInsertionOrder<V>? set;
                 return _dictionary.TryGetValue(k, out set)
                     ? set : new SetWithInsertionOrder<V>();
             }
@@ -39,7 +39,7 @@ namespace Roslyn.Utilities
 
         public void Add(K k, V v)
         {
-            SetWithInsertionOrder<V> set;
+            SetWithInsertionOrder<V>? set;
             if (!_dictionary.TryGetValue(k, out set))
             {
                 _keys.Add(k);

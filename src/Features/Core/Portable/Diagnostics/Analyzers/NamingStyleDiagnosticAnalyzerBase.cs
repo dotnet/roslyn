@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         // see https://github.com/dotnet/roslyn/issues/14061
         protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
 
-        public override bool OpenFileOnly(OptionSet options) => true;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(CompilationStartAction);
 
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var namingPreferences = GetNamingStylePreferencesAsync(compilation, symbol, options, cancellationToken).GetAwaiter().GetResult();
+            var namingPreferences = GetNamingStylePreferences(compilation, symbol, options, cancellationToken);
             if (namingPreferences == null)
             {
                 return null;
@@ -152,8 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
         }
 
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        private static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(
+        private static NamingStylePreferences GetNamingStylePreferences(
             Compilation compilation,
             ISymbol symbol,
             AnalyzerOptions options,
@@ -165,8 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var optionSet = await options.GetDocumentOptionSetAsync(sourceTree, cancellationToken).ConfigureAwait(false);
-            return optionSet?.GetOption(SimplificationOptions.NamingPreferences, compilation.Language);
+            return options.GetOption(SimplificationOptions.NamingPreferences, compilation.Language, sourceTree, cancellationToken);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

@@ -54,6 +54,13 @@ namespace Microsoft.CodeAnalysis
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
+        /// <summary>
+        /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
+        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgressTracker)"/>. 
+        /// A document is unchangeable if <see cref="IDocumentOperationService.CanApplyChange"/> is false.
+        /// </summary>
+        internal virtual bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = false;
+
         private Action<string>? _testMessageLogger;
 
         /// <summary>
@@ -1264,19 +1271,20 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Changing_document_property_is_not_supported);
             }
 
-            var changedDocumentIds = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).ToImmutableArray();
+            var changedDocumentIds = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, IgnoreUnchangeableDocumentsWhenApplyingChanges).ToImmutableArray();
 
             if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument) && changedDocumentIds.Length > 0)
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
             }
 
-            foreach (var changedDocumentId in changedDocumentIds)
+            // Checking for unchangeable documents will only be done if we were asked not to ignore them.
+            foreach (var documentId in changedDocumentIds)
             {
-                var changedDocument = projectChanges.OldProject.GetDocumentState(changedDocumentId) ?? projectChanges.NewProject.GetDocumentState(changedDocumentId)!;
-                if (!changedDocument.CanApplyChange())
+                var document = projectChanges.OldProject.GetDocumentState(documentId) ?? projectChanges.NewProject.GetDocumentState(documentId)!;
+                if (!document.CanApplyChange())
                 {
-                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, changedDocument.FilePath ?? changedDocument.Name));
+                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, document.FilePath ?? document.Name));
                 }
             }
 
@@ -1486,8 +1494,8 @@ namespace Microsoft.CodeAnalysis
             var oldDoc = projectChanges.OldProject.GetDocument(documentId)!;
             var newDoc = projectChanges.NewProject.GetDocument(documentId)!;
 
-            // update text if changed
-            if (newDoc.HasTextChanged(oldDoc))
+            // update text if it's changed (unless it's unchangeable and we were asked to exclude them)
+            if (newDoc.HasTextChanged(oldDoc, IgnoreUnchangeableDocumentsWhenApplyingChanges))
             {
                 // What we'd like to do here is figure out what actual text changes occurred and pass them on to the host.
                 // However, since it is likely that the change was done by replacing the syntax tree, getting the actual text changes is non trivial.

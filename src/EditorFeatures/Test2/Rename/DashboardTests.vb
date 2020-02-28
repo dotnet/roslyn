@@ -631,5 +631,33 @@ class D : B
             End Using
         End Function
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameWithReferenceInUnchangeableDocument() As Task
+            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
+            changingOptions.Add(RenameOptions.RenameOverloads, True)
+            Await VerifyDashboard(
+                    (<Workspace>
+                         <Project Language="C#">
+                             <Document>
+                            public class $$A
+                            {
+                            }
+                        </Document>
+                             <Document CanApplyChange="false">
+                            class B
+                            {
+                                void M()
+                                {
+                                    A a;
+                                }
+                            }
+                        </Document>
+                         </Project>
+                     </Workspace>),
+                    newName:="C",
+                    searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
+                    changedOptionSet:=changingOptions)
+        End Function
     End Class
 End Namespace

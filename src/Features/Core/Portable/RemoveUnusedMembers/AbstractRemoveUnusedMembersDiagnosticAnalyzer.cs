@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Private_member_0_is_unused), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: true);
+            isUnnecessary: true);
 
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
         private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unread_private_members), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: true);
+            isUnnecessary: true);
 
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule),

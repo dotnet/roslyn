@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly SymbolDisplayFormat TestDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier);
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier);
 
         internal static TypeWithAnnotations Create(bool isNullableEnabled, TypeSymbol typeSymbol, bool isAnnotated = false)
         {
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return str + "?";
                 }
                 else if (NullableAnnotation.IsNotAnnotated() &&
-                    format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier) &&
+                    format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier) &&
                     (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())))
                 {
                     return str + "!";

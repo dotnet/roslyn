@@ -131,9 +131,7 @@ namespace Microsoft.CodeAnalysis
         [return: MaybeNull]
         internal T DecodeValue<T>(SpecialType specialType)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'T' is a non-nullable reference type.
             TryDecodeValue(specialType, out T value);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'T' is a non-nullable reference type.
             return value;
         }
 

@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            return nameToken.ValueText;
+            return nameToken.RawKind != 0 ? nameToken.ValueText : null;
         }
 
         /// <summary>

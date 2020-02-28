@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
+        public Task<IList<TodoComment>> GetTodoCommentsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var service = document.GetLanguageService<ITodoCommentService>();

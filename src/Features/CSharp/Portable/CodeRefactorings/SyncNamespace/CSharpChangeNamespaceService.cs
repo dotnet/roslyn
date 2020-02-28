@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
             if (syntaxFacts.IsRightSideOfQualifiedName(nameRef))
             {
+                RoslynDebug.Assert(nameRef.Parent is object);
                 oldNode = nameRef.Parent;
                 var aliasQualifier = GetAliasQualifier(oldNode);
 
@@ -158,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             }
             else if (syntaxFacts.IsNameOfMemberAccessExpression(nameRef))
             {
+                RoslynDebug.Assert(nameRef.Parent is object);
                 oldNode = nameRef.Parent;
                 var aliasQualifier = GetAliasQualifier(oldNode);
 

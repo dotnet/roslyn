@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Helper class for "Fix all occurrences" code fix providers.
     /// </summary>
-    internal partial class BatchFixAllProvider : FixAllProvider, IIntervalIntrospector<TextChange>
+    internal partial class BatchFixAllProvider : FixAllProvider
     {
         public static readonly FixAllProvider Instance = new BatchFixAllProvider();
 
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #endregion
 
-        internal override async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             await Task.WhenAll(fixerTasks).ConfigureAwait(false);
         }
 
-        internal override async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public virtual string GetFixAllTitle(FixAllState fixAllState)
         {
-            return fixAllState.GetDefaultFixAllTitle();
+            return FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
         }
 
         public virtual async Task<Solution> TryMergeFixesAsync(
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // More complex case.  We have multiple changes to the document.  Apply them in order
             // to get the final document.
 
-            var totalChangesIntervalTree = SimpleIntervalTree.Create(this);
+            var totalChangesIntervalTree = SimpleIntervalTree.Create(new TextChangeIntervalIntrospector(), Array.Empty<TextChange>());
 
             var oldDocument = oldSolution.GetDocument(orderedDocuments[0].document.Id);
             var differenceService = oldSolution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
@@ -351,8 +352,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             documentIdToFinalText.TryAdd(oldDocument.Id, newText);
         }
 
-        int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
-        int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
+        private readonly struct TextChangeIntervalIntrospector : IIntervalIntrospector<TextChange>
+        {
+            int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
+            int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
+        }
 
         private static Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
             _ => new ConcurrentBag<(CodeAction, Document)>();
@@ -396,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IDocumentTextDifferencingService differenceService,
             Document oldDocument,
             Document newDocument,
-            SimpleIntervalTree<TextChange> cumulativeChanges,
+            SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             CancellationToken cancellationToken)
         {
             var currentChanges = await differenceService.GetTextChangesAsync(
@@ -412,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static bool AllChangesCanBeApplied(
-            SimpleIntervalTree<TextChange> cumulativeChanges,
+            SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             ImmutableArray<TextChange> currentChanges)
         {
             var overlappingSpans = ArrayBuilder<TextChange>.GetInstance();
@@ -430,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static bool AllChangesCanBeApplied(
-            SimpleIntervalTree<TextChange> cumulativeChanges,
+            SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             ImmutableArray<TextChange> currentChanges,
             ArrayBuilder<TextChange> overlappingSpans,
             ArrayBuilder<TextChange> intersectingSpans)

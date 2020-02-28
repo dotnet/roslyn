@@ -19,6 +19,8 @@ namespace Roslyn.Utilities
     using System.Threading.Tasks;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
+#elif CODE_STYLE
+    using Resources = CodeStyleResources;
 #else
     using Resources = WorkspacesResources;
 #endif
@@ -169,7 +171,7 @@ namespace Roslyn.Utilities
             if (typeInfo.IsPrimitive)
             {
                 // Note: int, double, bool, char, have been chosen to go first as they're they
-                // common values of literals in code, and so would be hte likely hits if we do
+                // common values of literals in code, and so would be the likely hits if we do
                 // have a primitive type we're serializing out.
                 if (value.GetType() == typeof(int))
                 {
@@ -262,6 +264,55 @@ namespace Roslyn.Utilities
             {
                 WriteObject(instance: value, instanceAsWritableOpt: null);
             }
+        }
+
+        /// <summary>
+        /// Write an array of bytes. The array data is provided as a
+        /// <see cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="byte"/>&gt;, and deserialized to a byte array.
+        /// </summary>
+        /// <param name="span">The array data.</param>
+        public void WriteValue(ReadOnlySpan<byte> span)
+        {
+            int length = span.Length;
+            switch (length)
+            {
+                case 0:
+                    _writer.Write((byte)EncodingKind.Array_0);
+                    break;
+                case 1:
+                    _writer.Write((byte)EncodingKind.Array_1);
+                    break;
+                case 2:
+                    _writer.Write((byte)EncodingKind.Array_2);
+                    break;
+                case 3:
+                    _writer.Write((byte)EncodingKind.Array_3);
+                    break;
+                default:
+                    _writer.Write((byte)EncodingKind.Array);
+                    WriteCompressedUInt((uint)length);
+                    break;
+            }
+
+            var elementType = typeof(byte);
+            Debug.Assert(s_typeMap[elementType] == EncodingKind.UInt8);
+
+            WritePrimitiveType(elementType, EncodingKind.UInt8);
+
+#if NETCOREAPP
+            _writer.Write(span);
+#else
+            // BinaryWriter in .NET Framework does not support ReadOnlySpan<byte>, so we use a temporary buffer to write
+            // arrays of data. The buffer is chosen to be no larger than 8K, which avoids allocations in the large
+            // object heap.
+            var buffer = new byte[Math.Min(length, 8192)];
+            for (int offset = 0; offset < length; offset += buffer.Length)
+            {
+                var segmentLength = Math.Min(buffer.Length, length - offset);
+                span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
+                _writer.Write(buffer, 0, segmentLength);
+            }
+#endif
         }
 
         public void WriteValue(IObjectWritable value)

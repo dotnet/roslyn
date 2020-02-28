@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">源文件 "{0}" 的当前内容与生成的源不匹配。在调试期间对此文件所做的任何更改都不会应用，直到其内容与生成的源匹配为止。</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -277,16 +277,6 @@
         <target state="translated">可简化 "GetHashCode" 实现</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="translated">显式实现所有接口</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="translated">显式实现</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">显式实现 "{0}"</target>
@@ -297,14 +287,34 @@
         <target state="translated">隐式实现 "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">隐式实现所有接口</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">隐式实现</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -434,12 +444,12 @@
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <target state="translated">如果参数 "{0}" 不是已发布的公共 API 的一部分，则可将其删除，因为永远不会使用其初始值</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <target state="translated">可以删除参数 "{0}"，因为永远不会使用其初始值</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -569,7 +579,7 @@
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">无法读取源文件 "{0}" 或为包含项目生成的 PDB。在调试期间对此文件所做的任何更改都不会应用，直到其内容与生成的源匹配为止。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -700,6 +710,11 @@
       <trans-unit id="Use_simple_using_statement">
         <source>Use simple 'using' statement</source>
         <target state="translated">使用简单的 "using" 语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -2103,11 +2118,6 @@ This version used in: {2}</source>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(未知)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">实现抽象类</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

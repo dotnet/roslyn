@@ -27,11 +27,6 @@
         <target state="translated">ドキュメント '{0}' の変更はサポートされていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
-        <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
-        <target state="translated">コンパイルはタスクの実行に必要ですが、プロジェクト {0} ではサポートされていません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">コア EditorConfig オプション</target>
@@ -54,32 +49,12 @@
       </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
-        <target state="translated">ソース ファイル '{0}' -- '{1}' のコンテンツの読み取りでエラーが発生しました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expression_level_preferences">
-        <source>Expression-level preferences</source>
-        <target state="translated">式レベルの設定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences">
-        <source>Field preferences</source>
-        <target state="translated">フィールド設定</target>
+        <target state="translated">ソース ファイル '{0}' のコンテンツの読み取りでエラーが発生しました -- '{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">インデントと間隔</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
-        <source>Language keywords vs BCL types preferences</source>
-        <target state="translated">言語キーワードと BCL の種類の設定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifier_preferences">
-        <source>Modifier preferences</source>
-        <target state="translated">修飾子設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_rules">
@@ -99,17 +74,7 @@
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
-        <target state="new">Options did not come from specified Solution</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Organize_usings">
-        <source>Organize usings</source>
-        <target state="translated">using の整理</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_preferences">
-        <source>Parentheses preferences</source>
-        <target state="translated">かっこの設定</target>
+        <target state="translated">オプションは指定されたソリューションに由来するものではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
@@ -120,11 +85,6 @@
       <trans-unit id="Prefix_0_is_not_expected">
         <source>Prefix '{0}' is not expected</source>
         <target state="translated">プレフィックス '{0}' は予期されていません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
-        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
-        <target state="translated">ID {0} のプロジェクトはタスクの実行に必要ですが、このソリューションからは利用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -1337,11 +1297,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">記号の仕様</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
-        <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
-        <target state="translated">構文ツリーはタスクの実行に必要ですが、ドキュメント {0} ではサポートされていません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Visual Basic ファイル</target>
@@ -1360,6 +1315,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">ワークスペースが空ではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_in_a_different_project">
+        <source>{0} is in a different project.</source>
+        <target state="new">{0} is in a different project.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
@@ -1440,11 +1400,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">ソリューションには、指定されたドキュメントが既に含まれています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">ソリューションには、指定されたドキュメントがありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
@@ -1542,11 +1497,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">{0} が開いたままです。</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">キーが同じで値が異なる要素が既に存在します。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
         <target state="translated">複数の次元を持つ配列はシリアル化できません。</target>
@@ -1592,11 +1542,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">単項演算子のパラメーターの数が無効です。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Absolute_path_expected">
-        <source>Absolute path expected.</source>
-        <target state="translated">絶対パスが必要です。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
         <target state="translated">ファイルの拡張子 '{1}' が言語に関連付けられていないため、プロジェクト '{0}' を開くことができません。</target>
@@ -1635,21 +1580,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Added_colon">
         <source>Added:</source>
         <target state="translated">追加済み:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="translated">すべての '{0}' を修正します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">{1}' に含まれているすべての '{0}' を修正します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="translated">ソリューションに含まれているすべての '{0}' を修正します</target>
         <note />
       </trans-unit>
       <trans-unit id="After_colon">
@@ -1740,11 +1670,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
         <target state="translated">型 '{0}' のサービスはタスクの実行に必要ですが、このワークスペースからは利用できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="translated">診断に null は指定できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
@@ -2217,11 +2142,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">.NET コーディング規則</target>
         <note />
       </trans-unit>
-      <trans-unit id="this_dot_and_Me_dot_preferences">
-        <source>this. and Me. preferences</source>
-        <target state="translated">this. と Me. の設定</target>
-        <note />
-      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">[x-y] 範囲の順序が逆です</target>
@@ -2236,11 +2156,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Regex issue: {0}</source>
         <target state="translated">正規表現の問題: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="Parameter_preferences">
-        <source>Parameter preferences</source>
-        <target state="translated">パラメーターの設定</target>
-        <note />
       </trans-unit>
     </body>
   </file>

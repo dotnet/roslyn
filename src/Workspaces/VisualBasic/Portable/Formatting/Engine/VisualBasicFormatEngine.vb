@@ -4,7 +4,12 @@
 
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+
+#If CODE_STYLE Then
+Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+#Else
 Imports Microsoft.CodeAnalysis.Options
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicFormatEngine

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             => node.Keyword.Kind() != SyntaxKind.VoidKeyword;
 
         protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node)
-            => node.IsInMemberAccessContext() || node.InsideCrefReference();
+            => node.IsDirectChildOfMemberAccessExpression() || node.InsideCrefReference();
 
         protected override string GetLanguageName()
             => LanguageNames.CSharp;

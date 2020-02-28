@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case LookupResultKind.Viable:
                     // Case (2)
-                    DiagnosticBag resultDiagnostics = DiagnosticBag.GetInstance();
+                    var resultDiagnostics = DiagnosticBag.GetInstance();
                     bool wasError;
                     symbol = ResultSymbol(
                         lookupResult,
@@ -640,12 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Report diagnostics if System.String doesn't exist
                 this.GetSpecialType(SpecialType.System_String, diagnostics, syntax);
 
-                if (!Compilation.HasTupleNamesAttributes)
-                {
-                    var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
-                        AttributeDescription.TupleElementNamesAttribute.FullName);
-                    Error(diagnostics, info, syntax);
-                }
+                ReportMissingTupleElementNamesAttributesIfNeeded(Compilation, syntax.GetLocation(), diagnostics);
             }
 
             var typesArray = types.ToImmutableAndFree();
@@ -669,6 +664,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           errorPositions: default(ImmutableArray<bool>),
                                           syntax: syntax,
                                           diagnostics: diagnostics);
+        }
+
+        internal static void ReportMissingTupleElementNamesAttributesIfNeeded(CSharpCompilation compilation, Location location, DiagnosticBag diagnostics)
+        {
+            if (!compilation.HasTupleNamesAttributes)
+            {
+                var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                    AttributeDescription.TupleElementNamesAttribute.FullName);
+                Error(diagnostics, info, location);
+            }
         }
 
         private static void CollectTupleFieldMemberName(string name, int elementIndex, int tupleSize, ref ArrayBuilder<string> elementNames)

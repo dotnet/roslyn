@@ -3614,5 +3614,231 @@ class X
                 TypeParameter("T"),
                 Keyword("notnull"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NonDiscardVariableDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        var _ = int.Parse("""");
+    }
+}",
+            Keyword("var"),
+            Static("Parse"),
+            Method("Parse"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NonDiscardVariableDeclarationMultipleDeclarators()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int i = 1, _ = 1;
+        int _ = 2, j = 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        _ = int.Parse("""");
+    }
+}",
+            Keyword("_"),
+            Static("Parse"),
+            Method("Parse"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInOutDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int.TryParse("""", out var _);
+    }
+}",
+            Method("TryParse"),
+            Static("TryParse"),
+            Keyword("var"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInOutAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int.TryParse("""", out _);
+    }
+}",
+            Method("TryParse"),
+            Static("TryParse"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInDeconstructionAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        (x, _) = (0, 0);
+    }
+}",
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInDeconstructionDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        (int x, int _) = (0, 0);
+    }
+}",
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInPatternMatch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        return x is int _;
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInSwitch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        switch(x)
+        {
+            case int _:
+                return true;
+            default:
+                return false;
+        }
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInSwitchPatternMatch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        return x switch
+        {
+            _ => return true;
+        };
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task UnusedUnderscoreParameterInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int> a = (int _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task UsedUnderscoreParameterInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int> a = (int _) => _;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Parameter("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardsInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int, int> a = (int _, int _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Keyword("_"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardsInLambdaWithInferredType()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int, int> a = (_, _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Keyword("_"),
+            Keyword("_"));
+        }
     }
 }

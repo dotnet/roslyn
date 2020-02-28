@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
-        <target state="translated">Agregar "{0}" a un método importado impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Agregar "{0}" a un método de interfaz impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">Evite las asignaciones de valores innecesarias en el código, ya que probablemente indican cálculos de valores redundantes. Si el cálculo de valor no es redundante y tiene intención de retener la asignación, cambie el destino de asignación a una variable local cuyo nombre empieza por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
+        <target state="translated">Evite las asignaciones de valores innecesarias en el código, ya que probablemente indican cálculos de valores redundantes. Si el cálculo de valor no es redundante y tiene intención de retener la asignación, cambie el destino de la asignación a una variable local cuyo nombre empiece por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">El contenido actual del archivo de origen "{0}" no coincide con el del origen compilado, así que los cambios realizados en este archivo durante la depuración no se aplicarán hasta que coincida.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -277,16 +277,6 @@
         <target state="translated">La implementación de "GetHashCode" se puede simplificar.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="translated">Implementar todas las interfaces de forma explícita</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="translated">Implementar de forma explícita</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">Implementar "{0}" de forma explícita</target>
@@ -297,14 +287,34 @@
         <target state="translated">Implementar "{0}" de forma implícita</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">Implementar todas las interfaces de forma implícita</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Implementar de forma implícita</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -434,12 +444,12 @@
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <target state="translated">Se puede quitar el parámetro "{0}" si no forma parte de una API pública enviada; su valor inicial no se usa nunca</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <target state="translated">Se puede quitar el parámetro "{0}"; su valor inicial no se usa nunca</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -569,7 +579,7 @@
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">No se puede leer el archivo de origen "{0}" o el PDB compilado para el proyecto que lo contiene. Los cambios realizados en este archivo durante la depuración no se aplicarán hasta que su contenido coincida con el del origen compilado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -609,7 +619,7 @@
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="translated">Desencapsular la cadena de llamada</target>
+        <target state="translated">Desencapsular la cadena de llamadas</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -702,6 +712,11 @@
         <target state="translated">Use la instrucción "using" simple</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Advertencia: si cambia Cambiar el espacio de nombres puede producir código inválido y cambiar el significado del código.</target>
@@ -714,7 +729,7 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_call_chain">
         <source>Wrap and align call chain</source>
-        <target state="translated">Encapsular y alinear la cadena de llamada</target>
+        <target state="translated">Encapsular y alinear la cadena de llamadas</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
@@ -724,12 +739,12 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
         <source>Wrap and align long call chain</source>
-        <target state="translated">Encapsular y alinear la cadena de llamada larga</target>
+        <target state="translated">Encapsular y alinear la cadena de llamadas larga</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_call_chain">
         <source>Wrap call chain</source>
-        <target state="translated">Encapsular la cadena de llamada</target>
+        <target state="translated">Encapsular la cadena de llamadas</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -754,7 +769,7 @@
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
-        <target state="translated">Encapsular la cadena de llamada larga</target>
+        <target state="translated">Encapsular la cadena de llamadas larga</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -2103,11 +2118,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Desconocido)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Implementar clase abstracta</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

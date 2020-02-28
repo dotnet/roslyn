@@ -758,10 +758,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var suppressors = this.Analyzers.OfType<DiagnosticSuppressor>();
                 if (concurrent)
                 {
-                    Parallel.ForEach(suppressors, suppressor =>
+                    // Kick off tasks to concurrently execute suppressors.
+                    // Note that we avoid using Parallel.ForEach here to avoid wrapped exceptions.
+                    // See https://github.com/dotnet/roslyn/issues/41713 for details.
+                    var tasks = ArrayBuilder<Task>.GetInstance();
+                    try
                     {
-                        AnalyzerExecutor.ExecuteSuppressionAction(suppressor, getSuppressableDiagnostics(suppressor));
-                    });
+                        foreach (var suppressor in suppressors)
+                        {
+                            var task = Task.Run(
+                                () => AnalyzerExecutor.ExecuteSuppressionAction(suppressor, getSuppressableDiagnostics(suppressor)),
+                                AnalyzerExecutor.CancellationToken);
+                            tasks.Add(task);
+                        }
+
+                        Task.WaitAll(tasks.ToArray(), AnalyzerExecutor.CancellationToken);
+                    }
+                    finally
+                    {
+                        tasks.Free();
+                    }
                 }
                 else
                 {
@@ -944,8 +960,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableHashSet<ISymbol> ComputeGeneratedCodeSymbolsInTree(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
         {
             // PERF: Bail out early if file doesn't have "GeneratedCode" text.
-            var text = tree.GetText(cancellationToken).ToString();
-            if (!text.Contains("GeneratedCode"))
+            var walker = new GeneratedCodeTokenWalker(cancellationToken);
+            walker.Visit(tree.GetRoot(cancellationToken));
+            if (!walker.HasGeneratedCodeIdentifier)
             {
                 return ImmutableHashSet<ISymbol>.Empty;
             }

@@ -1716,10 +1716,10 @@ namespace CSharpSyntaxGenerator
         private Field DetermineMinimalOptionalField(Node nd)
         {
             // first if there is a single list, then choose the list because it would not have been optional
-            int listCount = nd.Fields.Count(f => IsAnyNodeList(f.Type));
+            int listCount = nd.Fields.Count(f => IsAnyNodeList(f.Type) && !IsAttributeOrModifiersList(f));
             if (listCount == 1)
             {
-                return nd.Fields.First(f => IsAnyNodeList(f.Type));
+                return nd.Fields.First(f => IsAnyNodeList(f.Type) && !IsAttributeOrModifiersList(f));
             }
             else
             {
@@ -1734,6 +1734,11 @@ namespace CSharpSyntaxGenerator
                     return null;
                 }
             }
+        }
+
+        private static bool IsAttributeOrModifiersList(Field f)
+        {
+            return f.Name == "AttributeLists" || f.Name == "Modifiers";
         }
 
         private IEnumerable<Field> DetermineMinimalFactoryFields(Node nd)
@@ -1770,6 +1775,14 @@ namespace CSharpSyntaxGenerator
                 return; // no string-name overload necessary
 
             this.WriteLine();
+
+            var hasOptional = minimalFactoryfields.Any(f => !IsRequiredFactoryField(nd, f));
+            var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
+
+            if (hasOptional && hasAttributeOrModifiersList)
+            {
+                WriteLine("#pragma warning disable RS0027");
+            }
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
@@ -1824,6 +1837,11 @@ namespace CSharpSyntaxGenerator
                 })));
 
             WriteLine(");");
+
+            if (hasOptional && hasAttributeOrModifiersList)
+            {
+                WriteLine("#pragma warning restore RS0027");
+            }
         }
 
         private bool CanAutoConvertFromString(Field field)
