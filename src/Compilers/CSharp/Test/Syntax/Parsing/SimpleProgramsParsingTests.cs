@@ -1522,5 +1522,78 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             }
             EOF();
         }
+
+        [Fact]
+        public void TupleUnsupportedInUsingStatement()
+        {
+            var test = @"
+using VT2 = (int, int);
+";
+
+            UsingTree(test,
+                // (2,13): error CS1001: Identifier expected
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 13),
+                // (2,13): error CS1002: ; expected
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 13),
+                // (2,14): error CS1525: Invalid expression term 'int'
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 14),
+                // (2,19): error CS1525: Invalid expression term 'int'
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 19)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "VT2");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.TupleExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }

@@ -9664,6 +9664,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to In all but one compilation unit the top-level statements must all be local function declarations..
+        /// </summary>
+        internal static string ERR_SimpleProgramMultipleUnitsWithExecutableStatements {
+            get {
+                return ResourceManager.GetString("ERR_SimpleProgramMultipleUnitsWithExecutableStatements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator &apos;_&apos; after the close paren &apos;)&apos;..
         /// </summary>
         internal static string ERR_SingleElementPositionalPatternRequiresDisambiguation {

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(code, args, symbols)
         {
             // Internal errors are abnormal and should not occur except where there are bugs in the compiler.
-            // PROTOTYPE(SimplePrograms): Enable Debug.Assert(code != ErrorCode.ERR_InternalError);
+            Debug.Assert(code != ErrorCode.ERR_InternalError);
             _additionalLocations = additionalLocations.IsDefaultOrEmpty ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations;
         }
 

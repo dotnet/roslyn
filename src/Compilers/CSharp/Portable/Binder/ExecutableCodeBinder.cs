@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -25,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntaxNode _root;
         private readonly Action<Binder, SyntaxNode> _binderUpdatedHandler;
         private SmallDictionary<SyntaxNode, Binder> _lazyBinderMap;
-        private ImmutableArray<MethodSymbol> _methodSymbolsWithYield;
 
         internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, Action<Binder, SyntaxNode> binderUpdatedHandler = null)
             : this(root, memberSymbol, next, next.Flags)
@@ -62,57 +62,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ComputeBinderMap()
         {
             SmallDictionary<SyntaxNode, Binder> map;
-            ImmutableArray<MethodSymbol> methodSymbolsWithYield;
 
-            // Ensure that the member symbol is a method symbol.
-            if ((object)_memberSymbol != null && _root != null)
+            if (_memberSymbol is SynthesizedSimpleProgramEntryPointSymbol entryPoint && _root == entryPoint.SyntaxNode)
             {
-                var methodsWithYield = ArrayBuilder<SyntaxNode>.GetInstance();
-                var symbolsWithYield = ArrayBuilder<MethodSymbol>.GetInstance();
-                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _binderUpdatedHandler);
-                foreach (var methodWithYield in methodsWithYield)
-                {
-                    Binder binder = this;
-                    if (methodWithYield.Kind() != SyntaxKind.GlobalStatement &&
-                        (methodWithYield == _root || map.TryGetValue(methodWithYield, out binder)))
-                    {
-                        Symbol containing = binder.ContainingMemberOrLambda;
+                map = new SmallDictionary<SyntaxNode, Binder>(ReferenceEqualityComparer.Instance);
+                var scopeOwner = new SimpleProgramBinder(this, entryPoint);
+                map.Add(_root, scopeOwner);
 
-                        // get the closest enclosing InMethodBinder and make it an iterator
-                        InMethodBinder inMethod = null;
-                        while (binder != null)
-                        {
-                            inMethod = binder as InMethodBinder;
-                            if (inMethod != null)
-                                break;
-                            binder = binder.Next;
-                        }
-                        if (inMethod != null && (object)inMethod.ContainingMemberOrLambda == containing)
-                        {
-                            inMethod.MakeIterator();
-                            symbolsWithYield.Add((MethodSymbol)inMethod.ContainingMemberOrLambda);
-                        }
-                        else
-                        {
-                            Debug.Assert(methodWithYield == _root && methodWithYield is ExpressionSyntax);
-                        }
-                    }
-                    else
-                    {
-                        // skip over it, this is an error
-                    }
+                Binder buckStopsHereBinder = Next;
+                while (buckStopsHereBinder.Next is object)
+                {
+                    buckStopsHereBinder = buckStopsHereBinder.Next;
                 }
-                methodsWithYield.Free();
-                methodSymbolsWithYield = symbolsWithYield.ToImmutableAndFree();
+
+                Debug.Assert(buckStopsHereBinder is BuckStopsHereBinder);
+
+                // Due to different usings in each compilation unit with top level statements, each of the units
+                // gets dedicated binder to bind top level statements within it.
+                foreach (CompilationUnitSyntax unit in entryPoint.GetUnits())
+                {
+                    Binder result = new InContainerBinder(Compilation.GlobalNamespace, buckStopsHereBinder, unit, inUsing: false);
+                    result = new InContainerBinder(entryPoint.ContainingType, result);
+                    result = new InMethodBinder(entryPoint, result);
+                    result = new SimpleProgramUnitBinder(result, scopeOwner);
+
+                    // We create another ExecutableCodeBinder to deal with nested scopes within top level statements within this particular unit.
+                    map.Add(unit, new ExecutableCodeBinder(unit, entryPoint, result));
+                }
             }
             else
             {
-                map = SmallDictionary<SyntaxNode, Binder>.Empty;
-                methodSymbolsWithYield = ImmutableArray<MethodSymbol>.Empty;
+                // Ensure that the member symbol is a method symbol.
+                if ((object)_memberSymbol != null && _root != null)
+                {
+                    map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, _binderUpdatedHandler);
+                }
+                else
+                {
+                    map = SmallDictionary<SyntaxNode, Binder>.Empty;
+                }
             }
 
             Interlocked.CompareExchange(ref _lazyBinderMap, map, null);
-            ImmutableInterlocked.InterlockedCompareExchange(ref _methodSymbolsWithYield, methodSymbolsWithYield, default(ImmutableArray<MethodSymbol>));
         }
 
         private SmallDictionary<SyntaxNode, Binder> BinderMap
@@ -128,69 +119,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableArray<MethodSymbol> MethodSymbolsWithYield
+        public static void ValidateIteratorMethod(CSharpCompilation compilation, MethodSymbol iterator, DiagnosticBag diagnostics)
         {
-            get
+            if (!iterator.IsIterator)
             {
-                if (_methodSymbolsWithYield.IsDefault)
-                {
-                    ComputeBinderMap();
-                }
-
-                return _methodSymbolsWithYield;
+                return;
             }
-        }
 
-        public void ValidateIteratorMethods(DiagnosticBag diagnostics)
-        {
-            foreach (var iterator in MethodSymbolsWithYield)
+            foreach (var parameter in iterator.Parameters)
             {
-                foreach (var parameter in iterator.Parameters)
+                if (parameter.RefKind != RefKind.None)
                 {
-                    if (parameter.RefKind != RefKind.None)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
-                    }
-                    else if (parameter.Type.IsUnsafe())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
-                    }
+                    diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
                 }
-
-                Location errorLocation = iterator.Locations[0];
-                if (iterator.IsVararg)
+                else if (parameter.Type.IsUnsafe())
                 {
-                    // error CS1636: __arglist is not allowed in the parameter list of iterators
-                    diagnostics.Add(ErrorCode.ERR_VarargsIterator, errorLocation);
+                    diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
                 }
+            }
 
-                if (((iterator as SourceMemberMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
-                    && Compilation.Options.AllowUnsafe) // Don't cascade
+            Location errorLocation = iterator.Locations[0];
+            if (iterator.IsVararg)
+            {
+                // error CS1636: __arglist is not allowed in the parameter list of iterators
+                diagnostics.Add(ErrorCode.ERR_VarargsIterator, errorLocation);
+            }
+
+            if (((iterator as SourceMemberMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
+                && compilation.Options.AllowUnsafe) // Don't cascade
+            {
+                diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, errorLocation);
+            }
+
+            var returnType = iterator.ReturnType;
+            RefKind refKind = iterator.RefKind;
+            TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, refKind, returnType, errorLocation, diagnostics);
+
+            if (elementType.IsDefault)
+            {
+                if (refKind != RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, errorLocation);
+                    Error(diagnostics, ErrorCode.ERR_BadIteratorReturnRef, errorLocation, iterator);
                 }
-
-                var returnType = iterator.ReturnType;
-                RefKind refKind = iterator.RefKind;
-                TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation, diagnostics);
-
-                if (elementType.IsDefault)
+                else if (!returnType.IsErrorType())
                 {
-                    if (refKind != RefKind.None)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_BadIteratorReturnRef, errorLocation, iterator);
-                    }
-                    else if (!returnType.IsErrorType())
-                    {
-                        Error(diagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, iterator, returnType);
-                    }
+                    Error(diagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, iterator, returnType);
                 }
+            }
 
-                bool asyncInterface = InMethodBinder.IsAsyncStreamInterface(Compilation, refKind, returnType);
-                if (asyncInterface && !iterator.IsAsync)
-                {
-                    diagnostics.Add(ErrorCode.ERR_IteratorMustBeAsync, errorLocation, iterator, returnType);
-                }
+            bool asyncInterface = InMethodBinder.IsAsyncStreamInterface(compilation, refKind, returnType);
+            if (asyncInterface && !iterator.IsAsync)
+            {
+                diagnostics.Add(ErrorCode.ERR_IteratorMustBeAsync, errorLocation, iterator, returnType);
             }
         }
     }

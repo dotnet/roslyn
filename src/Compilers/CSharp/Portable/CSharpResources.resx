@@ -5996,4 +5996,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement" xml:space="preserve">
     <value>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</value>
   </data>
+  <data name="ERR_SimpleProgramMultipleUnitsWithExecutableStatements" xml:space="preserve">
+    <value>In all but one compilation unit the top-level statements must all be local function declarations.</value>
+  </data>
 </root>

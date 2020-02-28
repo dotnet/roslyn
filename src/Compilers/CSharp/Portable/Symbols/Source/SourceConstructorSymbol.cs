@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConstructorDeclarationSyntax syntax,
             MethodKind methodKind,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), ImmutableArray.Create(location))
+            base(containingType, syntax.GetReference(), ImmutableArray.Create(location), isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
         {
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;

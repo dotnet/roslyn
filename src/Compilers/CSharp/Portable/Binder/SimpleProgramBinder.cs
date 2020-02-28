@@ -16,23 +16,29 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class SimpleProgramBinder : LocalScopeBinder
     {
-        private readonly CompilationUnitSyntax _compilationUnit;
+        private readonly SynthesizedSimpleProgramEntryPointSymbol _entryPoint;
 
-        public SimpleProgramBinder(Binder enclosing, CompilationUnitSyntax compilationUnit)
+        public SimpleProgramBinder(Binder enclosing, SynthesizedSimpleProgramEntryPointSymbol entryPoint)
             : base(enclosing, enclosing.Flags)
         {
-            RoslynDebug.Assert(compilationUnit is object);
-            _compilationUnit = compilationUnit;
+            _entryPoint = entryPoint;
         }
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            foreach (var statement in _compilationUnit.Members)
+
+            // All compilation units contribute top level declarations to this scope
+            foreach (var unit in _entryPoint.GetUnits())
             {
-                if (statement is GlobalStatementSyntax topLevelStatement)
+                var enclosing = (SimpleProgramUnitBinder)GetBinder(unit)!.Next!;
+
+                foreach (var statement in unit.Members)
                 {
-                    BuildLocals(this, topLevelStatement.Statement, locals);
+                    if (statement is GlobalStatementSyntax topLevelStatement)
+                    {
+                        enclosing.BuildLocals(enclosing, topLevelStatement.Statement, locals);
+                    }
                 }
             }
 
@@ -42,11 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
         {
             ArrayBuilder<LocalFunctionSymbol>? locals = null;
-            foreach (var statement in _compilationUnit.Members)
+            // All compilation units contribute top level declarations to this scope
+            foreach (var unit in _entryPoint.GetUnits())
             {
-                if (statement is GlobalStatementSyntax topLevelStatement)
+                var enclosing = (SimpleProgramUnitBinder)GetBinder(unit)!.Next!;
+
+                foreach (var statement in unit.Members)
                 {
-                    BuildLocalFunctions(topLevelStatement.Statement, ref locals);
+                    if (statement is GlobalStatementSyntax topLevelStatement)
+                    {
+                        enclosing.BuildLocalFunctions(topLevelStatement.Statement, ref locals);
+                    }
                 }
             }
 
@@ -64,13 +76,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
             ArrayBuilder<LabelSymbol>? labels = null;
-            RoslynDebug.Assert(this.ContainingMemberOrLambda is object);
-            var containingMethod = (MethodSymbol)this.ContainingMemberOrLambda;
-            foreach (var statement in _compilationUnit.Members)
+
+            // All compilation units contribute top level declarations to this scope
+            foreach (var unit in _entryPoint.GetUnits())
             {
-                if (statement is GlobalStatementSyntax topLevelStatement)
+                foreach (var statement in unit.Members)
                 {
-                    BuildLabels(containingMethod, topLevelStatement.Statement, ref labels);
+                    if (statement is GlobalStatementSyntax topLevelStatement)
+                    {
+                        BuildLabels(_entryPoint, topLevelStatement.Statement, ref labels);
+                    }
                 }
             }
 
@@ -99,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _compilationUnit;
+                return _entryPoint.SyntaxNode;
             }
         }
 

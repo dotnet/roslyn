@@ -579,7 +579,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 
-            ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
 
             bool reachableEndpoint = ControlFlowPass.Analyze(compilation, lambdaSymbol, block, diagnostics);

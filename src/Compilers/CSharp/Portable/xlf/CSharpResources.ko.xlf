@@ -417,6 +417,11 @@
         <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramMultipleUnitsWithExecutableStatements">
+        <source>In all but one compilation unit the top-level statements must all be local function declarations.</source>
+        <target state="new">In all but one compilation unit the top-level statements must all be local function declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">단일 요소 분해 패턴은 명확성을 위해 다른 구문이 필요합니다. 닫는 괄호 ')' 뒤에 무시 항목 지정자 '_'을 추가하는 것이 좋습니다.</target>
