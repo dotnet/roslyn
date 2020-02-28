@@ -142,8 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
             }
 
-            if (targetNode.GetAncestors<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument &&
-                targetArgument.Parent is ArgumentListSyntax argumentList && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
+            if (targetNode.GetAncestors<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
+                && targetArgument.Parent is ArgumentListSyntax argumentList
+                && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
                 // Implicit downcast appears on the argument of invocation node, get all candidate functions and extract potential conversion types 
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             });
 
             // filter types and clear up duplicate types
-            potentialConversionTypes = mutablePotentialConversionTypes.Where(filter).Distinct().ToImmutableArray(); 
+            potentialConversionTypes = mutablePotentialConversionTypes.Where(filter).Distinct().ToImmutableArray();
             return !potentialConversionTypes.IsEmpty;
         }
 
@@ -274,8 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         matchedTypes[parameterIndex] = true;
                         paramsMatchedByArray = true;
                     }
-                    else if (parameters[parameterIndex].IsParams && parameters.Last().Type is IArrayTypeSymbol paramsType &&
-                      semanticModel.Compilation.ClassifyCommonConversion(argType.Type, paramsType.ElementType).Exists)
+                    else if (parameters[parameterIndex].IsParams
+                             && parameters.Last().Type is IArrayTypeSymbol paramsType
+                             && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, paramsType.ElementType).Exists)
                     {
                         // The parameter with keyword params takes a variable number of arguments, compare its element type with the argument's type.
                         if (matchedTypes[parameterIndex] && paramsMatchedByArray) return false;
@@ -315,17 +317,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 (semanticModel, targetNode) => true,
                 (semanticModel, currentRoot, targetNode) =>
                 {
-                    if (TryGetTargetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes) &&
-                    potentialConversionTypes.Length == 1 && nodeType != null && !nodeType.Equals(potentialConversionTypes[0]) &&
-                        targetNode is ExpressionSyntax expression)
+                    if (TryGetTargetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes)
+                        && potentialConversionTypes.Length == 1
+                        && nodeType != null
+                        && !nodeType.Equals(potentialConversionTypes[0]))
                     {
                         var conversionType = potentialConversionTypes[0];
-                        var castExpression = expression.Cast(conversionType);
+                        var castExpression = targetNode.Cast(conversionType);
 
                         // TODO: castExpression.WithAdditionalAnnotations(Simplifier.Annotation) 
                         // - the Simplifier doesn't remove the redundant cast from the expression
                         // Issue link: https://github.com/dotnet/roslyn/issues/41500
-                        return currentRoot.ReplaceNode(expression, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
+                        return currentRoot.ReplaceNode(targetNode, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
                     }
 
                     return currentRoot;
