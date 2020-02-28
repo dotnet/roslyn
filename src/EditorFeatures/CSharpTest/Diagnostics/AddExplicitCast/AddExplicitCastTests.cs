@@ -620,7 +620,6 @@ class Program
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task BaseConstructorArgument()
         {
