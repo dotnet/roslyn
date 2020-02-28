@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
     /// <summary>
-    /// Class containing the parsed file header information.
+    /// Contains the parsed file header information for a syntax tree.
     /// </summary>
-    internal sealed class FileHeader
+    internal readonly struct FileHeader
     {
         private readonly int _fileHeaderStart;
         private readonly int _commentPrefixLength;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileHeader"/> class.
+        /// Initializes a new instance of the <see cref="FileHeader"/> struct.
         /// </summary>
         /// <param name="copyrightText">The copyright string, as parsed from the header.</param>
         /// <param name="fileHeaderStart">The offset within the file at which the header started.</param>
@@ -33,11 +33,14 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileHeader"/> class.
+        /// Initializes a new instance of the <see cref="FileHeader"/> struct.
         /// </summary>
+        /// <param name="fileHeaderStart">The offset within the file at which the header started, or was expected to start.</param>
+        /// <param name="isMissing"><see langword="true"/> if the file header is missing; otherwise, <see langword="false"/>.</param>
         private FileHeader(int fileHeaderStart, bool isMissing)
         {
             _fileHeaderStart = fileHeaderStart;
+            _commentPrefixLength = 0;
 
             IsMissing = isMissing;
             CopyrightText = "";
