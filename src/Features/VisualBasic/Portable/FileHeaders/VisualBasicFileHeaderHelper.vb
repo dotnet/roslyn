@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
             End Get
         End Property
 
-        Protected Overrides Function TryGetTextContextOfComment(commentTrivia As SyntaxTrivia) As String
+        Protected Overrides Function GetTextContextOfComment(commentTrivia As SyntaxTrivia) As String
             If Not commentTrivia.IsKind(SyntaxKind.CommentTrivia) Then
                 Throw ExceptionUtilities.UnexpectedValue(commentTrivia.Kind())
             End If

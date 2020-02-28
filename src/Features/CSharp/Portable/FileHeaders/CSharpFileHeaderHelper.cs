@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
         internal override int EndOfLineTriviaKind => (int)SyntaxKind.EndOfLineTrivia;
         internal override string CommentPrefix => "//";
 
-        protected override string TryGetTextContextOfComment(SyntaxTrivia commentTrivia)
+        protected override string GetTextContextOfComment(SyntaxTrivia commentTrivia)
         {
             if (commentTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
             {
@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
 
                 var startIndex = triviaString.IndexOf("/*", StringComparison.Ordinal) + 2;
                 var endIndex = triviaString.LastIndexOf("*/", StringComparison.Ordinal);
-                if (endIndex == -1)
+                if (endIndex < startIndex)
                 {
                     // While editing, it is possible to have a multiline comment trivia that does not contain the closing '*/' yet.
-                    return null;
+                    return triviaString.Substring(startIndex);
                 }
 
                 return triviaString.Substring(startIndex, endIndex - startIndex);

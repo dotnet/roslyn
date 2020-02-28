@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.FileHeaders.CSharpFileHeaderDiagnosticAnalyzer,
@@ -273,6 +274,31 @@ namespace Bar
         }
 
         /// <summary>
+        /// Verifies that a valid file header built using unterminated multi-line comments will not produce a diagnostic
+        /// message.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        [Fact]
+        public async Task TestValidFileHeaderWithMultiLineComments3Async()
+        {
+            var testCode = @"/* Copyright (c) SomeCorp. All rights reserved.
+   Licensed under the ??? license. See LICENSE file in the project root for full license information.
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(1,1): error CS1035: End-of-file found, '*/' expected
+                    DiagnosticResult.CompilerError("CS1035").WithSpan(1, 1, 1, 1),
+                },
+                FixedCode = testCode,
+                EditorConfig = TestSettings,
+            }.RunAsync();
+        }
+
+        /// <summary>
         /// Verifies that a file header without text / only whitespace will produce the expected diagnostic message.
         /// </summary>
         /// <param name="comment">The comment text.</param>
@@ -324,6 +350,89 @@ namespace Bar
 namespace Bar
 {
 }
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                EditorConfig = TestSettings,
+            }.RunAsync();
+        }
+
+        /// <summary>
+        /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        [Fact]
+        public async Task TestInvalidFileHeaderWithWrongText2Async()
+        {
+            var testCode = @"[|/*|] Copyright (c) OtherCorp. All rights reserved.
+ * Licensed under the ??? license. See LICENSE file in the project root for full license information.
+ */
+
+namespace Bar
+{
+}
+";
+            var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+
+/* Copyright (c) OtherCorp. All rights reserved.
+ * Licensed under the ??? license. See LICENSE file in the project root for full license information.
+ */
+
+namespace Bar
+{
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                EditorConfig = TestSettings,
+            }.RunAsync();
+        }
+
+        /// <summary>
+        /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        [Fact]
+        public async Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment1Async()
+        {
+            var testCode = @"{|CS1035:|}[|/*|] Copyright (c) OtherCorp. All rights reserved.
+ * Licensed under the ??? license. See LICENSE file in the project root for full license information.
+";
+            var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+
+{|CS1035:|}/* Copyright (c) OtherCorp. All rights reserved.
+ * Licensed under the ??? license. See LICENSE file in the project root for full license information.
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                EditorConfig = TestSettings,
+            }.RunAsync();
+        }
+
+        /// <summary>
+        /// Verifies that an invalid file header built using single line comments will produce the expected diagnostic message.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        [Fact]
+        public async Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment2Async()
+        {
+            var testCode = @"{|CS1035:|}[|/*|]/
+";
+            var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+
+{|CS1035:|}/*/
 ";
 
             await new VerifyCS.Test

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         internal abstract int EndOfLineTriviaKind { get; }
         internal abstract string CommentPrefix { get; }
 
-        protected abstract string? TryGetTextContextOfComment(SyntaxTrivia commentTrivia);
+        protected abstract string GetTextContextOfComment(SyntaxTrivia commentTrivia);
 
         internal FileHeader ParseFileHeader(SyntaxNode root)
         {
@@ -50,10 +50,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 {
                     endOfLineCount = 0;
 
-                    var commentText = TryGetTextContextOfComment(trivia);
-
-                    // Single line comments are always complete
-                    RoslynDebug.AssertNotNull(commentText);
+                    var commentText = GetTextContextOfComment(trivia);
 
                     fileHeaderStart = Math.Min(trivia.FullSpan.Start, fileHeaderStart);
                     fileHeaderEnd = trivia.FullSpan.End;
@@ -65,14 +62,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                     // only process a MultiLineCommentTrivia if no SingleLineCommentTrivia have been processed
                     if (sb.Length == 0)
                     {
-                        var commentText = TryGetTextContextOfComment(trivia);
-                        if (commentText is null)
-                        {
-                            // While editing, it is possible to have a multiline comment trivia that does not contain
-                            // the closing '*/' yet.
-                            return FileHeader.MissingFileHeader(missingHeaderOffset);
-                        }
-
+                        var commentText = GetTextContextOfComment(trivia);
                         var triviaStringParts = commentText.Trim().Replace("\r\n", "\n").Split('\n');
 
                         foreach (var part in triviaStringParts)
