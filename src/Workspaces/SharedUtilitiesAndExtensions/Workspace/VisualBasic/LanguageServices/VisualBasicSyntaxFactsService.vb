@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
@@ -49,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property SyntaxKinds As ISyntaxKindsService = VisualBasicSyntaxKindsService.Instance Implements ISyntaxFactsService.SyntaxKinds
+        Public Overrides ReadOnly Property SyntaxKinds As ISyntaxKinds = VisualBasicSyntaxKinds.Instance Implements ISyntaxFactsService.SyntaxKinds
 
         Protected Overrides ReadOnly Property DocumentationCommentService As IDocumentationCommentService
             Get

@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
     {
         private static readonly int s_mergeConflictLength = "<<<<<<<".Length;
 
-        private readonly ISyntaxKindsService _syntaxKinds;
+        private readonly ISyntaxKinds _syntaxKinds;
 
         protected AbstractResolveConflictMarkerCodeFixProvider(
-            ISyntaxKindsService syntaxKinds, string diagnosticId)
+            ISyntaxKinds syntaxKinds, string diagnosticId)
         {
             FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
             _syntaxKinds = syntaxKinds;

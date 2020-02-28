@@ -270,7 +270,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.LogBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogMessage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxKindsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\AliasAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\DoNotAllowVarAnnotation.cs" />
