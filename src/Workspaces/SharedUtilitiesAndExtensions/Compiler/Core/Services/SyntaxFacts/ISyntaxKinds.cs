@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis
         int EndOfLineTrivia { get; }
         int SkippedTokensTrivia { get; }
         int WhitespaceTrivia { get; }
+        int SingleLineCommentTrivia { get; }
+        int MultiLineCommentTrivia { get; }
 
         #endregion
 

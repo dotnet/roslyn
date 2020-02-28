@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public int EndOfLineTrivia => (int)SyntaxKind.EndOfLineTrivia;
         public int SkippedTokensTrivia => (int)SyntaxKind.SkippedTokensTrivia;
         public int WhitespaceTrivia => (int)SyntaxKind.WhitespaceTrivia;
+        public int SingleLineCommentTrivia => (int)SyntaxKind.SingleLineCommentTrivia;
+        public int MultiLineCommentTrivia => (int)SyntaxKind.MultiLineCommentTrivia;
 
         public int CharacterLiteralToken => (int)SyntaxKind.CharacterLiteralToken;
         public int DotToken => (int)SyntaxKind.DotToken;

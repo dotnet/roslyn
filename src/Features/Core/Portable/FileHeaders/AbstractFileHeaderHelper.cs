@@ -12,11 +12,20 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderHelper
     {
-        public abstract int SingleLineCommentTriviaKind { get; }
-        public abstract int MultiLineCommentTriviaKind { get; }
-        public abstract int WhitespaceTriviaKind { get; }
-        public abstract int EndOfLineTriviaKind { get; }
+        protected AbstractFileHeaderHelper(ISyntaxKinds syntaxKinds)
+        {
+            SingleLineCommentTriviaKind = syntaxKinds.SingleLineCommentTrivia;
+            MultiLineCommentTriviaKind = syntaxKinds.MultiLineCommentTrivia;
+            WhitespaceTriviaKind = syntaxKinds.WhitespaceTrivia;
+            EndOfLineTriviaKind = syntaxKinds.EndOfLineTrivia;
+        }
+
         public abstract string CommentPrefix { get; }
+
+        private int SingleLineCommentTriviaKind { get; }
+        private int MultiLineCommentTriviaKind { get; }
+        private int WhitespaceTriviaKind { get; }
+        private int EndOfLineTriviaKind { get; }
 
         protected abstract string GetTextContextOfComment(SyntaxTrivia commentTrivia);
 

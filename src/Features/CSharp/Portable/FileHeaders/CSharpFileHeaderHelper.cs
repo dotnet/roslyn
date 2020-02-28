@@ -18,13 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
         public static readonly CSharpFileHeaderHelper Instance = new CSharpFileHeaderHelper();
 
         private CSharpFileHeaderHelper()
+            : base(CSharpSyntaxKinds.Instance)
         {
         }
 
-        public override int SingleLineCommentTriviaKind => (int)SyntaxKind.SingleLineCommentTrivia;
-        public override int MultiLineCommentTriviaKind => (int)SyntaxKind.MultiLineCommentTrivia;
-        public override int WhitespaceTriviaKind => (int)SyntaxKind.WhitespaceTrivia;
-        public override int EndOfLineTriviaKind => (int)SyntaxKind.EndOfLineTrivia;
         public override string CommentPrefix => "//";
 
         protected override string GetTextContextOfComment(SyntaxTrivia commentTrivia)

@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         }
 
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
+        protected abstract ISyntaxKinds SyntaxKinds { get; }
 
         protected abstract SyntaxTrivia EndOfLine(string text);
         protected abstract SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             for (var i = 0; i < trivia.Count; i++)
             {
                 var triviaLine = trivia[i];
-                if (triviaLine.RawKind == FileHeaderHelper.SingleLineCommentTriviaKind)
+                if (triviaLine.RawKind == SyntaxKinds.SingleLineCommentTrivia)
                 {
                     if (possibleLeadingSpaces != string.Empty)
                     {
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                     removalList.Add(i);
                     onBlankLine = false;
                 }
-                else if (triviaLine.RawKind == FileHeaderHelper.WhitespaceTriviaKind)
+                else if (triviaLine.RawKind == SyntaxKinds.WhitespaceTrivia)
                 {
                     if (leadingSpaces == string.Empty)
                     {
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                         removalList.Add(i);
                     }
                 }
-                else if (triviaLine.RawKind == FileHeaderHelper.EndOfLineTriviaKind)
+                else if (triviaLine.RawKind == SyntaxKinds.EndOfLineTrivia)
                 {
                     possibleLeadingSpaces = string.Empty;
 
@@ -169,11 +170,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var skipCount = 0;
             for (var i = 0; i < leadingTrivia.Count; i++)
             {
-                if (leadingTrivia[i].RawKind == FileHeaderHelper.EndOfLineTriviaKind)
+                if (leadingTrivia[i].RawKind == SyntaxKinds.EndOfLineTrivia)
                 {
                     skipCount = i + 1;
                 }
-                else if (leadingTrivia[i].RawKind != FileHeaderHelper.WhitespaceTriviaKind)
+                else if (leadingTrivia[i].RawKind != SyntaxKinds.WhitespaceTrivia)
                 {
                     break;
                 }

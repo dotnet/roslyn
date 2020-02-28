@@ -18,6 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property SyntaxKinds As ISyntaxKinds
+            Get
+                Return VisualBasicSyntaxKinds.Instance
+            End Get
+        End Property
+
         Protected Overrides Function EndOfLine(text As String) As SyntaxTrivia
             Return SyntaxFactory.EndOfLine(text)
         End Function

@@ -11,31 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
         Public Shared ReadOnly Instance As VisualBasicFileHeaderHelper = New VisualBasicFileHeaderHelper()
 
         Private Sub New()
+            MyBase.New(VisualBasicSyntaxKinds.Instance)
         End Sub
-
-        Public Overrides ReadOnly Property SingleLineCommentTriviaKind As Integer
-            Get
-                Return SyntaxKind.CommentTrivia
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property MultiLineCommentTriviaKind As Integer
-            Get
-                Return SyntaxKind.None
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property WhitespaceTriviaKind As Integer
-            Get
-                Return SyntaxKind.WhitespaceTrivia
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property EndOfLineTriviaKind As Integer
-            Get
-                Return SyntaxKind.EndOfLineTrivia
-            End Get
-        End Property
 
         Public Overrides ReadOnly Property CommentPrefix As String
             Get
