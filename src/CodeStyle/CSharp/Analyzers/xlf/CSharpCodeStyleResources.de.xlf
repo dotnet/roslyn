@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
-        <target state="translated">Einstellungen für Umbrüche</target>
+        <target state="translated">Umbrucheinstellungen</target>
         <note />
       </trans-unit>
     </body>

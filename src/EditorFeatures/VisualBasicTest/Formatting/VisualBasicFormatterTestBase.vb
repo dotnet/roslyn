@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -28,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 ' create new buffer with cloned content
-                Dim clonedBuffer = EditorFactory.CreateBuffer(buffer.ContentType.TypeName, workspace.ExportProvider, buffer.CurrentSnapshot.GetText())
+                Dim clonedBuffer = EditorFactory.CreateBuffer(workspace.ExportProvider, buffer.ContentType, buffer.CurrentSnapshot.GetText())
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim syntaxTree = Await document.GetSyntaxTreeAsync()

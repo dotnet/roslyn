@@ -265,7 +265,7 @@ for 문의 세미콜론 앞에 공백 삽입;
       </trans-unit>
       <trans-unit id="311">
         <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
-        <target state="translated">줄 바꿈 서식 옵션 변경;블록 한 줄에 두기;문과 멤버 선언을 같은 줄에 두기</target>
+        <target state="translated">래핑 서식 옵션 변경;블록 한 줄에 두기;문과 멤버 선언을 같은 줄에 두기</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
@@ -316,7 +316,7 @@ Show name suggestions;</source>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">줄 바꿈</target>
+        <target state="translated">래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="111">

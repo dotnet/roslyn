@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -33,13 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null)
+            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             return BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters);
+                inlineDescription, matchingFilters, flags);
         }
 
         [Fact]

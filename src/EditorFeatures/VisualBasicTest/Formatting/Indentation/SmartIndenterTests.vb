@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -2995,7 +2997,7 @@ end class"
                 expectedIndentation As Integer)
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents)
 
                 Dim factory = TryCast(workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)(),
                                     TestFormattingRuleFactoryServiceFactory.Factory)
@@ -3004,8 +3006,8 @@ end class"
                     factory.TextSpan = subjectDocument.SelectedSpans.Single()
                 End If
 
-                Dim indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
-                Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor)
+                Dim indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
+                Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor)
 
                 TestIndentation(
                     point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
@@ -3028,9 +3030,9 @@ end class"
                 useTabs As Boolean,
                 indentStyle As FormattingOptions.IndentStyle)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.Options = workspace.Options _
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle) _
-                    .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, useTabs)
+                    .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, useTabs)))
 
                 TestIndentation(workspace, indentationLine, expectedIndentation)
             End Using

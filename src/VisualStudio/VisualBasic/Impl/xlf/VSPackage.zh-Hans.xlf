@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="10161">
         <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
-        <target state="translated">Qualify with Me;Prefer intrinsic types;Style;Code Style</target>
+        <target state="translated">使用"Me"限定权限;首选内部类型;样式;代码样式</target>
         <note>Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="110">

@@ -21,6 +21,9 @@
 
     <!-- Properties should not return arrays - not useful for tests -->
     <Rule Id="CA1819" Action="None" />
+
+    <!-- Use Length/Count property instead of Count() when available - lot of violations for tests -->
+    <Rule Id="CA1829" Action="None" />
   </Rules>
 
   <Rules AnalyzerId="Microsoft.CodeAnalysis.Analyzers" RuleNamespace="Microsoft.CodeAnalysis.Analyzers">

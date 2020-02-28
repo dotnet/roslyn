@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     internal class CompletionSource : ForegroundThreadAffinitizedObject, IAsyncExpandingCompletionSource
     {
         internal const string RoslynItem = nameof(RoslynItem);
+        internal const string TriggerLocation = nameof(TriggerLocation);
         internal const string CompletionListSpan = nameof(CompletionListSpan);
         internal const string InsertionText = nameof(InsertionText);
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
@@ -105,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
             _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
 
-            // Reset a flag which means a snippet triggerred by ? + Tab.
+            // Reset a flag which means a snippet triggered by ? + Tab.
             // Set it later if met the condition.
             _snippetCompletionTriggeredIndirectly = false;
 
@@ -284,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 foreach (var roslynItem in completionList.Items)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var item = Convert(document, roslynItem, filterSet);
+                    var item = Convert(document, roslynItem, filterSet, triggerLocation);
                     itemsBuilder.Add(item);
                 }
 
@@ -370,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         /// <summary>
-        /// We'd like to cache VS Completion item dircetly to avoid allocation completely. However it holds references
+        /// We'd like to cache VS Completion item directly to avoid allocation completely. However it holds references
         /// to transient objects, which would cause memory leak (among other potential issues) if cached. 
         /// So as a compromise,  we cache data that can be calculated from Roslyn completion item to avoid repeated 
         /// calculation cost for cached Roslyn completion items.
@@ -408,7 +411,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private VSCompletionItem Convert(
             Document document,
             RoslynCompletionItem roslynItem,
-            FilterSet filterSet)
+            FilterSet filterSet,
+            SnapshotPoint triggerLocation)
         {
             VSCompletionItemData itemData;
 
@@ -462,6 +466,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 attributeIcons: itemData.AttributeIcons);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
+            item.Properties.AddProperty(TriggerLocation, triggerLocation);
 
             return item;
         }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -464,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            return nameToken.ValueText;
+            return nameToken.RawKind != 0 ? nameToken.ValueText : null;
         }
 
         /// <summary>
@@ -477,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool IsReservedTupleElementName(string elementName)
         {
-            return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
+            return NamedTypeSymbol.IsTupleElementNameReserved(elementName) != -1;
         }
 
         internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)

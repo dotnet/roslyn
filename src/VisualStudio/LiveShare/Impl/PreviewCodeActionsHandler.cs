@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -28,10 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             var edits = ArrayBuilder<LSP.TextEdit>.GetInstance();
             var solution = requestContext.Context;
             var codeActions = await GetCodeActionsAsync(solution,
-                                                        request.CodeActionParams.TextDocument.Uri,
-                                                        request.CodeActionParams.Range,
-                                                        keepThreadContext: false,
-                                                        cancellationToken).ConfigureAwait(false);
+                request.CodeActionParams.TextDocument.Uri,
+                request.CodeActionParams.Range,
+                cancellationToken).ConfigureAwait(false);
 
             var actionToRun = codeActions?.FirstOrDefault(a => a.Title == request.Title);
 

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -639,7 +641,8 @@ $$</Document>
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, True, <Document>123123123123123123123123123 + $$</Document>)
+            Using state = TestState.CreateCSharpTestState(text, True)
+                state.TextView.TextBuffer.Insert(0, "123123123123123123123123123 + ")
                 state.SendTypeChars("arg")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("123123123123123123123123123 + arg", state.GetCurrentViewLineText())

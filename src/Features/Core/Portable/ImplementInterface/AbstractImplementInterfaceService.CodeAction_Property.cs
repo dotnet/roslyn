@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -35,21 +38,22 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var getAccessor = GenerateGetAccessor(
                     compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
-                    propertyGenerationBehavior, attributesToRemove, cancellationToken);
+                    propertyGenerationBehavior, attributesToRemove);
 
                 var setAccessor = GenerateSetAccessor(
                     compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
-                    propertyGenerationBehavior, attributesToRemove, cancellationToken);
+                    propertyGenerationBehavior, attributesToRemove);
 
-                var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = Document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+
                 var parameterNames = NameGenerator.EnsureUniqueness(
-                    property.Parameters.Select(p => p.Name).ToList(), isCaseSensitive: syntaxFacts.IsCaseSensitive);
+                    property.Parameters.SelectAsArray(p => p.Name),
+                    isCaseSensitive: syntaxFacts.IsCaseSensitive);
 
                 var updatedProperty = property.RenameParameters(parameterNames);
 
                 updatedProperty = updatedProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(compilation.Assembly, attributesToRemove);
 
-                // TODO(cyrusn): Delegate through throughMember if it's non-null.
                 return CodeGenerationSymbolFactory.CreatePropertySymbol(
                     updatedProperty,
                     accessibility: accessibility,
@@ -79,8 +83,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                INamedTypeSymbol[] attributesToRemove,
-                CancellationToken cancellationToken)
+                INamedTypeSymbol[] attributesToRemove)
             {
                 if (property.SetMethod == null)
                 {
@@ -113,8 +116,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                INamedTypeSymbol[] attributesToRemove,
-                CancellationToken cancellationToken)
+                INamedTypeSymbol[] attributesToRemove)
             {
                 if (property.GetMethod == null)
                 {
@@ -141,40 +143,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (generateAbstractly)
-                {
                     return default;
-                }
 
-                var factory = Document.GetLanguageService<SyntaxGenerator>();
-                if (ThroughMember != null)
-                {
-                    var throughExpression = CreateThroughExpression(factory);
-                    SyntaxNode expression;
-
-                    if (property.IsIndexer)
-                    {
-                        expression = throughExpression;
-                    }
-                    else
-                    {
-                        expression = factory.MemberAccessExpression(
-                                                throughExpression, factory.IdentifierName(property.Name));
-                    }
-
-                    if (property.Parameters.Length > 0)
-                    {
-                        var arguments = factory.CreateArguments(property.Parameters.As<IParameterSymbol>());
-                        expression = factory.ElementAccessExpression(expression, arguments);
-                    }
-
-                    expression = factory.AssignmentStatement(expression, factory.IdentifierName("value"));
-
-                    return ImmutableArray.Create(factory.ExpressionStatement(expression));
-                }
-
-                return propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default
-                    : factory.CreateThrowNotImplementedStatementBlock(compilation);
+                var generator = Document.GetRequiredLanguageService<SyntaxGenerator>();
+                return generator.GetSetAccessorStatements(compilation, property, this.ThroughMember,
+                    propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }
 
             private ImmutableArray<SyntaxNode> GetGetAccessorStatements(
@@ -184,38 +157,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (generateAbstractly)
-                {
                     return default;
-                }
 
-                var factory = Document.GetLanguageService<SyntaxGenerator>();
-                if (ThroughMember != null)
-                {
-                    var throughExpression = CreateThroughExpression(factory);
-                    SyntaxNode expression;
-
-                    if (property.IsIndexer)
-                    {
-                        expression = throughExpression;
-                    }
-                    else
-                    {
-                        expression = factory.MemberAccessExpression(
-                                                throughExpression, factory.IdentifierName(property.Name));
-                    }
-
-                    if (property.Parameters.Length > 0)
-                    {
-                        var arguments = factory.CreateArguments(property.Parameters.As<IParameterSymbol>());
-                        expression = factory.ElementAccessExpression(expression, arguments);
-                    }
-
-                    return ImmutableArray.Create(factory.ReturnStatement(expression));
-                }
-
-                return propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default
-                    : factory.CreateThrowNotImplementedStatementBlock(compilation);
+                var generator = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+                return generator.GetGetAccessorStatements(compilation, property, ThroughMember,
+                    propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }
         }
     }

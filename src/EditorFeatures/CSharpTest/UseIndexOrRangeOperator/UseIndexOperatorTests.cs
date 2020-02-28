@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -264,15 +266,25 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestUserDefinedTypeWithNoIndexIndexer()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"
 namespace System { public struct Index { } }
-struct S { public int Length { get; } public int this[int i] { get; } }
+struct S { public int Count { get; } public int this[int i] { get; } }
 class C
 {
     void Goo(S s)
     {
         var v = s[[||]s.Count - 2];
+    }
+}",
+@"
+namespace System { public struct Index { } }
+struct S { public int Count { get; } public int this[int i] { get; } }
+class C
+{
+    void Goo(S s)
+    {
+        var v = s[^2];
     }
 }", parameters: s_testParameters);
         }
@@ -472,6 +484,74 @@ class C
         var v1 = s[^2][^1];
     }
 }", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestSimple_NoIndexIndexer_SupportsIntIndexer()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+namespace System { public struct Index { } }
+class C
+{
+    void Goo(List<int> s)
+    {
+        var v = s[[||]s.Count - 1];
+    }
+}",
+@"
+using System.Collections.Generic;
+namespace System { public struct Index { } }
+class C
+{
+    void Goo(List<int> s)
+    {
+        var v = s[^1];
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestSimple_NoIndexIndexer_SupportsIntIndexer_Set()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+namespace System { public struct Index { } }
+class C
+{
+    void Goo(List<int> s)
+    {
+        s[[||]s.Count - 1] = 1;
+    }
+}",
+@"
+using System.Collections.Generic;
+namespace System { public struct Index { } }
+class C
+{
+    void Goo(List<int> s)
+    {
+        s[^1] = 1;
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task NotOnConstructedIndexer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+namespace System { public struct Index { } }
+class C
+{
+    void Goo(Dictionary<int, string> s)
+    {
+        var v = s[[||]s.Count - 1];
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 return null;
             }
 
-            // The underlying ChangeNamespace service doesn't support nested namespace decalration.
+            // The underlying ChangeNamespace service doesn't support nested namespace declaration.
             if (GetNamespaceInSpineCount(declarationSyntax) == 1)
             {
                 var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
@@ -252,11 +255,16 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 moveSpan,
                 MoveTypeOperationKind.MoveTypeNamespaceScope,
                 cancellationToken).ConfigureAwait(false);
-
             var modifiedDocument = modifiedSolution.GetDocument(document.Id);
-            var syntaxRoot = await modifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+            // Since MoveTypeService doesn't handle linked files, we need to merge the diff ourselves, 
+            // otherwise, we will end up with multiple linked documents with different content.
+            var mergedSolution = await PropagateChangeToLinkedDocuments(modifiedDocument, cancellationToken).ConfigureAwait(false);
+            var mergedDocument = mergedSolution.GetDocument(document.Id);
+
+            var syntaxRoot = await mergedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).SingleOrDefault();
+
             if (syntaxNode == null)
             {
                 // The type might be declared in global namespace
@@ -264,10 +272,25 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             }
 
             return await MoveItemsInNamespaceAsync(
-                modifiedDocument,
+                mergedDocument,
                 syntaxNode,
                 targetNamespace,
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<Solution> PropagateChangeToLinkedDocuments(Document document, CancellationToken cancellationToken)
+        {
+            // Need to make sure elastic trivia is formatted properly before pushing the text to other documents.
+            var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var formattedText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var solution = formattedDocument.Project.Solution;
+
+            foreach (var documentId in formattedDocument.GetLinkedDocumentIds())
+            {
+                solution = solution.WithDocumentText(documentId, formattedText);
+            }
+
+            return solution;
         }
 
         private static string GetNewSymbolName(ISymbol symbol, string targetNamespace)

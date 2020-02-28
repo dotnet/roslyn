@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -229,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // This is an evaluation of an indexed property with a constant int value.
                             // The input type must be ITuple, and the property must be a property of ITuple.
-                            Debug.Assert(e.Property.ContainingSymbol.Equals(input.Type));
                             Debug.Assert(e.Property.GetMethod.ParameterCount == 1);
                             Debug.Assert(e.Property.GetMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
                             TypeSymbol type = e.Property.GetMethod.ReturnType;
@@ -397,7 +398,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundExpression savedInputExpression)
             {
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
-                if (loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
+                if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
+                    && loweredInput.GetRefKind() == RefKind.None)
                 {
                     // If we're switching on a local variable and there is no when clause (checked by the caller),
                     // we assume the value of the local variable does not change during the execution of the
@@ -491,10 +493,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundExpression savedInputExpression)
             {
                 int count = loweredInput.Arguments.Length;
-                var tupleElementEvaluated = new bool[count];
-                var rewrittenDag = decisionDag.Rewrite(makeReplacement);
 
-                // If any remaining input elements remain unevaluated, evaluate them now
+                // first evaluate the inputs (in order) into temps
                 var originalInput = BoundDagTemp.ForOriginalInput(loweredInput.Syntax, loweredInput.Type);
                 var newArguments = ArrayBuilder<BoundExpression>.GetInstance(loweredInput.Arguments.Length);
                 for (int i = 0; i < count; i++)
@@ -504,14 +504,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var expr = loweredInput.Arguments[i];
                     var fieldFetchEvaluation = new BoundDagFieldEvaluation(expr.Syntax, field, originalInput);
                     var temp = new BoundDagTemp(expr.Syntax, expr.Type, fieldFetchEvaluation);
-                    if (!tupleElementEvaluated[i])
-                    {
-                        storeToTemp(temp, expr);
-                    }
-
+                    storeToTemp(temp, expr);
                     newArguments.Add(_tempAllocator.GetTemp(temp));
                 }
 
+                var rewrittenDag = decisionDag.Rewrite(makeReplacement);
                 savedInputExpression = loweredInput.Update(
                     loweredInput.Constructor, arguments: newArguments.ToImmutableAndFree(), loweredInput.ArgumentNamesOpt, loweredInput.ArgumentRefKindsOpt,
                     loweredInput.Expanded, loweredInput.ArgsToParamsOpt, loweredInput.ConstantValueOpt,
@@ -543,18 +540,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 field.CorrespondingTupleField != null &&
                                 field.TupleElementIndex is int i)
                             {
-                                if (!tupleElementEvaluated[i])
-                                {
-                                    // Store the value in the right temp
-                                    var temp = new BoundDagTemp(eval.Syntax, field.Type, eval);
-                                    BoundExpression expr = loweredInput.Arguments[i];
-                                    storeToTemp(temp, expr);
-                                    tupleElementEvaluated[i] = true;
-                                }
-
+                                // The elements of an input tuple were evaluated beforehand, so don't need to be evaluated now.
                                 return replacement(evalNode.Next);
                             }
 
+                            // Since we are performing an optimization whose precondition is that the original
+                            // input is not used except to get its elements, we can assert here that the original
+                            // input is not used for anything else.
                             Debug.Assert(!evalNode.Evaluation.Input.IsOriginalInput);
                             break;
 

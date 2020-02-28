@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -78,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
 
                     // error: operator can't be applied on dynamic and a type that is not convertible to dynamic:
+                    left = BindToTypeForErrorRecovery(left);
+                    right = BindToTypeForErrorRecovery(right);
                     return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
                         Conversion.NoConversion, Conversion.NoConversion, LookupResultKind.Empty, CreateErrorType(), hasErrors: true);
                 }
@@ -90,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // be used here.
 
                 // NOTE: no overload resolution candidates.
+                left = BindToTypeForErrorRecovery(left);
+                right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
                     Conversion.NoConversion, Conversion.NoConversion, LookupResultKind.NotAVariable, CreateErrorType(), hasErrors: true);
             }
@@ -700,6 +706,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (leftDefault && rightDefault)
                 {
                     Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefault, node, operatorToken.Text);
+                    return;
+                }
+                else if (leftDefault && right.Type is TypeParameterSymbol)
+                {
+                    Debug.Assert(!right.Type.IsReferenceType);
+                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, right.Type);
+                    return;
+                }
+                else if (rightDefault && left.Type is TypeParameterSymbol)
+                {
+                    Debug.Assert(!left.Type.IsReferenceType);
+                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Type);
                     return;
                 }
             }
@@ -2299,6 +2317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private BoundExpression BindUnaryOperatorCore(CSharpSyntaxNode node, string operatorText, BoundExpression operand, DiagnosticBag diagnostics)
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
@@ -2312,7 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If the operand is bad, avoid generating cascading errors.
-            if (operand.HasAnyErrors || isOperandTypeNull)
+            if (isOperandTypeNull || operand.Type?.IsErrorType() == true)
             {
                 // Note: no candidate user-defined operators.
                 return new BoundUnaryOperator(node, kind, operand, ConstantValue.NotAvailable,
@@ -2338,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constantValueOpt: ConstantValue.NotAvailable,
                     methodOpt: null,
                     resultKind: LookupResultKind.Viable,
-                    type: operand.Type);
+                    type: operand.Type!);
             }
 
             LookupResultKind resultKind;
@@ -2376,6 +2395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind,
                 resultType);
         }
+#nullable restore
 
         private ConstantValue FoldEnumUnaryOperator(
             CSharpSyntaxNode syntax,
@@ -2752,7 +2772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations targetTypeWithAnnotations = BindType(node.Right, isTypeDiagnostics, out alias);
             TypeSymbol targetType = targetTypeWithAnnotations.Type;
 
-            bool wasUnderscore = node.Right is IdentifierNameSyntax name && name.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken;
+            bool wasUnderscore = node.Right is IdentifierNameSyntax name && name.Identifier.IsUnderscoreToken();
             if (!wasUnderscore && targetType?.IsErrorType() == true && isTypeDiagnostics.HasAnyResolvedErrors() &&
                 ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
             {
@@ -3289,7 +3309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool ReportAsOperatorConversionDiagnostics(
             CSharpSyntaxNode node,
             DiagnosticBag diagnostics,
-            Compilation compilation,
+            CSharpCompilation compilation,
             TypeSymbol operandType,
             TypeSymbol targetType,
             ConversionKind conversionKind,

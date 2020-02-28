@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -129,7 +131,7 @@ namespace Roslyn.Utilities
             return source as ISet<T> ?? new HashSet<T>(source);
         }
 
-        public static T? FirstOrNullable<T>(this IEnumerable<T> source)
+        public static T? FirstOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
             if (source == null)
@@ -140,7 +142,7 @@ namespace Roslyn.Utilities
             return source.Cast<T?>().FirstOrDefault();
         }
 
-        public static T? FirstOrNullable<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        public static T? FirstOrNull<T>(this IEnumerable<T> source, Func<T, bool> predicate)
             where T : struct
         {
             if (source == null)
@@ -151,7 +153,7 @@ namespace Roslyn.Utilities
             return source.Cast<T?>().FirstOrDefault(v => predicate(v!.Value));
         }
 
-        public static T? LastOrNullable<T>(this IEnumerable<T> source)
+        public static T? LastOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
             if (source == null)
@@ -350,7 +352,7 @@ namespace Roslyn.Utilities
             return sequence.Any(predicate);
         }
 
-        public static bool Contains(this IEnumerable<string> sequence, string s)
+        public static bool Contains(this IEnumerable<string?> sequence, string? s)
         {
             foreach (var item in sequence)
             {
@@ -555,6 +557,26 @@ namespace System.Linq
             }
 
             return true;
+        }
+
+        [return: MaybeNull]
+        public static T AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> func)
+        {
+            using (var e = source.GetEnumerator())
+            {
+                if (!e.MoveNext())
+                {
+                    return default!;
+                }
+
+                var result = e.Current;
+                while (e.MoveNext())
+                {
+                    result = func(result, e.Current);
+                }
+
+                return result;
+            }
         }
     }
 }

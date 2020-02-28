@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -247,7 +249,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 // Strip off top-level nullability since we can't put top-level nullability into the base list. We will still include nested nullability
                 // if you're deriving some interface like IEnumerable<string?>.
-                BaseTypeOrInterfaceOpt = baseType.WithNullability(NullableAnnotation.None);
+                BaseTypeOrInterfaceOpt = (INamedTypeSymbol)baseType.WithNullableAnnotation(NullableAnnotation.None);
             }
 
             private bool GenerateStruct(TService service, SemanticModel semanticModel, CancellationToken cancellationToken)

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
 Imports System.Threading.Tasks
@@ -100,13 +102,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             For i = 0 To actualDocs.Count - 1
                 Dim actualDocument = actualDocs(i)
                 Dim expectedDocument = expectedDocs(i)
-                Dim actualText = actualDocument.TextBuffer.CurrentSnapshot.GetText().Trim()
-                Dim expectedText = expectedDocument.TextBuffer.CurrentSnapshot.GetText().Trim()
+                Dim actualText = actualDocument.GetTextBuffer().CurrentSnapshot.GetText().Trim()
+                Dim expectedText = expectedDocument.GetTextBuffer().CurrentSnapshot.GetText().Trim()
                 Assert.Equal(expectedText, actualText)
             Next
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ValidTagsDuringSimpleRename() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -160,7 +162,7 @@ class Program
                 Dim location = document.CursorPosition.Value
                 Dim session = StartSession(workspace)
 
-                document.TextBuffer.Replace(New Span(location, 3), "args")
+                document.GetTextBuffer().Replace(New Span(location, 3), "args")
                 Await WaitForRename(workspace)
 
                 Using renamedWorkspace = CreateWorkspaceWithWaiter(
@@ -184,7 +186,7 @@ class Program
 
                     Dim renamedDocument = renamedWorkspace.Documents.Single()
                     Dim expectedSpans = GetAnnotatedSpans("conflict", renamedDocument)
-                    Dim taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, document.TextBuffer)
+                    Dim taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, document.GetTextBuffer())
                     Assert.Equal(expectedSpans, taggedSpans)
                 End Using
             End Using
@@ -239,7 +241,7 @@ public class Class1
                 Dim location = document.CursorPosition.Value
                 Dim session = StartSession(workspace)
 
-                document.TextBuffer.Insert(location, "clash")
+                document.GetTextBuffer().Insert(location, "clash")
                 Await WaitForRename(workspace)
 
                 Using renamedWorkspace = CreateWorkspaceWithWaiter(
@@ -286,15 +288,15 @@ public class Class1
 
                     Dim renamedDocument = renamedWorkspace.Documents.First()
                     Dim expectedSpans = GetAnnotatedSpans("resolved", renamedDocument)
-                    Dim taggedSpans = GetTagsOfType(RenameFixupTag.Instance, renameService, document.TextBuffer)
+                    Dim taggedSpans = GetTagsOfType(RenameFixupTag.Instance, renameService, document.GetTextBuffer())
                     Assert.Equal(expectedSpans, taggedSpans)
 
                     expectedSpans = GetAnnotatedSpans("conflict", renamedDocument)
-                    taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, document.TextBuffer)
+                    taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, document.GetTextBuffer())
                     Assert.Equal(expectedSpans, taggedSpans)
 
                     expectedSpans = GetAnnotatedSpans("valid", renamedDocument)
-                    taggedSpans = GetTagsOfType(RenameFieldBackgroundAndBorderTag.Instance, renameService, document.TextBuffer)
+                    taggedSpans = GetTagsOfType(RenameFieldBackgroundAndBorderTag.Instance, renameService, document.GetTextBuffer())
                     Assert.Equal(expectedSpans, taggedSpans)
                 End Using
             End Using
@@ -332,7 +334,7 @@ public class Class1
                 Dim location = document.CursorPosition.Value
                 Dim session = StartSession(workspace)
 
-                document.TextBuffer.Insert(location, "t")
+                document.GetTextBuffer().Insert(location, "t")
                 Await WaitForRename(workspace)
 
                 Dim expectedDocument = $"
@@ -368,7 +370,7 @@ public class Class1
 
                     Dim renamedDocument = renamedWorkspace.Documents.First()
                     Dim expectedSpans = GetAnnotatedSpans("conflict", renamedDocument)
-                    Dim taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, document.TextBuffer)
+                    Dim taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, document.GetTextBuffer())
                     Assert.Equal(expectedSpans, taggedSpans)
                 End Using
             End Using
@@ -397,7 +399,7 @@ public class Class1
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).TextBuffer
+                Dim textBuffer = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).GetTextBuffer()
                 Dim session = StartSession(workspace)
 
                 textBuffer.Replace(New Span(location, 1), "B")
@@ -405,7 +407,7 @@ public class Class1
 
                 Dim conflictDocument = workspace.Documents.Single(Function(d) d.FilePath = "B.cs")
                 Dim expectedSpans = GetAnnotatedSpans("conflict", conflictDocument)
-                Dim taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, conflictDocument.TextBuffer)
+                Dim taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, conflictDocument.GetTextBuffer())
                 Assert.Equal(expectedSpans, taggedSpans)
             End Using
         End Function
@@ -427,7 +429,7 @@ public class Class1
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim session = StartSession(workspace)
 
                 textBuffer.Replace(New Span(location, 1), "this")
@@ -501,7 +503,7 @@ class C
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 ' Verify @ escaping is still present
                 Using resolvedConflictWorkspace = CreateWorkspaceWithWaiter(
@@ -563,7 +565,7 @@ class C
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(
@@ -644,7 +646,7 @@ class C
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -699,7 +701,7 @@ class C
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38555")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NonReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -719,7 +721,7 @@ class C
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -770,7 +772,7 @@ class C
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -791,7 +793,7 @@ class Goo
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -842,7 +844,7 @@ class Goo
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38247")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -861,7 +863,7 @@ End Class
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -909,7 +911,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_NeedsEscaping() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -931,7 +933,7 @@ class Goo
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -1006,7 +1008,7 @@ End Class
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -1216,7 +1218,7 @@ class Program
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -1316,7 +1318,7 @@ namespace N
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -1355,7 +1357,7 @@ namespace N
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38555")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans() As Task
@@ -1381,7 +1383,7 @@ class C
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -1454,7 +1456,7 @@ class C
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -1540,7 +1542,7 @@ static class E
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
                 Await VerifySpansBeforeConflictResolution(workspace, renameService)
@@ -1675,7 +1677,7 @@ static class E
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents(0).TextBuffer
+                Dim textBuffer = workspace.Documents(0).GetTextBuffer()
                 Dim session = StartSession(workspace)
                 session.RefreshRenameSessionWithOptionsChanged(CodeAnalysis.Rename.RenameOptions.RenameInComments, newValue:=True)
                 Await WaitForRename(workspace)
@@ -1689,7 +1691,7 @@ static class E
         End Function
 
         Private Async Function GetTagsOfType(expectedTagType As ITextMarkerTag, workspace As TestWorkspace, renameService As InlineRenameService) As Task(Of IEnumerable(Of Span))
-            Dim textBuffer = workspace.Documents.Single().TextBuffer
+            Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
             Await WaitForRename(workspace)
 
             Return GetTagsOfType(expectedTagType, renameService, textBuffer)

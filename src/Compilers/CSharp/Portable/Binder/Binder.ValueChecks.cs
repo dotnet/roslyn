@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -2478,6 +2480,9 @@ moreArguments:
                     // then immediately discarded. The actual expression will be generated during lowering 
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.AwaitableValuePlaceholder:
+                    return ((BoundAwaitableValuePlaceholder)expr).ValEscape;
+
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
                     // Unsafe code will always be allowed to escape.
@@ -2600,10 +2605,17 @@ moreArguments:
                     return true;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                    var placeholder = (BoundDeconstructValuePlaceholder)expr;
-                    if (placeholder.ValEscape > escapeTo)
+                    if (((BoundDeconstructValuePlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, placeholder.Syntax);
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        return false;
+                    }
+                    return true;
+
+                case BoundKind.AwaitableValuePlaceholder:
+                    if (((BoundAwaitableValuePlaceholder)expr).ValEscape > escapeTo)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
                         return false;
                     }
                     return true;

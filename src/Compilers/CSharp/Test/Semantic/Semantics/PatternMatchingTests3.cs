@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -542,69 +544,18 @@ class Program
 }";
             var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (6,23): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 23),
                 // (6,40): error CS1525: Invalid expression term 'ref'
                 //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(6, 40),
-                // (6,40): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(6, 40),
+                // (6,40): error CS1073: Unexpected token 'ref'
                 //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(6, 40),
-                // (6,40): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 40),
+                // (6,56): error CS1525: Invalid expression term 'ref'
                 //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "ref").WithLocation(6, 40),
-                // (6,40): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref y").WithArguments("ref").WithLocation(6, 56),
+                // (6,56): error CS1073: Unexpected token 'ref'
                 //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "ref").WithLocation(6, 40),
-                // (6,40): error CS1002: ; expected
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(6, 40),
-                // (6,40): warning CS0162: Unreachable code detected
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "ref").WithLocation(6, 40),
-                // (6,44): error CS0118: 'x' is a variable but is used like a type
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(6, 44),
-                // (6,45): error CS1001: Identifier expected
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(6, 45),
-                // (6,45): error CS8174: A declaration of a by-reference variable must have an initializer
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(6, 45),
-                // (6,47): error CS1001: Identifier expected
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "false").WithLocation(6, 47),
-                // (6,47): error CS1002: ; expected
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "false").WithLocation(6, 47),
-                // (6,47): error CS8174: A declaration of a by-reference variable must have an initializer
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(6, 47),
-                // (6,53): error CS1002: ; expected
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 53),
-                // (6,53): error CS1513: } expected
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 53),
-                // (6,60): error CS0118: 'y' is a variable but is used like a type
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_BadSKknown, "y").WithArguments("y", "variable", "type").WithLocation(6, 60),
-                // (6,62): error CS1001: Identifier expected
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "}").WithLocation(6, 62),
-                // (6,62): error CS1002: ; expected
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 62),
-                // (6,62): error CS8174: A declaration of a by-reference variable must have an initializer
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(6, 62),
-                // (6,63): error CS1519: Invalid token ')' in class, struct, or interface member declaration
-                //         return ref (b switch { true => ref x, false => ref y });
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(6, 63),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 56));
         }
 
         [Fact]
@@ -1602,6 +1553,340 @@ public static class C {
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: expectedOperationTree);
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: expectedFlowGraph);
+        }
+
+        [Fact, WorkItem(39082, "https://github.com/dotnet/roslyn/issues/39082")]
+        public void TargetTypedSwitch_CastSwitchContainingOnlyLambda()
+        {
+            var source = @"
+using System;
+public static class C {
+    static void Main() {
+        var x = ((Func<int, decimal>)(0 switch { 0 => _ => {}}))(0);
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,41): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => _ => {}}))(0);
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 41),
+                // (5,57): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int, decimal>'
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => _ => {}}))(0);
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int, decimal>").WithLocation(5, 57)
+                );
+        }
+
+        [Fact, WorkItem(39082, "https://github.com/dotnet/roslyn/issues/39082")]
+        public void TargetTypedSwitch_CastSwitchContainingOnlyMethodGroup()
+        {
+            var source = @"
+using System;
+public static class C {
+    static void Main() {
+        var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
+    }
+    static void M(int x) {}
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,41): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 41),
+                // (5,55): error CS0407: 'void C.M(int)' has the wrong return type
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
+                Diagnostic(ErrorCode.ERR_BadRetType, "M").WithArguments("C.M(int)", "void").WithLocation(5, 55)
+                );
+        }
+
+        [Fact, WorkItem(39767, "https://github.com/dotnet/roslyn/issues/39767")]
+        public void PreferUserDefinedConversionOverSwitchExpressionConversion()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1(""Source1"");
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2 };
+            Console.Write(t + "" "");
+        }
+    }
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    private readonly string Value;
+    public Source1(string value) => Value = value;
+    public override string ToString() => Value;
+    public static implicit operator Target(Source1 self) => new Target(self.Value+""->Target"");
+}
+class Source2
+{
+    public static implicit operator Source1(Source2 self) => new Source1(""Source2->Source1"");
+    public static implicit operator Target(Source2 self) => new Target(""Source2->Target"");
+}
+";
+            var expectedOutput = "Source1->Target Source2->Source1->Target ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_01()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(string s)
+  {
+    (B, B) x = s switch { _ => (new A(), new A()), };
+    x.Item1.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,33): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     (B, B) x = s switch { _ => (new A(), new A()), };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 33),
+                // (16,42): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     (B, B) x = s switch { _ => (new A(), new A()), };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 42)
+                );
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_02()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(int i)
+  {
+    var x = i switch { 1 => new A(), _ => new B() };
+    x.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,29): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     var x = i switch { 1 => new A(), _ => new B() };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 29)
+                );
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_03()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(int i)
+  {
+    B x = i switch { _ => new A() };
+    x.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,27): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     B x = i switch { _ => new A() };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 27)
+                );
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_04()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(int i)
+  {
+    B x = i switch { _ => i switch { _ => new A() } };
+    x.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,43): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     B x = i switch { _ => i switch { _ => new A() } };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 43)
+                );
+        }
+
+        [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
+        [Fact]
+        public void BadGotoCase_01()
+        {
+            var source = @"
+class C
+{
+    static void Example(object a, object b)
+    {
+        switch ((a, b))
+        {
+            case (string str, int[] arr) _:
+                goto case (string str, decimal[] arr);
+            case (string str, decimal[] arr) _:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0163: Control cannot fall through from one case label ('(string str, int[] arr) _') to another
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string str, int[] arr) _").WithArguments("(string str, int[] arr) _").WithLocation(8, 18),
+                // (8,26): error CS0136: A local or parameter named 'str' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "str").WithArguments("str").WithLocation(8, 26),
+                // (8,37): error CS0136: A local or parameter named 'arr' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "arr").WithArguments("arr").WithLocation(8, 37),
+                // (9,17): error CS0150: A constant value is expected
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (string str, decimal[] arr);").WithLocation(9, 17),
+                // (9,28): error CS8185: A declaration is not allowed in this context.
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string str").WithLocation(9, 28),
+                // (9,28): error CS0165: Use of unassigned local variable 'str'
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "string str").WithArguments("str").WithLocation(9, 28),
+                // (9,40): error CS8185: A declaration is not allowed in this context.
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "decimal[] arr").WithLocation(9, 40),
+                // (9,40): error CS0165: Use of unassigned local variable 'arr'
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "decimal[] arr").WithArguments("arr").WithLocation(9, 40),
+                // (10,26): error CS0136: A local or parameter named 'str' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, decimal[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "str").WithArguments("str").WithLocation(10, 26),
+                // (10,41): error CS0136: A local or parameter named 'arr' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, decimal[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "arr").WithArguments("arr").WithLocation(10, 41)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var strDecl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(s => s.Identifier.ValueText == "str").ToArray();
+            Assert.Equal(3, strDecl.Length);
+            VerifyModelForDuplicateVariableDeclarationInSameScope(model, strDecl[1], LocalDeclarationKind.DeclarationExpressionVariable);
+
+            var arrDecl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(s => s.Identifier.ValueText == "arr").ToArray();
+            Assert.Equal(3, arrDecl.Length);
+            VerifyModelForDuplicateVariableDeclarationInSameScope(model, arrDecl[1], LocalDeclarationKind.DeclarationExpressionVariable);
+        }
+
+        [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
+        [Fact]
+        public void BadGotoCase_02()
+        {
+            var source = @"
+class C
+{
+    static void Example(object a, object b)
+    {
+        switch ((a, b))
+        {
+            case (string str, int[] arr) _:
+                goto case a is (var x1, var x2);
+                x1 = x2;
+            case (string str, decimal[] arr) _:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0163: Control cannot fall through from one case label ('(string str, int[] arr) _') to another
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string str, int[] arr) _").WithArguments("(string str, int[] arr) _").WithLocation(8, 18),
+                // (9,17): error CS0029: Cannot implicitly convert type 'bool' to '(object a, object b)'
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case a is (var x1, var x2);").WithArguments("bool", "(object a, object b)").WithLocation(9, 17),
+                // (9,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var x1, var x2)").WithArguments("object", "Deconstruct").WithLocation(9, 32),
+                // (9,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var x1, var x2)").WithArguments("object", "2").WithLocation(9, 32)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
+
+            var x2Decl = GetPatternDeclarations(tree, "x2").ToArray();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(1, x2Decl.Length);
+            Assert.Equal(1, x2Ref.Length);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
         }
     }
 }

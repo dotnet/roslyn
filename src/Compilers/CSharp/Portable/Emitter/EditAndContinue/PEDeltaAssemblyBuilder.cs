@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious);
             _previousGeneration = previousGeneration;
-            _changes = new SymbolChanges(_previousDefinitions, edits, isAddedSymbol);
+            _changes = new CSharpSymbolChanges(_previousDefinitions, edits, isAddedSymbol);
 
             // Workaround for https://github.com/dotnet/roslyn/issues/3192.
             // When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _previousGeneration.GetNextAnonymousTypeIndex();
         }
 
-        internal override bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index)
+        internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, out string name, out int index)
         {
             Debug.Assert(this.Compilation == template.DeclaringCompilation);
             return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);

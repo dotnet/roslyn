@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -32,6 +35,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
+        protected abstract bool CanOffer(SyntaxNode body);
+        protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
+
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
             IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan, CancellationToken cancellationToken)
@@ -51,7 +57,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             // Min 2 parameters to offer the refactoring
-            if (listOfParametersOrdinals.Count() < 2)
+            if (listOfParametersOrdinals.Count < 2)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
@@ -95,8 +101,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             return result.ToImmutableAndFree();
         }
-
-        protected abstract bool CanOffer(SyntaxNode body);
 
         private async Task<Document> UpdateDocumentForRefactoringAsync(
             Document document,
@@ -274,12 +278,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private bool IsNullCheck(IOperation operand1, IOperation operand2, IParameterSymbol parameter)
-            => IsNullLiteral(UnwrapImplicitConversion(operand1)) && IsParameterReference(operand2, parameter);
+            => UnwrapImplicitConversion(operand1).IsNullLiteral() && IsParameterReference(operand2, parameter);
 
-        private bool IsNullLiteral(IOperation operand)
-            => operand is ILiteralOperation literal &&
-               literal.ConstantValue.HasValue &&
-               literal.ConstantValue.Value == null;
 
         private async Task<Document> AddNullCheckAsync(
             Document document,
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (!options.GetOption(CodeStyleOptions.PreferThrowExpression).Value)
+            if (!PrefersThrowExpression(options))
             {
                 return null;
             }

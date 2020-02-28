@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -503,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateInstance()
         {
-            return _operationFactory.CreateReceiverOperation(_instance, Event);
+            return _operationFactory.CreateReceiverOperation(_instance, Event.GetSymbol());
         }
     }
 
@@ -575,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateInstance()
         {
-            return _operationFactory.CreateReceiverOperation(_instance, Field);
+            return _operationFactory.CreateReceiverOperation(_instance, Field.GetSymbol());
         }
     }
 
@@ -809,7 +811,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 default:
                     throw ExceptionUtilities.UnexpectedValue(_invocableExpression.Kind);
             }
-            return _operationFactory.CreateReceiverOperation(receiver, TargetMethod);
+            return _operationFactory.CreateReceiverOperation(receiver, TargetMethod.GetSymbol());
         }
 
         protected override ImmutableArray<IArgumentOperation> CreateArguments()
@@ -945,7 +947,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateInstance()
         {
-            return _operationFactory.CreateReceiverOperation(_instance, Method);
+            return _operationFactory.CreateReceiverOperation(_instance, Method.GetSymbol());
         }
     }
 
@@ -1519,10 +1521,10 @@ namespace Microsoft.CodeAnalysis.Operations
             CSharpOperationFactory operationFactory,
             BoundRecursivePattern boundRecursivePattern,
             SemanticModel semanticModel)
-            : base(inputType: boundRecursivePattern.InputType,
-                   matchedType: boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType.StrippedType(),
-                   deconstructSymbol: boundRecursivePattern.DeconstructMethod,
-                   declaredSymbol: boundRecursivePattern.Variable,
+            : base(inputType: boundRecursivePattern.InputType.GetPublicSymbol(),
+                   matchedType: (boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType.StrippedType()).GetPublicSymbol(),
+                   deconstructSymbol: boundRecursivePattern.DeconstructMethod.GetPublicSymbol(),
+                   declaredSymbol: boundRecursivePattern.Variable.GetPublicSymbol(),
                    semanticModel: semanticModel,
                    syntax: boundRecursivePattern.Syntax,
                    type: null,
@@ -1583,9 +1585,9 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly BoundITuplePattern _boundITuplePattern;
 
         public CSharpLazyITuplePatternOperation(CSharpOperationFactory operationFactory, BoundITuplePattern boundITuplePattern, SemanticModel semanticModel)
-            : base(inputType: boundITuplePattern.InputType,
-                   matchedType: boundITuplePattern.InputType.StrippedType(),
-                   deconstructSymbol: boundITuplePattern.GetLengthMethod.ContainingType,
+            : base(inputType: boundITuplePattern.InputType.GetPublicSymbol(),
+                   matchedType: boundITuplePattern.InputType.StrippedType().GetPublicSymbol(),
+                   deconstructSymbol: boundITuplePattern.GetLengthMethod.ContainingType.GetPublicSymbol(),
                    declaredSymbol: null,
                    semanticModel: semanticModel,
                    syntax: boundITuplePattern.Syntax,
@@ -1660,7 +1662,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly BoundSwitchExpression _switchExpression;
 
         public CSharpLazySwitchExpressionOperation(CSharpOperationFactory operationFactory, BoundSwitchExpression boundSwitchExpression, SemanticModel semanticModel)
-            : base(semanticModel, boundSwitchExpression.Syntax, boundSwitchExpression.Type, constantValue: default, boundSwitchExpression.WasCompilerGenerated)
+            : base(semanticModel, boundSwitchExpression.Syntax, boundSwitchExpression.Type.GetPublicSymbol(), constantValue: default, boundSwitchExpression.WasCompilerGenerated)
         {
             _operationFactory = operationFactory;
             _switchExpression = boundSwitchExpression;
@@ -1682,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly BoundSwitchExpressionArm _switchExpressionArm;
 
         public CSharpLazySwitchExpressionArmOperation(CSharpOperationFactory operationFactory, BoundSwitchExpressionArm boundSwitchExpressionArm, SemanticModel semanticModel)
-            : base(boundSwitchExpressionArm.Locals.Cast<CSharp.Symbols.LocalSymbol, ILocalSymbol>(), semanticModel, boundSwitchExpressionArm.Syntax, type: null, constantValue: default, boundSwitchExpressionArm.WasCompilerGenerated)
+            : base(boundSwitchExpressionArm.Locals.GetPublicSymbols(), semanticModel, boundSwitchExpressionArm.Syntax, type: null, constantValue: default, boundSwitchExpressionArm.WasCompilerGenerated)
         {
             _operationFactory = operationFactory;
             _switchExpressionArm = boundSwitchExpressionArm;

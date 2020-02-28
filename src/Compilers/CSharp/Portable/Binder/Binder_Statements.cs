@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         internal virtual ImmutableHashSet<Symbol> LockedOrDisposedVariables
         {
-            get { return _next.LockedOrDisposedVariables; }
+            get { return Next.LockedOrDisposedVariables; }
         }
 
         /// <remarks>
@@ -37,6 +39,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public virtual BoundStatement BindStatement(StatementSyntax node, DiagnosticBag diagnostics)
         {
+            if (node.AttributeLists.Count > 0)
+            {
+                var attributeList = node.AttributeLists[0];
+
+                // Currently, attributes are only allowed on local-functions.
+                if (node.Kind() == SyntaxKind.LocalFunctionStatement)
+                {
+                    CheckFeatureAvailability(attributeList, MessageID.IDS_FeatureLocalFunctionAttributes, diagnostics);
+                }
+                else if (node.Kind() != SyntaxKind.Block)
+                {
+                    // Don't explicitly error here for blocks.  Some codepaths bypass BindStatement
+                    // to directly call BindBlock.
+                    Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                }
+            }
+
             Debug.Assert(node != null);
             BoundStatement result;
             switch (node.Kind())
@@ -207,19 +226,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected virtual void ValidateYield(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            Next?.ValidateYield(node, diagnostics);
+        }
+
         private BoundStatement BindYieldReturnStatement(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var binder = this;
-
-            TypeSymbol elementType = binder.GetIteratorElementType(node, diagnostics).Type;
+            ValidateYield(node, diagnostics);
+            TypeSymbol elementType = GetIteratorElementType().Type;
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
-                : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+                : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
 
             if (!argument.HasAnyErrors)
             {
-                argument = binder.GenerateConversionForAssignment(elementType, argument, diagnostics);
+                argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
             else
             {
@@ -261,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
-            GetIteratorElementType(node, diagnostics);
+            ValidateYield(node, diagnostics);
             CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
             return new BoundYieldBreakStatement(node);
         }
@@ -396,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // In C# 8 and later we follow the ECMA specification, which neatly handles null and expressions of exception type.
-                boundExpr = GenerateConversionForAssignment(Compilation.GetWellKnownType(WellKnownType.System_Exception), boundExpr, diagnostics);
+                boundExpr = GenerateConversionForAssignment(GetWellKnownType(WellKnownType.System_Exception, diagnostics, exprSyntax), boundExpr, diagnostics);
             }
 
             return boundExpr;
@@ -548,13 +571,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 expressionBody = runAnalysis(BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics), diagnostics);
             }
-            else
+            else if (!hasErrors && (!localSymbol.IsExtern || !localSymbol.IsStatic))
             {
                 hasErrors = true;
                 diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.Locations[0], localSymbol);
             }
 
-            Debug.Assert(blockBody != null || expressionBody != null || hasErrors);
+            if (!hasErrors && (blockBody != null || expressionBody != null) && localSymbol.IsExtern)
+            {
+                hasErrors = true;
+                diagnostics.Add(ErrorCode.ERR_ExternHasBody, localSymbol.Locations[0], localSymbol);
+            }
+
+            Debug.Assert(blockBody != null || expressionBody != null || (localSymbol.IsExtern && localSymbol.IsStatic) || hasErrors);
 
             localSymbol.GetDeclarationDiagnostics(diagnostics);
 
@@ -571,7 +600,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
                     // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
                     // It's a bit of code duplication, but refactoring would make things worse.
-                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, blockDiagnostics);
+                    // However, we don't need to report diagnostics here. They will be reported when analyzing the parent method.
+                    var ignored = DiagnosticBag.GetInstance();
+                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, ignored);
+                    ignored.Free();
                     if (endIsReachable)
                     {
                         if (ImplicitReturnIsOkay(localSymbol))
@@ -698,12 +730,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr is object);
             Debug.Assert(expr.Type is object);
             Debug.Assert(expr.Type.IsRefLikeType || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
-
-            // Don't try and lookup if we're not enabled
-            if (MessageID.IDS_FeatureUsingDeclarations.RequiredVersion() > Compilation.LanguageVersion)
-            {
-                return null;
-            }
 
             var result = PerformPatternMethodLookup(expr,
                                                     hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
@@ -843,16 +869,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression expression = BindToNaturalType(BindValue(initializer, diagnostics, valueKind), diagnostics);
 
-            if (expression is BoundStackAllocArrayCreation boundStackAlloc &&
-                initializer.IsLocalVariableDeclarationInitializationForPointerStackalloc() &&
-                (initializer.Kind() == SyntaxKind.StackAllocArrayCreationExpression || initializer.Kind() == SyntaxKind.ImplicitStackAllocArrayCreationExpression))
-            {
-                var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
-                expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, isRefAssignment: refKind != RefKind.None);
-            }
-
-            expression = BindToNaturalType(expression, diagnostics);
-
             // Certain expressions (null literals, method groups and anonymous functions) have no type of 
             // their own and therefore cannot be the initializer of an implicitly typed local.
             if (!expression.HasAnyErrors && !expression.HasExpressionType())
@@ -952,7 +968,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for variable declaration errors.
             // Use the binder that owns the scope for the local because this (the current) binder
             // might own nested scope.
-            bool hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            bool nameConflict = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            bool hasErrors = false;
 
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
             if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
@@ -1129,10 +1146,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: associatedSyntaxNode,
                 localSymbol: localSymbol,
                 declaredTypeOpt: boundDeclType,
-                initializerOpt: hasErrors ? BindToTypeForErrorRecovery(initializerOpt) : initializerOpt,
+                initializerOpt: hasErrors ? BindToTypeForErrorRecovery(initializerOpt)?.WithHasErrors() : initializerOpt,
                 argumentsOpt: arguments,
                 inferredType: isVar,
-                hasErrors: hasErrors);
+                hasErrors: hasErrors | nameConflict);
         }
 
         internal ImmutableArray<BoundExpression> BindDeclaratorArguments(VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)
@@ -1680,6 +1697,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
+            if (node.AttributeLists.Count > 0)
+            {
+                Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, node.AttributeLists[0]);
+            }
+
             var binder = GetBinder(node);
             Debug.Assert(binder != null);
 
@@ -1706,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = ContainingMemberOrLambda as MethodSymbol;
                 if ((object)method != null)
                 {
-                    method.IteratorElementTypeWithAnnotations = GetIteratorElementType(null, diagnostics);
+                    method.IteratorElementTypeWithAnnotations = GetIteratorElementType();
                 }
                 else
                 {
@@ -1985,7 +2007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(ErrorCode.ERR_InternalError, syntax.Location);
         }
 
-        protected static void GenerateImplicitConversionError(DiagnosticBag diagnostics, Compilation compilation, SyntaxNode syntax,
+        protected static void GenerateImplicitConversionError(DiagnosticBag diagnostics, CSharpCompilation compilation, SyntaxNode syntax,
             Conversion conversion, TypeSymbol sourceType, TypeSymbol targetType, ConstantValue sourceConstantValueOpt = null)
         {
             Debug.Assert(!conversion.IsImplicit || !conversion.IsValid);
@@ -2068,6 +2090,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (targetType.IsVoidType())
+            {
+                Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, operand.Display, targetType);
+                return;
+            }
+
             switch (operand.Kind)
             {
                 case BoundKind.BadExpression:
@@ -2086,7 +2114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If target is a tuple or compatible type with the same number of elements,
                         // report errors for tuple arguments that failed to convert, which would be more useful.
-                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out targetElementTypes) &&
+                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleType(out targetElementTypes) &&
                             targetElementTypes.Length == tuple.Arguments.Length)
                         {
                             GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
@@ -2164,9 +2192,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var arm in switchExpression.SwitchArms)
                         {
                             var armConversion = this.Conversions.ClassifyImplicitConversionFromExpression(arm.Value, targetType, ref useSiteDiagnostics);
-                            if (!armConversion.IsImplicit)
+                            if (!armConversion.IsImplicit || !armConversion.IsValid)
                             {
-                                GenerateImplicitConversionError(diagnostics, arm.Value.Syntax, conversion, arm.Value, targetType);
+                                GenerateImplicitConversionError(diagnostics, arm.Value.Syntax, armConversion, arm.Value, targetType);
                                 reportedError = true;
                             }
                         }

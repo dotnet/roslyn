@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static CompletionHelper GetHelper(Document document)
         {
-            return document.Project.Solution.Workspace.Services.GetService<ICompletionHelperService>()
+            return document.Project.Solution.Workspace.Services.GetRequiredService<ICompletionHelperService>()
                 .GetCompletionHelper(document);
         }
 
@@ -87,24 +91,32 @@ namespace Microsoft.CodeAnalysis.Completion
             var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans);
             var match = patternMatcher.GetFirstMatch(completionItemText);
 
-            if (match != null)
+            // We still have making checks for language having different to English capitalization,
+            // for example, for Turkish with dotted and dotless i capitalization totally diferent from English.
+            // Now we escaping from the second check for English languages.
+            // Maybe we can escape as well for more similar languages in case if we meet performance issues.
+            if (culture.ThreeLetterWindowsLanguageName.Equals(EnUSCultureInfo.ThreeLetterWindowsLanguageName))
             {
                 return match;
             }
 
-            // Start with the culture-specific comparison, and fall back to en-US.
-            if (!culture.Equals(EnUSCultureInfo))
-            {
-                patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
-                match = patternMatcher.GetFirstMatch(completionItemText);
+            // Keywords in .NET are always in En-US.
+            // Identifiers can be in user language.
+            // Try to get matches for both and return the best of them.
+            patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
+            var enUSCultureMatch = patternMatcher.GetFirstMatch(completionItemText);
 
-                if (match != null)
-                {
-                    return match;
-                }
+            if (match == null)
+            {
+                return enUSCultureMatch;
             }
 
-            return null;
+            if (enUSCultureMatch == null)
+            {
+                return match;
+            }
+
+            return match.Value.CompareTo(enUSCultureMatch.Value) < 0 ? match.Value : enUSCultureMatch.Value;
         }
 
         private PatternMatcher GetPatternMatcher(
@@ -301,5 +313,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // Non-expanded item is the only exact match, so we definitely prefer it.
             return isItem1Expanded ? 1 : -1;
         }
+
+        public static string ConcatNamespace(string? containingNamespace, string name)
+            => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
     }
 }

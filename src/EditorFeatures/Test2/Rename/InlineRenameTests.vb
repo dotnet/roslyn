@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -45,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
@@ -53,6 +55,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 VerifyFileName(workspace, "BarTest1")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameLambdaDiscard() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        C _ = null;
+        System.Func<int, string, int> f = (int _, string [|$$_|]) => { _ = null; return 1; };
+    }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, originalTextToRename:="_", renameTextPrefix:="change", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -136,7 +162,7 @@ class Deconstructable
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
@@ -163,13 +189,13 @@ class Deconstructable
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInComments, renameInComments)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameFile, renameFile)
-            workspace.Options = optionSet
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet))
 
             Dim session = StartSession(workspace)
 
             ' Type a bit in the file
             Dim renameDocument As TestHostDocument = workspace.DocumentWithCursor
-            renameDocument.TextBuffer.Insert(renameDocument.CursorPosition.Value, renameTextPrefix)
+            renameDocument.GetTextBuffer().Insert(renameDocument.CursorPosition.Value, renameTextPrefix)
 
             Dim replacementText = renameTextPrefix + originalTextToRename
             Await WaitForRename(workspace)
@@ -635,14 +661,15 @@ End Class
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+                Dim initialTextSnapshot = textBuffer.CurrentSnapshot
 
                 textBuffer.Insert(caretPosition, "Bar")
 
                 session.Cancel()
 
                 ' Assert the file is what it started as
-                Assert.Equal(workspace.Documents.Single().InitialTextSnapshot.GetText(), textBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(initialTextSnapshot.GetText(), textBuffer.CurrentSnapshot.GetText())
 
                 ' Assert the file name didn't change
                 VerifyFileName(workspace, "Test1.cs")
@@ -671,7 +698,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "goo")
 
@@ -696,7 +723,7 @@ End Class
                     </Workspace>)
 
                 Dim session = StartSession(workspace)
-                Dim buffer = workspace.Documents.Single().TextBuffer
+                Dim buffer = workspace.Documents.Single().GetTextBuffer()
 
                 ' Typing at the beginning and end of our span should work
                 Dim cursorPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
@@ -729,7 +756,7 @@ End Class
                     </Workspace>)
 
                 Dim session = StartSession(workspace)
-                Dim buffer = workspace.Documents.Single().TextBuffer
+                Dim buffer = workspace.Documents.Single().GetTextBuffer()
 
                 ' Typing at the beginning and end of our span should work
                 Assert.False(buffer.IsReadOnly(0))
@@ -799,7 +826,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Dim document = workspace.Documents.Single()
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
@@ -832,7 +859,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Dim document = workspace.Documents.Single()
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
@@ -871,7 +898,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Dim document = workspace.Documents.Single()
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
@@ -909,7 +936,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Dim document = workspace.Documents.Single()
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
@@ -946,7 +973,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Dim document = workspace.Documents.Single()
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
@@ -990,7 +1017,7 @@ End Class
                 Dim session = StartSession(workspace)
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
@@ -1029,7 +1056,7 @@ End Class
                 Dim session = StartSession(workspace)
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
@@ -1083,7 +1110,7 @@ End Class
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "o")
                 Await WaitForRename(workspace)
@@ -1128,7 +1155,7 @@ End Class
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
@@ -1169,7 +1196,7 @@ class C
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
                 textBuffer.Insert(caretPosition, "yz")
                 Await WaitForRename(workspace)
 
@@ -1244,7 +1271,7 @@ class C
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
@@ -1276,7 +1303,7 @@ class C
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
@@ -1310,7 +1337,7 @@ class C
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
@@ -1344,7 +1371,7 @@ class C
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
@@ -1403,7 +1430,7 @@ class C
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
@@ -1446,7 +1473,7 @@ class C
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
@@ -1492,7 +1519,7 @@ End Module
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "q")
                 session.Commit()
@@ -1520,7 +1547,7 @@ End Module
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Delete(New Span(caretPosition, 1))
                 textBuffer.Insert(caretPosition, "x")
@@ -1564,7 +1591,7 @@ End Class
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Delete(New Span(caretPosition, 1))
                 textBuffer.Insert(caretPosition, "x")
@@ -1608,7 +1635,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 ' Ensure the rename doesn't crash
                 textBuffer.Insert(caretPosition, "e")
@@ -1811,6 +1838,34 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenamesCorrectlyWhenCaseChanges()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class [|$$Test1|]
+{
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Delete(New Span(caretPosition, 1))
+                textBuffer.Insert(caretPosition, "t")
+
+                session.Commit()
+                VerifyFileName(workspace, "test1")
             End Using
         End Sub
     End Class

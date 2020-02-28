@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -7,7 +9,9 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 
-#If Not CODE_STYLE Then
+#If CODE_STYLE Then
+Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+#Else
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
@@ -44,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return _rules
         End Function
 
-        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan) = Nothing) As IFormattingResult
+        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector) = Nothing) As IFormattingResult
             Return New AggregatedFormattingResult(node, results, formattingSpans)
         End Function
 

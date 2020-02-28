@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1279,12 +1281,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Sort the types based on row id.
                 members.Sort(membersCount, DeclarationOrderTypeSymbolComparer.Instance);
 
-                var membersInDeclarationOrder = members.ToImmutable();
-
 #if DEBUG
-                ISymbol previous = null;
+                Symbol previous = null;
 
-                foreach (var s in membersInDeclarationOrder)
+                foreach (var s in members)
                 {
                     if (previous == null)
                     {
@@ -1292,12 +1292,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        ISymbol current = s;
+                        Symbol current = s;
                         Debug.Assert(previous.Kind.ToSortOrder() <= current.Kind.ToSortOrder());
                         previous = current;
                     }
                 }
 #endif
+
+                if (IsTupleType)
+                {
+                    members = AddOrWrapTupleMembers(members.ToImmutableAndFree());
+                    Debug.Assert(members is object);
+                }
+
+                var membersInDeclarationOrder = members.ToImmutable();
 
                 if (!ImmutableInterlocked.InterlockedInitialize(ref _lazyMembersInDeclarationOrder, membersInDeclarationOrder))
                 {
@@ -1569,6 +1577,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return _flags;
             }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         public override bool MightContainExtensionMethods
@@ -2278,6 +2291,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
+
             public override int Arity
             {
                 get
@@ -2336,6 +2352,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _genericParameterHandles = genericParameterHandles;
                 _mangleName = mangleName;
             }
+
+            protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
 
             public override int Arity
             {

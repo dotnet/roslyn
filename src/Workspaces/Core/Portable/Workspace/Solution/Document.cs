@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -61,9 +63,10 @@ namespace Microsoft.CodeAnalysis
                    DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
         }
 
+        [Obsolete("Use TextDocument.HasTextChanged")]
         internal bool HasTextChanged(Document otherDocument)
         {
-            return DocumentState.HasTextChanged(otherDocument.DocumentState);
+            return HasTextChanged(otherDocument, ignoreUnchangeableDocument: false);
         }
 
         /// <summary>
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis
             // If the language doesn't support getting syntax trees for a document, then bail out immediately.
             if (!this.SupportsSyntaxTree)
             {
-                return SpecializedTasks.Default<SyntaxTree?>();
+                return SpecializedTasks.Null<SyntaxTree>();
             }
 
             // if we have a cached result task use it
@@ -278,7 +281,7 @@ namespace Microsoft.CodeAnalysis
                     return semanticModel;
                 }
 
-                var syntaxTree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
 
                 var result = compilation.GetSemanticModel(syntaxTree);

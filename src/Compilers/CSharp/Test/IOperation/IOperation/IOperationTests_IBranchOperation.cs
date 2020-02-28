@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1404,9 +1406,6 @@ Block[B2] - Exit
                 // file.cs(9,13): error CS0159: No such label 'label' within the scope of the goto statement
                 //             goto label;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(9, 13),
-                // file.cs(12,1): warning CS0164: This label has not been referenced
-                // label:  ;
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(12, 1)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
@@ -1474,9 +1473,6 @@ Block[B2] - Exit
                 // file.cs(11,13): error CS0159: No such label 'label' within the scope of the goto statement
                 //             goto label;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(11, 13),
-                // file.cs(14,1): warning CS0164: This label has not been referenced
-                // label:  ;
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(14, 1)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);

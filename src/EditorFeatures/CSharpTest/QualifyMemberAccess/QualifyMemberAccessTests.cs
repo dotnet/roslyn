@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -330,6 +332,67 @@ CodeStyleOptions.QualifyFieldAccess);
 CodeStyleOptions.QualifyFieldAccess);
         }
 
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_Subpattern1()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        if (c is { [|i|]: 1 })
+        {
+        }
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_Subpattern2()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        switch (t)
+        {
+            case Class { [|i|]: 1 }:
+                return;
+        }
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_Subpattern3()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        var a = c switch
+        {
+            { [|i|]: 0 } => 1,
+            _ => 0
+        };
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_LHS()
@@ -380,6 +443,198 @@ CodeStyleOptions.QualifyPropertyAccess);
     }
 }",
 CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_PropertySubpattern1()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i { get; set; }
+
+    void M(Class c)
+    {
+        if (c is { [|i|]: 1 })
+        {
+        }
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_PropertySubpattern2()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i { get; set; }
+
+    void M(Class c)
+    {
+        switch (t)
+        {
+            case Class { [|i|]: 1 }:
+                return;
+        }
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_PropertySubpattern3()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i { get; set; }
+
+    void M(Class c)
+    {
+        var a = c switch
+        {
+            { [|i|]: 0 } => 1,
+            _ => 0
+        };
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_PropertySubpattern4()
+        {
+            //  it's ok that we qualify here because it's not a legal pattern (because it is not const).
+            await TestAsyncWithOption(
+@"class Class
+{
+    int i { get; set; }
+
+    void M(Class c)
+    {
+        var a = c switch
+        {
+            { i: [|i|] } => 1,
+            _ => 0
+        };
+    }
+}",
+@"class Class
+{
+    int i { get; set; }
+
+    void M(Class c)
+    {
+        var a = c switch
+        {
+            { i: this.i } => 1,
+            _ => 0
+        };
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_FieldSubpattern1()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        if (c is { [|i|]: 1 })
+        {
+        }
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_FieldSubpattern2()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        switch (t)
+        {
+            case Class { [|i|]: 1 }:
+                return;
+        }
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_FieldSubpattern3()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        var a = c switch
+        {
+            { [|i|]: 0 } => 1,
+            _ => 0
+        };
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_FieldSubpattern4()
+        {
+            //  it's ok that we qualify here because it's not a legal pattern (because it is not const).
+            await TestAsyncWithOption(
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        var a = c switch
+        {
+            { i: [|i|] } => 1,
+            _ => 0
+        };
+    }
+}",
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        var a = c switch
+        {
+            { i: this.i } => 1,
+            _ => 0
+        };
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
@@ -813,6 +1068,65 @@ CodeStyleOptions.QualifyMethodAccess);
     {
         int Local() => 1;
         [|Local|]();
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(38043, "https://github.com/dotnet/roslyn/issues/38043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyLocalMethodAccess_NotSuggestedInNestedMethodCall()
+        {
+            await TestMissingAsyncWithOption(
+@"using System;
+
+class C
+{
+    void Method()
+    {
+        object LocalFunction() => new object();
+        this.Method2([|LocalFunction|]);
+    }
+
+    void Method2(Func<object> LocalFunction)
+    {
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(38043, "https://github.com/dotnet/roslyn/issues/38043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyLocalMethodAccess_NotSuggestedInCollectionInitializer()
+        {
+            await TestMissingAsyncWithOption(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        object LocalFunction() => new object();
+        var dict = new Dictionary<Func<object>, int>() { { [|LocalFunction|], 1 } };
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(38043, "https://github.com/dotnet/roslyn/issues/38043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyLocalMethodAccess_NotSuggestedInObjectMethodInvocation()
+        {
+            await TestMissingAsyncWithOption(
+@"using System;
+
+class C
+{
+    void Method()
+    {
+        object LocalFunction() => new object();
+        [|LocalFunction|]();
     }
 }",
 CodeStyleOptions.QualifyMethodAccess);

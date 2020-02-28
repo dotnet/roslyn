@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 #pragma warning disable CS0660
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A TypeSymbol is a base class for all the symbols that represent a type
     /// in C#.
     /// </summary>
-    internal abstract partial class TypeSymbol : NamespaceOrTypeSymbol, ITypeSymbol
+    internal abstract partial class TypeSymbol : NamespaceOrTypeSymbol, ITypeSymbolInternal
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> interfacesAndTheirBaseInterfaces;
 
             internal readonly static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> EmptyInterfacesAndTheirBaseInterfaces =
-                                                new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, EqualsCLRSignatureComparer);
+                                                new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, SymbolEqualityComparer.CLRSignature);
 
             // Key is implemented member (method, property, or event), value is implementing member (from the 
             // perspective of this type).  Don't allocate until someone needs it.
@@ -116,23 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return info;
         }
 
-        internal static readonly EqualityComparer<TypeSymbol> EqualsConsiderEverything = new TypeSymbolComparer(TypeCompareKind.ConsiderEverything);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringTupleNamesAndNullability = new TypeSymbolComparer(TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-
-        /// <summary>
-        /// A comparer that treats dynamic and object as "the same" types, and also ignores tuple element names differences.
-        /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicTupleNamesAndNullabilityComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringNullableComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsObliviousNullableModifierMatchesAny = new TypeSymbolComparer(TypeCompareKind.ObliviousNullableModifierMatchesAny);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
-                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsCLRSignatureComparer = new TypeSymbolComparer(TypeCompareKind.CLRSignatureCompareOptions);
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
@@ -330,28 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal sealed class TypeSymbolComparer : EqualityComparer<TypeSymbol>
-        {
-            private readonly TypeCompareKind _comparison;
-
-            public TypeSymbolComparer(TypeCompareKind comparison)
-            {
-                _comparison = comparison;
-            }
-
-            public override int GetHashCode(TypeSymbol obj)
-            {
-                return (object)obj == null ? 0 : obj.GetHashCode();
-            }
-
-            public override bool Equals(TypeSymbol x, TypeSymbol y)
-            {
-                return
-                    (object)x == null ? (object)y == null :
-                    x.Equals(y, _comparison);
-            }
-        }
-
         protected virtual ImmutableArray<NamedTypeSymbol> GetAllInterfaces()
         {
             var info = this.GetInterfaceInfo();
@@ -375,39 +339,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>(TypeSymbol.EqualsConsiderEverything);
+            var visited = new HashSet<NamedTypeSymbol>(SymbolEqualityComparer.ConsiderEverything);
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
                 var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics();
                 for (int i = interfaces.Length - 1; i >= 0; i--)
                 {
-                    AddAllInterfaces(interfaces[i], visited, result);
+                    addAllInterfaces(interfaces[i], visited, result);
                 }
             }
 
             result.ReverseContents();
             return result.ToImmutableAndFree();
-        }
 
-        private static void AddAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
-        {
-            if (visited.Add(@interface))
+            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
             {
-                ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
-                for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                if (visited.Add(@interface))
                 {
-                    var baseInterface = baseInterfaces[i];
-                    AddAllInterfaces(baseInterface, visited, result);
-                }
+                    ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
+                    for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                    {
+                        var baseInterface = baseInterfaces[i];
+                        addAllInterfaces(baseInterface, visited, result);
+                    }
 
-                result.Add(@interface);
+                    result.Add(@interface);
+                }
             }
         }
 
         /// <summary>
         /// Gets the set of interfaces that this type directly implements, plus the base interfaces
-        /// of all such types. Keys are compared using <see cref="EqualsCLRSignatureComparer"/>,
+        /// of all such types. Keys are compared using <see cref="SymbolEqualityComparer.CLRSignature"/>,
         /// values are distinct interfaces corresponding to the key, according to <see cref="TypeCompareKind.ConsiderEverything"/> rules.
         /// </summary>
         /// <remarks>
@@ -452,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // indirectly.
         private static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> MakeInterfacesAndTheirBaseInterfaces(ImmutableArray<NamedTypeSymbol> declaredInterfaces)
         {
-            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, EqualsCLRSignatureComparer, EqualsConsiderEverything);
+            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, SymbolEqualityComparer.CLRSignature, SymbolEqualityComparer.ConsiderEverything);
             foreach (var @interface in declaredInterfaces)
             {
                 if (resultBuilder.Add(@interface, @interface))
@@ -593,54 +557,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual bool IsTupleType => false;
 
         /// <summary>
-        /// Verify if the given type can be used to back a tuple type 
-        /// and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
-        /// </summary>
-        /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
-        /// <returns></returns>
-        public virtual bool IsTupleCompatible(out int tupleCardinality)
-        {
-            tupleCardinality = 0;
-            return false;
-        }
-
-        /// <summary>
-        /// Verify if the given type can be used to back a tuple type. 
-        /// </summary>
-        public bool IsTupleCompatible()
-        {
-            int countOfItems;
-            return IsTupleCompatible(out countOfItems);
-        }
-
-        /// <summary>
         /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
         /// with the given cardinality. 
         /// </summary>
-        public bool IsTupleOrCompatibleWithTupleOfCardinality(int targetCardinality)
+        public bool IsTupleTypeOfCardinality(int targetCardinality)
         {
             if (IsTupleType)
             {
                 return TupleElementTypesWithAnnotations.Length == targetCardinality;
             }
 
-            int countOfItems;
-            return IsTupleCompatible(out countOfItems) && countOfItems == targetCardinality;
-        }
-
-        /// <summary>
-        /// If this is a tuple type symbol, returns the symbol for its underlying type.
-        /// Otherwise, returns null.
-        /// The type argument corresponding to the type of the extension field (VT[8].Rest),
-        /// which is at the 8th (one based) position is always a symbol for another tuple, 
-        /// rather than its underlying type.
-        /// </summary>
-        public virtual NamedTypeSymbol TupleUnderlyingType
-        {
-            get
-            {
-                return null;
-            }
+            return false;
         }
 
         /// <summary>
@@ -674,8 +601,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract ManagedKind ManagedKind { get; }
 
-        bool ITypeSymbol.IsUnmanagedType => !IsManagedType;
-
         internal bool NeedsNullableAttribute()
         {
             return TypeWithAnnotations.NeedsNullableAttribute(typeWithAnnotationsOpt: default, typeOpt: this);
@@ -696,9 +621,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
         /// <summary>
-        /// Merges nested nullability from an otherwise identical type.
+        /// Merges features of the type with another type where there is an identity conversion between them.
+        /// The features to be merged are
+        /// object vs dynamic (dynamic wins), tuple names (dropped in case of conflict), and nullable
+        /// annotations (e.g. in type arguments).
         /// </summary>
-        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance);
+        internal abstract TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance);
 
         /// <summary>
         /// Returns true if the type may contain embedded references
@@ -710,84 +638,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool IsReadOnly { get; }
 
-        #region ITypeSymbol Members
-
-        INamedTypeSymbol ITypeSymbol.BaseType
-        {
-            get
-            {
-                return this.BaseTypeNoUseSiteDiagnostics;
-            }
-        }
-
-        ImmutableArray<INamedTypeSymbol> ITypeSymbol.Interfaces
-        {
-            get
-            {
-                return StaticCast<INamedTypeSymbol>.From(this.InterfacesNoUseSiteDiagnostics());
-            }
-        }
-
-        ImmutableArray<INamedTypeSymbol> ITypeSymbol.AllInterfaces
-        {
-            get
-            {
-                return StaticCast<INamedTypeSymbol>.From(this.AllInterfacesNoUseSiteDiagnostics);
-            }
-        }
-
-        bool ITypeSymbol.IsReferenceType
-        {
-            get
-            {
-                return this.IsReferenceType;
-            }
-        }
-
-        bool ITypeSymbol.IsValueType
-        {
-            get
-            {
-                return this.IsValueType;
-            }
-        }
-
-        ITypeSymbol ITypeSymbol.OriginalDefinition
-        {
-            get
-            {
-                return this.OriginalDefinition;
-            }
-        }
-
-        TypeKind ITypeSymbol.TypeKind
-        {
-            get
-            {
-                return TypeKind;
-            }
-        }
-
-        ISymbol ITypeSymbol.FindImplementationForInterfaceMember(ISymbol interfaceMember)
-        {
-            return interfaceMember is Symbol symbol
-                ? FindImplementationForInterfaceMember(symbol)
-                : null;
-        }
-
-        /// <summary>
-        /// Is this a symbol for a Tuple.
-        /// </summary>
-        bool ITypeSymbol.IsTupleType => this.IsTupleType;
-
         public string ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToDisplayString(this, topLevelNullability, format);
+            return SymbolDisplay.ToDisplayString((ITypeSymbol)ISymbol, topLevelNullability, format);
         }
 
         public ImmutableArray<SymbolDisplayPart> ToDisplayParts(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToDisplayParts(this, topLevelNullability, format);
+            return SymbolDisplay.ToDisplayParts((ITypeSymbol)ISymbol, topLevelNullability, format);
         }
 
         public string ToMinimalDisplayString(
@@ -796,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int position,
             SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToMinimalDisplayString(this, topLevelNullability, semanticModel, position, format);
+            return SymbolDisplay.ToMinimalDisplayString((ITypeSymbol)ISymbol, topLevelNullability, semanticModel, position, format);
         }
 
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
@@ -805,10 +663,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int position,
             SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToMinimalDisplayParts(this, topLevelNullability, semanticModel, position, format);
+            return SymbolDisplay.ToMinimalDisplayParts((ITypeSymbol)ISymbol, topLevelNullability, semanticModel, position, format);
         }
-
-        #endregion
 
         #region Interface member checks
 
@@ -1794,36 +1650,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    Action<DiagnosticBag, MethodSymbol, MethodSymbol, (TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
-                        (diagnostics, implementedMethod, implementingMethod, arg) =>
+                    ReportMismatchinReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
+                        (diagnostics, implementedMethod, implementingMethod, blameAttributes, arg) =>
                         {
                             if (arg.isExplicit)
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0], new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
                                                 new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                         };
 
-                    Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, (TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
-                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, arg) =>
+                    ReportMismatchInParameterType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
+                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                         {
                             if (arg.isExplicit)
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0],
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                 new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
@@ -2300,5 +2164,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator !=(TypeSymbol left, Symbol right)
             => throw ExceptionUtilities.Unreachable;
+
+        internal ITypeSymbol GetITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
+        {
+            if (nullableAnnotation == DefaultNullableAnnotation)
+            {
+                return (ITypeSymbol)this.ISymbol;
+            }
+
+            return CreateITypeSymbol(nullableAnnotation);
+        }
+
+        internal CodeAnalysis.NullableAnnotation DefaultNullableAnnotation => NullableAnnotationExtensions.ToPublicAnnotation(this, NullableAnnotation.Oblivious);
+
+        protected abstract ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation);
+
+        TypeKind ITypeSymbolInternal.TypeKind => this.TypeKind;
+
+        SpecialType ITypeSymbolInternal.SpecialType => this.SpecialType;
+
+        bool ITypeSymbolInternal.IsReferenceType => this.IsReferenceType;
+
+        bool ITypeSymbolInternal.IsValueType => this.IsValueType;
+
+        ITypeSymbol ITypeSymbolInternal.GetITypeSymbol()
+        {
+            return GetITypeSymbol(DefaultNullableAnnotation);
+        }
     }
 }

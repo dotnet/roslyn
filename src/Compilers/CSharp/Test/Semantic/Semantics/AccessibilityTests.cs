@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly SemanticModel s_testModel;
         private static readonly int s_testPosition;
-        private static readonly Symbol s_testSymbol;
+        private static readonly ISymbol s_testSymbol;
 
         static AccessibilityTests()
         {
@@ -29,7 +31,7 @@ class C1
             CSharpCompilation c = CreateEmptyCompilation(new[] { t });
             s_testModel = c.GetSemanticModel(t);
             s_testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
-            s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception);
+            s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception).GetPublicSymbol();
         }
 
         [Fact]
@@ -65,7 +67,7 @@ class C1
                 references: new MetadataReference[] { MscorlibRef }).GetWellKnownType(WellKnownType.System_Exception);
 
             Assert.True(
-                s_testModel.IsAccessible(s_testPosition, symbol));
+                s_testModel.IsAccessible(s_testPosition, symbol.GetPublicSymbol()));
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]

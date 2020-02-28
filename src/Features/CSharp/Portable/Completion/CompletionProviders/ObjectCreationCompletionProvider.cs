@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -80,7 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (symbol is ITypeSymbol typeSymbol)
             {
-                return base.GetDisplayAndSuffixAndInsertionText(typeSymbol.WithNullability(NullableAnnotation.None), context);
+                // typeSymbol may be a symbol that is nullable if the place we are assigning to is null, for example
+                //
+                //     object? o = new |
+                //
+                // We strip the top-level nullability so we don't end up suggesting "new object?" here. Nested nullability would still
+                // be generated.
+                return base.GetDisplayAndSuffixAndInsertionText(typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated), context);
             }
 
             return base.GetDisplayAndSuffixAndInsertionText(symbol, context);

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -566,7 +568,7 @@ End Class</a>.Value
             Dim position As Integer
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -587,7 +589,7 @@ End Class</a>.Value
 
             Await BaseVerifyWorkerAsync(
                 code, position, "[Class]", "Property CBase.Class As Integer",
-                SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+                SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>

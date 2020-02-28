@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -37,7 +40,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
               ""physicalLocation"": {
                 ""artifactLocation"": {
-                  ""uri"": ""file:///Z:/Main%20Location.cs""
+                  ""uri"": """ + (PathUtilities.IsUnixLikePlatform
+                                    ? "Z:/Main%20Location.cs"
+                                    : "file:///Z:/Main%20Location.cs") + @"""
                 },
                 ""region"": {
                   ""startLine"": 1,
@@ -53,19 +58,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
               ""physicalLocation"": {
                 ""artifactLocation"": {
                   ""uri"": ""Relative%20Additional/Location.cs""
-                },
-                ""region"": {
-                  ""startLine"": 1,
-                  ""startColumn"": 1,
-                  ""endLine"": 1,
-                  ""endColumn"": 1
-                }
-              }
-            },
-            {
-              ""physicalLocation"": {
-                ""artifactLocation"": {
-                  ""uri"": ""a%3Acannot%2Finterpret%2Fas%5Curi""
                 },
                 ""region"": {
                   ""startLine"": 1,
@@ -387,6 +379,62 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void DescriptorIdCollision()
         {
             DescriptorIdCollisionImpl();
+        }
+
+        [Fact]
+        public void PathToUri()
+        {
+            PathToUriImpl(@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+      ""results"": [
+        {{
+          ""ruleId"": ""uriDiagnostic"",
+          ""ruleIndex"": 0,
+          ""level"": ""warning"",
+          ""message"": {{
+            ""text"": ""blank diagnostic""
+          }},
+          ""locations"": [
+            {{
+              ""physicalLocation"": {{
+                ""artifactLocation"": {{
+                  ""uri"": ""{0}""
+                }},
+                ""region"": {{
+                  ""startLine"": 1,
+                  ""startColumn"": 1,
+                  ""endLine"": 1,
+                  ""endColumn"": 1
+                }}
+              }}
+            }}
+          ],
+          ""properties"": {{
+            ""warningLevel"": 3
+          }}
+        }}
+      ],
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": """",
+          ""version"": """",
+          ""dottedQuadFileVersion"": ""1.0.0"",
+          ""semanticVersion"": ""1.0.0"",
+          ""language"": """",
+          ""rules"": [
+            {{
+              ""id"": ""uriDiagnostic""
+            }}
+          ]
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}");
         }
     }
 }

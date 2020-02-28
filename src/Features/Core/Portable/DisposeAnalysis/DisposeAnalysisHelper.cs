@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 var cfg = context.GetControlFlowGraph(operationBlock);
                 if (cfg != null)
                 {
-                    var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
+                    var wellKnownTypeProvider = Analyzer.Utilities.WellKnownTypeProvider.GetOrCreate(context.Compilation);
                     disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 var cfg = context.GetControlFlowGraph(operationBlock);
                 if (cfg != null)
                 {
-                    var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
+                    var wellKnownTypeProvider = Analyzer.Utilities.WellKnownTypeProvider.GetOrCreate(context.Compilation);
                     disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,

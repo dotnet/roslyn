@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -10329,7 +10331,7 @@ namespace ClassLibrary9
             var service = new CSharpExtractMethodService();
             Assert.NotNull(await Record.ExceptionAsync(async () =>
             {
-                var tree = await service.ExtractMethodAsync(null, default, null, CancellationToken.None);
+                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: null, CancellationToken.None);
             }));
         }
 
@@ -10345,7 +10347,7 @@ namespace ClassLibrary9
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
 
-            await service.ExtractMethodAsync(document, default);
+            await service.ExtractMethodAsync(document, textSpan: default, localFunction: false);
         }
 
         [WpfFact]

@@ -37,29 +37,24 @@
         <target state="translated">Il valore di DateTimeKind deve essere Utc</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expression_level_preferences">
-        <source>Expression-level preferences</source>
-        <target state="translated">Preferenze a livello di espressione</target>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="translated">Il tipo di destinazione deve essere {0}, {1}, {2} o {3}, ma quello specificato è {4}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Field_preferences">
-        <source>Field preferences</source>
-        <target state="translated">Preferenze per campi</target>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">Il documento non supporta alberi di sintassi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_reading_content_of_source_file_0_1">
+        <source>Error reading content of source file '{0}' -- '{1}'.</source>
+        <target state="translated">Si è verificato un errore durante la lettura del contenuto del file di origine '{0}' - '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Rientro e spaziatura</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
-        <source>Language keywords vs BCL types preferences</source>
-        <target state="translated">Preferenze per parole chiave linguaggio rispetto a tipi BCL</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifier_preferences">
-        <source>Modifier preferences</source>
-        <target state="translated">Preferenze per modificatore</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_rules">
@@ -77,14 +72,9 @@
         <target state="translated">Preferenze per nuova riga</target>
         <note />
       </trans-unit>
-      <trans-unit id="Organize_usings">
-        <source>Organize usings</source>
-        <target state="translated">Organizza using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_preferences">
-        <source>Parentheses preferences</source>
-        <target state="translated">Preferenze per parentesi</target>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="translated">Le opzioni non provengono dalla soluzione specificata</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
@@ -446,7 +436,7 @@ L'ancoraggio $ corrisponde a \n, ma non a \r\n (combinazione di ritorno a capo e
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">carattere esadecimale</target>
+        <target state="translated">carattere di escape esadecimale</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -1314,12 +1304,22 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">Quando si aggiungono importazioni, nell'ambito verrà aggiunto un metodo di estensione con lo stesso nome di '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Workspace_error">
+        <source>Workspace error</source>
+        <target state="translated">Errore dell'area di lavoro</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">L'area di lavoro non è vuota.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_in_a_different_project">
+        <source>{0} is in a different project.</source>
+        <target state="new">{0} is in a different project.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
@@ -1400,11 +1400,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">La soluzione contiene già il documento specificato.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">La soluzione non contiene il documento specificato.</target>
         <note />
       </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
@@ -1502,11 +1497,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">{0} è ancora aperto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">Esiste già un elemento con la stessa chiave ma valore diverso.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
         <target state="translated">Non è possibile serializzare le matrice con più di una dimensione.</target>
@@ -1552,11 +1542,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Il numero di parametri per l'operatore unario non è valido.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Absolute_path_expected">
-        <source>Absolute path expected.</source>
-        <target state="translated">È previsto il percorso assoluto.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
         <target state="translated">Non è possibile aprire il progetto '{0}' perché l'estensione di file '{1}' non è associata a un linguaggio.</target>
@@ -1595,21 +1580,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Added_colon">
         <source>Added:</source>
         <target state="translated">Aggiunto:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="translated">Correggi tutti '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">Correggi tutti '{0}' in '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="translated">Correggi tutti '{0}' nella soluzione</target>
         <note />
       </trans-unit>
       <trans-unit id="After_colon">
@@ -1702,11 +1672,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Per eseguire l'attività, è necessario il servizio di tipo '{0}', che però non è disponibile dall'area di lavoro.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="translated">La diagnostica specificata non può essere Null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
         <source>At least one diagnostic must be supplied.</source>
         <target state="translated">È necessario specificare almeno una diagnostica.</target>
@@ -1787,11 +1752,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Questa area di lavoro non supporta l'apertura e la chiusura di documenti.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Utilizzo:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">Eccezioni:</target>
@@ -1825,11 +1785,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
         <target state="translated">Aggiunge le parentesi graffe all'istruzione '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">Le opzioni non provengono dall'area di lavoro</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">
@@ -2187,11 +2142,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Convenzioni di scrittura codice .NET</target>
         <note />
       </trans-unit>
-      <trans-unit id="this_dot_and_Me_dot_preferences">
-        <source>this. and Me. preferences</source>
-        <target state="translated">Preferenze per this. e Me.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">Intervallo [x-y] in ordine inverso</target>
@@ -2206,11 +2156,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <source>Regex issue: {0}</source>
         <target state="translated">Problema di regex: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="Parameter_preferences">
-        <source>Parameter preferences</source>
-        <target state="translated">Preferenze per parametri</target>
-        <note />
       </trans-unit>
     </body>
   </file>

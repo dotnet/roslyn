@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return IsValidSetMethod(setMethod) &&
                 setMethod.Parameters.Length == 1 &&
                 setMethod.Parameters[0].RefKind == RefKind.None &&
-                Equals(setMethod.Parameters[0].GetTypeWithAnnotatedNullability(), getMethod.GetReturnTypeWithAnnotatedNullability()) &&
+                SymbolEqualityComparer.IncludeNullability.Equals(setMethod.Parameters[0].Type, getMethod.ReturnType) &&
                 setMethod.IsAbstract == getMethod.IsAbstract;
         }
 
@@ -163,11 +165,14 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var originalSolution = document.Project.Solution;
-            var getMethodReferences = await SymbolFinder.FindReferencesAsync(getMethod, originalSolution, cancellationToken).ConfigureAwait(false);
+            var project = document.Project;
+            var originalSolution = project.Solution;
+            var getMethodReferences = await SymbolFinder.FindReferencesAsync(
+                new SymbolAndProjectId(getMethod, project.Id), originalSolution, cancellationToken).ConfigureAwait(false);
             var setMethodReferences = setMethod == null
                 ? SpecializedCollections.EmptyEnumerable<ReferencedSymbol>()
-                : await SymbolFinder.FindReferencesAsync(setMethod, originalSolution, cancellationToken).ConfigureAwait(false);
+                : await SymbolFinder.FindReferencesAsync(
+                    new SymbolAndProjectId(setMethod, project.Id), originalSolution, cancellationToken).ConfigureAwait(false);
 
             // Get the warnings we'd like to put at the definition site.
             var definitionWarning = GetDefinitionIssues(getMethodReferences);

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -26,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = TestWorkspace.CreateCSharp(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()), diagnosticService)
@@ -53,7 +55,7 @@ class 123 { }
                     Dim snapshot = buffer.CurrentSnapshot
                     Dim spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray()
 
-                    Assert.True(spans.Count() > 0)
+                    Assert.NotEmpty(spans)
                     Assert.True(spans.All(Function(s) s.Span.Length > 0))
                 End Using
             End Using
@@ -71,7 +73,7 @@ class A
 }
                        </code>
 
-            Using workspace = TestWorkspace.CreateCSharp(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()), diagnosticService)
@@ -88,8 +90,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
 
-                Assert.True(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
+                Assert.Single(
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
             End Using
         End Function
 
@@ -105,7 +107,7 @@ class A
 }
                        </code>
 
-            Using workspace = TestWorkspace.CreateCSharp(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()), diagnosticService)
@@ -121,8 +123,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
 
-                Assert.True(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
+                Assert.Single(
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
             End Using
         End Function
 
@@ -138,7 +140,7 @@ class A
 }
                        </code>
 
-            Using workspace = TestWorkspace.CreateCSharp(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()), diagnosticService)
@@ -154,8 +156,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
 
-                Assert.True(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 2)
+                Assert.Equal(2,
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count())
             End Using
         End Function
 
@@ -171,7 +173,7 @@ class A
 }
                        </code>
 
-            Using workspace = TestWorkspace.CreateCSharp(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()), diagnosticService)
@@ -189,8 +191,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
 
-                Assert.True(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 0)
+                Assert.Empty(
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
             End Using
         End Function
 
@@ -199,7 +201,7 @@ class A
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = TestWorkspace.CreateCSharp(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value, openDocuments:=True)
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()), New MockDiagnosticUpdateSourceRegistrationService())
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
@@ -224,7 +226,7 @@ class 123 { }
 Class 123
 End Class
                        </code>
-            Using workspace = TestWorkspace.CreateVisualBasic(code.Value)
+            Using workspace = TestWorkspace.CreateVisualBasic(code.Value, openDocuments:=True)
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()), New MockDiagnosticUpdateSourceRegistrationService())
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
@@ -258,7 +260,7 @@ End Class
             Dim analyzerMap = ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty.Add(
                 NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New DiagnosticAnalyzerWithSemanticError()))
 
-            Using workspace = TestWorkspace.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test, openDocuments:=True)
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(analyzerMap), diagnosticService)
@@ -275,8 +277,8 @@ End Class
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
 
-                Assert.True(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
+                Assert.Single(
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
             End Using
         End Function
 

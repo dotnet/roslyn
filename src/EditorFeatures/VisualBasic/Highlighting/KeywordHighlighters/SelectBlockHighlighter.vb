@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
@@ -15,17 +17,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Sub AddHighlights(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             If node.IsIncorrectExitStatement(SyntaxKind.ExitSelectStatement) Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
 
             Dim selectBlock = node.GetAncestor(Of SelectBlockSyntax)()
             If selectBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
-
-            Dim highlights As New List(Of TextSpan)
 
             With selectBlock
                 With .SelectStatement
@@ -52,9 +52,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
                 highlights.Add(.EndSelectStatement.Span)
             End With
-
-            Return highlights
-        End Function
-
+        End Sub
     End Class
 End Namespace

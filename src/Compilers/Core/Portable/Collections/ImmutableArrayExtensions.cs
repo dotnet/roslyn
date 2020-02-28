@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -553,6 +555,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+            where K : notnull
         {
             if (items.Length == 1)
             {
@@ -597,6 +600,36 @@ namespace Microsoft.CodeAnalysis
         internal static Location FirstOrNone(this ImmutableArray<Location> items)
         {
             return items.IsEmpty ? Location.None : items[0];
+        }
+
+        internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)
+        {
+            // The framework implementation of SequenceEqual forces a NullRef for default array1 and 2, so we
+            // maintain the same behavior in this extension
+            if (array1.IsDefault)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (array2.IsDefault)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (array1.Length != array2.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (!predicate(array1[i], array2[i], arg))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

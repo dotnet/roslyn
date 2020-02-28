@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using Roslyn.Utilities;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
@@ -9,7 +10,7 @@ using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    public struct OptionKey : IEquatable<OptionKey>
+    public readonly struct OptionKey : IEquatable<OptionKey>
     {
         public IOption Option { get; }
         public string Language { get; }
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override int GetHashCode()
         {
-            var hash = Option.GetHashCode();
+            var hash = Option?.GetHashCode() ?? 0;
 
             if (Language != null)
             {

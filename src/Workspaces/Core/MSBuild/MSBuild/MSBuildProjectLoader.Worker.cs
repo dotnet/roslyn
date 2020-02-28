@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private partial class Worker
         {
-            private readonly Workspace _workspace;
+            private readonly HostWorkspaceServices _workspaceServices;
             private readonly DiagnosticReporter _diagnosticReporter;
             private readonly PathResolver _pathResolver;
             private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private readonly Dictionary<string, ImmutableArray<ProjectInfo>> _pathToDiscoveredProjectInfosMap;
 
             public Worker(
-                Workspace workspace,
+                HostWorkspaceServices services,
                 DiagnosticReporter diagnosticReporter,
                 PathResolver pathResolver,
                 ProjectFileLoaderRegistry projectFileLoaderRegistry,
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 DiagnosticReportingOptions discoveredProjectOptions,
                 bool preferMetadataForReferencesOfDiscoveredProjects)
             {
-                _workspace = workspace;
+                _workspaceServices = services;
                 _diagnosticReporter = diagnosticReporter;
                 _pathResolver = pathResolver;
                 _projectFileLoaderRegistry = projectFileLoaderRegistry;
@@ -337,7 +339,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (string.IsNullOrWhiteSpace(assemblyName))
                     {
                         // if there isn't an assembly name, make one from the file path.
-                        // Note: This may not be necessary any longer if the commmand line args
+                        // Note: This may not be necessary any longer if the command line args
                         // always produce a valid compilation name.
                         assemblyName = GetAssemblyNameFromProjectPath(projectPath);
                     }
@@ -494,13 +496,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private TLanguageService GetLanguageService<TLanguageService>(string languageName)
                 where TLanguageService : ILanguageService
-                => _workspace.Services
+                => _workspaceServices
                     .GetLanguageServices(languageName)
                     .GetService<TLanguageService>();
 
             private TWorkspaceService GetWorkspaceService<TWorkspaceService>()
                 where TWorkspaceService : IWorkspaceService
-                => _workspace.Services
+                => _workspaceServices
                     .GetService<TWorkspaceService>();
         }
     }

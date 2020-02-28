@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal("void TC10.M1()", localM1.ToTestDisplayString());
             Assert.True(localM1.ReturnsVoid);
             Assert.Equal(Accessibility.Public, localM1.DeclaredAccessibility);
-            Assert.Same(module2, localM1.Locations.Single().MetadataModule);
+            Assert.Same(module2, localM1.Locations.Single().MetadataModuleInternal);
 
             Assert.Equal("void TC10.M2(System.Int32 m1_1)", localM2.ToTestDisplayString());
             Assert.True(localM2.ReturnsVoid);
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.False(basicC1_M1.Parameters[0].IsOptional);
             Assert.False(basicC1_M1.Parameters[0].HasExplicitDefaultValue);
-            Assert.Same(module4, basicC1_M1.Parameters[0].Locations.Single().MetadataModule);
+            Assert.Same(module4, basicC1_M1.Parameters[0].Locations.Single().MetadataModuleInternal);
 
             Assert.True(basicC1_M2.Parameters[0].IsOptional);
             Assert.False(basicC1_M2.Parameters[0].HasExplicitDefaultValue);

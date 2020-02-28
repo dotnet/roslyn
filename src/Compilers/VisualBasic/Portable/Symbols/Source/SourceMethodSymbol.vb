@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -1637,7 +1639,7 @@ lReportErrorOnTwoTokens:
                     Return
                 End If
 
-                Dim moduleName As String = TryCast(attrData.CommonConstructorArguments(0).Value, String)
+                Dim moduleName As String = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 If Not MetadataHelpers.IsValidMetadataIdentifier(moduleName) Then
                     arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
                 End If
@@ -1660,7 +1662,7 @@ lReportErrorOnTwoTokens:
                 For Each namedArg In attrData.CommonNamedArguments
                     Select Case namedArg.Key
                         Case "EntryPoint"
-                            importName = TryCast(namedArg.Value.Value, String)
+                            importName = TryCast(namedArg.Value.ValueInternal, String)
                             If Not MetadataHelpers.IsValidMetadataIdentifier(importName) Then
                                 arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(position).GetLocation(), attrData.AttributeClass)
                                 Return
@@ -1731,8 +1733,6 @@ lReportErrorOnTwoTokens:
                         Return
                     End If
                 End If
-
-                MyBase.DecodeWellKnownAttribute(arguments)
             End If
         End Sub
 
@@ -1759,8 +1759,6 @@ lReportErrorOnTwoTokens:
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonReturnTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.ReturnValue, MessageProvider.Instance)
-            Else
-                MyBase.DecodeWellKnownAttribute(arguments)
             End If
         End Sub
 

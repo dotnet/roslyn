@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -127,7 +129,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static Dictionary<string, string> TrimDictionary(IReadOnlyDictionary<string, string> allRawConventions)
         {
-            var trimmedDictionary = new Dictionary<string, string>(allRawConventions.Count);
+            // Keys have been lowercased, but values have not. Because values here reference key
+            // names we need any comparisons to ignore case.
+            // For example, to make a naming style called "Pascal_Case_style" match up correctly
+            // with the key "dotnet_naming_style.pascal_case_style.capitalization", we have to
+            // ignore casing for that lookup.
+            var trimmedDictionary = new Dictionary<string, string>(allRawConventions.Count, AnalyzerConfigOptions.KeyComparer);
             foreach (var item in allRawConventions)
             {
                 var key = item.Key.Trim();

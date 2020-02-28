@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Attempt to find the inserted node and move the caret appropriately
             if (newRoot != null)
             {
-                var caretTarget = newRoot.GetAnnotatedNodesAndTokens(_annotation).FirstOrNullable();
+                var caretTarget = newRoot.GetAnnotatedNodesAndTokens(_annotation).FirstOrNull();
                 if (caretTarget != null)
                 {
                     var targetPosition = GetTargetCaretPosition(caretTarget.Value.AsNode());
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
         {
-            var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNullable();
+            var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNull();
             var text = insertionRoot.GetText();
             var line = text.Lines.GetLineFromPosition(targetToken.Value.Span.End);
 

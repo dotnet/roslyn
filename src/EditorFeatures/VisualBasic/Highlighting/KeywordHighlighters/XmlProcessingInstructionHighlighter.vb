@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
@@ -15,9 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(xmlDocumentPrologue As XmlDeclarationSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
-
+        Protected Overloads Overrides Sub addHighlights(xmlDocumentPrologue As XmlDeclarationSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             With xmlDocumentPrologue
                 If Not .ContainsDiagnostics AndAlso
                    Not .HasAncestor(Of DocumentationCommentTriviaSyntax)() Then
@@ -25,8 +25,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     highlights.Add(.QuestionGreaterThanToken.Span)
                 End If
             End With
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace

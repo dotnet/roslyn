@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
-        <target state="translated">기본 설정 줄 바꿈</target>
+        <target state="translated">기본 설정 래핑</target>
         <note />
       </trans-unit>
     </body>

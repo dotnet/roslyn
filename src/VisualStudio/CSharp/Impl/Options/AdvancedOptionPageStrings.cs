@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -12,14 +14,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Analysis
             => ServicesVSResources.Analysis;
 
-        public static string Option_Enable_full_solution_analysis
-            => ServicesVSResources.Enable_full_solution_analysis;
+        public static string Option_Background_analysis_scope
+            => ServicesVSResources.Background_analysis_scope_colon;
+
+        public static string Option_Background_Analysis_Scope_Active_File
+            => ServicesVSResources.Current_document;
+
+        public static string Option_Background_Analysis_Scope_Open_Files_And_Projects
+            => ServicesVSResources.Open_documents;
+
+        public static string Option_Background_Analysis_Scope_Full_Solution
+            => ServicesVSResources.Entire_solution;
 
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
-
-        public static string Option_use_nullable_reference_analysis_IDE_features
-            => ServicesVSResources.Enable_nullable_reference_analysis_IDE_features;
 
         public static string Option_use_editorconfig_compatibility_mode
             => ServicesVSResources.Use_editorconfig_compatibility_mode;

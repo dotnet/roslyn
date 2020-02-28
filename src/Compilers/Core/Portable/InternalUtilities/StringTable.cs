@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -76,18 +80,17 @@ namespace Roslyn.Utilities
         // implement Poolable object pattern
         #region "Poolable"
 
-        private StringTable(ObjectPool<StringTable> pool)
+        private StringTable(ObjectPool<StringTable>? pool)
         {
             _pool = pool;
         }
 
-        private readonly ObjectPool<StringTable> _pool;
+        private readonly ObjectPool<StringTable>? _pool;
         private static readonly ObjectPool<StringTable> s_staticPool = CreatePool();
 
         private static ObjectPool<StringTable> CreatePool()
         {
-            ObjectPool<StringTable> pool = null;
-            pool = new ObjectPool<StringTable>(() => new StringTable(pool), Environment.ProcessorCount * 2);
+            var pool = new ObjectPool<StringTable>(pool => new StringTable(pool), Environment.ProcessorCount * 2);
             return pool;
         }
 
@@ -102,7 +105,7 @@ namespace Roslyn.Utilities
             // Array.Clear(this.localTable, 0, this.localTable.Length);
             // Array.Clear(sharedTable, 0, sharedTable.Length);
 
-            _pool.Free(this);
+            _pool?.Free(this);
         }
 
         #endregion // Poolable
@@ -127,7 +130,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            string shared = FindSharedEntry(chars, start, len, hashCode);
+            string? shared = FindSharedEntry(chars, start, len, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -161,7 +164,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            string shared = FindSharedEntry(chars, start, len, hashCode);
+            string? shared = FindSharedEntry(chars, start, len, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -195,7 +198,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            string shared = FindSharedEntry(chars, hashCode);
+            string? shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -229,7 +232,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            string shared = FindSharedEntry(chars, hashCode);
+            string? shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -263,7 +266,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            string shared = FindSharedEntry(chars, hashCode);
+            string? shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -280,12 +283,12 @@ namespace Roslyn.Utilities
         }
 
 
-        private static string FindSharedEntry(char[] chars, int start, int len, int hashCode)
+        private static string? FindSharedEntry(char[] chars, int start, int len, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -315,12 +318,12 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private static string FindSharedEntry(string chars, int start, int len, int hashCode)
+        private static string? FindSharedEntry(string chars, int start, int len, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -350,12 +353,12 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private static string FindSharedEntryASCII(int hashCode, ReadOnlySpan<byte> asciiChars)
+        private static string? FindSharedEntryASCII(int hashCode, ReadOnlySpan<byte> asciiChars)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -385,12 +388,12 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private static string FindSharedEntry(char chars, int hashCode)
+        private static string? FindSharedEntry(char chars, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -419,12 +422,12 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private static string FindSharedEntry(StringBuilder chars, int hashCode)
+        private static string? FindSharedEntry(StringBuilder chars, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -454,12 +457,12 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private static string FindSharedEntry(string chars, int hashCode)
+        private static string? FindSharedEntry(string chars, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -565,7 +568,7 @@ foundIdx:
         {
             var hashCode = Hash.GetFNVHashCode(chars);
 
-            string shared = FindSharedEntry(chars, hashCode);
+            string? shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
                 return shared;
@@ -587,7 +590,7 @@ foundIdx:
 
             if (isAscii)
             {
-                string shared = FindSharedEntryASCII(hashCode, bytes);
+                string? shared = FindSharedEntryASCII(hashCode, bytes);
                 if (shared != null)
                 {
                     return shared;

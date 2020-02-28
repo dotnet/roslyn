@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -60,21 +62,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
         }
-
-        private readonly int _scopeId;
-
-        public RoslynServices(int scopeId, AssetStorage storage, HostServices hostServices)
-        {
-            _scopeId = scopeId;
-
-            AssetService = new AssetService(_scopeId, storage, SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>());
-            SolutionService = new SolutionService(AssetService);
-            CompilationService = new CompilationService(SolutionService);
-        }
-
-        public AssetService AssetService { get; }
-        public SolutionService SolutionService { get; }
-        public CompilationService CompilationService { get; }
 
         /// <summary>
         /// Set default telemetry session

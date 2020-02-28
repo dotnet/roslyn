@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -53,6 +59,53 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return CreateWithMessage(descriptor, location, effectiveSeverity, additionalLocations, properties, message);
+        }
+
+        /// <summary>
+        /// Create a diagnostic that adds properties specifying a tag for a set of locations.
+        /// </summary>
+        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="additionalLocations">
+        /// An optional set of additional locations related to the diagnostic.
+        /// Typically, these are locations of other items referenced in the message.
+        /// If null, <see cref="Diagnostic.AdditionalLocations"/> will return an empty list.
+        /// </param>
+        /// <param name="tagIndices">
+        /// a map of location tag to index in additional locations.
+        /// <see cref="AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer{TLanguageKindEnum, TParenthesizedExpressionSyntax}"/> for an example of usage.
+        /// </param>
+        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        public static Diagnostic CreateWithLocationTags(
+            DiagnosticDescriptor descriptor,
+            Location location,
+            ReportDiagnostic effectiveSeverity,
+            IEnumerable<Location> additionalLocations,
+            IDictionary<string, IEnumerable<int>> tagIndices,
+            params object[] messageArgs)
+        {
+            Contract.ThrowIfTrue(additionalLocations.IsEmpty());
+            Contract.ThrowIfTrue(tagIndices.IsEmpty());
+
+            var properties = tagIndices.Select(kvp => new KeyValuePair<string, string>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))).ToImmutableDictionary();
+
+            return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
+
+            static string EncodeIndices(IEnumerable<int> indices, int additionalLocationsLength)
+            {
+                // Ensure that the provided tag index is a valid index into additional locations.
+                Contract.ThrowIfFalse(indices.All(idx => idx >= 0 && idx < additionalLocationsLength));
+
+                using var stream = new MemoryStream();
+                var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
+                serializer.WriteObject(stream, indices);
+
+                var jsonBytes = stream.ToArray();
+                stream.Close();
+                return Encoding.UTF8.GetString(jsonBytes, 0, jsonBytes.Length);
+            }
         }
 
         /// <summary>

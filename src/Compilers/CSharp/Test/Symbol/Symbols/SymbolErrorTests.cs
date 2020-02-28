@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1144,7 +1146,7 @@ class C
                 // (5,9): error CS0161: 'C.F<>(int, (?, ?))': not all code paths return a value
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int, (?, ?))").WithLocation(5, 9)
-    );
+                );
         }
 
         /// <summary>
@@ -17484,14 +17486,12 @@ class C
     [A] extern event D E2;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,20): warning CS0626: Method, operator, or accessor 'C.E1.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E1").WithArguments("C.E1.add").WithLocation(5, 20),
                 // (5,20): warning CS0626: Method, operator, or accessor 'C.E1.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event D E1;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E1").WithArguments("C.E1.remove").WithLocation(5, 20),
-                // (6,24): warning CS0626: Method, operator, or accessor 'C.E2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E2").WithArguments("C.E2.add").WithLocation(6, 24), // #15802
-                                                                                                                            // (6,24): warning CS0626: Method, operator, or accessor 'C.E2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E2").WithArguments("C.E2.remove").WithLocation(6, 24)); // #15802
+                // (6,24): warning CS0626: Method, operator, or accessor 'C.E2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     [A] extern event D E2;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E2").WithArguments("C.E2.remove").WithLocation(6, 24));
         }
 
         [Fact]

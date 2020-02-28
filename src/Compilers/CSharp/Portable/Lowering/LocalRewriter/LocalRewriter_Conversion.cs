@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -410,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SpecialType GetUnderlyingSpecialType(TypeSymbol type) =>
-                type.StrippedType().EnumUnderlyingType().SpecialType;
+                type.StrippedType().EnumUnderlyingTypeOrSelf().SpecialType;
 
             bool IsInRange(SpecialType type, SpecialType low, SpecialType high) =>
                 low <= type && type <= high;
@@ -644,28 +646,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool explicitCastInCode,
             NamedTypeSymbol rewrittenType)
         {
-            var destElementTypes = rewrittenType.GetElementTypesOfTupleOrCompatible();
+            var destElementTypes = rewrittenType.TupleElementTypesWithAnnotations;
             var numElements = destElementTypes.Length;
 
-            TypeSymbol srcType = rewrittenOperand.Type;
-
-            TupleTypeSymbol tupleTypeSymbol;
-            if (srcType.IsTupleType)
-            {
-                tupleTypeSymbol = (TupleTypeSymbol)srcType;
-            }
-            else
-            {
-                // The following codepath should be very uncommon (if reachable at all)
-                // we should generally not see tuple compatible types in bound trees and 
-                // see actual tuple types instead.
-                Debug.Assert(srcType.IsTupleCompatible());
-
-                // PERF: if allocations here become nuisance, consider caching the TupleTypeSymbol
-                //       in the type symbols that can actually be tuple compatible
-                tupleTypeSymbol = TupleTypeSymbol.Create((NamedTypeSymbol)srcType);
-            }
-
+            var tupleTypeSymbol = (NamedTypeSymbol)rewrittenOperand.Type;
             var srcElementFields = tupleTypeSymbol.TupleElements;
             var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
 

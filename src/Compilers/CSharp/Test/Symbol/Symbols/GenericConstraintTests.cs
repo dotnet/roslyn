@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -3369,7 +3371,7 @@ class C<T> : IT<T>
             var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
             var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
-            Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
+            Assert.False(((NamedTypeSymbol)constraintType).IsSerializable);
         }
 
         /// <summary>

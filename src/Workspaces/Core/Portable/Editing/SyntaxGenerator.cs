@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -178,7 +180,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
             if (method.ExplicitInterfaceImplementations.Length > 0)
             {
-                decl = this.WithExplicitInterfaceImplementations(decl, method.ExplicitInterfaceImplementations);
+                decl = this.WithExplicitInterfaceImplementations(decl,
+                    ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations));
             }
 
             return decl;
@@ -687,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return declaration;
         }
 
-        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations);
+        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
@@ -833,16 +836,11 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var args = attribute.ConstructorArguments.Select(a => this.AttributeArgument(this.TypedConstantExpression(a)))
                     .Concat(attribute.NamedArguments.Select(n => this.AttributeArgument(n.Key, this.TypedConstantExpression(n.Value))))
-                    .ToImmutableReadOnlyListOrEmpty();
+                    .ToBoxedImmutableArray();
 
             return Attribute(
                 name: this.TypeExpression(attribute.AttributeClass),
                 attributeArguments: args.Count > 0 ? args : null);
-        }
-
-        private IEnumerable<SyntaxNode> GetSymbolAttributes(ISymbol symbol)
-        {
-            return symbol.GetAttributes().Select(a => Attribute(a));
         }
 
         /// <summary>
@@ -1231,6 +1229,9 @@ namespace Microsoft.CodeAnalysis.Editing
             }
         }
 
+        internal SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
+            => root.ReplaceNode(node, newDeclarations);
+
         /// <summary>
         /// Inserts the new node before the specified declaration.
         /// </summary>
@@ -1440,6 +1441,14 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract bool SupportsThrowExpression();
 
         /// <summary>
+        /// <see langword="true"/> if the language requires a <see cref="TypeExpression(ITypeSymbol)"/>
+        /// (including <see langword="var"/>) to be stated when making a 
+        /// <see cref="LocalDeclarationStatement(ITypeSymbol, string, SyntaxNode, bool)"/>.
+        /// <see langword="false"/> if the language allows the type node to be entirely elided.
+        /// </summary>
+        internal abstract bool RequiresLocalDeclarationType();
+
+        /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
         public abstract SyntaxNode LocalDeclarationStatement(
@@ -1605,6 +1614,8 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
         internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
         internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
+        internal abstract SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment);
+        internal abstract SyntaxNode InterpolationFormatClause(string format);
 
         /// <summary>
         /// An expression that represents the default value of a type.
@@ -1967,9 +1978,29 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse);
 
-        internal abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
-        internal abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
-        internal abstract SyntaxNode ElementBindingExpression(SyntaxNode argumentList);
+        /// <summary>
+        /// Creates an expression that denotes a conditional access operation. Use <see
+        /// cref="MemberBindingExpression"/> and <see
+        /// cref="ElementBindingExpression(IEnumerable{SyntaxNode})"/> to generate the <paramref
+        /// name="whenNotNull"/> argument.
+        /// </summary>
+        public abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
+
+        /// <summary>
+        /// Creates an expression that denotes a member binding operation.
+        /// </summary>
+        public abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
+
+        /// <summary>
+        /// Creates an expression that denotes an element binding operation.
+        /// </summary>
+        public abstract SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments);
+
+        /// <summary>
+        /// Creates an expression that denotes an element binding operation.
+        /// </summary>
+        public SyntaxNode ElementBindingExpression(params SyntaxNode[] arguments)
+            => ElementBindingExpression((IEnumerable<SyntaxNode>)arguments);
 
         /// <summary>
         /// Creates an expression that denotes a coalesce operation. 

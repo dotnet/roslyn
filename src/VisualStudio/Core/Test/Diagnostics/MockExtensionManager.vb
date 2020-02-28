@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel
 Imports System.Globalization
@@ -34,8 +36,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 installedExtensionMock.SetupGet(Function(m) m.Content).Returns(
                     New MockContent() {
                         New MockContent(_contentType, location),
-                        New MockContent(_contentType, VisualStudioWorkspaceDiagnosticAnalyzerProviderService.MicrosoftCodeAnalysisCSharp),
-                        New MockContent(_contentType, VisualStudioWorkspaceDiagnosticAnalyzerProviderService.MicrosoftCodeAnalysisVisualBasic)
+                        New MockContent(_contentType, VisualStudioDiagnosticAnalyzerProvider.MicrosoftCodeAnalysisCSharp),
+                        New MockContent(_contentType, VisualStudioDiagnosticAnalyzerProvider.MicrosoftCodeAnalysisVisualBasic)
                     })
 
                 installedExtensionMock.Setup(Function(m) m.GetContentLocation(It.IsAny(Of MockContent))).Returns(Function(content As MockContent)

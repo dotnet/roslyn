@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="10162">
         <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
-        <target state="translated">Style d'affectation de noms;Styles de nom;Règle d'affectation de noms;Conventions d'affectation de noms</target>
+        <target state="translated">Style de nommage;Styles de nom;Règle de nommage;Conventions de nommage</target>
         <note>Naming Style options page keywords</note>
       </trans-unit>
       <trans-unit id="111">

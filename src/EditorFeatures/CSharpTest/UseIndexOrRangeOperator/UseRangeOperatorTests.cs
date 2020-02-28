@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,9 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
 
         private static readonly CSharpParseOptions s_parseOptions =
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
-
-        private static readonly TestParameters s_testParameters =
-            new TestParameters(parseOptions: s_parseOptions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestNotInCSharp7()
@@ -147,6 +147,21 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestNotWithoutSubtraction()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace System { public struct Range { } }
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([||]1, 2);
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestNonStringType()
         {
             await TestAsync(
@@ -168,6 +183,32 @@ class C
     void Goo(S s)
     {
         var v = s[1..^1];
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestNonStringType_Assignment()
+        {
+            await TestAsync(
+@"
+namespace System { public struct Range { } }
+struct S { public ref S Slice(int start, int length); public int Length { get; } public S this[System.Range] { get; } }
+class C
+{
+    void Goo(S s)
+    {
+        s.Slice([||]1, s.Length - 2) = default;
+    }
+}",
+@"
+namespace System { public struct Range { } }
+struct S { public ref S Slice(int start, int length); public int Length { get; } public S this[System.Range] { get; } }
+class C
+{
+    void Goo(S s)
+    {
+        s[1..^1] = default;
     }
 }", parseOptions: s_parseOptions);
         }
@@ -220,6 +261,94 @@ class C
     void Goo(string s, string t)
     {
         var v = t.Substring(s[1..^1][0], t.Length - s[1..^1][0]);
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestWithTypeWithActualSliceMethod1()
+        {
+            await TestAsync(
+@"
+using System;
+namespace System
+{
+    public struct Range { }
+    public readonly ref struct Span<T>
+    {
+        public int Length { get { } }
+        public Span<T> Slice(int start, int length) { }
+    }
+}
+
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s.Slice([||]1, s.Length - 1);
+    }
+}",
+@"
+using System;
+namespace System
+{
+    public struct Range { }
+    public readonly ref struct Span<T>
+    {
+        public int Length { get { } }
+        public Span<T> Slice(int start, int length) { }
+    }
+}
+
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s[1..];
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestWithTypeWithActualSliceMethod2()
+        {
+            await TestAsync(
+@"
+using System;
+namespace System
+{
+    public struct Range { }
+    public readonly ref struct Span<T>
+    {
+        public int Length { get { } }
+        public Span<T> Slice(int start, int length) { }
+    }
+}
+
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s.Slice([||]1, s.Length - 2);
+    }
+}",
+@"
+using System;
+namespace System
+{
+    public struct Range { }
+    public readonly ref struct Span<T>
+    {
+        public int Length { get { } }
+        public Span<T> Slice(int start, int length) { }
+    }
+}
+
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s[1..^1];
     }
 }", parseOptions: s_parseOptions);
         }

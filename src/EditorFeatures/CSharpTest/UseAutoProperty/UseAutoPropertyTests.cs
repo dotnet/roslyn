@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2265,6 +2268,7 @@ namespace RoslynSandbox
 
 }");
         }
+
         [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLineWithDoubleDirectives()
@@ -2292,6 +2296,114 @@ namespace RoslynSandbox
     int P { get; }
     #endregion
 }");
+        }
+
+        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestUseTabs()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Foo
+{
+	private readonly object o;
+
+	[||]public object O => o;
+}",
+@"public class Foo
+{
+	public object O { get; }
+}", options: Option(FormattingOptions.UseTabs, true));
+        }
+
+        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestUseSpaces()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Foo
+{
+	private readonly object o;
+
+	[||]public object O => o;
+}",
+@"public class Foo
+{
+    public object O { get; }
+}", options: Option(FormattingOptions.UseTabs, false));
+        }
+
+        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestUseTabs_Editorconfig()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+public class Foo
+{
+	private readonly object o;
+
+	[||]public object O => o;
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = tab
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+public class Foo
+{
+	public object O { get; }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = tab
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>");
+        }
+
+        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestUseSpaces_Editorconfig()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+public class Foo
+{
+	private readonly object o;
+
+	[||]public object O => o;
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = space
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+public class Foo
+{
+    public object O { get; }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = space
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>");
         }
     }
 }

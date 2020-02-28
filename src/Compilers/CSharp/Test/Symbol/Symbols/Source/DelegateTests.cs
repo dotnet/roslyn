@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -770,14 +772,14 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             ExpressionSyntax lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
-            var lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+            var lambda = (IMethodSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
 
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);
             Assert.Equal(RefKind.In, lambda.Parameters[0].RefKind);
 
             lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
-            lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+            lambda = (IMethodSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
 
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options.EditorConfig;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.ValidateFormatString;
@@ -22,9 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             InitializeComponent();
 
-            BindToFullSolutionAnalysisOption(Enable_full_solution_analysis, LanguageNames.CSharp);
+            BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.CSharp);
+            BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.CSharp);
+            BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
             BindToOption(Enable_navigation_to_decompiled_sources, FeatureOnOffOptions.NavigateToDecompiledSources);
-            BindTristateToOption(Enable_use_nullable_reference_types, FeatureOnOffOptions.UseNullableReferenceTypeAnalysis);
             BindToOption(Use_editorconfig_compatibility_mode, EditorConfigDocumentOptionsProviderFactory.UseLegacyEditorConfigSupport);
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp);

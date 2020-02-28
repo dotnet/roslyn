@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 methodSymbol.Name == "ToString" &&
                 methodSymbol.Parameters.Length == 0)
             {
-                newOverriddenMember = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, returnType: methodSymbol.ReturnType.WithNullability(NullableAnnotation.NotAnnotated));
+                newOverriddenMember = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, returnType: methodSymbol.ReturnType.WithNullableAnnotation(NullableAnnotation.NotAnnotated));
             }
 
             // Figure out what to insert, and do it. Throw if we've somehow managed to get this far and can't.

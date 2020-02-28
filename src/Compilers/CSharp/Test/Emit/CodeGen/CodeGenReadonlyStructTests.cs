@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -882,16 +884,16 @@ class Program
             Assert.False(type.IsReadOnly);
 
             // anonymous type
-            type = (TypeSymbol)comp.CreateAnonymousTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType), ImmutableArray.Create("qq"));
-            Assert.False(type.IsReadOnly);
+            INamedTypeSymbol iNamedType = comp.CreateAnonymousTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType.GetPublicSymbol()), ImmutableArray.Create("qq"));
+            Assert.False(iNamedType.IsReadOnly);
 
             // pointer type
             type = (TypeSymbol)comp.CreatePointerTypeSymbol(comp.ObjectType);
             Assert.False(type.IsReadOnly);
 
             // tuple type
-            type = (TypeSymbol)comp.CreateTupleTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType, comp.ObjectType));
-            Assert.False(type.IsReadOnly);
+            iNamedType = comp.CreateTupleTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType.GetPublicSymbol(), comp.ObjectType.GetPublicSymbol()));
+            Assert.False(iNamedType.IsReadOnly);
 
             // S1 from image
             var clientComp = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
@@ -1046,16 +1048,16 @@ class Program
             Assert.False(type.IsReadOnly);
 
             // anonymous type
-            type = (TypeSymbol)comp.CreateAnonymousTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType), ImmutableArray.Create("qq"));
-            Assert.False(type.IsReadOnly);
+            INamedTypeSymbol iNamedType = comp.CreateAnonymousTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType.GetPublicSymbol()), ImmutableArray.Create("qq"));
+            Assert.False(iNamedType.IsReadOnly);
 
             // pointer type
             type = (TypeSymbol)comp.CreatePointerTypeSymbol(comp.ObjectType);
             Assert.False(type.IsReadOnly);
 
             // tuple type
-            type = (TypeSymbol)comp.CreateTupleTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType, comp.ObjectType));
-            Assert.False(type.IsReadOnly);
+            iNamedType = comp.CreateTupleTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType.GetPublicSymbol(), comp.ObjectType.GetPublicSymbol()));
+            Assert.False(iNamedType.IsReadOnly);
         }
 
         [Fact]
@@ -2556,7 +2558,7 @@ struct S
 }
 ";
             var verifier = CompileAndVerify(csharp, parseOptions: parseOptions, verify: verify);
-            var type = verifier.Compilation.GetMember<NamedTypeSymbol>("S");
+            var type = ((CSharpCompilation)verifier.Compilation).GetMember<NamedTypeSymbol>("S");
             Assert.Equal(isReadOnly, type.GetProperty("P").GetMethod.IsDeclaredReadOnly);
             Assert.Equal(isReadOnly, type.GetProperty("P").GetMethod.IsEffectivelyReadOnly);
         }

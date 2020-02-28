@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -3153,9 +3155,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     // If a variable declarator was specified, make sure we return
                     // the index of the last variable declarator in the parenting field declaration.
-                    if (member.Kind() == SyntaxKind.VariableDeclarator)
+                    if (member.IsKind(SyntaxKind.VariableDeclarator, out VariableDeclaratorSyntax variableDeclarator))
                     {
-                        var variableDeclarator = (VariableDeclaratorSyntax)member;
                         var variableDeclaration = (VariableDeclarationSyntax)member.Parent;
                         var indexOfDeclaratorInField = variableDeclaration.Variables.IndexOf(variableDeclarator);
                         return index + (variableDeclaration.Variables.Count - indexOfDeclaratorInField);

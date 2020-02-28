@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Navigation
@@ -214,7 +216,7 @@ class Program
                         </Project>
                     </Workspace>)
 
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Using readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit()
                     readOnlyEdit.CreateReadOnlyRegion(New Span(0, textBuffer.CurrentSnapshot.Length))

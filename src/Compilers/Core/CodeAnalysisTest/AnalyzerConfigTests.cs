@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1460,6 +1462,7 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
                 new[] { "/a.cs", "/b.cs", "/c.cs" },
                 configs);
             configs.Free();
+            Assert.Equal(KeyValuePair.Create("cs000", ReportDiagnostic.Warn), options[0].TreeOptions.Single());
 
             Assert.Same(options[0].TreeOptions, options[1].TreeOptions);
             Assert.Same(options[0].AnalyzerOptions, options[1].AnalyzerOptions);

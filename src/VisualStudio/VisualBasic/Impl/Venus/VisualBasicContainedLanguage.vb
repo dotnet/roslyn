@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
@@ -18,7 +20,7 @@ Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
     Friend Class VisualBasicContainedLanguage
-        Inherits ContainedLanguage(Of VisualBasicPackage, VisualBasicLanguageService)
+        Inherits ContainedLanguage
         Implements IVsContainedLanguageStaticEventBinding
 
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
@@ -26,9 +28,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 project As VisualStudioProject,
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
-                languageService As VisualBasicLanguageService,
-                sourceCodeKind As SourceCodeKind)
-            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, projectTrackerOpt:=Nothing, project.Id, languageService, VisualBasicHelperFormattingRule.Instance)
+                languageServiceGuid As Guid)
+
+            MyBase.New(
+                bufferCoordinator,
+                componentModel,
+                componentModel.GetService(Of VisualStudioWorkspace)(),
+                project.Id,
+                project,
+                ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
+                languageServiceGuid,
+                VisualBasicHelperFormattingRule.Instance)
         End Sub
 
         Public Function AddStaticEventBinding(pszClassName As String,

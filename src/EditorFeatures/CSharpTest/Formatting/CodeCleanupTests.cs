@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -256,8 +258,9 @@ namespace M
                 .CreateExportProvider();
 
             using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider);
-            workspace.Options = workspace.Options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst);
-            workspace.Options = workspace.Options.WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
+                .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups)));
 
             // register this workspace to solution crawler so that analyzer service associate itself with given workspace
             var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
@@ -278,8 +281,8 @@ namespace M
             Assert.Equal(expected, actual.ToString());
         }
 
-        [Export(typeof(IWorkspaceDiagnosticAnalyzerProviderService))]
-        private class CodeCleanupAnalyzerProviderService : IWorkspaceDiagnosticAnalyzerProviderService
+        [Export(typeof(IHostDiagnosticAnalyzerPackageProvider))]
+        private class CodeCleanupAnalyzerProviderService : IHostDiagnosticAnalyzerPackageProvider
         {
             private readonly HostDiagnosticAnalyzerPackage _info;
 
@@ -300,9 +303,9 @@ namespace M
                 return FromFileLoader.Instance;
             }
 
-            public IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
+            public ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
             {
-                yield return _info;
+                return ImmutableArray.Create(_info);
             }
 
             public class FromFileLoader : IAnalyzerAssemblyLoader

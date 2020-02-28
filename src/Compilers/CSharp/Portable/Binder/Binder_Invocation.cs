@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -846,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalCandidates.ToImmutableAndFree();
         }
 
-        private void CheckRestrictedTypeReceiver(BoundExpression expression, Compilation compilation, DiagnosticBag diagnostics)
+        private void CheckRestrictedTypeReceiver(BoundExpression expression, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -961,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 _ = BindToNaturalType(argument, diagnostics);
                                 break;
                             case BoundUnconvertedSwitchExpression { Type: { } naturalType } switchExpr:
-                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), targetTyped: false, diagnostics);
+                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), conversionIfTargetTyped: null, diagnostics);
                                 break;
                         }
                     }

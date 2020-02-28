@@ -78,6 +78,7 @@ stages:
                 -officialSourceBranchName $(SourceBranchName)
                 -officialIbcSourceBranchName $(IbcSourceBranchName)
                 -officialIbcDropId $(IbcDropId)
+                -skipAnalyzers
                 /p:RepositoryName=$(Build.Repository.Name)
                 /p:VisualStudioDropAccessToken=$(System.AccessToken)
                 /p:VisualStudioDropName=$(VisualStudio.DropName)
@@ -108,6 +109,7 @@ stages:
         sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
         toLowerCase: false
         usePat: false
+        retentionDays: 90
       displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
       condition: succeeded()
 

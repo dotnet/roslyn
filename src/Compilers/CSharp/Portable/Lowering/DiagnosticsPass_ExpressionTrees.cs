@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -145,6 +147,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void CheckReferenceToMethodIfLocalFunction(BoundExpression node, MethodSymbol method)
+        {
+            if (method?.OriginalDefinition is LocalFunctionSymbol localFunction)
+            {
+                CheckReferenceToVariable(node, localFunction);
+            }
+        }
 
         public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
@@ -349,10 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.Expanded, node);
             CheckReceiverIfField(node.ReceiverOpt);
-            if (node.Method is LocalFunctionSymbol)
-            {
-                CheckReferenceToVariable(node, node.Method);
-            }
+            CheckReferenceToMethodIfLocalFunction(node, node.Method);
             return base.VisitCall(node);
         }
 
@@ -660,13 +666,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckReceiverIfField(node.ReceiverOpt);
+            CheckReferenceToMethodIfLocalFunction(node, method);
 
-            if (method is LocalFunctionSymbol)
-            {
-                CheckReferenceToVariable(node, method);
-            }
-
-            if (method == null || method.RequiresInstanceReceiver)
+            if (method is null || method.RequiresInstanceReceiver)
             {
                 Visit(node.ReceiverOpt);
             }

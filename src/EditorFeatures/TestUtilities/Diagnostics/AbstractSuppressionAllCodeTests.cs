@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             private readonly DiagnosticDescriptor _descriptor =
                     new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            public bool OpenFileOnly(Workspace workspace) => false;
+            public bool OpenFileOnly(CodeAnalysis.Options.OptionSet options) => false;
 
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
 

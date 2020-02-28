@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -1225,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Friend Function CreateBoundCatchBlockExceptionDeclarationOrExpression(boundCatchBlock As BoundCatchBlock) As IOperation
             If boundCatchBlock.LocalOpt IsNot Nothing AndAlso
-                        boundCatchBlock.ExceptionSourceOpt?.Kind = BoundKind.Local AndAlso
+                        (boundCatchBlock.ExceptionSourceOpt?.Kind = BoundKind.Local).GetValueOrDefault() AndAlso
                         boundCatchBlock.LocalOpt Is DirectCast(boundCatchBlock.ExceptionSourceOpt, BoundLocal).LocalSymbol Then
                 Return New VariableDeclaratorOperation(boundCatchBlock.LocalOpt, initializer:=Nothing, ignoredArguments:=ImmutableArray(Of IOperation).Empty, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=False)
             Else

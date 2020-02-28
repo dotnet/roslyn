@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly bool IsAsync;
 
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
-        public AwaitableInfo DisposeAwaitableInfo;
+        public readonly BoundAwaitableInfo DisposeAwaitableInfo;
 
         // When using pattern-based Dispose, this stores the method to invoke to Dispose
         public readonly MethodSymbol DisposeMethod;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol moveNextMethod,
             bool isAsync,
             bool needsDisposal,
-            AwaitableInfo disposeAwaitableInfo,
+            BoundAwaitableInfo disposeAwaitableInfo,
             MethodSymbol disposeMethod,
             Conversion collectionConversion,
             Conversion currentConversion,
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool IsAsync;
             public bool NeedsDisposal;
-            public AwaitableInfo DisposeAwaitableInfo;
+            public BoundAwaitableInfo DisposeAwaitableInfo;
             public MethodSymbol DisposeMethod;
 
             public Conversion CollectionConversion;

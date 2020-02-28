@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -45,9 +49,9 @@ namespace Microsoft.CodeAnalysis
                 && _bits.AsSpan().SequenceEqual(other._bits.AsSpan());
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return obj is BitVector && Equals((BitVector)obj);
+            return obj is BitVector other && Equals(other);
         }
 
         public static bool operator ==(BitVector left, BitVector right)
@@ -111,7 +115,7 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 0, n = _bits?.Length ?? 0; i < n; i++)
             {
-                yield return _bits[i];
+                yield return _bits![i];
             }
         }
 
@@ -205,7 +209,17 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public BitVector Clone()
         {
-            return new BitVector(_bits0, (_bits == null) ? null : (_bits.Length == 0) ? s_emptyArray : (Word[])_bits.Clone(), _capacity);
+            Word[] newBits;
+            if (_bits is null || _bits.Length == 0)
+            {
+                newBits = s_emptyArray;
+            }
+            else
+            {
+                newBits = (Word[])_bits.Clone();
+            }
+
+            return new BitVector(_bits0, newBits, _capacity);
         }
 
         /// <summary>

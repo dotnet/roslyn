@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddParenthesesAroundConditionalExpressionInInterpolatedString = "CodeActions.AddParenthesesAroundConditionalExpressionInInterpolatedString";
             public const string CodeActionsAddRequiredParentheses = "CodeActions.AddRequiredParentheses";
             public const string CodeActionsAddShadows = "CodeActions.AddShadows";
+            public const string CodeActionsMakeMemberStatic = "CodeActions.MakeMemberStatic";
             public const string CodeActionsAliasAmbiguousType = "CodeActions.AliasAmbiguousType";
             public const string CodeActionsAssignOutParameters = "CodeActions.AssignOutParameters";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
@@ -72,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
             public const string CodeActionsDeclareAsNullable = "CodeActions.DeclareAsNullable";
             public const string CodeActionsExtractInterface = "CodeActions.ExtractInterface";
+            public const string CodeActionsExtractLocalFunction = "CodeActions.ExtractLocalFunction";
             public const string CodeActionsExtractMethod = "CodeActions.ExtractMethod";
             public const string CodeActionsFixAllOccurrences = "CodeActions.FixAllOccurrences";
             public const string CodeActionsFixReturnType = "CodeActions.FixReturnType";
@@ -139,6 +143,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsReplaceMethodWithProperty = "CodeActions.ReplaceMethodWithProperty";
             public const string CodeActionsReplacePropertyWithMethods = "CodeActions.ReplacePropertyWithMethods";
             public const string CodeActionsResolveConflictMarker = "CodeActions.ResolveConflictMarker";
+            public const string CodeActionsReverseForStatement = "CodeActions.ReverseForStatement";
+            public const string CodeActionsSimplifyInterpolation = "CodeActions.SimplifyInterpolation";
             public const string CodeActionsSimplifyThisOrMe = "CodeActions.SimplifyThisOrMe";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
@@ -172,6 +178,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
             public const string CodeActionsUseRangeOperator = "CodeActions.UseRangeOperator";
             public const string CodeActionsUseSimpleUsingStatement = "CodeActions.UseSimpleUsingStatement";
+            public const string CodeActionsUseSystemHashCode = "CodeActions.UseSystemHashCode";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";
             public const string CodeCleanup = nameof(CodeCleanup);

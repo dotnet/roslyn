@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -19,7 +23,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             public readonly double Weight;
 
             // The desired name to change the user text to if this was a fuzzy (spell-checking) match.
-            public readonly string DesiredName;
+            public readonly string? DesiredName;
 
             // The node to convert to the desired name
             public readonly TSimpleNameSyntax NameNode;
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
             }
 
-            public SearchResult(string desiredName, TSimpleNameSyntax nameNode, IReadOnlyList<string> nameParts, double weight)
+            public SearchResult(string? desiredName, TSimpleNameSyntax nameNode, IReadOnlyList<string> nameParts, double weight)
             {
                 DesiredName = desiredName;
                 Weight = weight;
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return true;
                 }
 
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
                 // Names differ.  But in a case insensitive language they may match.
                 if (!syntaxFacts.IsCaseSensitive &&

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -39,6 +41,7 @@ using VSLangProj;
 using VSLangProj140;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -92,6 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private ImmutableHashSet<DocumentId> _documentsNotFromFiles = ImmutableHashSet<DocumentId>.Empty;
 
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker _projectTracker;
 
         private OpenFileTracker _openFileTrackerOpt;
@@ -99,14 +103,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
-        private readonly IEnumerable<IDocumentOptionsProviderFactory> _documentOptionsProviderFactories;
+        private readonly IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> _documentOptionsProviderFactories;
         private bool _documentOptionsProvidersInitialized = false;
         private readonly Dictionary<ProjectId, CompilationOutputs> _projectCompilationOutputs = new Dictionary<ProjectId, CompilationOutputs>();
         private readonly object _projectCompilationOutputsGuard = new object();
 
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
+        private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
-        public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider, IEnumerable<CodeAnalysis.Options.IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
+        public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
@@ -115,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
-            _documentOptionsProviderFactories = documentOptionsProviderFactories;
+            _documentOptionsProviderFactories = exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -129,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
             exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
 
-            System.Threading.Tasks.Task.Run(() => ConnectToOpenFileTrackerOnUIThreadAsync(asyncServiceProvider));
+            _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
             FileWatchedReferenceFactory = exportProvider.GetExportedValue<FileWatchedPortableExecutableReferenceFactory>();
@@ -146,7 +151,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
 
-        public async System.Threading.Tasks.Task ConnectToOpenFileTrackerOnUIThreadAsync(IAsyncServiceProvider asyncServiceProvider)
+        internal void SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents()
+        {
+            _foregroundObject.AssertIsForeground();
+
+            if (_isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents)
+            {
+                return;
+            }
+
+            // TODO: https://github.com/dotnet/roslyn/issues/36065
+            // UIContextImpl requires IVsMonitorSelection service:
+            if (ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection)) == null)
+            {
+                return;
+            }
+
+            // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
+            KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
+            {
+                KnownUIContexts.SolutionBuildingContext.UIContextChanged += (object _, UIContextChangedEventArgs e) =>
+                {
+                    if (e.Activated)
+                    {
+                        ExternalErrorDiagnosticUpdateSource.OnSolutionBuildStarted();
+                    }
+                    else
+                    {
+                        ExternalErrorDiagnosticUpdateSource.OnSolutionBuildCompleted();
+                    }
+                };
+
+                ExternalErrorDiagnosticUpdateSource.OnSolutionBuildStarted();
+            });
+
+            _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents = true;
+        }
+
+        public async Task InitializeUIAffinitizedServicesAsync(IAsyncServiceProvider asyncServiceProvider)
         {
             // Create services that are bound to the UI thread
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -329,7 +371,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
-            if (!ThreadHelper.JoinableTaskContext.IsOnMainThread)
+            if (!_foregroundObject.IsForeground())
             {
                 throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
             }
@@ -337,42 +379,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var currentSolution = this.CurrentSolution;
             var projectChanges = newSolution.GetChanges(currentSolution).GetProjectChanges().ToList();
 
-            var projectsToLoad = new HashSet<Guid>();
-            foreach (var pc in projectChanges)
-            {
-                if (pc.GetAddedAdditionalDocuments().Any() ||
-                    pc.GetAddedAnalyzerConfigDocuments().Any() ||
-                    pc.GetAddedAnalyzerReferences().Any() ||
-                    pc.GetAddedDocuments().Any() ||
-                    pc.GetAddedMetadataReferences().Any() ||
-                    pc.GetAddedProjectReferences().Any() ||
-                    pc.GetRemovedAdditionalDocuments().Any() ||
-                    pc.GetRemovedAnalyzerConfigDocuments().Any() ||
-                    pc.GetRemovedAnalyzerReferences().Any() ||
-                    pc.GetRemovedDocuments().Any() ||
-                    pc.GetRemovedMetadataReferences().Any() ||
-                    pc.GetRemovedProjectReferences().Any())
-                {
-                    var projectGuid = GetProjectGuid(pc.ProjectId);
-
-                    if (projectGuid != Guid.Empty)
-                    {
-                        projectsToLoad.Add(projectGuid);
-                    }
-                }
-            }
-
-            if (projectsToLoad.Any())
-            {
-                var vsSolution4 = (IVsSolution4)ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
-                vsSolution4.EnsureProjectsAreLoaded(
-                    (uint)projectsToLoad.Count,
-                    projectsToLoad.ToArray(),
-                    (uint)__VSBSLFLAGS.VSBSLFLAGS_None);
-            }
-
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
-            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).Where(CanApplyChange).ToList();
+            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(pd.GetChangedAdditionalDocuments()))
+                                            .Where(CanApplyChange).ToList();
             if (changedDocs.Count > 0)
             {
                 this.EnsureEditableDocuments(changedDocs);
@@ -414,7 +423,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal bool IsCPSProject(CodeAnalysis.Project project)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            _foregroundObject.AssertIsForeground();
 
             if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
@@ -1033,7 +1042,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            if (!ThreadHelper.JoinableTaskContext.IsOnMainThread)
+            if (!_foregroundObject.IsForeground())
             {
                 throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
@@ -1181,9 +1190,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Must save the document first for things like Breakpoints to be preserved.
                 projectItemForDocument.Save();
 
-                var uniqueName = projectItemForDocument.Collection.GetUniqueName(
-                    Path.GetFileNameWithoutExtension(updatedInfo.Name),
-                    Path.GetExtension(updatedInfo.Name));
+                var uniqueName = projectItemForDocument.Collection
+                    .GetUniqueNameIgnoringProjectItem(
+                        projectItemForDocument,
+                        Path.GetFileNameWithoutExtension(updatedInfo.Name),
+                        Path.GetExtension(updatedInfo.Name));
 
                 // Get the current undoManager before any file renames/documentId changes happen
                 var undoManager = TryGetUndoManager();
@@ -1386,7 +1397,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            _foregroundObject.AssertIsForeground();
             if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
                 !TryGetHierarchy(referencedProject, out var referencedHierarchy))
             {
@@ -1457,6 +1468,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return result != (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY;
         }
 
+#nullable enable
+
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
@@ -1485,6 +1498,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
+                foreach (var documentId in solutionChangeAccumulator.DocumentIdsRemoved)
+                {
+                    this.ClearDocumentData(documentId);
+                }
+
                 SetCurrentSolution(solutionChangeAccumulator.Solution);
                 RaiseWorkspaceChangedEventAsync(
                     solutionChangeAccumulator.WorkspaceChangeKind,
@@ -1494,6 +1512,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     solutionChangeAccumulator.WorkspaceChangeDocumentId);
             }
         }
+
+#nullable restore
 
         private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
@@ -1679,6 +1699,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <param name="projectId">The <see cref="ProjectId"/> of the project being referenced.</param>
         /// <param name="outputPath">The output path of the given project to remove the link to.</param>
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/37616",
+            Constraint = "Update ConvertedProjectReferences in place to avoid duplicate list allocations.")]
         private void ConvertProjectReferencesToMetadataReferences_NoLock(ProjectId projectId, string outputPath)
         {
             var modifiedSolution = this.CurrentSolution;
@@ -1688,8 +1711,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var referenceInfo = GetReferenceInfo_NoLock(projectIdToRetarget);
 
-                foreach (var convertedReference in referenceInfo.ConvertedProjectReferences.ToList())
+                // Update ConvertedProjectReferences in place to avoid duplicate list allocations
+                for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Count; i++)
                 {
+                    var convertedReference = referenceInfo.ConvertedProjectReferences[i];
+
                     if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                         convertedReference.projectReference.ProjectId == projectId)
                     {
@@ -1705,10 +1731,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                         projectIdsChanged.Add(projectIdToRetarget);
 
-                        referenceInfo.ConvertedProjectReferences.Remove(convertedReference);
+                        referenceInfo.ConvertedProjectReferences.RemoveAt(i);
 
                         // We have converted one, but you could have more than one reference with different aliases
-                        // that we need to convert, so we'll keep going
+                        // that we need to convert, so we'll keep going. Make sure to decrement the index so we don't
+                        // skip any items.
+                        i--;
                     }
                 }
             }
@@ -1889,16 +1917,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _documentOptionsProvidersInitialized = true;
-
-            foreach (var providerFactory in _documentOptionsProviderFactories)
-            {
-                var optionsProvider = providerFactory.TryCreate(this);
-
-                if (optionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
-                }
-            }
+            RegisterDocumentOptionProviders(_documentOptionsProviderFactories);
         }
 
         internal void SetMaxLanguageVersion(ProjectId projectId, string maxLanguageVersion)
@@ -1923,7 +1942,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         language,
                         l => Services.GetLanguageServices(l).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
 
-                if (uiContext != null)
+                // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
+                if (uiContext != null && !uiContext.IsZombie)
                 {
                     uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
                 }

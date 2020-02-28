@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -23,13 +26,15 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="TAssemblySymbol">Language specific representation for an assembly symbol.</typeparam>
     internal abstract partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
         where TCompilation : Compilation
+#nullable enable
         where TAssemblySymbol : class, IAssemblySymbolInternal
+#nullable restore
     {
         protected abstract CommonMessageProvider MessageProvider { get; }
 
         protected abstract AssemblyData CreateAssemblyDataForFile(
             PEAssembly assembly,
-            WeakList<IAssemblySymbol> cachedSymbols,
+            WeakList<IAssemblySymbolInternal> cachedSymbols,
             DocumentationProvider documentationProvider,
             string sourceAssemblySimpleName,
             MetadataImportOptions importOptions,
@@ -313,7 +318,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         case MetadataImageKind.Assembly:
                             var assemblyMetadata = (AssemblyMetadata)metadata;
-                            WeakList<IAssemblySymbol> cachedSymbols = assemblyMetadata.CachedSymbols;
+                            WeakList<IAssemblySymbolInternal> cachedSymbols = assemblyMetadata.CachedSymbols;
 
                             if (assemblyMetadata.IsValidAssembly())
                             {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -20,6 +22,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
@@ -71,7 +74,7 @@ namespace Microsoft.Cci
         internal readonly bool EmitTestCoverageData;
 
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
-        private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
+        private readonly Dictionary<(ImmutableArray<byte>, bool), int> _smallMethodBodies;
 
         private const byte TinyFormat = 2;
         private const int ThrowNullCodeSize = 2;
@@ -104,7 +107,6 @@ namespace Microsoft.Cci
             _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions); //ignores field signatures
 
             _numTypeDefsEstimate = module.HintNumberOfMethodDefinitions / 6;
-            _exportedTypeList = new List<ITypeReference>(_numTypeDefsEstimate);
 
             this.Context = context;
             this.messageProvider = messageProvider;
@@ -113,7 +115,7 @@ namespace Microsoft.Cci
             this.metadata = metadata;
             _debugMetadataOpt = debugMetadataOpt;
             _dynamicAnalysisDataWriterOpt = dynamicAnalysisDataWriterOpt;
-            _smallMethodBodies = new Dictionary<ImmutableArray<byte>, int>(ByteSequenceComparer.Instance);
+            _smallMethodBodies = new Dictionary<(ImmutableArray<byte>, bool), int>(ByteSequenceBoolTupleComparer.Instance);
         }
 
         private int NumberOfTypeDefsEstimate { get { return _numTypeDefsEstimate; } }
@@ -440,7 +442,6 @@ namespace Microsoft.Cci
 
         private readonly Dictionary<ICustomAttribute, BlobHandle> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobHandle>();
         private readonly Dictionary<ITypeReference, BlobHandle> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobHandle>();
-        private readonly List<ITypeReference> _exportedTypeList;
         private readonly Dictionary<string, int> _fileRefIndex = new Dictionary<string, int>(32);  // more than enough in most cases, value is a RowId
         private readonly List<IFileReference> _fileRefList = new List<IFileReference>(32);
         private readonly Dictionary<IFieldReference, BlobHandle> _fieldSignatureIndex = new Dictionary<IFieldReference, BlobHandle>();
@@ -1444,10 +1445,10 @@ namespace Microsoft.Cci
 
         private static Location GetNamedEntityLocation(INamedEntity errorEntity)
         {
-            return GetSymbolLocation(errorEntity as ISymbol);
+            return GetSymbolLocation(errorEntity as ISymbolInternal);
         }
 
-        protected static Location GetSymbolLocation(ISymbol symbolOpt)
+        protected static Location GetSymbolLocation(ISymbolInternal symbolOpt)
         {
             return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
         }
@@ -2432,7 +2433,7 @@ namespace Microsoft.Cci
                 var data = methodDef.PlatformInvokeData;
                 string entryPointName = data.EntryPointName;
 
-                StringHandle importName = (entryPointName != null)
+                StringHandle importName = entryPointName != null && entryPointName != methodDef.Name
                     ? GetStringHandleForNameAndCheckLength(entryPointName, methodDef)
                     : metadata.GetOrAddString(methodDef.Name); // Length checked while populating the method def table.
 
@@ -2913,6 +2914,7 @@ namespace Microsoft.Cci
             int ilLength = methodBody.IL.Length;
             var exceptionRegions = methodBody.ExceptionRegions;
             bool isSmallBody = ilLength < 64 && methodBody.MaxStack <= 8 && localSignatureHandleOpt.IsNil && exceptionRegions.Length == 0;
+            var smallBodyKey = (methodBody.IL, methodBody.AreLocalsZeroed);
 
             // Check if an identical method body has already been serialized.
             // If so, use the RVA of the already serialized one.
@@ -2921,7 +2923,7 @@ namespace Microsoft.Cci
             // Don't do small body method caching during deterministic builds until this issue is fixed
             // https://github.com/dotnet/roslyn/issues/7595
             int bodyOffset;
-            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyOffset))
+            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue(smallBodyKey, out bodyOffset))
             {
                 return bodyOffset;
             }
@@ -2932,13 +2934,14 @@ namespace Microsoft.Cci
                 exceptionRegionCount: exceptionRegions.Length,
                 hasSmallExceptionRegions: MayUseSmallExceptionHeaders(exceptionRegions),
                 localVariablesSignature: localSignatureHandleOpt,
-                attributes: (methodBody.LocalsAreZeroed ? MethodBodyAttributes.InitLocals : 0));
+                attributes: (methodBody.AreLocalsZeroed ? MethodBodyAttributes.InitLocals : 0),
+                hasDynamicStackAllocation: methodBody.HasStackalloc);
 
             // Don't do small body method caching during deterministic builds until this issue is fixed
             // https://github.com/dotnet/roslyn/issues/7595
             if (isSmallBody && !_deterministic)
             {
-                _smallMethodBodies.Add(methodBody.IL, encodedBody.Offset);
+                _smallMethodBodies.Add(smallBodyKey, encodedBody.Offset);
             }
 
             WriteInstructions(encodedBody.Instructions, methodBody.IL, ref mvidStringHandle, ref mvidStringFixup);
@@ -4126,6 +4129,25 @@ namespace Microsoft.Cci
             {
                 _instanceIndex.Add(item, index);
                 _structuralIndex.Add(item, index);
+            }
+        }
+
+        private class ByteSequenceBoolTupleComparer : IEqualityComparer<(ImmutableArray<byte>, bool)>
+        {
+            internal static readonly ByteSequenceBoolTupleComparer Instance = new ByteSequenceBoolTupleComparer();
+
+            private ByteSequenceBoolTupleComparer()
+            {
+            }
+
+            bool IEqualityComparer<(ImmutableArray<byte>, bool)>.Equals((ImmutableArray<byte>, bool) x, (ImmutableArray<byte>, bool) y)
+            {
+                return x.Item2 == y.Item2 && ByteSequenceComparer.Equals(x.Item1, y.Item1);
+            }
+
+            int IEqualityComparer<(ImmutableArray<byte>, bool)>.GetHashCode((ImmutableArray<byte>, bool) x)
+            {
+                return Hash.Combine(ByteSequenceComparer.GetHashCode(x.Item1), x.Item2.GetHashCode());
             }
         }
     }

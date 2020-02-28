@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -53,6 +55,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // the user to see the type the method was created in.
                     var entry = await TryCreateEntryAsync(definitionBucket, definition).ConfigureAwait(false);
                     entries.AddIfNotNull(entry);
+                }
+                else if (definition.SourceSpans.Length == 0)
+                {
+                    // No source spans means metadata references.
+                    // Display it for Go to Base and try to navigate to metadata.
+                    entries.Add(new MetadataDefinitionItemEntry(this, definitionBucket));
                 }
                 else
                 {

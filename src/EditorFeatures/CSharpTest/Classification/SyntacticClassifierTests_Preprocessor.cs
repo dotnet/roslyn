@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
@@ -1117,6 +1119,24 @@ aeu";
             await TestInMethodAsync(
                 code: @"_ = 1;",
                 expected: Classifications(Identifier("_"), Operators.Equals, Number("1"), Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task UnderscoreInLambda()
+        {
+            await TestInMethodAsync(
+                code: @"x = (_) => 1;",
+                expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.CloseParen,
+                    Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task DiscardInLambda()
+        {
+            await TestInMethodAsync(
+                code: @"x = (_, _) => 1;",
+                expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.Comma, Parameter("_"), Punctuation.CloseParen,
+                    Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
         }
 
         [Fact]

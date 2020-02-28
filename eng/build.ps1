@@ -187,6 +187,10 @@ function Process-Arguments() {
     exit 1
   }
 
+  if ($bootstrap) {
+    $script:restore = $true
+  }
+
   $script:test32 = -not $test64
 
   foreach ($property in $properties) {
@@ -214,7 +218,7 @@ function BuildSolution() {
   $enableAnalyzers = !$skipAnalyzers
   $toolsetBuildProj = InitializeToolset
 
-  $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.0%3Bnetcoreapp2.1" } else { "" }
+  $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.1" } else { "" }
   
   $ibcSourceBranchName = GetIbcSourceBranchName
   $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
@@ -223,12 +227,10 @@ function BuildSolution() {
   $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
   # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
-  # that MSBuild output as well as ones that custom tasks output. This causes problems for us as 
-  # portions of our build will issue warnings: style analyzers being the most prominent example. Hence
-  # rather than a blanket include of warnings we include a fixed set.
+  # that MSBuild output as well as ones that custom tasks output.
   #
   # In all cases we pass /p:TreatWarningsAsErrors=true to promote compiler warnings to errors
-  $msbuildWarnAsError = if ($warnAsError) { "/warnAsError:MSB3270,MSB3277" } else { "" }
+  $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
 
   # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
   $ibcDir = Join-Path $RepoRoot ".o%5c"
@@ -426,6 +428,11 @@ function TestUsingOptimizedRunner() {
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
+
+    if ($testVsi) {
+      Write-Host "Copying ServiceHub logs to $LogDir"
+      Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
+    }
   }
 }
 
@@ -459,9 +466,10 @@ function Deploy-VsixViaTool() {
   $vsDir = $vsInfo.installationPath.TrimEnd("\")
   $vsId = $vsInfo.instanceId
   $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+  $displayVersion = $vsInfo.catalog.productDisplayVersion
 
   $hive = "RoslynDev"
-  Write-Host "Using VS Instance $vsId at `"$vsDir`""
+  Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
   $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
 
   Write-Host "Uninstalling old Roslyn VSIX"
@@ -564,6 +572,9 @@ function Setup-IntegrationTestRun() {
 }
 
 function Prepare-TempDir() {
+  $env:TEMP=$TempDir
+  $env:TMP=$TempDir
+
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
@@ -606,10 +617,6 @@ try {
 
     $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
     InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
-
-    # Make sure a 2.1 runtime is installed so we can run our tests. Most of them still 
-    # target netcoreapp2.1.
-    InstallDotNetSdk $global:_DotNetInstallDir "2.1.503"
   }
 
   try
@@ -620,7 +627,9 @@ try {
   }
   catch
   {
-    echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
+    if ($ci) {
+      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
+    }
     throw $_
   }
 
@@ -640,11 +649,17 @@ try {
   }
   catch
   {
-    echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+    if ($ci) {
+      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+    }
     throw $_
   }
 
   if ($launch) {
+    if (-not $build) {
+      InitializeBuildTool
+    }
+
     $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
     &$devenvExe /rootSuffix RoslynDev
   }

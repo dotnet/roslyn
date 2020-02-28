@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -36,8 +38,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes)
-            : this(new SolutionState(workspace, solutionAttributes))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options)
+            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options))
         {
         }
 
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the additional document in this solution with the specified document ID.
+        /// Gets the analyzer config document in this solution with the specified document ID.
         /// </summary>
         public AnalyzerConfigDocument? GetAnalyzerConfigDocument(DocumentId? documentId)
         {
@@ -427,6 +429,21 @@ namespace Microsoft.CodeAnalysis
         internal Solution WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
         {
             var newState = _state.WithHasAllInformation(projectId, hasAllInformation);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified runAnalyzers.
+        /// </summary>
+        internal Solution WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        {
+            var newState = _state.WithRunAnalyzers(projectId, runAnalyzers);
             if (newState == _state)
             {
                 return this;
@@ -874,7 +891,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveDocument(documentId);
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            return RemoveDocuments(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified documents.
+        /// </summary>
+        public Solution RemoveDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveDocuments(documentIds);
             if (newState == _state)
             {
                 return this;
@@ -888,7 +918,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveAdditionalDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveAdditionalDocument(documentId);
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            return RemoveAdditionalDocuments(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified additional documents.
+        /// </summary>
+        public Solution RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveAdditionalDocuments(documentIds);
             if (newState == _state)
             {
                 return this;
@@ -897,9 +940,25 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>.
+        /// </summary>
         public Solution RemoveAnalyzerConfigDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveAnalyzerConfigDocument(documentId);
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            return RemoveAnalyzerConfigDocuments(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>s.
+        /// </summary>
+        public Solution RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveAnalyzerConfigDocuments(documentIds);
             if (newState == _state)
             {
                 return this;
@@ -926,7 +985,9 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to be contained in
         /// the sequence of logical folders.
         /// </summary>
-        public Solution WithDocumentFolders(DocumentId documentId, IEnumerable<string> folders)
+        /// <param name="documentId">Document id.</param>
+        /// <param name="folders">Sequence of folders. <see langword="null"/> values are ignored.</param>
+        public Solution WithDocumentFolders(DocumentId documentId, IEnumerable<string?> folders)
         {
             var newState = _state.WithDocumentFolders(documentId, folders);
             if (newState == _state)
@@ -1248,13 +1309,33 @@ namespace Microsoft.CodeAnalysis
         /// Returns the options that should be applied to this solution. This is equivalent to <see cref="Workspace.Options" /> when the <see cref="Solution"/> 
         /// instance was created.
         /// </summary>
-        public OptionSet Options
+        public OptionSet Options => _state.Options;
+
+        /// <summary>
+        /// Creates a new solution instance with the specified <paramref name="options"/>.
+        /// </summary>
+        public Solution WithOptions(OptionSet options)
         {
-            get
+            return options switch
             {
-                // TODO: actually make this a snapshot
-                return this.Workspace.Options;
+                SerializableOptionSet serializableOptions => WithOptions(serializableOptions),
+                null => throw new ArgumentNullException(nameof(options)),
+                _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(options))
+            };
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the specified serializable <paramref name="options"/>.
+        /// </summary>
+        internal Solution WithOptions(SerializableOptionSet options)
+        {
+            var newState = _state.WithOptions(options: options);
+            if (newState == _state)
+            {
+                return this;
             }
+
+            return new Solution(newState);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
@@ -30,11 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
 
-            return GetOrCreateIncrementalAnalyzer(workspace);
-        }
-
-        private DiagnosticIncrementalAnalyzer GetOrCreateIncrementalAnalyzer(Workspace workspace)
-        {
             return _map.GetValue(workspace, _createIncrementalAnalyzer);
         }
 
@@ -52,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, _hostAnalyzerManager, _hostDiagnosticUpdateSource);
+            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, AnalyzerInfoCache, _hostDiagnosticUpdateSource);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)

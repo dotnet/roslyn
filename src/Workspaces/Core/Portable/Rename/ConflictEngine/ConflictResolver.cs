@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -328,11 +330,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var location = await GetSymbolLocationAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
                 if (location != null && location.IsInSource)
                 {
-                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(solution.GetDocumentId(location.SourceTree), location.SourceSpan, overriddenFromMetadata, locations.Count());
+                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(solution.GetDocumentId(location.SourceTree), location.SourceSpan, overriddenFromMetadata, locations.Length);
                 }
                 else
                 {
-                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(GetString(symbol), locations.Count());
+                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(GetString(symbol), locations.Length);
                 }
 
                 symbolIndex++;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -4650,7 +4652,7 @@ class C
         var [|x|] = (X)(0, 0);
         var x2 = x;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+}",
 @"using X = System.ValueTuple<int, int>;
 
 class C
@@ -4659,7 +4661,7 @@ class C
     {
         var x2 = (X)(0, 0);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}");
         }
 
         [WorkItem(30903, "https://github.com/dotnet/roslyn/issues/30903")]
@@ -4676,7 +4678,7 @@ class C
         var [|x|] = (X)(0, (0, 0));
         var x2 = x;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+}",
 @"using X = System.ValueTuple<int, (int, int)>;
 
 class C
@@ -4685,7 +4687,7 @@ class C
     {
         var x2 = (X)(0, (0, 0));
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4816,6 +4818,36 @@ class C
         {|Warning:System.Diagnostics.Debug.Assert(true)|};
         Console.Writeline(true);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(40201, "https://github.com/dotnet/roslyn/issues/40201")]
+        public async Task TestUnaryNegationOfDeclarationPattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+
+class C
+{
+    void Test()
+    {
+        var [|ct|] = CancellationToken.None;
+        if (!(Helper(ct) is string notDiscard)) { }
+    }
+
+    object Helper(CancellationToken ct) { return null; }
+}",
+@"using System.Threading;
+
+class C
+{
+    void Test()
+    {
+        if (!(Helper(CancellationToken.None) is string notDiscard)) { }
+    }
+
+    object Helper(CancellationToken ct) { return null; }
 }");
         }
     }

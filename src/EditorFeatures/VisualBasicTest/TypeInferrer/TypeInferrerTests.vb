@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -790,6 +792,19 @@ end class"
     End Sub
 End Module"
             Await TestAsync(text, "System.Object", TestMode.Position)
+        End Function
+
+        <WorkItem(39333, "https://github.com/dotnet/roslyn/issues/39333")>
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestInferringAfterAwaitInAsync() As Task
+            Dim text =
+"Imports System.Threading.Tasks
+Class C
+    Private Async Function WaitForIt() As Task(Of Boolean)
+        Return Await [||]
+    End Function
+End Class"
+            Await TestAsync(text, "Task.FromResult(False)", TestMode.Position)
         End Function
     End Class
 End Namespace

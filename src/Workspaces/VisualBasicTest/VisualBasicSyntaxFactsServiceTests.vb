@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -529,6 +531,24 @@ End Class"
             Dim service = VisualBasicSyntaxFactsService.Instance
 
             Return service.IsQueryKeyword(token)
+        End Function
+
+        <Fact, WorkItem(40917, "https://github.com/dotnet/roslyn/issues/40917")>
+        Public Sub IsLeftSideOfCompoundAssignment()
+            Assert.True(IsLeftSideOfCompoundAssignment(WrapInMethod("
+Dim index As Integer = 0
+$$index += 1")))
+        End Sub
+
+        Private Function IsLeftSideOfCompoundAssignment(markup As String) As Boolean
+            Dim code As String = Nothing
+            Dim position As Integer
+            MarkupTestFile.GetPosition(markup, code, position)
+            Dim tree = SyntaxFactory.ParseSyntaxTree(code)
+            Dim node = tree.GetRoot().FindToken(position).Parent
+            Dim service = VisualBasicSyntaxFactsService.Instance
+
+            Return service.IsLeftSideOfCompoundAssignment(node)
         End Function
     End Class
 

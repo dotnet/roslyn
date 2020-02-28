@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -91,7 +93,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' parent expression.
 
                     ' Dev10 allows parenthesized type expressions, let's bind as a general expression first.
-                    Dim operand As BoundExpression = BindExpression(DirectCast(node, ParenthesizedExpressionSyntax).Expression, False, False, eventContext, diagnostics)
+                    Dim operand As BoundExpression = BindExpression(DirectCast(node, ParenthesizedExpressionSyntax).Expression,
+                                                                    isInvocationOrAddressOf:=False,
+                                                                    isOperandOfConditionalBranch:=isOperandOfConditionalBranch,
+                                                                    eventContext, diagnostics)
 
                     If operand.Kind = BoundKind.TypeExpression Then
                         Dim asType = DirectCast(operand, BoundTypeExpression)

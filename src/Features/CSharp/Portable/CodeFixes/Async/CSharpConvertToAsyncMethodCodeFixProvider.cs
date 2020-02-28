@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -37,10 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             CancellationToken cancellationToken)
         {
             var methodNode = await GetMethodDeclaration(node, semanticModel, cancellationToken).ConfigureAwait(false);
-            return string.Format(CSharpFeaturesResources.Make_0_return_Task_instead_of_void, methodNode.WithBody(null));
+
+            // We only call GetDescription when we already know that we succeeded (so it's safe to
+            // assume we have a methodNode here).
+            return string.Format(CSharpFeaturesResources.Make_0_return_Task_instead_of_void, methodNode!.WithBody(null));
         }
 
-        protected override async Task<Tuple<SyntaxTree, SyntaxNode>> GetRootInOtherSyntaxTree(
+        protected override async Task<Tuple<SyntaxTree, SyntaxNode>?> GetRootInOtherSyntaxTree(
             SyntaxNode node,
             SemanticModel semanticModel,
             Diagnostic diagnostic,
@@ -57,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return Tuple.Create(oldRoot.SyntaxTree, newRoot);
         }
 
-        private async Task<MethodDeclarationSyntax> GetMethodDeclaration(
+        private async Task<MethodDeclarationSyntax?> GetMethodDeclaration(
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)

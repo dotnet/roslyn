@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable enable
+
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Xaml;
-using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -18,9 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     {
         internal XamlOleCommandTarget(
             IWpfTextView wpfTextView,
-            IVsEditorAdaptersFactoryService editorAdaptersFactory,
-            IServiceProvider serviceProvider)
-            : base(wpfTextView, editorAdaptersFactory, serviceProvider)
+            IComponentModel componentModel)
+            : base(wpfTextView, componentModel)
         {
         }
 

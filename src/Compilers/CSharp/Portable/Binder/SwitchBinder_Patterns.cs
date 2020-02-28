@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return boundLocal.LocalSymbol.IsUsing;
             }
-            else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple && !boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
+            else if (boundStatement is BoundMultipleLocalDeclarationsBase boundMultiple && !boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
             {
                 return boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing;
             }
@@ -288,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void reportIfConstantNamedUnderscore(BoundPattern pattern, ExpressionSyntax expression)
             {
                 if (!pattern.HasErrors &&
-                    expression is IdentifierNameSyntax name && name.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken)
+                    expression is IdentifierNameSyntax name && name.Identifier.IsUnderscoreToken())
                 {
                     diagnostics.Add(ErrorCode.WRN_CaseConstantNamedUnderscore, expression.Location);
                 }

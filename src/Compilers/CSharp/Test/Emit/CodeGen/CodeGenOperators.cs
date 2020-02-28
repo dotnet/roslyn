@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -5583,7 +5585,7 @@ class Program
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""(bool a, System.Guid b) (bool a, System.Guid b)?.GetValueOrDefault()""
+  IL_0002:  call       ""System.ValueTuple<bool, System.Guid> System.ValueTuple<bool, System.Guid>?.GetValueOrDefault()""
   IL_0007:  ret
 }");
             comp.VerifyIL("Program.CoalesceUserStruct", @"{
@@ -5627,7 +5629,7 @@ class Program
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""(bool a, System.Guid b, string c) (bool a, System.Guid b, string c)?.GetValueOrDefault()""
+  IL_0002:  call       ""System.ValueTuple<bool, System.Guid, string> System.ValueTuple<bool, System.Guid, string>?.GetValueOrDefault()""
   IL_0007:  ret
 }");
         }

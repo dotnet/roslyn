@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -81,22 +83,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindTristateToOption(CheckBox checkbox, Option<int> optionKey)
-        {
-            Debug.Assert(checkbox.IsThreeState);
-
-            var binding = new Binding()
-            {
-                Source = new OptionBinding<int>(OptionStore, optionKey),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default,
-                Converter = new CheckBoxTristateCheckedToIntConverter(),
-            };
-
-            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
-
         protected void BindToOption(CheckBox checkbox, PerLanguageOption<bool> optionKey, string languageName)
         {
             var binding = new Binding()
@@ -151,21 +137,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToFullSolutionAnalysisOption(CheckBox checkbox, string languageName)
-        {
-            checkbox.Visibility = Visibility.Visible;
-
-            var binding = new Binding()
-            {
-                Source = new FullSolutionAnalysisOptionBinding(OptionStore, languageName),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default
-            };
-
-            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
-
         internal virtual void OnLoad()
         {
             foreach (var bindingExpression in _bindingExpressions)
@@ -209,29 +180,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public object ConvertBack(object value, Type targetType, object parameter,
             System.Globalization.CultureInfo culture)
         {
-            return value.Equals(true) ? 1 : -1;
-        }
-    }
-
-    public class CheckBoxTristateCheckedToIntConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value == null || value.Equals(0))
-            {
-                return null;
-            }
-
-            return !value.Equals(-1);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value == null)
-            {
-                return 0;
-            }
-
             return value.Equals(true) ? 1 : -1;
         }
     }

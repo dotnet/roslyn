@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -380,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return 0;
         }
 
-        internal virtual bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index)
+        internal virtual bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, out string name, out int index)
         {
             Debug.Assert(Compilation == template.DeclaringCompilation);
 
@@ -803,8 +805,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else if (namedTypeSymbol.IsTupleType)
             {
-                Debug.Assert(!needDeclaration);
-                namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType;
                 CheckTupleUnderlyingType(namedTypeSymbol, syntaxNodeOpt, diagnostics);
             }
 
@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             bool needDeclaration = false)
         {
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
-            Debug.Assert(!fieldSymbol.IsTupleField, "tuple fields should be rewritten to underlying by now");
+            Debug.Assert(!fieldSymbol.IsVirtualTupleField, "virtual tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {
@@ -1162,15 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(!needDeclaration);
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
             }
-            else if (methodSymbol.IsTupleMethod)
-            {
-                Debug.Assert(!needDeclaration);
-                Debug.Assert(container.IsTupleType);
-                container = container.TupleUnderlyingType;
-                methodSymbol = methodSymbol.TupleUnderlyingMethod;
-            }
 
-            Debug.Assert(!container.IsTupleType);
             Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
 
             if (!methodSymbol.IsDefinition)

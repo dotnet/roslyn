@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,14 +8,12 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <see cref="_lazyBaselineModuleReaders"/> and dispose them at the end of the debugging session
         /// </summary>
         private readonly Dictionary<ProjectId, EmitBaseline> _projectEmitBaselines;
-        private List<IDisposable> _lazyBaselineModuleReaders;
+        private List<IDisposable>? _lazyBaselineModuleReaders;
         private readonly object _projectEmitBaselinesGuard = new object();
 
         // Maps active statement instructions to their latest spans.
@@ -91,9 +91,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             IActiveStatementProvider activeStatementProvider,
             ICompilationOutputsProviderService compilationOutputsProvider)
         {
-            Debug.Assert(workspace != null);
-            Debug.Assert(debugeeModuleMetadataProvider != null);
-
             Workspace = workspace;
             DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
             CompilationOutputsProvider = compilationOutputsProvider;
@@ -191,7 +188,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            LastCommittedSolution.CommitSolution(update.Solution, update.ChangedDocuments);
+            LastCommittedSolution.CommitSolution(update.Solution);
         }
 
         /// <summary>
@@ -201,7 +198,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// An MVID and an error message to report, in case an IO exception occurred while reading the binary.
         /// The MVID is default if either project not built, or an it can't be read from the module binary.
         /// </returns>
-        public async Task<(Guid Mvid, Diagnostic Error)> GetProjectModuleIdAsync(ProjectId projectId, CancellationToken cancellationToken)
+        public async Task<(Guid Mvid, Diagnostic? Error)> GetProjectModuleIdAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             lock (_projectModuleIdsGuard)
             {
@@ -211,7 +208,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            (Guid Mvid, Diagnostic Error) ReadMvid()
+            (Guid Mvid, Diagnostic? Error) ReadMvid()
             {
                 var outputs = CompilationOutputsProvider.GetCompilationOutputs(projectId);
 
@@ -249,7 +246,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         /// <returns>Null if the module corresponding to he project hasn't been loaded yet</returns>
         /// <exception cref="IOException">Error reading project's binary.</exception>
-        public EmitBaseline GetOrCreateEmitBaseline(ProjectId projectId, Guid mvid)
+        public EmitBaseline? GetOrCreateEmitBaseline(ProjectId projectId, Guid mvid)
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
 

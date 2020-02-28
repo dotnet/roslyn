@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -192,7 +195,7 @@ namespace Roslyn.Test.Utilities
 
             foreach (var document in workspace.Documents)
             {
-                var text = document.TextBuffer.AsTextContainer().CurrentText;
+                var text = solution.GetDocument(document.Id).GetTextSynchronously(CancellationToken.None);
                 foreach (var kvp in document.AnnotatedSpans)
                 {
                     locations.GetOrAdd(kvp.Key, CreateLocation)

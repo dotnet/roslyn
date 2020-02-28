@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -31,10 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (TryParseXElement(markup, out var workspaceElement) && workspaceElement.Name == "Workspace")
             {
+                CloseTextView();
+                _workspace?.Dispose();
+
                 _workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
                 _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
                 Position = _currentDocument.CursorPosition.Value;
-                Code = _currentDocument.TextBuffer.CurrentSnapshot.GetText();
+                Code = _currentDocument.GetTextBuffer().CurrentSnapshot.GetText();
                 return _workspace;
             }
             else
@@ -67,11 +72,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // clear the document
             if (cleanBeforeUpdate)
             {
-                UpdateText(hostDocument.TextBuffer, string.Empty);
+                UpdateText(hostDocument.GetTextBuffer(), string.Empty);
             }
 
             // and set the content
-            UpdateText(hostDocument.TextBuffer, text);
+            UpdateText(hostDocument.GetTextBuffer(), text);
 
             GetWorkspace().OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
 

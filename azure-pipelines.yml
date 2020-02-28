@@ -37,7 +37,7 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump -warnAsError
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump -skipAnalyzers
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -65,7 +65,7 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop
+    - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop -skipAnalyzers
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -99,7 +99,7 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr -skipAnalyzers
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -190,7 +190,7 @@ jobs:
 #        _configuration: Debug
   timeoutInMinutes: 90
   steps:
-    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
+    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine --skipAnalyzers $(_args)
       displayName: Build and Test
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
@@ -216,7 +216,7 @@ jobs:
    queue: BuildPool.Ubuntu.1604.amd64.Open
   timeoutInMinutes: 90
   steps:
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild --skipAnalyzers
       displayName: Build
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
@@ -233,7 +233,7 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr --skipAnalyzers
       displayName: Build and Test
 
     - task: PublishTestResults@2

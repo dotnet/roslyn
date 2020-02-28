@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -19,21 +21,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
                 references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System });
 
-        private readonly INamedTypeSymbol _ienumerableInt;
-
-        private Workspace _ws;
-        private SyntaxGenerator _g;
+        private Workspace _workspace;
+        private SyntaxGenerator _generator;
 
         public SyntaxGeneratorTests()
         {
-            _ienumerableInt = _emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_emptyCompilation.GetSpecialType(SpecialType.System_Int32));
         }
 
         private Workspace Workspace
-            => _ws ?? (_ws = new AdhocWorkspace());
+            => _workspace ??= new AdhocWorkspace();
 
         private SyntaxGenerator Generator
-            => _g ?? (_g = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp));
+            => _generator ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
         public Compilation Compile(string code)
         {
@@ -1785,6 +1784,19 @@ public class C { } // end").Members[0];
     event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 }");
         }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact]
+        public void TestUnsafeFieldDeclarationFromSymbol()
+        {
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(
+                    _emptyCompilation.GetTypeByMetadataName("System.IntPtr").GetMembers("ToPointer").Single()),
+@"public unsafe void *ToPointer()
+{
+}");
+        }
+
         #endregion
 
         #region Add/Insert/Remove/Get declarations & members/elements
@@ -3389,7 +3401,7 @@ public class C : IDisposable
             var newDecl = Generator.AddInterfaceType(decl, Generator.IdentifierName("IDisposable"));
             var newRoot = root.ReplaceNode(decl, newDecl);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _ws).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
         }
 

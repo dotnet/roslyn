@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -27,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(OptionSet options)
         {
-            var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Notification;
-            var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Notification;
-            var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Notification;
+            var forIntrinsicTypesOption = options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Notification;
+            var whereApparentOption = options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Notification;
+            var wherePossibleOption = options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Notification;
 
             return !(forIntrinsicTypesOption == NotificationOption.Warning || forIntrinsicTypesOption == NotificationOption.Error ||
                      whereApparentOption == NotificationOption.Warning || whereApparentOption == NotificationOption.Error ||
@@ -48,11 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
+            var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
 
             var semanticModel = context.SemanticModel;
             var declaredType = Helper.FindAnalyzableType(declarationStatement, semanticModel, cancellationToken);

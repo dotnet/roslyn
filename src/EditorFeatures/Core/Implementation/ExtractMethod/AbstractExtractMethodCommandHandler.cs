@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             }
 
             var result = ExtractMethodService.ExtractMethodAsync(
-                document, spans.Single().Span.ToTextSpan(), cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                document, spans.Single().Span.ToTextSpan(), localFunction: false, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             Contract.ThrowIfNull(result);
 
             if (!result.Succeeded && !result.SucceededWithSuggestion)
@@ -220,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             {
                 options = options.WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, true);
                 var newResult = ExtractMethodService.ExtractMethodAsync(
-                    document, spans.Single().Span.ToTextSpan(), options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document, spans.Single().Span.ToTextSpan(), localFunction: false, options, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 // retry succeeded, return new result
                 if (newResult.Succeeded || newResult.SucceededWithSuggestion)

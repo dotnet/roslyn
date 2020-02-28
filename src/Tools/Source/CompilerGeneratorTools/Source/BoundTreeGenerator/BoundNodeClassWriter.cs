@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -658,9 +660,9 @@ namespace BoundTreeGenerator
                     {
                         case TargetLanguage.CSharp:
                             if (isROArray)
-                                WriteLine("Debug.Assert(!{0}.IsDefault, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
+                                WriteLine("RoslynDebug.Assert(!{0}.IsDefault, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             else
-                                WriteLine("Debug.Assert({0} is object, \"Field '{0}' cannot be null (make the type nullable in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
+                                WriteLine("RoslynDebug.Assert({0} is object, \"Field '{0}' cannot be null (make the type nullable in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             break;
 
                         case TargetLanguage.VB:
@@ -748,12 +750,22 @@ namespace BoundTreeGenerator
             return AllFields(node).Where(field => TypeIsTypeSymbol(field));
         }
 
+        private IEnumerable<Field> AllSymbolOrSymbolListFields(TreeType node)
+        {
+            return AllFields(node).Where(field => TypeIsSymbol(field) || (IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType)));
+        }
+
         private NullHandling FieldNullHandling(TreeType node, string fieldName)
         {
             Field f = GetField(node, fieldName);
 
             if (f.Null != null)
             {
+                if (_targetLang == TargetLanguage.CSharp && f.Null.ToUpperInvariant() == "ALLOW" && !f.Type.EndsWith('?') && !IsValueType(f.Type))
+                {
+                    throw new ArgumentException($"Field '{fieldName}' on node '{node.Name}' should have a nullable type, since it isn't a value type and it is marked null=allow");
+                }
+
                 switch (f.Null.ToUpperInvariant())
                 {
                     case "ALLOW":
@@ -982,7 +994,7 @@ namespace BoundTreeGenerator
                 var format = TypeIsTypeSymbol(field)
                                 ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)"
                                 : TypeIsSymbol(field)
-                                    ? "!SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
+                                    ? "!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
                                     : "{0} != this.{1}";
 
                 return string.Format(format, ToCamelCase(field.Name), field.Name);
@@ -1412,15 +1424,18 @@ namespace BoundTreeGenerator
                         Brace();
 
                         var updatedNullabilities = "_updatedNullabilities";
-                        var updatedMethodSymbols = "_updatedSymbols";
+                        var snapshotManager = "_snapshotManager";
+                        var remappedSymbols = "_remappedSymbols";
                         WriteLine($"private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> {updatedNullabilities};");
-                        WriteLine($"private readonly ImmutableDictionary<(BoundNode, Symbol), Symbol> {updatedMethodSymbols};");
+                        WriteLine($"private readonly NullableWalker.SnapshotManager? {snapshotManager};");
+                        WriteLine($"private readonly ImmutableDictionary<Symbol, Symbol>.Builder {remappedSymbols};");
 
                         Blank();
-                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities, ImmutableDictionary<(BoundNode, Symbol), Symbol> updatedSymbols)");
+                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities, NullableWalker.SnapshotManager? snapshotManager, ImmutableDictionary<Symbol, Symbol>.Builder remappedSymbols)");
                         Brace();
                         WriteLine($"{updatedNullabilities} = updatedNullabilities;");
-                        WriteLine($"{updatedMethodSymbols} = updatedSymbols;");
+                        WriteLine($"{snapshotManager} = snapshotManager;");
+                        WriteLine($"{remappedSymbols} = remappedSymbols;");
                         Unbrace();
 
                         foreach (var node in _tree.Types.OfType<Node>())
@@ -1430,7 +1445,7 @@ namespace BoundTreeGenerator
                             var allSpecifiableFields = AllSpecifiableFields(node).ToList();
                             var isExpression = IsDerivedType("BoundExpression", node.Name);
 
-                            if (!isExpression && !allSpecifiableFields.Any(f => symbolIsPotentiallyUpdated(f)))
+                            if (!isExpression && !allSpecifiableFields.Any(f => symbolIsPotentiallyUpdated(f) || immutableArrayIsPotentiallyUpdated(f)))
                             {
                                 continue;
                             }
@@ -1439,6 +1454,21 @@ namespace BoundTreeGenerator
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                             Brace();
                             bool hadField = false;
+
+                            foreach (var field in AllSymbolOrSymbolListFields(node))
+                            {
+                                if (symbolIsPotentiallyUpdated(field))
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = GetUpdatedSymbol(node, node.{field.Name});");
+                                    hadField = true;
+                                }
+                                else if (immutableArrayIsPotentiallyUpdated(field))
+                                {
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = GetUpdatedArray(node, node.{field.Name});");
+                                    hadField = true;
+                                }
+                            }
+
                             foreach (var field in AllNodeOrNodeListFields(node))
                             {
                                 hadField = true;
@@ -1512,13 +1542,9 @@ namespace BoundTreeGenerator
                                         {
                                             return "infoAndType.Type";
                                         }
-                                        else if (symbolIsPotentiallyUpdated(field))
+                                        else if (symbolIsPotentiallyUpdated(field) || immutableArrayIsPotentiallyUpdated(field))
                                         {
-                                            return $"GetUpdatedSymbol(node, node.{field.Name})";
-                                        }
-                                        else if (IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType))
-                                        {
-                                            return $"GetUpdatedArray(node, node.{field.Name})";
+                                            return $"{ToCamelCase(field.Name)}";
                                         }
                                         else
                                         {
@@ -1541,11 +1567,13 @@ namespace BoundTreeGenerator
                                 return typeIsUpdated(f.Type);
                             }
 
+                            bool immutableArrayIsPotentiallyUpdated(Field field) =>
+                                IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType);
+
                             static bool typeIsUpdated(string type)
                             {
                                 switch (type.TrimEnd('?'))
                                 {
-                                    case "LocalSymbol":
                                     case "LabelSymbol":
                                     case "GeneratedLabelSymbol":
                                     case "AliasSymbol":

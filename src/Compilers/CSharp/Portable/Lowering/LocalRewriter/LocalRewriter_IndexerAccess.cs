@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -254,9 +256,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isLeftOfAssignment));
         }
 
+        /// <summary>
+        /// Used to construct a pattern index offset expression, of the form
+        ///     `unloweredExpr.GetOffset(lengthAccess)`
+        /// where unloweredExpr is an expression of type System.Index and the
+        /// lengthAccess retrieves the length of the indexing target.
+        /// </summary>
+        /// <param name="unloweredExpr">The unlowered argument to the indexing expression</param>
+        /// <param name="lengthAccess">
+        /// An expression accessing the length of the indexing target. This should
+        /// be a non-side-effecting operation.
+        /// </param>
+        /// <param name="usedLength">
+        /// True if we were able to optimize the <paramref name="unloweredExpr"/>
+        /// to use the <paramref name="lengthAccess"/> operation directly on the receiver, instead of
+        /// using System.Index helpers.
+        /// </param>
         private BoundExpression MakePatternIndexOffsetExpression(
             BoundExpression unloweredExpr,
-            BoundLocal lengthAccess,
+            BoundExpression lengthAccess,
             out bool usedLength)
         {
             Debug.Assert(TypeSymbol.Equals(

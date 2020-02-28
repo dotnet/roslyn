@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var editorOperations = new Mock<IEditorOperations>();
             editorOperationsFactory.Setup(x => x.GetEditorOperations(textView)).Returns(editorOperations.Object);
 
-            var snapshot = subjectDocument.TextBuffer.CurrentSnapshot;
+            var snapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
             var indentationLineFromBuffer = snapshot.GetLineFromPosition(point);
 
             var provider = new SmartIndent(textView);
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 
         protected void TestIndentation(TestWorkspace workspace, int indentationLine, int? expectedIndentation)
         {
-            var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
+            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
             bufferGraph.Setup(x => x.MapUpToSnapshot(It.IsAny<SnapshotPoint>(),
                                                      It.IsAny<PointTrackingMode>(),

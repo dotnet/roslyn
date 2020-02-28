@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -9,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -518,7 +521,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var corlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).
                 GetReference(display: "corlib", documentation: docProvider);
 
-            var comp = CS.CSharpCompilation.Create("goo",
+            var comp = (Compilation)CS.CSharpCompilation.Create("goo",
                 syntaxTrees: new[] { CS.SyntaxFactory.ParseSyntaxTree("class C : System.Collections.ArrayList { }") },
                 references: new[] { corlib });
 

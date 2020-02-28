@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -100,10 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We push an implicit tuple converion down to its elements
                 var syntax = boundConversion.Syntax;
-                var destElementTypes = expr.Type.GetElementTypesOfTupleOrCompatible();
+                var destElementTypes = expr.Type.TupleElementTypesWithAnnotations;
                 var numElements = destElementTypes.Length;
-                TypeSymbol srcType = (TupleTypeSymbol)boundConversion.Operand.Type;
-                var srcElementFields = srcType.TupleElements;
+                var srcElementFields = boundConversion.Operand.Type.TupleElements;
                 var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
                 var savedTuple = DeferSideEffectingArgumentToTempForTupleEquality(LowerConversions(boundConversion.Operand), initEffects, temps);
                 var elementConversions = conversion.UnderlyingConversions;
@@ -425,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expr.Type.IsNullableType() && o.Type.IsNullableType() && nested[0] is { IsTupleConversion: true } tupleConversion:
                     {
                         var operand = MakeValueOrDefaultTemp(o, temps, effects);
-                        var types = expr.Type.GetNullableUnderlyingType().GetElementTypesOfTupleOrCompatible();
+                        var types = expr.Type.GetNullableUnderlyingType().TupleElementTypesWithAnnotations;
                         int tupleCardinality = operand.Type.TupleElementTypesWithAnnotations.Length;
                         var underlyingConversions = tupleConversion.UnderlyingConversions;
                         Debug.Assert(underlyingConversions.Length == tupleCardinality);

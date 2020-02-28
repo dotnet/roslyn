@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Linq;
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             // special cases
             // case 1: token belongs to verbatim token literal
             // case 2: $@"$${0}"
-            // case 3: $@"Comment$$ inbetween{0}"
+            // case 3: $@"Comment$$ in-between{0}"
             // case 4: $@"{0}$$"
             if (token.IsVerbatimStringLiteral() ||
                 token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken) ||

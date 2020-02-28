@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
@@ -18,8 +20,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Analysis As String =
             ServicesVSResources.Analysis
 
-        Public ReadOnly Property Option_Enable_full_solution_analysis As String =
-            ServicesVSResources.Enable_full_solution_analysis
+        Public ReadOnly Property Option_Background_analysis_scope As String =
+            ServicesVSResources.Background_analysis_scope_colon
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Active_File As String =
+            ServicesVSResources.Current_document
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_And_Projects As String =
+            ServicesVSResources.Open_documents
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution As String =
+            ServicesVSResources.Entire_solution
 
         Public ReadOnly Property Option_use_editorconfig_compatibility_mode As String = ServicesVSResources.Use_editorconfig_compatibility_mode
 

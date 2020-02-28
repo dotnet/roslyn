@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
@@ -8,6 +10,7 @@ Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Fading
 Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.Options.EditorConfig
+Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.ValidateFormatString
@@ -21,7 +24,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             InitializeComponent()
 
-            BindToFullSolutionAnalysisOption(Enable_full_solution_analysis, LanguageNames.VisualBasic)
+            BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.VisualBasic)
+            BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.VisualBasic)
+            BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.VisualBasic)
             BindToOption(Use_editorconfig_compatibility_mode, EditorConfigDocumentOptionsProviderFactory.UseLegacyEditorConfigSupport)
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)
