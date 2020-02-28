@@ -440,7 +440,7 @@ Imports System
 class C
     public sub new(s as string)
         If String.IsNullOrEmpty(s) Then
-            Throw New ArgumentException(""message"", NameOf(s))
+            Throw New ArgumentException($""'{NameOf(s)}' cannot be null or empty"", NameOf(s))
         End If
     end sub
 end class", index:=1)
@@ -462,7 +462,7 @@ Imports System
 class C
     public sub new(s as string)
         If String.IsNullOrWhiteSpace(s) Then
-            Throw New ArgumentException(""message"", NameOf(s))
+            Throw New ArgumentException($""'{NameOf(s)}' cannot be null or empty"", NameOf(s))
         End If
     end sub
 end class", index:=2)
@@ -484,15 +484,15 @@ Imports System
 class C
     public sub new(a as string, b as string, c as string)
         If String.IsNullOrEmpty(a) Then
-            Throw New ArgumentException(""message"", NameOf(a))
+            Throw New ArgumentException($""'{NameOf(a)}' cannot be null or empty"", NameOf(a))
         End If
 
         If String.IsNullOrEmpty(b) Then
-            Throw New ArgumentException(""message"", NameOf(b))
+            Throw New ArgumentException($""'{NameOf(b)}' cannot be null or empty"", NameOf(b))
         End If
 
         If String.IsNullOrEmpty(c) Then
-            Throw New ArgumentException(""message"", NameOf(c))
+            Throw New ArgumentException($""'{NameOf(c)}' cannot be null or empty"", NameOf(c))
         End If
     end sub
 end class", index:=3)
@@ -514,7 +514,7 @@ Imports System
 class C
     public sub new(a as boolean, b as string, c as object)
         If String.IsNullOrEmpty(b) Then
-            Throw New ArgumentException(""message"", NameOf(b))
+            Throw New ArgumentException($""'{NameOf(b)}' cannot be null or empty"", NameOf(b))
         End If
 
         If c Is Nothing Then

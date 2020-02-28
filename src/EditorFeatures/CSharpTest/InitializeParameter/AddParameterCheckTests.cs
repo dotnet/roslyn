@@ -330,17 +330,17 @@ class C
     {
         if (string.IsNullOrEmpty(a))
         {
-            throw new ArgumentException(""message"", nameof(a));
+            throw new ArgumentException($""'{nameof(a)}' cannot be null or empty"", nameof(a));
         }
 
         if (string.IsNullOrEmpty(b))
         {
-            throw new ArgumentException(""message"", nameof(b));
+            throw new ArgumentException($""'{nameof(b)}' cannot be null or empty"", nameof(b));
         }
 
         if (string.IsNullOrEmpty(c))
         {
-            throw new ArgumentException(""message"", nameof(c));
+            throw new ArgumentException($""'{nameof(c)}' cannot be null or empty"", nameof(c));
         }
     }
 }", index: 3);
@@ -386,12 +386,12 @@ class C
     {
         if (string.IsNullOrEmpty(a))
         {
-            throw new ArgumentException(""message"", nameof(a));
+            throw new ArgumentException($""'{nameof(a)}' cannot be null or empty"", nameof(a));
         }
 
         if (string.IsNullOrEmpty(c))
         {
-            throw new ArgumentException(""message"", nameof(c));
+            throw new ArgumentException($""'{nameof(c)}' cannot be null or empty"", nameof(c));
         }
     }
 }", index: 0);
@@ -420,12 +420,12 @@ class C
     {
         if (string.IsNullOrEmpty(a))
         {
-            throw new ArgumentException(""message"", nameof(a));
+            throw new ArgumentException($""'{nameof(a)}' cannot be null or empty"", nameof(a));
         }
 
         if (string.IsNullOrEmpty(c))
         {
-            throw new ArgumentException(""message"", nameof(c));
+            throw new ArgumentException($""'{nameof(c)}' cannot be null or empty"", nameof(c));
         }
     }
 }", index: 3);
@@ -454,7 +454,7 @@ class C
     {
         if (string.IsNullOrEmpty(a))
         {
-            throw new ArgumentException(""message"", nameof(a));
+            throw new ArgumentException($""'{nameof(a)}' cannot be null or empty"", nameof(a));
         }
 
         if (b is null)
@@ -464,7 +464,7 @@ class C
 
         if (string.IsNullOrEmpty(c))
         {
-            throw new ArgumentException(""message"", nameof(c));
+            throw new ArgumentException($""'{nameof(a)}' cannot be null or empty"", nameof(a));
         }
     }
 }", index: 3);
@@ -1400,7 +1400,7 @@ class C
     {
         if (string.IsNullOrEmpty(s))
         {
-            throw new ArgumentException(""message"", nameof(s));
+            throw new ArgumentException($""'{nameof(s)}' cannot be null or empty"", nameof(s));
         }
     }
 }", index: 1);
@@ -1428,7 +1428,7 @@ class C
     {
         if (string.IsNullOrWhiteSpace(s))
         {
-            throw new ArgumentException(""message"", nameof(s));
+            throw new ArgumentException($""'{nameof(s)}' cannot be null or empty"", nameof(s));
         }
     }
 }", index: 2);
@@ -1475,7 +1475,7 @@ class Program
     {
         if (String.IsNullOrEmpty(bar))
         {
-            throw new ArgumentException(""message"", nameof(bar));
+            throw new ArgumentException($""'{nameof(bar)}' cannot be null or empty"", nameof(bar));
         }
     }
 }", index: 1,
