@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Classification
     /// first int is the index of classification type in <see cref="ClassificationTypes"/>, and the
     /// second and third ints encode the span.
     /// </summary>
-    internal class SerializableClassifiedSpans
+    internal sealed class SerializableClassifiedSpans
     {
         public List<string> ClassificationTypes;
         public List<int> ClassificationTriples;
