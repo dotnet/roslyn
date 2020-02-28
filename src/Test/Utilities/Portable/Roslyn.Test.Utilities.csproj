@@ -63,22 +63,12 @@
     <Compile Include="..\..\..\Compilers\Shared\CoreClrAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs" />
-    <Compile Update="TestResource.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>TestResource.resx</DependentUpon>
-    </Compile>
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\ControlFlowRegionExtensions.cs" Link="Compilation\FlowAnalysis\ControlFlowRegionExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ControlFlowRegionExtensions.cs" Link="Compilation\FlowAnalysis\ControlFlowRegionExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\FlowAnalysis\CustomDataFlowAnalysis.cs" Link="Compilation\FlowAnalysis\CustomDataFlowAnalysis.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\FlowAnalysis\DataFlowAnalyzer.cs" Link="Compilation\FlowAnalysis\DataFlowAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="TestResource.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
-      <LogicalName>TestResource.resources</LogicalName>
-    </EmbeddedResource>
+    <EmbeddedResource Update="TestResource.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="$(DiffPlexVersion)" />
@@ -90,6 +80,7 @@
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
     <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
+    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />

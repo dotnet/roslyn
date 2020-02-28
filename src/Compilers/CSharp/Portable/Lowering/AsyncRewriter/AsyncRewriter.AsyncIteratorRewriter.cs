@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Add a field: bool disposeMode
                 _disposeModeField = F.StateMachineField(boolType, GeneratedNames.MakeDisposeModeFieldName());
 
-                if (_isEnumerable && this.method.Parameters.Any(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true }))
+                if (_isEnumerable && this.method.Parameters.Any(p => p.IsSourceParameterWithEnumeratorCancellationAttribute()))
                 {
                     // Add a field: CancellationTokenSource combinedTokens
                     _combinedTokensField = F.StateMachineField(
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundStatement result;
                 if (_combinedTokensField is object &&
-                    parameter is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true } &&
+                    parameter.IsSourceParameterWithEnumeratorCancellationAttribute() &&
                     parameter.Type.Equals(F.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken), TypeCompareKind.ConsiderEverything))
                 {
                     // For a parameter of type CancellationToken with [EnumeratorCancellation]

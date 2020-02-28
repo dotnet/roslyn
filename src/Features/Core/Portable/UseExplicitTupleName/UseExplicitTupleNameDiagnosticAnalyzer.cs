@@ -31,16 +31,8 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             // We only create a diagnostic if the option's value is set to true.
-            var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
+            var option = context.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
             if (!option.Value)
             {
                 return;
@@ -59,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             {
                 if (field.CorrespondingTupleField?.Equals(field) == true)
                 {
-                    var namedField = GetNamedField(field.ContainingType, field, cancellationToken);
+                    var namedField = GetNamedField(field.ContainingType, field, context.CancellationToken);
                     if (namedField != null)
                     {
                         var memberAccessSyntax = fieldReferenceOperation.Syntax;

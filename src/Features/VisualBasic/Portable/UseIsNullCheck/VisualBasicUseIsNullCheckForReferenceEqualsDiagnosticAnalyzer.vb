@@ -19,10 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
             Return True
         End Function
 
-        Protected Overrides Function GetInvocationExpressionKind() As SyntaxKind
-            Return SyntaxKind.InvocationExpression
-        End Function
-
         Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
             Return VisualBasicSyntaxFactsService.Instance
         End Function

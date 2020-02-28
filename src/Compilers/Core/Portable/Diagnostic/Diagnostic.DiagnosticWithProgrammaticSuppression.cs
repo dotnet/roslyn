@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                     Equals(_programmaticSuppressionInfo, other._programmaticSuppressionInfo);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return this.Equals(obj as Diagnostic);
             }

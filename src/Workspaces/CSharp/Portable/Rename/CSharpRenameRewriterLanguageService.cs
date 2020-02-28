@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -629,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                     else
                     {
-                        newToken = Simplification.CSharpSimplificationService.TryEscapeIdentifierToken(newToken, parent);
+                        newToken = CSharpSimplificationHelpers.TryEscapeIdentifierToken(newToken, parent);
                     }
                 }
 

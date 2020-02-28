@@ -212,7 +212,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     break;
             }
 
+            // Apply the new options.
+            // We need to switch to UI thread to invoke TryApplyChanges.
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(options));
+
             if (options.GetOption(KeybindingResetOptions.NeedsReset))
             {
                 ShowGoldBar();

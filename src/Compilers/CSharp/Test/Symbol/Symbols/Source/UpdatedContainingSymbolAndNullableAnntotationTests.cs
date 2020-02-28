@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class UpdatedContainingSymbolAndNullableAnntotationTests : CSharpTestBase
+    public class UpdatedContainingSymbolAndNullableAnnotationTests : CSharpTestBase
     {
         [Fact]
         public void LocalSymbols()

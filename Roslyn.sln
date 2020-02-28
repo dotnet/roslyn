@@ -330,7 +330,7 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.Visu
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes", "src\CodeStyle\VisualBasic\CodeFixes\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.vbproj", "{0141285D-8F6C-42C7-BAF3-3C0CCD61C716}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CodeStyle.UnitTests", "src\CodeStyle\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTests.csproj", "{9FF1205F-1D7C-4EE4-B038-3456FE6EBEAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities", "src\CodeStyle\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities.csproj", "{9FF1205F-1D7C-4EE4-B038-3456FE6EBEAF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests", "src\CodeStyle\CSharp\Tests\Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests.csproj", "{5018D049-5870-465A-889B-C742CE1E31CB}"
 EndProject

@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis
                 _treeSource);
         }
 
-        public DocumentState UpdateFolders(IList<string> folders)
+        public DocumentState UpdateFolders(ImmutableArray<string> folders)
         {
             return new DocumentState(
                 _languageServices,
@@ -769,9 +769,10 @@ namespace Microsoft.CodeAnalysis
             {
                 var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
 
-                if (!RoslynString.IsNullOrEmpty(projectPath))
+                if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
                 {
-                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
+                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, Name);
                 }
             }
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public bool Equals(Diagnostic x, Diagnostic y)
+        public bool Equals(Diagnostic? x, Diagnostic? y)
         {
             if (object.ReferenceEquals(x, y))
             {
