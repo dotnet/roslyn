@@ -720,9 +720,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, string methodName, SeparatedSyntaxList<TypeSyntax> typeArgsSyntax, ImmutableArray<TypeWithAnnotations> typeArgs, ImmutableArray<BoundExpression> args, DiagnosticBag diagnostics)
         {
             // clean up the receiver
-            Debug.Assert(receiver.Type is object);
             var ultimateReceiver = receiver;
             while (ultimateReceiver.Kind == BoundKind.QueryClause) ultimateReceiver = ((BoundQueryClause)ultimateReceiver).Value;
+            Debug.Assert(receiver.Type is object || ultimateReceiver.Type is null);
             if ((object?)ultimateReceiver.Type == null)
             {
                 if (ultimateReceiver.HasAnyErrors || node.HasErrors)
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
             }
-            else if (receiver.Type.IsVoidType())
+            else if (receiver.Type!.IsVoidType())
             {
                 if (!receiver.HasAnyErrors && !node.HasErrors)
                 {

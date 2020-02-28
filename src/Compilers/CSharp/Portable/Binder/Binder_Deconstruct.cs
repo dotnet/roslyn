@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < matchCount; i++)
             {
                 var variable = variables[i];
-                if (variable.Single is {} pending)
+                if (variable.Single is { } pending)
                 {
                     if ((object?)pending.Type != null)
                     {
