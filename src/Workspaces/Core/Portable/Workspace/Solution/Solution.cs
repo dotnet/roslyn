@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveDocument(DocumentId documentId)
         {
             CheckContainsDocument(documentId);
-            return RemoveDocuments(ImmutableArray.Create(documentId));
+            return RemoveDocumentsImpl(ImmutableArray.Create(documentId));
         }
 
         /// <summary>

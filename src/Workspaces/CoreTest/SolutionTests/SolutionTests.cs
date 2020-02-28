@@ -34,8 +34,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SolutionTests : TestBase
     {
+#nullable enable
         private static readonly MetadataReference s_mscorlib = TestReferences.NetFx.v4_0_30319.mscorlib;
-        private static readonly DocumentId s_documentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
+        private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
         private Solution CreateSolution()
         {
@@ -54,54 +55,54 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void RemoveDocument()
+        public void RemoveDocument_Errors()
         {
             var solution = CreateSolution();
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocument(null));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveDocument(s_documentId));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocument(null!));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveDocument(s_unrelatedDocumentId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void RemoveDocuments()
+        public void RemoveDocuments_Errors()
         {
             var solution = CreateSolution();
             Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(default));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveDocuments(ImmutableArray.Create(s_documentId)));
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(ImmutableArray.Create(default(DocumentId))));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(ImmutableArray.Create(default(DocumentId)!)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void RemoveAdditionalDocument()
+        public void RemoveAdditionalDocument_Errors()
         {
             var solution = CreateSolution();
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocument(null));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocument(s_documentId));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocument(null!));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocument(s_unrelatedDocumentId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void RemoveAdditionalDocuments()
+        public void RemoveAdditionalDocuments_Errors()
         {
             var solution = CreateSolution();
             Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(default));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(s_documentId)));
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(default(DocumentId))));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(default(DocumentId)!)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void RemoveAnalyzerConfigDocument()
+        public void RemoveAnalyzerConfigDocument_Errors()
         {
             var solution = CreateSolution();
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocument(null));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocument(s_documentId));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocument(null!));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocument(s_unrelatedDocumentId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void RemoveAnalyzerConfigDocuments()
+        public void RemoveAnalyzerConfigDocuments_Errors()
         {
             var solution = CreateSolution();
             Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(default));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(s_documentId)));
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(default(DocumentId))));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(default(DocumentId)!)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -112,15 +113,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var name = "new name";
 
             var newSolution1 = solution.WithDocumentName(documentId, name);
-            Assert.Equal(name, newSolution1.GetDocument(documentId).Name);
+            Assert.Equal(name, newSolution1.GetDocument(documentId)!.Name);
 
             var newSolution2 = newSolution1.WithDocumentName(documentId, name);
             Assert.Same(newSolution1, newSolution2);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentName(documentId, name: null));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentName(documentId, name: null!));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentName(null, name));
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentName(s_documentId, name));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentName(null!, name));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentName(s_unrelatedDocumentId, name));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -131,25 +132,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var folders = new[] { "folder1", "folder2" };
 
             var newSolution1 = solution.WithDocumentFolders(documentId, folders);
-            Assert.Equal(folders, newSolution1.GetDocument(documentId).Folders);
+            Assert.Equal(folders, newSolution1.GetDocument(documentId)!.Folders);
 
-            var newSolution3 = newSolution1.WithDocumentFolders(documentId, folders);
-            Assert.Same(newSolution3, newSolution1);
+            var newSolution2 = newSolution1.WithDocumentFolders(documentId, folders);
+            Assert.Same(newSolution2, newSolution1);
 
             // empty:
-            var newSolution4 = solution.WithDocumentFolders(documentId, new string[0]);
-            Assert.Equal(new string[0], newSolution4.GetDocument(documentId).Folders);
+            var newSolution3 = solution.WithDocumentFolders(documentId, new string[0]);
+            Assert.Equal(new string[0], newSolution3.GetDocument(documentId)!.Folders);
 
-            var newSolution5 = solution.WithDocumentFolders(documentId, ImmutableArray<string>.Empty);
-            Assert.Same(newSolution4, newSolution5);
+            var newSolution4 = solution.WithDocumentFolders(documentId, ImmutableArray<string>.Empty);
+            Assert.Same(newSolution3, newSolution4);
 
-            var newSolution6 = solution.WithDocumentFolders(documentId, null);
-            Assert.Same(newSolution4, newSolution6);
+            var newSolution5 = solution.WithDocumentFolders(documentId, null);
+            Assert.Same(newSolution3, newSolution5);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(documentId, folders: new string[] { null }));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(documentId, folders: new string[] { null! }));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(null, folders));
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(s_documentId, folders));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(null!, folders));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(s_unrelatedDocumentId, folders));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -160,16 +161,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var path = "new path";
 
             var newSolution1 = solution.WithDocumentFilePath(documentId, path);
-            Assert.Equal(path, newSolution1.GetDocument(documentId).FilePath);
+            Assert.Equal(path, newSolution1.GetDocument(documentId)!.FilePath);
 
             var newSolution2 = newSolution1.WithDocumentFilePath(documentId, path);
             Assert.Same(newSolution1, newSolution2);
 
             // TODO: https://github.com/dotnet/roslyn/issues/37125
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(documentId, filePath: null));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(documentId, filePath: null!));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(null, path));
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFilePath(s_documentId, path));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(null!, path));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFilePath(s_unrelatedDocumentId, path));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -181,12 +182,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(solution, solution.WithDocumentSourceCodeKind(documentId, SourceCodeKind.Regular));
 
             var newSolution1 = solution.WithDocumentSourceCodeKind(documentId, SourceCodeKind.Script);
-            Assert.Equal(SourceCodeKind.Script, newSolution1.GetDocument(documentId).SourceCodeKind);
+            Assert.Equal(SourceCodeKind.Script, newSolution1.GetDocument(documentId)!.SourceCodeKind);
 
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentSourceCodeKind(documentId, (SourceCodeKind)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentSourceCodeKind(null, SourceCodeKind.Script));
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSourceCodeKind(s_documentId, SourceCodeKind.Script));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentSourceCodeKind(null!, SourceCodeKind.Script));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSourceCodeKind(s_unrelatedDocumentId, SourceCodeKind.Script));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace), Obsolete]
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var documentId = solution.Projects.Single().DocumentIds.Single();
 
             var newSolution = solution.WithDocumentSourceCodeKind(documentId, SourceCodeKind.Interactive);
-            Assert.Equal(SourceCodeKind.Script, newSolution.GetDocument(documentId).SourceCodeKind);
+            Assert.Equal(SourceCodeKind.Script, newSolution.GetDocument(documentId)!.SourceCodeKind);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -206,9 +207,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var documentId = solution.Projects.Single().DocumentIds.Single();
             var root = CS.SyntaxFactory.ParseSyntaxTree("class NewClass {}").GetRoot();
 
-            var newSolution1 = solution.WithDocumentSyntaxRoot(documentId, root);
-            Assert.True(newSolution1.GetDocument(documentId).TryGetSyntaxRoot(out var actualRoot));
-            Assert.Equal(root.ToString(), actualRoot.ToString());
+            var newSolution1 = solution.WithDocumentSyntaxRoot(documentId, root, PreservationMode.PreserveIdentity);
+            Assert.True(newSolution1.GetDocument(documentId)!.TryGetSyntaxRoot(out var actualRoot));
+            Assert.Equal(root.ToString(), actualRoot!.ToString());
 
             // the actual root has a new parent SyntaxTree:
             Assert.NotSame(root, actualRoot);
@@ -218,8 +219,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentSyntaxRoot(documentId, root, (PreservationMode)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentSyntaxRoot(null, root));
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSyntaxRoot(s_documentId, root));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentSyntaxRoot(null!, root));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSyntaxRoot(s_unrelatedDocumentId, root));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -247,17 +248,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From("new text");
 
             var newSolution1 = solution.WithDocumentText(documentId, text, PreservationMode.PreserveIdentity);
-            Assert.True(newSolution1.GetDocument(documentId).TryGetText(out var actualText));
+            Assert.True(newSolution1.GetDocument(documentId)!.TryGetText(out var actualText));
             Assert.Equal(text, actualText);
 
             var newSolution2 = newSolution1.WithDocumentText(documentId, text, PreservationMode.PreserveIdentity);
             Assert.Same(newSolution1, newSolution2);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(documentId, text, (PreservationMode)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId)null, text, PreservationMode.PreserveIdentity));
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText(s_documentId, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId)null!, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText(s_unrelatedDocumentId, text, PreservationMode.PreserveIdentity));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -268,19 +269,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var textAndVersion = TextAndVersion.Create(SourceText.From("new text"), VersionStamp.Default);
 
             var newSolution1 = solution.WithDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
-            Assert.True(newSolution1.GetDocument(documentId).TryGetText(out var actualText));
-            Assert.True(newSolution1.GetDocument(documentId).TryGetTextVersion(out var actualVersion));
-            Assert.Equal(textAndVersion.Text, actualText);
+            Assert.True(newSolution1.GetDocument(documentId)!.TryGetText(out var actualText));
+            Assert.True(newSolution1.GetDocument(documentId)!.TryGetTextVersion(out var actualVersion));
+            Assert.Same(textAndVersion.Text, actualText);
             Assert.Equal(textAndVersion.Version, actualVersion);
 
             var newSolution2 = newSolution1.WithDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
             Assert.Same(newSolution1, newSolution2);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(documentId, textAndVersion, (PreservationMode)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId)null, textAndVersion, PreservationMode.PreserveIdentity));
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText(s_documentId, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId)null!, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText(s_unrelatedDocumentId, textAndVersion, PreservationMode.PreserveIdentity));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -291,18 +292,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From("new text");
 
             var newSolution1 = solution.WithDocumentText(new[] { documentId }, text, PreservationMode.PreserveIdentity);
-            Assert.True(newSolution1.GetDocument(documentId).TryGetText(out var actualText));
+            Assert.True(newSolution1.GetDocument(documentId)!.TryGetText(out var actualText));
             Assert.Equal(text, actualText);
 
             var newSolution2 = newSolution1.WithDocumentText(new[] { documentId }, text, PreservationMode.PreserveIdentity);
             Assert.Same(newSolution1, newSolution2);
 
-            // documents not in solution are skipped:
-            Assert.Same(solution, solution.WithDocumentText(new DocumentId[] { null }, text));
-            Assert.Same(solution, solution.WithDocumentText(new DocumentId[] { s_documentId }, text));
+            // documents not in solution are skipped: https://github.com/dotnet/roslyn/issues/42029
+            Assert.Same(solution, solution.WithDocumentText(new DocumentId[] { null! }, text));
+            Assert.Same(solution, solution.WithDocumentText(new DocumentId[] { s_unrelatedDocumentId }, text));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId[])null, text, PreservationMode.PreserveIdentity));
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(new[] { documentId }, null, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId[])null!, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(new[] { documentId }, null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(new[] { documentId }, text, (PreservationMode)(-1)));
         }
 
@@ -314,17 +315,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From("new text");
 
             var newSolution1 = solution.WithAdditionalDocumentText(documentId, text, PreservationMode.PreserveIdentity);
-            Assert.True(newSolution1.GetAdditionalDocument(documentId).TryGetText(out var actualText));
-            Assert.Equal(text, actualText);
+            Assert.True(newSolution1.GetAdditionalDocument(documentId)!.TryGetText(out var actualText));
+            Assert.Same(text, actualText);
 
             var newSolution2 = newSolution1.WithAdditionalDocumentText(documentId, text, PreservationMode.PreserveIdentity);
             Assert.Same(newSolution1, newSolution2);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAdditionalDocumentText(documentId, text, (PreservationMode)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText((DocumentId)null, text, PreservationMode.PreserveIdentity));
-            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText(s_documentId, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText((DocumentId)null!, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText(s_unrelatedDocumentId, text, PreservationMode.PreserveIdentity));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -335,19 +336,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var textAndVersion = TextAndVersion.Create(SourceText.From("new text"), VersionStamp.Default);
 
             var newSolution1 = solution.WithAdditionalDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
-            Assert.True(newSolution1.GetAdditionalDocument(documentId).TryGetText(out var actualText));
-            Assert.True(newSolution1.GetAdditionalDocument(documentId).TryGetTextVersion(out var actualVersion));
-            Assert.Equal(textAndVersion.Text, actualText);
+            Assert.True(newSolution1.GetAdditionalDocument(documentId)!.TryGetText(out var actualText));
+            Assert.True(newSolution1.GetAdditionalDocument(documentId)!.TryGetTextVersion(out var actualVersion));
+            Assert.Same(textAndVersion.Text, actualText);
             Assert.Equal(textAndVersion.Version, actualVersion);
 
             var newSolution2 = newSolution1.WithAdditionalDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
             Assert.Same(newSolution1, newSolution2);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAdditionalDocumentText(documentId, textAndVersion, (PreservationMode)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText((DocumentId)null, textAndVersion, PreservationMode.PreserveIdentity));
-            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText(s_documentId, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText((DocumentId)null!, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText(s_unrelatedDocumentId, textAndVersion, PreservationMode.PreserveIdentity));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -358,17 +359,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From("new text");
 
             var newSolution1 = solution.WithAnalyzerConfigDocumentText(documentId, text, PreservationMode.PreserveIdentity);
-            Assert.True(newSolution1.GetAnalyzerConfigDocument(documentId).TryGetText(out var actualText));
-            Assert.Equal(text, actualText);
+            Assert.True(newSolution1.GetAnalyzerConfigDocument(documentId)!.TryGetText(out var actualText));
+            Assert.Same(text, actualText);
 
             var newSolution2 = newSolution1.WithAnalyzerConfigDocumentText(documentId, text, PreservationMode.PreserveIdentity);
             Assert.Same(newSolution1, newSolution2);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAnalyzerConfigDocumentText(documentId, text, (PreservationMode)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText((DocumentId)null, text, PreservationMode.PreserveIdentity));
-            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText(s_documentId, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText((DocumentId)null!, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText(s_unrelatedDocumentId, text, PreservationMode.PreserveIdentity));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -379,19 +380,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var textAndVersion = TextAndVersion.Create(SourceText.From("new text"), VersionStamp.Default);
 
             var newSolution1 = solution.WithAnalyzerConfigDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
-            Assert.True(newSolution1.GetAnalyzerConfigDocument(documentId).TryGetText(out var actualText));
-            Assert.True(newSolution1.GetAnalyzerConfigDocument(documentId).TryGetTextVersion(out var actualVersion));
-            Assert.Equal(textAndVersion.Text, actualText);
+            Assert.True(newSolution1.GetAnalyzerConfigDocument(documentId)!.TryGetText(out var actualText));
+            Assert.True(newSolution1.GetAnalyzerConfigDocument(documentId)!.TryGetTextVersion(out var actualVersion));
+            Assert.Same(textAndVersion.Text, actualText);
             Assert.Equal(textAndVersion.Version, actualVersion);
 
             var newSolution2 = newSolution1.WithAnalyzerConfigDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
             Assert.Same(newSolution1, newSolution2);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAnalyzerConfigDocumentText(documentId, textAndVersion, (PreservationMode)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText((DocumentId)null, textAndVersion, PreservationMode.PreserveIdentity));
-            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText(s_documentId, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText((DocumentId)null!, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText(s_unrelatedDocumentId, textAndVersion, PreservationMode.PreserveIdentity));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -402,17 +403,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var loader = new TestTextLoader("new text");
 
             var newSolution1 = solution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
-            Assert.Equal("new text", newSolution1.GetDocument(documentId).GetTextSynchronously(CancellationToken.None).ToString());
+            Assert.Equal("new text", newSolution1.GetDocument(documentId)!.GetTextSynchronously(CancellationToken.None).ToString());
 
-            // Reusal is not currently implemented:
+            // Reusal is not currently implemented: https://github.com/dotnet/roslyn/issues/42028
             var newSolution2 = solution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
             Assert.NotSame(newSolution1, newSolution2);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentTextLoader(documentId, null, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentTextLoader(documentId, null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentTextLoader(documentId, loader, (PreservationMode)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentTextLoader(null, loader, PreservationMode.PreserveIdentity));
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentTextLoader(s_documentId, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentTextLoader(null!, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentTextLoader(s_unrelatedDocumentId, loader, PreservationMode.PreserveIdentity));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -423,17 +424,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var loader = new TestTextLoader("new text");
 
             var newSolution1 = solution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
-            Assert.Equal("new text", newSolution1.GetAdditionalDocument(documentId).GetTextSynchronously(CancellationToken.None).ToString());
+            Assert.Equal("new text", newSolution1.GetAdditionalDocument(documentId)!.GetTextSynchronously(CancellationToken.None).ToString());
 
-            // Reusal is not currently implemented:
+            // Reusal is not currently implemented: https://github.com/dotnet/roslyn/issues/42028
             var newSolution2 = solution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
             Assert.NotSame(newSolution1, newSolution2);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentTextLoader(documentId, null, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentTextLoader(documentId, null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAdditionalDocumentTextLoader(documentId, loader, (PreservationMode)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentTextLoader(null, loader, PreservationMode.PreserveIdentity));
-            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentTextLoader(s_documentId, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentTextLoader(null!, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentTextLoader(s_unrelatedDocumentId, loader, PreservationMode.PreserveIdentity));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -444,19 +445,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var loader = new TestTextLoader("new text");
 
             var newSolution1 = solution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
-            Assert.Equal("new text", newSolution1.GetAnalyzerConfigDocument(documentId).GetTextSynchronously(CancellationToken.None).ToString());
+            Assert.Equal("new text", newSolution1.GetAnalyzerConfigDocument(documentId)!.GetTextSynchronously(CancellationToken.None).ToString());
 
-            // Reusal is not currently implemented:
+            // Reusal is not currently implemented: https://github.com/dotnet/roslyn/issues/42028
             var newSolution2 = solution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
             Assert.NotSame(newSolution1, newSolution2);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentTextLoader(documentId, null, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentTextLoader(documentId, null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, (PreservationMode)(-1)));
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentTextLoader(null, loader, PreservationMode.PreserveIdentity));
-            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentTextLoader(s_documentId, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentTextLoader(null!, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentTextLoader(s_unrelatedDocumentId, loader, PreservationMode.PreserveIdentity));
         }
-
+#nullable restore
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject()
         {
