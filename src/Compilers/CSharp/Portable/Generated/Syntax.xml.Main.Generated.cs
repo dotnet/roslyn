@@ -3463,8 +3463,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new BinaryPatternSyntax instance.</summary>
-        public static BinaryPatternSyntax BinaryPattern(PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
         {
+            switch (kind)
+            {
+                case SyntaxKind.OrPattern:
+                case SyntaxKind.AndPattern: break;
+                default: throw new ArgumentException(nameof(kind));
+            }
             if (leftPattern == null) throw new ArgumentNullException(nameof(leftPattern));
             switch (patternOperator.Kind())
             {
@@ -3473,8 +3479,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(patternOperator));
             }
             if (rightPattern == null) throw new ArgumentNullException(nameof(rightPattern));
-            return (BinaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryPattern((Syntax.InternalSyntax.PatternSyntax)leftPattern.Green, (Syntax.InternalSyntax.SyntaxToken)patternOperator.Node!, (Syntax.InternalSyntax.PatternSyntax)rightPattern.Green).CreateRed();
+            return (BinaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryPattern(kind, (Syntax.InternalSyntax.PatternSyntax)leftPattern.Green, (Syntax.InternalSyntax.SyntaxToken)patternOperator.Node!, (Syntax.InternalSyntax.PatternSyntax)rightPattern.Green).CreateRed();
         }
+
+        /// <summary>Creates a new BinaryPatternSyntax instance.</summary>
+        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax leftPattern, PatternSyntax rightPattern)
+            => SyntaxFactory.BinaryPattern(kind, leftPattern, SyntaxFactory.Token(GetBinaryPatternPatternOperatorKind(kind)), rightPattern);
+
+        private static SyntaxKind GetBinaryPatternPatternOperatorKind(SyntaxKind kind)
+            => kind switch
+            {
+                SyntaxKind.OrPattern => SyntaxKind.OrKeyword,
+                SyntaxKind.AndPattern => SyntaxKind.AndKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new UnaryPatternSyntax instance.</summary>
         public static UnaryPatternSyntax UnaryPattern(SyntaxToken patternOperator, PatternSyntax pattern)

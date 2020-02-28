@@ -4422,7 +4422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (leftPattern != this.LeftPattern || patternOperator != this.PatternOperator || rightPattern != this.RightPattern)
             {
-                var newNode = SyntaxFactory.BinaryPattern(leftPattern, patternOperator, rightPattern);
+                var newNode = SyntaxFactory.BinaryPattern(this.Kind(), leftPattern, patternOperator, rightPattern);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }

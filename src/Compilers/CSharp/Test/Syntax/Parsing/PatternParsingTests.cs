@@ -8107,7 +8107,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.OrPattern);
                         {
                             N(SyntaxKind.ConstantPattern);
                             {
@@ -8156,7 +8156,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.AndPattern);
                         {
                             N(SyntaxKind.ConstantPattern);
                             {
@@ -8205,7 +8205,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.UnaryPattern);
+                        N(SyntaxKind.NotPattern);
                         {
                             N(SyntaxKind.NotKeyword);
                             N(SyntaxKind.ConstantPattern);
@@ -8247,7 +8247,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.UnaryPattern);
+                        N(SyntaxKind.NotPattern);
                         {
                             N(SyntaxKind.NotKeyword);
                             N(SyntaxKind.ConstantPattern);
@@ -8308,7 +8308,7 @@ switch (e)
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.OrPattern);
                             {
                                 N(SyntaxKind.ConstantPattern);
                                 {
@@ -8335,7 +8335,7 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.AndPattern);
                             {
                                 N(SyntaxKind.ConstantPattern);
                                 {
@@ -8362,7 +8362,7 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.UnaryPattern);
+                            N(SyntaxKind.NotPattern);
                             {
                                 N(SyntaxKind.NotKeyword);
                                 N(SyntaxKind.ConstantPattern);
@@ -8382,7 +8382,7 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.UnaryPattern);
+                            N(SyntaxKind.NotPattern);
                             {
                                 N(SyntaxKind.NotKeyword);
                                 N(SyntaxKind.ConstantPattern);
@@ -9131,7 +9131,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.OrPattern);
                         {
                             N(SyntaxKind.TypePattern);
                             {
@@ -9178,7 +9178,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.OrPattern);
                         {
                             N(SyntaxKind.TypePattern);
                             {
@@ -9236,7 +9236,7 @@ switch (e)
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.OrPattern);
                             {
                                 N(SyntaxKind.TypePattern);
                                 {
@@ -9294,7 +9294,7 @@ switch (e)
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.OrPattern);
                             {
                                 N(SyntaxKind.TypePattern);
                                 {
@@ -9496,9 +9496,9 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "c");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.OrPattern);
                         {
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.AndPattern);
                             {
                                 N(SyntaxKind.RelationalPattern);
                                 {
@@ -9519,7 +9519,7 @@ switch (e)
                                 }
                             }
                             N(SyntaxKind.OrKeyword);
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.AndPattern);
                             {
                                 N(SyntaxKind.RelationalPattern);
                                 {
@@ -9609,7 +9609,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.AndPattern);
                         {
                             N(SyntaxKind.TypePattern);
                             {
@@ -9705,7 +9705,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.AndPattern);
                         {
                             N(SyntaxKind.TypePattern);
                             {
@@ -9760,7 +9760,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.AndPattern);
                         {
                             N(SyntaxKind.TypePattern);
                             {
