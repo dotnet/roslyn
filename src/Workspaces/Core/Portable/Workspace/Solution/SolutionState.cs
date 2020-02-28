@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     GeneratorDriver driver = _projectIdToGeneratorDriverMap[oldProject.Id]!;
 
-                    var edits = newDocumentStatesForProject.SelectAsArray<T, PendingEdit>(s => new AddtionalFileAddedEdit(new AdditionalTextWithState(s)));
+                    var edits = newDocumentStatesForProject.SelectAsArray<T, PendingEdit>(s => new AdditionalFileAddedEdit(new AdditionalTextWithState(s)));
                     driver = driver.WithPendingEdits(edits);
 
                     _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(oldProject.Id, driver);

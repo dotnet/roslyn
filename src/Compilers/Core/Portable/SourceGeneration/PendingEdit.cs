@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
-    public sealed class AddtionalFileAddedEdit : AdditionalFileEdit
+    public sealed class AdditionalFileAddedEdit : AdditionalFileEdit
     {
-        public AddtionalFileAddedEdit(AdditionalText addedText)
+        public AdditionalFileAddedEdit(AdditionalText addedText)
         {
             AddedText = addedText;
         }
