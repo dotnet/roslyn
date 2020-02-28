@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
         {
-            if (_inExpressionLambda && 
-                node.Indices.Length == 1 && 
+            if (_inExpressionLambda &&
+                node.Indices.Length == 1 &&
                 node.Indices[0].Type!.SpecialType == SpecialType.None)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, node);
