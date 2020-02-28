@@ -10,7 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal static class ISyntaxFactsExtensions
     {

@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal partial interface ISyntaxFacts
     {

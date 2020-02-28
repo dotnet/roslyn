@@ -4,6 +4,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions

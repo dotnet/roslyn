@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.LanguageServices;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class CSharpSyntaxKinds : ISyntaxKinds
