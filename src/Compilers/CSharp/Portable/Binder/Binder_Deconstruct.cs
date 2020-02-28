@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBadExpression MissingDeconstruct(BoundExpression receiver, SyntaxNode rightSyntax, int numParameters, DiagnosticBag diagnostics,
                                     out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundExpression childNode)
         {
-            if (!(receiver.Type?.IsErrorType() ?? false))
+            if (receiver.Type?.IsErrorType() == false)
             {
                 Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type!, numParameters);
             }
