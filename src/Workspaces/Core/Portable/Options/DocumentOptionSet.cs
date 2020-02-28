@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -52,7 +53,10 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
-            => _backingOptionSet.AsAnalyzerConfigOptions(optionService, language ?? _language);
+        {
+            Debug.Assert((language ?? _language) == _language, $"Use of a {nameof(DocumentOptionSet)} is not expected to differ from the language it was constructed with.");
+            return _backingOptionSet.AsAnalyzerConfigOptions(optionService, language ?? _language);
+        }
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
