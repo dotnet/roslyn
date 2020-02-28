@@ -1506,8 +1506,13 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
-        private void CheckContainsDocument(DocumentId? documentId)
+        private void CheckContainsDocument([NotNull]DocumentId? documentId)
         {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
             if (!ContainsDocument(documentId))
             {
                 throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
@@ -1527,8 +1532,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsAdditionalDocument(DocumentId? documentId)
+        private void CheckContainsAdditionalDocument([NotNull]DocumentId? documentId)
         {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
             if (!ContainsAdditionalDocument(documentId))
             {
                 throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
@@ -1548,8 +1558,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsAnalyzerConfigDocument(DocumentId? documentId)
+        private void CheckContainsAnalyzerConfigDocument([NotNull]DocumentId? documentId)
         {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
             if (!ContainsAnalyzerConfigDocument(documentId))
             {
                 throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);

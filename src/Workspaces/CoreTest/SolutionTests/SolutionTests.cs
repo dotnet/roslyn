@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void RemoveDocument()
         {
             var solution = CreateSolution();
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveDocument(null));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocument(null));
             Assert.Throws<InvalidOperationException>(() => solution.RemoveDocument(s_documentId));
         }
 
@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolution();
             Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(default));
             Assert.Throws<InvalidOperationException>(() => solution.RemoveDocuments(ImmutableArray.Create(s_documentId)));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveDocuments(ImmutableArray.Create(default(DocumentId))));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(ImmutableArray.Create(default(DocumentId))));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void RemoveAdditionalDocument()
         {
             var solution = CreateSolution();
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocument(null));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocument(null));
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocument(s_documentId));
         }
 
@@ -84,14 +84,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolution();
             Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(default));
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(s_documentId)));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(default(DocumentId))));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(default(DocumentId))));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void RemoveAnalyzerConfigDocument()
         {
             var solution = CreateSolution();
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocument(null));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocument(null));
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocument(s_documentId));
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolution();
             Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(default));
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(s_documentId)));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(default(DocumentId))));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(default(DocumentId))));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentName(documentId, name: null));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentName(null, name));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentName(null, name));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentName(s_documentId, name));
         }
 
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(documentId, folders: new string[] { null }));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(null, folders));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(null, folders));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(s_documentId, folders));
         }
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // TODO: https://github.com/dotnet/roslyn/issues/37125
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(documentId, filePath: null));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFilePath(null, path));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(null, path));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFilePath(s_documentId, path));
         }
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentSourceCodeKind(documentId, (SourceCodeKind)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSourceCodeKind(null, SourceCodeKind.Script));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentSourceCodeKind(null, SourceCodeKind.Script));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSourceCodeKind(s_documentId, SourceCodeKind.Script));
         }
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentSyntaxRoot(documentId, root, (PreservationMode)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSyntaxRoot(null, root));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentSyntaxRoot(null, root));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSyntaxRoot(s_documentId, root));
         }
 
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(documentId, text, (PreservationMode)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText((DocumentId)null, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId)null, text, PreservationMode.PreserveIdentity));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText(s_documentId, text, PreservationMode.PreserveIdentity));
         }
 
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(documentId, textAndVersion, (PreservationMode)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText((DocumentId)null, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId)null, textAndVersion, PreservationMode.PreserveIdentity));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText(s_documentId, textAndVersion, PreservationMode.PreserveIdentity));
         }
 
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAdditionalDocumentText(documentId, text, (PreservationMode)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText((DocumentId)null, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText((DocumentId)null, text, PreservationMode.PreserveIdentity));
             Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText(s_documentId, text, PreservationMode.PreserveIdentity));
         }
 
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAdditionalDocumentText(documentId, textAndVersion, (PreservationMode)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText((DocumentId)null, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText((DocumentId)null, textAndVersion, PreservationMode.PreserveIdentity));
             Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText(s_documentId, textAndVersion, PreservationMode.PreserveIdentity));
         }
 
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAnalyzerConfigDocumentText(documentId, text, (PreservationMode)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText((DocumentId)null, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText((DocumentId)null, text, PreservationMode.PreserveIdentity));
             Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText(s_documentId, text, PreservationMode.PreserveIdentity));
         }
 
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText(documentId, (SourceText)null, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAnalyzerConfigDocumentText(documentId, textAndVersion, (PreservationMode)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText((DocumentId)null, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText((DocumentId)null, textAndVersion, PreservationMode.PreserveIdentity));
             Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText(s_documentId, textAndVersion, PreservationMode.PreserveIdentity));
         }
 
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentTextLoader(documentId, null, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentTextLoader(documentId, loader, (PreservationMode)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentTextLoader(null, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentTextLoader(null, loader, PreservationMode.PreserveIdentity));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentTextLoader(s_documentId, loader, PreservationMode.PreserveIdentity));
         }
 
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentTextLoader(documentId, null, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAdditionalDocumentTextLoader(documentId, loader, (PreservationMode)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentTextLoader(null, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentTextLoader(null, loader, PreservationMode.PreserveIdentity));
             Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentTextLoader(s_documentId, loader, PreservationMode.PreserveIdentity));
         }
 
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentTextLoader(documentId, null, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, (PreservationMode)(-1)));
 
-            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentTextLoader(null, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentTextLoader(null, loader, PreservationMode.PreserveIdentity));
             Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentTextLoader(s_documentId, loader, PreservationMode.PreserveIdentity));
         }
 
