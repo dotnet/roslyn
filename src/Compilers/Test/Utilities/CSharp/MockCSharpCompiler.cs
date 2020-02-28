@@ -33,9 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider)
+            CommonMessageProvider messageProvider,
+            out ImmutableArray<ISourceGenerator> generators)
         {
-            var analyzers = base.ResolveAnalyzersFromArguments(diagnostics, messageProvider);
+            var analyzers = base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, out generators);
             if (!_analyzers.IsDefaultOrEmpty)
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);

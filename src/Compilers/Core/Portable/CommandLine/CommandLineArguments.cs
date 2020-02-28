@@ -453,13 +453,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        //PROTOTYPE: we could also return a tuple of analyzer/generators, or have a seperate call for generators?
         internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             string language,
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
-            IAnalyzerAssemblyLoader analyzerLoader)
+            IAnalyzerAssemblyLoader analyzerLoader,
+            out ImmutableArray<ISourceGenerator> generators)
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            var generatorBuilder = ImmutableArray.CreateBuilder<ISourceGenerator>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -512,11 +515,13 @@ namespace Microsoft.CodeAnalysis
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
                 resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                resolvedReference.AddGenerators(generatorBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
             resolvedReferences.Free();
 
+            generators = generatorBuilder.ToImmutable();
             return analyzerBuilder.ToImmutable();
         }
 

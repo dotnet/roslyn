@@ -1116,6 +1116,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(analyzerReference));
             }
 
+            //PROTOTYPE
+            if (_projectIdToGeneratorDriverMap.ContainsKey(projectId))
+            {
+                var driver = _projectIdToGeneratorDriverMap[projectId];
+                driver = driver.WithGenerators(analyzerReference.GetGenerators());
+                _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
+            }
+
             CheckContainsProject(projectId);
             return this.ForkProject(this.GetProjectState(projectId)!.AddAnalyzerReference(analyzerReference));
         }
@@ -1141,6 +1149,13 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
+            //PROTOTYPE
+            if (_projectIdToGeneratorDriverMap.ContainsKey(projectId))
+            {
+                var driver = _projectIdToGeneratorDriverMap[projectId].WithGenerators(analyzerReferences.SelectMany(r => r.GetGenerators()).ToImmutableArray());
+                _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
+            }
+
             CheckContainsProject(projectId);
             return this.ForkProject(this.GetProjectState(projectId)!.AddAnalyzerReferences(analyzerReferences));
         }
@@ -1162,6 +1177,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             CheckContainsProject(projectId);
+
+            //PROTOTYPE:
+            if (_projectIdToGeneratorDriverMap.ContainsKey(projectId))
+            {
+                var gensToRemove = analyzerReference.GetGenerators();
+                var driver = _projectIdToGeneratorDriverMap[projectId];
+                foreach (var generator in gensToRemove)
+                {
+                    driver = driver.RemoveGenerator(generator);
+                }
+                _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
+            }
+
             return this.ForkProject(this.GetProjectState(projectId)!.RemoveAnalyzerReference(analyzerReference));
         }
 
@@ -2016,11 +2044,10 @@ namespace Microsoft.CodeAnalysis
                 var comp = await GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).ConfigureAwait(false);
 
                 // PROTOTYPE: either get an existing generator, or create a new one
-                // PROTOTYPE: we currently aren't adding any actual providers, so this won't cause anything to happen
                 GeneratorDriver? driver = _projectIdToGeneratorDriverMap.ContainsKey(project.Id)
                                        ? _projectIdToGeneratorDriverMap[project.Id]
                                        : project.LanguageServices.CompilationFactory?.CreateGeneratorDriver(comp, project.ParseOptions,
-                                                                                                            generators: ImmutableArray<ISourceGenerator>.Empty,
+                                                                                                            generators: project.AnalyzerReferences.SelectMany(r => r.GetGenerators()).ToImmutableArray(),
                                                                                                             additionalTexts: project.AdditionalDocumentStates.Values.SelectAsArray<TextDocumentState, AdditionalText>(d => new AdditionalTextWithState(d)));
 
                 if (driver is object)

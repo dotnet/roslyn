@@ -59,5 +59,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="language">Language name.</param>
         public abstract ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language);
+
+        //PROTOTYPE
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
+        public virtual ImmutableArray<ISourceGenerator> GetGenerators() { return ImmutableArray<ISourceGenerator>.Empty; }
     }
 }

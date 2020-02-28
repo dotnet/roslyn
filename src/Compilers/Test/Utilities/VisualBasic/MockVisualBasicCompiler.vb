@@ -43,9 +43,10 @@ Friend Class MockVisualBasicCompiler
 
     Protected Overrides Function ResolveAnalyzersFromArguments(
         diagnostics As List(Of DiagnosticInfo),
-        messageProvider As CommonMessageProvider) As ImmutableArray(Of DiagnosticAnalyzer)
+        messageProvider As CommonMessageProvider,
+        ByRef generators As ImmutableArray(Of ISourceGenerator)) As ImmutableArray(Of DiagnosticAnalyzer)
 
-        Dim analyzers = MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider)
+        Dim analyzers = MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, generators)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If

@@ -254,8 +254,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function ResolveAnalyzersFromArguments(
             diagnostics As List(Of DiagnosticInfo),
-            messageProvider As CommonMessageProvider) As ImmutableArray(Of DiagnosticAnalyzer)
-            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader)
+            messageProvider As CommonMessageProvider,
+            ByRef generators As ImmutableArray(Of ISourceGenerator)) As ImmutableArray(Of DiagnosticAnalyzer)
+
+            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, generators)
         End Function
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(

@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider);
+            CommonMessageProvider messageProvider,
+            out ImmutableArray<ISourceGenerator> generators);
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
@@ -697,9 +698,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="input">The compilation before any source generation has occured.</param>
         /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
+        /// <param name="generators">The generators to run</param>
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
-        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts) { return input; }
+        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts) { return input; }
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
@@ -766,7 +768,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnosticInfos = new List<DiagnosticInfo>();
-            ImmutableArray<DiagnosticAnalyzer> analyzers = ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider);
+            ImmutableArray<DiagnosticAnalyzer> analyzers = ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, out var generators);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
             if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger))
             {
@@ -786,7 +788,7 @@ namespace Microsoft.CodeAnalysis
 
             // PROTOTYPE: we'll need to handle diagnostics produced by the generators seperately too, so we
             // can fail the build on a generator error
-            compilation = RunGenerators(compilation, Arguments.ParseOptions, additionalTexts);
+            compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, additionalTexts);
 
             CompileAndEmit(
                 touchedFilesLogger,
