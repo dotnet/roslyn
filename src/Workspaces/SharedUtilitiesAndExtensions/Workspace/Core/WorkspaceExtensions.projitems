@@ -89,5 +89,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" GenerateSource="true" Link="WorkspaceExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" />
   </ItemGroup>
 </Project>

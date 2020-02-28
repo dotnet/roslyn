@@ -70,5 +70,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" GenerateSource="true" Link="CSharpCompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" />
   </ItemGroup>
 </Project>

@@ -80,5 +80,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpWorkspaceExtensionsResources.resx" GenerateSource="true" Link="CSharpWorkspaceExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CSharpWorkspaceExtensionsResources.resx" />
   </ItemGroup>
 </Project>
