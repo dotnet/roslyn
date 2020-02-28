@@ -1031,7 +1031,6 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            // Note: state is currently not reused.
             var newState = _state.WithDocumentFilePath(documentId, filePath);
             if (newState == _state)
             {
@@ -1285,6 +1284,7 @@ namespace Microsoft.CodeAnalysis
             var newState = _state.UpdateDocumentTextLoader(documentId, loader, text, mode);
 
             // Note: state is currently not reused.
+            // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
             Debug.Assert(newState != _state);
 
             return new Solution(newState);
@@ -1311,6 +1311,7 @@ namespace Microsoft.CodeAnalysis
             var newState = _state.UpdateAdditionalDocumentTextLoader(documentId, loader, mode);
 
             // Note: state is currently not reused.
+            // If UpdateAdditionalDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
             Debug.Assert(newState != _state);
 
             return new Solution(newState);
@@ -1337,6 +1338,7 @@ namespace Microsoft.CodeAnalysis
             var newState = _state.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
 
             // Note: state is currently not reused.
+            // If UpdateAnalyzerConfigDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
             Debug.Assert(newState != _state);
 
             return new Solution(newState);
