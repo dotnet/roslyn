@@ -6,7 +6,7 @@
 
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
     internal class CSharpSyntaxKinds : ISyntaxKinds
     {

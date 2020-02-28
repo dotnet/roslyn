@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
-Namespace Microsoft.CodeAnalysis.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     Friend Class VisualBasicSyntaxFacts
         Inherits AbstractSyntaxFacts
         Implements ISyntaxFacts

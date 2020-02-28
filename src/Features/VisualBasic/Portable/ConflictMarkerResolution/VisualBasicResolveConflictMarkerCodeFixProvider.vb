@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.ConflictMarkerResolution
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>

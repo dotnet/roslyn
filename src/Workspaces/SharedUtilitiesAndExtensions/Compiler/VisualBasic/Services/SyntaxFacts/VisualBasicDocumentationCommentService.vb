@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     Friend Class VisualBasicDocumentationCommentService
         Inherits AbstractDocumentationCommentService(Of
             DocumentationCommentTriviaSyntax,

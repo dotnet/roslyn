@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
     internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
     {

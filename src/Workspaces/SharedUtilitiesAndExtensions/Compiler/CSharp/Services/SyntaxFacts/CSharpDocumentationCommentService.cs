@@ -5,7 +5,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
     internal class CSharpDocumentationCommentService : AbstractDocumentationCommentService<
         DocumentationCommentTriviaSyntax,

@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.LanguageServices
 
-Namespace Microsoft.CodeAnalysis.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     Friend Class VisualBasicSyntaxKinds
         Implements ISyntaxKinds
 
