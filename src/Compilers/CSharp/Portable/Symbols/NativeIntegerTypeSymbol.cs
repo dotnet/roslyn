@@ -79,6 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData) => throw ExceptionUtilities.Unreachable;
 
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        {
+            var diagnostic = _underlyingType.GetUseSiteDiagnostic();
+            Debug.Assert(diagnostic is null); // If assert fails, add unit test for GetUseSiteDiagnostic().
+            return diagnostic;
+        }
+
         public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
 
         internal override bool IsNativeInteger => true;
