@@ -53,9 +53,12 @@ class C(int x, int y);";
                 Add( // Members
                     "System.Int32 C<T>.x { get; }",
                     "T C<T>.t { get; }",
+                    "System.Boolean C<T>.Equals(C<T>? )",
+                    "System.Boolean C<T>.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 C<T>.GetHashCode()",
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "void System.Object.Finalize()",

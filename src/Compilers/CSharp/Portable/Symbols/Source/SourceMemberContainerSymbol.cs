@@ -2914,7 +2914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (!_declModifiers.HasFlag(DeclarationModifiers.Data))
+            if (paramList.ParameterCount == 0 || !_declModifiers.HasFlag(DeclarationModifiers.Data))
             {
                 diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
             }
@@ -2924,24 +2924,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var memberSignatures = new HashSet<Symbol>(members, MemberSignatureComparer.DuplicateSourceComparer);
 
-            var ctor = new SynthesizedRecordConstructor(this, binder, paramList, diagnostics);
-            if (!memberSignatures.Contains(ctor))
+            var ctor = addCtor(paramList);
+            addProperties(ctor.Parameters);
+            addObjectEquals();
+            addHashCode();
+            addThisEquals();
+
+            return;
+
+            SynthesizedRecordConstructor addCtor(ParameterListSyntax paramList)
             {
-                members.Add(ctor);
-            }
-            else
-            {
-                diagnostics.Add(ErrorCode.ERR_DuplicateRecordConstructor, paramList.Location);
+                var ctor = new SynthesizedRecordConstructor(this, binder, paramList, diagnostics);
+                if (!memberSignatures.Contains(ctor))
+                {
+                    members.Add(ctor);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_DuplicateRecordConstructor, paramList.Location);
+                }
+
+                return ctor;
             }
 
-            foreach (ParameterSymbol param in ctor.Parameters)
+            void addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
-                var property = new SynthesizedRecordPropertySymbol(this, param);
-                if (!memberSignatures.Contains(property))
+                foreach (ParameterSymbol param in ctor.Parameters)
                 {
-                    members.Add(property);
-                    members.Add(property.GetMethod);
-                    members.Add(property.BackingField);
+                    var property = new SynthesizedRecordPropertySymbol(this, param);
+                    if (!memberSignatures.Contains(property))
+                    {
+                        members.Add(property);
+                        members.Add(property.GetMethod);
+                        members.Add(property.BackingField);
+                    }
+                }
+            }
+
+            void addObjectEquals()
+            {
+                var objEquals = new SynthesizedRecordObjEquals(this);
+                if (!memberSignatures.Contains(objEquals))
+                {
+                    // PROTOTYPE: Don't add if the overridden method is sealed
+                    members.Add(objEquals);
+                }
+            }
+
+            void addHashCode()
+            {
+                var hashCode = new SynthesizedRecordGetHashCode(this);
+                if (!memberSignatures.Contains(hashCode))
+                {
+                    // PROTOTYPE: Don't add if the overridden method is sealed
+                    members.Add(hashCode);
+                }
+            }
+
+            void addThisEquals()
+            {
+                var thisEquals = new SynthesizedRecordEquals(this);
+                if (!memberSignatures.Contains(thisEquals))
+                {
+                    members.Add(thisEquals);
                 }
             }
         }

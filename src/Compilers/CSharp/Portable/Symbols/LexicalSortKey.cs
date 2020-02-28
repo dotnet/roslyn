@@ -43,6 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static readonly LexicalSortKey NotInitialized = new LexicalSortKey() { _treeOrdinal = -1, _position = -1 };
 
+        // Put Record Equals right before synthesized constructors.
+        public static LexicalSortKey SynthesizedRecordEquals => new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 3 };
+        public static LexicalSortKey SynthesizedRecordObjEquals => new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 2 };
+
         // Dev12 compiler adds synthetic constructors to the child list after adding all other members.
         // Methods are emitted in the children order, but synthetic cctors would be deferred 
         // until later when it is known if they can be optimized or not.

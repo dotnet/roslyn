@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -11,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
             => CSharpTestBase.CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
-        private CompilationVerifier CompileAndVerify(CSharpTestSource src, string expectedOutput)
+        private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
             => base.CompileAndVerify(src, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularPreview);
 
         [Fact]
@@ -230,6 +234,196 @@ data class C1(object O1)
                 // (5,33): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.O1'
                 //     public object O2 { get; } = O1;
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "O1").WithArguments("C1.O1").WithLocation(5, 33)
+            );
+        }
+
+        [Fact]
+        public void RecordEquals_01()
+        {
+            CompileAndVerify(@"
+using System;
+data class C(int X, int Y)
+{
+    public static void Main()
+    {
+        object c = new C(0, 0);
+        Console.WriteLine(c.Equals(c));
+    }
+    public bool Equals(C c) => throw null;
+    public override bool Equals(object o) => false;
+}", expectedOutput: "False");
+        }
+
+        [Fact]
+        public void RecordEquals_02()
+        {
+            CompileAndVerify(@"
+using System;
+data class C(int X, int Y)
+{
+    public static void Main()
+    {
+        object c = new C(1, 1);
+        var c2 = new C(1, 1);
+        Console.WriteLine(c.Equals(c));
+        Console.WriteLine(c.Equals(c2));
+    }
+}", expectedOutput: @"True
+True");
+        }
+
+        [Fact]
+        public void RecordEquals_03()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+data class C(int X, int Y)
+{
+    public static void Main()
+    {
+        object c = new C(0, 0);
+        var c2 = new C(0, 0);
+        var c3 = new C(1, 1);
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals(c3));
+    }
+    public bool Equals(C c) => X == c.X && Y == c.Y;
+}", expectedOutput: @"True
+False");
+            verifier.VerifyIL("C.Equals(object)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  call       ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int C.X.get""
+  IL_0006:  ldarg.1
+  IL_0007:  callvirt   ""int C.X.get""
+  IL_000c:  bne.un.s   IL_001d
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""int C.Y.get""
+  IL_0014:  ldarg.1
+  IL_0015:  callvirt   ""int C.Y.get""
+  IL_001a:  ceq
+  IL_001c:  ret
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
+}");
+        }
+
+        [Fact]
+        public void RecordEquals_04()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+data class C(int X, int Y)
+{
+    public static void Main()
+    {
+        object c = new C(0, 0);
+        var c2 = new C(0, 0);
+        var c3 = new C(1, 1);
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals(c3));
+    }
+}", expectedOutput: @"True
+False");
+            verifier.VerifyIL("C.Equals(object)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  call       ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0034
+  IL_0003:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0008:  ldarg.0
+  IL_0009:  ldfld      ""int C.<X>k__BackingField""
+  IL_000e:  ldarg.1
+  IL_000f:  ldfld      ""int C.<X>k__BackingField""
+  IL_0014:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0019:  brfalse.s  IL_0032
+  IL_001b:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0020:  ldarg.0
+  IL_0021:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0026:  ldarg.1
+  IL_0027:  ldfld      ""int C.<Y>k__BackingField""
+  IL_002c:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0031:  ret
+  IL_0032:  ldc.i4.0
+  IL_0033:  ret
+  IL_0034:  ldc.i4.0
+  IL_0035:  ret
+}");
+        }
+
+        [Fact]
+        public void RecordEquals_06()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+data class C(int X, int Y)
+{
+    public static void Main()
+    {
+        var c = new C(0, 0);
+        object c2 = null;
+        C c3 = null;
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals(c3));
+    }
+}", expectedOutput: @"False
+False");
+        }
+
+        [Fact]
+        public void RecordEquals_07()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+data class C(int[] X, string Y)
+{
+    public static void Main()
+    {
+        var arr = new[] {1, 2};
+        var c = new C(arr, ""abc"");
+        var c2 = new C(new[] {1, 2}, ""abc"");
+        var c3 = new C(arr, ""abc"");
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals(c3));
+    }
+}", expectedOutput: @"False
+True");
+        }
+
+        [Fact]
+        public void EmptyRecord()
+        {
+            var src = @"
+data class C(); ";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,13): error CS8770: Records must have both a 'data' modifier and non-empty parameter list
+                // data class C(); 
+                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 13)
             );
         }
     }
