@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             => CSharpSyntaxKindsService.Instance;
 
-        private sealed class CSharpSyntaxKindsService : CSharpSyntaxKinds, ILanguageService
+        private sealed class CSharpSyntaxKindsService : CSharpSyntaxKinds, ISyntaxKindsService
         {
             public static readonly new CSharpSyntaxKindsService Instance = new CSharpSyntaxKindsService();
         }

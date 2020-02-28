@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private NotInheritable Class VisualBasicSyntaxKindsService
             Inherits VisualBasicSyntaxKinds
-            Implements ILanguageService
+            Implements ISyntaxKindsService
 
             Public Shared Shadows ReadOnly Instance As New VisualBasicSyntaxKindsService
         End Class
