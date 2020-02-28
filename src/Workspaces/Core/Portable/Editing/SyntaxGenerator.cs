@@ -1978,29 +1978,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse);
 
-        /// <summary>
-        /// Creates an expression that denotes a conditional access operation. Use <see
-        /// cref="MemberBindingExpression"/> and <see
-        /// cref="ElementBindingExpression(IEnumerable{SyntaxNode})"/> to generate the <paramref
-        /// name="whenNotNull"/> argument.
-        /// </summary>
-        public abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
-
-        /// <summary>
-        /// Creates an expression that denotes a member binding operation.
-        /// </summary>
-        public abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
-
-        /// <summary>
-        /// Creates an expression that denotes an element binding operation.
-        /// </summary>
-        public abstract SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments);
-
-        /// <summary>
-        /// Creates an expression that denotes an element binding operation.
-        /// </summary>
-        public SyntaxNode ElementBindingExpression(params SyntaxNode[] arguments)
-            => ElementBindingExpression((IEnumerable<SyntaxNode>)arguments);
+        internal abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
+        internal abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
+        internal abstract SyntaxNode ElementBindingExpression(SyntaxNode argumentList);
 
         /// <summary>
         /// Creates an expression that denotes a coalesce operation. 

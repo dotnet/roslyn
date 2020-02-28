@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -27,9 +25,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TInvocationExpression,
         TMemberAccessExpression,
         TConditionalAccessExpression,
-        TElementAccessExpression,
-        TElementBindingExpression,
-        TElementBindingArgumentList> : SyntaxEditorBasedCodeFixProvider
+        TElementAccessExpression> : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
@@ -38,11 +34,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TMemberAccessExpression : TExpressionSyntax
         where TConditionalAccessExpression : TExpressionSyntax
         where TElementAccessExpression : TExpressionSyntax
-        where TElementBindingExpression : TExpressionSyntax
-        where TElementBindingArgumentList : SyntaxNode
     {
-        protected abstract TElementBindingExpression ElementBindingExpression(TElementBindingArgumentList argumentList);
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
 
@@ -63,8 +55,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var root = editor.OriginalRoot;
@@ -124,14 +116,14 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         //      goo?.Bar()  not   goo?.Value.Bar();
                         return CreateConditionalAccessExpression(
                             syntaxFacts, generator, whenPart, match,
-                            memberAccess.Parent!, currentConditional);
+                            memberAccess.Parent, currentConditional);
                     }
                 }
             }
 
             return CreateConditionalAccessExpression(
                 syntaxFacts, generator, whenPart, match,
-                match.Parent!, currentConditional);
+                match.Parent, currentConditional);
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
@@ -149,10 +141,11 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             if (matchParent is TElementAccessExpression elementAccess)
             {
-                var argumentList = (TElementBindingArgumentList)syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess);
                 return whenPart.ReplaceNode(elementAccess,
                     generator.ConditionalAccessExpression(
-                        match, ElementBindingExpression(argumentList)));
+                        match,
+                        generator.ElementBindingExpression(
+                            syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess))));
             }
 
             return currentConditional;

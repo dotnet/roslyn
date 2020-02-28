@@ -289,19 +289,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 DirectCast(simpleName, SimpleNameSyntax))
         End Function
 
-        Public Overrides Function ConditionalAccessExpression(expression As SyntaxNode, whenNotNull As SyntaxNode) As SyntaxNode
+        Friend Overrides Function ConditionalAccessExpression(expression As SyntaxNode, whenNotNull As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.ConditionalAccessExpression(
                 DirectCast(expression, ExpressionSyntax),
                 DirectCast(whenNotNull, ExpressionSyntax))
         End Function
 
-        Public Overrides Function MemberBindingExpression(name As SyntaxNode) As SyntaxNode
+        Friend Overrides Function MemberBindingExpression(name As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.SimpleMemberAccessExpression(DirectCast(name, SimpleNameSyntax))
         End Function
 
-        Public Overrides Function ElementBindingExpression(arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+        Friend Overrides Function ElementBindingExpression(argumentList As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.InvocationExpression(expression:=Nothing,
-                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)))
+                                                      argumentList:=DirectCast(argumentList, ArgumentListSyntax))
         End Function
 
         ' parenthesize the left-side of a dot or target of an invocation if not unnecessary
