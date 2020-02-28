@@ -12,8 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A type class providing the primitive operations needed to support a value set.
         /// </summary>
         /// <typeparam name="T">the underlying primitive numeric type</typeparam>
-        private interface NumericTC<T> : EqualableValueTC<T>
+        private interface INumericTC<T>
         {
+            /// <summary>
+            /// Get the constant value of type <typeparamref name="T"/> from a <see cref="ConstantValue"/>. This method is shared among all
+            /// typeclasses for value sets.
+            /// </summary>
+            T FromConstantValue(ConstantValue constantValue);
+
             /// <summary>
             /// Compute the value of the binary relational operator on the given operands.
             /// </summary>
