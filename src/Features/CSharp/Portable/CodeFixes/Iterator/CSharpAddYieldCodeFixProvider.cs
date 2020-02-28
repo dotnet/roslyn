@@ -2,16 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Iterator;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -42,16 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             get { return ImmutableArray.Create(CS0029, CS0266); }
         }
 
-        protected override async Task<CodeAction> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
+        protected override async Task<CodeAction?> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
         {
             // Check if node is return statement
-            if (!node.IsKind(SyntaxKind.ReturnStatement))
+            if (!node.IsKind(SyntaxKind.ReturnStatement, out ReturnStatementSyntax? returnStatement))
             {
                 return null;
             }
 
-            var returnStatement = node as ReturnStatementSyntax;
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (!TryGetMethodReturnType(node, model, cancellationToken, out var methodReturnType))
             {
                 return null;
@@ -82,14 +85,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return new MyCodeAction(CSharpFeaturesResources.Replace_return_with_yield_return, document.WithSyntaxRoot(root));
         }
 
-        private bool TryGetExpressionType(SemanticModel model, ExpressionSyntax expression, out ITypeSymbol returnExpressionType)
+        private bool TryGetExpressionType(
+            SemanticModel model, ExpressionSyntax? expression, [NotNullWhen(true)] out ITypeSymbol? returnExpressionType)
         {
+            if (expression == null)
+            {
+                returnExpressionType = null;
+                return false;
+            }
+
             var info = model.GetTypeInfo(expression);
             returnExpressionType = info.Type;
             return returnExpressionType != null;
         }
 
-        private bool TryGetMethodReturnType(SyntaxNode node, SemanticModel model, CancellationToken cancellationToken, out ITypeSymbol methodReturnType)
+        private bool TryGetMethodReturnType(
+            SyntaxNode node, SemanticModel model, CancellationToken cancellationToken,
+            [NotNullWhen(true)] out ITypeSymbol? methodReturnType)
         {
             methodReturnType = null;
             var symbol = model.GetEnclosingSymbol(node.Span.Start, cancellationToken);
@@ -195,7 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return true;
         }
 
-        protected override bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
+        protected override bool TryGetNode(
+            SyntaxNode root, TextSpan span, [NotNullWhen(true)] out SyntaxNode? node)
         {
             node = null;
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();

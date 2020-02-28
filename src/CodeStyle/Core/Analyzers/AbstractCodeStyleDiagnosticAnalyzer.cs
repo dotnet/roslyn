@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
             => CreateDescriptorWithId(
                 descriptorId, _localizableTitle, _localizableMessageFormat,
-                isUnneccessary: true);
+                isUnnecessary: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string id,
             LocalizableString title,
             LocalizableString messageFormat,
-            bool isUnneccessary = false,
+            bool isUnnecessary = false,
             bool isConfigurable = true,
             LocalizableString description = null,
             params string[] customTags)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     DiagnosticSeverity.Hidden,
                     isEnabledByDefault: true,
                     description: description,
-                    customTags: DiagnosticCustomTags.Create(isUnneccessary, isConfigurable, customTags));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, customTags));
 
         public sealed override void Initialize(AnalysisContext context)
         {

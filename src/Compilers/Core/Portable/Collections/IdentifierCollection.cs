@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
         {
             RoslynDebug.Assert(identifier != null);
 
-            object value;
+            object? value;
             if (!_map.TryGetValue(identifier, out value))
             {
                 AddInitialSpelling(identifier);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
 
         private bool CaseSensitiveContains(string identifier)
         {
-            object spellings;
+            object? spellings;
             if (_map.TryGetValue(identifier, out spellings))
             {
                 var spelling = spellings as string;

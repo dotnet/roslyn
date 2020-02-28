@@ -24,6 +24,11 @@
 „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DisableAnalyzerDiagnosticsMessage">
+        <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
+        <target state="new">Suppress the following diagnostics to disable this analyzer: {0}</target>
+        <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="translated">Pominięty identyfikator diagnostyki „{0}” nie pasuje do możliwego do pominięcia identyfikatora „{1}” dla danego deskryptora pomijania.</target>
@@ -576,12 +581,17 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="translated">Błąd analizatora</target>
-        <note />
+        <target state="needs-review-translation">Błąd analizatora</target>
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
-        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">Analizator „{0}” zgłosił wyjątek typu „{1}” z komunikatem „{2}”.</target>
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="new">Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">

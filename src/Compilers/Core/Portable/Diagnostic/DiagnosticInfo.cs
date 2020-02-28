@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis
             return ((IFormattable)this).ToString(null, formatProvider);
         }
 
-        string IFormattable.ToString(string format, IFormatProvider? formatProvider)
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
         {
             return String.Format(formatProvider, "{0}: {1}",
                 _messageProvider.GetMessagePrefix(this.MessageIdentifier, this.Severity, this.IsWarningAsError, formatProvider as CultureInfo),

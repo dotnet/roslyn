@@ -9,8 +9,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-// The ShadowCopyAnalyzerAssemblyLoader derives from DesktopAnalyzerAssemblyLoader (NET472) OR CoreClrAnalyzerAssemblyLoader (NETCOREAPP3_1)
-#if NET472 || NETCOREAPP3_1
+// The ShadowCopyAnalyzerAssemblyLoader derives from DesktopAnalyzerAssemblyLoader (NET472) OR CoreClrAnalyzerAssemblyLoader (NETCOREAPP)
+#if NET472 || NETCOREAPP
 
 namespace Microsoft.CodeAnalysis
 {

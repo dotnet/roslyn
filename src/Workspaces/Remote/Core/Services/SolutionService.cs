@@ -20,19 +20,19 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// TODO: change this to workspace service
     /// </summary>
-    internal class SolutionService : ISolutionController
+    internal sealed class SolutionService
     {
         private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
-
-        private readonly AssetService _assetService;
 
         // this simple cache hold onto the last and primary solution created
         private volatile static Tuple<Checksum, Solution> s_primarySolution;
         private volatile static Tuple<Checksum, Solution> s_lastSolution;
 
-        public SolutionService(AssetService assetService)
+        public AssetProvider AssetProvider { get; }
+
+        public SolutionService(AssetProvider assetProvider)
         {
-            _assetService = assetService;
+            AssetProvider = assetProvider;
         }
 
         public static RemoteWorkspace PrimaryWorkspace
@@ -46,35 +46,30 @@ namespace Microsoft.CodeAnalysis.Remote
                     // The Roslyn OOP service assumes a singleton workspace exists, but doesn't initialize it anywhere.
                     // If we get here, code is asking for a workspace before it exists, so we create one on the fly.
                     // The RemoteWorkspace constructor assigns itself as the new singleton instance.
-                    new RemoteWorkspace();
+                    _ = new RemoteWorkspace();
                 }
 
                 return (RemoteWorkspace)primaryWorkspace.Workspace;
             }
         }
 
-        public static AssetService CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
+        public static AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
         {
             var serializerService = PrimaryWorkspace.Services.GetRequiredService<ISerializerService>();
-            return new AssetService(solutionInfo.ScopeId, assetStorage, serializerService);
-        }
-
-        public Task<(SolutionInfo, SerializableOptionSet)> GetSolutionInfoAndOptionsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
-        {
-            return SolutionInfoCreator.CreateSolutionInfoAndOptionsAsync(_assetService, solutionChecksum, cancellationToken);
+            return new AssetProvider(solutionInfo.ScopeId, assetStorage, serializerService);
         }
 
         public Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             // this method is called by users which means we don't know whether the solution is from primary branch or not.
             // so we will be conservative and assume it is not. meaning it won't update any internal caches but only consume cache if possible.
-            return GetSolutionInternalAsync(solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, cancellationToken: cancellationToken);
+            return GetSolutionAsync(solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, cancellationToken);
         }
 
         public Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-            => GetSolutionInternalAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
+            => GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
 
-        private async Task<Solution> GetSolutionInternalAsync(
+        public async Task<Solution> GetSolutionAsync(
             Checksum solutionChecksum,
             bool fromPrimaryBranch,
             int workspaceVersion,
@@ -138,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
-                var updater = new SolutionCreator(_assetService, baseSolution, cancellationToken);
+                var updater = new SolutionCreator(AssetProvider, baseSolution, cancellationToken);
 
                 // check whether solution is update to the given base solution
                 if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
@@ -157,10 +152,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 // we need new solution. bulk sync all asset for the solution first.
-                await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                await AssetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 // get new solution info and options
-                var (solutionInfo, options) = await GetSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                var (solutionInfo, options) = await AssetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 if (fromPrimaryBranch)
                 {
@@ -181,12 +176,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        Task<Solution> ISolutionController.GetSolutionAsync(Checksum solutionChecksum, bool primary, int workspaceVersion, CancellationToken cancellationToken)
-        {
-            return GetSolutionInternalAsync(solutionChecksum, primary, workspaceVersion, cancellationToken);
-        }
-
-        async Task ISolutionController.UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
+        public async Task UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
         {
             var currentSolution = PrimaryWorkspace.CurrentSolution;
 

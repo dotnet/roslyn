@@ -1,1 +1,2 @@
-
+Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, bool isScript, bool isInputRedirected) -> void
+Microsoft.CodeAnalysis.CommandLineSourceFile.IsInputRedirected.get -> bool

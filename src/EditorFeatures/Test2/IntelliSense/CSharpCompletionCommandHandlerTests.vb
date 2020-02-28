@@ -2018,6 +2018,110 @@ public class Goo
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function LocalFunctionAttributeNamedPropertyCompletionCommitWithTab() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                            <Document>
+class MyAttribute : System.Attribute
+{
+    public string Name { get; set; }
+}
+
+public class Goo
+{
+    void M()
+    {
+        [MyAttribute($$
+        void local1() { }
+    }
+}
+                            </Document>)
+                state.SendTypeChars("Nam")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        [MyAttribute(Name =", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeOnLocalFunctionCompletionCommitWithTab() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                            <Document>
+class MyGoodAttribute : System.Attribute
+{
+    public string Name { get; set; }
+}
+
+public class Goo
+{
+    void M()
+    {
+        [$$
+        void local1()
+        {
+        }
+    }
+}
+                            </Document>)
+                state.SendTypeChars("MyG")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        [MyGood", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeOnMissingStatementCompletionCommitWithTab() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                            <Document>
+class MyGoodAttribute : System.Attribute
+{
+    public string Name { get; set; }
+}
+
+public class Goo
+{
+    void M()
+    {
+        [$$
+    }
+}
+                            </Document>)
+                state.SendTypeChars("MyG")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        [MyGood", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypeAfterAttributeListOnStatement() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                            <Document>
+class MyGoodAttribute : System.Attribute
+{
+    public string Name { get; set; }
+}
+
+public class Goo
+{
+    void M()
+    {
+        [MyGood] $$
+    }
+}
+                            </Document>)
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        [MyGood] Goo", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedPropertyCompletionCommitWithEquals() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                             <Document>

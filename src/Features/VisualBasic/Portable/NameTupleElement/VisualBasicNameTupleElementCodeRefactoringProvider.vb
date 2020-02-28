@@ -20,9 +20,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NameTupleElement
         Protected Overrides Function WithName(argument As SimpleArgumentSyntax, name As String) As SimpleArgumentSyntax
             Return argument.WithNameColonEquals(SyntaxFactory.NameColonEquals(name.ToIdentifierName()))
         End Function
-
-        Protected Overrides Function IsCloseParenOrComma(token As SyntaxToken) As Boolean
-            Return token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken)
-        End Function
     End Class
 End Namespace

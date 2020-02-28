@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -45,7 +47,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             Utilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
         }
 
-        protected abstract TSyntaxKind GetKind(int rawKind);
         protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
 
@@ -57,17 +58,10 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
         private void AnalyzeAssignment(SyntaxNodeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
             var assignment = (TAssignmentSyntax)context.Node;
 
             var syntaxTree = assignment.SyntaxTree;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferCompoundAssignment, assignment.Language);
+            var option = context.GetOption(CodeStyleOptions.PreferCompoundAssignment, assignment.Language);
             if (!option.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -84,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 return;
             }
 
-            var binaryKind = GetKind(binaryExpression.RawKind);
+            var binaryKind = _syntaxFacts.SyntaxKinds.Convert<TSyntaxKind>(binaryExpression.RawKind);
             if (!_binaryToAssignmentMap.ContainsKey(binaryKind))
             {
                 return;
@@ -122,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             // is side-effect-free since we will be changing the number of times it is
             // executed from twice to once.
             var semanticModel = context.SemanticModel;
-            if (!IsSideEffectFree(assignmentLeft, semanticModel, isTopLevel: true, cancellationToken))
+            if (!IsSideEffectFree(assignmentLeft, semanticModel, isTopLevel: true, context.CancellationToken))
             {
                 return;
             }

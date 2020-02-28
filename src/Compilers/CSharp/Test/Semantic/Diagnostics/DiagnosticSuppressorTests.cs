@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using System.Runtime.ExceptionServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
@@ -268,15 +269,36 @@ class C { }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
+            var expectedException = new NotImplementedException();
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
-            var suppressor = new DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions();
-            var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
+            var suppressor = new DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions(expectedException);
+            var exceptions = new List<Exception>();
+            EventHandler<FirstChanceExceptionEventArgs> firstChanceException =
+                (sender, e) =>
+                {
+                    if (e.Exception == expectedException)
+                    {
+                        exceptions.Add(e.Exception);
+                    }
+                };
 
-            VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
-                Diagnostic("AD0001").WithArguments(suppressor.ToString(), typeof(NotImplementedException).FullName, new NotImplementedException().Message).WithLocation(1, 1),
-                Diagnostic("ID1000", "class C { }").WithLocation(1, 1));
+            try
+            {
+                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
 
-            VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+                IFormattable context = $@"{new LazyToString(() => exceptions[0])}
+-----";
+                var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
+                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
+                    Diagnostic("AD0001").WithArguments(suppressor.ToString(), typeof(NotImplementedException).FullName, new NotImplementedException().Message, context).WithLocation(1, 1),
+                    Diagnostic("ID1000", "class C { }").WithLocation(1, 1));
+
+                VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
+            }
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
@@ -289,15 +311,38 @@ class C { }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
+            var expectedException = new NotImplementedException();
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
-            var suppressor = new DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(analyzer.Descriptor.Id);
-            var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
+            var suppressor = new DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(analyzer.Descriptor.Id, expectedException);
+            var exceptions = new List<Exception>();
+            EventHandler<FirstChanceExceptionEventArgs> firstChanceException =
+                (sender, e) =>
+                {
+                    if (e.Exception == expectedException)
+                    {
+                        exceptions.Add(e.Exception);
+                    }
+                };
 
-            VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
-                Diagnostic("AD0001").WithArguments(suppressor.ToString(), typeof(NotImplementedException).FullName, new NotImplementedException().Message).WithLocation(1, 1),
-                Diagnostic("ID1000", "class C { }").WithLocation(1, 1));
+            try
+            {
+                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
 
-            VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+                IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: {compilation.AssemblyName}")}
+
+{new LazyToString(() => exceptions[0])}
+-----";
+                var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
+                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
+                    Diagnostic("AD0001").WithArguments(suppressor.ToString(), typeof(NotImplementedException).FullName, new NotImplementedException().Message, context).WithLocation(1, 1),
+                    Diagnostic("ID1000", "class C { }").WithLocation(1, 1));
+
+                VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
+            }
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
@@ -320,14 +365,39 @@ class C { }";
             // "Reported suppression with ID '{0}' is not supported by the suppressor."
             var exceptionMessage = string.Format(CodeAnalysisResources.UnsupportedSuppressionReported, unsupportedSuppressionId);
 
-            VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
-                Diagnostic("AD0001").WithArguments(suppressor.ToString(),
-                                                   typeof(ArgumentException).FullName,
-                                                   exceptionMessage)
-                                    .WithLocation(1, 1),
-                Diagnostic("ID1000", "class C { }").WithLocation(2, 1));
+            var exceptions = new List<Exception>();
+            EventHandler<FirstChanceExceptionEventArgs> firstChanceException =
+                (sender, e) =>
+                {
+                    if (e.Exception is ArgumentException
+                        && e.Exception.Message == exceptionMessage)
+                    {
+                        exceptions.Add(e.Exception);
+                    }
+                };
 
-            VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+            try
+            {
+                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
+
+                IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: {compilation.AssemblyName}")}
+
+{new LazyToString(() => exceptions[0])}
+-----";
+                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
+                    Diagnostic("AD0001").WithArguments(suppressor.ToString(),
+                                                       typeof(ArgumentException).FullName,
+                                                       exceptionMessage,
+                                                       context)
+                                        .WithLocation(1, 1),
+                    Diagnostic("ID1000", "class C { }").WithLocation(2, 1));
+
+                VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
+            }
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
@@ -348,14 +418,39 @@ class C { }";
             // "Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor."
             var exceptionMessage = string.Format(CodeAnalysisResources.InvalidDiagnosticSuppressionReported, analyzer.Descriptor.Id, unsupportedSuppressedId);
 
-            VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
-                Diagnostic("AD0001").WithArguments(suppressor.ToString(),
-                                                   typeof(System.ArgumentException).FullName,
-                                                   exceptionMessage)
-                                    .WithLocation(1, 1),
-                Diagnostic("ID1000", "class C { }").WithLocation(2, 1));
+            var exceptions = new List<Exception>();
+            EventHandler<FirstChanceExceptionEventArgs> firstChanceException =
+                (sender, e) =>
+                {
+                    if (e.Exception is ArgumentException
+                        && e.Exception.Message == exceptionMessage)
+                    {
+                        exceptions.Add(e.Exception);
+                    }
+                };
 
-            VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+            try
+            {
+                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
+
+                IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: {compilation.AssemblyName}")}
+
+{new LazyToString(() => exceptions[0])}
+-----";
+                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
+                    Diagnostic("AD0001").WithArguments(suppressor.ToString(),
+                                                       typeof(System.ArgumentException).FullName,
+                                                       exceptionMessage,
+                                                       context)
+                                        .WithLocation(1, 1),
+                    Diagnostic("ID1000", "class C { }").WithLocation(2, 1));
+
+                VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
+            }
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
@@ -376,14 +471,39 @@ class C { }";
             // "Non-reported diagnostic with ID '{0}' cannot be suppressed."
             var exceptionMessage = string.Format(CodeAnalysisResources.NonReportedDiagnosticCannotBeSuppressed, nonReportedDiagnosticId);
 
-            VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppressors,
-                Diagnostic("AD0001").WithArguments(suppressor.ToString(),
-                                                   typeof(System.ArgumentException).FullName,
-                                                   exceptionMessage)
-                                    .WithLocation(1, 1),
-                Diagnostic("ID1000", "class C { }").WithLocation(2, 1));
+            var exceptions = new List<Exception>();
+            EventHandler<FirstChanceExceptionEventArgs> firstChanceException =
+                (sender, e) =>
+                {
+                    if (e.Exception is ArgumentException
+                        && e.Exception.Message == exceptionMessage)
+                    {
+                        exceptions.Add(e.Exception);
+                    }
+                };
 
-            VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors);
+            try
+            {
+                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
+
+                IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: {compilation.AssemblyName}")}
+
+{new LazyToString(() => exceptions[0])}
+-----";
+                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppressors,
+                    Diagnostic("AD0001").WithArguments(suppressor.ToString(),
+                                                       typeof(System.ArgumentException).FullName,
+                                                       exceptionMessage,
+                                                       context)
+                                        .WithLocation(1, 1),
+                    Diagnostic("ID1000", "class C { }").WithLocation(2, 1));
+
+                VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors);
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
+            }
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
