@@ -20,6 +20,30 @@ file_header_template = \nCopyright (c) SomeCorp. All rights reserved.\n\nLicense
 "
 
         ''' <summary>
+        ''' Verifies that the analyzer will not report a diagnostic when the file header is not configured.
+        ''' </summary>
+        ''' <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        <Theory>
+        <InlineData("")>
+        <InlineData("file_header_template =")>
+        <InlineData("file_header_template = unset")>
+        Public Async Function TestFileHeaderNotConfiguredAsync(fileHeaderTemplate As String) As Task
+            Dim testCode = "Namespace N
+End Namespace
+"
+
+            Await New VerifyVB.Test With
+            {
+                .TestCode = testCode,
+                .FixedCode = testCode,
+                .EditorConfig = $"
+[*]
+{fileHeaderTemplate}
+"
+            }.RunAsync()
+        End Function
+
+        ''' <summary>
         ''' Verifies that the analyzer will report a diagnostic when the file is completely missing a header.
         ''' </summary>
         ''' <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>

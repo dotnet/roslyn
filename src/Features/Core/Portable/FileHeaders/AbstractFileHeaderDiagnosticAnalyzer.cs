@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
 
             var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree);
-            if (!options.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, out var fileHeaderTemplate))
+            if (!options.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, out var fileHeaderTemplate)
+                || string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 return;
             }

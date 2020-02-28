@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-            if (!options.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, out var fileHeaderTemplate))
+            if (!options.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, out var fileHeaderTemplate)
+                || string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 // Avoid making changes if we fail to read the expected header
                 return root;

@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -38,6 +37,11 @@ namespace Microsoft.CodeAnalysis.Options
         private static readonly Func<string, Optional<string>> s_parseString = ParseString;
         private static Optional<string> ParseString(string str)
         {
+            if (str.Equals("unset", StringComparison.Ordinal))
+            {
+                return default;
+            }
+
             str ??= "";
             return str.Replace("\\r", "\r").Replace("\\n", "\n");
         }

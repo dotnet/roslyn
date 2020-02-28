@@ -23,6 +23,32 @@ file_header_template = \nCopyright (c) SomeCorp. All rights reserved.\n\nLicense
 ";
 
         /// <summary>
+        /// Verifies that the analyzer will not report a diagnostic when the file header is not configured.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        [Theory]
+        [InlineData("")]
+        [InlineData("file_header_template =")]
+        [InlineData("file_header_template = unset")]
+        public async Task TestFileHeaderNotConfiguredAsync(string fileHeaderTemplate)
+        {
+            var testCode = @"namespace N
+{
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                EditorConfig = $@"
+[*]
+{fileHeaderTemplate}
+",
+            }.RunAsync();
+        }
+
+        /// <summary>
         /// Verifies that the analyzer will report a diagnostic when the file is completely missing a header.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
