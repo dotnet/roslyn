@@ -4,13 +4,13 @@
 
 #nullable enable
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have
     /// in common.
     /// </summary>
-    internal partial interface ISyntaxKindsService
+    internal interface ISyntaxKinds
     {
         TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct;
 

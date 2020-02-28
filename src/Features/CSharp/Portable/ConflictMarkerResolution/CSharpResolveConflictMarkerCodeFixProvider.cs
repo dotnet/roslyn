@@ -7,7 +7,6 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ConflictMarkerResolution;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 {
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 
         [ImportingConstructor]
         public CSharpResolveConflictMarkerCodeFixProvider()
-            : base(CSharpSyntaxKindsService.Instance, CS8300)
+            : base(CSharpSyntaxKinds.Instance, CS8300)
         {
         }
     }

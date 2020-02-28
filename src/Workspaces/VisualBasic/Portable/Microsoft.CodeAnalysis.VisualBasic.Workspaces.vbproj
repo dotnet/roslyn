@@ -41,7 +41,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="VBWorkspaceResources.resx" GenerateSource="true" NAmespace="Microsoft.CodeAnalysis.VisualBasic"/>
+    <EmbeddedResource Update="VBWorkspaceResources.resx" GenerateSource="true" NAmespace="Microsoft.CodeAnalysis.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Workspace\LanguageServices\" />

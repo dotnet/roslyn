@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
 
-        public override ISyntaxKindsService SyntaxKinds { get; } = CSharpSyntaxKindsService.Instance;
+        public override ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
 
         protected override IDocumentationCommentService DocumentationCommentService
             => CSharpDocumentationCommentService.Instance;
