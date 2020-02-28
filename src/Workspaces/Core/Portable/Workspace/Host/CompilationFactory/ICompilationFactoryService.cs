@@ -13,5 +13,8 @@ namespace Microsoft.CodeAnalysis.Host
         Compilation GetCompilationFromCompilationReference(MetadataReference reference);
         bool IsCompilationReference(MetadataReference reference);
         CompilationOptions GetDefaultCompilationOptions();
+
+        // PROTOTYPE: an easy way to get a generator driver into the IDE layer
+        GeneratorDriver CreateGeneratorDriver(Compilation compilation, ParseOptions parseOptions);
     }
 }

@@ -51,5 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return s_defaultOptions;
         }
+
+        //PROTOTYPE
+        GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(Compilation compilation, ParseOptions parseOptions)
+        {
+            return new CSharpGeneratorDriver(compilation, parseOptions);
+        }
     }
 }

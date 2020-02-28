@@ -63,5 +63,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetDefaultCompilationOptions() As CompilationOptions Implements ICompilationFactoryService.GetDefaultCompilationOptions
             Return s_defaultOptions
         End Function
+
+        'PROTOTYPE
+        Public Function CreateGeneratorDriver(compilation As Compilation, parseOptions As ParseOptions) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
+            Return Nothing
+        End Function
     End Class
 End Namespace
