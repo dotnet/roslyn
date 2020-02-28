@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </para>
     /// <para>
     /// In order to build this automaton, we start (in
-    /// <see cref="MakeDecisionDag(ImmutableArray{DecisionDagBuilder.StateForCase}, BoundLeafDecisionDagNode)"/>)
+    /// <see cref="MakeBoundDecisionDag(SyntaxNode, ImmutableArray{DecisionDagBuilder.StateForCase})"/>
     /// by computing a description of the initial state in a <see cref="DagState"/>, and then
     /// for each such state description we decide what the test or evaluation will be at
     /// that state, and compute the successor state descriptions.
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LabelSymbol whenTrueLabel)
         {
             var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
-            return MakeDecisionDag(syntax, ImmutableArray.Create(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, whenTrueLabel)));
+            return MakeBoundDecisionDag(syntax, ImmutableArray.Create(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, whenTrueLabel)));
         }
 
         private BoundDecisionDag CreateDecisionDagForSwitchStatement(
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return MakeDecisionDag(syntax, builder.ToImmutableAndFree());
+            return MakeBoundDecisionDag(syntax, builder.ToImmutableAndFree());
         }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (BoundSwitchExpressionArm arm in switchArms)
                 builder.Add(MakeTestsForPattern(++i, arm.Syntax, rootIdentifier, arm.Pattern, arm.WhenClause, arm.Label));
 
-            return MakeDecisionDag(syntax, builder.ToImmutableAndFree());
+            return MakeBoundDecisionDag(syntax, builder.ToImmutableAndFree());
         }
 
         /// <summary>
@@ -542,18 +542,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ExtendedErrorTypeSymbol(this._compilation, name, arity: 0, errorInfo: null, unreported: false);
         }
 
-        private BoundDecisionDag MakeDecisionDag(SyntaxNode syntax, ImmutableArray<StateForCase> cases)
-        {
-            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
-            return MakeDecisionDag(cases, defaultDecision);
-        }
-
         /// <summary>
         /// Compute and translate the decision dag, given a description of its initial state and a default
         /// decision when no decision appears to match. This implementation is nonrecursive to avoid
         /// overflowing the compiler's evaluation stack when compiling a large switch statement.
         /// </summary>
-        private BoundDecisionDag MakeDecisionDag(ImmutableArray<StateForCase> casesForRootNode, BoundLeafDecisionDagNode defaultDecision)
+        private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ImmutableArray<StateForCase> cases)
+        {
+            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
+
+            // Build the state machine underlying the decision dag
+            DecisionDag decisionDag = MakeDecisionDag(cases);
+
+            // Note: It is useful for debugging the dag state table construction to view `decisionDag.Dump()` here.
+
+            // Compute the bound decision dag corresponding to each node of decisionDag, and store
+            // it in node.Dag.
+            ComputeBoundDecisionDagNodes(defaultDecision, decisionDag);
+
+            var rootDecisionDagNode = decisionDag.RootNode.Dag;
+            RoslynDebug.Assert(rootDecisionDagNode != null);
+            return new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+        }
+
+        /// <summary>
+        /// Make a <see cref="DecisionDag"/> (state machine) starting with the given set of cases in the root node,
+        /// and return the node for the root.
+        /// </summary>
+        private DecisionDag MakeDecisionDag(ImmutableArray<StateForCase> casesForRootNode)
         {
             // A work list of DagStates whose successors need to be computed
             var workList = ArrayBuilder<DagState>.GetInstance();
@@ -566,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // predecessor, we want to represent each such state as a reference-unique object
             // so that it is processed only once. This object identity uniqueness will be important later when we
             // start mutating the DagState nodes to compute successors and BoundDecisionDagNodes
-            // for each one.
+            // for each one. That is why we have to use an equivalence relation in the dictionary `uniqueState`.
             DagState uniqifyState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
             {
                 var state = new DagState(cases, remainingValues);
@@ -611,7 +627,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var initialState = uniqifyState(casesForRootNode, ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
+            // Simplify the initial state based on impossible or earlier matched cases
+            var rewrittenCases = ArrayBuilder<StateForCase>.GetInstance(casesForRootNode.Length);
+            foreach (var state in casesForRootNode)
+            {
+                if (state.IsImpossible)
+                    continue;
+                rewrittenCases.Add(state);
+                if (state.IsFullyMatched)
+                    break;
+            }
+
+            var initialState = uniqifyState(rewrittenCases.ToImmutableAndFree(), ImmutableDictionary<BoundDagTemp, IValueSet>.Empty);
 
             // Go through the worklist of DagState nodes for which we have not yet computed
             // successor states.
@@ -631,17 +658,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 StateForCase first = state.Cases[0];
 
-                if (first.RemainingTests is Tests.True)
+                Debug.Assert(!first.IsImpossible);
+                if (first.PatternIsSatisfied)
                 {
-                    // The first of the remaining cases has fully matched, as there are no more tests to do.
-                    // The language semantics of the switch statement and switch expression require that we
-                    // execute the first matching case.
-                    if (first.WhenClause == null || first.WhenClause.ConstantValue == ConstantValue.True)
+                    if (first.IsFullyMatched)
                     {
-                        // The when clause is satisfied also, so this is a leaf node
+                        // The first of the remaining cases has fully matched, as there are no more tests to do.
+                        // The language semantics of the switch statement and switch expression require that we
+                        // execute the first matching case.  There is no when clause to evaluate here,
+                        // so this is a leaf node and required no further processing.
                     }
                     else
                     {
+                        // There is a when clause to evaluate.
                         // In case the when clause fails, we prepare for the remaining cases.
                         var stateWhenFails = state.Cases.RemoveAt(0);
                         state.FalseBranch = uniqifyState(stateWhenFails, state.RemainingValues);
@@ -667,11 +696,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ref foundExplicitNullTest);
                             state.TrueBranch = uniqifyState(whenTrueDecisions, whenTrueValues);
                             state.FalseBranch = uniqifyState(whenFalseDecisions, whenFalseValues);
-                            if (foundExplicitNullTest && d is BoundDagNonNullTest t)
+                            if (foundExplicitNullTest && d is BoundDagNonNullTest { IsExplicitTest: false } t)
                             {
-                                // Turn an "implicit" non-null test into an explicit null test to preserve its explicitness
-                                state.SelectedTest = new BoundDagExplicitNullTest(t.Syntax, t.Input, t.HasErrors);
-                                (state.TrueBranch, state.FalseBranch) = (state.FalseBranch, state.TrueBranch);
+                                // Turn an "implicit" non-null test into an explicit one
+                                state.SelectedTest = new BoundDagNonNullTest(t.Syntax, isExplicitTest: true, t.Input, t.HasErrors);
                             }
                             break;
                         case var n:
@@ -680,16 +708,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var decisionDag = new DecisionDag(initialState);
-            // Note: It is useful for debugging the dag state table construction to view `decisionDag.Dump()` here.
             workList.Free();
+            return new DecisionDag(initialState);
+        }
 
-            // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
-            ImmutableArray<DagState> sortedStates = decisionDag.TopologicallySortedReachableStates();
+        /// <summary>
+        /// Compute the <see cref="BoundDecisionDag"/> corresponding to each <see cref="DagState"/> of the given <see cref="DecisionDag"/>
+        /// and store it in <see cref="DagState.Dag"/>.
+        /// </summary>
+        private void ComputeBoundDecisionDagNodes(BoundLeafDecisionDagNode defaultDecision, DecisionDag decisionDag)
+        {
             RoslynDebug.Assert(_defaultLabel != null);
-            var finalStates = PooledDictionary<LabelSymbol, BoundDecisionDagNode>.GetInstance();
-            finalStates.Add(_defaultLabel, defaultDecision);
 
+            // We "intern" the dag nodes, so that we only have a single object representing one
+            // semantic node. We do this because different states may end up mapping to the same
+            // set of successor states. In this case we merge them when producing the bound state machine.
+            var uniqueDagNode = PooledDictionary<BoundDecisionDagNode, BoundDecisionDagNode>.GetInstance();
+
+            BoundDecisionDagNode uniqifyDagNode(BoundDecisionDagNode node)
+            {
+                if (uniqueDagNode.TryGetValue(node, out var existingNode))
+                {
+                    return existingNode;
+                }
+                else
+                {
+                    uniqueDagNode.Add(node, node);
+                    return node;
+                }
+            }
+
+            _ = uniqifyDagNode(defaultDecision);
+
+            // Process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
+            ImmutableArray<DagState> sortedStates = decisionDag.TopologicallySortedReachableStates();
             for (int i = sortedStates.Length - 1; i >= 0; i--)
             {
                 var state = sortedStates[i];
@@ -701,36 +753,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 StateForCase first = state.Cases[0];
                 RoslynDebug.Assert(!(first.RemainingTests is Tests.False));
-                if (first.RemainingTests is Tests.True)
+                if (first.PatternIsSatisfied)
                 {
-                    // The first case/pattern has fully matched
-                    if (first.WhenClause is null || first.WhenClause.ConstantValue == ConstantValue.True)
+                    if (first.IsFullyMatched)
                     {
+                        // there is no when clause we need to evaluate
                         state.Dag = finalState(first.Syntax, first.CaseLabel, first.Bindings);
                     }
                     else
                     {
-                        // in case the when clause fails, we prepare for the remaining cases.
                         RoslynDebug.Assert(state.TrueBranch == null);
-                        // The final state here does not need bindings, as they will be performed before evaluating the when
+                        RoslynDebug.Assert(state.FalseBranch is { });
+
+                        // The final state here does not need bindings, as they will be performed before evaluating the when clause (see below)
                         BoundDecisionDagNode whenTrue = finalState(first.Syntax, first.CaseLabel, default);
-                        BoundDecisionDagNode? whenFalse = state.FalseBranch!.Dag;
+                        BoundDecisionDagNode? whenFalse = state.FalseBranch.Dag;
                         RoslynDebug.Assert(whenFalse is { });
-                        state.Dag = new BoundWhenDecisionDagNode(first.Syntax, first.Bindings, first.WhenClause, whenTrue, whenFalse);
+                        state.Dag = uniqifyDagNode(new BoundWhenDecisionDagNode(first.Syntax, first.Bindings, first.WhenClause, whenTrue, whenFalse));
                     }
 
                     BoundDecisionDagNode finalState(SyntaxNode syntax, LabelSymbol label, ImmutableArray<BoundPatternBinding> bindings)
                     {
-                        if (!finalStates.TryGetValue(label, out BoundDecisionDagNode? final))
-                        {
-                            final = new BoundLeafDecisionDagNode(syntax, label);
-                            if (!bindings.IsDefaultOrEmpty)
-                                final = new BoundWhenDecisionDagNode(syntax, bindings, null, final, null);
-
-                            finalStates.Add(label, final);
-                        }
-
-                        return final;
+                        BoundDecisionDagNode final = uniqifyDagNode(new BoundLeafDecisionDagNode(syntax, label));
+                        return bindings.IsDefaultOrEmpty ? final : uniqifyDagNode(new BoundWhenDecisionDagNode(syntax, bindings, null, final, null));
                     }
                 }
                 else
@@ -742,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 BoundDecisionDagNode? next = state.TrueBranch!.Dag;
                                 RoslynDebug.Assert(next is { });
                                 RoslynDebug.Assert(state.FalseBranch == null);
-                                state.Dag = new BoundEvaluationDecisionDagNode(e.Syntax, e, next);
+                                state.Dag = uniqifyDagNode(new BoundEvaluationDecisionDagNode(e.Syntax, e, next));
                             }
                             break;
                         case BoundDagTest d:
@@ -751,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 BoundDecisionDagNode? whenFalse = state.FalseBranch!.Dag;
                                 RoslynDebug.Assert(whenTrue is { });
                                 RoslynDebug.Assert(whenFalse is { });
-                                state.Dag = new BoundTestDecisionDagNode(d.Syntax, d, whenTrue, whenFalse);
+                                state.Dag = uniqifyDagNode(new BoundTestDecisionDagNode(d.Syntax, d, whenTrue, whenFalse));
                             }
                             break;
                         case var n:
@@ -760,11 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            finalStates.Free();
-
-            var rootDecisionDagNode = decisionDag.RootNode.Dag;
-            RoslynDebug.Assert(rootDecisionDagNode != null);
-            return new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+            uniqueDagNode.Free();
         }
 
         private void SplitCase(
@@ -805,8 +846,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var whenFalseBuilder = ArrayBuilder<StateForCase>.GetInstance(statesForCases.Length);
             bool whenTruePossible, whenFalsePossible;
             (whenTrueValues, whenFalseValues, whenTruePossible, whenFalsePossible) = SplitValues(values, test);
-            // If either branch were impossible, the test would have been replaced earlier.
-            RoslynDebug.Assert(whenTruePossible && whenFalsePossible || test.HasErrors);
             foreach (var state in statesForCases)
             {
                 SplitCase(
@@ -814,9 +853,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenTrueValues.TryGetValue(test.Input, out var v1) ? v1 : null,
                     whenFalseValues.TryGetValue(test.Input, out var v2) ? v2 : null,
                     out var whenTrueState, out var whenFalseState, ref foundExplicitNullTest);
-                if (!(whenTrueState.RemainingTests is Tests.False))
+                if (whenTruePossible && !whenTrueState.IsImpossible && !(whenTrueBuilder.Any() && whenTrueBuilder.Last().IsFullyMatched))
                     whenTrueBuilder.Add(whenTrueState);
-                if (!(whenFalseState.RemainingTests is Tests.False))
+                if (whenFalsePossible && !whenFalseState.IsImpossible && !(whenFalseBuilder.Any() && whenFalseBuilder.Last().IsFullyMatched))
                     whenFalseBuilder.Add(whenFalseState);
             }
 
@@ -929,16 +968,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             falseTestImpliesTrueOther = false;
 
             // if the tests are for unrelated things, there is no implication from one to the other
-            if (test.Input != other.Input)
+            if (!test.Input.Equals(other.Input))
                 return;
-
-            // a test is consistent with itself
-            if (test == other)
-            {
-                trueTestImpliesTrueOther = true;
-                falseTestPermitsTrueOther = false;
-                return;
-            }
 
             switch (test)
             {
@@ -957,6 +988,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             falseTestImpliesTrueOther = true;
                             break;
                         case BoundDagNonNullTest n2:
+                            if (n2.IsExplicitTest)
+                                foundExplicitNullTest = true;
                             // v != null --> v != null
                             trueTestImpliesTrueOther = true;
                             // !(v != null) --> !(v != null)
@@ -972,6 +1005,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (other)
                     {
                         case BoundDagNonNullTest n2:
+                            if (n2.IsExplicitTest)
+                                foundExplicitNullTest = true;
                             // v is T --> v != null
                             trueTestImpliesTrueOther = true;
                             break;
@@ -1017,6 +1052,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (other)
                     {
                         case BoundDagNonNullTest n2:
+                            if (n2.IsExplicitTest)
+                                foundExplicitNullTest = true;
                             // v == K --> v != null
                             trueTestImpliesTrueOther = true;
                             break;
@@ -1028,17 +1065,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                             trueTestPermitsTrueOther = false;
                             break;
                         case BoundDagRelationalTest r2:
-                            trueTestPermitsTrueOther = whenTrueValues?.Any(r2.Relation, r2.Value) ?? true;
-                            trueTestImpliesTrueOther = trueTestPermitsTrueOther && (whenTrueValues?.All(r2.Relation, r2.Value) ?? false);
-                            falseTestPermitsTrueOther = whenFalseValues?.Any(r2.Relation, r2.Value) ?? true;
-                            falseTestImpliesTrueOther = falseTestPermitsTrueOther && (whenFalseValues?.All(r2.Relation, r2.Value) ?? false);
+                            handleRelationWithValue(r2.Relation, r2.Value,
+                                out trueTestPermitsTrueOther, out falseTestPermitsTrueOther, out trueTestImpliesTrueOther, out falseTestImpliesTrueOther);
                             break;
                         case BoundDagValueTest v2:
-                            trueTestPermitsTrueOther = whenTrueValues?.Any(BinaryOperatorKind.Equal, v2.Value) ?? true;
-                            trueTestImpliesTrueOther = trueTestPermitsTrueOther && (whenTrueValues?.All(BinaryOperatorKind.Equal, v2.Value) ?? false);
-                            falseTestPermitsTrueOther = whenFalseValues?.Any(BinaryOperatorKind.Equal, v2.Value) ?? true;
-                            falseTestImpliesTrueOther = falseTestPermitsTrueOther && (whenFalseValues?.All(BinaryOperatorKind.Equal, v2.Value) ?? false);
+                            handleRelationWithValue(BinaryOperatorKind.Equal, v2.Value,
+                                out trueTestPermitsTrueOther, out falseTestPermitsTrueOther, out trueTestImpliesTrueOther, out falseTestImpliesTrueOther);
                             break;
+
+                            void handleRelationWithValue(
+                                BinaryOperatorKind relation,
+                                ConstantValue value,
+                                out bool trueTestPermitsTrueOther,
+                                out bool falseTestPermitsTrueOther,
+                                out bool trueTestImpliesTrueOther,
+                                out bool falseTestImpliesTrueOther)
+                            {
+                                // We need to check test.Equals(other) to handle "bad" constant values
+                                trueTestPermitsTrueOther = whenTrueValues?.Any(relation, value) ?? true;
+                                trueTestImpliesTrueOther = test.Equals(other) || trueTestPermitsTrueOther && (whenTrueValues?.All(relation, value) ?? false);
+                                falseTestPermitsTrueOther = !test.Equals(other) && (whenFalseValues?.Any(relation, value) ?? true);
+                                falseTestImpliesTrueOther = falseTestPermitsTrueOther && (whenFalseValues?.All(relation, value) ?? false);
+                            }
                     }
                     break;
                 case BoundDagExplicitNullTest v1:
@@ -1046,6 +1094,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (other)
                     {
                         case BoundDagNonNullTest n2:
+                            if (n2.IsExplicitTest)
+                                foundExplicitNullTest = true;
                             // v == null --> !(v != null)
                             trueTestPermitsTrueOther = false;
                             // !(v == null) --> v != null
@@ -1177,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (state.TrueBranch != null && state.FalseBranch != null)
                 {
-                    return ImmutableArray.Create(state.TrueBranch, state.FalseBranch);
+                    return ImmutableArray.Create(state.FalseBranch, state.TrueBranch);
                 }
                 else if (state.TrueBranch != null)
                 {
@@ -1233,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (DagState state in allStates)
                 {
                     bool isFail = state.Cases.IsEmpty;
-                    bool starred = isFail || state.Cases.First().RemainingTests is Tests.True;
+                    bool starred = isFail || state.Cases.First().PatternIsSatisfied;
                     result.Append($"{(starred ? "*" : "")}State " + stateIdentifierMap[state] + (isFail ? " FAIL" : ""));
                     var remainingValues = state.RemainingValues.Select(kvp => $"{tempName(kvp.Key)}:{kvp.Value}");
                     result.AppendLine($"{(remainingValues.Any() ? " REMAINING " + string.Join(" ", remainingValues) : "")}");
@@ -1267,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var instance = PooledStringBuilder.GetInstance();
                     StringBuilder builder = instance.Builder;
-                    builder.Append($"{cd.Index}. [{cd.Syntax}] {(cd.RemainingTests is Tests.True ? "MATCH" : cd.RemainingTests.Dump(dumpDagTest))}");
+                    builder.Append($"{cd.Index}. [{cd.Syntax}] {(cd.PatternIsSatisfied ? "MATCH" : cd.RemainingTests.Dump(dumpDagTest))}");
                     var bindings = cd.Bindings.Select(bpb => $"{(bpb.VariableAccess is BoundLocal l ? l.LocalSymbol.Name : "<var>")}={tempName(bpb.TempContainingValue)}");
                     if (bindings.Any())
                     {
@@ -1390,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 RoslynDebug.Assert(x is { });
                 RoslynDebug.Assert(y is { });
-                return x.Cases.SequenceEqual(y.Cases, (a, b) => a.Equals(b));
+                return x == y || x.Cases.SequenceEqual(y.Cases, (a, b) => a.Equals(b));
             }
 
             public int GetHashCode(DagState x)
@@ -1432,6 +1482,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.CaseLabel = CaseLabel;
             }
 
+            /// <summary>
+            /// Is the pattern in a state in which it is fully matched and there is no when clause?
+            /// </summary>
+            public bool IsFullyMatched => RemainingTests is Tests.True && (WhenClause is null || WhenClause.ConstantValue == ConstantValue.True);
+
+            /// <summary>
+            /// Is the pattern fully matched and ready for the when clause to be evaluated (if any)?
+            /// </summary>
+            public bool PatternIsSatisfied => RemainingTests is Tests.True;
+
+            /// <summary>
+            /// Is the clause impossible?  We do not consider a when clause with a constant false value to cause the branch to be impossible.
+            /// Note that we do not include the possibility that a when clause is the constant false.  That is treated like any other expression.
+            /// </summary>
+            public bool IsImpossible => RemainingTests is Tests.False;
+
             public override bool Equals(object? obj)
             {
                 throw ExceptionUtilities.Unreachable;
@@ -1441,7 +1507,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We do not include Syntax, Bindings, WhereClause, or CaseLabel
                 // because once the Index is the same, those must be the same too.
-                return other != null &&
+                return this == other ||
+                    other != null &&
                     this.Index == other.Index &&
                     this.RemainingTests.Equals(other.RemainingTests);
             }
@@ -1550,42 +1617,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundDagTest ComputeSelectedTest() => this.Test;
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => e.Equals(Test) ? Tests.True.Instance : (Tests)this;
                 public override string Dump(Func<BoundDagTest, string> dump) => dump(this.Test);
-                public override bool Equals(object? obj)
-                {
-                    if (!(obj is One other))
-                        return false;
-
-                    return sameTest(this.Test, other.Test);
-
-                    static bool sameTest(BoundDagTest x, BoundDagTest y)
-                    {
-                        if (x.Kind != y.Kind || x.Input != y.Input)
-                        {
-                            return false;
-                        }
-
-                        switch (x.Kind)
-                        {
-                            case BoundKind.DagTypeTest:
-                                return ((BoundDagTypeTest)x).Type.Equals(((BoundDagTypeTest)y).Type, TypeCompareKind.AllIgnoreOptions);
-
-                            case BoundKind.DagValueTest:
-                                return ((BoundDagValueTest)x).Value == ((BoundDagValueTest)y).Value;
-
-                            case BoundKind.DagExplicitNullTest:
-                            case BoundKind.DagNonNullTest:
-                                return true;
-
-                            default:
-                                // For an evaluation, we defer to its .Equals
-                                return x.Equals(y);
-                        }
-                    }
-                }
-                public override int GetHashCode()
-                {
-                    return (int)this.Test.Kind;
-                }
+                public override bool Equals(object? obj) => this == obj || obj is One other && this.Test.Equals(other.Test);
+                public override int GetHashCode() => this.Test.GetHashCode();
             }
 
             public sealed class Not : Tests
@@ -1627,7 +1660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenTrue = Not.Create(whenTestTrue);
                     whenFalse = Not.Create(whenTestFalse);
                 }
-                public override bool Equals(object? obj) => obj is Not n && Negated.Equals(n.Negated);
+                public override bool Equals(object? obj) => this == obj || obj is Not n && Negated.Equals(n.Negated);
                 public override int GetHashCode() => Hash.Combine(Negated.GetHashCode(), typeof(Not).GetHashCode());
             }
 
@@ -1670,7 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Update(builder);
                 }
                 public override bool Equals(object? obj) =>
-                    obj is SequenceTests other && this.GetType() == other.GetType() && RemainingTests.SequenceEqual(other.RemainingTests);
+                    this == obj || obj is SequenceTests other && this.GetType() == other.GetType() && RemainingTests.SequenceEqual(other.RemainingTests);
                 public override int GetHashCode()
                 {
                     int length = this.RemainingTests.Length;

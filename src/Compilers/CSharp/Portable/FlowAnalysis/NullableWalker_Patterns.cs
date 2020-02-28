@@ -449,29 +449,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var variableAccess = binding.VariableAccess;
                             var tempSource = binding.TempContainingValue;
                             var foundTemp = tempMap.TryGetValue(tempSource, out var tempSlotAndType);
-                            Debug.Assert(foundTemp);
-                            var (tempSlot, tempType) = tempSlotAndType;
-                            var tempState = this.State[tempSlot];
-                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
+                            if (foundTemp) // in erroneous programs, we might not have seen a temp defined.
                             {
-                                var value = TypeWithState.Create(tempType, tempState);
-                                var type = boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType ? value.ToAnnotatedTypeWithAnnotations() : value.ToTypeWithAnnotations();
-                                if (_variableTypes.TryGetValue(local, out var existingType))
+                                var (tempSlot, tempType) = tempSlotAndType;
+                                var tempState = this.State[tempSlot];
+                                if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
                                 {
-                                    // merge inferred nullable annotation from different branches of the decision tree
-                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(type.NullableAnnotation));
+                                    var value = TypeWithState.Create(tempType, tempState);
+                                    var type = boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType ? value.ToAnnotatedTypeWithAnnotations() : value.ToTypeWithAnnotations();
+                                    if (_variableTypes.TryGetValue(local, out var existingType))
+                                    {
+                                        // merge inferred nullable annotation from different branches of the decision tree
+                                        _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(type.NullableAnnotation));
+                                    }
+                                    else
+                                    {
+                                        _variableTypes[local] = type;
+                                    }
+
+                                    int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
+                                    this.State[localSlot] = tempState;
                                 }
                                 else
                                 {
-                                    _variableTypes[local] = type;
+                                    // https://github.com/dotnet/roslyn/issues/34144 perform inference for top-level var-declared fields in scripts
                                 }
-
-                                int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
-                                this.State[localSlot] = tempState;
-                            }
-                            else
-                            {
-                                // https://github.com/dotnet/roslyn/issues/34144 perform inference for top-level var-declared fields in scripts
                             }
                         }
 

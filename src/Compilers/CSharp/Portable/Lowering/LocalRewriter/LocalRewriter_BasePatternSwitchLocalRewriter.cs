@@ -439,11 +439,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We only generate a switch dispatch if we have two or more value tests in a row
                 if (!(node is BoundTestDecisionDagNode firstTestNode &&
                      firstTestNode.Test is BoundDagValueTest firstTest &&
-                     firstTestNode.WhenFalse is BoundTestDecisionDagNode whenFalse &&
-                     whenFalse.Test is BoundDagValueTest secondTest &&
-                     !loweredNodes.Contains(whenFalse) &&
-                     !this._dagNodeLabels.ContainsKey(whenFalse) &&
-                     firstTest.Input == secondTest.Input &&
+                     firstTestNode.WhenFalse is BoundTestDecisionDagNode secondTestNode &&
+                     secondTestNode.Test is BoundDagValueTest secondTest &&
+                     !loweredNodes.Contains(secondTestNode) &&
+                     !this._dagNodeLabels.ContainsKey(secondTestNode) &&
+                     firstTest.Input.Equals(secondTest.Input) &&
                      firstTest.Input.Type.IsValidV6SwitchGoverningType()))
                 {
                     // https://github.com/dotnet/roslyn/issues/12509 Could optimize float, double, decimal value switches. For now use if-then-else
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundTestDecisionDagNode previous = firstTestNode;
                 while (previous.WhenFalse is BoundTestDecisionDagNode p &&
                     p.Test is BoundDagValueTest vd &&
-                    vd.Input == firstTest.Input &&
+                    vd.Input.Equals(firstTest.Input) &&
                     !this._dagNodeLabels.ContainsKey(p) &&
                     !loweredNodes.Contains(p))
                 {
