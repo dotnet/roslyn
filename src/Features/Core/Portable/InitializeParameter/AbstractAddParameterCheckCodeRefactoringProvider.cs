@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -530,11 +531,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static SyntaxNode CreateArgumentException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
-            // Note "message" is not localized.  It is the name of the first parameter of 
-            // "ArgumentException"
             return generator.ObjectCreationExpression(
                 GetTypeNode(compilation, generator, typeof(ArgumentException)),
-                generator.LiteralExpression("message"),
+                generator.InterpolatedStringExpression
+                (
+                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken),
+                    new List<SyntaxNode>
+                    {
+                        generator.InterpolatedStringText(generator.InterpolatedStringTextToken($"'{{{generator.NameOfExpression(generator.IdentifierName(parameter.Name))}}}' cannot be null or empty"))
+                    },
+                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken)
+                ),
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
     }
