@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             get;
         }
 
-        public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
-            CodeAction fixAction;
+            CodeAction? fixAction;
             switch (fixAllContext.Scope)
             {
                 case FixAllScope.Document:
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <para>-or-</para>
         /// <para><see langword="null"/>, if no changes were made to the document.</para>
         /// </returns>
-        protected abstract Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
+        protected abstract Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
 
         private async Task<Document> GetDocumentFixesAsync(FixAllContext fixAllContext)
         {
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTrackerOpt: null).ConfigureAwait(false);
 
             var solution = fixAllContext.Solution;
-            var newDocuments = new List<Task<SyntaxNode>>(documents.Length);
+            var newDocuments = new List<Task<SyntaxNode?>>(documents.Length);
             foreach (var document in documents)
             {
                 if (!documentDiagnosticsToFix.TryGetValue(document, out var diagnostics))

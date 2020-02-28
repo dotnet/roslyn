@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +16,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
@@ -49,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
@@ -142,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 trivia = trivia.RemoveAt(removalList[i]);
             }
 
-            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language);
+            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language)!;
             var newLineTrivia = EndOfLine(newLineText);
 
             var newHeaderTrivia = CreateNewHeader(leadingSpaces + FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText);
@@ -156,7 +160,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private SyntaxNode AddHeader(Document document, SyntaxNode root, string expectedFileHeader)
         {
-            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language);
+            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language)!;
             var newLineTrivia = EndOfLine(newLineText);
             var newTrivia = CreateNewHeader(FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText).Add(newLineTrivia).Add(newLineTrivia);
 
@@ -223,14 +227,14 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             protected override string CodeActionTitle => FeaturesResources.Add_file_banner;
 
-            protected override Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+            protected override Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
                 if (diagnostics.IsEmpty)
                 {
-                    return null;
+                    return SpecializedTasks.Null<SyntaxNode>();
                 }
 
-                return _codeFixProvider.GetTransformedSyntaxRootAsync(document, fixAllContext.CancellationToken);
+                return _codeFixProvider.GetTransformedSyntaxRootAsync(document, fixAllContext.CancellationToken).AsNullable();
             }
         }
     }
