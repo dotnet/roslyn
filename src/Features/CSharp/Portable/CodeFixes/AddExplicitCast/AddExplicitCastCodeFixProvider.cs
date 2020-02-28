@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 using System;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 .GetAncestorsOrThis<ExpressionSyntax>().FirstOrDefault();
             if (targetNode != null)
             {
-                var hasSolution = GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes);
+                var hasSolution = TryGetTargetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes);
                 if (hasSolution && potentialConversionTypes.Length == 1)
                 {
                     context.RegisterCodeFix(new MyCodeAction(
@@ -89,17 +91,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                     context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
                         CSharpFeaturesResources.Add_explicit_cast,
-                        actions.ToImmutableAndFree(), false),
+                        actions.ToImmutableAndFree(), isInlinable: false),
                         context.Diagnostics);
                 }
             }
         }
 
-        private static async Task<Document> ApplyFixAsync(Document document, SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
+        private static Task<Document> ApplyFixAsync(Document document, SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
         {
             var castExpression = targetNode.Cast(conversionType);
             var newRoot = currentRoot.ReplaceNode(targetNode, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
-            return document.WithSyntaxRoot(newRoot);
+            return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 
         /// <summary>
@@ -108,17 +110,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// Base b; Derived d = [||]b;       
         /// object b is the current node with type *Base*, and the conversion type which object b is going to be cast by is *Derived*
         /// </summary>
-        /// <param name="semanticModel"></param>
         /// <param name="root">The root of the tree of nodes.</param>
         /// <param name="targetNode">The node to be cast.</param>
-        /// <param name="cancellationToken"></param>
         /// <param name="targetNodeType">Output the type of <paramref name="targetNode"/>.</param>
         /// <param name="potentialConversionTypes">>Output the potential conversions types that <paramref name="targetNode"/> can be cast to</param>
         /// <returns>
-        /// True, if the target node has at least one conversion type, and they are assigned to <paramref name="potentialConversionTypes"/>
+        /// True, if the target node has at least one potential conversion type, and they are assigned to <paramref name="potentialConversionTypes"/>
         /// False, if the target node has no conversion type.
         /// </returns>
-        private static bool GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken,
+        private static bool TryGetTargetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken,
             out ITypeSymbol? targetNodeType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
         {
             targetNodeType = null;
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 return false;
             }
 
-            var mutablePotentialConversionTypes = new List<ITypeSymbol>();
+            var mutablePotentialConversionTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
             if (targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
             {
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
@@ -187,7 +187,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 // Sort the potential conversion types by inheritance distance
                 var comparer = new InheritanceDistanceComparer(semanticModel, targetNodeType);
                 mutablePotentialConversionTypes.Sort(comparer);
-                mutablePotentialConversionTypes = mutablePotentialConversionTypes.Distinct().ToList(); // clear up duplicate types
             }
 
             // For cases like object creation expression. for example:
@@ -205,18 +204,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 return commonConversion.Exists;
             });
 
-            potentialConversionTypes = mutablePotentialConversionTypes.Where(filter).ToImmutableArray();
+            // filter types and clear up duplicate types
+            potentialConversionTypes = mutablePotentialConversionTypes.Where(filter).Distinct().ToImmutableArray(); 
             return !potentialConversionTypes.IsEmpty;
         }
 
         /// <summary>
         /// Try to test if the invocation node is available to invoke the method.
         /// </summary>
-        /// <param name="semanticModel"></param>
-        /// <param name="arguments">The arguments of invocation</param>
-        /// <param name="parameters">The parameters of </param>
+        /// <param name="arguments">The arguments of invocation expression</param>
+        /// <param name="parameters">The parameters of function </param>
         /// <param name="targetArgument">The target argument that contains target node</param>
-        /// <param name="cancellationToken"></param>
         /// <param name="targetParamIndex">Output the corresponding parameter index of the target arugment</param>
         /// <returns>
         /// True, if arguments and parameters match perfectly.
@@ -317,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 (semanticModel, targetNode) => true,
                 (semanticModel, currentRoot, targetNode) =>
                 {
-                    if (GetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes) &&
+                    if (TryGetTargetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes) &&
                     potentialConversionTypes.Length == 1 && nodeType != null && !nodeType.Equals(potentialConversionTypes[0]) &&
                         targetNode is ExpressionSyntax expression)
                     {
