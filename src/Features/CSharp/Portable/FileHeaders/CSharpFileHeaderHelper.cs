@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using Microsoft.CodeAnalysis.FileHeaders;
 using Roslyn.Utilities;
@@ -13,17 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
     /// </summary>
     internal sealed class CSharpFileHeaderHelper : AbstractFileHeaderHelper
     {
-        public static CSharpFileHeaderHelper Instance { get; } = new CSharpFileHeaderHelper();
+        public static readonly CSharpFileHeaderHelper Instance = new CSharpFileHeaderHelper();
 
         private CSharpFileHeaderHelper()
         {
         }
 
-        internal override int SingleLineCommentTriviaKind => (int)SyntaxKind.SingleLineCommentTrivia;
-        internal override int MultiLineCommentTriviaKind => (int)SyntaxKind.MultiLineCommentTrivia;
-        internal override int WhitespaceTriviaKind => (int)SyntaxKind.WhitespaceTrivia;
-        internal override int EndOfLineTriviaKind => (int)SyntaxKind.EndOfLineTrivia;
-        internal override string CommentPrefix => "//";
+        public override int SingleLineCommentTriviaKind => (int)SyntaxKind.SingleLineCommentTrivia;
+        public override int MultiLineCommentTriviaKind => (int)SyntaxKind.MultiLineCommentTrivia;
+        public override int WhitespaceTriviaKind => (int)SyntaxKind.WhitespaceTrivia;
+        public override int EndOfLineTriviaKind => (int)SyntaxKind.EndOfLineTrivia;
+        public override string CommentPrefix => "//";
 
         protected override string GetTextContextOfComment(SyntaxTrivia commentTrivia)
         {

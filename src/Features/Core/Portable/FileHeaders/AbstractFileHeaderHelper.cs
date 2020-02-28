@@ -7,21 +7,20 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Formatting;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderHelper
     {
-        internal abstract int SingleLineCommentTriviaKind { get; }
-        internal abstract int MultiLineCommentTriviaKind { get; }
-        internal abstract int WhitespaceTriviaKind { get; }
-        internal abstract int EndOfLineTriviaKind { get; }
-        internal abstract string CommentPrefix { get; }
+        public abstract int SingleLineCommentTriviaKind { get; }
+        public abstract int MultiLineCommentTriviaKind { get; }
+        public abstract int WhitespaceTriviaKind { get; }
+        public abstract int EndOfLineTriviaKind { get; }
+        public abstract string CommentPrefix { get; }
 
         protected abstract string GetTextContextOfComment(SyntaxTrivia commentTrivia);
 
-        internal FileHeader ParseFileHeader(SyntaxNode root)
+        public FileHeader ParseFileHeader(SyntaxNode root)
         {
             var firstToken = root.GetFirstToken(includeZeroWidth: true);
             var firstNonWhitespaceTrivia = IndexOfFirstNonWhitespaceTrivia(firstToken.LeadingTrivia, true);
@@ -117,7 +116,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// as whitespace; otherwise, <see langword="false"/>.</param>
         /// <typeparam name="T">The type of the trivia list.</typeparam>
         /// <returns>The index where the non-whitespace starts, or -1 if there is no non-whitespace trivia.</returns>
-        internal int IndexOfFirstNonWhitespaceTrivia<T>(T triviaList, bool endOfLineIsWhitespace = true)
+        private int IndexOfFirstNonWhitespaceTrivia<T>(T triviaList, bool endOfLineIsWhitespace = true)
             where T : IReadOnlyList<SyntaxTrivia>
         {
             for (var index = 0; index < triviaList.Count; index++)

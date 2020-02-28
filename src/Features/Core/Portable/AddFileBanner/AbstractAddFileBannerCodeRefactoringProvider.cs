@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return;
             }
 
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var banner = syntaxFacts.GetFileBanner(root);
 
             if (banner.Length > 0)
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
             Document document, SyntaxNode root, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // If we have a tree already for this document, then just check to see
             // if it has a banner.

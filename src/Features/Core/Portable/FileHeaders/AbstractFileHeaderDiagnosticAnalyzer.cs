@@ -26,13 +26,12 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterSyntaxTreeAction(HandleSyntaxTree);
-        }
+            => context.RegisterSyntaxTreeAction(HandleSyntaxTree);
 
         public void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var root = context.Tree.GetRoot(context.CancellationToken);
+            var tree = context.Tree;
+            var root = tree.GetRoot(context.CancellationToken);
 
             // don't process empty files
             if (root.FullSpan.IsEmpty)
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 return;
             }
 
-            var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree);
+            var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
             if (!options.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, out var fileHeaderTemplate)
                 || string.IsNullOrEmpty(fileHeaderTemplate))
             {
@@ -50,14 +49,14 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var fileHeader = FileHeaderHelper.ParseFileHeader(root);
             if (fileHeader.IsMissing)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, fileHeader.GetLocation(context.Tree)));
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, fileHeader.GetLocation(tree)));
                 return;
             }
 
-            var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(context.Tree.FilePath));
+            var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(tree.FilePath));
             if (!CompareCopyrightText(expectedFileHeader, fileHeader.CopyrightText))
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, fileHeader.GetLocation(context.Tree)));
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, fileHeader.GetLocation(tree)));
                 return;
             }
         }

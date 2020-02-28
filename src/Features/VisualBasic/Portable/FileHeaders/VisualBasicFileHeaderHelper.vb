@@ -8,36 +8,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
     Friend NotInheritable Class VisualBasicFileHeaderHelper
         Inherits AbstractFileHeaderHelper
 
-        Public Shared ReadOnly Property Instance As VisualBasicFileHeaderHelper = New VisualBasicFileHeaderHelper()
+        Public Shared ReadOnly Instance As VisualBasicFileHeaderHelper = New VisualBasicFileHeaderHelper()
 
         Private Sub New()
         End Sub
 
-        Friend Overrides ReadOnly Property SingleLineCommentTriviaKind As Integer
+        Public Overrides ReadOnly Property SingleLineCommentTriviaKind As Integer
             Get
                 Return SyntaxKind.CommentTrivia
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property MultiLineCommentTriviaKind As Integer
+        Public Overrides ReadOnly Property MultiLineCommentTriviaKind As Integer
             Get
                 Return SyntaxKind.None
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property WhitespaceTriviaKind As Integer
+        Public Overrides ReadOnly Property WhitespaceTriviaKind As Integer
             Get
                 Return SyntaxKind.WhitespaceTrivia
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property EndOfLineTriviaKind As Integer
+        Public Overrides ReadOnly Property EndOfLineTriviaKind As Integer
             Get
                 Return SyntaxKind.EndOfLineTrivia
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CommentPrefix As String
+        Public Overrides ReadOnly Property CommentPrefix As String
             Get
                 Return "'"
             End Get
