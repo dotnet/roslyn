@@ -12,27 +12,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
     Friend Class VisualBasicFileHeaderCodeFixProvider
         Inherits AbstractFileHeaderCodeFixProvider
 
-        Protected Overrides ReadOnly Property CommentTriviaKind As Integer
+        Protected Overrides ReadOnly Property FileHeaderHelper As AbstractFileHeaderHelper
             Get
-                Return SyntaxKind.CommentTrivia
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property WhitespaceTriviaKind As Integer
-            Get
-                Return SyntaxKind.WhitespaceTrivia
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property EndOfLineTriviaKind As Integer
-            Get
-                Return SyntaxKind.EndOfLineTrivia
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property CommentPrefix As String
-            Get
-                Return "'"
+                Return VisualBasicFileHeaderHelper.Instance
             End Get
         End Property
 
@@ -42,10 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
 
         Protected Overrides Function ParseLeadingTrivia(text As String) As SyntaxTriviaList
             Return SyntaxFactory.ParseLeadingTrivia(text)
-        End Function
-
-        Protected Overrides Function ParseFileHeader(root As SyntaxNode) As FileHeader
-            Return FileHeaderHelpers.ParseFileHeader(root)
         End Function
     End Class
 End Namespace

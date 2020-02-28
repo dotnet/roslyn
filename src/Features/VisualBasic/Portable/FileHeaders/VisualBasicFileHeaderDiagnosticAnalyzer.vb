@@ -10,8 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
     Friend Class VisualBasicFileHeaderDiagnosticAnalyzer
         Inherits AbstractFileHeaderDiagnosticAnalyzer
 
-        Protected Overrides Function ParseFileHeader(root As SyntaxNode) As FileHeader
-            Return FileHeaderHelpers.ParseFileHeader(root)
-        End Function
+        Protected Overrides ReadOnly Property FileHeaderHelper As AbstractFileHeaderHelper
+            Get
+                Return VisualBasicFileHeaderHelper.Instance
+            End Get
+        End Property
     End Class
 End Namespace

@@ -37,12 +37,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return Task.CompletedTask;
         }
 
-        protected abstract int CommentTriviaKind { get; }
-        protected abstract int WhitespaceTriviaKind { get; }
-        protected abstract int EndOfLineTriviaKind { get; }
-        protected abstract string CommentPrefix { get; }
+        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
-        protected abstract FileHeader ParseFileHeader(SyntaxNode root);
         protected abstract SyntaxTrivia EndOfLine(string text);
         protected abstract SyntaxTriviaList ParseLeadingTrivia(string text);
 
@@ -65,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(document.FilePath));
 
-            var fileHeader = ParseFileHeader(root);
+            var fileHeader = FileHeaderHelper.ParseFileHeader(root);
             SyntaxNode newSyntaxRoot;
             if (fileHeader.IsMissing)
             {
@@ -93,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             for (var i = 0; i < trivia.Count; i++)
             {
                 var triviaLine = trivia[i];
-                if (triviaLine.RawKind == CommentTriviaKind)
+                if (triviaLine.RawKind == FileHeaderHelper.SingleLineCommentTriviaKind)
                 {
                     if (possibleLeadingSpaces != string.Empty)
                     {
@@ -103,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                     removalList.Add(i);
                     onBlankLine = false;
                 }
-                else if (triviaLine.RawKind == WhitespaceTriviaKind)
+                else if (triviaLine.RawKind == FileHeaderHelper.WhitespaceTriviaKind)
                 {
                     if (leadingSpaces == string.Empty)
                     {
@@ -115,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                         removalList.Add(i);
                     }
                 }
-                else if (triviaLine.RawKind == EndOfLineTriviaKind)
+                else if (triviaLine.RawKind == FileHeaderHelper.EndOfLineTriviaKind)
                 {
                     possibleLeadingSpaces = string.Empty;
 
@@ -148,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var newLineText = document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, root.Language);
             var newLineTrivia = EndOfLine(newLineText);
 
-            var newHeaderTrivia = CreateNewHeader(leadingSpaces + CommentPrefix, expectedFileHeader, newLineText);
+            var newHeaderTrivia = CreateNewHeader(leadingSpaces + FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText);
 
             // Add a blank line after the header.
             newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia);
@@ -161,18 +157,18 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         {
             var newLineText = document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, root.Language);
             var newLineTrivia = EndOfLine(newLineText);
-            var newTrivia = CreateNewHeader(CommentPrefix, expectedFileHeader, newLineText).Add(newLineTrivia).Add(newLineTrivia);
+            var newTrivia = CreateNewHeader(FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText).Add(newLineTrivia).Add(newLineTrivia);
 
             // Skip blank lines already at the beginning of the document, since we add our own
             var leadingTrivia = root.GetLeadingTrivia();
             var skipCount = 0;
             for (var i = 0; i < leadingTrivia.Count; i++)
             {
-                if (leadingTrivia[i].RawKind == EndOfLineTriviaKind)
+                if (leadingTrivia[i].RawKind == FileHeaderHelper.EndOfLineTriviaKind)
                 {
                     skipCount = i + 1;
                 }
-                else if (leadingTrivia[i].RawKind != WhitespaceTriviaKind)
+                else if (leadingTrivia[i].RawKind != FileHeaderHelper.WhitespaceTriviaKind)
                 {
                     break;
                 }

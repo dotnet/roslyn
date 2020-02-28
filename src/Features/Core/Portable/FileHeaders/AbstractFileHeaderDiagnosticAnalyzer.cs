@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         {
         }
 
+        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
-
-        protected abstract FileHeader ParseFileHeader(SyntaxNode root);
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 return;
             }
 
-            var fileHeader = ParseFileHeader(root);
+            var fileHeader = FileHeaderHelper.ParseFileHeader(root);
             if (fileHeader.IsMissing)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, fileHeader.GetLocation(context.Tree)));

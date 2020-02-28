@@ -15,18 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
     [Shared]
     internal class CSharpFileHeaderCodeFixProvider : AbstractFileHeaderCodeFixProvider
     {
-        protected override int CommentTriviaKind => (int)SyntaxKind.SingleLineCommentTrivia;
-        protected override int WhitespaceTriviaKind => (int)SyntaxKind.WhitespaceTrivia;
-        protected override int EndOfLineTriviaKind => (int)SyntaxKind.EndOfLineTrivia;
-        protected override string CommentPrefix => "//";
+        protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
 
         protected override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
 
         protected override SyntaxTriviaList ParseLeadingTrivia(string text)
             => SyntaxFactory.ParseLeadingTrivia(text);
-
-        protected override FileHeader ParseFileHeader(SyntaxNode root)
-            => FileHeaderHelpers.ParseFileHeader(root);
     }
 }
