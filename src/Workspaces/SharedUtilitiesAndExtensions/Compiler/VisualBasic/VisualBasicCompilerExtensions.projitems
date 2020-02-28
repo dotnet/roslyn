@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" GenerateSource="true" Link="VisualBasicCompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" />
   </ItemGroup>
 </Project>
