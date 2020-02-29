@@ -6,14 +6,12 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Declarations;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
