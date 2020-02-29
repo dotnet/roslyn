@@ -126,7 +126,8 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Indicates if the given <paramref name="type"/> is a reference type that implements <paramref name="iDisposable"/> or System.IAsyncDisposable or is <see cref="IDisposable"/> or System.IAsyncDisposable type itself.
+        /// Indicates if the given <paramref name="type"/> is disposable,
+        /// and thus can be used in a <code>using</code> or <code>await using</code> statement.
         /// </summary>
         public static bool IsDisposable(this ITypeSymbol type,
             INamedTypeSymbol? iDisposable,
@@ -280,11 +281,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
-            => typeSymbol.IsValueType
-#if NET_ANALYZERS
-                && !typeSymbol.IsRefLikeType
-#endif
-            || typeSymbol.SpecialType == SpecialType.System_String;
+            => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
 
         public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T;
