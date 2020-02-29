@@ -192,6 +192,6 @@ namespace Microsoft.CodeAnalysis
         /// either <see cref="System.IntPtr"/> or <see cref="System.UIntPtr"/>.
         /// Otherwise, returns null.
         /// </summary>
-        INamedTypeSymbol NativeIntegerUnderlyingType { get; }
+        INamedTypeSymbol? NativeIntegerUnderlyingType { get; }
     }
 }
