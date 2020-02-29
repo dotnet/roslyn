@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
                 new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 new LocalizableResourceString(nameof(FeaturesResources.Parentheses_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                isUnneccessary: true);
+                isUnnecessary: true);
 
         /// <summary>
         /// This analyzer inserts the fade locations into indices 1 and 2 inside additional locations.

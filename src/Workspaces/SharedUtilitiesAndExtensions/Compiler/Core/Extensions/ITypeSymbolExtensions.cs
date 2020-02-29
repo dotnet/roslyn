@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return result;
         }
 
-        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol>? types, ISymbol within) where T : class, ISymbol
+        public static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol>? types, ISymbol within) where T : class, ISymbol
         {
             if (types == null)
             {

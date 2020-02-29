@@ -4,13 +4,25 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    public abstract class OptionSet
+    public abstract partial class OptionSet
     {
+        private const string NoLanguageSentinel = "\0";
+        private static readonly ImmutableDictionary<string, AnalyzerConfigOptions> s_emptyAnalyzerConfigOptions =
+            ImmutableDictionary.Create<string, AnalyzerConfigOptions>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Map from language name to the <see cref="AnalyzerConfigOptions"/> wrapper.
+        /// </summary>
+        private ImmutableDictionary<string, AnalyzerConfigOptions> _lazyAnalyzerConfigOptions = s_emptyAnalyzerConfigOptions;
+
         /// <summary>
         /// Gets the value of the option.
         /// </summary>
@@ -55,6 +67,20 @@ namespace Microsoft.CodeAnalysis.Options
             return WithChangedOption(new OptionKey(option, language), value);
         }
 
+        internal AnalyzerConfigOptions AsAnalyzerConfigOptions(IOptionService optionService, string? language)
+        {
+            return ImmutableInterlocked.GetOrAdd(
+                ref _lazyAnalyzerConfigOptions,
+                language ?? NoLanguageSentinel,
+                (string language, (OptionSet self, IOptionService optionService) arg) => arg.self.CreateAnalyzerConfigOptions(arg.optionService, (object)language == NoLanguageSentinel ? null : language),
+                (this, optionService));
+        }
+
         internal abstract IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet);
+
+        private protected virtual AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
+        {
+            return new AnalyzerConfigOptionsImpl(this, optionService, language);
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
     internal abstract class AbstractRecommendationService<TSyntaxContext> : IRecommendationService
         where TSyntaxContext : SyntaxContext
     {
-        protected abstract Task<TSyntaxContext> CreateContext(
+        protected abstract Task<TSyntaxContext> CreateContextAsync(
             Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
         protected abstract AbstractRecommendationServiceRunner<TSyntaxContext> CreateRunner(
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         public async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            var context = await CreateContext(workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            var context = await CreateContextAsync(workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
             var filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language);
             var symbols = CreateRunner(context, filterOutOfScopeLocals, cancellationToken).GetSymbols();
 

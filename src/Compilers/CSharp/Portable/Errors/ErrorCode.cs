@@ -1759,6 +1759,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
 
+        ERR_ConditionalOnLocalFunction = 8783,
+
+        ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
+        ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
+        ERR_ExpressionTreeContainsRangeExpression = 8792,
+
         ERR_BadRecordDeclaration = 8800,
         ERR_DuplicateRecordConstructor = 8801,
 

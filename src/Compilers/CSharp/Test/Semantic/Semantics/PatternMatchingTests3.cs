@@ -1771,5 +1771,122 @@ class C
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 43)
                 );
         }
+
+        [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
+        [Fact]
+        public void BadGotoCase_01()
+        {
+            var source = @"
+class C
+{
+    static void Example(object a, object b)
+    {
+        switch ((a, b))
+        {
+            case (string str, int[] arr) _:
+                goto case (string str, decimal[] arr);
+            case (string str, decimal[] arr) _:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0163: Control cannot fall through from one case label ('(string str, int[] arr) _') to another
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string str, int[] arr) _").WithArguments("(string str, int[] arr) _").WithLocation(8, 18),
+                // (8,26): error CS0136: A local or parameter named 'str' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "str").WithArguments("str").WithLocation(8, 26),
+                // (8,37): error CS0136: A local or parameter named 'arr' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "arr").WithArguments("arr").WithLocation(8, 37),
+                // (9,17): error CS0150: A constant value is expected
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (string str, decimal[] arr);").WithLocation(9, 17),
+                // (9,28): error CS8185: A declaration is not allowed in this context.
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string str").WithLocation(9, 28),
+                // (9,28): error CS0165: Use of unassigned local variable 'str'
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "string str").WithArguments("str").WithLocation(9, 28),
+                // (9,40): error CS8185: A declaration is not allowed in this context.
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "decimal[] arr").WithLocation(9, 40),
+                // (9,40): error CS0165: Use of unassigned local variable 'arr'
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "decimal[] arr").WithArguments("arr").WithLocation(9, 40),
+                // (10,26): error CS0136: A local or parameter named 'str' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, decimal[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "str").WithArguments("str").WithLocation(10, 26),
+                // (10,41): error CS0136: A local or parameter named 'arr' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, decimal[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "arr").WithArguments("arr").WithLocation(10, 41)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var strDecl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(s => s.Identifier.ValueText == "str").ToArray();
+            Assert.Equal(3, strDecl.Length);
+            VerifyModelForDuplicateVariableDeclarationInSameScope(model, strDecl[1], LocalDeclarationKind.DeclarationExpressionVariable);
+
+            var arrDecl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(s => s.Identifier.ValueText == "arr").ToArray();
+            Assert.Equal(3, arrDecl.Length);
+            VerifyModelForDuplicateVariableDeclarationInSameScope(model, arrDecl[1], LocalDeclarationKind.DeclarationExpressionVariable);
+        }
+
+        [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
+        [Fact]
+        public void BadGotoCase_02()
+        {
+            var source = @"
+class C
+{
+    static void Example(object a, object b)
+    {
+        switch ((a, b))
+        {
+            case (string str, int[] arr) _:
+                goto case a is (var x1, var x2);
+                x1 = x2;
+            case (string str, decimal[] arr) _:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0163: Control cannot fall through from one case label ('(string str, int[] arr) _') to another
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string str, int[] arr) _").WithArguments("(string str, int[] arr) _").WithLocation(8, 18),
+                // (9,17): error CS0029: Cannot implicitly convert type 'bool' to '(object a, object b)'
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case a is (var x1, var x2);").WithArguments("bool", "(object a, object b)").WithLocation(9, 17),
+                // (9,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var x1, var x2)").WithArguments("object", "Deconstruct").WithLocation(9, 32),
+                // (9,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var x1, var x2)").WithArguments("object", "2").WithLocation(9, 32)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
+
+            var x2Decl = GetPatternDeclarations(tree, "x2").ToArray();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(1, x2Decl.Length);
+            Assert.Equal(1, x2Ref.Length);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
+        }
     }
 }
