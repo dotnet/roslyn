@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             ConnectWorkspaceEvents();
         }
 
-        private RemoteDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+        private RemoteDiagnosticListTable(CodeAnalysis.Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
             : base(workspace, provider)
         {
             _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);

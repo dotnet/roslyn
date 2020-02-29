@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Suppress_or_Configure_issues">
         <source>Suppress or Configure issues</source>
-        <target state="translated">設定或隱藏問題</target>
+        <target state="translated">隱藏或設定問題</target>
         <note />
       </trans-unit>
     </body>

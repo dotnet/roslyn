@@ -109,11 +109,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 //Workaround for https://github.com/dotnet/roslyn/issues/23956
                 //Issue to remove this when above is merged
-                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsConditionalOr(expressionNode))
+                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsLogicalOrExpression(expressionNode))
                 {
                     negatedKind = BinaryOperatorKind.ConditionalAnd;
                 }
-                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsConditionalAnd(expressionNode))
+                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsLogicalAndExpression(expressionNode))
                 {
                     negatedKind = BinaryOperatorKind.ConditionalOr;
                 }

@@ -48,13 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
-            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression);
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression, syntaxTree, cancellationToken);
             if (!styleOption.Value)
             {
                 // User has disabled this feature.

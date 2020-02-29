@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="translated">Verwerfen</target>
+        <target state="translated">Ausschussvariable</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">

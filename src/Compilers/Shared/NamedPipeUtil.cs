@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
             return security;
         }
 
-#elif NETCOREAPP3_1
+#elif NETCOREAPP
 
         private static PipeOptions CurrentUserOption = PipeOptions.CurrentUserOnly;
 

@@ -42,6 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         {
             var generator = editor.Generator;
 
+            if (exprOrStatement is LocalFunctionStatementSyntax { ExpressionBody: { } localFunctionExpressionBody })
+            {
+                // Expression-bodied local functions report CS0177 on the method name instead of the expression.
+                // Reassign exprOrStatement so the code fix implementation works as it does for other expression-bodied
+                // members.
+                exprOrStatement = localFunctionExpressionBody.Expression;
+            }
+
             var parent = exprOrStatement.Parent;
             if (parent.IsEmbeddedStatementOwner())
             {

@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (CanMakeNameExplicitInTuple(tuple, inferredName))
                     {
                         var identifier = SyntaxFactory.Identifier(inferredName);
-                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+                        identifier = TryEscapeIdentifierToken(identifier, node);
 
                         newArgument = newArgument
                             .WithoutLeadingTrivia()
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         // Creating identifier without elastic trivia to avoid unexpected line break
                         var identifier = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, inferredName, SyntaxTriviaList.Empty);
-                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+                        identifier = TryEscapeIdentifierToken(identifier, node);
 
                         newDeclarator = newDeclarator
                             .WithoutLeadingTrivia()
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 ////
                 //// 3. Always try to escape keyword identifiers
                 ////
-                identifier = TryEscapeIdentifierToken(identifier, originalSimpleName, _semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
+                identifier = TryEscapeIdentifierToken(identifier, originalSimpleName).WithAdditionalAnnotations(Simplifier.Annotation);
                 if (identifier != rewrittenSimpleName.Identifier)
                 {
                     switch (newNode.Kind())

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.Remote
 {
     // root level service for all Roslyn services
-    internal partial class CodeAnalysisService : ServiceHubServiceBase
+    internal partial class CodeAnalysisService : ServiceBase
     {
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 

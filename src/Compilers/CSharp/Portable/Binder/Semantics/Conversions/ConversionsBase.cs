@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (_lazyOtherNullability == null)
             {
-                _lazyOtherNullability = WithNullabilityCore(includeNullability);
+                Interlocked.CompareExchange(ref _lazyOtherNullability, WithNullabilityCore(includeNullability), null);
             }
             Debug.Assert(_lazyOtherNullability.IncludeNullability == includeNullability);
             Debug.Assert(_lazyOtherNullability._lazyOtherNullability == this);

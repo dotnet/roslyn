@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return !(other is null) &&
                 this.Kind == other.Kind &&
-                this.GetOriginalInput().Equals(other.GetOriginalInput()) &&
+                this.Input.Equals(other.Input) &&
                 this.Symbol.Equals(other.Symbol, TypeCompareKind.AllIgnoreOptions);
         }
         private Symbol Symbol
@@ -37,23 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
-            return Hash.Combine(GetOriginalInput().GetHashCode(), Symbol.GetHashCode());
-        }
-
-        /// <summary>
-        /// Returns the original input for this evaluation, stripped of all Type Evaluations.
-        /// 
-        /// A BoundDagTypeEvaluation doesn't change the underlying object being pointed to
-        /// So two evaluations act on the same input so long as they have the same original input.
-        /// </summary>
-        private BoundDagTemp GetOriginalInput()
-        {
-            var input = this.Input;
-            while (input.Source is BoundDagTypeEvaluation source)
-            {
-                input = source.Input;
-            }
-            return input;
+            return Hash.Combine(Input.GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
         }
 
         public static bool operator ==(BoundDagEvaluation? left, BoundDagEvaluation? right)

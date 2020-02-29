@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 this.Diagnostics.SequenceEqual(other.Diagnostics);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is LoadDirective && Equals((LoadDirective)obj);
         }

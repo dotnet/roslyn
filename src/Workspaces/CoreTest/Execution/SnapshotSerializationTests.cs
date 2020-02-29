@@ -695,7 +695,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
         private async Task<Solution> GetSolutionAsync(IRemotableDataService service, PinnedRemotableDataScope syncScope)
         {
-            var (solutionInfo, _) = await SolutionInfoCreator.CreateSolutionInfoAndOptionsAsync(new AssetProvider(service), syncScope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var (solutionInfo, _) = await new TestAssetProvider(service).CreateSolutionInfoAndOptionsAsync(syncScope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace();
             return workspace.AddSolution(solutionInfo);

@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis
         public virtual ImmutableDictionary<string, string> Properties
             => ImmutableDictionary<string, string>.Empty;
 
-        string IFormattable.ToString(string ignored, IFormatProvider formatProvider)
+        string IFormattable.ToString(string? ignored, IFormatProvider? formatProvider)
         {
             return DiagnosticFormatter.Instance.Format(this, formatProvider);
         }
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis
             return DiagnosticFormatter.Instance.Format(this, CultureInfo.CurrentUICulture);
         }
 
-        public abstract override bool Equals(object obj);
+        public abstract override bool Equals(object? obj);
 
         public abstract override int GetHashCode();
 
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis
     {
         public abstract override string ToString();
 
-        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
         {
             return ToString();
         }

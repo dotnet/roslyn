@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
             _lspClient = lspClient ?? throw new ArgumentNullException(nameof(lspClient));
         }
 
-        public override void Apply(Workspace workspace, CancellationToken cancellationToken)
+        public override void Apply(CodeAnalysis.Workspace workspace, CancellationToken cancellationToken)
         {
             Task.Run(async () =>
             {

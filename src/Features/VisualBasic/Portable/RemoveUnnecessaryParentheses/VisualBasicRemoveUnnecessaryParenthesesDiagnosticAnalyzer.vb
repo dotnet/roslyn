@@ -16,10 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
             Return VisualBasicSyntaxFactsService.Instance
         End Function
 
-        Protected Overrides Function GetSyntaxNodeKind() As SyntaxKind
-            Return SyntaxKind.ParenthesizedExpression
-        End Function
-
         Protected Overrides Function CanRemoveParentheses(
                 parenthesizedExpression As ParenthesizedExpressionSyntax, semanticModel As SemanticModel,
                 ByRef precedence As PrecedenceKind, ByRef clarifiesPrecedence As Boolean) As Boolean

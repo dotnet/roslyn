@@ -543,8 +543,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression? receiverOpt = group.ReceiverOpt;
             RoslynDebug.Assert(receiverOpt != null);
-            RoslynDebug.Assert((object)conversion.Method != null);
-            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, !conversion.Method.RequiresInstanceReceiver && !conversion.IsExtensionMethod, diagnostics);
+
+            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, useType: conversion.Method?.RequiresInstanceReceiver == false && !conversion.IsExtensionMethod, diagnostics);
             return group.Update(
                 group.TypeArgumentsOpt,
                 group.Name,

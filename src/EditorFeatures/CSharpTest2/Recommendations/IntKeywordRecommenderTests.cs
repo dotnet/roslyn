@@ -408,6 +408,12 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStatementAttribute()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"[Goo] $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterConstructorOpenParen()
         {
             await VerifyKeywordAsync(

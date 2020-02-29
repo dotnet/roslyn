@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -38,7 +40,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             Utilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
         }
 
-        protected abstract TSyntaxKind GetSyntaxKind(int rawKind);
         protected abstract SyntaxToken Token(TSyntaxKind kind);
         protected abstract TAssignmentSyntax Assignment(
             TSyntaxKind assignmentOpKind, TExpressionSyntax left, SyntaxToken syntaxToken, TExpressionSyntax right);
@@ -59,7 +60,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxKinds = syntaxFacts.SyntaxKinds;
 
             foreach (var diagnostic in diagnostics)
             {
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         syntaxFacts.GetPartsOfBinaryExpression(rightOfAssign,
                            out _, out var opToken, out var rightExpr);
 
-                        var assignmentOpKind = _binaryToAssignmentMap[GetSyntaxKind(rightOfAssign.RawKind)];
+                        var assignmentOpKind = _binaryToAssignmentMap[syntaxKinds.Convert<TSyntaxKind>(rightOfAssign.RawKind)];
                         var compoundOperator = Token(_assignmentToTokenMap[assignmentOpKind]);
                         return Assignment(
                             assignmentOpKind,
