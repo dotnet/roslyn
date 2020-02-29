@@ -804,7 +804,7 @@ namespace ConsoleApp1
         private async Task<NameDeclarationInfo> GetResultsAsync(string markup)
         {
             var (document, position) = ApplyChangesToFixture(markup);
-            var result = await NameDeclarationInfo.GetDeclarationInfo(document, position, CancellationToken.None);
+            var result = await NameDeclarationInfo.GetDeclarationInfoAsync(document, position, CancellationToken.None);
             return result;
         }
 

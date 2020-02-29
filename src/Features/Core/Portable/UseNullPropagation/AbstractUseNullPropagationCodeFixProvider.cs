@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var root = editor.OriginalRoot;
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                             TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
                             TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel, conditionalPart, currentWhenPartToCheck);
+                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel!, conditionalPart, currentWhenPartToCheck);
                         if (match == null)
                         {
                             return c;

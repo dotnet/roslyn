@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Reports an error if the await expression did not occur in an async context.
         /// </summary>
         /// <returns>True if the expression contains errors.</returns>
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "'await without async' refers to the error scenario.")]
         private bool ReportBadAwaitWithoutAsync(Location location, DiagnosticBag diagnostics)
         {
             DiagnosticInfo? info = null;

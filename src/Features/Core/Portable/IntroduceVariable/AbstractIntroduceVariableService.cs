@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return anonymousMethodParameters;
         }
 
-        protected static async Task<(SemanticDocument newSemanticDocument, ISet<TExpressionSyntax> newMatches)> ComplexifyParentingStatements(
+        protected static async Task<(SemanticDocument newSemanticDocument, ISet<TExpressionSyntax> newMatches)> ComplexifyParentingStatementsAsync(
             SemanticDocument semanticDocument,
             ISet<TExpressionSyntax> matches,
             CancellationToken cancellationToken)

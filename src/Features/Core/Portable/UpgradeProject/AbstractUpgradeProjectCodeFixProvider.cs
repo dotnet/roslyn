@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         {
             var diagnostics = context.Diagnostics;
 
-            context.RegisterFixes(GetUpgradeProjectCodeActionsAsync(context), diagnostics);
+            context.RegisterFixes(GetUpgradeProjectCodeActions(context), diagnostics);
             return Task.CompletedTask;
         }
 
-        protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActionsAsync(CodeFixContext context)
+        protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActions(CodeFixContext context)
         {
             var project = context.Document.Project;
             var solution = project.Solution;

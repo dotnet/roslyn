@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             while (true)
             {
                 var waiters = GetCandidateWaiters(featureNames);
-                tasks = waiters.Select(x => x.CreateExpeditedWaitTask()).Where(t => !t.IsCompleted).ToArray();
+                tasks = waiters.Select(x => x.ExpeditedWaitAsync()).Where(t => !t.IsCompleted).ToArray();
 
                 if (tasks.Length == 0)
                 {

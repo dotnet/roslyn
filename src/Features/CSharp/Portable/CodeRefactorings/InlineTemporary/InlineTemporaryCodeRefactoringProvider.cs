@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             if (conflicts.Count() == declaratorConflicts.Count())
             {
                 // Certain semantic conflicts can be detected only after the reference rewriter has inlined the expression
-                var newDocument = await DetectSemanticConflicts(updatedDocument,
+                var newDocument = await DetectSemanticConflictsAsync(updatedDocument,
                                                                 semanticModel,
                                                                 semanticModelBeforeInline,
                                                                 originalInitializerSymbolInfo,
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return expression.AncestorsAndSelf().OfType<ExpressionSyntax>().Last();
         }
 
-        private static async Task<Document> DetectSemanticConflicts(
+        private static async Task<Document> DetectSemanticConflictsAsync(
             Document inlinedDocument,
             SemanticModel newSemanticModelForInlinedDocument,
             SemanticModel semanticModelBeforeInline,

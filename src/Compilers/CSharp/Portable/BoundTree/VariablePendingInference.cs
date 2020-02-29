@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ((DeclarationExpressionSyntax)this.Syntax).Type :
                                 this.Syntax;
 
-                            Binder.CheckRestrictedTypeInAsync(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
+                            Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
                         }
                     }
 

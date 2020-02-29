@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
-                var compilation = await GetOrCreateCompilationWithAnalyzers(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
+                var compilation = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
