@@ -50,11 +50,10 @@ namespace Microsoft.CodeAnalysis.Classification
             if (remoteSuccess)
                 return;
 
-            var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
             await AddSemanticClassificationsInCurrentProcessAsync(
                 document, textSpan, temp, cancellationToken).ConfigureAwait(false);
             AddRange(temp, result);
-            temp.Free();
         }
 
         /// <returns><see langword="true"/> if the remote call was made successfully and we should
@@ -119,12 +118,15 @@ namespace Microsoft.CodeAnalysis.Classification
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(syntaxTree);
 
-            var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
             classificationService.AddSyntacticClassifications(syntaxTree, textSpan, temp, cancellationToken);
             AddRange(temp, result);
-            temp.Free();
         }
 
+        /// <summary>
+        /// Helper to add all the values of <paramref name="temp"/> into <paramref name="result"/>
+        /// without causing any allocations or boxing of enumerators.
+        /// </summary>
         protected static void AddRange(ArrayBuilder<ClassifiedSpan> temp, List<ClassifiedSpan> result)
         {
             foreach (var span in temp)

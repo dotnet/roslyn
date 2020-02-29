@@ -356,34 +356,28 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var (usingDirective, hasExistingUsing) = GetUsingDirective(
                 document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
-            var newImports = ArrayBuilder<SyntaxNode>.GetInstance();
-            try
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var newImports);
+
+            if (!hasExistingExtern && externAliasDirective != null)
             {
-                if (!hasExistingExtern && externAliasDirective != null)
-                {
-                    newImports.Add(externAliasDirective);
-                }
-
-                if (!hasExistingUsing && usingDirective != null)
-                {
-                    newImports.Add(usingDirective);
-                }
-
-                if (newImports.Count == 0)
-                {
-                    return root;
-                }
-
-                var addImportService = document.GetLanguageService<IAddImportsService>();
-                var generator = SyntaxGenerator.GetGenerator(document);
-                var newRoot = addImportService.AddImports(
-                    semanticModel.Compilation, root, contextNode, newImports, generator, placeSystemNamespaceFirst, cancellationToken);
-                return (CompilationUnitSyntax)newRoot;
+                newImports.Add(externAliasDirective);
             }
-            finally
+
+            if (!hasExistingUsing && usingDirective != null)
             {
-                newImports.Free();
+                newImports.Add(usingDirective);
             }
+
+            if (newImports.Count == 0)
+            {
+                return root;
+            }
+
+            var addImportService = document.GetLanguageService<IAddImportsService>();
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var newRoot = addImportService.AddImports(
+                semanticModel.Compilation, root, contextNode, newImports, generator, placeSystemNamespaceFirst, cancellationToken);
+            return (CompilationUnitSyntax)newRoot;
         }
 
         protected override async Task<Document> AddImportAsync(

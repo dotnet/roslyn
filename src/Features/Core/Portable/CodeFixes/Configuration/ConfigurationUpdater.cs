@@ -306,33 +306,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, project.Language, out var options))
             {
                 var optionSet = project.Solution.Workspace.Options;
-                var builder = ArrayBuilder<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.GetInstance();
+                using var _ = ArrayBuilder<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.GetInstance(out var builder);
 
-                try
+                foreach (var option in options.OrderBy(option => option.Name))
                 {
-                    foreach (var option in options.OrderBy(option => option.Name))
+                    var editorConfigLocation = option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
+                    if (editorConfigLocation != null)
                     {
-                        var editorConfigLocation = option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
-                        if (editorConfigLocation != null)
+                        var optionKey = new OptionKey(option, option.IsPerLanguage ? project.Language : null);
+                        if (optionSet.GetOption(optionKey) is ICodeStyleOption codeStyleOption)
                         {
-                            var optionKey = new OptionKey(option, option.IsPerLanguage ? project.Language : null);
-                            if (optionSet.GetOption(optionKey) is ICodeStyleOption codeStyleOption)
-                            {
-                                builder.Add((optionKey, codeStyleOption, editorConfigLocation, option.IsPerLanguage));
-                                continue;
-                            }
+                            builder.Add((optionKey, codeStyleOption, editorConfigLocation, option.IsPerLanguage));
+                            continue;
                         }
-
-                        // Did not find a match.
-                        return ImmutableArray<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.Empty;
                     }
 
-                    return builder.ToImmutable();
+                    // Did not find a match.
+                    return ImmutableArray<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.Empty;
                 }
-                finally
-                {
-                    builder.Free();
-                }
+
+                return builder.ToImmutable();
             }
 
             return ImmutableArray<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.Empty;
