@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,6 +46,8 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
+        public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
+
         // Values for all these are created on demand.
         private ImmutableDictionary<ProjectId, CompilationTracker> _projectIdToTrackerMap;
 
@@ -58,6 +61,7 @@ namespace Microsoft.CodeAnalysis
             SolutionInfo.SolutionAttributes solutionAttributes,
             IReadOnlyList<ProjectId> projectIds,
             SerializableOptionSet options,
+            IReadOnlyList<AnalyzerReference> analyzerReferences,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
@@ -69,6 +73,7 @@ namespace Microsoft.CodeAnalysis
             _solutionServices = solutionServices;
             ProjectIds = projectIds;
             Options = options;
+            AnalyzerReferences = analyzerReferences;
             _projectIdToProjectStateMap = idToProjectStateMap;
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
@@ -84,7 +89,8 @@ namespace Microsoft.CodeAnalysis
             BranchId primaryBranchId,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
-            SerializableOptionSet options)
+            SerializableOptionSet options,
+            IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(
                 primaryBranchId,
                 workspaceVersion: 0,
@@ -92,6 +98,7 @@ namespace Microsoft.CodeAnalysis
                 solutionAttributes,
                 projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
                 options,
+                analyzerReferences,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
@@ -176,6 +183,7 @@ namespace Microsoft.CodeAnalysis
             SolutionInfo.SolutionAttributes? solutionAttributes = null,
             IReadOnlyList<ProjectId>? projectIds = null,
             SerializableOptionSet? options = null,
+            IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker>? projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
@@ -187,6 +195,7 @@ namespace Microsoft.CodeAnalysis
             projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
             options ??= Options.WithLanguages(GetProjectLanguages(idToProjectStateMap));
+            analyzerReferences ??= AnalyzerReferences;
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
@@ -195,6 +204,7 @@ namespace Microsoft.CodeAnalysis
                 solutionAttributes == _solutionAttributes &&
                 projectIds == ProjectIds &&
                 options == Options &&
+                analyzerReferences == AnalyzerReferences &&
                 idToProjectStateMap == _projectIdToProjectStateMap &&
                 projectIdToTrackerMap == _projectIdToTrackerMap &&
                 filePathToDocumentIdsMap == _filePathToDocumentIdsMap &&
@@ -210,6 +220,7 @@ namespace Microsoft.CodeAnalysis
                 solutionAttributes,
                 projectIds,
                 options,
+                analyzerReferences,
                 idToProjectStateMap,
                 projectIdToTrackerMap,
                 filePathToDocumentIdsMap,
@@ -235,6 +246,7 @@ namespace Microsoft.CodeAnalysis
                 _solutionAttributes,
                 ProjectIds,
                 Options,
+                AnalyzerReferences,
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
                 _filePathToDocumentIdsMap,
@@ -1528,7 +1540,42 @@ namespace Microsoft.CodeAnalysis
             return this.Branch(projectIdToTrackerMap: forkedMap);
         }
 
-        public SolutionState WithOptions(SerializableOptionSet options) => this.Branch(options: options);
+        public SolutionState WithOptions(SerializableOptionSet options)
+            => Branch(options: options);
+
+        public SolutionState AddAnalyzerReferences(IReadOnlyCollection<AnalyzerReference> analyzerReferences)
+        {
+            if (analyzerReferences.Count == 0)
+            {
+                return this;
+            }
+
+            var oldReferences = AnalyzerReferences.ToImmutableArray();
+            var newReferences = oldReferences.AddRange(analyzerReferences);
+            return Branch(analyzerReferences: newReferences);
+        }
+
+        public SolutionState RemoveAnalyzerReference(AnalyzerReference analyzerReference)
+        {
+            var oldReferences = AnalyzerReferences.ToImmutableArray();
+            var newReferences = oldReferences.Remove(analyzerReference);
+            if (oldReferences == newReferences)
+            {
+                return this;
+            }
+
+            return Branch(analyzerReferences: newReferences);
+        }
+
+        public SolutionState WithAnalyzerReferences(IReadOnlyList<AnalyzerReference> analyzerReferences)
+        {
+            if (analyzerReferences == AnalyzerReferences)
+            {
+                return this;
+            }
+
+            return Branch(analyzerReferences: analyzerReferences);
+        }
 
         // this lock guards all the mutable fields (do not share lock with derived classes)
         private NonReentrantLock? _stateLockBackingField;

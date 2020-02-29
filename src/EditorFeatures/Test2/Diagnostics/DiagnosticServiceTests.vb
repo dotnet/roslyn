@@ -64,8 +64,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim solution = workspace.CurrentSolution
                 Dim project = solution.Projects(0)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
-                Dim projectDiagnosticAnalyzer1 = New ProjectDiagnosticAnalyzer(1)
-                Dim projectDiagnosticAnalyzer2 = New ProjectDiagnosticAnalyzer2(2)
+                Dim projectDiagnosticAnalyzer1 = New TestDiagnosticAnalyzer1(1)
+                Dim projectDiagnosticAnalyzer2 = New TestDiagnosticAnalyzer2(2)
 
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.CSharp, workspaceDiagnosticAnalyzer)
 
@@ -208,10 +208,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim referenceName = "Test"
 
                 Dim hostAnalyzerReference = New AnalyzerImageReference(
-                    ImmutableArray.Create(Of DiagnosticAnalyzer)(New ProjectDiagnosticAnalyzer(0)), display:=referenceName)
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(New TestDiagnosticAnalyzer1(0)), display:=referenceName)
 
                 Dim projectAnalyzerReference = New AnalyzerImageReference(
-                    ImmutableArray.Create(Of DiagnosticAnalyzer)(New ProjectDiagnosticAnalyzer(1)), display:=referenceName)
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(New TestDiagnosticAnalyzer1(1)), display:=referenceName)
 
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(
                     ImmutableArray.Create(Of AnalyzerReference)(hostAnalyzerReference))
@@ -300,18 +300,18 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        </Workspace>
 
             Using workspace = TestWorkspace.CreateWorkspace(test)
-                Dim projectDiagnosticAnalyzer1 = New ProjectDiagnosticAnalyzer(1)
-                Dim projectDiagnosticAnalyzer2 = New ProjectDiagnosticAnalyzer2(2)
+                Dim analyzer1 As DiagnosticAnalyzer = New TestDiagnosticAnalyzer1(1)
+                Dim analyzer2 As DiagnosticAnalyzer = New TestDiagnosticAnalyzer2(2)
 
                 Dim solution = workspace.CurrentSolution
 
-                Dim alpha = solution.Projects.Single(Function(p) p.Language = LanguageNames.CSharp)
-                alpha = alpha.WithAnalyzerReferences(SpecializedCollections.SingletonCollection(New AnalyzerImageReference(ImmutableArray(Of DiagnosticAnalyzer).Empty.Add(projectDiagnosticAnalyzer1))))
-                solution = alpha.Solution
+                Dim p1 = solution.Projects.Single(Function(p) p.Language = LanguageNames.CSharp)
+                p1 = p1.WithAnalyzerReferences(SpecializedCollections.SingletonCollection(New AnalyzerImageReference(ImmutableArray.Create(analyzer1))))
+                solution = p1.Solution
 
-                Dim bravo = solution.Projects.Single(Function(p) p.Language = LanguageNames.VisualBasic)
-                bravo = bravo.WithAnalyzerReferences(SpecializedCollections.SingletonCollection(New AnalyzerImageReference(ImmutableArray(Of DiagnosticAnalyzer).Empty.Add(projectDiagnosticAnalyzer2))))
-                solution = bravo.Solution
+                Dim p2 = solution.Projects.Single(Function(p) p.Language = LanguageNames.VisualBasic)
+                p2 = p2.WithAnalyzerReferences(SpecializedCollections.SingletonCollection(New AnalyzerImageReference(ImmutableArray.Create(analyzer2))))
+                solution = p2.Solution
 
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
@@ -320,12 +320,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim workspaceDescriptors = diagnosticService.GetDiagnosticDescriptorsPerReference()
                 Assert.Equal(0, workspaceDescriptors.Count)
 
-                Dim alphaDescriptors = diagnosticService.GetDiagnosticDescriptorsPerReference(alpha)
+                Dim alphaDescriptors = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(alpha)
                 Assert.Equal("XX0001", alphaDescriptors.Single().Value.Single().Id)
                 Dim alphaDiagnostics = diagnosticService.GetDiagnosticsForSpanAsync(alpha.Documents.Single(), New TextSpan(0, alpha.Documents.Single().GetTextAsync().Result.Length)).Result
                 Assert.Equal("XX0001", alphaDiagnostics.Single().Id)
 
-                Dim bravoDescriptors = diagnosticService.GetDiagnosticDescriptorsPerReference(bravo)
+                Dim bravoDescriptors = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(bravo)
                 Assert.Equal("XX0002", bravoDescriptors.Single().Value.Single().Id)
                 Dim bravoDiagnostics = diagnosticService.GetDiagnosticsForSpanAsync(bravo.Documents.Single(), New TextSpan(0, bravo.Documents.Single().GetTextAsync().Result.Length)).Result
                 Assert.Equal("XX0002", bravoDiagnostics.Single().Id)
@@ -343,8 +343,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        </Workspace>
 
             Using workspace = TestWorkspace.CreateWorkspace(test)
-                Dim analyzer1 = New ProjectDiagnosticAnalyzer(1)
-                Dim analyzer2 = New ProjectDiagnosticAnalyzer2(2)
+                Dim analyzer1 = New TestDiagnosticAnalyzer1(1)
+                Dim analyzer2 = New TestDiagnosticAnalyzer2(2)
 
                 Dim analyzersMap = New Dictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer))
                 analyzersMap.Add(LanguageNames.CSharp, ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer1))
@@ -424,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
             Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
-                Dim analyzer = New ProjectDiagnosticAnalyzer(0)
+                Dim analyzer = New TestDiagnosticAnalyzer1(0)
                 Dim analyzerReference1 = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 Dim analyzerReference2 = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference1)
@@ -1471,28 +1471,43 @@ public class B
             End Property
         End Class
 
-        Private Class ProjectDiagnosticAnalyzer2
-            Inherits ProjectDiagnosticAnalyzer
+        Private Class TestDiagnosticAnalyzer1
+            Inherits TestDiagnosticAnalyzer
 
             Public Sub New(index As Integer)
                 MyBase.New(index)
             End Sub
         End Class
 
-        Private Class ProjectDiagnosticAnalyzer
+        Private Class TestDiagnosticAnalyzer2
+            Inherits TestDiagnosticAnalyzer
+
+            Public Sub New(index As Integer)
+                MyBase.New(index)
+            End Sub
+        End Class
+
+        Private Class TestDiagnosticAnalyzer3
+            Inherits TestDiagnosticAnalyzer
+
+            Public Sub New(index As Integer)
+                MyBase.New(index)
+            End Sub
+        End Class
+
+        Private MustInherit Class TestDiagnosticAnalyzer
             Inherits AbstractDiagnosticAnalyzer
 
-            Private ReadOnly _index As Integer
             Public ReadOnly Descriptor As DiagnosticDescriptor
 
             Public Sub New(index As Integer)
-                Me._index = index
-                Me.Descriptor = New DiagnosticDescriptor("XX000" + index.ToString,
-                                                     "ProjectDiagnosticDescription",
-                                                     "ProjectDiagnosticMessage",
-                                                     "ProjectDiagnosticCategory",
-                                                     DiagnosticSeverity.Warning,
-                                                     isEnabledByDefault:=True)
+                Descriptor = New DiagnosticDescriptor(
+                    "XX000" + index.ToString,
+                    "ProjectDiagnosticDescription",
+                    "ProjectDiagnosticMessage",
+                    "ProjectDiagnosticCategory",
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault:=True)
             End Sub
 
             Public Overrides ReadOnly Property DiagDescriptor As DiagnosticDescriptor
@@ -1501,6 +1516,7 @@ public class B
                 End Get
             End Property
         End Class
+
 
         Private MustInherit Class AbstractDiagnosticAnalyzer
             Inherits DiagnosticAnalyzer
