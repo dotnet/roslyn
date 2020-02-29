@@ -51,6 +51,10 @@ namespace IdeBenchmarks
     </Project>
 </Workspace>");
 
+            // Explicitly choose the sqlite db to test.
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
+
             _storageService = new SQLitePersistentStorageService(
                 _workspace.Services.GetService<IOptionService>(), new LocationService());
 
