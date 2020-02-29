@@ -1678,18 +1678,8 @@ class MyClass
 {
 }";
 
-            await new VerifyCS.Test
-            {
-                TestCode = source,
-                FixedState =
-                {
-                    Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
-                },
-                BatchFixedCode = batchFixedSource,
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-                DiagnosticSelector = fixableDiagnostics => fixableDiagnostics[diagnosticIndex],
-            }.RunAsync();
+            await VerifyCS.VerifyFixOneAndFixBatchAsync(source, fixedSource, batchFixedSource,
+                diagnosticSelector: fixableDiagnostics => fixableDiagnostics[diagnosticIndex]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1831,11 +1821,7 @@ partial class MyClass
     public int M() => _goo;
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { source1, source2 } },
-                FixedState = { Sources = { source1, source2 } },
-            }.RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(sources: (source1, source2), fixedSources: (source1, source2), numberOfFixAllIterations: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -2429,12 +2415,7 @@ static class MyClass3
 {
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { source1, source2 } },
-                FixedState = { Sources = { fixedSource1, fixedSource2 } },
-                NumberOfFixAllInDocumentIterations = 2,
-            }.RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(sources: (source1, source2), fixedSources: (fixedSource1, fixedSource2), numberOfFixAllIterations: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -2458,11 +2439,7 @@ static partial class B
     private static void UsedMethod() { }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { source1, source2 } },
-                FixedState = { Sources = { source1, source2 } },
-            }.RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(sources: (source1, source2), fixedSources: (source1, source2), numberOfFixAllIterations: 0);
         }
 
         [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
