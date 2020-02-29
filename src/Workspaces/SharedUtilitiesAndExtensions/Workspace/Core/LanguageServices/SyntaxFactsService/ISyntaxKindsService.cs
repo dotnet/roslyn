@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have
     /// in common.
     /// </summary>
-    internal partial interface ISyntaxKindsService : ILanguageService
+    internal partial interface ISyntaxKindsService : ISyntaxKinds, ILanguageService
     {
     }
 }

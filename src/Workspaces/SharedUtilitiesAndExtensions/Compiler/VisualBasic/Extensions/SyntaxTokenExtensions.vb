@@ -4,12 +4,23 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SyntaxTokenExtensions
+        <Extension()>
+        Public Function IsKind(token As SyntaxToken, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
+            Return token.Kind = kind1 OrElse
+                   token.Kind = kind2
+        End Function
+
+        <Extension()>
+        Public Function IsKind(token As SyntaxToken, ParamArray kinds As SyntaxKind()) As Boolean
+            Return kinds.Contains(token.Kind)
+        End Function
+
         <Extension()>
         Public Function IsKindOrHasMatchingText(token As SyntaxToken, kind As SyntaxKind) As Boolean
             Return token.Kind = kind OrElse
@@ -197,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
-            Return VisualBasicSyntaxFactsService.Instance.SpansPreprocessorDirective(tokens)
+            Return VisualBasicSyntaxFacts.Instance.SpansPreprocessorDirective(tokens)
         End Function
 
         <Extension()>
@@ -209,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function IsWord(token As SyntaxToken) As Boolean
-            Return VisualBasicSyntaxFactsService.Instance.IsWord(token)
+            Return VisualBasicSyntaxFacts.Instance.IsWord(token)
         End Function
 
         <Extension()>

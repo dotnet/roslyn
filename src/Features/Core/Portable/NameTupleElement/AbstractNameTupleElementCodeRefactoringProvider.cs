@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
-            var (_, argument, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
+            var (_, argument, elementName) = await TryGetArgumentInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             if (elementName == null)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 argument.Span);
         }
 
-        private async Task<(SyntaxNode root, TArgumentSyntax argument, string argumentName)> TryGetArgumentInfo(
+        private async Task<(SyntaxNode root, TArgumentSyntax argument, string argumentName)> TryGetArgumentInfoAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
 
         private async Task<Document> AddNamedElementAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var (root, argument, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
+            var (root, argument, elementName) = await TryGetArgumentInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             var newArgument = WithName(argument, elementName).WithTriviaFrom(argument);
             var newRoot = root.ReplaceNode(argument, newArgument);

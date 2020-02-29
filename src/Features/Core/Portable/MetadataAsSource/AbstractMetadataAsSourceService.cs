@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), symbol),
                 cancellationToken).ConfigureAwait(false);
 
-            document = await RemoveSimplifierAnnotationsFromImports(document, cancellationToken).ConfigureAwait(false);
+            document = await RemoveSimplifierAnnotationsFromImportsAsync(document, cancellationToken).ConfigureAwait(false);
 
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
-            var docWithDocComments = await ConvertDocCommentsToRegularComments(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
+            var docWithDocComments = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
             var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
             var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// 
         /// To fix this we remove these annotations.
         /// </summary>
-        private static async Task<Document> RemoveSimplifierAnnotationsFromImports(Document document, CancellationToken cancellationToken)
+        private static async Task<Document> RemoveSimplifierAnnotationsFromImportsAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <returns>The updated document</returns>
         protected abstract Task<Document> AddAssemblyInfoRegionAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken);
 
-        protected abstract Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
+        protected abstract Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
 
         protected abstract ImmutableArray<AbstractReducer> GetReducers();
 

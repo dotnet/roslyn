@@ -93,7 +93,7 @@ namespace IdeBenchmarks
         private static readonly byte[] s_bytes = new byte[1000];
 
         [Benchmark(Baseline = true)]
-        public Task Perf()
+        public Task PerfAsync()
         {
             var tasks = new List<Task>();
 

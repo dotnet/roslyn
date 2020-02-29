@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,12 +16,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal abstract class AbstractSyntaxFactsService
+    internal abstract class AbstractSyntaxFacts
     {
         private readonly static ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
             = SharedPools.Default<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>();
 
-        public abstract ISyntaxKindsService SyntaxKinds { get; }
+        public abstract ISyntaxKinds SyntaxKinds { get; }
 
         // Matches the following:
         //
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // <start-of-file> (whitespace* (single-comment|multi-comment) whitespace* newline)+ blankLine*
         private readonly Matcher<SyntaxTrivia> _fileBannerMatcher;
 
-        protected AbstractSyntaxFactsService()
+        protected AbstractSyntaxFacts()
         {
             var whitespace = Matcher.Repeat(
                 Matcher.Single<SyntaxTrivia>(IsWhitespaceTrivia, "\\b"));

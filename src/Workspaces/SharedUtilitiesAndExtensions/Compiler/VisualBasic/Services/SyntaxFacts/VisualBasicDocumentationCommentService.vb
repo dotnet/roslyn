@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     Friend Class VisualBasicDocumentationCommentService
         Inherits AbstractDocumentationCommentService(Of
             DocumentationCommentTriviaSyntax,
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared ReadOnly Instance As New VisualBasicDocumentationCommentService()
 
         Private Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance)
+            MyBase.New(VisualBasicSyntaxFacts.Instance)
         End Sub
 
         Protected Overrides Function GetIdentifier(xmlName As XmlNameAttributeSyntax) As SyntaxToken

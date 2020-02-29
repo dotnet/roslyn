@@ -249,8 +249,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 return itemsForCurrentDocument;
             }
 
-            var relatedDocumentsAndItems = await GetItemsForRelatedDocuments(document, relatedDocuments, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-            var candidateLinkedProjectsAndSymbolSets = await ExtractSymbolsFromRelatedItems(position, relatedDocumentsAndItems, cancellationToken).ConfigureAwait(false);
+            var relatedDocumentsAndItems = await GetItemsForRelatedDocumentsAsync(document, relatedDocuments, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+            var candidateLinkedProjectsAndSymbolSets = await ExtractSymbolsFromRelatedItemsAsync(position, relatedDocumentsAndItems, cancellationToken).ConfigureAwait(false);
 
             var totalProjects = candidateLinkedProjectsAndSymbolSets.Select(c => c.Item1).Concat(document.Project.Id);
 
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 itemsForCurrentDocument.SelectedItemIndex);
         }
 
-        private async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItems(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
+        private async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItemsAsync(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
         {
             var resultSets = new List<Tuple<ProjectId, ISet<ISymbol>>>();
             foreach (var related in relatedDocuments)
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return item;
         }
 
-        protected async Task<List<Tuple<Document, IEnumerable<SignatureHelpItem>>>> GetItemsForRelatedDocuments(Document document, IEnumerable<DocumentId> relatedDocuments, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected async Task<List<Tuple<Document, IEnumerable<SignatureHelpItem>>>> GetItemsForRelatedDocumentsAsync(Document document, IEnumerable<DocumentId> relatedDocuments, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             var supportedPlatforms = new List<Tuple<Document, IEnumerable<SignatureHelpItem>>>();
             foreach (var relatedDocumentId in relatedDocuments)
