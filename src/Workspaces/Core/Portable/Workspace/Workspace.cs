@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -194,6 +195,43 @@ namespace Microsoft.CodeAnalysis
                 if (replacedSolution == currentSolution)
                 {
                     return newSolution;
+                }
+
+                currentSolution = replacedSolution;
+            }
+        }
+
+        /// <summary>
+        /// Applies specified transformation to <see cref="CurrentSolution"/> and updates <see cref="CurrentSolution"/> to the new value.
+        /// </summary>
+        /// <param name="transformation">Solution transformation.</param>
+        /// <param name="oldSolution">Previous instance of the solution.</param>
+        /// <param name="newSolution">Transformed instance of the solution with updated <see cref="Solution.WorkspaceVersion"/>.</param>
+        /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the transformation did not change the solution.</returns>
+        protected bool SetCurrentSolution(Func<Solution, Solution> transformation, out Solution oldSolution, out Solution newSolution)
+        {
+            if (transformation == null)
+            {
+                throw new ArgumentNullException(nameof(transformation));
+            }
+
+            var currentSolution = Volatile.Read(ref _latestSolution);
+
+            while (true)
+            {
+                var transformedSolution = transformation(currentSolution);
+                if (transformedSolution == currentSolution)
+                {
+                    oldSolution = newSolution = currentSolution;
+                    return false;
+                }
+
+                newSolution = transformedSolution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
+                var replacedSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
+                if (replacedSolution == currentSolution)
+                {
+                    oldSolution = replacedSolution;
+                    return true;
                 }
 
                 currentSolution = replacedSolution;
@@ -483,16 +521,11 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private void HandleProjectChange(ProjectId projectId, Func<Solution, Solution> getSolutionWithChangedProject)
+        private void HandleProjectChange(ProjectId projectId, Func<Solution, Solution> solutionTransformation)
         {
-            using (_serializationLock.DisposableWait())
+            if (SetCurrentSolution(solutionTransformation, out var oldSolution, out var newSolution))
             {
-                CheckProjectIsInCurrentSolution(projectId);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(getSolutionWithChangedProject(oldSolution));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
         }
 

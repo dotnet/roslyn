@@ -7,6 +7,7 @@ Microsoft.CodeAnalysis.Solution.RemoveAdditionalDocuments(System.Collections.Imm
 Microsoft.CodeAnalysis.Solution.RemoveAnalyzerConfigDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.RemoveDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithOptions(Microsoft.CodeAnalysis.Options.OptionSet options) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Workspace.SetCurrentSolution(System.Func<Microsoft.CodeAnalysis.Solution, Microsoft.CodeAnalysis.Solution> transformation, out Microsoft.CodeAnalysis.Solution oldSolution, out Microsoft.CodeAnalysis.Solution newSolution) -> bool
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConditionalAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode whenNotNull) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ElementBindingExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> arguments) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberBindingExpression(Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
