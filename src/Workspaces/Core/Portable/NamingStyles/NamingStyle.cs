@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             string resourceId, out string reason)
         {
             reason = null;
-            var violations = ArrayBuilder<string>.GetInstance();
+            using var _ = ArrayBuilder<string>.GetInstance(out var violations);
 
             foreach (var wordSpan in GetWordSpans(name, nameSpan))
             {
@@ -230,8 +230,6 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             {
                 reason = string.Format(resourceId, string.Join(", ", violations));
             }
-
-            violations.Free();
 
             return reason == null;
         }
@@ -260,7 +258,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             out string reason)
         {
             reason = null;
-            var violations = ArrayBuilder<string>.GetInstance();
+            using var _ = ArrayBuilder<string>.GetInstance(out var violations);
 
             var first = true;
 
@@ -292,7 +290,6 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                     : reason + Environment.NewLine + restString;
             }
 
-            violations.Free();
             return reason == null;
         }
 

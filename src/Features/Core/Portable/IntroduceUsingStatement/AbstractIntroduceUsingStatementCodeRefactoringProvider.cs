@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 .ToImmutableArray();
 
             // List of local variables that will be in the order they are declared.
-            var localVariables = ArrayBuilder<ISymbol>.GetInstance();
+            using var _0 = ArrayBuilder<ISymbol>.GetInstance(out var localVariables);
 
             // Map a symbol to an index into the statementsFromDeclarationToEnd array.
             using var _1 = PooledDictionary<ISymbol, int>.GetInstance(out var variableDeclarationIndex);
@@ -281,8 +281,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 // usage.
                 endOfUsingStatementIndex = Math.Max(endOfUsingStatementIndex, lastVariableUsageIndex[localSymbol]);
             }
-
-            localVariables.Free();
 
             return statementsFromDeclarationToEnd[endOfUsingStatementIndex];
         }

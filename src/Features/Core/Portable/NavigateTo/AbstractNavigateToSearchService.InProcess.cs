@@ -55,36 +55,28 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             using (nameMatcher)
             using (containerMatcherOpt)
             {
-                var nameMatches = ArrayBuilder<PatternMatch>.GetInstance();
-                var containerMatches = ArrayBuilder<PatternMatch>.GetInstance();
+                using var _1 = ArrayBuilder<PatternMatch>.GetInstance(out var nameMatches);
+                using var _2 = ArrayBuilder<PatternMatch>.GetInstance(out var containerMatches);
 
-                try
-                {
-                    var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+                var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-                    // If we're searching a single document, then just do a full search of 
-                    // that document (we're fast enough to not need to optimize that case).
-                    //
-                    // If, however, we are searching a project, then see if we could potentially
-                    // use the last computed results we have for that project.  If so, it can
-                    // be much faster to reuse and filter that result than to compute it from
-                    // scratch.
+                // If we're searching a single document, then just do a full search of 
+                // that document (we're fast enough to not need to optimize that case).
+                //
+                // If, however, we are searching a project, then see if we could potentially
+                // use the last computed results we have for that project.  If so, it can
+                // be much faster to reuse and filter that result than to compute it from
+                // scratch.
 #if true
-                    var task = searchDocument != null
-                        ? ComputeSearchResultsAsync(project, priorityDocuments, searchDocument, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken)
-                        : TryFilterPreviousSearchResultsAsync(project, priorityDocuments, searchDocument, pattern, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken);
+                var task = searchDocument != null
+                    ? ComputeSearchResultsAsync(project, priorityDocuments, searchDocument, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken)
+                    : TryFilterPreviousSearchResultsAsync(project, priorityDocuments, searchDocument, pattern, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken);
 #else
-                    var task = ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken);
+                var task = ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken);
 #endif
 
-                    var searchResults = await task.ConfigureAwait(false);
-                    return ImmutableArray<INavigateToSearchResult>.CastUp(searchResults);
-                }
-                finally
-                {
-                    nameMatches.Free();
-                    containerMatches.Free();
-                }
+                var searchResults = await task.ConfigureAwait(false);
+                return ImmutableArray<INavigateToSearchResult>.CastUp(searchResults);
             }
         }
 

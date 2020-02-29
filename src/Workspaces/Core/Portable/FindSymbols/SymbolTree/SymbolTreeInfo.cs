@@ -506,24 +506,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             else
             {
-                var containerSymbols = ArrayBuilder<ISymbol>.GetInstance();
-                try
-                {
-                    Bind(node.ParentIndex, rootContainer, containerSymbols, cancellationToken);
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var containerSymbols);
 
-                    foreach (var containerSymbol in containerSymbols)
+                Bind(node.ParentIndex, rootContainer, containerSymbols, cancellationToken);
+
+                foreach (var containerSymbol in containerSymbols)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (containerSymbol is INamespaceOrTypeSymbol nsOrType)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        if (containerSymbol is INamespaceOrTypeSymbol nsOrType)
-                        {
-                            results.AddRange(nsOrType.GetMembers(GetName(node)));
-                        }
+                        results.AddRange(nsOrType.GetMembers(GetName(node)));
                     }
-                }
-                finally
-                {
-                    containerSymbols.Free();
                 }
             }
         }
@@ -621,24 +615,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var derivedTypeIndices = _inheritanceMap[baseTypeNameIndex];
 
             var builder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var tempBuilder);
 
             foreach (var derivedTypeIndex in derivedTypeIndices)
             {
-                var tempBuilder = ArrayBuilder<ISymbol>.GetInstance();
-                try
+                tempBuilder.Clear();
+
+                Bind(derivedTypeIndex, compilation.GlobalNamespace, tempBuilder, cancellationToken);
+                foreach (var symbol in tempBuilder)
                 {
-                    Bind(derivedTypeIndex, compilation.GlobalNamespace, tempBuilder, cancellationToken);
-                    foreach (var symbol in tempBuilder)
+                    if (symbol is INamedTypeSymbol namedType)
                     {
-                        if (symbol is INamedTypeSymbol namedType)
-                        {
-                            builder.Add(namedType);
-                        }
+                        builder.Add(namedType);
                     }
-                }
-                finally
-                {
-                    tempBuilder.Free();
                 }
             }
 

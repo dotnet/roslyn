@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
             Debug.Assert(updatedMethods.Count == 0);
 
-            var updatedTrackingSpans = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance();
+            using var _ = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance(out var updatedTrackingSpans);
 
             for (var i = 0; i < script.Edits.Length; i++)
             {
@@ -665,8 +665,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 trackingService!.UpdateActiveStatementSpans(newText, updatedTrackingSpans);
             }
-
-            updatedTrackingSpans.Free();
         }
 
         private void UpdateUneditedSpans(
@@ -796,7 +794,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(newExceptionRegions == null || oldActiveStatements.Length == newExceptionRegions.Length);
 
-            var updatedTrackingSpans = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance();
+            using var _ = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance(out var updatedTrackingSpans);
 
             // Active statements in methods that were not updated 
             // are not changed but their spans might have been. 
@@ -842,8 +840,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 trackingService!.UpdateActiveStatementSpans(newText, updatedTrackingSpans);
             }
-
-            updatedTrackingSpans.Free();
         }
 
         internal readonly struct ActiveNode
