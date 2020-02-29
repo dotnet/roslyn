@@ -51,5 +51,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             ' No throw expression preference option is defined for VB because it doesn't support throw expressions.
             Return False
         End Function
+
+        Protected Overrides Function CreateInterpolatedStringStartToken() As SyntaxToken
+            Return SyntaxFactory.Token(SyntaxKind.DollarSignDoubleQuoteToken)
+        End Function
+
+        Protected Overrides Function CreateInterpolatedStringEndToken() As SyntaxToken
+            Return SyntaxFactory.Token(SyntaxKind.DoubleQuoteToken)
+        End Function
     End Class
 End Namespace
