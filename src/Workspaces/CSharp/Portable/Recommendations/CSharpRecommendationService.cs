@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         {
         }
 
-        protected override Task<CSharpSyntaxContext> CreateContext(
+        protected override Task<CSharpSyntaxContext> CreateContextAsync(
             Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             => Task.FromResult(CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken));
 

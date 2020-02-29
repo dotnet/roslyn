@@ -10,5 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCodeFixesResources.resx" GenerateSource="true" Link="VisualBasicCodeFixesResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)VisualBasicCodeFixesResources.resx" />
   </ItemGroup>
 </Project>
