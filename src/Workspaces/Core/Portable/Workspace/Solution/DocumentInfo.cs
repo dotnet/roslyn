@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
 
         // TODO: https://github.com/dotnet/roslyn/issues/35079
         // Used by Razor: https://github.com/dotnet/aspnetcore-tooling/blob/master/src/Razor/src/Microsoft.VisualStudio.Editor.Razor/DefaultVisualStudioMacDocumentInfoFactory.cs#L38
-        [Obsolete]
+        [Obsolete("This is a compatibility shim for Razor; please do not use it.")]
         internal static DocumentInfo Create(
             DocumentId id,
             string name,
