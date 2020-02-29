@@ -68,13 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration);
+            var option = options.GetOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 // Don't bother doing any work if the user doesn't even have this preference set.

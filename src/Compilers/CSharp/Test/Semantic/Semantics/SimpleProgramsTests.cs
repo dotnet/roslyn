@@ -2457,15 +2457,9 @@ localI();
                 // (15,1): error CS0103: The name 'localG' does not exist in the current context
                 // localG();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localG").WithArguments("localG").WithLocation(15, 1),
-                // (16,13): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (16,13): error CS0179: 'localH()' cannot be extern and declare a body
                 // extern void localH() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localH").WithLocation(16, 13),
-                // (16,13): error CS0179: '<invalid-global-code>.localH()' cannot be extern and declare a body
-                // extern void localH() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "localH").WithArguments("<invalid-global-code>.localH()").WithLocation(16, 13),
-                // (17,1): error CS0103: The name 'localH' does not exist in the current context
-                // localH();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "localH").WithArguments("localH").WithLocation(17, 1),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "localH").WithArguments("localH()").WithLocation(16, 13),
                 // (19,6): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // void localI() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localI").WithLocation(19, 6),

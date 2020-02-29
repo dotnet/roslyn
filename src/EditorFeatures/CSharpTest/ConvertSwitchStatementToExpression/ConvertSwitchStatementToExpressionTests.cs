@@ -4,36 +4,35 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementToExpression
 {
-    public partial class ConvertSwitchStatementToExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class ConvertSwitchStatementToExpressionTests
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new ConvertSwitchStatementToExpressionDiagnosticAnalyzer(), new ConvertSwitchStatementToExpressionCodeFixProvider());
-
-        private Task TestInCSharp8(string actual, string expected)
-            => TestInRegularAndScriptAsync(actual, expected, parseOptions: TestOptions.Regular8);
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public void TestStandardProperties()
+            => VerifyCS.VerifyStandardProperties();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestReturn()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     int M(int i)
     {
-        [||]switch (i)
+        [|switch|] (i)
         {
             case 1:
                 return 4;
@@ -64,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestReturnAndThrow()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     int M(int i)
     {
-        [||]switch (i)
+        [|switch|] (i)
         {
             case 1:
                 return 4;
@@ -100,14 +99,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAssignment_Array()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     int[] array = new int[1];
 
-    int M(int i)
+    void M(int i)
     {
-        [||]switch (i)
+        [|switch|] (i)
         {
             case 1:
                 array[0] = 4;
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 {
     int[] array = new int[1];
 
-    int M(int i)
+    void M(int i)
     {
         array[0] = i switch
         {
@@ -144,14 +143,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnDifferentIndexerArgs()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     int[] array = new int[1];
 
-    int M(int i)
+    void M(int i)
     {
-        [||]switch (i)
+        switch (i)
         {
             case 1:
                 array[1] = 4;
@@ -167,20 +165,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 break;
         }
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnQualifiedName()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     int[] array = new int[1];
 
-    int M(int i)
+    void M(int i)
     {
-        [||]switch (i)
+        switch (i)
         {
             case 1:
                 this.array[2] = 4;
@@ -196,86 +195,91 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 break;
         }
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnDefaultBreak_01()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     void M(int i)
     {
-        [||]switch (i)
+        switch (i)
         {
             default:
                 break;
         }
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnDefaultBreak_02()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     void M(int i)
     {
-        [||]switch (i)
+        switch (i)
         {
-            case _:
+            case { }:
                 break;
         }
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnDefaultBreak_03()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     void M(int i)
     {
-        [||]switch (i)
+        switch (i)
         {
             case var _:
                 break;
         }
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnDefaultBreak_04()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     void M(int i)
     {
-        [||]switch (i)
+        switch (i)
         {
             case var x:
                 break;
         }
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnAllBreak()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     void M(int i)
     {
-        [||]switch (i)
+        switch (i)
         {
             case 1:
                 break;
@@ -285,18 +289,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 break;
         }
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAllThrow()
         {
-            await TestInCSharp8(
-@"class Program
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+class Program
 {
     void M(int i)
     {
-        [||]switch (i)
+        [|switch|] (i)
         {
             case 1:
                 throw null;
@@ -305,7 +312,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
     }
 }",
-@"class Program
+@"using System;
+class Program
 {
     void M(int i)
     {
@@ -321,13 +329,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAssignment()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     void M(int i)
     {
         int j;
-        [||]switch (i)
+        [|switch|] (i)
         {
             case 1:
                 j = 4;
@@ -360,13 +368,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnNextStatementMismatch()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     int M(int i)
     {
         int j = 0;
-        [||]switch (i)
+        switch (i)
         {
             case 1:
                 j = 4;
@@ -380,19 +387,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
         return j;
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnAssignmentMismatch()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     int M(int i)
     {
         int j = 0;
-        [||]switch (i)
+        switch (i)
         {
             case 1:
                 j = 4;
@@ -403,19 +411,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
         return j;
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAssignment_Compound()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     void M(int i)
     {
         int j = 0;
-        [||]switch (i)
+        [|switch|] (i)
         {
             case 1:
                 j += 4;
@@ -449,14 +459,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAssignment_UseBeforeAssignment()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     void M(int i)
     {
         int j = 123;
         M(i);
-        [||]switch (i)
+        [|switch|] (i)
         {
             case 1:
                 j = 4;
@@ -491,13 +501,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnMultiAssignment()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     void M(int i)
     {
         int j, k;
-        [||]switch (i)
+        switch (i)
         {
             case 1:
                 j = 4;
@@ -514,19 +523,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
         throw null;
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingONMultiCaseSection()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     void M(int i)
     {
         int j;
-        [||]switch (i)
+        switch (i)
         {
             case 1:
             case 2:
@@ -535,19 +545,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
         throw null;
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnMultiCompoundAssignment()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     void M(int i)
     {
         int j = 0, k = 0;
-        [||]switch (i)
+        switch (i)
         {
             case 1:
                 j += 4;
@@ -564,18 +575,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
         throw null;
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnGoto()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     int M(int i)
     {
-        [||]switch (i)
+        switch (i)
         {
             case 1:
                 return 0;
@@ -585,19 +597,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 return 2;
         }
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestTrivia_01()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     int M(int i)
     {
         // leading switch
-        [||]switch (i) // trailing switch
+        [|switch|] (i) // trailing switch
         {
             // leading label
             case 1: // trailing label
@@ -637,12 +651,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestTrivia_02()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     static int GetValue(int input)
     {
-        [||]switch (input)
+        [|switch|] (input)
         {
             case 1:
                 // this little piggy went to market
@@ -683,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 {
     int M(int i)
     {
-        [||]switch (i)
+        switch (i)
         {
             case 1:
                 return 4;
@@ -696,27 +710,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
     }
 }";
-            var warningOption = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-            var options = Option(CSharpCodeStyleOptions.PreferSwitchExpression, warningOption);
-            var testParameters = new TestParameters(options: options, parseOptions: TestOptions.Regular8);
 
-            using var workspace = CreateWorkspaceFromOptions(source, testParameters);
-            var diag = (await GetDiagnosticsAsync(workspace, testParameters)).Single();
-            Assert.Equal(DiagnosticSeverity.Warning, diag.Severity);
-            Assert.Equal(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId, diag.Id);
+            var analyzer = new ConvertSwitchStatementToExpressionDiagnosticAnalyzer();
+            var descriptor = analyzer.SupportedDiagnostics.First(descriptor => descriptor.Id == IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                ExpectedDiagnostics =
+                {
+                    // Test0.cs(5,9): warning IDE0066: Use 'switch' expression
+                    new DiagnosticResult(descriptor).WithSeverity(DiagnosticSeverity.Warning).WithSpan(5, 9, 5, 15).WithSpan(5, 9, 15, 10),
+                },
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferSwitchExpression, true, NotificationOption.Warning },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         [WorkItem(36995, "https://github.com/dotnet/roslyn/issues/36995")]
         public async Task TestAddParenthesesAroundBinaryExpression()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     void M(int i)
     {
         int j = 123;
-        [||]switch (i % 10)
+        [|switch|] (i % 10)
         {
             case 1:
                 j = 4;
@@ -747,14 +769,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMultiLabelWithDefault()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 
 class Program
 {
     public static string FromDay(DayOfWeek dayOfWeek)
     {
-        [||]switch (dayOfWeek)
+        [|switch|] (dayOfWeek)
         {
             case DayOfWeek.Monday:
                 return ""Monday"";
@@ -783,29 +805,30 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnUseInNextStatement()
         {
-            await TestMissingAsync(
-@"using System;
+            var code = @"using System;
 
 class Program
 {
     public static void Throw(int index)
     {
         string name = """";
-        [||]switch (index)
+        switch (index)
         {
             case 0: name = ""1""; break;
             case 1: name = ""2""; break;
         }
         throw new Exception(name);
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [WorkItem(36876, "https://github.com/dotnet/roslyn/issues/36876")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestDeclarationInOuterScope()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.IO;
 
@@ -820,7 +843,7 @@ class Program
         long target;
         try
         {
-            [||]switch (origin)
+            [|switch|] (origin)
             {
                 case SeekOrigin.Begin:
                     target = offset;
@@ -888,14 +911,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnDirectives()
         {
-            await TestMissingAsync(
-@"class Program
+            var code = @"class Program
 {
     static void Main() { }
 
     static int GetValue(int input)
     {
-        [||]switch (input)
+        switch (input)
         {
             case 1:
                 return 42;
@@ -911,19 +933,21 @@ class Program
                 return 80;
         }
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestShouldNotCastNullOnNullableValueType_ReturnStatement()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     public static bool? GetBool(string name)
     {
-        [||]switch (name)
+        [|switch|] (name)
         {
             case ""a"": return true;
             case ""b"": return false;
@@ -949,13 +973,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestShouldNotCastNullOnNullableValueType_Assignment()
         {
-            await TestInCSharp8(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class Program
 {
     public static void Test(string name)
     {
         bool? result;
-        [||]switch (name)
+        [|switch|] (name)
         {
             case ""a"": result = true; break;
             case ""b"": result = false; break;
@@ -997,7 +1021,7 @@ class Program
     public static void Test(string name)
     {
         IFruit2 fruit;
-        [||]switch (name)
+        [|switch|] (name)
         {
             case ""apple"":
                 fruit = new Apple();
@@ -1033,7 +1057,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
@@ -1056,7 +1089,7 @@ class Program
     public static void Test(string name)
     {
         IFruit2 fruit;
-        [||]switch (name)
+        [|switch|] (name)
         {
             case ""banana"":
                 fruit = new Banana();
@@ -1092,7 +1125,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
@@ -1115,7 +1157,7 @@ class Program
     public static void Test(string name)
     {
         IFruit2 fruit;
-        [||]switch (name)
+        [|switch|] (name)
         {
             case ""apple"":
                 fruit = new Apple();
@@ -1151,7 +1193,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
@@ -1178,7 +1229,7 @@ class Program
     public static void Test(string name)
     {
         IFruit2 fruit;
-        [||]switch (name)
+        [|switch|] (name)
         {
             case ""apple"":
                 fruit = new OrganicApple();
@@ -1218,7 +1269,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
@@ -1241,7 +1301,7 @@ class Program
     public static void Test(string name)
     {
         IFruit2 fruit;
-        [||]switch (name)
+        [|switch|] (name)
         {
             case ""banana"":
                 fruit = new Banana();
@@ -1277,7 +1337,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
@@ -1300,7 +1369,7 @@ class Program
     public static void Test(string name)
     {
         Banana fruit;
-        [||]switch (name)
+        [|switch|] (name)
         {
             case ""banana"":
                 fruit = new Banana();
@@ -1336,7 +1405,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
@@ -1359,7 +1437,7 @@ class Program
     public static void Test(string name)
     {
         Banana fruit;
-        [||]switch (name)
+        [|switch|] (name)
         {
             case ""banana"":
                 fruit = new Banana();
@@ -1395,7 +1473,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
@@ -1409,7 +1496,7 @@ class Program
     {
         var a = 0;
         object o;
-        [||]switch (a)
+        [|switch|] (a)
         {
             case 0:
                 o = default;
@@ -1433,7 +1520,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
@@ -1446,7 +1542,7 @@ class Program
     {
         var a = 0;
         object o;
-        [||]switch (a)
+        [|switch|] (a)
         {
             case 0:
                 o = default(string);
@@ -1469,7 +1565,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
@@ -1482,7 +1587,7 @@ class Program
     {
         var a = 0;
         object o;
-        [||]switch (a)
+        [|switch|] (a)
         {
             case 0:
                 o = default(object);
@@ -1506,7 +1611,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
@@ -1519,7 +1633,7 @@ class Program
     {
         var a = 0;
         object o;
-        [||]switch (a)
+        [|switch|] (a)
         {
             case 0:
                 o = default(object);
@@ -1543,7 +1657,16 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.FalseWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, false, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
@@ -1556,7 +1679,7 @@ class Program
     {
         var a = 0;
         object o;
-        [||]switch (a)
+        [|switch|] (a)
         {
             case 0:
                 o = """";
@@ -1580,39 +1703,50 @@ class Program
         };
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption.Silent },
+                },
+            }.RunAsync();
         }
 
         [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNotWithRefReturns()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class Program
+            var code = @"using System;
+class Program
 {
     static ref int GetRef(int[] mem, int addr, int mode)
     {
-        [||]switch (mode)
+        switch (mode)
         {
             case 0: return ref mem[mem[addr]];
             case 1: return ref mem[addr];
             default: throw new Exception();
         }
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNotWithRefAssignment()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class Program
+            var code = @"using System;
+class Program
 {
     static ref int GetRef(int[] mem, int addr, int mode)
     {
         ref int i = ref addr;
-        [||]switch (mode)
+        switch (mode)
         {
             case 0: i = ref mem[mem[addr]]; break;
             default: throw new Exception();
@@ -1620,20 +1754,22 @@ class Program
 
         return ref mem[addr];
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNotWithRefConditionalAssignment()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class Program
+            var code = @"using System;
+class Program
 {
     static ref int GetRef(int[] mem, int addr, int mode)
     {
         ref int i = ref addr;
-        [||]switch (mode)
+        switch (mode)
         {
             case 0: i = ref true ? ref mem[mem[addr]] : ref mem[mem[addr]]; break;
             default: throw new Exception();
@@ -1641,27 +1777,31 @@ class Program
 
         return ref mem[addr];
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestWithRefInsideConditionalAssignment()
         {
-            await TestInRegularAndScript1Async(
-@"class Program
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+class Program
 {
     static void GetRef(int[] mem, int addr, int mode)
     {
         ref int i = ref addr;
-        [||]switch (mode)
+        [|switch|] (mode)
         {
             case 0: i = true ? ref mem[mem[addr]] : ref mem[mem[addr]]; break;
             default: throw new Exception();
         }
     }
 }",
-@"class Program
+@"using System;
+class Program
 {
     static void GetRef(int[] mem, int addr, int mode)
     {

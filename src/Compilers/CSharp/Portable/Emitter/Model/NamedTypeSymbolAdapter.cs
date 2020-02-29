@@ -947,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var modifiers = arguments[i].CustomModifiers;
                 if (!modifiers.IsDefaultOrEmpty)
                 {
-                    arg = new Cci.ModifiedTypeReference(arg, modifiers.As<Cci.ICustomModifier>());
+                    arg = new Cci.ModifiedTypeReference(arg, ImmutableArray<Cci.ICustomModifier>.CastUp(modifiers));
                 }
 
                 builder.Add(arg);

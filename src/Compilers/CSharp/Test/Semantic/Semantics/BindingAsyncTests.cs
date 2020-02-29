@@ -3194,10 +3194,7 @@ class Test
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (9,9): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or lambda expressions
                 //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference"),
-                // (9,13): warning CS0219: The variable 'tr' is assigned but its value is never used
-                //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tr").WithArguments("tr"));
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference"));
         }
 
         [Fact]

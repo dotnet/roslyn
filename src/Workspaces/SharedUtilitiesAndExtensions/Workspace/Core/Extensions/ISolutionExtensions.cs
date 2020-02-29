@@ -9,12 +9,6 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-#if CODE_STYLE
-    using Resources = CodeStyleFixesResources;
-#else
-    using Resources = WorkspacesResources;
-#endif
-
     internal static partial class ISolutionExtensions
     {
         public static IEnumerable<DocumentId> GetChangedDocuments(this Solution? newSolution, Solution oldSolution)
@@ -46,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var project = solution.GetProject(projectId);
             if (project == null)
             {
-                throw new InvalidOperationException(string.Format(Resources.Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution, projectId));
+                throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution, projectId));
             }
 
             return project;
@@ -57,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var document = solution.GetDocument(documentId);
             if (document == null)
             {
-                throw new InvalidOperationException(Resources.The_solution_does_not_contain_the_specified_document);
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
             }
 
             return document;

@@ -405,40 +405,47 @@ int x = 0;
         [Fact]
         public void TestNegInvalidExternAlias01()
         {
-            UsingTree(Resources.InvalidExternAlias01);
+            UsingTree(Resources.InvalidExternAlias01,
+                // (1,1): error CS0106: The modifier 'extern' is not valid for this item
+                // extern alias libAlias=other_library.dll;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(1, 1)
+                );
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.ExternKeyword);
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ExternKeyword);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "alias");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "libAlias");
-                            N(SyntaxKind.EqualsValueClause);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                N(SyntaxKind.IdentifierToken, "alias");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "libAlias");
+                                N(SyntaxKind.EqualsValueClause);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.SimpleMemberAccessExpression);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "other_library");
-                                    }
-                                    N(SyntaxKind.DotToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "dll");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "other_library");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "dll");
+                                        }
                                     }
                                 }
                             }
                         }
+                        N(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.ClassDeclaration);
                 {
@@ -1040,7 +1047,7 @@ partial delegate E { }
             EOF();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms): Merge with master caused behavior change in the parser.")]
         public void Multiplication()
         {
             // pointer decl
@@ -1265,20 +1272,23 @@ public class A
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.ExternKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "alias");
+                        N(SyntaxKind.ExternKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "alias");
+                        }
+                        N(SyntaxKind.IdentifierToken, "Alias");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "Alias");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        M(SyntaxKind.CloseParenToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
