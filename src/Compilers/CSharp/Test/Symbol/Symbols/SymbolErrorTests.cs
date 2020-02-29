@@ -17486,14 +17486,12 @@ class C
     [A] extern event D E2;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,20): warning CS0626: Method, operator, or accessor 'C.E1.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E1").WithArguments("C.E1.add").WithLocation(5, 20),
                 // (5,20): warning CS0626: Method, operator, or accessor 'C.E1.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event D E1;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E1").WithArguments("C.E1.remove").WithLocation(5, 20),
-                // (6,24): warning CS0626: Method, operator, or accessor 'C.E2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E2").WithArguments("C.E2.add").WithLocation(6, 24), // #15802
-                                                                                                                            // (6,24): warning CS0626: Method, operator, or accessor 'C.E2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E2").WithArguments("C.E2.remove").WithLocation(6, 24)); // #15802
+                // (6,24): warning CS0626: Method, operator, or accessor 'C.E2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     [A] extern event D E2;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E2").WithArguments("C.E2.remove").WithLocation(6, 24));
         }
 
         [Fact]

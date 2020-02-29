@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.Suppressions.SetEquals(other.Suppressions);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as ProgrammaticSuppressionInfo);
         }

@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.NameTupleElement
         {
         }
 
-        protected override bool IsCloseParenOrComma(SyntaxToken token)
-            => token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken);
-
         protected override ArgumentSyntax WithName(ArgumentSyntax argument, string argumentName)
             => argument.WithNameColon(SyntaxFactory.NameColon(argumentName.ToIdentifierName()));
     }

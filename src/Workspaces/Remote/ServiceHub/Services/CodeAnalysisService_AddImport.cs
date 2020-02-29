@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteAddImportFeatureService
     {
         public Task<IList<AddImportFixData>> GetFixesAsync(
-            DocumentId documentId, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var service = document.GetLanguageService<IAddImportFeatureService>();

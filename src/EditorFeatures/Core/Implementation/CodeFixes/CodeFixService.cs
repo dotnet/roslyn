@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (result.Count > 0)
             {
                 // sort the result to the order defined by the fixers
-                var priorityMap = _fixerPriorityMap[document.Project.Language].Value;
+                ImmutableDictionary<CodeFixProvider, int> priorityMap = _fixerPriorityMap[document.Project.Language].Value;
                 result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
 
                 int GetValue(CodeFixCollection c)
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var fixAllService = document.Project.Solution.Workspace.Services.GetRequiredService<IFixAllGetFixesService>();
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                fixCollection.FixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
+                new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
 
             return solution.GetDocument(document.Id) ?? throw new NotSupportedException(EditorFeaturesResources.Removal_of_document_not_supported);
         }

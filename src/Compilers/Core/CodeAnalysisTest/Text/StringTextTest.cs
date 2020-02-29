@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Assert.Throws<ArgumentNullException>(() => SourceText.From((Stream)null, Encoding.UTF8));
             Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: false, canSeek: true), Encoding.UTF8));
-            Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: true, canSeek: false), Encoding.UTF8));
+            Assert.Throws<NotImplementedException>(() => SourceText.From(new TestStream(canRead: true, canSeek: false), Encoding.UTF8));
         }
 
         [Fact]

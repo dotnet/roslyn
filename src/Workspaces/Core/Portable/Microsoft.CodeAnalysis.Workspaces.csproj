@@ -8,6 +8,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
     <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -26,221 +27,6 @@
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Remove="Storage\Sqlite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
-    <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\FixAllContextHelper.cs" Link="CodeFixes\FixAllOccurrences\FixAllContextHelper.cs" />
-    <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
-      <Link>Execution\Desktop\DesktopAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
-      <Link>Collections\ArrayBuilderExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\BitVector.cs">
-      <Link>InternalUtilities\BitVector.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\Boxes.cs">
-      <Link>InternalUtilities\Boxes.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs">
-      <Link>InternalUtilities\ImmutableArrayExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\OrderPreservingMultiDictionary.cs">
-      <Link>Utilities\CompilerUtilities\OrderPreservingMultiDictionary.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs">
-      <Link>InternalUtilities\AnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
-      <Link>InternalUtilities\EncodedStringText.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
-      <Link>InternalUtilities\RelativePathResolver.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\AssemblyIdentityUtils.cs">
-      <Link>InternalUtilities\AssemblyIdentityUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\BitArithmeticUtilities.cs">
-      <Link>InternalUtilities\BitArithmeticUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ArrayExtensions.cs">
-      <Link>InternalUtilities\ArrayExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerOptionParseUtilities.cs">
-      <Link>InternalUtilities\CompilerOptionParseUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentSet.cs">
-      <Link>InternalUtilities\ConcurrentSet.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConsList`1.cs">
-      <Link>InternalUtilities\ConsList`1.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs">
-      <Link>InternalUtilities\Debug.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DecimalUtilities.cs">
-      <Link>InternalUtilities\DecimalUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentXmlNames.cs">
-      <Link>InternalUtilities\DocumentationCommentXmlNames.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EncodingExtensions.cs">
-      <Link>InternalUtilities\EncodingExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs">
-      <Link>InternalUtilities\EnumerableExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumUtilties.cs">
-      <Link>InternalUtilities\EnumUtilties.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
-      <Link>InternalUtilities\FailFast.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
-      <Link>InternalUtilities\FatalError.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs">
-      <Link>InternalUtilities\FileNameUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\GeneratedCodeUtilities.cs">
-      <Link>InternalUtilities\GeneratedCodeUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
-      <Link>InternalUtilities\Hash.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs">
-      <Link>InternalUtilities\ImmutableListExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Index.cs">
-      <Link>InternalUtilities\Index.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ISetExtensions.cs">
-      <Link>InternalUtilities\ISetExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs">
-      <Link>InternalUtilities\KeyValuePairUtil.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\MultiDictionary.cs">
-      <Link>InternalUtilities\MultiDictionary.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\OrderedMultiDictionary.cs">
-      <Link>InternalUtilities\OrderedMultiDictionary.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SetWithInsertionOrder.cs">
-      <Link>InternalUtilities\SetWithInsertionOrder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs">
-      <Link>InternalUtilities\IReadOnlySet.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs">
-      <Link>InternalUtilities\PathKind.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
-      <Link>InternalUtilities\ExceptionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\OneOrMany.cs">
-      <Link>InternalUtilities\OneOrMany.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs">
-      <Link>InternalUtilities\PerformanceSensitiveAttribute.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs">
-      <Link>InternalUtilities\PlatformInformation.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Range.cs">
-      <Link>InternalUtilities\Range.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReaderWriterLockSlimExtensions.cs">
-      <Link>InternalUtilities\ReaderWriterLockSlimExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs">
-      <Link>InternalUtilities\ReferenceEqualityComparer.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs">
-      <Link>InternalUtilities\RoslynString.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">
-      <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
-      <Link>InternalUtilities\SpecializedCollections.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Collection.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Dictionary.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Dictionary.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerable.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Enumerable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerator.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Enumerator.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerator`1.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Enumerator`1.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.List.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.List.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Set.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Set.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Collection.cs">
-      <Link>InternalUtilities\SpecializedCollections.ReadOnly.Collection.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`1.cs">
-      <Link>InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`1.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`2.cs">
-      <Link>InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`2.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Set.cs">
-      <Link>InternalUtilities\SpecializedCollections.ReadOnly.Set.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Collection`1.cs">
-      <Link>InternalUtilities\SpecializedCollections.Singleton.Collection`1.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs">
-      <Link>InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StackGuard.cs">
-      <Link>InternalUtilities\StackGuard.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
-      <Link>InternalUtilities\StreamExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs">
-      <Link>InternalUtilities\StringExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringTable.cs" Link="Utilities\StringTable.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\TextChangeRangeExtensions.cs">
-      <Link>InternalUtilities\TextChangeRangeExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\WeakReferenceExtensions.cs">
-      <Link>InternalUtilities\WeakReferenceExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs">
-      <Link>InternalUtilities\FileUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs">
-      <Link>InternalUtilities\PathUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
-      <Link>InternalUtilities\ReflectionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinderSnapshot.cs">
-      <Link>Serialization\ObjectBinderSnapshot.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs">
-      <Link>Serialization\ObjectReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
-      <Link>Serialization\ObjectWriter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs">
-      <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
-      <Link>InternalUtilities\NullableAttributes.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="AnalyzerRunner" />
@@ -338,31 +124,13 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
-      <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\IObjectWritable.cs">
-      <Link>Serialization\IObjectWritable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs">
-      <Link>Serialization\ObjectBinder.cs</Link>
-    </Compile>
-    <Compile Update="WorkspacesResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>WorkspacesResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="WorkspacesResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>WorkspacesResources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <EmbeddedResource Update="WorkspacesResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems" Label="Shared" />
 </Project>

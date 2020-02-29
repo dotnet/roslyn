@@ -539,8 +539,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _ = await client.TryRunRemoteAsync(
                     WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                    new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(DiagnosticAnalyzerInfoCache), /* unit count */ 1 },
                     solution: null,
+                    new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(DiagnosticAnalyzerInfoCache), /* unit count */ 1 },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }

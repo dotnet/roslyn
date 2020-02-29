@@ -1311,13 +1311,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalysisState analysisStateOpt,
             bool isGeneratedCode)
         {
-            OperationAnalyzerStateData analyzerStateOpt = null;
+            DeclarationAnalyzerStateData analyzerStateOpt = null;
 
             try
             {
-                if (TryStartAnalyzingOperationReference(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
+                if (TryStartAnalyzingDeclaration(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    ExecuteOperationActionsCore(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, filterSpan, analyzerStateOpt, isGeneratedCode);
+                    ExecuteOperationActionsCore(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, filterSpan, analyzerStateOpt?.OperationBlockAnalysisState.ExecutableNodesAnalysisState, isGeneratedCode);
                     return true;
                 }
 
@@ -1510,7 +1510,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerName = analyzer.ToString();
             var title = CodeAnalysisResources.CompilerAnalyzerFailure;
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
-            var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message };
+            var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer)).Trim();
+            var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message, contextInformation };
             var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, CreateDiagnosticDescription(info, e));
             var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
             return Diagnostic.Create(descriptor, Location.None, messageArguments);
@@ -1525,6 +1526,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return string.Join(Environment.NewLine,
                 string.Format(CodeAnalysisResources.ExceptionContext, info?.GetContext()), e.CreateDiagnosticDescription());
+        }
+
+        private static string CreateDisablingMessage(DiagnosticAnalyzer analyzer)
+        {
+            var diagnosticIds = ImmutableSortedSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                foreach (var diagnostic in analyzer.SupportedDiagnostics)
+                {
+                    diagnosticIds = diagnosticIds.Add(diagnostic.Id);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            {
+                // Intentionally empty
+            }
+
+            if (diagnosticIds.IsEmpty)
+            {
+                return "";
+            }
+
+            return string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, string.Join(", ", diagnosticIds));
         }
 
         internal static Diagnostic CreateDriverExceptionDiagnostic(Exception e)
@@ -1837,27 +1861,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             analyzerStateOpt = null;
             return analysisStateOpt == null || analysisStateOpt.TryStartAnalyzingDeclaration(symbol, declarationIndex, analyzer, out analyzerStateOpt);
-        }
-
-        private static bool TryStartAnalyzingOperationReference(ISymbol symbol, int declarationIndex, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out OperationAnalyzerStateData analyzerStateOpt)
-        {
-            Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
-
-            analyzerStateOpt = null;
-            DeclarationAnalyzerStateData declarationAnalyzerStateOpt;
-            if (analysisStateOpt == null)
-            {
-                return true;
-            }
-
-            if (analysisStateOpt.TryStartAnalyzingDeclaration(symbol, declarationIndex, analyzer, out declarationAnalyzerStateOpt))
-            {
-                analyzerStateOpt = declarationAnalyzerStateOpt.OperationBlockAnalysisState.ExecutableNodesAnalysisState;
-                return true;
-            }
-
-            analyzerStateOpt = null;
-            return false;
         }
 
         private static bool IsEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, AnalysisState analysisStateOpt)

@@ -755,7 +755,7 @@ public class B
 @"
 #nullable enable
 public class A<T> 
-    where T : class //not neccesary, but makes it easier to reason about the resulting fields
+    where T : class //not necessary, but makes it easier to reason about the resulting fields
 {
     public A<T> field = null!;
     public static void M(A<T> t)
@@ -806,7 +806,7 @@ public class A<T>
 @"
 #nullable enable
 public class A<T> 
-    where T : class //not neccesary, but makes it easier to reason about the resulting fields
+    where T : class //not necessary, but makes it easier to reason about the resulting fields
 {
     public A<T> M(A<T> t)
     {
@@ -863,7 +863,7 @@ public class A<T>
 @"
 #nullable enable
 public class A<T> 
-    where T : class //not neccesary, but makes it easier to reason about the resulting fields
+    where T : class //not necessary, but makes it easier to reason about the resulting fields
 {
     public event System.EventHandler<T> MyEvent;
     public static void M(A<T> t)

@@ -74,5 +74,6 @@
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,17.0)" DisplayName="Visual Studio core editor" />
     <Prerequisite Id="Microsoft.DiaSymReader.Native" Version="[15.0,17.0)" DisplayName="Windows PDB reader/writer" />
+    <Prerequisite Id="Microsoft.VisualStudio.InteractiveWindow" Version="[3.0.0.0,4.0.0.0)" DisplayName="Interactive Window" />
   </Prerequisites>
 </PackageManifest>

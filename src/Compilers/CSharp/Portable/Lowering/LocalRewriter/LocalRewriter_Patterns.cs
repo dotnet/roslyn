@@ -231,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // This is an evaluation of an indexed property with a constant int value.
                             // The input type must be ITuple, and the property must be a property of ITuple.
-                            Debug.Assert(e.Property.ContainingSymbol.Equals(input.Type));
                             Debug.Assert(e.Property.GetMethod.ParameterCount == 1);
                             Debug.Assert(e.Property.GetMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
                             TypeSymbol type = e.Property.GetMethod.ReturnType;

@@ -297,6 +297,11 @@
         <target state="translated">Реализовать "{0}" неявно</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">Реализовать все интерфейсы неявно</target>
@@ -700,6 +705,11 @@
       <trans-unit id="Use_simple_using_statement">
         <source>Use simple 'using' statement</source>
         <target state="translated">Использовать простой оператор using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -2103,11 +2113,6 @@ This version used in: {2}</source>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Неизвестно)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Реализовать абстрактный класс</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

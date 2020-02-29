@@ -80,7 +80,7 @@ namespace Roslyn.Test.Utilities.Remote
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
-        public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceHubServiceBase> serviceCreator)
+        public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
         {
             _inprocServices.RegisterService(name, serviceCreator);
         }

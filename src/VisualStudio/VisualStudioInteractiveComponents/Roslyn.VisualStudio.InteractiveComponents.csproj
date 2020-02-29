@@ -85,6 +85,8 @@
     <ItemGroup>
       <!-- VSSDK inserts cache file to VSIXSourceItem group for some reason. Don't include it in the VSIX. -->
       <VSIXSourceItem Remove="$(CreateTemplateManifestsCacheFile)"/>
+      <!-- Disable NGEN for System.Numerics.Vectors.dll to avoid errors (this dll does not support NGEN). -->
+      <VSIXSourceItem Update="@(VSIXSourceItem)" Condition="'%(VSIXSourceItem.PackageName)' == 'System.Numerics.Vectors'" Ngen="false" />
     </ItemGroup>
   </Target>
 
