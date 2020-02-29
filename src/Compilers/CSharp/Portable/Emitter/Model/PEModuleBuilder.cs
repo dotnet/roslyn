@@ -1524,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            if (type.IsNativeIntegerType())
+            if (type.IsNativeIntegerType)
             {
                 return SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor, ImmutableArray<TypedConstant>.Empty);
             }

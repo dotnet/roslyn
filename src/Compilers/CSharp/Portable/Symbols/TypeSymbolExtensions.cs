@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RoslynDebug.Assert((object)typeSymbol != null);
 
-            return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst() || typeSymbol.IsNativeIntegerType();
+            return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst() || typeSymbol.IsNativeIntegerType;
         }
 
         /// <summary>
@@ -188,11 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var underlyingType = type.GetEnumUnderlyingType();
             // SpecialType will be None if the underlying type is invalid.
             return (underlyingType is object) && (underlyingType.SpecialType != SpecialType.None);
-        }
-
-        internal static bool IsNativeIntegerType(this TypeSymbol? type)
-        {
-            return (type as NamedTypeSymbol)?.IsNativeInteger == true;
         }
 
         /// <summary>
@@ -481,8 +476,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SpecialType.System_UInt32:
                     case SpecialType.System_Int64:
                     case SpecialType.System_UInt64:
-                    case SpecialType.System_IntPtr when type.IsNativeIntegerType():
-                    case SpecialType.System_UIntPtr when type.IsNativeIntegerType():
+                    case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                    case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                     case SpecialType.System_Char:
                     case SpecialType.System_Boolean:
                     case SpecialType.System_Single:
@@ -911,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool ContainsNativeInteger(this TypeSymbol type)
         {
-            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerType(), (object?)null, canDigThroughNullable: true);
+            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerType, (object?)null, canDigThroughNullable: true);
             return result is object;
         }
 
@@ -1732,8 +1727,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SpecialType.System_UInt16: return 9;
                 case SpecialType.System_UInt32: return 10;
                 case SpecialType.System_UInt64: return 11;
-                case SpecialType.System_IntPtr when type.IsNativeIntegerType(): return 12;
-                case SpecialType.System_UIntPtr when type.IsNativeIntegerType(): return 13;
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType: return 12;
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType: return 13;
                 case SpecialType.System_Single: return 14;
                 case SpecialType.System_Double: return 15;
                 case SpecialType.System_Decimal: return 16;
@@ -1755,8 +1750,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case SpecialType.System_UInt16: return 24;
                             case SpecialType.System_UInt32: return 25;
                             case SpecialType.System_UInt64: return 26;
-                            case SpecialType.System_IntPtr when underlyingType.IsNativeIntegerType(): return 27;
-                            case SpecialType.System_UIntPtr when underlyingType.IsNativeIntegerType(): return 28;
+                            case SpecialType.System_IntPtr when underlyingType.IsNativeIntegerType: return 27;
+                            case SpecialType.System_UIntPtr when underlyingType.IsNativeIntegerType: return 28;
                             case SpecialType.System_Single: return 29;
                             case SpecialType.System_Double: return 30;
                             case SpecialType.System_Decimal: return 31;

@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return other;
             }
 
-            internal override bool IsNativeInteger => _isNativeInt;
+            internal override bool IsNativeIntegerType => _isNativeInt;
 
             internal override NamedTypeSymbol? NativeIntegerUnderlyingType => _isNativeInt ? AsNativeInteger(asNativeInt: false) : null;
 

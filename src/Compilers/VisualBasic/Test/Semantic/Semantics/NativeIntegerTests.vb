@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(SymbolKind.NamedType, type.Kind)
             Assert.Equal(TypeKind.Struct, type.TypeKind)
             Assert.Same(type, type.ConstructedFrom)
-            Assert.Equal(isNativeInteger, type.IsNativeInteger)
+            Assert.Equal(isNativeInteger, type.IsNativeIntegerType)
 
             Dim underlyingType = type.NativeIntegerUnderlyingType
             If isNativeInteger Then

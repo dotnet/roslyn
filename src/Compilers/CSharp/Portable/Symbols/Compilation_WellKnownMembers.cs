@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For nested named types, a single false is encoded for the entire type name, followed by flags for all of the type arguments.
                         if (!isNestedNamedType)
                         {
-                            builder.Add(type.IsNativeIntegerType());
+                            builder.Add(type.IsNativeIntegerType);
                         }
                         break;
                     default:
