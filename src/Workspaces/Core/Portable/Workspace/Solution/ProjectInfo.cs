@@ -166,59 +166,6 @@ namespace Microsoft.CodeAnalysis
             HostObjectType = hostObjectType;
         }
 
-        /// <summary>
-        /// Create a new instance of a ProjectInfo.
-        /// </summary>
-        internal static ProjectInfo Create(
-            ProjectId id,
-            VersionStamp version,
-            string name,
-            string assemblyName,
-            string language,
-            string? filePath,
-            string? outputFilePath,
-            string? outputRefFilePath,
-            CompilationOutputFilePaths compilationOutputFilePaths,
-            string? defaultNamespace,
-            CompilationOptions? compilationOptions,
-            ParseOptions? parseOptions,
-            IEnumerable<DocumentInfo>? documents,
-            IEnumerable<ProjectReference>? projectReferences,
-            IEnumerable<MetadataReference>? metadataReferences,
-            IEnumerable<AnalyzerReference>? analyzerReferences,
-            IEnumerable<DocumentInfo>? additionalDocuments,
-            IEnumerable<DocumentInfo>? analyzerConfigDocuments,
-            bool isSubmission,
-            Type? hostObjectType,
-            bool hasAllInformation,
-            bool runAnalyzers)
-        {
-            return new ProjectInfo(
-                new ProjectAttributes(
-                    id,
-                    version,
-                    name,
-                    assemblyName,
-                    language,
-                    filePath,
-                    outputFilePath,
-                    outputRefFilePath,
-                    compilationOutputFilePaths,
-                    defaultNamespace,
-                    isSubmission,
-                    hasAllInformation,
-                    runAnalyzers),
-                compilationOptions,
-                parseOptions,
-                documents,
-                projectReferences,
-                metadataReferences,
-                analyzerReferences,
-                additionalDocuments,
-                analyzerConfigDocuments,
-                hostObjectType);
-        }
-
         // 2.7.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         /// <summary>
         /// Create a new instance of a <see cref="ProjectInfo"/>.
@@ -243,9 +190,9 @@ namespace Microsoft.CodeAnalysis
         {
             return Create(
                 id, version, name, assemblyName, language,
-                filePath, outputFilePath, outputRefFilePath: null, compilationOutputFilePaths: default, defaultNamespace: null, compilationOptions, parseOptions,
-                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
-                isSubmission, hostObjectType, hasAllInformation: true, runAnalyzers: true);
+                filePath, outputFilePath, compilationOptions, parseOptions,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                isSubmission, hostObjectType, outputRefFilePath: null);
         }
 
         /// <summary>
@@ -364,7 +311,7 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithOutputRefFilePath(string? outputRefFilePath)
             => With(attributes: Attributes.With(outputRefPath: outputRefFilePath));
 
-        public ProjectInfo WithCompilationOutputFilePaths(CompilationOutputFilePaths paths)
+        public ProjectInfo WithCompilationOutputFilePaths(in CompilationOutputFilePaths paths)
             => With(attributes: Attributes.With(compilationOutputPaths: paths));
 
         public ProjectInfo WithDefaultNamespace(string? defaultNamespace)

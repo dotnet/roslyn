@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         // public readonly string? PdbPath { get; }
         // public readonly string? DocumentationCommentsPath { get; }
 
-        public CompilationOutputFilePaths(string? assemblyPath)
+        internal CompilationOutputFilePaths(string? assemblyPath)
         {
             AssemblyPath = assemblyPath;
         }
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
             => AssemblyPath?.GetHashCode() ?? 0;
 
-        public static bool operator ==(CompilationOutputFilePaths left, CompilationOutputFilePaths right)
+        public static bool operator ==(in CompilationOutputFilePaths left, in CompilationOutputFilePaths right)
             => left.Equals(right);
 
-        public static bool operator !=(CompilationOutputFilePaths left, CompilationOutputFilePaths right)
+        public static bool operator !=(in CompilationOutputFilePaths left, in CompilationOutputFilePaths right)
             => !left.Equals(right);
 
         void IObjectWritable.WriteTo(ObjectWriter writer)

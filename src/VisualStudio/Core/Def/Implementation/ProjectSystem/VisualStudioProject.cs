@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private CompilationOptions? _compilationOptions;
         private ParseOptions? _parseOptions;
         private bool _hasAllInformation = true;
-        private string? _intermediateOutputFilePath;
+        private string? _compilationOutputAssemblyFilePath;
         private string? _outputFilePath;
         private string? _outputRefFilePath;
         private string? _defaultNamespace;
@@ -244,13 +244,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The path to the output in obj.
         /// </summary>
-        internal string? IntermediateOutputFilePath
+        internal string? CompilationOutputAssemblyFilePath
         {
-            get => _intermediateOutputFilePath;
-            set => ChangeProjectOutputPath(ref _intermediateOutputFilePath,
+            get => _compilationOutputAssemblyFilePath;
+            set => ChangeProjectOutputPath(
+                       ref _compilationOutputAssemblyFilePath,
                        value,
-                       s => s.WithProjectCompilationOutputFilePaths(Id, new CompilationOutputFilePaths(value)),
-                       w => w.OnCompilationOutputFilePathsChanged(Id, new CompilationOutputFilePaths(value)));
+                       s => s.WithProjectCompilationOutputFilePaths(Id, s.State.GetRequiredProjectState(Id).CompilationOutputFilePaths.WithAssemblyPath(value)));
         }
 
         public string? OutputFilePath

@@ -647,24 +647,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the compiler output file path.
         /// </summary>
-        public SolutionState WithProjectCompilationOutputFilePaths(ProjectId projectId, CompilationOutputFilePaths paths)
+        public SolutionState WithProjectCompilationOutputFilePaths(ProjectId projectId, in CompilationOutputFilePaths paths)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithCompilationOutputFilePaths(paths);
 
-            CheckContainsProject(projectId);
-
-            var oldProjectState = this.GetProjectState(projectId)!;
-            var newProjectState = oldProjectState.UpdateCompilationOutputFilePaths(paths);
-
-            if (oldProjectState == newProjectState)
+            if (oldProject == newProject)
             {
                 return this;
             }
 
-            return this.ForkProject(newProjectState);
+            return ForkProject(newProject);
         }
 
         /// <summary>
