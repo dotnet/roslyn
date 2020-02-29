@@ -252,13 +252,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public string OutputRefFilePath
         {
             get => _outputRefFilePath;
-            set => ChangeProjectOutputPath(ref _outputRefFilePath,value, s => s.WithProjectOutputRefFilePath(Id, value));
+            set => ChangeProjectOutputPath(ref _outputRefFilePath, value, s => s.WithProjectOutputRefFilePath(Id, value));
         }
 
         public string FilePath
         {
             get => _filePath;
-            set => ChangeProjectProperty(ref _filePath,value, s => s.WithProjectFilePath(Id, value));
+            set => ChangeProjectProperty(ref _filePath, value, s => s.WithProjectFilePath(Id, value));
         }
 
         public string DisplayName
