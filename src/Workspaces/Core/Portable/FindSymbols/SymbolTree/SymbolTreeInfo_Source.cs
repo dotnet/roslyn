@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly: false,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerTask(project.Solution, checksum, project.FilePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(project.Solution, checksum, project.FilePath, names, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;

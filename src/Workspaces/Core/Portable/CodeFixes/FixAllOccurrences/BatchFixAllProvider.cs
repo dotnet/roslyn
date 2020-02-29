@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, documentsAndDiagnosticsToFixMap);
 
-                var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActions(
+                var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActionsAsync(
                     documentsAndDiagnosticsToFixMap, fixAllState, cancellationToken).ConfigureAwait(false);
 
                 if (diagnosticsAndCodeActions.Length > 0)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActions(
+        private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActionsAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
-            var documentIdToChangedDocuments = await GetDocumentIdToChangedDocuments(
+            var documentIdToChangedDocuments = await GetDocumentIdToChangedDocumentsAsync(
                 oldSolution, diagnosticsAndCodeActions, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return currentSolution;
         }
 
-        private async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocuments(
+        private async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocumentsAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             CancellationToken cancellationToken)

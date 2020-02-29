@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// completed. Asynchronous operations are expedited when possible, meaning artificial delays placed before
         /// asynchronous operations are shortened.
         /// </summary>
-        Task CreateExpeditedWaitTask();
+        Task ExpeditedWaitAsync();
         bool HasPendingWork { get; }
     }
 }

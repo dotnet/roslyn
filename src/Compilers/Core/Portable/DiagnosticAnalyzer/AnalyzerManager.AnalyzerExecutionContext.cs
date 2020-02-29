@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [PerformanceSensitive(
                 "https://github.com/dotnet/roslyn/issues/26778",
                 AllowCaptures = false)]
-            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeTask(AnalyzerExecutor analyzerExecutor)
+            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(AnalyzerExecutor analyzerExecutor)
             {
                 lock (_gate)
                 {

@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Editing
             var (importDirectivesToAdd, namespaceSymbols, context) = strategy switch
             {
                 Strategy.AddImportsFromSymbolAnnotations
-                    => GetImportDirectivesFromAnnotatedNodesAsync(nodes, root, model, addImportsService, generator, cancellationToken),
+                    => GetImportDirectivesFromAnnotatedNodes(nodes, root, model, addImportsService, generator, cancellationToken),
                 Strategy.AddImportsFromSyntaxes
-                    => GetImportDirectivesFromSyntaxesAsync(nodes, ref root, model, addImportsService, generator, cancellationToken),
+                    => GetImportDirectivesFromSyntaxes(nodes, ref root, model, addImportsService, generator, cancellationToken),
                 _ => throw new InvalidEnumArgumentException(nameof(strategy), (int)strategy, typeof(Strategy)),
             };
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="root">ref as we add simplifier annotations to nodes with explicit namespaces</param>
         /// <returns></returns>
-        private (ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode? context) GetImportDirectivesFromSyntaxesAsync(
+        private (ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode? context) GetImportDirectivesFromSyntaxes(
                 IEnumerable<SyntaxNode> syntaxNodes,
                 ref SyntaxNode root,
                 SemanticModel model,
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return (importsToAdd.ToImmutableAndFree(), addedSymbols, first.GetCommonRoot(last));
         }
 
-        private (ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode? context) GetImportDirectivesFromAnnotatedNodesAsync(
+        private (ImmutableArray<SyntaxNode> imports, IEnumerable<INamespaceSymbol> namespaceSymbols, SyntaxNode? context) GetImportDirectivesFromAnnotatedNodes(
             IEnumerable<SyntaxNode> syntaxNodes,
             SyntaxNode root,
             SemanticModel model,

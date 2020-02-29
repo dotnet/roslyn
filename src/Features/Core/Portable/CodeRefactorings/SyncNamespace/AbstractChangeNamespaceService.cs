@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var refLocations = await Task.WhenAll(
                 declaredSymbols.Select(declaredSymbol
-                    => FindReferenceLocationsForSymbol(document, declaredSymbol, cancellationToken))).ConfigureAwait(false);
+                    => FindReferenceLocationsForSymbolAsync(document, declaredSymbol, cancellationToken))).ConfigureAwait(false);
 
             foreach (var refLocation in refLocations.SelectMany(locs => locs))
             {
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             public Document Document => ReferenceLocation.Document;
         }
 
-        private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbol(
+        private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbolAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<LocationForAffectedSymbol>.GetInstance(out var builder);

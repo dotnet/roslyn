@@ -187,14 +187,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // for specific strings (i.e. they never do a custom search).
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
-            var symbols = await FindAsyncWorker(query, lazyAssembly, cancellationToken).ConfigureAwait(false);
+            var symbols = await FindCoreAsync(query, lazyAssembly, cancellationToken).ConfigureAwait(false);
 
             return DeclarationFinder.FilterByCriteria(
                 symbols.SelectAsArray(s => new SymbolAndProjectId(s, assemblyProjectId)),
                 filter);
         }
 
-        private Task<ImmutableArray<ISymbol>> FindAsyncWorker(
+        private Task<ImmutableArray<ISymbol>> FindCoreAsync(
             SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);
 
-        private static Task<SpellChecker> GetSpellCheckerTask(
+        private static Task<SpellChecker> GetSpellCheckerAsync(
             Solution solution, Checksum checksum, string filePath,
             string concatenatedNames, ImmutableArray<Node> sortedNodes)
         {
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ImmutableArray<ExtensionMethodInfo> complexMethods)
         {
             SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
-            var createSpellCheckerTask = GetSpellCheckerTask(
+            var createSpellCheckerTask = GetSpellCheckerAsync(
                 solution, checksum, filePath, concatenatedNames, sortedNodes);
 
             return new SymbolTreeInfo(

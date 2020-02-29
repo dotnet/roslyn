@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
-            var declarationSyntax = await FindDisposableLocalDeclaration(document, span, cancellationToken).ConfigureAwait(false);
+            var declarationSyntax = await FindDisposableLocalDeclarationAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             if (declarationSyntax != null)
             {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
         }
 
-        private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
+        private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclarationAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
             var declarationSyntax = await document.TryGetRelevantNodeAsync<TLocalDeclarationSyntax>(selection, cancellationToken).ConfigureAwait(false);
             if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.Parent))
