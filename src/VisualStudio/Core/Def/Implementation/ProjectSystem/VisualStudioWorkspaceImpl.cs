@@ -1489,7 +1489,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                if (SetCurrentSolution(solutionTransformation, out var oldSolution, out var newSolution))
+                if (SetCurrentSolutionWithLock(solutionTransformation, out var oldSolution, out var newSolution))
                 {
                     RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
                 }

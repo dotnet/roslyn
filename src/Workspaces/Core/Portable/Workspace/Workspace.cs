@@ -238,6 +238,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal bool SetCurrentSolutionWithLock(Func<Solution, Solution> transformation, out Solution oldSolution, out Solution newSolution)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                return SetCurrentSolution(transformation, out oldSolution, out newSolution);
+            }
+        }
+
         /// <summary>
         /// Gets or sets the set of all global options and <see cref="Solution.Options"/>.
         /// Setter also force updates the <see cref="CurrentSolution"/> to have the updated <see cref="Solution.Options"/>.
@@ -266,7 +274,11 @@ namespace Microsoft.CodeAnalysis
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
             var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetProjectLanguages());
-            this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
+
+            using (_serializationLock.DisposableWait())
+            {
+                this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
+            }
         }
 
         /// <summary>
@@ -523,7 +535,7 @@ namespace Microsoft.CodeAnalysis
 
         private void HandleProjectChange(ProjectId projectId, Func<Solution, Solution> solutionTransformation)
         {
-            if (SetCurrentSolution(solutionTransformation, out var oldSolution, out var newSolution))
+            if (SetCurrentSolutionWithLock(solutionTransformation, out var oldSolution, out var newSolution))
             {
                 RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
