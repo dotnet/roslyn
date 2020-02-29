@@ -37,9 +37,12 @@ namespace AnalyzerRunner
                 return;
             }
 
+            var usePersistentStorage = _options.UsePersistentStorage;
+
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, _options.AnalysisScope)
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope)));
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope)
+                .WithChangedOption(StorageOptions.Database, usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None);
 
             if (!string.IsNullOrEmpty(_options.ProfileRoot))
             {
@@ -53,7 +56,7 @@ namespace AnalyzerRunner
             var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             solutionCrawlerRegistrationService.Register(workspace);
 
-            if (_options.UsePersistentStorage)
+            if (usePersistentStorage)
             {
                 var persistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
                 var persistentStorage = persistentStorageService.GetStorage(workspace.CurrentSolution);
