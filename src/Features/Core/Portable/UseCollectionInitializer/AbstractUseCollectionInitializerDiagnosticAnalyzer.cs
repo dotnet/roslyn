@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             if (ienumerableType != null)
             {
-                var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+                var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
                 context.RegisterSyntaxNodeAction(
                     nodeContext => AnalyzeNode(nodeContext, ienumerableType),
                     syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                semanticModel, GetSyntaxFactsService(), objectCreationExpression, cancellationToken);
+                semanticModel, GetSyntaxFacts(), objectCreationExpression, cancellationToken);
 
             if (matches == null || matches.Value.Length == 0)
             {
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             {
                 return;
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
 
             foreach (var match in matches)
             {
@@ -161,6 +161,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
         }
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
     }
 }

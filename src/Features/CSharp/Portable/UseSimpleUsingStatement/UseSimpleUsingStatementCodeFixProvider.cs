@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             {
                 var lastStatement = result[result.Count - 1];
                 result[result.Count - 1] = lastStatement.WithAppendedTrailingTrivia(
-                    remainingTrivia.Insert(0, CSharpSyntaxFactsService.Instance.ElasticCarriageReturnLineFeed));
+                    remainingTrivia.Insert(0, CSharpSyntaxFacts.Instance.ElasticCarriageReturnLineFeed));
             }
 
             for (int i = 0, n = result.Count; i < n; i++)

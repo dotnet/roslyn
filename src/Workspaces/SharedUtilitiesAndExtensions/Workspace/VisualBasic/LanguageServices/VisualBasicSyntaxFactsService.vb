@@ -8,61 +8,54 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Friend Class VisualBasicSyntaxFactsService
-        Inherits VisualBasicSyntaxFacts
-        Implements ISyntaxFactsService
+    Partial Friend NotInheritable Class VisualBasicSyntaxFactsServiceFactory
+        Private NotInheritable Class VisualBasicSyntaxFactsService
+            Inherits VisualBasicSyntaxFacts
+            Implements ISyntaxFactsService
 
-        Public Shared Shadows ReadOnly Property Instance As New VisualBasicSyntaxFactsService
+            Public Shared Shadows ReadOnly Property Instance As New VisualBasicSyntaxFactsService
 
-        Private Sub New()
-        End Sub
+            Private Sub New()
+            End Sub
 
-        Public Function IsInInactiveRegion(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInInactiveRegion
-            If syntaxTree Is Nothing Then
-                Return False
-            End If
+            Public Function IsInInactiveRegion(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInInactiveRegion
+                If syntaxTree Is Nothing Then
+                    Return False
+                End If
 
-            Return syntaxTree.IsInInactiveRegion(position, cancellationToken)
-        End Function
+                Return syntaxTree.IsInInactiveRegion(position, cancellationToken)
+            End Function
 
-        Public Function IsInNonUserCode(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInNonUserCode
-            If syntaxTree Is Nothing Then
-                Return False
-            End If
+            Public Function IsInNonUserCode(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInNonUserCode
+                If syntaxTree Is Nothing Then
+                    Return False
+                End If
 
-            Return syntaxTree.IsInNonUserCode(position, cancellationToken)
-        End Function
+                Return syntaxTree.IsInNonUserCode(position, cancellationToken)
+            End Function
 
-        Public Function IsPossibleTupleContext(
-            syntaxTree As SyntaxTree,
-            position As Integer,
-            cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsPossibleTupleContext
+            Public Function IsPossibleTupleContext(
+                syntaxTree As SyntaxTree,
+                position As Integer,
+                cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsPossibleTupleContext
 
-            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-            Return syntaxTree.IsPossibleTupleContext(token, position)
-        End Function
+                Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                Return syntaxTree.IsPossibleTupleContext(token, position)
+            End Function
 
-        Public Function ToIdentifierToken(name As String) As SyntaxToken Implements ISyntaxFactsService.ToIdentifierToken
-            Return name.ToIdentifierToken()
-        End Function
+            Public Sub AddFirstMissingCloseBrace(Of TContextNode As SyntaxNode)(
+                    root As SyntaxNode, contextNode As TContextNode,
+                    ByRef newRoot As SyntaxNode, ByRef newContextNode As TContextNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace
+                ' Nothing to be done.  VB doesn't have close braces
+                newRoot = root
+                newContextNode = contextNode
+            End Sub
 
-        Public Function Parenthesize(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True, Optional addSimplifierAnnotation As Boolean = True) As SyntaxNode Implements ISyntaxFactsService.Parenthesize
-            Return DirectCast(expression, ExpressionSyntax).Parenthesize(addSimplifierAnnotation)
-        End Function
-
-        Public Sub AddFirstMissingCloseBrace(Of TContextNode As SyntaxNode)(
-                root As SyntaxNode, contextNode As TContextNode,
-                ByRef newRoot As SyntaxNode, ByRef newContextNode As TContextNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace
-            ' Nothing to be done.  VB doesn't have close braces
-            newRoot = root
-            newContextNode = contextNode
-        End Sub
-
-        Public Function GetSelectedFieldsAndProperties(root As SyntaxNode, textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedFieldsAndProperties
-            Return ImmutableArray(Of SyntaxNode).CastUp(root.GetSelectedFieldsAndPropertiesInSpan(textSpan, allowPartialSelection))
-        End Function
+            Public Function GetSelectedFieldsAndProperties(root As SyntaxNode, textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedFieldsAndProperties
+                Return ImmutableArray(Of SyntaxNode).CastUp(root.GetSelectedFieldsAndPropertiesInSpan(textSpan, allowPartialSelection))
+            End Function
+        End Class
     End Class
 End Namespace

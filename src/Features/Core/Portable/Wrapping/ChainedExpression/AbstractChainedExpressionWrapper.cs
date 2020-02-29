@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         where TNameSyntax : SyntaxNode
         where TBaseArgumentListSyntax : SyntaxNode
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly int _dotToken;
         private readonly int _questionToken;
 
         protected AbstractChainedExpressionWrapper(
             Indentation.IIndentationService indentationService,
-            ISyntaxFactsService syntaxFacts) : base(indentationService)
+            ISyntaxFacts syntaxFacts) : base(indentationService)
         {
             _syntaxFacts = syntaxFacts;
             _dotToken = syntaxFacts.SyntaxKinds.DotToken;

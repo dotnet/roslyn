@@ -17,16 +17,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
-        SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
-
-        SyntaxToken ToIdentifierToken(string name);
-
         ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
 
         // Walks the tree, starting from contextNode, looking for the first construct
         // with a missing close brace.  If found, the close brace will be added and the
         // updates root will be returned.  The context node in that new tree will also
         // be returned.
+        // TODO: This method should be moved out of ISyntaxFactsService.
         void AddFirstMissingCloseBrace<TContextNode>(
             SyntaxNode root, TContextNode contextNode,
             out SyntaxNode newRoot, out TContextNode newContextNode) where TContextNode : SyntaxNode;
