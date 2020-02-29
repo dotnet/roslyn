@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HostWorkspaceServicesExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\SimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\AbstractAddImportsService.cs" />
@@ -17,13 +18,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CodeFixCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CustomCodeActions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\DocumentBasedFixAllProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DocumentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISolutionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeInferenceServiceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ProjectExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxEditorExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TextDocumentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAll\FixAllState.cs" />
@@ -61,18 +60,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelWorkspaceService\SemanticModelWorkspaceServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\SyntaxEditorBasedCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\SyntaxEditorBasedCodeFixProvider.FixAllProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ExternalSourceInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ISyntaxFactsService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ISyntaxFactsServiceExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.ChoiceMatcher.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.RepeatMatcher.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.SequenceMatcher.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.SingleMatcher.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\CodeChangeProviderMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\FileExtensionsMetadata.cs" />

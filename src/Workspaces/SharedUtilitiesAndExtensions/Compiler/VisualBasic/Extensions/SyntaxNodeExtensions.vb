@@ -7,6 +7,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -237,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function SpansPreprocessorDirective(Of TSyntaxNode As SyntaxNode)(list As IEnumerable(Of TSyntaxNode)) As Boolean
-            Return VisualBasicSyntaxFactsService.Instance.SpansPreprocessorDirective(list)
+            Return VisualBasicSyntaxFacts.Instance.SpansPreprocessorDirective(list)
         End Function
 
         <Extension()>
@@ -356,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' </summary>
         <Extension()>
         Public Function ContainsInterleavedDirective(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
-            Return VisualBasicSyntaxFactsService.Instance.ContainsInterleavedDirective(node, cancellationToken)
+            Return VisualBasicSyntaxFacts.Instance.ContainsInterleavedDirective(node, cancellationToken)
         End Function
 
         <Extension>
@@ -421,32 +422,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function GetLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Return VisualBasicSyntaxFactsService.Instance.GetLeadingBlankLines(node)
+            Return VisualBasicSyntaxFacts.Instance.GetLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node)
+            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
-            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
+            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
         End Function
 
         <Extension()>
         Public Function GetLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Return VisualBasicSyntaxFactsService.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
+            Return VisualBasicSyntaxFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
+            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
-            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
+            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
         End Function
 
         ''' <summary>
