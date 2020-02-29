@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool ContainsDroppedIdentifierCharacters(string? name)
         {
-            if (RoslynString.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
             {
                 return false;
             }
