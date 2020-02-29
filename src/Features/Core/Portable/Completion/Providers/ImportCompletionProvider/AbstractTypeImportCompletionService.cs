@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     VisitNamespace(memberNamespace, containingNamespace, builder, cancellationToken);
                 }
 
-                var overloads = PooledDictionary<string, TypeOverloadInfo>.GetInstance();
+                using var _ = PooledDictionary<string, TypeOverloadInfo>.GetInstance(out var overloads);
                 var types = symbol.GetTypeMembers();
 
                 // Iterate over all top level internal and public types, keep track of "type overloads".
@@ -301,8 +301,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                             overloadInfo.ContainsPublicGenericOverload);
                     }
                 }
-
-                overloads.Free();
             }
         }
 
