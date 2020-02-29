@@ -660,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If constructorSymbol Is Nothing Then
                         Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleElementNamesAttributeMissing, AttributeDescription.TupleElementNamesAttribute.FullName)
                     Else
-                        diagnostics.Add(Binder.GetUseSiteInfoForWellKnownTypeMember(constructorSymbol, WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, embedVBRuntimeUsed:=False),
+                        diagnostics.Add(GetUseSiteInfoForWellKnownTypeMember(constructorSymbol, WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, embedVBRuntimeUsed:=False),
                                         syntax)
                     End If
                 End If
