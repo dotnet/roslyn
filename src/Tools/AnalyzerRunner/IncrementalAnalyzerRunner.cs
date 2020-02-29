@@ -42,7 +42,7 @@ namespace AnalyzerRunner
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, _options.AnalysisScope)
                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope)
-                .WithChangedOption(StorageOptions.Database, usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None);
+                .WithChangedOption(StorageOptions.Database, usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None)));
 
             if (!string.IsNullOrEmpty(_options.ProfileRoot))
             {
@@ -50,8 +50,6 @@ namespace AnalyzerRunner
             }
 
             var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
-
-            // This will return the tracker, since it's a singleton.
 
             var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             solutionCrawlerRegistrationService.Register(workspace);
