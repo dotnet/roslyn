@@ -1902,15 +1902,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend ReadOnly Property HasTupleNamesAttributes As Boolean
             Get
-                Return GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames) IsNot Nothing
+                Dim constructorSymbol = TryCast(GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames), MethodSymbol)
+                Return constructorSymbol IsNot Nothing AndAlso
+                       Binder.GetUseSiteInfoForWellKnownTypeMember(constructorSymbol, WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
+                                                                   embedVBRuntimeUsed:=False).DiagnosticInfo Is Nothing
             End Get
         End Property
-
-        Friend Function CanEmitSpecialType(type As SpecialType) As Boolean
-            Dim typeSymbol = GetSpecialType(type)
-            Dim diagnostic = typeSymbol.GetUseSiteInfo().DiagnosticInfo
-            Return diagnostic Is Nothing OrElse diagnostic.Severity <> DiagnosticSeverity.Error
-        End Function
 
         Private Protected Overrides Function IsSymbolAccessibleWithinCore(symbol As ISymbol, within As ISymbol, throughType As ITypeSymbol) As Boolean
             Dim symbol0 = symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol))

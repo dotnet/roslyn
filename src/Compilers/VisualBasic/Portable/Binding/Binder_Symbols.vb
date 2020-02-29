@@ -656,11 +656,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' it is typically there though, if we have ValueTuple at all
                     ' and we need System.String as well
 
-                    ' Report diagnostics if System.String doesn't exist
-                    binder.GetSpecialType(SpecialType.System_String, syntax, diagnostics)
-
-                    If Not binder.Compilation.HasTupleNamesAttributes Then
+                    Dim constructorSymbol = TryCast(binder.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames), MethodSymbol)
+                    If constructorSymbol Is Nothing Then
                         Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleElementNamesAttributeMissing, AttributeDescription.TupleElementNamesAttribute.FullName)
+                    Else
+                        diagnostics.Add(Binder.GetUseSiteInfoForWellKnownTypeMember(constructorSymbol, WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, embedVBRuntimeUsed:=False),
+                                        syntax)
                     End If
                 End If
 

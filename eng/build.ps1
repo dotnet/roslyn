@@ -91,7 +91,7 @@ function Print-Usage() {
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
-  Write-Host "  -$testUsedAssemblies      Run extra checks to validate used assemblies feature"
+  Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
