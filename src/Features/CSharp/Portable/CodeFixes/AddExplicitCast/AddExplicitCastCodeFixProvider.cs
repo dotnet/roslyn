@@ -38,6 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// CS1503: Argument 1: cannot convert from 'x' to 'y'
         /// </summary>
         private const string CS1503 = nameof(CS1503);
+
+        /// <summary>
+        /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix, but logs telemetry 
+        /// </summary>
         private const int MaximumConversionOptions = 3;
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
@@ -71,16 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     var actions = ArrayBuilder<CodeAction>.GetInstance();
 
                     // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
-                    if (potentialConversionTypes.Length <= MaximumConversionOptions)
+                    for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
                     {
-                        for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
-                        {
-                            var convType = potentialConversionTypes[i];
-                            actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToDisplayString()),
-                                c => ApplyFixAsync(context.Document, root, targetNode, convType)));
-                        }
+                        var convType = potentialConversionTypes[i];
+                        actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToDisplayString()),
+                            c => ApplyFixAsync(context.Document, root, targetNode, convType)));
                     }
-                    else
+
+                    if (potentialConversionTypes.Length > MaximumConversionOptions)
                     {
                         // If the number of potential conversion types is larger than options we could show, report telemetry
                         Logger.Log(FunctionId.CodeFixes_AddExplicitCast,
@@ -111,12 +113,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// Base b; Derived d = [||]b;       
         /// object b is the current node with type *Base*, and the conversion type which object b is going to be cast by is *Derived*
         /// </summary>
-        /// <param name="root">The root of the tree of nodes.</param>
-        /// <param name="targetNode">The node to be cast.</param>
-        /// <param name="targetNodeType">Output the type of <paramref name="targetNode"/>.</param>
-        /// <param name="potentialConversionTypes">>Output the potential conversions types that <paramref name="targetNode"/> can be cast to</param>
+        /// root: The root of the tree of nodes.
+        /// targetNode: The node to be cast.
+        /// targetNodeType: Output the type of "targetNode".
+        /// potentialConversionTypes: Output the potential conversions types that "targetNode" can be cast to
         /// <returns>
-        /// True, if the target node has at least one potential conversion type, and they are assigned to <paramref name="potentialConversionTypes"/>
+        /// True, if the target node has at least one potential conversion type, and they are assigned to "potentialConversionTypes"
         /// False, if the target node has no conversion type.
         /// </returns>
         private static bool TryGetTargetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken,
@@ -137,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 return false;
             }
 
+            // The error happens either on an assignement operation or on a invocation expression
             var mutablePotentialConversionTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
             if (targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
             {
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
             }
-
-            if (targetNode.GetAncestors<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
+            else if (targetNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
                 && targetArgument.Parent is ArgumentListSyntax argumentList
                 && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
@@ -214,10 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// <summary>
         /// Try to test if the invocation node is available to invoke the method.
         /// </summary>
-        /// <param name="arguments">The arguments of invocation expression</param>
-        /// <param name="parameters">The parameters of function </param>
-        /// <param name="targetArgument">The target argument that contains target node</param>
-        /// <param name="targetParamIndex">Output the corresponding parameter index of the target arugment</param>
+        /// arguments: The arguments of invocation expression
+        /// parameters: The parameters of function
+        /// targetArgument: The target argument that contains target node
+        /// targetParamIndex: Output the corresponding parameter index of the target arugment
         /// <returns>
         /// True, if arguments and parameters match perfectly.
         /// False, otherwise.

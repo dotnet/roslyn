@@ -2765,5 +2765,77 @@ class Program
 }";
             await TestMissingInRegularAndScriptAsync(initialMarkup);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MultipleErrors1()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void M(Derived2 d2) { }
+
+    void Foo(Base b) {
+        Derived d;
+        M(d = [|b|]);
+    }
+}",
+                @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void M(Derived2 d2) { }
+
+    void Foo(Base b) {
+        Derived d;
+        M(d = (Derived)b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MultipleErrors2()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void M(Derived2 d2) { }
+
+    void Foo(Base b) {
+        Derived d;
+        M([||]d = b);
+    }
+}",
+                @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    class Derived2 : Derived { }
+
+    void M(Derived2 d2) { }
+
+    void Foo(Base b) {
+        Derived d;
+        M((Derived2)(d = b));
+    }
+}");
+        }
     }
 }
