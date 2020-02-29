@@ -192,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             VerifyType(nativeIntegerType, signed, isNativeInt: true);
 
             Assert.Same(underlyingType.ContainingSymbol, nativeIntegerType.ContainingSymbol);
+            Assert.Same(underlyingType.Name, nativeIntegerType.Name);
 
             Assert.Empty(nativeIntegerType.GetTypeMembers());
 
@@ -223,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             VerifyType(nativeIntegerType, signed, isNativeInt: true);
 
             Assert.Same(underlyingType.ContainingSymbol, nativeIntegerType.ContainingSymbol);
+            Assert.Same(underlyingType.Name, nativeIntegerType.Name);
 
             Assert.Empty(nativeIntegerType.GetTypeMembers());
 
@@ -455,6 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
                 var underlyingType = type.NativeIntegerUnderlyingType;
                 Assert.NotNull(underlyingType);
+                Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, underlyingType.NullableAnnotation);
                 Assert.Same(underlyingType, ((INamedTypeSymbol)type.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None)).NativeIntegerUnderlyingType);
                 Assert.Same(underlyingType, ((INamedTypeSymbol)type.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated)).NativeIntegerUnderlyingType);
                 Assert.Same(underlyingType, ((INamedTypeSymbol)type.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.NotAnnotated)).NativeIntegerUnderlyingType);
