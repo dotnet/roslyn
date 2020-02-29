@@ -15939,6 +15939,107 @@ class Program
 } // end of class Program");
         }
 
+        [Fact]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
+        public void DynamicInGenericLocalFunction5()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Class<int>.M();
+    }
+}
+
+class Class<T1>
+{
+    public static void M()
+    {
+        M1("""");
+        void M1<T2>(T2 a)
+        {
+            a = (dynamic)default;
+            Console.WriteLine(a is null);
+        }
+    }
+}";
+            VerifyTypeIL(
+                CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef }),
+                "Class`1",
+                @"
+.class private auto ansi beforefieldinit Class`1<T1>
+	extends [netstandard]System.Object
+{
+	// Nested Types
+	.class nested private auto ansi abstract sealed beforefieldinit '<>o__0`1'<T1, T2>
+		extends [netstandard]System.Object
+	{
+		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !T2>> '<>p__0'
+	} // end of class <>o__0`1
+	// Methods
+	.method public hidebysig static 
+		void M () cil managed 
+	{
+		// Method begins at RVA 0x205f
+		// Code size 11 (0xb)
+		.maxstack 8
+		IL_0000: ldstr ""
+		IL_0005: call void class Class`1<!T1>::'<M>g__M1|0_0'<string>(!!0)
+		IL_000a: ret
+	} // end of method Class`1::M
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2057
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method Class`1::.ctor
+	.method assembly hidebysig static 
+		void '<M>g__M1|0_0'<T2> (
+			!!T2 a
+		) cil managed 
+	{
+		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x206c
+		// Code size 81 (0x51)
+		.maxstack 3
+		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0`1'<!T1, !!T2>::'<>p__0'
+		IL_0005: brtrue.s IL_002b
+		IL_0007: ldc.i4.0
+		IL_0008: ldtoken !!T2
+		IL_000d: call class [netstandard]System.Type [netstandard]System.Type::GetTypeFromHandle(valuetype [netstandard]System.RuntimeTypeHandle)
+		IL_0012: ldtoken class Class`1<!T1>
+		IL_0017: call class [netstandard]System.Type [netstandard]System.Type::GetTypeFromHandle(valuetype [netstandard]System.RuntimeTypeHandle)
+		IL_001c: call class [netstandard]System.Runtime.CompilerServices.CallSiteBinder [Microsoft.CSharp]Microsoft.CSharp.RuntimeBinder.Binder::Convert(valuetype [Microsoft.CSharp]Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, class [netstandard]System.Type, class [netstandard]System.Type)
+		IL_0021: call class [netstandard]System.Runtime.CompilerServices.CallSite`1<!0> class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T2>>::Create(class [netstandard]System.Runtime.CompilerServices.CallSiteBinder)
+		IL_0026: stsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0`1'<!T1, !!T2>::'<>p__0'
+		IL_002b: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0`1'<!T1, !!T2>::'<>p__0'
+		IL_0030: ldfld !0 class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T2>>::Target
+		IL_0035: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0`1'<!T1, !!T2>::'<>p__0'
+		IL_003a: ldnull
+		IL_003b: callvirt instance !2 class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T2>::Invoke(!0, !1)
+		IL_0040: starg.s a
+		IL_0042: ldarg.0
+		IL_0043: box !!T2
+		IL_0048: ldnull
+		IL_0049: ceq
+		IL_004b: call void [netstandard]System.Console::WriteLine(bool)
+		IL_0050: ret
+	} // end of method Class`1::'<M>g__M1|0_0'
+} // end of class Class`1");
+        }
+
         private static void VerifyTypeIL(CompilationVerifier compilation, string typeName, string expected)
         {
             // .Net Core has different assemblies for the same standard library types as .Net Framework, meaning that that the emitted output will be different to the expected if we run them .Net Framework
@@ -15948,7 +16049,6 @@ class Program
                 compilation.VerifyTypeIL(typeName, expected);
             }
         }
-
         #endregion
     }
 }
