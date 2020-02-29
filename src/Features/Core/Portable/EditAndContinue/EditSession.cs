@@ -345,8 +345,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private async Task<(ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)>, ImmutableArray<Diagnostic> DocumentDiagnostics)> AnalyzeDocumentsAsync(
             ArrayBuilder<Document> changedDocuments, ArrayBuilder<Document> addedDocuments, CancellationToken cancellationToken)
         {
-            var documentDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
-            var builder = ArrayBuilder<(Document? Old, Document New)>.GetInstance();
+            using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var documentDiagnostics);
+            using var _2 = ArrayBuilder<(Document? Old, Document New)>.GetInstance(out var builder);
 
             foreach (var document in changedDocuments)
             {
@@ -389,8 +389,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            builder.Free();
-            return (result, documentDiagnostics.ToImmutableAndFree());
+            return (result, documentDiagnostics.ToImmutable());
         }
 
         public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document? baseDocument, Document document)
@@ -593,7 +592,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var allEdits = ArrayBuilder<SemanticEdit>.GetInstance();
                 var allLineEdits = ArrayBuilder<(DocumentId, ImmutableArray<LineChange>)>.GetInstance();
                 var activeStatementsInChangedDocuments = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)>.GetInstance();
-                var allAddedSymbols = ArrayBuilder<ISymbol>.GetInstance();
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var allAddedSymbols);
 
                 foreach (var (document, asyncResult) in changedDocumentAnalyses)
                 {
@@ -632,7 +631,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var allAddedSymbolResult = allAddedSymbols.ToImmutableHashSet();
-                allAddedSymbols.Free();
 
                 return new ProjectChanges(
                     allEdits.ToImmutableAndFree(),

@@ -419,18 +419,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             ImmutableArray<TextChange> currentChanges)
         {
-            var overlappingSpans = ArrayBuilder<TextChange>.GetInstance();
-            var intersectingSpans = ArrayBuilder<TextChange>.GetInstance();
+            using var _1 = ArrayBuilder<TextChange>.GetInstance(out var overlappingSpans);
+            using var _2 = ArrayBuilder<TextChange>.GetInstance(out var intersectingSpans);
 
-            var result = AllChangesCanBeApplied(
+            return AllChangesCanBeApplied(
                 cumulativeChanges, currentChanges,
                 overlappingSpans: overlappingSpans,
                 intersectingSpans: intersectingSpans);
-
-            overlappingSpans.Free();
-            intersectingSpans.Free();
-
-            return result;
         }
 
         private static bool AllChangesCanBeApplied(

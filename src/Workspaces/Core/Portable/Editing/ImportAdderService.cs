@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 .Select(n => (syntaxnode: n, namespaceSymbol: GetExplicitNamespaceSymbol(n, model)))
                 .Where(x => x.namespaceSymbol != null);
 
-            var nodesToSimplify = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToSimplify);
 
             var addedSymbols = new HashSet<INamespaceSymbol>();
 
@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.Editing
 
             if (nodesToSimplify.Count == 0)
             {
-                nodesToSimplify.Free();
                 return (importsToAdd.ToImmutableAndFree(), addedSymbols, null);
             }
 
@@ -202,7 +201,6 @@ namespace Microsoft.CodeAnalysis.Editing
             var first = root.DescendantNodesAndSelf().First(x => x.HasAnnotation(annotation));
             var last = root.DescendantNodesAndSelf().Last(x => x.HasAnnotation(annotation));
 
-            nodesToSimplify.Free();
             return (importsToAdd.ToImmutableAndFree(), addedSymbols, first.GetCommonRoot(last));
         }
 
