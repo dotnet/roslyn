@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
-
-#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundDagTest
     {
-        public override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagTest other && this.Equals(other);
+        public override bool Equals([NotNullWhen(true)] object? obj) => this.Equals(obj as BoundDagTest);
 
-        private bool Equals(BoundDagTest other)
+        private bool Equals(BoundDagTest? other)
         {
             if (other is null || this.Kind != other.Kind)
                 return false;

@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Compute the bound decision dag corresponding to each node of decisionDag, and store
             // it in node.Dag.
-            ComputeBoundDecisionDagNodes(defaultDecision, decisionDag);
+            ComputeBoundDecisionDagNodes(decisionDag, defaultDecision);
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
@@ -716,27 +716,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Compute the <see cref="BoundDecisionDag"/> corresponding to each <see cref="DagState"/> of the given <see cref="DecisionDag"/>
         /// and store it in <see cref="DagState.Dag"/>.
         /// </summary>
-        private void ComputeBoundDecisionDagNodes(BoundLeafDecisionDagNode defaultDecision, DecisionDag decisionDag)
+        private void ComputeBoundDecisionDagNodes(DecisionDag decisionDag, BoundLeafDecisionDagNode defaultDecision)
         {
             RoslynDebug.Assert(_defaultLabel != null);
 
             // We "intern" the dag nodes, so that we only have a single object representing one
             // semantic node. We do this because different states may end up mapping to the same
             // set of successor states. In this case we merge them when producing the bound state machine.
-            var uniqueDagNode = PooledDictionary<BoundDecisionDagNode, BoundDecisionDagNode>.GetInstance();
-
-            BoundDecisionDagNode uniqifyDagNode(BoundDecisionDagNode node)
-            {
-                if (uniqueDagNode.TryGetValue(node, out var existingNode))
-                {
-                    return existingNode;
-                }
-                else
-                {
-                    uniqueDagNode.Add(node, node);
-                    return node;
-                }
-            }
+            var uniqueNodes = PooledDictionary<BoundDecisionDagNode, BoundDecisionDagNode>.GetInstance();
+            BoundDecisionDagNode uniqifyDagNode(BoundDecisionDagNode node) => uniqueNodes.GetOrAdd(node, node);
 
             _ = uniqifyDagNode(defaultDecision);
 
@@ -805,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            uniqueDagNode.Free();
+            uniqueNodes.Free();
         }
 
         private void SplitCase(
@@ -846,6 +834,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var whenFalseBuilder = ArrayBuilder<StateForCase>.GetInstance(statesForCases.Length);
             bool whenTruePossible, whenFalsePossible;
             (whenTrueValues, whenFalseValues, whenTruePossible, whenFalsePossible) = SplitValues(values, test);
+            // whenTruePossible means the test could possibly have succeeded.  whenFalsePossible means it could possibly have failed.
+            // Tests that are either impossible or tautological (i.e. either of these false) given
+            // the set of values are normally removed and replaced by the known result, so we would not normally be processing
+            // a test that always succeeds or always fails, but they can occur in erroneous programs (e.g. testing for equality
+            // against a non-constant value).
             foreach (var state in statesForCases)
             {
                 SplitCase(
@@ -853,8 +846,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenTrueValues.TryGetValue(test.Input, out var v1) ? v1 : null,
                     whenFalseValues.TryGetValue(test.Input, out var v2) ? v2 : null,
                     out var whenTrueState, out var whenFalseState, ref foundExplicitNullTest);
+                // whenTrueState.IsImpossible occurs when Split results in a state for a given case where the case has been ruled
+                // out (because its test has failed). If not whenTruePossible, we don't want to add anything to the state.  In
+                // either case, we do not want to add the current case to the state.
                 if (whenTruePossible && !whenTrueState.IsImpossible && !(whenTrueBuilder.Any() && whenTrueBuilder.Last().IsFullyMatched))
                     whenTrueBuilder.Add(whenTrueState);
+                // Similarly for the alternative state.
                 if (whenFalsePossible && !whenFalseState.IsImpossible && !(whenFalseBuilder.Any() && whenFalseBuilder.Last().IsFullyMatched))
                     whenFalseBuilder.Add(whenFalseState);
             }
