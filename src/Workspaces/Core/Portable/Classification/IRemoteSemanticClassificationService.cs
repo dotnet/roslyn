@@ -29,15 +29,8 @@ namespace Microsoft.CodeAnalysis.Classification
 
         internal static SerializableClassifiedSpans Dehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans)
         {
-            var classificationTypeToId = PooledDictionary<string, int>.GetInstance();
-            try
-            {
-                return Dehydrate(classifiedSpans, classificationTypeToId);
-            }
-            finally
-            {
-                classificationTypeToId.Free();
-            }
+            using var _ = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
+            return Dehydrate(classifiedSpans, classificationTypeToId);
         }
 
         private static SerializableClassifiedSpans Dehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
