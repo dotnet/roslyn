@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 
                 var firstTrivia = SyntaxFactory.Comment(prefix);
                 var secondTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed;
-                var thirdTrivia = _hasSpaceAfterComment ?
-                    SyntaxFactory.Comment(indentString + CommentCharacter + " " + suffix) :
-                    SyntaxFactory.Comment(indentString + CommentCharacter + suffix);
+                var thirdTrivia = _hasSpaceAfterComment
+                    ? SyntaxFactory.Comment(indentString + CommentCharacter + " " + suffix)
+                    : SyntaxFactory.Comment(indentString + CommentCharacter + suffix);
 
                 return SyntaxFactory.TriviaList(firstTrivia, secondTrivia, thirdTrivia);
             }
