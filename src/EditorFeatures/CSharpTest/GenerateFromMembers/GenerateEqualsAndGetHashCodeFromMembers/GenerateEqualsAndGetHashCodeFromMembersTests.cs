@@ -1417,6 +1417,53 @@ class Program
 chosenSymbols: null);
         }
 
+        [WorkItem(41958, "https://github.com/dotnet/roslyn/issues/41958")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogInheritedMembers()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Base
+{
+    public int C { get; set; }
+}
+
+class Middle : Base
+{
+    public int B { get; set; }
+}
+
+class Derived : Middle
+{
+    public int A { get; set; }
+    [||]
+}",
+@"
+class Base
+{
+    public int C { get; set; }
+}
+
+class Middle : Base
+{
+    public int B { get; set; }
+}
+
+class Derived : Middle
+{
+    public int A { get; set; }
+
+    public override bool Equals(object obj)
+    {
+        return obj is Derived derived &&
+               C == derived.C &&
+               B == derived.B &&
+               A == derived.A;
+    }
+}",
+chosenSymbols: null);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGenerateOperators1()
         {

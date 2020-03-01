@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
@@ -13,6 +14,12 @@ namespace Roslyn.Utilities
     {
         private partial class Empty
         {
+            internal static class BoxedImmutableArray<T>
+            {
+                // empty boxed immutable array
+                public static readonly IReadOnlyList<T> Instance = ImmutableArray<T>.Empty;
+            }
+
             internal class List<T> : Collection<T>, IList<T>, IReadOnlyList<T>
             {
                 public static readonly new List<T> Instance = new List<T>();

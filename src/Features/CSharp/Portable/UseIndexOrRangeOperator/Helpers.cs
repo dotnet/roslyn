@@ -5,6 +5,7 @@
 using System.Collections;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             => operation is IPropertyReferenceOperation propertyRef &&
                propertyRef.Instance != null &&
                lengthLikeProperty.Equals(propertyRef.Property) &&
-               CSharpSyntaxFactsService.Instance.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
+               CSharpSyntaxFacts.Instance.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
 
         /// <summary>
         /// Checks if <paramref name="operation"/> is a binary subtraction operator. If so, it

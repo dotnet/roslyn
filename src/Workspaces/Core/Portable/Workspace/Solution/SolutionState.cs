@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
         private readonly SolutionServices _solutionServices;
-        private readonly IReadOnlyList<ProjectId> _projectIds;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis
             int workspaceVersion,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
-            IEnumerable<ProjectId> projectIds,
+            IReadOnlyList<ProjectId> projectIds,
             SerializableOptionSet options,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
@@ -68,8 +67,8 @@ namespace Microsoft.CodeAnalysis
             _workspaceVersion = workspaceVersion;
             _solutionAttributes = solutionAttributes;
             _solutionServices = solutionServices;
-            _projectIds = projectIds.ToImmutableReadOnlyListOrEmpty();
-            Options = options ?? throw new ArgumentNullException(nameof(options));
+            ProjectIds = projectIds;
+            Options = options;
             _projectIdToProjectStateMap = idToProjectStateMap;
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                 workspaceVersion: 0,
                 solutionServices,
                 solutionAttributes,
-                projectIds: ImmutableArray<ProjectId>.Empty,
+                projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
                 options,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
@@ -157,12 +156,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A list of all the ids for all the projects contained by the solution.
         /// </summary>
-        public IReadOnlyList<ProjectId> ProjectIds => _projectIds;
+        public IReadOnlyList<ProjectId> ProjectIds { get; }
 
         // [Conditional("DEBUG")]
         private void CheckInvariants()
         {
-            Contract.ThrowIfTrue(_projectIds.Count != _projectIdToProjectStateMap.Count);
+            Contract.ThrowIfTrue(ProjectIds.Count != _projectIdToProjectStateMap.Count);
 
             // An id shouldn't point at a tracker for a different project.
             Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState Branch(
             SolutionInfo.SolutionAttributes? solutionAttributes = null,
-            IEnumerable<ProjectId>? projectIds = null,
+            IReadOnlyList<ProjectId>? projectIds = null,
             SerializableOptionSet? options = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker>? projectIdToTrackerMap = null,
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             var branchId = GetBranchId();
 
             solutionAttributes ??= _solutionAttributes;
-            projectIds ??= _projectIds;
+            projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
             options ??= Options.WithLanguages(GetProjectLanguages(idToProjectStateMap));
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis
 
             if (branchId == _branchId &&
                 solutionAttributes == _solutionAttributes &&
-                projectIds == _projectIds &&
+                projectIds == ProjectIds &&
                 options == Options &&
                 idToProjectStateMap == _projectIdToProjectStateMap &&
                 projectIdToTrackerMap == _projectIdToTrackerMap &&
@@ -230,7 +229,7 @@ namespace Microsoft.CodeAnalysis
                 workspaceVersion,
                 services,
                 _solutionAttributes,
-                _projectIds,
+                ProjectIds,
                 Options,
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
@@ -441,7 +440,7 @@ namespace Microsoft.CodeAnalysis
             // changed project list so, increment version.
             var newSolutionAttributes = _solutionAttributes.WithVersion(this.Version.GetNewerVersion());
 
-            var newProjectIds = _projectIds.ToImmutableArray().Add(projectId);
+            var newProjectIds = ProjectIds.ToImmutableArray().Add(projectId);
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
             var newDependencyGraph = _dependencyGraph
                                         .WithAdditionalProjects(SpecializedCollections.SingletonEnumerable(projectId))
@@ -555,7 +554,7 @@ namespace Microsoft.CodeAnalysis
             // changed project list so, increment version.
             var newSolutionAttributes = _solutionAttributes.WithVersion(this.Version.GetNewerVersion());
 
-            var newProjectIds = _projectIds.ToImmutableArray().Remove(projectId);
+            var newProjectIds = ProjectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
             var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
@@ -1364,7 +1363,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to be contained in
         /// the sequence of logical folders.
         /// </summary>
-        public SolutionState WithDocumentFolders(DocumentId documentId, IEnumerable<string> folders)
+        public SolutionState WithDocumentFolders(DocumentId documentId, IEnumerable<string?> folders)
         {
             if (documentId == null)
             {
@@ -1376,12 +1375,10 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(folders));
             }
 
-            var folderCollection = folders.WhereNotNull().ToReadOnlyCollection();
+            var oldDocument = GetDocumentState(documentId)!;
+            var newDocument = oldDocument.UpdateFolders(folders.WhereNotNull().ToImmutableArray());
 
-            var oldDocument = this.GetDocumentState(documentId)!;
-            var newDocument = oldDocument.UpdateFolders(folderCollection);
-
-            return this.WithDocumentState(newDocument);
+            return WithDocumentState(newDocument);
         }
 
         /// <summary>
@@ -1663,11 +1660,6 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState WithDocumentState(DocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
         {
-            if (newDocument == null)
-            {
-                throw new ArgumentNullException(nameof(newDocument));
-            }
-
             CheckContainsDocument(newDocument.Id);
 
             if (newDocument == this.GetDocumentState(newDocument.Id))
@@ -1700,11 +1692,6 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState WithAdditionalDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
         {
-            if (newDocument == null)
-            {
-                throw new ArgumentNullException(nameof(newDocument));
-            }
-
             CheckContainsAdditionalDocument(newDocument.Id);
 
             if (newDocument == this.GetAdditionalDocumentState(newDocument.Id))
@@ -1727,11 +1714,6 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState WithAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
         {
-            if (newDocument == null)
-            {
-                throw new ArgumentNullException(nameof(newDocument));
-            }
-
             CheckContainsAnalyzerConfigDocument(newDocument.Id);
 
             if (newDocument == this.GetAnalyzerConfigDocumentState(newDocument.Id))
@@ -1940,7 +1922,7 @@ namespace Microsoft.CodeAnalysis
                     currentPartialSolution = this.Branch(
                         idToProjectStateMap: newIdToProjectStateMap,
                         projectIdToTrackerMap: newIdToTrackerMap,
-                        dependencyGraph: CreateDependencyGraph(_projectIds, newIdToProjectStateMap));
+                        dependencyGraph: CreateDependencyGraph(ProjectIds, newIdToProjectStateMap));
 
                     _latestSolutionWithPartialCompilation = new WeakReference<SolutionState>(currentPartialSolution);
                     _timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
@@ -1959,7 +1941,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with all the documents specified updated to have the same specified text.
         /// </summary>
-        public SolutionState WithDocumentText(IEnumerable<DocumentId> documentIds, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public SolutionState WithDocumentText(IEnumerable<DocumentId> documentIds, SourceText text, PreservationMode mode)
         {
             if (documentIds == null)
             {
@@ -2231,26 +2213,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new InvalidOperationException(WorkspacesResources.This_submission_already_references_another_submission_project);
                 }
-            }
-        }
-
-        private void CheckNotContainsDocument(DocumentId documentId)
-        {
-            Debug.Assert(!this.ContainsDocument(documentId));
-
-            if (this.ContainsDocument(documentId))
-            {
-                throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_document);
-            }
-        }
-
-        private void CheckNotContainsAdditionalDocument(DocumentId documentId)
-        {
-            Debug.Assert(!this.ContainsAdditionalDocument(documentId));
-
-            if (this.ContainsAdditionalDocument(documentId))
-            {
-                throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_document);
             }
         }
 

@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
-            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
             _kindsOfInterest = ImmutableArray.Create(
                 syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.SimpleMemberAccessExpression));
         }
 
         protected abstract string GetLanguageName();
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected abstract bool CanSimplifyTypeNameExpression(
             SemanticModel model, TMemberAccessExpressionSyntax memberAccess, OptionSet optionSet, out TextSpan issueSpan, CancellationToken cancellationToken);
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var cancellationToken = context.CancellationToken;
             var node = (TMemberAccessExpressionSyntax)context.Node;
 
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(node);
             if (!(expr is TThisExpressionSyntax))
             {
