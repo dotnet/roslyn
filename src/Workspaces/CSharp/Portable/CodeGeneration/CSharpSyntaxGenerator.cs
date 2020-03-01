@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override bool RequiresExplicitImplementationForInterfaceMembers => false;
 
-        internal override ISyntaxFactsService SyntaxFacts => CSharpSyntaxFactsService.Instance;
+        internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
@@ -3293,14 +3294,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (SimpleNameSyntax)simpleName);
         }
 
-        internal override SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
+        public override SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
             => SyntaxFactory.ConditionalAccessExpression((ExpressionSyntax)expression, (ExpressionSyntax)whenNotNull);
 
-        internal override SyntaxNode MemberBindingExpression(SyntaxNode name)
+        public override SyntaxNode MemberBindingExpression(SyntaxNode name)
             => SyntaxFactory.MemberBindingExpression((SimpleNameSyntax)name);
 
-        internal override SyntaxNode ElementBindingExpression(SyntaxNode argumentList)
-            => SyntaxFactory.ElementBindingExpression((BracketedArgumentListSyntax)argumentList);
+        public override SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments)
+            => SyntaxFactory.ElementBindingExpression(
+                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SeparatedList(arguments)));
 
         /// <summary>
         /// Parenthesize the left hand size of a member access, invocation or element access expression
@@ -3433,14 +3435,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return DefaultExpression(type.GenerateTypeSyntax());
         }
 
-        internal override SyntaxNode AddParentheses(SyntaxNode expression)
+        internal override SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
-            return Parenthesize(expression);
+            return Parenthesize(expression, includeElasticTrivia, addSimplifierAnnotation);
         }
 
-        private static ExpressionSyntax Parenthesize(SyntaxNode expression)
+        private static ExpressionSyntax Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
-            return ((ExpressionSyntax)expression).Parenthesize();
+            return ((ExpressionSyntax)expression).Parenthesize(includeElasticTrivia, addSimplifierAnnotation);
         }
 
         public override SyntaxNode IsTypeExpression(SyntaxNode expression, SyntaxNode type)

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -11,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal static class TaskExtensions
     {
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task CompletesAsyncOperation(this Task task, IAsyncToken asyncToken)
         {
             if (asyncToken is AsynchronousOperationListener.DiagnosticAsyncToken diagnosticToken)
@@ -24,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
             AllowCaptures = false)]
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task CompletesTrackingOperation(this Task task, IDisposable token)
         {
             if (token == null || token == EmptyAsyncToken.Instance)

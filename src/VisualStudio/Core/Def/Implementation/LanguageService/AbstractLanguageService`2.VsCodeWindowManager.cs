@@ -56,10 +56,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 // Fire and forget to update the navbar based on the workspace registration
                 // to avoid blocking the caller and possible deadlocks workspace registration changed events under lock.
-                UpdateWorkspace().CompletesAsyncOperation(token).Forget();
+                UpdateWorkspaceAsync().CompletesAsyncOperation(token).Forget();
             }
 
-            private async Task UpdateWorkspace()
+            private async Task UpdateWorkspaceAsync()
             {
                 // This event may not be triggered on the main thread, but adding and removing the navbar
                 // must be done from the main thread.

@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             /// Note that this is initially unset until we find a non-constant expression.
             /// </remarks>
             private SyntaxNode _switchTargetExpression = null!;
-            private readonly ISyntaxFactsService _syntaxFacts;
+            private readonly ISyntaxFacts _syntaxFacts;
             private readonly Feature _features;
 
-            protected Analyzer(ISyntaxFactsService syntaxFacts, Feature features)
+            protected Analyzer(ISyntaxFacts syntaxFacts, Feature features)
             {
                 _syntaxFacts = syntaxFacts;
                 _features = features;
@@ -73,10 +73,9 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
             {
-                var sections = ArrayBuilder<AnalyzedSwitchSection>.GetInstance();
+                using var _ = ArrayBuilder<AnalyzedSwitchSection>.GetInstance(out var sections);
                 if (!ParseIfStatementSequence(operations, sections, out var defaultBodyOpt))
                 {
-                    sections.Free();
                     return default;
                 }
 
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
 
                 RoslynDebug.Assert(_switchTargetExpression is object);
-                return (sections.ToImmutableAndFree(), _switchTargetExpression);
+                return (sections.ToImmutable(), _switchTargetExpression);
             }
 
             // Tree to parse:
@@ -175,14 +174,13 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private AnalyzedSwitchSection? ParseSwitchSection(IConditionalOperation operation)
             {
-                var labels = ArrayBuilder<AnalyzedSwitchLabel>.GetInstance();
+                using var _ = ArrayBuilder<AnalyzedSwitchLabel>.GetInstance(out var labels);
                 if (!ParseSwitchLabels(operation.Condition, labels))
                 {
-                    labels.Free();
                     return null;
                 }
 
-                return new AnalyzedSwitchSection(labels.ToImmutableAndFree(), operation.WhenTrue, operation.Syntax);
+                return new AnalyzedSwitchSection(labels.ToImmutable(), operation.WhenTrue, operation.Syntax);
             }
 
             // Tree to parse:
@@ -215,15 +213,14 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private AnalyzedSwitchLabel? ParseSwitchLabel(IOperation operation)
             {
-                var guards = ArrayBuilder<TExpressionSyntax>.GetInstance();
+                using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var guards);
                 var pattern = ParsePattern(operation, guards);
                 if (pattern is null)
                 {
-                    guards.Free();
                     return null;
                 }
 
-                return new AnalyzedSwitchLabel(pattern, guards.ToImmutableAndFree());
+                return new AnalyzedSwitchLabel(pattern, guards.ToImmutable());
             }
 
             private enum ConstantResult

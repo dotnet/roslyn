@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.OrderModifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Inherits AbstractOrderModifiersDiagnosticAnalyzer
 
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance,
+            MyBase.New(VisualBasicSyntaxFacts.Instance,
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,
                        VisualBasicOrderModifiersHelper.Instance,
                        LanguageNames.VisualBasic)

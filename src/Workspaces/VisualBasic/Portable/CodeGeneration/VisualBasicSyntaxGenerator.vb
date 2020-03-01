@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
 
-        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFactsService = VisualBasicSyntaxFactsService.Instance
+        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
             Return SyntaxFactory.EndOfLine(text)
@@ -64,12 +65,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AddressOf AsSimpleArgument)))
         End Function
 
-        Friend Overrides Function AddParentheses(expression As SyntaxNode) As SyntaxNode
-            Return Parenthesize(expression)
+        Friend Overrides Function AddParentheses(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True, Optional addSimplifierAnnotation As Boolean = True) As SyntaxNode
+            Return Parenthesize(expression, addSimplifierAnnotation)
         End Function
 
-        Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax
-            Return DirectCast(expression, ExpressionSyntax).Parenthesize()
+        Private Function Parenthesize(expression As SyntaxNode, Optional addSimplifierAnnotation As Boolean = True) As ParenthesizedExpressionSyntax
+            Return DirectCast(expression, ExpressionSyntax).Parenthesize(addSimplifierAnnotation)
         End Function
 
         Public Overrides Function AddExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
@@ -289,19 +290,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 DirectCast(simpleName, SimpleNameSyntax))
         End Function
 
-        Friend Overrides Function ConditionalAccessExpression(expression As SyntaxNode, whenNotNull As SyntaxNode) As SyntaxNode
+        Public Overrides Function ConditionalAccessExpression(expression As SyntaxNode, whenNotNull As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.ConditionalAccessExpression(
                 DirectCast(expression, ExpressionSyntax),
                 DirectCast(whenNotNull, ExpressionSyntax))
         End Function
 
-        Friend Overrides Function MemberBindingExpression(name As SyntaxNode) As SyntaxNode
+        Public Overrides Function MemberBindingExpression(name As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.SimpleMemberAccessExpression(DirectCast(name, SimpleNameSyntax))
         End Function
 
-        Friend Overrides Function ElementBindingExpression(argumentList As SyntaxNode) As SyntaxNode
+        Public Overrides Function ElementBindingExpression(arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.InvocationExpression(expression:=Nothing,
-                                                      argumentList:=DirectCast(argumentList, ArgumentListSyntax))
+                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)))
         End Function
 
         ' parenthesize the left-side of a dot or target of an invocation if not unnecessary

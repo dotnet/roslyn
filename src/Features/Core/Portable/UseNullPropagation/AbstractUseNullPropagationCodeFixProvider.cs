@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,7 +27,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TInvocationExpression,
         TMemberAccessExpression,
         TConditionalAccessExpression,
-        TElementAccessExpression> : SyntaxEditorBasedCodeFixProvider
+        TElementAccessExpression,
+        TElementBindingExpression,
+        TElementBindingArgumentList> : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
@@ -34,7 +38,11 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TMemberAccessExpression : TExpressionSyntax
         where TConditionalAccessExpression : TExpressionSyntax
         where TElementAccessExpression : TExpressionSyntax
+        where TElementBindingExpression : TExpressionSyntax
+        where TElementBindingArgumentList : SyntaxNode
     {
+        protected abstract TElementBindingExpression ElementBindingExpression(TElementBindingArgumentList argumentList);
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
 
@@ -55,9 +63,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var root = editor.OriginalRoot;
 
@@ -81,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                             TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
                             TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel, conditionalPart, currentWhenPartToCheck);
+                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel!, conditionalPart, currentWhenPartToCheck);
                         if (match == null)
                         {
                             return c;
@@ -116,14 +124,14 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         //      goo?.Bar()  not   goo?.Value.Bar();
                         return CreateConditionalAccessExpression(
                             syntaxFacts, generator, whenPart, match,
-                            memberAccess.Parent, currentConditional);
+                            memberAccess.Parent!, currentConditional);
                     }
                 }
             }
 
             return CreateConditionalAccessExpression(
                 syntaxFacts, generator, whenPart, match,
-                match.Parent, currentConditional);
+                match.Parent!, currentConditional);
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
@@ -141,11 +149,10 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             if (matchParent is TElementAccessExpression elementAccess)
             {
+                var argumentList = (TElementBindingArgumentList)syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess);
                 return whenPart.ReplaceNode(elementAccess,
                     generator.ConditionalAccessExpression(
-                        match,
-                        generator.ElementBindingExpression(
-                            syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess))));
+                        match, ElementBindingExpression(argumentList)));
             }
 
             return currentConditional;

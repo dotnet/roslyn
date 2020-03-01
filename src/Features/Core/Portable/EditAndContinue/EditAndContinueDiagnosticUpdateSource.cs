@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var documentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
-            var nonDocumentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
+            using var _1 = ArrayBuilder<DiagnosticData>.GetInstance(out var documentDiagnosticData);
+            using var _2 = ArrayBuilder<DiagnosticData>.GetInstance(out var nonDocumentDiagnosticData);
             var workspace = solution.Workspace;
             var options = solution.Options;
             var project = (projectId != null) ? solution.GetProject(projectId) : null;
@@ -117,9 +117,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     documentId: null,
                     diagnostics: nonDocumentDiagnosticData.ToImmutable()));
             }
-
-            documentDiagnosticData.Free();
-            nonDocumentDiagnosticData.Free();
         }
     }
 }

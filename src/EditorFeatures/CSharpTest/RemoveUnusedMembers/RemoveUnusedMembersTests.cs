@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
@@ -1658,17 +1659,37 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        public async Task MultipleFields_AllUnused_02()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [CombinatorialData]
+        public async Task MultipleFields_AllUnused_FixOne(
+            [CombinatorialValues("[|_goo|]", "[|_goo|] = 0")] string firstField,
+            [CombinatorialValues("[|_bar|]", "[|_bar|] = 2")] string secondField,
+            [CombinatorialValues(0, 1)] int diagnosticIndex)
         {
-            await VerifyCS.VerifyCodeFixAsync(
-@"class MyClass
+            var source = $@"class MyClass
+{{
+    private int {firstField}, {secondField};
+}}";
+            var fixedSource = $@"class MyClass
+{{
+    private int {(diagnosticIndex == 0 ? secondField : firstField)};
+}}";
+            var batchFixedSource = @"class MyClass
 {
-    private int [|_goo|] = 0, [|_bar|];
-}",
-@"class MyClass
-{
-}");
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+                BatchFixedCode = batchFixedSource,
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+                DiagnosticSelector = fixableDiagnostics => fixableDiagnostics[diagnosticIndex],
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
