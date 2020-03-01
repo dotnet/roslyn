@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly Func<string?, PreservationMode, string> s_fullParseLog = (path, mode) => $"{path} : {mode}";
 
         private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
-            new ConditionalWeakTable<SyntaxTree, DocumentId>();
+            new ConditionalWeakTable<global::Microsoft.CodeAnalysis.SyntaxTree, DocumentId>();
 
         private readonly HostLanguageServices _languageServices;
         private readonly ParseOptions? _options;
@@ -86,6 +87,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public ValueSource<AnalyzerConfigSet> AnalyzerConfigSetSource => _analyzerConfigSetSource;
+
         internal bool SupportsSyntaxTree
             => _treeSource != null;
 
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis
         // This is the string used to represent the FilePath property on a SyntaxTree object.
         // if the document does not yet have a file path, use the document's name instead in regular code
         // or an empty string in script code.
-        private static string GetSyntaxTreeFilePath(DocumentInfo.DocumentAttributes info)
+        public static string GetSyntaxTreeFilePath(DocumentInfo.DocumentAttributes info)
         {
             if (info.FilePath != null)
             {
@@ -434,16 +437,9 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentState UpdateAnalyzerConfigSet(ValueSource<AnalyzerConfigSet> newAnalyzerConfigSet)
         {
-            // TODO: it's overkill to fully reparse the tree if we had the tree already; all we have to do is update the
-            // file path and diagnostic options for that tree.
-            var newTreeSource = SupportsSyntaxTree ?
-                CreateLazyFullyParsedTree(
-                    TextAndVersionSource,
-                    Id.ProjectId,
-                    GetSyntaxTreeFilePath(Attributes),
-                    _options!,
-                    newAnalyzerConfigSet,
-                    _languageServices) : null;
+            // TODO: it's overkill to fully reparse the tree if we had the tree already; all we have
+            // to do is update the file path and diagnostic options for that tree.
+            var newTreeSource = CreateNewTreeSourceForUpdatedAnalyzerConfigSet(newAnalyzerConfigSet);
 
             return new DocumentState(
                 _languageServices,
@@ -455,6 +451,89 @@ namespace Microsoft.CodeAnalysis
                 sourceText,
                 TextAndVersionSource,
                 newTreeSource);
+        }
+
+        private ValueSource<TreeAndVersion>? CreateNewTreeSourceForUpdatedAnalyzerConfigSet(ValueSource<AnalyzerConfigSet> newAnalyzerConfigSet)
+        {
+            if (!SupportsSyntaxTree)
+                return null;
+
+            var filePath = GetSyntaxTreeFilePath(this.Attributes);
+
+            // If we don't have an existing tree, there's no optimization we can do.  Just fully
+            // parse the tree.
+            if (_treeSource == null)
+                return CreateLazyFullyParsedTree(newAnalyzerConfigSet, filePath);
+
+            // In the case where the config file didn't change between the last version
+            // and this version (in any significant way) we want to reuse the previous
+            // document to prevent excess unnecessary work.
+
+            return new AsyncLazy<TreeAndVersion>(
+                c => FullyParseTreeIfChangedByUpdatedConfigAsync(_treeSource, newAnalyzerConfigSet, filePath, c),
+                c => FullyParseTreeIfChangedByUpdatedConfig(_treeSource, newAnalyzerConfigSet, filePath, c),
+                cacheResult: true);
+        }
+
+        private ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(ValueSource<AnalyzerConfigSet> newAnalyzerConfigSetSource, string filePath)
+            => CreateLazyFullyParsedTree(
+                TextAndVersionSource, Id.ProjectId, filePath, _options!, newAnalyzerConfigSetSource, _languageServices);
+
+        private async Task<TreeAndVersion> FullyParseTreeIfChangedByUpdatedConfigAsync(
+            ValueSource<TreeAndVersion> treeAndVersionSource, ValueSource<AnalyzerConfigSet> newAnalyzerConfigSetSource,
+            string filePath, CancellationToken cancellationToken)
+        {
+            var oldAnalyzerConfigSet = await _analyzerConfigSetSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var newAnalyzerConfigSet = await newAnalyzerConfigSetSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+            if (CanReuseExistingTree(filePath, oldAnalyzerConfigSet, newAnalyzerConfigSet))
+            {
+                // Config didn't change in a meaningful way.  Get the existing tree/version from
+                // before.
+                return await treeAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            // Config did change in a significant way.  Reparse the file fully.
+            return await CreateLazyFullyParsedTree(newAnalyzerConfigSetSource, filePath).GetValueAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        private TreeAndVersion FullyParseTreeIfChangedByUpdatedConfig(
+            ValueSource<TreeAndVersion> treeAndVersionSource, ValueSource<AnalyzerConfigSet> newAnalyzerConfigSetSource,
+            string filePath, CancellationToken cancellationToken)
+        {
+            var oldAnalyzerConfigSet = _analyzerConfigSetSource.GetValue(cancellationToken);
+            var newAnalyzerConfigSet = newAnalyzerConfigSetSource.GetValue(cancellationToken);
+
+            if (CanReuseExistingTree(filePath, oldAnalyzerConfigSet, newAnalyzerConfigSet))
+            {
+                // Config didn't change in a meaningful way.  Get the existing tree/version from
+                // before.
+                return treeAndVersionSource.GetValue(cancellationToken);
+            }
+
+            // Config did change in a significant way.  Reparse the file fully.
+            return CreateLazyFullyParsedTree(newAnalyzerConfigSetSource, filePath).GetValue(cancellationToken);
+        }
+
+        private bool CanReuseExistingTree(
+            string filePath,
+            AnalyzerConfigSet oldAnalyzerConfigSet,
+            AnalyzerConfigSet newAnalyzerConfigSet)
+        {
+            var oldOptions = oldAnalyzerConfigSet.GetOptionsForSourcePath(filePath);
+            var newOptions = newAnalyzerConfigSet.GetOptionsForSourcePath(filePath);
+
+            // See AbstractSyntaxTreeFactoryService.ParseSyntaxTree.  We can only reuse the
+            // trees if the config TreeOptions stay the same, and we didn't change the
+            // generated-code state.
+
+            if (GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(oldOptions.AnalyzerOptions) !=
+                GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(newOptions.AnalyzerOptions))
+            {
+                return false;
+            }
+
+            return oldOptions.TreeOptions.SetEquals<KeyValuePair<string, ReportDiagnostic>>(newOptions.TreeOptions);
         }
 
         public new DocumentState UpdateText(SourceText newText, PreservationMode mode)
