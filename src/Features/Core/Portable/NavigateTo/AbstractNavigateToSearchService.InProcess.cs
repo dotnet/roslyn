@@ -22,9 +22,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        private static readonly ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>> s_lastProjectSearchCache =
-            new ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>>();
-
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
@@ -60,92 +57,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-                // If we're searching a single document, then just do a full search of 
-                // that document (we're fast enough to not need to optimize that case).
-                //
-                // If, however, we are searching a project, then see if we could potentially
-                // use the last computed results we have for that project.  If so, it can
-                // be much faster to reuse and filter that result than to compute it from
-                // scratch.
-#if true
-                var task = searchDocument != null
-                    ? ComputeSearchResultsAsync(project, priorityDocuments, searchDocument, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken)
-                    : TryFilterPreviousSearchResultsAsync(project, priorityDocuments, searchDocument, pattern, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken);
-#else
-                var task = ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken);
-#endif
+                var searchResults = await ComputeSearchResultsAsync(
+                    project, priorityDocuments, searchDocument, nameMatcher, containerMatcherOpt,
+                    declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
 
-                var searchResults = await task.ConfigureAwait(false);
                 return ImmutableArray<INavigateToSearchResult>.CastUp(searchResults);
             }
-        }
-
-        private static async Task<ImmutableArray<SearchResult>> TryFilterPreviousSearchResultsAsync(
-            Project project, ImmutableArray<Document> priorityDocuments,
-            Document searchDocument, string pattern,
-            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
-            DeclaredSymbolInfoKindSet kinds,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            CancellationToken cancellationToken)
-        {
-            // Searching an entire project.  See if we already performed that same
-            // search with a substring of the current pattern.  if so, we can use
-            // the previous result and just filter that down.  This is useful for
-            // the common case where a user types some pattern, then keeps adding
-            // to it.
-            ImmutableArray<SearchResult> searchResults;
-            if (s_lastProjectSearchCache.TryGetValue(project, out var previousResult) &&
-                pattern.StartsWith(previousResult.Item1))
-            {
-                // We can reuse the previous results and just filter them. 
-                searchResults = FilterPreviousResults(
-                    previousResult.Item2,
-                    nameMatcher, containerMatcherOpt,
-                    kinds,
-                    nameMatches, containerMatches, cancellationToken);
-            }
-            else
-            {
-                // Didn't have previous results.  Or it was a very different pattern.
-                // Can't reuse.
-                searchResults = await ComputeSearchResultsAsync(
-                    project, priorityDocuments, searchDocument,
-                    nameMatcher, containerMatcherOpt, kinds,
-                    nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
-            }
-
-            // Would like to use CWT.AddOrUpdate. But that is not available on the 
-            // version of .NET that we're using.  So we need to take lock as we're
-            // making multiple mutations.
-            lock (s_lastProjectSearchCache)
-            {
-                s_lastProjectSearchCache.Remove(project);
-                s_lastProjectSearchCache.Add(project, Tuple.Create(pattern, searchResults));
-            }
-
-            return searchResults;
-        }
-
-        private static ImmutableArray<SearchResult> FilterPreviousResults(
-            ImmutableArray<SearchResult> previousResults,
-            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
-            DeclaredSymbolInfoKindSet kinds,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            CancellationToken cancellationToken)
-        {
-            var result = ArrayBuilder<SearchResult>.GetInstance();
-
-            foreach (var previousResult in previousResults)
-            {
-                var document = previousResult.Document;
-                var info = previousResult.DeclaredSymbolInfo;
-
-                AddResultIfMatch(
-                    document, info, nameMatcher, containerMatcherOpt, kinds,
-                    nameMatches, containerMatches, result, cancellationToken);
-            }
-
-            return result.ToImmutableAndFree();
         }
 
         private static async Task<ImmutableArray<SearchResult>> ComputeSearchResultsAsync(
