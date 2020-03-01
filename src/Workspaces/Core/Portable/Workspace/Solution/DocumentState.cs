@@ -458,8 +458,8 @@ namespace Microsoft.CodeAnalysis
 
             var filePath = GetSyntaxTreeFilePath(this.Attributes);
 
-            // If we don't have an existing tree, there's no optimization we can do.  Just fully
-            // parse the tree.
+            // If we don't have an existing tree, there's no optimization we can do.  Just lazily
+            // parse the tree fully when it is requested.
             if (_treeSource == null)
                 return CreateLazyFullyParsedTree(newAnalyzerConfigSet, filePath);
 
@@ -477,6 +477,10 @@ namespace Microsoft.CodeAnalysis
             => CreateLazyFullyParsedTree(
                 TextAndVersionSource, Id.ProjectId, filePath, _options!, newAnalyzerConfigSetSource, _languageServices);
 
+        /// <summary>
+        /// Asynchronous version of <see cref="FullyParseTreeIfChangedByUpdatedConfig"/>.
+        /// Keep the code for both in sync.
+        /// </summary>
         private async Task<TreeAndVersion> FullyParseTreeIfChangedByUpdatedConfigAsync(
             ValueSource<TreeAndVersion> treeAndVersionSource, ValueSource<AnalyzerConfigSet> newAnalyzerConfigSetSource,
             string filePath, CancellationToken cancellationToken)
@@ -495,6 +499,10 @@ namespace Microsoft.CodeAnalysis
             return await CreateLazyFullyParsedTree(newAnalyzerConfigSetSource, filePath).GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Synchronous version of <see cref="FullyParseTreeIfChangedByUpdatedConfigAsync"/>.
+        /// Keep the code for both in sync.
+        /// </summary>
         private TreeAndVersion FullyParseTreeIfChangedByUpdatedConfig(
             ValueSource<TreeAndVersion> treeAndVersionSource, ValueSource<AnalyzerConfigSet> newAnalyzerConfigSetSource,
             string filePath, CancellationToken cancellationToken)
@@ -521,9 +529,9 @@ namespace Microsoft.CodeAnalysis
             var oldOptions = oldAnalyzerConfigSet.GetOptionsForSourcePath(filePath);
             var newOptions = newAnalyzerConfigSet.GetOptionsForSourcePath(filePath);
 
-            // See AbstractSyntaxTreeFactoryService.ParseSyntaxTree.  We can only reuse the
-            // trees if the config TreeOptions stay the same, and we didn't change the
-            // generated-code state.
+            // See AbstractSyntaxTreeFactoryService.ParseSyntaxTree.  We can only reuse the trees if
+            // the config TreeOptions stay the same (these are the ones that affect diagnostics),
+            // and we didn't change the generated-code state.
 
             if (GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(oldOptions.AnalyzerOptions) !=
                 GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(newOptions.AnalyzerOptions))
