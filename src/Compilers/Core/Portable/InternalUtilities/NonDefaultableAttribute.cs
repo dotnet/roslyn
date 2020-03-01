@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+using System;
 
-using System.Collections.Immutable;
-
-namespace Microsoft.CodeAnalysis.Options.Providers
+namespace Roslyn.Utilities
 {
-    internal interface IOptionProvider
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.GenericParameter)]
+    internal sealed class NonDefaultableAttribute : Attribute
     {
-        ImmutableArray<IOption> Options { get; }
     }
 }
