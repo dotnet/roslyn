@@ -293,36 +293,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 getAccessorStatements = null;
                 setAccessorStatements = null;
             }
-            else
-            {
-                if (getAccessorStatements == null && hasGetter)
-                {
-                    getAccessorStatements = SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-                }
-
-                if (setAccessorStatements == null && hasSetter)
-                {
-                    setAccessorStatements = SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-                }
-            }
 
             if (hasGetter)
-            {
                 accessors.Add(AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, getAccessorStatements));
-            }
 
             if (hasSetter)
-            {
                 accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, setAccessorStatements));
-            }
 
             var actualModifiers = modifiers - (DeclarationModifiers.ReadOnly | DeclarationModifiers.WriteOnly);
 
             return SyntaxFactory.PropertyDeclaration(
-                default,
+                attributeLists: default,
                 AsModifierList(accessibility, actualModifiers, SyntaxKind.PropertyDeclaration),
                 (TypeSyntax)type,
-                default,
+                explicitInterfaceSpecifier: default,
                 name.ToIdentifierToken(),
                 SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
         }

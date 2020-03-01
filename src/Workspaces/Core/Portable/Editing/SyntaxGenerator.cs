@@ -279,8 +279,18 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Creates a property declaration.
+        /// Creates a property declaration. The property will have a <c>get</c> accessor if
+        /// <see cref="DeclarationModifiers.IsWriteOnly"/> is <see langword="false"/> and will have
+        /// a <c>set</c> accessor if <see cref="DeclarationModifiers.IsReadOnly"/> is <see
+        /// langword="false"/>.
         /// </summary>
+        /// <remarks>
+        /// In C# there is a distinction betwene passing in <see langword="null"/> for <paramref
+        /// name="getAccessorStatements"/> or <paramref name="setAccessorStatements"/> versus
+        /// passing in an empty list. <see langword="null"/> will produce an auto-property-accessor
+        /// (i.e. <c>get;</c>) whereas an empty list will produce an accessor with an empty block
+        /// (i.e. <c>get { }</c>).
+        /// </remarks>
         public abstract SyntaxNode PropertyDeclaration(
             string name,
             SyntaxNode type,
