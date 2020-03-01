@@ -15989,7 +15989,7 @@ class Class<T1>
 		// Method begins at RVA 0x205f
 		// Code size 11 (0xb)
 		.maxstack 8
-		IL_0000: ldstr ""
+		IL_0000: ldstr """"
 		IL_0005: call void class Class`1<!T1>::'<M>g__M1|0_0'<string>(!!0)
 		IL_000a: ret
 	} // end of method Class`1::M
