@@ -59,12 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                 document, position, root, sourceText,
                 useTabs, tabSize, indentStyle, _hasSpaceAfterComment, cancellationToken);
 
-            if (splitter == null)
-            {
-                return null;
-            }
-
-            return splitter.TrySplit();
+            return splitter?.TrySplit();
         }
     }
 }
