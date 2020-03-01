@@ -20,15 +20,15 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal class ConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider :
+    internal class ConvertBetweenRegularAndVerbatimInterpolatedStringCodeRefactoringProvider :
         CodeRefactoringProvider
     {
         private const char DoubleQuote = '"';
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var literalExpression = await context.TryGetRelevantNodeAsync<LiteralExpressionSyntax>().ConfigureAwait(false);
-            if (literalExpression == null || literalExpression.Kind() != SyntaxKind.StringLiteralExpression)
+            var stringExpression = await context.TryGetRelevantNodeAsync<InterpolatedStringExpressionSyntax>().ConfigureAwait(false);
+            if (stringExpression == null)
                 return;
 
             var (document, _, cancellationToken) = context;
@@ -36,35 +36,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             var syntaxFacts = CSharpSyntaxFacts.Instance;
             var charService = document.GetRequiredLanguageService<IVirtualCharService>();
 
-            var stringToken = literalExpression.Token;
-            var chars = charService.TryConvertToVirtualChars(stringToken);
-            if (chars.IsDefaultOrEmpty)
-                return;
+            // First, ensure that we understand all text parts of the interpolation.
+            foreach (var content in stringExpression.Contents)
+            {
+                if (content is InterpolatedStringTextSyntax interpolatedStringText)
+                {
+                    var chars = charService.TryConvertToVirtualChars(interpolatedStringText.TextToken);
+                    if (chars.IsDefaultOrEmpty)
+                        return;
+                }
+            }
 
             // Offer to convert to a verbatim string if the normal string contains simple
             // escapes that can be directly embedded in the verbatim string.
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            if (syntaxFacts.IsVerbatimStringLiteral(stringToken))
+            if (stringExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
             {
                 // always offer to convert from verbatim string to normal string.
                 context.RegisterRefactoring(new MyCodeAction(
                     CSharpFeaturesResources.Convert_to_regular_string,
-                    c => ConvertToRegularStringAsync(document, stringToken, c)));
+                    c => ConvertToRegularStringAsync(document, stringExpression, c)));
             }
-            else if (ContainsSimpleEscape(sourceText, chars))
+            else if (ContainsSimpleEscape(charService, sourceText, stringExpression))
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     CSharpFeaturesResources.Convert_to_verbatim_string,
-                    c => ConvertToVerbatimStringAsync(document, stringToken, c)));
+                    c => ConvertToVerbatimStringAsync(document, stringExpression, c)));
             }
         }
 
         private Task<Document> ConvertToVerbatimStringAsync(
-            Document document, SyntaxToken stringToken, CancellationToken cancellationToken)
+            Document document, InterpolatedStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
         {
-            var newTokenText = CreateVerbatimStringTokenText(document, stringToken);
-            return ReplaceTokenAsync(document, stringToken, newTokenText, cancellationToken);
+            var newTokenText = CreateVerbatimStringTokenText(document, stringExpression);
+            return ReplaceTokenAsync(document, stringExpression, newTokenText, cancellationToken);
         }
 
         private static string CreateVerbatimStringTokenText(Document document, SyntaxToken stringToken)

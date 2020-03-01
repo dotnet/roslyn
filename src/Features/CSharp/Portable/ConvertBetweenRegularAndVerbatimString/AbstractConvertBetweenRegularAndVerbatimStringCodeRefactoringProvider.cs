@@ -5,7 +5,10 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,15 +23,23 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal class ConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider :
-        CodeRefactoringProvider
+    internal abstract class AbstractConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider<
+        TStringExpressionSyntax>
+        : CodeRefactoringProvider
+        where TStringExpressionSyntax : SyntaxNode
     {
         private const char DoubleQuote = '"';
 
+        protected abstract bool IsAppropriateLiteralKind(TStringExpressionSyntax literalExpression);
+        protected abstract ImmutableArray<SyntaxToken> GetSubStringTokens(TStringExpressionSyntax literalExpression);
+        protected abstract bool IsVerbatim(TStringExpressionSyntax literalExpression);
+        protected abstract TStringExpressionSyntax CreateVerbatimStringExpression(IVirtualCharService charService, StringBuilder sb, TStringExpressionSyntax stringExpression);
+        protected abstract TStringExpressionSyntax CreateRegularStringExpression(IVirtualCharService charService, StringBuilder sb, TStringExpressionSyntax stringExpression);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var literalExpression = await context.TryGetRelevantNodeAsync<LiteralExpressionSyntax>().ConfigureAwait(false);
-            if (literalExpression == null || literalExpression.Kind() != SyntaxKind.StringLiteralExpression)
+            var literalExpression = await context.TryGetRelevantNodeAsync<TStringExpressionSyntax>().ConfigureAwait(false);
+            if (literalExpression == null || !IsAppropriateLiteralKind(literalExpression))
                 return;
 
             var (document, _, cancellationToken) = context;
@@ -36,106 +47,104 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             var syntaxFacts = CSharpSyntaxFacts.Instance;
             var charService = document.GetRequiredLanguageService<IVirtualCharService>();
 
-            var stringToken = literalExpression.Token;
-            var chars = charService.TryConvertToVirtualChars(stringToken);
-            if (chars.IsDefaultOrEmpty)
-                return;
+            var subStringTokens = GetSubStringTokens(literalExpression);
+            // First, ensure that we understand all text parts of the interpolation.
+            foreach (var subToken in subStringTokens)
+            {
+                var chars = charService.TryConvertToVirtualChars(subToken);
+                if (chars.IsDefault)
+                    return;
+            }
 
             // Offer to convert to a verbatim string if the normal string contains simple
             // escapes that can be directly embedded in the verbatim string.
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            if (syntaxFacts.IsVerbatimStringLiteral(stringToken))
+            if (IsVerbatim(literalExpression))
             {
                 // always offer to convert from verbatim string to normal string.
                 context.RegisterRefactoring(new MyCodeAction(
                     CSharpFeaturesResources.Convert_to_regular_string,
-                    c => ConvertToRegularStringAsync(document, stringToken, c)));
+                    c => ConvertToRegularStringAsync(document, literalExpression, c)));
             }
-            else if (ContainsSimpleEscape(sourceText, chars))
+            else if (ContainsSimpleEscape(charService, sourceText, subStringTokens))
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     CSharpFeaturesResources.Convert_to_verbatim_string,
-                    c => ConvertToVerbatimStringAsync(document, stringToken, c)));
+                    c => ConvertToVerbatimStringAsync(document, literalExpression, c)));
             }
         }
 
-        private Task<Document> ConvertToVerbatimStringAsync(
-            Document document, SyntaxToken stringToken, CancellationToken cancellationToken)
-        {
-            var newTokenText = CreateVerbatimStringTokenText(document, stringToken);
-            return ReplaceTokenAsync(document, stringToken, newTokenText, cancellationToken);
-        }
-
-        private static string CreateVerbatimStringTokenText(Document document, SyntaxToken stringToken)
+        private async Task<Document> ConvertAsync(
+            Document document, TStringExpressionSyntax stringExpression,
+            Func<IVirtualCharService, StringBuilder, TStringExpressionSyntax, TStringExpressionSyntax> convert,
+            CancellationToken cancellationToken)
         {
             using var _ = PooledStringBuilder.GetInstance(out var sb);
 
             var charService = document.GetRequiredLanguageService<IVirtualCharService>();
-            var chars = charService.TryConvertToVirtualChars(stringToken);
+            var newStringExpression = convert(charService, sb.Builder, stringExpression).WithTriviaFrom(stringExpression);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            sb.Builder.Append('@');
-            sb.Builder.Append(DoubleQuote);
+            return document.WithSyntaxRoot(root.ReplaceNode(stringExpression, newStringExpression));
+        }
+
+        private Task<Document> ConvertToVerbatimStringAsync(Document document, TStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
+            => ConvertAsync(document, stringExpression, CreateVerbatimStringExpression, cancellationToken);
+
+        private Task<Document> ConvertToRegularStringAsync(Document document, TStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
+            => ConvertAsync(document, stringExpression, CreateRegularStringExpression, cancellationToken);
+
+        protected static void AddVerbatimStringText(
+            IVirtualCharService charService, StringBuilder sb, SyntaxToken stringToken)
+        {
+            var chars = charService.TryConvertToVirtualChars(stringToken);
 
             foreach (var ch in chars)
             {
                 // just build the verbatim string by concatenating all the chars in the original
                 // string.  The only exception are double-quotes which need to be doubled up in the
                 // final string.
-                sb.Builder.Append(ch.Char);
+                sb.Append(ch.Char);
 
                 if (ch.Char == DoubleQuote)
-                    sb.Builder.Append(ch.Char);
+                    sb.Append(ch.Char);
             }
-
-            sb.Builder.Append(DoubleQuote);
-            return sb.Builder.ToString();
         }
 
-        private Task<Document> ConvertToRegularStringAsync(Document document, SyntaxToken stringToken, CancellationToken cancellationToken)
+        protected static void AddRegularStringText(
+            IVirtualCharService charService, StringBuilder sb, SyntaxToken stringToken)
         {
-            var newTokenText = CreateRegularStringTokenText(document, stringToken);
-            return ReplaceTokenAsync(document, stringToken, newTokenText, cancellationToken);
-        }
-
-        private string CreateRegularStringTokenText(Document document, SyntaxToken stringToken)
-        {
-            using var _ = PooledStringBuilder.GetInstance(out var sb);
-
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
             var chars = charService.TryConvertToVirtualChars(stringToken);
-
-            sb.Builder.Append(DoubleQuote);
 
             foreach (var ch in chars)
             {
                 if (charService.TryGetEscapeCharacter(ch, out var escaped))
                 {
-                    sb.Builder.Append('\\');
-                    sb.Builder.Append(escaped);
+                    sb.Append('\\');
+                    sb.Append(escaped);
                 }
                 else
                 {
-                    sb.Builder.Append(ch);
+                    sb.Append(ch);
                 }
             }
-
-            sb.Builder.Append(DoubleQuote);
-            return sb.Builder.ToString();
         }
 
-        private static async Task<Document> ReplaceTokenAsync(Document document, SyntaxToken stringToken, string newTokenText, CancellationToken cancellationToken)
+        private bool ContainsSimpleEscape(
+            IVirtualCharService charService, SourceText text, ImmutableArray<SyntaxToken> subTokens)
         {
-            var finalStringToken = SyntaxFactory.Token(
-                stringToken.LeadingTrivia,
-                SyntaxKind.StringLiteralToken,
-                newTokenText, valueText: "",
-                stringToken.TrailingTrivia);
+            foreach (var subToken in subTokens)
+            {
+                var chars = charService.TryConvertToVirtualChars(subToken);
 
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceToken(stringToken, finalStringToken);
+                // This was checked above.
+                Debug.Assert(!chars.IsDefault);
+                if (ContainsSimpleEscape(text, chars))
+                    return true;
+            }
 
-            return document.WithSyntaxRoot(newRoot);
+            return false;
         }
 
         private bool ContainsSimpleEscape(SourceText text, VirtualCharSequence chars)
