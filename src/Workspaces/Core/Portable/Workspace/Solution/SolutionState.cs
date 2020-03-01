@@ -1731,11 +1731,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            // Only dump syntax trees that are affected by the change to the analyzer config.
-            // Keep all that we can to keep the perf impac here low.
-            return this.ForkProject(
-                newProject,
-                new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return this.ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
         }
 
         /// <summary>
