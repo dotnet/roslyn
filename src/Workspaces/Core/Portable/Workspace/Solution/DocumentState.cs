@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly Func<string?, PreservationMode, string> s_fullParseLog = (path, mode) => $"{path} : {mode}";
 
         private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
-            new ConditionalWeakTable<global::Microsoft.CodeAnalysis.SyntaxTree, DocumentId>();
+            new ConditionalWeakTable<SyntaxTree, DocumentId>();
 
         private readonly HostLanguageServices _languageServices;
         private readonly ParseOptions? _options;
@@ -87,8 +87,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public ValueSource<AnalyzerConfigSet> AnalyzerConfigSetSource => _analyzerConfigSetSource;
-
         internal bool SupportsSyntaxTree
             => _treeSource != null;
 
@@ -107,7 +105,7 @@ namespace Microsoft.CodeAnalysis
         // This is the string used to represent the FilePath property on a SyntaxTree object.
         // if the document does not yet have a file path, use the document's name instead in regular code
         // or an empty string in script code.
-        public static string GetSyntaxTreeFilePath(DocumentInfo.DocumentAttributes info)
+        private static string GetSyntaxTreeFilePath(DocumentInfo.DocumentAttributes info)
         {
             if (info.FilePath != null)
             {
