@@ -274,11 +274,7 @@ namespace Microsoft.CodeAnalysis
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
             var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetProjectLanguages());
-
-            using (_serializationLock.DisposableWait())
-            {
-                this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
-            }
+            SetCurrentSolutionWithLock(s => s.WithOptions(newOptions), out _, out _);
         }
 
         /// <summary>
