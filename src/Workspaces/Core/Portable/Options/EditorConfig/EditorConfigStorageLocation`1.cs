@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 #if CODE_STYLE
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Options
         public string KeyName { get; }
 
         private readonly Func<string, Type, Optional<T>> _parseValue;
-        private readonly Func<T, OptionSet, string> _getEditorConfigStringForValue;
+        private readonly Func<T, OptionSet, string?> _getEditorConfigStringForValue;
 
         public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, string> getEditorConfigStringForValue)
             : this(keyName, parseValue, (value, optionSet) => getEditorConfigStringForValue(value))
@@ -56,9 +59,10 @@ namespace Microsoft.CodeAnalysis.Options
             _getEditorConfigStringForValue = getEditorConfigStringForValue ?? throw new ArgumentNullException(nameof(getEditorConfigStringForValue));
         }
 
-        public bool TryGetOption(IReadOnlyDictionary<string, string> rawOptions, Type type, out object result)
+        public bool TryGetOption(IReadOnlyDictionary<string, string?> rawOptions, Type type, out object? result)
         {
-            if (rawOptions.TryGetValue(KeyName, out var value))
+            if (rawOptions.TryGetValue(KeyName, out var value)
+                && value is object)
             {
                 var ret = TryGetOption(value, type, out var typedResult);
                 result = typedResult;
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Options
             return false;
         }
 
-        internal bool TryGetOption(string value, Type type, out T result)
+        internal bool TryGetOption(string value, Type type, [MaybeNullWhen(false)] out T result)
         {
             var optionalValue = _parseValue(value, type);
             if (optionalValue.HasValue)
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
             else
             {
-                result = default;
+                result = default!;
                 return false;
             }
         }
@@ -95,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Options
             return $"{KeyName} = {editorConfigStringForValue}";
         }
 
-        string IEditorConfigStorageLocation2.GetEditorConfigString(object value, OptionSet optionSet)
-            => GetEditorConfigString((T)value, optionSet);
+        string IEditorConfigStorageLocation2.GetEditorConfigString(object? value, OptionSet optionSet)
+            => GetEditorConfigString((T)value!, optionSet);
     }
 }
