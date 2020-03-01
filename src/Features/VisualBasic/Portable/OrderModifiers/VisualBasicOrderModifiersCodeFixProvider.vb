@@ -7,6 +7,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.OrderModifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
 
         <ImportingConstructor>
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance,
+            MyBase.New(VisualBasicSyntaxFacts.Instance,
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,
                        VisualBasicOrderModifiersHelper.Instance)
         End Sub

@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSyntaxTriviaService(provider)
+            Return VisualBasicSyntaxTriviaService.Instance
         End Function
     End Class
 End Namespace

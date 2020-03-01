@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -61,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                     Dim name1 = simpleClause1.Name.GetFirstToken().ValueText
                     Dim name2 = simpleClause2.Name.GetFirstToken().ValueText
 
-                    Return Not VisualBasicSyntaxFactsService.Instance.StringComparer.Equals(name1, name2)
+                    Return Not VisualBasicSyntaxFacts.Instance.StringComparer.Equals(name1, name2)
                 End If
             End If
 
