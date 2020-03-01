@@ -1731,7 +1731,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return this.ForkProject(newProject);
         }
 
         /// <summary>
