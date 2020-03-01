@@ -435,8 +435,6 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentState UpdateAnalyzerConfigSet(ValueSource<AnalyzerConfigSet> newAnalyzerConfigSet)
         {
-            // TODO: it's overkill to fully reparse the tree if we had the tree already; all we have
-            // to do is update the file path and diagnostic options for that tree.
             var newTreeSource = CreateNewTreeSourceForUpdatedAnalyzerConfigSet(newAnalyzerConfigSet);
 
             return new DocumentState(
