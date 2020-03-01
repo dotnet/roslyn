@@ -5,8 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -22,21 +20,23 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
     internal abstract class AbstractConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider<
         TStringExpressionSyntax>
         : CodeRefactoringProvider
-        where TStringExpressionSyntax : SyntaxNode
+        where TStringExpressionSyntax : ExpressionSyntax
     {
-        private const char DoubleQuote = '"';
+        protected const char OpenBrace = '{';
+        protected const char CloseBrace = '}';
+        protected const char DoubleQuote = '"';
 
+        protected abstract bool IsInterpolation { get; }
         protected abstract bool IsAppropriateLiteralKind(TStringExpressionSyntax literalExpression);
-        protected abstract ImmutableArray<SyntaxToken> GetSubStringTokens(TStringExpressionSyntax literalExpression);
+        protected abstract void AddSubStringTokens(TStringExpressionSyntax literalExpression, ArrayBuilder<SyntaxToken> subTokens);
         protected abstract bool IsVerbatim(TStringExpressionSyntax literalExpression);
         protected abstract TStringExpressionSyntax CreateVerbatimStringExpression(IVirtualCharService charService, StringBuilder sb, TStringExpressionSyntax stringExpression);
         protected abstract TStringExpressionSyntax CreateRegularStringExpression(IVirtualCharService charService, StringBuilder sb, TStringExpressionSyntax stringExpression);
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var literalExpression = await context.TryGetRelevantNodeAsync<TStringExpressionSyntax>().ConfigureAwait(false);
             if (literalExpression == null || !IsAppropriateLiteralKind(literalExpression))
@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             var syntaxFacts = CSharpSyntaxFacts.Instance;
             var charService = document.GetRequiredLanguageService<IVirtualCharService>();
 
-            var subStringTokens = GetSubStringTokens(literalExpression);
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var subStringTokens);
+
+            AddSubStringTokens(literalExpression, subStringTokens);
             // First, ensure that we understand all text parts of the interpolation.
             foreach (var subToken in subStringTokens)
             {
@@ -58,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 
             // Offer to convert to a verbatim string if the normal string contains simple
             // escapes that can be directly embedded in the verbatim string.
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             if (IsVerbatim(literalExpression))
             {
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
                     CSharpFeaturesResources.Convert_to_regular_string,
                     c => ConvertToRegularStringAsync(document, literalExpression, c)));
             }
-            else if (ContainsSimpleEscape(charService, sourceText, subStringTokens))
+            else if (ContainsSimpleEscape(charService, subStringTokens))
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     CSharpFeaturesResources.Convert_to_verbatim_string,
@@ -95,30 +96,56 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         private Task<Document> ConvertToRegularStringAsync(Document document, TStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
             => ConvertAsync(document, stringExpression, CreateRegularStringExpression, cancellationToken);
 
-        protected static void AddVerbatimStringText(
+        protected void AddVerbatimStringText(
             IVirtualCharService charService, StringBuilder sb, SyntaxToken stringToken)
         {
+            // Ensure our temp builder is in a empty starting state.
+            sb.Clear();
+
+            var isInterpolation = this.IsInterpolation;
             var chars = charService.TryConvertToVirtualChars(stringToken);
 
-            foreach (var ch in chars)
+            foreach (var vc in chars)
             {
-                // just build the verbatim string by concatenating all the chars in the original
-                // string.  The only exception are double-quotes which need to be doubled up in the
-                // final string.
-                sb.Append(ch.Char);
+                var ch = vc.Char;
 
-                if (ch.Char == DoubleQuote)
-                    sb.Append(ch.Char);
+                // just build the verbatim string by concatenating all the chars in the original
+                // string.  The only exceptions are double-quotes which need to be doubled up in the
+                // final string, and curlies which need to be doubled in interpolations.
+                sb.Append(ch);
+
+                if (ShouldDouble(ch, isInterpolation))
+                    sb.Append(ch);
+            }
+
+            static bool ShouldDouble(char ch, bool isInterpolation)
+            {
+                if (ch == DoubleQuote)
+                    return true;
+
+                if (isInterpolation)
+                    return IsOpenOrCloseBrace(ch);
+
+                return false;
             }
         }
 
-        protected static void AddRegularStringText(
+        private static bool IsOpenOrCloseBrace(char ch)
+            => ch == OpenBrace || ch == CloseBrace;
+
+        protected void AddRegularStringText(
             IVirtualCharService charService, StringBuilder sb, SyntaxToken stringToken)
         {
+            // Ensure our temp builder is in a empty starting state.
+            sb.Clear();
+
+            var isInterpolation = this.IsInterpolation;
             var chars = charService.TryConvertToVirtualChars(stringToken);
 
-            foreach (var ch in chars)
+            foreach (var vc in chars)
             {
+                var ch = vc.Char;
+
                 if (charService.TryGetEscapeCharacter(ch, out var escaped))
                 {
                     sb.Append('\\');
@@ -127,12 +154,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
                 else
                 {
                     sb.Append(ch);
+
+                    // if it's an interpolation, we need to double-up open/close braces.
+                    if (isInterpolation && IsOpenOrCloseBrace(ch))
+                        sb.Append(ch);
                 }
             }
         }
 
         private bool ContainsSimpleEscape(
-            IVirtualCharService charService, SourceText text, ImmutableArray<SyntaxToken> subTokens)
+            IVirtualCharService charService, ArrayBuilder<SyntaxToken> subTokens)
         {
             foreach (var subToken in subTokens)
             {
@@ -140,23 +171,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 
                 // This was checked above.
                 Debug.Assert(!chars.IsDefault);
-                if (ContainsSimpleEscape(text, chars))
+                if (ContainsSimpleEscape(chars))
                     return true;
             }
 
             return false;
         }
 
-        private bool ContainsSimpleEscape(SourceText text, VirtualCharSequence chars)
+        private bool ContainsSimpleEscape(VirtualCharSequence chars)
         {
             foreach (var ch in chars)
             {
                 // look for two-character escapes that start with  \  .  i.e.  \n  . Note:  \0
                 // cannot be enocded into a verbatim string, so don't offer to convert if we have
                 // that.
-                if (ch.Span.Length == 2 &&
-                    ch.Char != 0 &&
-                    text[ch.Span.Start] == '\\')
+                if (ch.Span.Length == 2 && ch.Char != 0)
                 {
                     return true;
                 }

@@ -6,175 +6,80 @@
 
 using System;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
+using System.Text;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal class ConvertBetweenRegularAndVerbatimInterpolatedStringCodeRefactoringProvider :
-        CodeRefactoringProvider
+    internal class ConvertBetweenRegularAndVerbatimInterpolatedStringCodeRefactoringProvider
+        : AbstractConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider<InterpolatedStringExpressionSyntax>
     {
-        private const char DoubleQuote = '"';
+        protected override bool IsInterpolation { get; } = true;
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        protected override bool IsAppropriateLiteralKind(InterpolatedStringExpressionSyntax literalExpression)
+            => true;
+
+        protected override void AddSubStringTokens(InterpolatedStringExpressionSyntax literalExpression, ArrayBuilder<SyntaxToken> subStringTokens)
         {
-            var stringExpression = await context.TryGetRelevantNodeAsync<InterpolatedStringExpressionSyntax>().ConfigureAwait(false);
-            if (stringExpression == null)
-                return;
+            foreach (var content in literalExpression.Contents)
+            {
+                if (content is InterpolatedStringTextSyntax textSyntax)
+                    subStringTokens.Add(textSyntax.TextToken);
+            }
+        }
 
-            var (document, _, cancellationToken) = context;
+        protected override bool IsVerbatim(InterpolatedStringExpressionSyntax literalExpression)
+            => literalExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken;
 
-            var syntaxFacts = CSharpSyntaxFacts.Instance;
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
+        private InterpolatedStringExpressionSyntax Convert(
+            IVirtualCharService charService, StringBuilder sb, InterpolatedStringExpressionSyntax stringExpression,
+            SyntaxKind newStartKind, Action<IVirtualCharService, StringBuilder, SyntaxToken> addStringText)
+        {
+            using var _ = ArrayBuilder<InterpolatedStringContentSyntax>.GetInstance(out var newContents);
 
-            // First, ensure that we understand all text parts of the interpolation.
             foreach (var content in stringExpression.Contents)
             {
-                if (content is InterpolatedStringTextSyntax interpolatedStringText)
+                if (content is InterpolatedStringTextSyntax textSyntax)
                 {
-                    var chars = charService.TryConvertToVirtualChars(interpolatedStringText.TextToken);
-                    if (chars.IsDefaultOrEmpty)
-                        return;
-                }
-            }
-
-            // Offer to convert to a verbatim string if the normal string contains simple
-            // escapes that can be directly embedded in the verbatim string.
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            if (stringExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
-            {
-                // always offer to convert from verbatim string to normal string.
-                context.RegisterRefactoring(new MyCodeAction(
-                    CSharpFeaturesResources.Convert_to_regular_string,
-                    c => ConvertToRegularStringAsync(document, stringExpression, c)));
-            }
-            else if (ContainsSimpleEscape(charService, sourceText, stringExpression))
-            {
-                context.RegisterRefactoring(new MyCodeAction(
-                    CSharpFeaturesResources.Convert_to_verbatim_string,
-                    c => ConvertToVerbatimStringAsync(document, stringExpression, c)));
-            }
-        }
-
-        private Task<Document> ConvertToVerbatimStringAsync(
-            Document document, InterpolatedStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
-        {
-            var newTokenText = CreateVerbatimStringTokenText(document, stringExpression);
-            return ReplaceTokenAsync(document, stringExpression, newTokenText, cancellationToken);
-        }
-
-        private static string CreateVerbatimStringTokenText(Document document, SyntaxToken stringToken)
-        {
-            using var _ = PooledStringBuilder.GetInstance(out var sb);
-
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
-            var chars = charService.TryConvertToVirtualChars(stringToken);
-
-            sb.Builder.Append('@');
-            sb.Builder.Append(DoubleQuote);
-
-            foreach (var ch in chars)
-            {
-                // just build the verbatim string by concatenating all the chars in the original
-                // string.  The only exception are double-quotes which need to be doubled up in the
-                // final string.
-                sb.Builder.Append(ch.Char);
-
-                if (ch.Char == DoubleQuote)
-                    sb.Builder.Append(ch.Char);
-            }
-
-            sb.Builder.Append(DoubleQuote);
-            return sb.Builder.ToString();
-        }
-
-        private Task<Document> ConvertToRegularStringAsync(Document document, SyntaxToken stringToken, CancellationToken cancellationToken)
-        {
-            var newTokenText = CreateRegularStringTokenText(document, stringToken);
-            return ReplaceTokenAsync(document, stringToken, newTokenText, cancellationToken);
-        }
-
-        private string CreateRegularStringTokenText(Document document, SyntaxToken stringToken)
-        {
-            using var _ = PooledStringBuilder.GetInstance(out var sb);
-
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
-            var chars = charService.TryConvertToVirtualChars(stringToken);
-
-            sb.Builder.Append(DoubleQuote);
-
-            foreach (var ch in chars)
-            {
-                if (charService.TryGetEscapeCharacter(ch, out var escaped))
-                {
-                    sb.Builder.Append('\\');
-                    sb.Builder.Append(escaped);
+                    addStringText(charService, sb, textSyntax.TextToken);
+                    newContents.Add(textSyntax.WithTextToken(CreateTextToken(textSyntax.TextToken, sb)));
                 }
                 else
                 {
-                    sb.Builder.Append(ch);
+                    // not text (i.e. it's an interpolation).  just add as is.
+                    newContents.Add(content);
                 }
             }
 
-            sb.Builder.Append(DoubleQuote);
-            return sb.Builder.ToString();
+            var startToken = stringExpression.StringStartToken;
+            var newStartToken = SyntaxFactory.Token(
+                leading: startToken.LeadingTrivia,
+                kind: newStartKind,
+                trailing: startToken.TrailingTrivia);
+
+            return stringExpression.Update(
+                newStartToken,
+                SyntaxFactory.List(newContents),
+                stringExpression.StringEndToken);
         }
 
-        private static async Task<Document> ReplaceTokenAsync(Document document, SyntaxToken stringToken, string newTokenText, CancellationToken cancellationToken)
-        {
-            var finalStringToken = SyntaxFactory.Token(
-                stringToken.LeadingTrivia,
-                SyntaxKind.StringLiteralToken,
-                newTokenText, valueText: "",
-                stringToken.TrailingTrivia);
+        private SyntaxToken CreateTextToken(SyntaxToken textToken, StringBuilder sb)
+            => SyntaxFactory.Token(
+                leading: textToken.LeadingTrivia,
+                SyntaxKind.InterpolatedStringTextToken,
+                sb.ToString(), valueText: "",
+                trailing: textToken.TrailingTrivia);
 
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceToken(stringToken, finalStringToken);
+        protected override InterpolatedStringExpressionSyntax CreateVerbatimStringExpression(IVirtualCharService charService, StringBuilder sb, InterpolatedStringExpressionSyntax stringExpression)
+            => Convert(charService, sb, stringExpression,
+                SyntaxKind.InterpolatedVerbatimStringStartToken, AddVerbatimStringText);
 
-            return document.WithSyntaxRoot(newRoot);
-        }
-
-        private bool ContainsSimpleEscape(SourceText text, VirtualCharSequence chars)
-        {
-            foreach (var ch in chars)
-            {
-                // look for two-character escapes that start with  \  .  i.e.  \n  . Note:  \0
-                // cannot be enocded into a verbatim string, so don't offer to convert if we have
-                // that.
-                if (ch.Span.Length == 2 &&
-                    ch.Char != 0 &&
-                    text[ch.Span.Start] == '\\')
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            /// <summary>
-            /// This is a generally useful feature on strings.  But it's not likely to be something
-            /// people want to use a lot.  Make low priority so it doesn't interfere with more
-            /// commonly useful refactorings.
-            /// </summary>
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
-        }
+        protected override InterpolatedStringExpressionSyntax CreateRegularStringExpression(IVirtualCharService charService, StringBuilder sb, InterpolatedStringExpressionSyntax stringExpression)
+            => Convert(charService, sb, stringExpression,
+                SyntaxKind.InterpolatedStringStartToken, AddRegularStringText);
     }
 }

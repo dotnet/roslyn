@@ -4,171 +4,56 @@
 
 #nullable enable
 
-using System;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
+using System.Text;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal class ConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider :
-        CodeRefactoringProvider
+    internal class ConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider
+        : AbstractConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider<LiteralExpressionSyntax>
     {
-        private const char DoubleQuote = '"';
+        protected override bool IsInterpolation { get; } = false;
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        protected override bool IsAppropriateLiteralKind(LiteralExpressionSyntax literalExpression)
+            => literalExpression.Kind() == SyntaxKind.StringLiteralExpression;
+
+        protected override void AddSubStringTokens(LiteralExpressionSyntax literalExpression, ArrayBuilder<SyntaxToken> subStringTokens)
+            => subStringTokens.Add(literalExpression.Token);
+
+        protected override bool IsVerbatim(LiteralExpressionSyntax literalExpression)
+            => CSharpSyntaxFacts.Instance.IsVerbatimStringLiteral(literalExpression.Token);
+
+        protected override LiteralExpressionSyntax CreateVerbatimStringExpression(IVirtualCharService charService, StringBuilder sb, LiteralExpressionSyntax stringExpression)
         {
-            var literalExpression = await context.TryGetRelevantNodeAsync<LiteralExpressionSyntax>().ConfigureAwait(false);
-            if (literalExpression == null || literalExpression.Kind() != SyntaxKind.StringLiteralExpression)
-                return;
+            sb.Append('@');
+            sb.Append(DoubleQuote);
+            AddVerbatimStringText(charService, sb, stringExpression.Token);
+            sb.Append(DoubleQuote);
 
-            var (document, _, cancellationToken) = context;
-
-            var syntaxFacts = CSharpSyntaxFacts.Instance;
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
-
-            var stringToken = literalExpression.Token;
-            var chars = charService.TryConvertToVirtualChars(stringToken);
-            if (chars.IsDefaultOrEmpty)
-                return;
-
-            // Offer to convert to a verbatim string if the normal string contains simple
-            // escapes that can be directly embedded in the verbatim string.
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            if (syntaxFacts.IsVerbatimStringLiteral(stringToken))
-            {
-                // always offer to convert from verbatim string to normal string.
-                context.RegisterRefactoring(new MyCodeAction(
-                    CSharpFeaturesResources.Convert_to_regular_string,
-                    c => ConvertToRegularStringAsync(document, stringToken, c)));
-            }
-            else if (ContainsSimpleEscape(sourceText, chars))
-            {
-                context.RegisterRefactoring(new MyCodeAction(
-                    CSharpFeaturesResources.Convert_to_verbatim_string,
-                    c => ConvertToVerbatimStringAsync(document, stringToken, c)));
-            }
+            return stringExpression.WithToken(CreateStringToken(sb));
         }
 
-        private Task<Document> ConvertToVerbatimStringAsync(
-            Document document, SyntaxToken stringToken, CancellationToken cancellationToken)
+        protected override LiteralExpressionSyntax CreateRegularStringExpression(IVirtualCharService charService, StringBuilder sb, LiteralExpressionSyntax stringExpression)
         {
-            var newTokenText = CreateVerbatimStringTokenText(document, stringToken);
-            return ReplaceTokenAsync(document, stringToken, newTokenText, cancellationToken);
+            sb.Append(DoubleQuote);
+            AddRegularStringText(charService, sb, stringExpression.Token);
+            sb.Append(DoubleQuote);
+
+            return stringExpression.WithToken(CreateStringToken(sb));
         }
 
-        private static string CreateVerbatimStringTokenText(Document document, SyntaxToken stringToken)
-        {
-            using var _ = PooledStringBuilder.GetInstance(out var sb);
-
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
-            var chars = charService.TryConvertToVirtualChars(stringToken);
-
-            sb.Builder.Append('@');
-            sb.Builder.Append(DoubleQuote);
-
-            foreach (var ch in chars)
-            {
-                // just build the verbatim string by concatenating all the chars in the original
-                // string.  The only exception are double-quotes which need to be doubled up in the
-                // final string.
-                sb.Builder.Append(ch.Char);
-
-                if (ch.Char == DoubleQuote)
-                    sb.Builder.Append(ch.Char);
-            }
-
-            sb.Builder.Append(DoubleQuote);
-            return sb.Builder.ToString();
-        }
-
-        private Task<Document> ConvertToRegularStringAsync(Document document, SyntaxToken stringToken, CancellationToken cancellationToken)
-        {
-            var newTokenText = CreateRegularStringTokenText(document, stringToken);
-            return ReplaceTokenAsync(document, stringToken, newTokenText, cancellationToken);
-        }
-
-        private string CreateRegularStringTokenText(Document document, SyntaxToken stringToken)
-        {
-            using var _ = PooledStringBuilder.GetInstance(out var sb);
-
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
-            var chars = charService.TryConvertToVirtualChars(stringToken);
-
-            sb.Builder.Append(DoubleQuote);
-
-            foreach (var ch in chars)
-            {
-                if (charService.TryGetEscapeCharacter(ch, out var escaped))
-                {
-                    sb.Builder.Append('\\');
-                    sb.Builder.Append(escaped);
-                }
-                else
-                {
-                    sb.Builder.Append(ch);
-                }
-            }
-
-            sb.Builder.Append(DoubleQuote);
-            return sb.Builder.ToString();
-        }
-
-        private static async Task<Document> ReplaceTokenAsync(Document document, SyntaxToken stringToken, string newTokenText, CancellationToken cancellationToken)
-        {
-            var finalStringToken = SyntaxFactory.Token(
-                stringToken.LeadingTrivia,
+        private static SyntaxToken CreateStringToken(StringBuilder sb)
+            => SyntaxFactory.Token(
+                leading: default,
                 SyntaxKind.StringLiteralToken,
-                newTokenText, valueText: "",
-                stringToken.TrailingTrivia);
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceToken(stringToken, finalStringToken);
-
-            return document.WithSyntaxRoot(newRoot);
-        }
-
-        private bool ContainsSimpleEscape(SourceText text, VirtualCharSequence chars)
-        {
-            foreach (var ch in chars)
-            {
-                // look for two-character escapes that start with  \  .  i.e.  \n  . Note:  \0
-                // cannot be enocded into a verbatim string, so don't offer to convert if we have
-                // that.
-                if (ch.Span.Length == 2 &&
-                    ch.Char != 0 &&
-                    text[ch.Span.Start] == '\\')
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            /// <summary>
-            /// This is a generally useful feature on strings.  But it's not likely to be something
-            /// people want to use a lot.  Make low priority so it doesn't interfere with more
-            /// commonly useful refactorings.
-            /// </summary>
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
-        }
+                sb.ToString(), valueText: "",
+                trailing: default);
     }
 }
