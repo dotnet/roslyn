@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
             context.RegisterSyntaxNodeAction(
                 AnalyzeNode, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
         }
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 return;
             }
 
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 return;
             }
 
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
 
             foreach (var match in matches)
             {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
         }
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;

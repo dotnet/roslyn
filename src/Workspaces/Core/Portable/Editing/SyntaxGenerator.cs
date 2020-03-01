@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
-        internal abstract ISyntaxFactsService SyntaxFacts { get; }
+        internal abstract ISyntaxFacts SyntaxFacts { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
         internal abstract SyntaxTrivia Whitespace(string text);
@@ -2276,7 +2276,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Wraps with parens.
         /// </summary>
-        internal abstract SyntaxNode AddParentheses(SyntaxNode expression);
+        internal abstract SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
 
         /// <summary>
         /// Creates an nameof expression.

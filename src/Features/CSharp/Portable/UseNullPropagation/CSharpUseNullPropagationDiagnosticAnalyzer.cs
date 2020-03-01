@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -26,14 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         protected override bool ShouldAnalyze(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
-        protected override ISyntaxFactsService GetSyntaxFactsService()
-            => CSharpSyntaxFactsService.Instance;
+        protected override ISyntaxFacts GetSyntaxFacts()
+            => CSharpSyntaxFacts.Instance;
 
         protected override ISemanticFactsService GetSemanticFactsService()
             => CSharpSemanticFactsService.Instance;
 
         protected override bool TryAnalyzePatternCondition(
-            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode,
+            ISyntaxFacts syntaxFacts, SyntaxNode conditionNode,
             out SyntaxNode? conditionPartToCheck, out bool isEquals)
         {
             conditionPartToCheck = null;

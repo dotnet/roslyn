@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.UseCompoundAssignment
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
         Inherits AbstractUseCompoundAssignmentDiagnosticAnalyzer(Of SyntaxKind, AssignmentStatementSyntax, BinaryExpressionSyntax)
 
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance, Kinds)
+            MyBase.New(VisualBasicSyntaxFacts.Instance, Kinds)
         End Sub
 
         Protected Overrides Function GetAnalysisKind() As SyntaxKind

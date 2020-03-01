@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             _option = option;
         }
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool TryMatchPattern(IConditionalOperation ifOperation);
 
         protected sealed override void InitializeWorker(AnalysisContext context)

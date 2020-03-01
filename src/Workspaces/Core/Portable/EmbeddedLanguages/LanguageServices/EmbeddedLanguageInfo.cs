@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     {
         public readonly int StringLiteralTokenKind;
         public readonly int InterpolatedTextTokenKind;
-        public readonly ISyntaxFactsService SyntaxFacts;
+        public readonly ISyntaxFacts SyntaxFacts;
         public readonly ISemanticFactsService SemanticFacts;
         public readonly IVirtualCharService VirtualCharService;
 
-        public EmbeddedLanguageInfo(int stringLiteralTokenKind, int interpolatedTextTokenKind, ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, IVirtualCharService virtualCharService)
+        public EmbeddedLanguageInfo(int stringLiteralTokenKind, int interpolatedTextTokenKind, ISyntaxFacts syntaxFacts, ISemanticFactsService semanticFacts, IVirtualCharService virtualCharService)
         {
             StringLiteralTokenKind = stringLiteralTokenKind;
             InterpolatedTextTokenKind = interpolatedTextTokenKind;

@@ -6,6 +6,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
     <ExportLanguageService(GetType(IEmbeddedLanguagesProvider), LanguageNames.VisualBasic, ServiceLayer.Default), [Shared]>
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
         Public Shared Info As New EmbeddedLanguageInfo(
             SyntaxKind.StringLiteralToken,
             SyntaxKind.InterpolatedStringTextToken,
-            VisualBasicSyntaxFactsService.Instance,
+            VisualBasicSyntaxFacts.Instance,
             VisualBasicSemanticFactsService.Instance,
             VisualBasicVirtualCharService.Instance)
 
