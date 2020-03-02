@@ -48,7 +48,7 @@ stages:
           exit 1
         }
       displayName: Setup branch for insertion validation
-      condition: and(succeeded(), ne(variables['PrNumber'], Null), ne(variables['PrNumber'], 'default'))
+      condition: and(succeeded(), ne(variables['PrNumber'], ''), ne(variables['PrNumber'], 'default'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
