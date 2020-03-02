@@ -562,6 +562,11 @@
         <target state="translated">流必须支持读取和搜寻操作。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_contains_assigment_to_this_outside_the_scope_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside the scope of constructor. Make readonly fields writable</source>
+        <target state="translated">Struct contains assignment to 'this' outside the scope of constructor. Make readonly fields writable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">取消 {0}</target>

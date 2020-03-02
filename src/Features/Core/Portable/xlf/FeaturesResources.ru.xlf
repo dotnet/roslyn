@@ -562,6 +562,11 @@
         <target state="translated">Поток должен поддерживать операции чтения и поиска.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_contains_assigment_to_this_outside_the_scope_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside the scope of constructor. Make readonly fields writable</source>
+        <target state="translated">Структура содержит присваивание 'this' вне области конструктора. Сделать readonly поля доступными для записи</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Скрыть {0}</target>

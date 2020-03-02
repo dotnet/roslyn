@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptor(
             IDEDiagnosticIds.MakeStructFieldsWritable,
             new LocalizableResourceString(nameof(FeaturesResources.Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            new LocalizableResourceString(nameof(FeaturesResources.Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Struct_contains_assigment_to_this_outside_the_scope_constructor_Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnnecessary: false);
 
         public CSharpMakeStructFieldsWritableDiagnosticAnalyzer()
