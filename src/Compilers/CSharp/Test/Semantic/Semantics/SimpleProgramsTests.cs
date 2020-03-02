@@ -3366,5 +3366,26 @@ class MyAttribute : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadExternAlias, "A").WithArguments("A").WithLocation(2, 14)
                 );
         }
+
+        [Fact]
+        public void OutOfOrder_13()
+        {
+            var text = @"
+local();
+
+class C {}
+
+void local() => System.Console.WriteLine(1);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // PROTOTYPE(SimplePrograms): Is this message good enough for local functions?
+                // (6,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // void local() => System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "void local() => System.Console.WriteLine(1);").WithLocation(6, 1)
+                );
+        }
     }
 }
