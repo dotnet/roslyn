@@ -15,8 +15,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class NativeIntTests : CSharpTestBase
+    public class NativeIntegerTests : CSharpTestBase
     {
+        // PROTOTYPE: SymbolDisplay should use "nint" and "nuint" always, regardless of SymbolDisplayFormat.
+        // Remove this SymbolDisplayFormat and use .ToTestDisplayString() instead. 
         private static readonly SymbolDisplayFormat FormatWithSpecialTypes = SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         [Fact]
@@ -69,10 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var method = comp.GetMember<MethodSymbol>("I.F1");
             Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
+            Assert.Equal("Sub I.F1(x As System.IntPtr, y As System.IntPtr)", VisualBasic.SymbolDisplay.ToDisplayString(method.GetPublicSymbol(), SymbolDisplayFormat.TestFormat));
             VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
             method = comp.GetMember<MethodSymbol>("I.F2");
             Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
+            Assert.Equal("Sub I.F2(x As System.UIntPtr, y As System.UIntPtr)", VisualBasic.SymbolDisplay.ToDisplayString(method.GetPublicSymbol(), SymbolDisplayFormat.TestFormat));
             VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
         }
 
@@ -159,13 +163,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
         private static void VerifyType(NamedTypeSymbol type, bool signed, bool isNativeInt)
         {
-            var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
-
-            Assert.Equal(specialType, type.SpecialType);
+            Assert.Equal(signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr, type.SpecialType);
             Assert.Equal(SymbolKind.NamedType, type.Kind);
             Assert.Equal(TypeKind.Struct, type.TypeKind);
             Assert.Same(type, type.ConstructedFrom);
-            Assert.Equal(isNativeInt, type.IsNativeInt);
+            Assert.Equal(isNativeInt, type.IsNativeIntegerType);
+            Assert.Equal(signed ? "IntPtr" : "UIntPtr", type.Name);
 
             if (isNativeInt)
             {
@@ -175,18 +178,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
         private static void VerifyType(INamedTypeSymbol type, bool signed, bool isNativeInt)
         {
-            var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
-
-            Assert.Equal(specialType, type.SpecialType);
+            Assert.Equal(signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr, type.SpecialType);
             Assert.Equal(SymbolKind.NamedType, type.Kind);
             Assert.Equal(TypeKind.Struct, type.TypeKind);
             Assert.Same(type, type.ConstructedFrom);
+            Assert.Equal(isNativeInt, type.IsNativeIntegerType);
+            Assert.Equal(signed ? "IntPtr" : "UIntPtr", type.Name);
         }
 
         private static void VerifyTypes(INamedTypeSymbol underlyingType, INamedTypeSymbol nativeIntegerType, bool signed)
         {
             VerifyType(underlyingType, signed, isNativeInt: false);
-            VerifyType(nativeIntegerType, signed, isNativeInt: false);
+            VerifyType(nativeIntegerType, signed, isNativeInt: true);
+
+            Assert.Same(underlyingType.ContainingSymbol, nativeIntegerType.ContainingSymbol);
+            Assert.Same(underlyingType.Name, nativeIntegerType.Name);
 
             Assert.Empty(nativeIntegerType.GetTypeMembers());
 
@@ -201,8 +207,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Empty(nativeIntegerType.Interfaces);
 
             Assert.NotSame(underlyingType, nativeIntegerType);
+            Assert.Same(underlyingType, nativeIntegerType.NativeIntegerUnderlyingType);
             Assert.Equal(underlyingType, nativeIntegerType);
             Assert.Equal(nativeIntegerType, underlyingType);
+            Assert.True(underlyingType.Equals(nativeIntegerType));
+            Assert.True(((IEquatable<ISymbol>)underlyingType).Equals(nativeIntegerType));
+            Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.Default));
+            Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.IncludeNullability));
+            Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.ConsiderEverything));
             Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
         }
 
@@ -210,6 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         {
             VerifyType(underlyingType, signed, isNativeInt: false);
             VerifyType(nativeIntegerType, signed, isNativeInt: true);
+
+            Assert.Same(underlyingType.ContainingSymbol, nativeIntegerType.ContainingSymbol);
+            Assert.Same(underlyingType.Name, nativeIntegerType.Name);
 
             Assert.Empty(nativeIntegerType.GetTypeMembers());
 
@@ -223,15 +238,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             // PROTOTYPE: Include certain interfaces defined on the underlying underlyingType.
             Assert.Empty(nativeIntegerType.InterfacesNoUseSiteDiagnostics());
 
-            Assert.Same(underlyingType, underlyingType.AsNativeInt(false));
-            Assert.Same(nativeIntegerType, nativeIntegerType.AsNativeInt(true));
-            Assert.Same(nativeIntegerType, underlyingType.AsNativeInt(true));
-            Assert.Same(underlyingType, nativeIntegerType.AsNativeInt(false));
-            VerifyEqualButDistinct(underlyingType, underlyingType.AsNativeInt(true));
-            VerifyEqualButDistinct(nativeIntegerType, nativeIntegerType.AsNativeInt(false));
-            VerifyEqualButDistinct(underlyingType, nativeIntegerType);
+            Assert.Null(underlyingType.NativeIntegerUnderlyingType);
+            Assert.Same(nativeIntegerType, underlyingType.AsNativeInteger());
+            Assert.Same(underlyingType, nativeIntegerType.NativeIntegerUnderlyingType);
+            verifyEqualButDistinct(underlyingType, underlyingType.AsNativeInteger());
+            verifyEqualButDistinct(nativeIntegerType, nativeIntegerType.NativeIntegerUnderlyingType);
+            verifyEqualButDistinct(underlyingType, nativeIntegerType);
 
             VerifyTypes(underlyingType.GetPublicSymbol(), nativeIntegerType.GetPublicSymbol(), signed);
+
+            static void verifyEqualButDistinct(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
+            {
+                Assert.NotSame(underlyingType, nativeIntegerType);
+                Assert.Equal(underlyingType, nativeIntegerType);
+                Assert.Equal(nativeIntegerType, underlyingType);
+                Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.ConsiderEverything));
+                Assert.True(nativeIntegerType.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
+                Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
+            }
         }
 
         private static void VerifyMembers(NamedTypeSymbol type)
@@ -271,16 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.Same(type, member.ContainingSymbol);
                 Assert.Same(type, member.ContainingType);
             }
-        }
-
-        private static void VerifyEqualButDistinct(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
-        {
-            Assert.NotSame(underlyingType, nativeIntegerType);
-            Assert.Equal(underlyingType, nativeIntegerType);
-            Assert.Equal(nativeIntegerType, underlyingType);
-            Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.ConsiderEverything));
-            Assert.True(nativeIntegerType.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
-            Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
         }
 
         [Fact]
@@ -336,27 +350,151 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             {
                 var method = comp.GetMember<MethodSymbol>("I.F1");
                 Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
-                verifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
+                VerifyErrorTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
                 method = comp.GetMember<MethodSymbol>("I.F2");
                 Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
-                verifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
+                VerifyErrorTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
+            }
+        }
+
+        private static void VerifyErrorType(NamedTypeSymbol type, SpecialType specialType, bool isNativeInt)
+        {
+            Assert.Equal(SymbolKind.ErrorType, type.Kind);
+            Assert.Equal(TypeKind.Error, type.TypeKind);
+            Assert.Equal(isNativeInt, type.IsNativeIntegerType);
+            Assert.Equal(specialType, type.SpecialType);
+        }
+
+        private static void VerifyErrorType(INamedTypeSymbol type, SpecialType specialType, bool isNativeInt)
+        {
+            Assert.Equal(SymbolKind.ErrorType, type.Kind);
+            Assert.Equal(TypeKind.Error, type.TypeKind);
+            Assert.Equal(isNativeInt, type.IsNativeIntegerType);
+            Assert.Equal(specialType, type.SpecialType);
+        }
+
+        private static void VerifyErrorTypes(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
+        {
+            var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
+
+            VerifyErrorType(underlyingType, SpecialType.None, isNativeInt: false);
+            VerifyErrorType(nativeIntegerType, specialType, isNativeInt: true);
+
+            Assert.Null(underlyingType.NativeIntegerUnderlyingType);
+            VerifyErrorType(nativeIntegerType.NativeIntegerUnderlyingType, specialType, isNativeInt: false);
+
+            VerifyErrorTypes(underlyingType.GetPublicSymbol(), nativeIntegerType.GetPublicSymbol(), signed);
+        }
+
+        private static void VerifyErrorTypes(INamedTypeSymbol underlyingType, INamedTypeSymbol nativeIntegerType, bool signed)
+        {
+            var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
+
+            VerifyErrorType(underlyingType, SpecialType.None, isNativeInt: false);
+            VerifyErrorType(nativeIntegerType, specialType, isNativeInt: true);
+
+            Assert.Null(underlyingType.NativeIntegerUnderlyingType);
+            VerifyErrorType(nativeIntegerType.NativeIntegerUnderlyingType, specialType, isNativeInt: false);
+        }
+
+        [Fact]
+        public void CreateNativeIntegerTypeSymbol_FromMetadata()
+        {
+            var comp = CreateCompilation("");
+            comp.VerifyDiagnostics();
+            VerifyCreateNativeIntegerTypeSymbol(comp);
+        }
+
+        [Fact]
+        public void CreateNativeIntegerTypeSymbol_FromSource()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr { }
+    public struct UIntPtr { }
+}";
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            VerifyCreateNativeIntegerTypeSymbol(comp);
+
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateEmptyCompilation("", references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            VerifyCreateNativeIntegerTypeSymbol(comp);
+
+            comp = CreateEmptyCompilation("", references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            VerifyCreateNativeIntegerTypeSymbol(comp);
+        }
+
+        private static void VerifyCreateNativeIntegerTypeSymbol(CSharpCompilation comp)
+        {
+            verifyInternalType(comp, signed: true);
+            verifyInternalType(comp, signed: false);
+            verifyPublicType(comp, signed: true);
+            verifyPublicType(comp, signed: false);
+
+            static void verifyInternalType(CSharpCompilation comp, bool signed)
+            {
+                var type = comp.CreateNativeIntegerTypeSymbol(signed);
+                VerifyType(type, signed, isNativeInt: true);
             }
 
-            static void verifyTypes(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
+            static void verifyPublicType(Compilation comp, bool signed)
             {
-                Assert.Equal(SpecialType.None, underlyingType.SpecialType);
-                Assert.Equal(SymbolKind.ErrorType, underlyingType.Kind);
-                Assert.Equal(TypeKind.Error, underlyingType.TypeKind);
-                Assert.False(underlyingType.IsNativeInt);
+                var type = comp.CreateNativeIntegerTypeSymbol(signed);
+                VerifyType(type, signed, isNativeInt: true);
 
-                var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
-                Assert.Equal(specialType, nativeIntegerType.SpecialType);
-                Assert.Equal(SymbolKind.ErrorType, nativeIntegerType.Kind);
-                Assert.Equal(TypeKind.Error, nativeIntegerType.TypeKind);
-                Assert.True(nativeIntegerType.IsNativeInt);
-                Assert.Same(nativeIntegerType, nativeIntegerType.AsNativeInt(true));
-                VerifyEqualButDistinct(nativeIntegerType, nativeIntegerType.AsNativeInt(false));
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                Assert.NotNull(underlyingType);
+                Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, underlyingType.NullableAnnotation);
+                Assert.Same(underlyingType, ((INamedTypeSymbol)type.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None)).NativeIntegerUnderlyingType);
+                Assert.Same(underlyingType, ((INamedTypeSymbol)type.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated)).NativeIntegerUnderlyingType);
+                Assert.Same(underlyingType, ((INamedTypeSymbol)type.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.NotAnnotated)).NativeIntegerUnderlyingType);
+            }
+        }
+
+        [Fact]
+        public void CreateNativeIntegerTypeSymbol_Missing()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+}";
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verifyCreateNativeIntegerTypeSymbol(comp);
+
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateEmptyCompilation("", references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verifyCreateNativeIntegerTypeSymbol(comp);
+
+            comp = CreateEmptyCompilation("", references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verifyCreateNativeIntegerTypeSymbol(comp);
+
+            static void verifyCreateNativeIntegerTypeSymbol(CSharpCompilation comp)
+            {
+                VerifyErrorType(comp.CreateNativeIntegerTypeSymbol(signed: true), SpecialType.System_IntPtr, isNativeInt: true);
+                VerifyErrorType(comp.CreateNativeIntegerTypeSymbol(signed: false), SpecialType.System_UIntPtr, isNativeInt: true);
+                VerifyErrorType(((Compilation)comp).CreateNativeIntegerTypeSymbol(signed: true), SpecialType.System_IntPtr, isNativeInt: true);
+                VerifyErrorType(((Compilation)comp).CreateNativeIntegerTypeSymbol(signed: false), SpecialType.System_UIntPtr, isNativeInt: true);
             }
         }
 
@@ -404,9 +542,9 @@ interface I
                 var underlyingType0 = method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>();
                 var underlyingType1 = method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>();
                 Assert.Equal(SpecialType.None, underlyingType0.SpecialType);
-                Assert.False(underlyingType0.IsNativeInt);
+                Assert.False(underlyingType0.IsNativeIntegerType);
                 Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
-                Assert.True(underlyingType1.IsNativeInt);
+                Assert.True(underlyingType1.IsNativeIntegerType);
             }
         }
 
@@ -438,9 +576,9 @@ interface I
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
-                Assert.False(underlyingType0.IsNativeInt);
+                Assert.False(underlyingType0.IsNativeIntegerType);
                 Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
-                Assert.True(underlyingType1.IsNativeInt);
+                Assert.True(underlyingType1.IsNativeIntegerType);
             }
         }
 
@@ -814,15 +952,15 @@ False
                     Assert.Equal(expectedUnsigned, operators.Count(op => predicate(op, false)));
                 }
 
-                static bool isNativeInt(TypeSymbol underlyingType, bool signed)
+                static bool isNativeInt(TypeSymbol type, bool signed)
                 {
-                    return underlyingType is NamedTypeSymbol { IsNativeInt: true } &&
-                        underlyingType.SpecialType == (signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr);
+                    return type.IsNativeIntegerType &&
+                        type.SpecialType == (signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr);
                 }
 
-                static bool isNullableNativeInt(TypeSymbol underlyingType, bool signed)
+                static bool isNullableNativeInt(TypeSymbol type, bool signed)
                 {
-                    return underlyingType.IsNullableType() && isNativeInt(underlyingType.GetNullableUnderlyingType(), signed);
+                    return type.IsNullableType() && isNativeInt(type.GetNullableUnderlyingType(), signed);
                 }
             }
         }

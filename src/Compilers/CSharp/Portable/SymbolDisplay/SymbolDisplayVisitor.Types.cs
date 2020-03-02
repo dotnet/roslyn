@@ -599,9 +599,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "int";
                 case SpecialType.System_Int64:
                     return "long";
-                case SpecialType.System_IntPtr when isNativeInt(symbol):
+                case SpecialType.System_IntPtr when symbol.IsNativeIntegerType:
                     return "nint";
-                case SpecialType.System_UIntPtr when isNativeInt(symbol):
+                case SpecialType.System_UIntPtr when symbol.IsNativeIntegerType:
                     return "nuint";
                 case SpecialType.System_Byte:
                     return "byte";
@@ -628,8 +628,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return null;
             }
-
-            static bool isNativeInt(INamedTypeSymbol symbol) => symbol.GetSymbol<NamedTypeSymbol>()?.IsNativeInt == true;
         }
 
         private void AddTypeKind(INamedTypeSymbol symbol)

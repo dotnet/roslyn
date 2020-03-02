@@ -12711,6 +12711,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to There are no native integer types in VB..
+        '''</summary>
+        Friend ReadOnly Property ThereAreNoNativeIntegerTypesInVB() As String
+            Get
+                Return ResourceManager.GetString("ThereAreNoNativeIntegerTypesInVB", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to There are no pointer types in VB..
         '''</summary>
         Friend ReadOnly Property ThereAreNoPointerTypesInVB() As String

@@ -1109,10 +1109,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return sbyte.MinValue <= value && value <= sbyte.MaxValue;
                     case SpecialType.System_Int16:
                         return short.MinValue <= value && value <= short.MaxValue;
-                    case SpecialType.System_IntPtr when ((NamedTypeSymbol)destination).IsNativeInt:
+                    case SpecialType.System_IntPtr when destination.IsNativeIntegerType:
                         return true;
                     case SpecialType.System_UInt32:
-                    case SpecialType.System_UIntPtr when ((NamedTypeSymbol)destination).IsNativeInt:
+                    case SpecialType.System_UIntPtr when destination.IsNativeIntegerType:
                         return uint.MinValue <= value;
                     case SpecialType.System_UInt64:
                         return (int)ulong.MinValue <= value;

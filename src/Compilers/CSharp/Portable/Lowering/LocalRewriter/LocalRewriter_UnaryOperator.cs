@@ -1063,10 +1063,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BinaryOperatorKind.NInt:
                     constantOne = ConstantValue.Create(1);
-                    return (compilation.GetSpecialType(SpecialType.System_IntPtr).AsNativeInt(true), constantOne);
+                    return (compilation.CreateNativeIntegerTypeSymbol(signed: true), constantOne);
                 case BinaryOperatorKind.NUInt:
                     constantOne = ConstantValue.Create(1U);
-                    return (compilation.GetSpecialType(SpecialType.System_UIntPtr).AsNativeInt(true), constantOne);
+                    return (compilation.CreateNativeIntegerTypeSymbol(signed: false), constantOne);
                 case BinaryOperatorKind.Float:
                     constantOne = ConstantValue.Create(1f);
                     break;
