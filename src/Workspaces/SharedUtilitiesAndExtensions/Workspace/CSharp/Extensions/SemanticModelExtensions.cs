@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // 4) The type of a constant must be at least as accessible as the constant itself.
             // 5) The type of a field must be at least as accessible as the field itself.
             if (type.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
-                type.Parent.IsParentKind(SyntaxKind.FieldDeclaration))
+                variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
             {
                 return semanticModel.GetDeclaredSymbol(
                     variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
