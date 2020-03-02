@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         containingType, solution, projects, cancellationToken).ConfigureAwait(false);
                     var allTypes = derivedClasses.Concat(containingType);
 
-                    var builder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+                    using var _ = ArrayBuilder<SymbolAndProjectId>.GetInstance(out var builder);
 
                     foreach (var type in allTypes.Convert<INamedTypeSymbol, ITypeSymbol>())
                     {
@@ -161,10 +161,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         }
                     }
 
-                    var result = builder.Distinct(SymbolAndProjectIdComparer.SymbolEquivalenceInstance)
-                                        .ToImmutableArray();
-                    builder.Free();
-                    return result;
+                    return builder.Distinct(SymbolAndProjectIdComparer.SymbolEquivalenceInstance)
+                                  .ToImmutableArray();
                 }
             }
 

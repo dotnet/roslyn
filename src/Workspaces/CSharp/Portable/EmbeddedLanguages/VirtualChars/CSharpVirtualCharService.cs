@@ -108,45 +108,39 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = startDelimiter.Length;
             var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-            var result = ArrayBuilder<VirtualChar>.GetInstance();
-            try
+            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
+
+            var offset = token.SpanStart;
+            for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
-                var offset = token.SpanStart;
-                for (var index = startIndexInclusive; index < endIndexExclusive;)
+                if (tokenText[index] == '\\')
                 {
-                    if (tokenText[index] == '\\')
+                    if (!TryAddEscape(result, tokenText, offset, index))
                     {
-                        if (!TryAddEscape(result, tokenText, offset, index))
-                        {
-                            return default;
-                        }
+                        return default;
+                    }
 
-                        index += result.Last().Span.Length;
-                    }
-                    else if (escapeBraces &&
-                             (tokenText[index] == '{' || tokenText[index] == '}'))
-                    {
-                        if (!TryAddBraceEscape(result, tokenText, offset, index))
-                        {
-                            return default;
-                        }
-
-                        index += result.Last().Span.Length;
-                    }
-                    else
-                    {
-                        result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
-                        index++;
-                    }
+                    index += result.Last().Span.Length;
                 }
+                else if (escapeBraces &&
+                            (tokenText[index] == '{' || tokenText[index] == '}'))
+                {
+                    if (!TryAddBraceEscape(result, tokenText, offset, index))
+                    {
+                        return default;
+                    }
 
-                return CreateVirtualCharSequence(
-                    tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+                    index += result.Last().Span.Length;
+                }
+                else
+                {
+                    result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
+                    index++;
+                }
             }
-            finally
-            {
-                result.Free();
-            }
+
+            return CreateVirtualCharSequence(
+                tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
 
         private bool TryAddEscape(

@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName)]
-        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
         {
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
-        public async Task Initialized()
+        public async Task InitializedAsync()
         {
             // Publish diagnostics for all open documents immediately following initialization.
             var solution = _workspace.CurrentSolution;

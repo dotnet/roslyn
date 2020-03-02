@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
         {
             return Task.FromResult(new InitializeResult()
             {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
-        public Task Initialized()
+        public Task InitializedAsync()
         {
             return Task.CompletedTask;
         }

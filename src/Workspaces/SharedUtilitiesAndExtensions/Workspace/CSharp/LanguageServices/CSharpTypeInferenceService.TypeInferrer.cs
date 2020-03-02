@@ -718,34 +718,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return matchingNameParameters;
                 }
 
-                var allParameters = ArrayBuilder<TypeInferenceInfo>.GetInstance();
-                var matchingRefParameters = ArrayBuilder<TypeInferenceInfo>.GetInstance();
-                try
-                {
-                    foreach (var parameterSet in parameterizedSymbols)
-                    {
-                        if (index < parameterSet.Length)
-                        {
-                            var parameter = parameterSet[index];
-                            var info = new TypeInferenceInfo(parameter.Type, parameter.IsParams);
-                            allParameters.Add(info);
+                using var _1 = ArrayBuilder<TypeInferenceInfo>.GetInstance(out var allParameters);
+                using var _2 = ArrayBuilder<TypeInferenceInfo>.GetInstance(out var matchingRefParameters);
 
-                            if (parameter.RefKind == refKind)
-                            {
-                                matchingRefParameters.Add(info);
-                            }
+                foreach (var parameterSet in parameterizedSymbols)
+                {
+                    if (index < parameterSet.Length)
+                    {
+                        var parameter = parameterSet[index];
+                        var info = new TypeInferenceInfo(parameter.Type, parameter.IsParams);
+                        allParameters.Add(info);
+
+                        if (parameter.RefKind == refKind)
+                        {
+                            matchingRefParameters.Add(info);
                         }
                     }
+                }
 
-                    return matchingRefParameters.Count > 0
-                        ? matchingRefParameters.ToImmutable()
-                        : allParameters.ToImmutable();
-                }
-                finally
-                {
-                    allParameters.Free();
-                    matchingRefParameters.Free();
-                }
+                return matchingRefParameters.Count > 0
+                    ? matchingRefParameters.ToImmutable()
+                    : allParameters.ToImmutable();
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrayCreationExpression(
@@ -2162,47 +2155,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementTypes = default;
                 elementNames = default;
 
-                var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
-                var elementNamesBuilder = ArrayBuilder<string>.GetInstance();
-                try
-                {
-                    foreach (var arg in arguments)
-                    {
-                        var expr = arg.Expression;
-                        if (expr.IsKind(SyntaxKind.DeclarationExpression))
-                        {
-                            AddTypeAndName((DeclarationExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
-                        }
-                        else if (expr.IsKind(SyntaxKind.TupleExpression))
-                        {
-                            AddTypeAndName((TupleExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
-                        }
-                        else if (expr is IdentifierNameSyntax name)
-                        {
-                            elementNamesBuilder.Add(name.Identifier.ValueText == "" ? null :
-                                name.Identifier.ValueText);
-                            elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
+                using var _1 = ArrayBuilder<ITypeSymbol>.GetInstance(out var elementTypesBuilder);
+                using var _2 = ArrayBuilder<string>.GetInstance(out var elementNamesBuilder);
 
-                    if (elementTypesBuilder.Contains(null) || elementTypesBuilder.Count != arguments.Count)
+                foreach (var arg in arguments)
+                {
+                    var expr = arg.Expression;
+                    if (expr.IsKind(SyntaxKind.DeclarationExpression))
+                    {
+                        AddTypeAndName((DeclarationExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
+                    }
+                    else if (expr.IsKind(SyntaxKind.TupleExpression))
+                    {
+                        AddTypeAndName((TupleExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
+                    }
+                    else if (expr is IdentifierNameSyntax name)
+                    {
+                        elementNamesBuilder.Add(name.Identifier.ValueText == "" ? null :
+                            name.Identifier.ValueText);
+                        elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
+                    }
+                    else
                     {
                         return false;
                     }
+                }
 
-                    elementTypes = elementTypesBuilder.ToImmutable();
-                    elementNames = elementNamesBuilder.ToImmutable();
-                    return true;
-                }
-                finally
+                if (elementTypesBuilder.Contains(null) || elementTypesBuilder.Count != arguments.Count)
                 {
-                    elementTypesBuilder.Free();
-                    elementNamesBuilder.Free();
+                    return false;
                 }
+
+                elementTypes = elementTypesBuilder.ToImmutable();
+                elementNames = elementNamesBuilder.ToImmutable();
+                return true;
             }
 
             private void AddTypeAndName(

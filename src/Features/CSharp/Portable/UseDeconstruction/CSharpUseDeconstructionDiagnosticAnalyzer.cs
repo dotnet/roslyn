@@ -208,32 +208,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
             var variableName = identifier.ValueText;
 
-            var references = ArrayBuilder<MemberAccessExpressionSyntax>.GetInstance();
-            try
-            {
-                // If the user actually uses the tuple local for anything other than accessing 
-                // fields off of it, then we can't deconstruct this tuple into locals.
-                if (!OnlyUsedToAccessTupleFields(
-                        semanticModel, searchScope, local, references, cancellationToken))
-                {
-                    return false;
-                }
+            using var _ = ArrayBuilder<MemberAccessExpressionSyntax>.GetInstance(out var references);
 
-                // Can only deconstruct the tuple if the names we introduce won't collide
-                // with anything else in scope (either outside, or inside the method).
-                if (AnyTupleFieldNamesCollideWithExistingNames(
-                        semanticModel, tupleType, searchScope, cancellationToken))
-                {
-                    return false;
-                }
-
-                memberAccessExpressions = references.ToImmutable();
-                return true;
-            }
-            finally
+            // If the user actually uses the tuple local for anything other than accessing 
+            // fields off of it, then we can't deconstruct this tuple into locals.
+            if (!OnlyUsedToAccessTupleFields(
+                    semanticModel, searchScope, local, references, cancellationToken))
             {
-                references.Free();
+                return false;
             }
+
+            // Can only deconstruct the tuple if the names we introduce won't collide
+            // with anything else in scope (either outside, or inside the method).
+            if (AnyTupleFieldNamesCollideWithExistingNames(
+                    semanticModel, tupleType, searchScope, cancellationToken))
+            {
+                return false;
+            }
+
+            memberAccessExpressions = references.ToImmutable();
+            return true;
         }
 
         private static bool AnyTupleFieldNamesCollideWithExistingNames(

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [ExportLanguageServiceFactory(typeof(ISyntaxFactsService), LanguageNames.CSharp), Shared]
-    internal class CSharpSyntaxFactsServiceFactory : ILanguageServiceFactory
+    internal sealed partial class CSharpSyntaxFactsServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
         public CSharpSyntaxFactsServiceFactory()

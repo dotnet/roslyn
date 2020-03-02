@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 textView.TextBuffer), TestCommandExecutionContext.Create());
 
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.FindReferences);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
             AssertResult(context.Result, "C.C()", "class C");
         }
 

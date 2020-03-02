@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             _option = option;
         }
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool TryMatchPattern(IConditionalOperation ifOperation);
 
         protected sealed override void InitializeWorker(AnalysisContext context)

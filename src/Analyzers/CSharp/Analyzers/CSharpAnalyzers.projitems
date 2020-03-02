@@ -10,5 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpAnalyzersResources.resx" GenerateSource="true" Link="CSharpAnalyzersResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CSharpAnalyzersResources.resx" />
   </ItemGroup>
 </Project>

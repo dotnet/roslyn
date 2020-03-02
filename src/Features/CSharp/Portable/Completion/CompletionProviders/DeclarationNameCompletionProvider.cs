@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var nameInfo = await NameDeclarationInfo.GetDeclarationInfo(document, position, cancellationToken).ConfigureAwait(false);
+                var nameInfo = await NameDeclarationInfo.GetDeclarationInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
                 var baseNames = GetBaseNames(semanticModel, nameInfo);
                 if (baseNames == default)
                 {
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
 
                             // Don't add multiple items for the same name and only add valid identifiers
-                            if (name.Length > 1 && CSharpSyntaxFactsService.Instance.IsValidIdentifier(name) && !result.ContainsKey(name))
+                            if (name.Length > 1 && CSharpSyntaxFacts.Instance.IsValidIdentifier(name) && !result.ContainsKey(name))
                             {
                                 var targetToken = context.TargetToken;
                                 var uniqueName = semanticFactsService.GenerateUniqueName(

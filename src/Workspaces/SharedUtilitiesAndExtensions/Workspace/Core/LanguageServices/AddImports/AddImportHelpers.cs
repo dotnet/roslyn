@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.AddImports
     internal static class AddImportHelpers
     {
         public static TRootSyntax MoveTrivia<TRootSyntax, TImportDirectiveSyntax>(
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             TRootSyntax root,
             SyntaxList<TImportDirectiveSyntax> existingImports,
             List<TImportDirectiveSyntax> newImports)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             return root;
         }
 
-        private static bool IsDocCommentOrElastic(ISyntaxFactsService syntaxFacts, SyntaxTrivia t)
+        private static bool IsDocCommentOrElastic(ISyntaxFacts syntaxFacts, SyntaxTrivia t)
             => syntaxFacts.IsDocumentationComment(t) || syntaxFacts.IsElastic(t);
     }
 }
