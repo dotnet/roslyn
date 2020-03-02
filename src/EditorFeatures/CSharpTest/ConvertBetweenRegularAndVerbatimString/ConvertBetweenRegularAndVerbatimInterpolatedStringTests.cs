@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
 {
-    public class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeActionTest
+    public class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new ConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider();
+            => new ConvertBetweenRegularAndVerbatimInterpolatedStringCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
         public async Task EmptyRegularString()
@@ -24,7 +24,7 @@ class Test
 {
     void Method()
     {
-        var v = ""[||]"";
+        var v = $""[||]"";
     }
 }
 ");
@@ -38,7 +38,7 @@ class Test
 {
     void Method()
     {
-        var v = ""[||];
+        var v = $""[||];
     }
 }
 ");
@@ -52,7 +52,7 @@ class Test
 {
     void Method()
     {
-        var v = @""[||];
+        var v = $@""[||];
     }
 }
 ");
@@ -66,7 +66,7 @@ class Test
 {
     void Method()
     {
-        var v = @""[||]"";
+        var v = $@""[||]"";
     }
 }
 ",
@@ -75,7 +75,7 @@ class Test
 {
     void Method()
     {
-        var v = """";
+        var v = $"""";
     }
 }
 ");
@@ -91,7 +91,7 @@ class Test
     {
         var v =
             // leading
-            @""[||]"" /* trailing */;
+            $@""[||]"" /* trailing */;
     }
 }
 ",
@@ -102,7 +102,7 @@ class Test
     {
         var v =
             // leading
-            """" /* trailing */;
+            $"""" /* trailing */;
     }
 }
 ");
@@ -116,7 +116,7 @@ class Test
 {
     void Method()
     {
-        var v = ""[||]a"";
+        var v = $""[||]a"";
     }
 }
 ");
@@ -130,7 +130,7 @@ class Test
 {
     void Method()
     {
-        var v = @""[||]a"";
+        var v = $@""[||]a"";
     }
 }
 ",
@@ -139,7 +139,7 @@ class Test
 {
     void Method()
     {
-        var v = ""a"";
+        var v = $""a"";
     }
 }
 ");
@@ -153,7 +153,7 @@ class Test
 {
     void Method()
     {
-        var v = ""[||]\u0001"";
+        var v = $""[||]\u0001"";
     }
 }
 ");
@@ -167,7 +167,7 @@ class Test
 {
     void Method()
     {
-        var v = ""[||]a\r\nb"";
+        var v = $""[||]a\r\nb"";
     }
 }
 ",
@@ -176,7 +176,7 @@ class Test
 {
     void Method()
     {
-        var v = @""a
+        var v = $@""a
 b"";
     }
 }
@@ -191,7 +191,7 @@ class Test
 {
     void Method()
     {
-        var v = @""[||]a
+        var v = $@""[||]a
 b"";
     }
 }
@@ -201,7 +201,7 @@ class Test
 {
     void Method()
     {
-        var v = ""a\r\nb"";
+        var v = $""a\r\nb"";
     }
 }
 ");
@@ -215,7 +215,7 @@ class Test
 {
     void Method()
     {
-        var v = ""[||]a\0b"";
+        var v = $""[||]a\0b"";
     }
 }
 ");
@@ -229,7 +229,7 @@ class Test
 {
     void Method()
     {
-        var v = ""[||]a\""b"";
+        var v = $""[||]a\""b"";
     }
 }
 ",
@@ -238,7 +238,7 @@ class Test
 {
     void Method()
     {
-        var v = @""a""""b"";
+        var v = $@""a""""b"";
     }
 }
 ");
@@ -252,7 +252,7 @@ class Test
 {
     void Method()
     {
-        var v = @""[||]a""""b"";
+        var v = $@""[||]a""""b"";
     }
 }
 ",
@@ -261,21 +261,21 @@ class Test
 {
     void Method()
     {
-        var v = ""a\""b"";
+        var v = $""a\""b"";
     }
 }
 ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
-        public async Task DoNotEscapeCurlyBracesInRegularString()
+        public async Task RegularStringWithEscapedQuoteAndMultipleParts()
         {
             await TestInRegularAndScript1Async(@"
 class Test
 {
     void Method()
     {
-        var v = ""[||]a\r\n{1}"";
+        var v = $""[||]{1}\""{2}"";
     }
 }
 ",
@@ -284,23 +284,21 @@ class Test
 {
     void Method()
     {
-        var v = @""a
-{1}"";
+        var v = $@""{1}""""{2}"";
     }
 }
 ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
-        public async Task DoNotEscapeCurlyBracesInVerbatimString()
+        public async Task VerbatimStringWithEscapedQuoteAndMultipleParts()
         {
             await TestInRegularAndScript1Async(@"
 class Test
 {
     void Method()
     {
-        var v = @""[||]a
-{1}"";
+        var v = $@""[||]{1}""""{2}"";
     }
 }
 ",
@@ -309,7 +307,55 @@ class Test
 {
     void Method()
     {
-        var v = ""a\r\n{1}"";
+        var v = $""{1}\""{2}"";
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task EscapedCurlyBracesInRegularString()
+        {
+            await TestInRegularAndScript1Async(@"
+class Test
+{
+    void Method()
+    {
+        var v = $""[||]a\r\n{{1}}"";
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var v = $@""a
+{{1}}"";
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task EscapedCurlyBracesInVerbatimString()
+        {
+            await TestInRegularAndScript1Async(@"
+class Test
+{
+    void Method()
+    {
+        var v = $@""[||]a
+{{1}}"";
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var v = $""a\r\n{{1}}"";
     }
 }
 ");
