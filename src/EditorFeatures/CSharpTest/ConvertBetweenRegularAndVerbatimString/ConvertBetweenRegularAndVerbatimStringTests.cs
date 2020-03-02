@@ -127,5 +127,43 @@ b"";
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task VerbatimStringWithNewLine()
+        {
+            await TestInRegularAndScript1Async(@"
+class Test
+{
+    void Method()
+    {
+        var v = @""[||]a
+b"";
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var v = ""a\r\nb"";
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task RegularStringWithEscapedNull()
+        {
+            await TestMissingAsync(@"
+class Test
+{
+    void Method()
+    {
+        var v = ""[||]a\0b"";
+    }
+}
+");
+        }
     }
 }
