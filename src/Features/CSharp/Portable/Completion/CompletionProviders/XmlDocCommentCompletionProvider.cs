@@ -251,16 +251,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             XmlAttributeSyntax attributeSyntax = null;
 
             if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
-                token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute, out XmlNameAttributeSyntax xmlAttribute))
+                token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute, out XmlNameAttributeSyntax xmlName))
             {
                 // Handle the special 'name' attributes: name="bar$$
-                attributeSyntax = xmlAttribute;
+                attributeSyntax = xmlName;
             }
             else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) &&
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out xmlAttribute))
+                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out XmlTextAttributeSyntax xmlText))
             {
                 // Handle the other general text attributes: foo="bar$$
-                attributeSyntax = xmlAttribute;
+                attributeSyntax = xmlText;
             }
             else if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
                      token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
