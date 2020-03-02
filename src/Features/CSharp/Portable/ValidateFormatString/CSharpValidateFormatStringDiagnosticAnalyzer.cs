@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ValidateFormatString
     internal class CSharpValidateFormatStringDiagnosticAnalyzer :
         AbstractValidateFormatStringDiagnosticAnalyzer<SyntaxKind>
     {
-        protected override ISyntaxFactsService GetSyntaxFactsService()
-            => CSharpSyntaxFactsService.Instance;
+        protected override ISyntaxFacts GetSyntaxFacts()
+            => CSharpSyntaxFacts.Instance;
 
         protected override SyntaxNode? TryGetMatchingNamedArgument(
             SeparatedSyntaxList<SyntaxNode> arguments,

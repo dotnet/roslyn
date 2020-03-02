@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             /// Note that this is initially unset until we find a non-constant expression.
             /// </remarks>
             private SyntaxNode _switchTargetExpression = null!;
-            private readonly ISyntaxFactsService _syntaxFacts;
+            private readonly ISyntaxFacts _syntaxFacts;
             private readonly Feature _features;
 
-            protected Analyzer(ISyntaxFactsService syntaxFacts, Feature features)
+            protected Analyzer(ISyntaxFacts syntaxFacts, Feature features)
             {
                 _syntaxFacts = syntaxFacts;
                 _features = features;

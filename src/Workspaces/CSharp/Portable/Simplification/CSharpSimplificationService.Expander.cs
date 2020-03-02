@@ -692,7 +692,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                     else
                     {
-                        if (!IsPropertyNameOfObjectInitializer(originalSimpleName))
+                        if (!IsPropertyNameOfObjectInitializer(originalSimpleName) &&
+                            !symbol.IsLocalFunction())
                         {
                             ExpressionSyntax left;
 

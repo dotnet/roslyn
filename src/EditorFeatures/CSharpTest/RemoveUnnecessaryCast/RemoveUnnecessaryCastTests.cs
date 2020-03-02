@@ -4489,6 +4489,31 @@ class C
 }", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
+        [WorkItem(12631, "https://github.com/dotnet/roslyn/issues/12631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveRedundantBoolCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        var a = true;
+        var b = ![|(bool)|]a;
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        var a = true;
+        var b = !a;
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontIntroduceDefaultLiteralInPatternSwitchCase()
         {
@@ -4768,6 +4793,30 @@ class B
 
     B(double a) : this([|(int)a|])
     {
+    }
+}");
+        }
+
+        [WorkItem(10220, "https://github.com/dotnet/roslyn/issues/10220")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveObjectCastInParamsCall()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        object[] arr = { 1, 2, 3 };
+        testParams([|(object)|]arr);
+    }
+
+    static void testParams(params object[] ps)
+    {
+        Console.WriteLine(ps.Length);
     }
 }");
         }
