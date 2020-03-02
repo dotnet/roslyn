@@ -318,8 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             // Type t = null;
             // t = <anonymous function>
             if (anonymousFunction.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax assignment) &&
-                anonymousFunction.Parent.IsParentKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax expressionStatement) &&
-                anonymousFunction.Parent.Parent.IsParentKind(SyntaxKind.Block, out BlockSyntax block))
+                assignment.IsParentKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax expressionStatement) &&
+                expressionStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax block))
             {
                 if (assignment.Left.IsKind(SyntaxKind.IdentifierName))
                 {
