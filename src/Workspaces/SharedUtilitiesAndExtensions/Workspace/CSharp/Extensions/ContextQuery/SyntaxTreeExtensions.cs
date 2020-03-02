@@ -1025,10 +1025,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.InKeyword, SyntaxKind.OutKeyword,
                              SyntaxKind.ThisKeyword, SyntaxKind.ParamsKeyword) &&
                 token.Parent.IsKind(SyntaxKind.Parameter, out parameter) &&
-                token.Parent.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
+                parameter.IsParentKind(SyntaxKind.ParameterList, out ParameterListSyntax parameterList) &&
+                parameterList.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
-                var parameterList = (ParameterListSyntax)parameter.Parent;
-
                 parameterIndex = parameterList.Parameters.IndexOf(parameter);
                 previousModifier = token.Kind();
                 return true;
