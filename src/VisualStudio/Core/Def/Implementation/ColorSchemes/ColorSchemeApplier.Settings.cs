@@ -7,11 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using NativeMethods = Microsoft.CodeAnalysis.Editor.Wpf.Utilities.NativeMethods;
@@ -23,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private class ColorSchemeSettings
         {
             private const string ColorSchemeApplierKey = @"Roslyn\ColorSchemeApplier";
+            private const string AppliedColorSchemeName = "AppliedColorScheme";
 
             private readonly IServiceProvider _serviceProvider;
             private readonly VisualStudioWorkspace _workspace;
@@ -67,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 {
                     using var itemKey = registryRoot.CreateSubKey(item.SectionName);
                     itemKey.SetValue(item.ValueName, item.ValueData);
+                    // Flush RegistryKeys out of paranoia
                     itemKey.Flush();
                 }
 
@@ -88,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: false);
                 using var itemKey = registryRoot.OpenSubKey(ColorSchemeApplierKey);
                 return itemKey is object
-                    ? (SchemeName)itemKey.GetValue("AppliedColorScheme")
+                    ? (SchemeName)itemKey.GetValue(AppliedColorSchemeName)
                     : default;
             }
 
@@ -98,7 +102,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 // when the hive gets rebuilt during upgrades, we need to reapply the color scheme information.
                 using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: true);
                 using var itemKey = registryRoot.CreateSubKey(ColorSchemeApplierKey);
-                itemKey.SetValue("AppliedColorScheme", (int)schemeName);
+                itemKey.SetValue(AppliedColorSchemeName, (int)schemeName);
+                // Flush RegistryKeys out of paranoia
                 itemKey.Flush();
             }
 
@@ -158,7 +163,24 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             public sealed class HasThemeBeenDefaultedIndexer
             {
-                private static readonly ImmutableDictionary<Guid, Option<bool>> HasThemeBeenDefaultedOptions = new Dictionary<Guid, Option<bool>>
+                private readonly VisualStudioWorkspace _workspace;
+
+                public HasThemeBeenDefaultedIndexer(VisualStudioWorkspace visualStudioWorkspace)
+                {
+                    _workspace = visualStudioWorkspace;
+                }
+
+                public bool this[Guid themeId]
+                {
+                    get => _workspace.Options.GetOption(HasThemeBeenDefaultedOptions.Options[themeId]);
+
+                    set => _workspace.SetOptions(_workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions.Options[themeId], value));
+                }
+            }
+
+            internal class HasThemeBeenDefaultedOptions
+            {
+                internal static readonly ImmutableDictionary<Guid, Option<bool>> Options = new Dictionary<Guid, Option<bool>>
                 {
                     [KnownColorThemes.Blue] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Blue),
                     [KnownColorThemes.Light] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Light),
@@ -171,20 +193,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     return new Option<bool>(nameof(ColorSchemeApplier), $"{nameof(HasThemeBeenDefaultedOptions)}{themeId}", defaultValue: false,
                         storageLocations: new RoamingProfileStorageLocation($@"Roslyn\ColorSchemeApplier\HasThemeBeenDefaulted\{themeId}"));
                 }
+            }
 
-                private readonly VisualStudioWorkspace _workspace;
-
-                public HasThemeBeenDefaultedIndexer(VisualStudioWorkspace visualStudioWorkspace)
+            [ExportOptionProvider, Shared]
+            internal class HasThemeBeenDefaultedOptionProvider : IOptionProvider
+            {
+                [ImportingConstructor]
+                public HasThemeBeenDefaultedOptionProvider()
                 {
-                    _workspace = visualStudioWorkspace;
                 }
 
-                public bool this[Guid themeId]
-                {
-                    get => _workspace.Options.GetOption(HasThemeBeenDefaultedOptions[themeId]);
+                public ImmutableArray<IOption> Options => HasThemeBeenDefaultedOptions.Options.Values.ToImmutableArray<IOption>();
 
-                    set => _workspace.SetOptions(_workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions[themeId], value));
-                }
             }
         }
     }
