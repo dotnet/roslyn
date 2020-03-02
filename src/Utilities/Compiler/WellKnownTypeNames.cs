@@ -19,6 +19,7 @@ namespace Analyzer.Utilities
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksValueTask = "System.Threading.Tasks.ValueTask";
+        public const string SystemThreadingTasksGenericValueTask = "System.Threading.Tasks.ValueTask`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
@@ -437,6 +438,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
         public const string SystemFlagsAttribute = "System.FlagsAttribute";
         public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
+        public const string SystemDiagnosticsDebug = "System.Diagnostics.Debug";
         public const string SystemReflectionAssemblyVersionAttribute = "System.Reflection.AssemblyVersionAttribute";
         public const string SystemCLSCompliantAttribute = "System.CLSCompliantAttribute";
         public const string SystemIComparable = "System.IComparable";
@@ -462,6 +464,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisCompilation = "Microsoft.CodeAnalysis.Compilation";
         public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
         public const string SystemRuntimeInteropServicesOutAttribute = "System.Runtime.InteropServices.OutAttribute";
+        public const string SystemRuntimeCompilerServicesCompilerGeneratedAttribute = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
         public const string MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzer = "Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer";
         public const string MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute = "Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute";
         public const string MicrosoftCodeAnalysisDiagnostic = "Microsoft.CodeAnalysis.Diagnostic";
@@ -481,5 +484,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisDiagnosticsOperationAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext";
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
         public const string SystemIOStringReader = "System.IO.StringReader";
+        public const string SystemCollectionsObjectModelReadOnlyCollection1 = "System.Collections.ObjectModel.ReadOnlyCollection`1";
+        public const string SystemCollectionsObjectModelReadOnlyDictionary2 = "System.Collections.ObjectModel.ReadOnlyDictionary`2";
+        public const string SystemCollectionsObjectModelReadOnlyObservableCollection1 = "System.Collections.ObjectModel.ReadOnlyObservableCollection`1";
     }
 }
