@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsAdditionalDocument([NotNull]DocumentId? documentId)
+        private void CheckContainsAdditionalDocument([NotNull] DocumentId? documentId)
         {
             if (documentId == null)
             {
