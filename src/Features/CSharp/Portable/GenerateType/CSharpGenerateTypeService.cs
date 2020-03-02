@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         {
             if (expression is TypeSyntax &&
                 expression.Parent is BaseTypeSyntax baseType &&
-                expression.Parent.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
                 baseType.Type == expression)
             {
                 // If it's after the first item, then it's definitely an interface.
