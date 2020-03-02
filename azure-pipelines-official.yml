@@ -10,6 +10,7 @@ resources:
 #  SkipApplyOptimizationData: false
 #  IbcSourceBranchName: 'default'
 #  IbcDropId: 'default'
+#  PrNumber: ''
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
@@ -36,6 +37,17 @@ stages:
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
+
+    - powershell: |
+        if ($SourceBranchname -notlike '*-vs-deps') {
+          Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $(SourceBranchname), which is not a vs-deps branch."
+        }
+        git pull refs/pull/$PrNumber/merge
+        if ($?) {
+          Write-Host  "##vso[task.LogIssue type=error;]Merging with branch refs/pull/$(PrNumber)/merge failed."
+        }
+      displayName: Setup branch for insertion validation
+      condition: and(succeeded(), $PrNumber -ne '')
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
