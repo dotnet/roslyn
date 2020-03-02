@@ -15,12 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-#if CODE_STYLE
-    using Resources = CodeStyleFixesResources;
-#else
-    using Resources = WorkspacesResources;
-#endif
-
     internal static partial class ProjectExtensions
     {
         public static TLanguageService? GetLanguageService<TLanguageService>(this Project? project) where TLanguageService : class, ILanguageService
@@ -74,8 +68,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 foreach (var analyzerConfigDocument in project.AnalyzerConfigDocuments)
                 {
                     var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigDocument.FilePath);
+                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
                     if (diagnosticFilePath.StartsWith(analyzerConfigDirectory) &&
-                        analyzerConfigDirectory.Length > bestPath.Length)
+                        analyzerConfigDirectory!.Length > bestPath.Length)
                     {
                         bestPath = analyzerConfigDirectory;
                         bestAnalyzerConfigDocument = analyzerConfigDocument;
@@ -97,7 +92,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             var solutionOrProjectDirectoryPath = PathUtilities.GetDirectoryName(solutionOrProjectFilePath);
-            return PathUtilities.CombineAbsoluteAndRelativePaths(solutionOrProjectDirectoryPath, ".editorconfig");
+            // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+            return PathUtilities.CombineAbsoluteAndRelativePaths(solutionOrProjectDirectoryPath!, ".editorconfig");
         }
 
         public static AnalyzerConfigDocument? TryGetExistingAnalyzerConfigDocumentAtPath(this Project project, string analyzerConfigPath)
@@ -127,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             if (compilation == null)
             {
-                throw new InvalidOperationException(string.Format(Resources.Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0, project.Name));
+                throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0, project.Name));
             }
 
             return compilation;

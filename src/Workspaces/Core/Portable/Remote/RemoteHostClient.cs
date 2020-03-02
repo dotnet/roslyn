@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public abstract Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken);
 
+        public abstract bool IsRemoteHost64Bit { get; }
+
         protected abstract void OnStarted();
 
         protected void Started()
@@ -196,6 +198,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             public override string ClientId => nameof(NoOpClient);
+            public override bool IsRemoteHost64Bit => false;
 
             public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {

@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.Remote;
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [Export(typeof(ILanguageClient))]
-    [ExportMetadata("Capabilities", "WorkspaceStreamingSymbolProvider")]
+    [Export(typeof(LanguageServerClient))]
     internal sealed class LanguageServerClient : ILanguageClient
     {
         private const string ServiceHubClientName = "ManagedLanguage.IDE.LanguageServer";
@@ -35,8 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
         private readonly IEnumerable<Lazy<IOptionPersister>> _lazyOptions;
-        private readonly LanguageServerClientEventListener _eventListener;
-        private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -70,15 +68,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public LanguageServerClient(
             IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
-            [ImportMany]IEnumerable<Lazy<IOptionPersister>> lazyOptions,
-            LanguageServerClientEventListener eventListener,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany]IEnumerable<Lazy<IOptionPersister>> lazyOptions)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
             _lazyOptions = lazyOptions;
-            _eventListener = eventListener;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.LanguageServerWorkspaceSymbolSearch);
         }
 
         public async Task<Connection> ActivateAsync(CancellationToken cancellationToken)
@@ -86,7 +80,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                // there is no OOP. either user turned it off, or process got killed.
+                // There is no OOP. either user turned it off, or process got killed.
+                // We should have already gotten a gold bar + nfw already if the OOP is missing.
+                // so just log telemetry here so we can connect the two with session explorer.
+                Logger.Log(FunctionId.LanguageServer_ActivateFailed, KeyValueLogMessage.NoProperty);
                 return null;
             }
 
@@ -104,38 +101,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         /// <summary>
-        /// Signals that the extension has been loaded.  The server can be started immediately, or wait for user action to start.  
-        /// To start the server, invoke the <see cref="StartAsync"/> event;
+        /// Signals that the extension has been loaded.
+        /// The caller expects that <see cref="ActivateAsync(CancellationToken)"/> can be called
+        /// immediately following the completion of this method.
         /// </summary>
-        public Task OnLoadedAsync()
+        public async Task OnLoadedAsync()
         {
-            var token = _asyncListener.BeginAsyncOperation("OnLoadedAsync");
+            // initialize things on UI thread
+            await InitializeOnUIAsync().ConfigureAwait(false);
 
-            // set up event stream so that we start LSP server once Roslyn is loaded
-            _eventListener.WorkspaceStarted.ContinueWith(async _ =>
+            // this might get called before solution is fully loaded and before file is opened. 
+            // we delay our OOP start until then, but user might do vsstart before that. so we make sure we start OOP if 
+            // it is not running yet. multiple start is no-op
+            ((RemoteHostClientServiceFactory.RemoteHostClientService)_workspace.Services.GetService<IRemoteHostClientService>()).Enable();
+
+            // wait until remote host is available before let platform know that they can activate our LSP
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
+            if (client == null)
             {
-                // initialize things on UI thread
-                await InitializeOnUIAsync().ConfigureAwait(false);
+                // There is no OOP. either user turned it off, or process got killed.
+                // We should have already gotten a gold bar + nfw already if the OOP is missing.
+                // so just log telemetry here so we can connect the two with session explorer.
+                Logger.Log(FunctionId.LanguageServer_OnLoadedFailed, KeyValueLogMessage.NoProperty);
+                // don't ask platform to start LSP.
+                // we shouldn't throw as the LSP client does not expect exceptions here.
+                return;
+            }
 
-                // this might get called before solution is fully loaded and before file is opened. 
-                // we delay our OOP start until then, but user might do vsstart before that. so we make sure we start OOP if 
-                // it is not running yet. multiple start is no-op
-                ((RemoteHostClientServiceFactory.RemoteHostClientService)_workspace.Services.GetService<IRemoteHostClientService>()).Enable();
-
-                // wait until remote host is available before let platform know that they can activate our LSP
-                var client = await RemoteHostClient.TryGetClientAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
-                if (client == null)
-                {
-                    // there is no OOP. either user turned it off, or process got killed.
-                    // don't ask platform to start LSP
-                    return;
-                }
-
-                // let platform know that they can start us
-                await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
-            }, TaskScheduler.Default).CompletesAsyncOperation(token);
-
-            return Task.CompletedTask;
+            // let platform know that they can start us
+            await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
 
             async Task InitializeOnUIAsync()
             {
