@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
 
             var declarator = variableDeclaration.Variables[0];
-            if (declarator.Initializer?.Value == null)
+            if (declarator.Initializer == null)
             {
                 return false;
             }
