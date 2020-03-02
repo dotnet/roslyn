@@ -103,5 +103,29 @@ class Test
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task RegularStringWithEscapedNewLine()
+        {
+            await TestInRegularAndScript1Async(@"
+class Test
+{
+    void Method()
+    {
+        var v = ""[||]a\r\nb"";
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var v = @""a
+b"";
+    }
+}
+");
+        }
     }
 }
