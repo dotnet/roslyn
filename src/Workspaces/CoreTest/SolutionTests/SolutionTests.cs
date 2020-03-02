@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var newSolution1 = solution.WithDocumentText(new[] { documentId }, text, PreservationMode.PreserveIdentity);
             Assert.True(newSolution1.GetDocument(documentId)!.TryGetText(out var actualText));
-            Assert.Equal(text, actualText);
+            Assert.Same(text, actualText);
 
             var newSolution2 = newSolution1.WithDocumentText(new[] { documentId }, text, PreservationMode.PreserveIdentity);
             Assert.Same(newSolution1, newSolution2);
