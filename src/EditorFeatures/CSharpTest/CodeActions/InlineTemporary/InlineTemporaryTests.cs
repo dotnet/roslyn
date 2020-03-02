@@ -4876,5 +4876,38 @@ public static class Class1Extensions { public static void DoStuff(this Class1 c,
 
 public static class Class1Extensions { public static void DoStuff(this Class1 c, int x) { } }");
         }
+
+        [WorkItem(8716, "https://github.com/dotnet/roslyn/issues/8716")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotQualifyInlinedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System;
+class C
+{
+    void Main()
+    {
+        void LocalFunc()
+        {
+            Console.Write(2);
+        }
+        var [||]local = new Action(LocalFunc);
+        local();
+    }
+}",
+@"
+using System;
+class C
+{
+    void Main()
+    {
+        void LocalFunc()
+        {
+            Console.Write(2);
+        }
+        new Action(LocalFunc)();
+    }
+}");
+        }
     }
 }
