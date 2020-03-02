@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         : CodeRefactoringProvider
         where TStringExpressionSyntax : ExpressionSyntax
     {
-        protected const char OpenBrace = '{';
-        protected const char CloseBrace = '}';
+        private const char OpenBrace = '{';
+        private const char CloseBrace = '}';
         protected const char DoubleQuote = '"';
 
         protected abstract bool IsInterpolation { get; }
