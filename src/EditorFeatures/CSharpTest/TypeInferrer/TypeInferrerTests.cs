@@ -3097,5 +3097,13 @@ class Program
             await TestInMethodAsync(
 @"(int, (string, bool)) x = (1, ("""", [|Goo()|]));", "global::System.Boolean", mode);
         }
+
+        [WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestValueInNestedTuple3()
+        {
+            await TestInMethodAsync(
+@"(int, string) x = (1, [||]);", "global::System.String", TestMode.Position);
+        }
     }
 }
