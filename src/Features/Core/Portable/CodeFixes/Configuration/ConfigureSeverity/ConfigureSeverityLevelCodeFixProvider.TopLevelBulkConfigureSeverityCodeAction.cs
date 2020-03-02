@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 {

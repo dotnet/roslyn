@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             }
 
             var result = ArrayBuilder<CodeFix>.GetInstance();
-            var anayzerDiagnosticsByCategory = new SortedDictionary<string, ArrayBuilder<Diagnostic>>();
+            var analyzerDiagnosticsByCategory = new SortedDictionary<string, ArrayBuilder<Diagnostic>>();
             using var disposer = ArrayBuilder<Diagnostic>.GetInstance(out var analyzerDiagnostics);
             foreach (var diagnostic in diagnostics)
             {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                     // Ensure diagnostic has a valid non-empty 'Category' for category based configuration.
                     if (!string.IsNullOrEmpty(diagnostic.Descriptor.Category))
                     {
-                        var diagnosticsForCategory = anayzerDiagnosticsByCategory.GetOrAdd(diagnostic.Descriptor.Category, _ => ArrayBuilder<Diagnostic>.GetInstance());
+                        var diagnosticsForCategory = analyzerDiagnosticsByCategory.GetOrAdd(diagnostic.Descriptor.Category, _ => ArrayBuilder<Diagnostic>.GetInstance());
                         diagnosticsForCategory.Add(diagnostic);
                     }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                 }
             }
 
-            foreach (var (category, diagnosticsWithCategory) in anayzerDiagnosticsByCategory)
+            foreach (var (category, diagnosticsWithCategory) in analyzerDiagnosticsByCategory)
             {
                 AddBulkConfigurationCodeFixes(diagnosticsWithCategory.ToImmutableAndFree(), category);
             }
