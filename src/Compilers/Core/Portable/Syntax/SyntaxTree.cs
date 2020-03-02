@@ -124,10 +124,12 @@ namespace Microsoft.CodeAnalysis
             return TryGetRootCore(out root);
         }
 
+#nullable enable
         /// <summary>
         /// Gets the root of the syntax tree if it is available.
         /// </summary>
-        protected abstract bool TryGetRootCore(out SyntaxNode root);
+        protected abstract bool TryGetRootCore([NotNullWhen(true)] out SyntaxNode? root);
+#nullable restore
 
         /// <summary>
         /// Gets the root node of the syntax tree, causing computation if necessary.
