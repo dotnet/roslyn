@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SwitchLabelSyntax switchLabel => InferTypeInSwitchLabel(switchLabel, token),
                     SwitchStatementSyntax switchStatement => InferTypeInSwitchStatement(switchStatement, token),
                     ThrowStatementSyntax throwStatement => InferTypeInThrowStatement(throwStatement, token),
+                    TupleExpressionSyntax tupleExpression => InferTypeInTupleExpression(tupleExpression, token),
                     UsingStatementSyntax usingStatement => InferTypeInUsingStatement(usingStatement, token),
                     WhenClauseSyntax whenClause => InferTypeInWhenClause(whenClause, token),
                     WhileStatementSyntax whileStatement => InferTypeInWhileStatement(whileStatement, token),
@@ -330,6 +331,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return types.OfType<INamedTypeSymbol>().SelectMany(t =>
                             GetCollectionElementType(t));
                     }
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInTupleExpression(
+                TupleExpressionSyntax tupleExpression, SyntaxToken previousToken)
+            {
+                if (previousToken == tupleExpression.OpenParenToken)
+                    return InferTypeInTupleExpression(tupleExpression, tupleExpression.Arguments[0]);
+
+                if (previousToken.IsKind(SyntaxKind.CommaToken))
+                {
+                    var argsAndCommas = tupleExpression.Arguments.GetWithSeparators();
+                    var commaIndex = argsAndCommas.IndexOf(previousToken);
+                    return InferTypeInTupleExpression(tupleExpression, (ArgumentSyntax)argsAndCommas[commaIndex + 1]);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
