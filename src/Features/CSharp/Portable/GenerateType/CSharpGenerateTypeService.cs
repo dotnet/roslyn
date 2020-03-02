@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
             if (expression is TypeSyntax &&
                 expression.IsParentKind(SyntaxKind.TypeConstraint, out TypeConstraintSyntax typeConstraint) &&
-                expression.Parent.IsParentKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
+                typeConstraint.IsParentKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
             {
                 var index = constraintClause.Constraints.IndexOf(typeConstraint);
 
