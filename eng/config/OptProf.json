@@ -35,10 +35,6 @@
               "testCases":[ "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs" ]
             },
             {
-              "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
-              "testCases":[ "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs" ]
-            },
-            {
               "filename": "/Microsoft.CodeAnalysis.VisualBasic.dll",
               "testCases":[ "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs" ]
             },
