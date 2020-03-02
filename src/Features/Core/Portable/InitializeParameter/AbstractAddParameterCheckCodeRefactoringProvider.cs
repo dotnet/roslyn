@@ -531,16 +531,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static SyntaxNode CreateArgumentException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
+            var content = new List<SyntaxNode>()
+            {
+                generator.InterpolatedStringText(generator.InterpolatedStringTextToken($"'{{{generator.NameOfExpression(generator.IdentifierName(parameter.Name))}}}'")),
+                generator.InterpolatedStringText(generator.InterpolatedStringTextToken("cannot be null or empty"))
+            };
             return generator.ObjectCreationExpression(
                 GetTypeNode(compilation, generator, typeof(ArgumentException)),
                 generator.InterpolatedStringExpression
                 (
-                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken),
-                    new List<SyntaxNode>
-                    {
-                        generator.InterpolatedStringText(generator.InterpolatedStringTextToken($"'{{{generator.NameOfExpression(generator.IdentifierName(parameter.Name))}}}' cannot be null or empty"))
-                    },
-                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken)
+                    CreateInterpolatedStringStartToken().WithLeadingTrivia(content.First().GetLeadingTrivia()),
+                    content,
+                    CreateInterpolatedStringEndToken().WithTrailingTrivia(content.Last().GetTrailingTrivia())
                 ),
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
