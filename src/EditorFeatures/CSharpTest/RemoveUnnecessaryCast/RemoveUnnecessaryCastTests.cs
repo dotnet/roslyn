@@ -4771,5 +4771,29 @@ class B
     }
 }");
         }
+
+        [WorkItem(10220, "https://github.com/dotnet/roslyn/issues/10220")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveObjectCastInParamsCall()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        object[] arr = { 1, 2, 3 };
+        testParams([|(object)|]arr);
+    }
+
+    static void testParams(params object[] ps)
+    {
+        Console.WriteLine(ps.Length);
+    }
+}");
+        }
     }
 }
