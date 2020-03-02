@@ -47,9 +47,18 @@ stages:
         if (!$?) {
           Write-Host  "##vso[task.LogIssue type=error;]Merging with branch refs/pull/$(PrNumber)/merge failed."
           exit 1
+        } else {
+          Write-Host "##vso[task.setvariable variable=IsPrValidationBuild]$true"
         }
       displayName: Setup branch for insertion validation
       condition: and(succeeded(), ne(variables['PrNumber'], ''), ne(variables['PrNumber'], 'default'))
+
+    - task: tagBuildOrRelease@0
+      displayName: Tagging PR validation build
+      inputs:
+        type: 'Build'
+        tags: 'PrValidationBuild'
+      conditions: and(succeeded(), variables['IsPrValidationBuild'])
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
