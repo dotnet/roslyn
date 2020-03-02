@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             }
         }
 
-        private bool ContainsSimpleEscape(
+        private static bool ContainsSimpleEscape(
             IVirtualCharService charService, ArrayBuilder<SyntaxToken> subTokens)
         {
             foreach (var subToken in subTokens)
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             return false;
         }
 
-        private bool ContainsSimpleEscape(VirtualCharSequence chars)
+        private static bool ContainsSimpleEscape(VirtualCharSequence chars)
         {
             foreach (var ch in chars)
             {
