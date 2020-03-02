@@ -1659,10 +1659,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // context.
                 var name = memberAccessExpression.Name.Identifier.Value;
                 if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
-                    memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) &&
-                    memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression, out AwaitExpressionSyntax awaitExpr))
+                    memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation) &&
+                    memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
                 {
-                    return InferTypes(awaitExpr);
+                    return InferTypes(invocation);
                 }
                 else if (name.Equals(nameof(Task<int>.ContinueWith)))
                 {
