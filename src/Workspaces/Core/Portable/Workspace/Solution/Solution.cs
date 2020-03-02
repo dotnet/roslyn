@@ -1560,7 +1560,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsAnalyzerConfigDocument([NotNull]DocumentId? documentId)
+        private void CheckContainsAnalyzerConfigDocument([NotNull] DocumentId? documentId)
         {
             if (documentId == null)
             {
