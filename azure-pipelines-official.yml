@@ -43,8 +43,9 @@ stages:
           Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $(SourceBranchname), which is not a vs-deps branch."
         }
         git pull origin refs/pull/$(PrNumber)/merge
-        if ($?) {
+        if (!$?) {
           Write-Host  "##vso[task.LogIssue type=error;]Merging with branch refs/pull/$(PrNumber)/merge failed."
+          exit 1
         }
       displayName: Setup branch for insertion validation
       condition: and(succeeded(), ne(variables['PrNumber'], ''))
