@@ -39,8 +39,9 @@ stages:
       displayName: Setting SourceBranchName variable
 
     - powershell: |
-        if ($SourceBranchname -notlike '*-vs-deps') {
-          Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $(SourceBranchname), which is not a vs-deps branch."
+        Write-Host "Setting up the build for PR validation by merging refs/pull/$(PrNumber)/merge into $(SourceBranchName)."
+        if ($SourceBranchName -notlike '*-vs-deps') {
+          Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $(SourceBranchName), which is not a vs-deps branch."
         }
         git pull origin refs/pull/$(PrNumber)/merge
         if (!$?) {
