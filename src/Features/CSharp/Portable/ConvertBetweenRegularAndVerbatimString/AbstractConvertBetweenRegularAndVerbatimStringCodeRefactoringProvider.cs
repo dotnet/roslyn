@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             }
         }
 
-        private async Task<Document> ConvertAsync(
+        private static async Task<Document> ConvertAsync(
             Func<IVirtualCharService, StringBuilder, TStringExpressionSyntax, TStringExpressionSyntax> convert,
             Document document, TStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
         {
