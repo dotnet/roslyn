@@ -1698,9 +1698,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ? delegateType.TypeArguments[0]
                                     : this.Compilation.ObjectType;
 
-                                if (IsUnusableType(typeArg) && argumentExpression is LambdaExpressionSyntax lambdExpression)
+                                if (IsUnusableType(typeArg) && argumentExpression is LambdaExpressionSyntax lambdaExpression)
                                 {
-                                    typeArg = InferTypeForFirstParameterOfLambda(lambdExpression) ?? this.Compilation.ObjectType;
+                                    typeArg = InferTypeForFirstParameterOfLambda(lambdaExpression) ?? this.Compilation.ObjectType;
                                 }
 
                                 return CreateResult(ienumerableType.Construct(typeArg));
