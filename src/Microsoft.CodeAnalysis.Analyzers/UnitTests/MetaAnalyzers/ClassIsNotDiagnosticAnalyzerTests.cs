@@ -23,11 +23,11 @@ namespace RoslynSandbox
     using Microsoft.CodeAnalysis.Diagnostics;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class Foo
+    internal class NotAnAnalyzer
     {
     }
 }",
-                VerifyCS.Diagnostic().WithLocation(8, 20).WithArguments("Foo"));
+                VerifyCS.Diagnostic().WithLocation(8, 20).WithArguments("NotAnAnalyzer"));
 
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
@@ -35,10 +35,10 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace RoslynSandbox
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class Foo
+    Friend Class NotAnAnalyzer
     End Class
 End Namespace",
-                VerifyVB.Diagnostic().WithLocation(7, 18).WithArguments("Foo"));
+                VerifyVB.Diagnostic().WithLocation(7, 18).WithArguments("NotAnAnalyzer"));
         }
 
         [Fact]
@@ -51,11 +51,11 @@ namespace RoslynSandbox
     using Microsoft.CodeAnalysis.Diagnostics;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal static class Foo
+    internal static class NotAnAnalyzer
     {
     }
 }",
-                VerifyCS.Diagnostic().WithLocation(8, 27).WithArguments("Foo"));
+                VerifyCS.Diagnostic().WithLocation(8, 27).WithArguments("NotAnAnalyzer"));
 
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
@@ -63,7 +63,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace RoslynSandbox
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Module Foo
+    Friend Module NotAnAnalyzer
     End Module
 End Namespace");
         }
@@ -79,7 +79,7 @@ namespace RoslynSandbox
     using Microsoft.CodeAnalysis.Diagnostics;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class Foo : DiagnosticAnalyzer
+    internal class SomeAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new System.NotImplementedException();
 
@@ -94,7 +94,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace RoslynSandbox
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class Foo
+    Friend Class SomeAnalyzer
         Inherits DiagnosticAnalyzer
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -120,7 +120,7 @@ namespace RoslynSandbox
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.Diagnostics;
 
-    internal abstract class FooBase : DiagnosticAnalyzer
+    internal abstract class SomeAnalyzerBase : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new System.NotImplementedException();
 
@@ -128,7 +128,7 @@ namespace RoslynSandbox
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class Foo : FooBase
+    internal class SomeAnalyzer : SomeAnalyzerBase
     {
     }
 }");
@@ -139,7 +139,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace RoslynSandbox
-    Friend MustInherit Class FooBase
+    Friend MustInherit Class SomeAnalyzerBase
         Inherits DiagnosticAnalyzer
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -155,8 +155,8 @@ Namespace RoslynSandbox
 
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class Foo
-        Inherits FooBase
+    Friend Class SomeAnalyzer
+        Inherits SomeAnalyzerBase
     End Class
 End Namespace");
         }

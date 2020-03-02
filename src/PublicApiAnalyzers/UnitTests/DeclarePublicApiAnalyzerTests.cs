@@ -967,6 +967,51 @@ C.NewField -> string?";
         }
 
         [Fact]
+        public async Task TestSimpleMissingMember_Fix_WithNullability2()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? OldField;
+    public string? {|RS0016:NewField|}; // Newly added field, not in current public API.
+}
+";
+            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var unshippedText = @"C
+C.C() -> void
+C.OldField -> string?";
+            var fixedUnshippedText = @"C
+C.C() -> void
+C.NewField -> string?
+C.OldField -> string?";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task TestSimpleMissingMember_Fix_WithNullability3()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? OldField;
+    public string? NewField;
+}
+";
+            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+C
+C.C() -> void
+C.NewField -> string?
+C.OldField -> string?";
+
+            var unshippedText = "";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
         public async Task TestAddAndRemoveMembers_CSharp_Fix_WithRemovedNullability()
         {
             var source = @"

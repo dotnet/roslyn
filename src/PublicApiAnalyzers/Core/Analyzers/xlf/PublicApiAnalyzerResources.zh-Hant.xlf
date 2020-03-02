@@ -19,32 +19,32 @@
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
         <source>Annotate all items in document '{0}' in the public API</source>
-        <target state="new">Annotate all items in document '{0}' in the public API</target>
+        <target state="translated">標註公用 API 中文件 '{0}' 的所有項目</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInProjectToThePublicApiTitle">
         <source>Annotate all items in project '{0}' in the public API</source>
-        <target state="new">Annotate all items in project '{0}' in the public API</target>
+        <target state="translated">標註公用 API 中專案 '{0}' 的所有項目</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInTheSolutionToThePublicApiTitle">
         <source>Annotate all items in the solution in the public API</source>
-        <target state="new">Annotate all items in the solution in the public API</target>
+        <target state="translated">標註公用 API 中解決方案的所有項目</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">在 PublicAPI.txt 中宣告所有公用類型與成員時，應提供可 NULL 性註釋。此動作會引起對程式碼檢閱與原始檔控制記錄中 API 可 NULL 性變更的注意，有助於避免發生中斷性變更。</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
-        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API.</target>
+        <target state="translated">在已宣告的 API 中，符號 '{0}' 缺少可 NULL 性註釋。</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
         <source>Annotate nullability of public types and members in the declared API</source>
-        <target state="new">Annotate nullability of public types and members in the declared API</target>
+        <target state="translated">標註已宣告 API 中公用類型和成員的可 NULL 性</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="EnableNullableInProjectToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for project '{0}'</source>
-        <target state="new">Enable nullability annotations in the public API for project '{0}'</target>
+        <target state="translated">啟用公用 API 中專案 '{0}' 的可 NULL 性註釋</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInTheSolutionToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for the solution</source>
-        <target state="new">Enable nullability annotations in the public API for the solution</target>
+        <target state="translated">啟用公用 API 中解決方案的可 NULL 性註釋</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
@@ -164,17 +164,17 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">在 PublicAPI.txt 中宣告所有公用類型與成員時，應提供可 NULL 性註釋。此動作會引起對程式碼檢閱與原始檔控制記錄中 API 可 NULL 性變更的注意，有助於避免發生中斷性變更。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
         <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="new">PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
+        <target state="translated">PublicAPI.txt 缺少 '#nullable enable'，因此未記錄 API 的可 NULL 性註釋。建議啟用此追蹤。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
         <source>Annotate nullability of types and members in the declared API</source>
-        <target state="new">Annotate nullability of types and members in the declared API</target>
+        <target state="translated">標註已宣告 API 中類型和成員的可 NULL 性</target>
         <note />
       </trans-unit>
     </body>

@@ -13,6 +13,13 @@ namespace Microsoft.CodeAnalysis
         BuildWarning = 1,
 
         /// <summary>
+        /// Correctness rule which should have <b>no false positives</b>, and is extremely likely to be fixed by users.
+        /// This rule is a candidate to be turned into a <see cref="BuildWarning"/>.
+        /// Until then, this rule will be an <see cref="IdeSuggestion"/>
+        /// </summary>
+        BuildWarningCandidate = IdeSuggestion,
+
+        /// <summary>
         /// Rule which should have <b>no false positives</b>, and is a valuable IDE live analysis suggestion for opportunistic improvement, but not something to be enforced in CI.
         /// This rule will be <b>enabled by default as an IDE-only suggestion</b> with severity <see cref="DiagnosticSeverity.Info"/> which will be shown in "Messages" tab in Error list.
         /// </summary>

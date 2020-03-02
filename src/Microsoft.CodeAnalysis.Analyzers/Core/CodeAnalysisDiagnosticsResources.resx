@@ -398,4 +398,13 @@
   <data name="DoNotUseReservedDiagnosticIdTitle" xml:space="preserve">
     <value>Do not use reserved diagnostic IDs.</value>
   </data>
+  <data name="DoNotUseCompilationGetSemanticModelDescription" xml:space="preserve">
+    <value>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</value>
+  </data>
+  <data name="DoNotUseCompilationGetSemanticModelMessage" xml:space="preserve">
+    <value>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</value>
+  </data>
+  <data name="DoNotUseCompilationGetSemanticModelTitle" xml:space="preserve">
+    <value>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</value>
+  </data>
 </root>

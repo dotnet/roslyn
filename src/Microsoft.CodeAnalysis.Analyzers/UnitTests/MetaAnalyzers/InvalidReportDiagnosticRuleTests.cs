@@ -4,8 +4,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpReportDiagnosticAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicReportDiagnosticAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpReportDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicReportDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -50,7 +54,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
         context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
 
-        Diagnostic diag = Diagnostic.Create(descriptor2, Location.None), diag2 = Diagnostic.Create(descriptor2, Location.None); 
+        Diagnostic diag = Diagnostic.Create(descriptor2, Location.None), diag2 = Diagnostic.Create(descriptor2, Location.None);
         context.ReportDiagnostic(diag);
     }
 
@@ -260,23 +264,14 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string unsupportedDescriptorName)
-        {
-            return GetExpectedDiagnostic(CSharp.Analyzers.MetaAnalyzers.CSharpReportDiagnosticAnalyzer.InvalidReportDiagnosticRule,
-                line, column, unsupportedDescriptorName);
-        }
-
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string unsupportedDescriptorName)
-        {
-            return GetExpectedDiagnostic(VisualBasic.Analyzers.MetaAnalyzers.BasicReportDiagnosticAnalyzer.InvalidReportDiagnosticRule,
-                line, column, unsupportedDescriptorName);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, string unsupportedDescriptorName)
-        {
-            return new DiagnosticResult(rule)
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string unsupportedDescriptorName) =>
+            VerifyCS.Diagnostic()
                 .WithLocation(line, column)
                 .WithArguments(unsupportedDescriptorName);
-        }
+
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string unsupportedDescriptorName) =>
+            VerifyVB.Diagnostic()
+                .WithLocation(line, column)
+                .WithArguments(unsupportedDescriptorName);
     }
 }

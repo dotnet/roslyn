@@ -148,7 +148,7 @@
     <value>Delegate allocation from a method group</value>
   </data>
   <data name="ParamsParameterRuleMessage" xml:space="preserve">
-    <value>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</value>
+    <value>This call site is calling into a function with a 'params' parameter. This results in an array allocation</value>
   </data>
   <data name="ParamsParameterRuleTitle" xml:space="preserve">
     <value>Array allocation for params parameter</value>

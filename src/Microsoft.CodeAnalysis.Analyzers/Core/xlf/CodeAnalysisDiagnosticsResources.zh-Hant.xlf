@@ -52,19 +52,34 @@
         <target state="translated">設定產生的程式碼分析</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
+        <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
+        <target state="translated">在診斷分析器內叫用方法時，'GetSemanticModel' 是成本較高的方法，原因是其會建立全新的語意模型，而不會與編譯器或其他分析器共用編譯資料，此舉會在分析語意期間產生額外的效能成本。請改為考慮註冊不同的分析器動作，以允許使用共用的 'SemanticModel'，例如 'RegisterOperationAction'、'RegisterSyntaxNodeAction' 或 'RegisterSemanticModelAction'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">請不要在診斷分析器內叫用 Compilation.GetSemanticModel() 方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">請不要在診斷分析器內叫用 Compilation.GetSemanticModel() 方法</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
         <source>DiagnosticId for analyzers should not use reserved IDs.</source>
-        <target state="new">DiagnosticId for analyzers should not use reserved IDs.</target>
+        <target state="translated">分析器的診斷識別碼不應使用保留的識別碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
         <source>'{0}' is a reserved diagnostic ID.</source>
-        <target state="new">'{0}' is a reserved diagnostic ID.</target>
+        <target state="translated">'{0}' 是保留的診斷識別碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
         <source>Do not use reserved diagnostic IDs.</source>
-        <target state="new">Do not use reserved diagnostic IDs.</target>
+        <target state="translated">請勿使用保留的診斷識別碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">

@@ -485,6 +485,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                             var siblingPublicApiName = GetPublicApiName(sibling);
                             publicApiLinesForSiblingsOfSymbol.Remove(siblingPublicApiName.Name);
+                            publicApiLinesForSiblingsOfSymbol.Remove(siblingPublicApiName.NameWithNullability);
                         }
 
                         // Join all the symbols names with a special separator.

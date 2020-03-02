@@ -91,7 +91,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 return document;
             }
 
-            var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(generator.TypeExpression(partNotDiscoverableAttributeSymbol)));
+            var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(generator.TypeExpression(partNotDiscoverableAttributeSymbol).WithAddImportsAnnotation()));
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }
     }

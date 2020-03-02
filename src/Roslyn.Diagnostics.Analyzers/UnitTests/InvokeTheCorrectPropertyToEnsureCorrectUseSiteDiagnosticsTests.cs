@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Diagnostics.VisualBasic.Analyzers;
 using Test.Utilities;
-using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Roslyn.Diagnostics.VisualBasic.Analyzers.BasicInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 

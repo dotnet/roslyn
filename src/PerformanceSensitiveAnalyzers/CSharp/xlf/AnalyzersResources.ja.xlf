@@ -53,8 +53,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">この呼び出しサイトは 'params' パラメーターを持つ関数を呼び出します。結果として、params パラメーターにパラメーターが何も渡されない場合でも、配列が割り当てられます。</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
+        <target state="needs-review-translation">この呼び出しサイトは 'params' パラメーターを持つ関数を呼び出します。結果として、params パラメーターにパラメーターが何も渡されない場合でも、配列が割り当てられます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

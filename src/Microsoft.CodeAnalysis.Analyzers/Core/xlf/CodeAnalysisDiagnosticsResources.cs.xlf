@@ -52,6 +52,21 @@
         <target state="translated">Nakonfigurovat analýzu vygenerovaného kódu</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
+        <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
+        <target state="translated">GetSemanticModel je náročná metoda na to, aby se volala v diagnostickém analyzátoru, protože vytváří zcela nový sémantický model, který nesdílí data kompilace s kompilátorem nebo jinými analyzátory. To dále snižuje výkon během analýzy sémantiky. Zvažte místo toho možnost zaregistrovat jinou akci analyzátoru, která umožňuje používat sdílený SemanticModel, třeba RegisterOperationAction, RegisterSyntaxNodeAction nebo RegisterSemanticModelAction.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">Nevolejte metodu Compilation.GetSemanticModel() v diagnostickém analyzátoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">Nevolejte metodu Compilation.GetSemanticModel() v diagnostickém analyzátoru</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
         <source>DiagnosticId for analyzers should not use reserved IDs.</source>
         <target state="translated">Hodnoty DiagnosticId pro analyzátory by neměly používat rezervovaná ID.</target>

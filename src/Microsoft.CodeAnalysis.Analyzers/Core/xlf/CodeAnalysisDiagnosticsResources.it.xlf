@@ -52,19 +52,34 @@
         <target state="translated">Configura l'analisi del codice generato</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
+        <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
+        <target state="translated">'GetSemanticModel' è un metodo dispendioso da richiamare in un analizzatore diagnostico perché crea un modello semantico completamente nuovo, che non condivide i dati di compilazione con il compilatore o con altri analizzatori, comportando un ulteriore costo in termini di prestazioni durante l'analisi semantica. Provare invece a registrare un'azione diversa dell'analizzatore che consenta l'uso di un elemento 'SemanticModel' condiviso, come 'RegisterOperationAction', 'RegisterSyntaxNodeAction' o 'RegisterSemanticModelAction'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">Non richiamare il metodo Compilation.GetSemanticModel() in un analizzatore diagnostico</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">Non richiamare il metodo Compilation.GetSemanticModel() in un analizzatore diagnostico</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
         <source>DiagnosticId for analyzers should not use reserved IDs.</source>
-        <target state="new">DiagnosticId for analyzers should not use reserved IDs.</target>
+        <target state="translated">L'ID diagnostica per gli analizzatori non deve usare ID riservati.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
         <source>'{0}' is a reserved diagnostic ID.</source>
-        <target state="new">'{0}' is a reserved diagnostic ID.</target>
+        <target state="translated">'{0}' è un ID diagnostica riservato.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
         <source>Do not use reserved diagnostic IDs.</source>
-        <target state="new">Do not use reserved diagnostic IDs.</target>
+        <target state="translated">Non usare ID diagnostica riservati.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">

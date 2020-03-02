@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="FixNumberedComments">
         <source>Fix numbered comments</source>
-        <target state="new">Fix numbered comments</target>
+        <target state="translated">Correggi i commenti numerati</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">

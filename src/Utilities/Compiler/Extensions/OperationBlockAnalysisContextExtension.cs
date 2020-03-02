@@ -11,7 +11,9 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class OperationBlockAnalysisContextExtension
     {
-        public static bool IsMethodNotImplementedOrSupported(this OperationBlockAnalysisContext context)
+#pragma warning disable RS1012 // Start action has no registered actions.
+        public static bool IsMethodNotImplementedOrSupported(this OperationBlockStartAnalysisContext context)
+#pragma warning restore RS1012 // Start action has no registered actions.
         {
             // Note that VB method bodies with 1 action have 3 operations.
             // The first is the actual operation, the second is a label statement, and the third is a return

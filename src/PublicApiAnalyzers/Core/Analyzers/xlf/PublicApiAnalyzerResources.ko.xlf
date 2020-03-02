@@ -19,32 +19,32 @@
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
         <source>Annotate all items in document '{0}' in the public API</source>
-        <target state="new">Annotate all items in document '{0}' in the public API</target>
+        <target state="translated">퍼블릭 API에서 '{0}' 문서의 모든 항목에 주석 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInProjectToThePublicApiTitle">
         <source>Annotate all items in project '{0}' in the public API</source>
-        <target state="new">Annotate all items in project '{0}' in the public API</target>
+        <target state="translated">퍼블릭 API에서 '{0}' 프로젝트의 모든 항목에 주석 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInTheSolutionToThePublicApiTitle">
         <source>Annotate all items in the solution in the public API</source>
-        <target state="new">Annotate all items in the solution in the public API</target>
+        <target state="translated">퍼블릭 API에서 솔루션의 모든 항목에 주석 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">모든 public 형식 및 멤버는 PublicAPI.txt에서 Null 허용 여부 주석을 포함하여 선언되어야 합니다. 그러면 코드 검토 및 소스 제어 기록에서 API Null 허용 여부 변경 내용을 쉽게 확인할 수 있고 호환성이 손상되는 변경을 방지할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
-        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API.</target>
+        <target state="translated">선언된 API에서 '{0}' 기호에 Null 허용 여부 주석이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
         <source>Annotate nullability of public types and members in the declared API</source>
-        <target state="new">Annotate nullability of public types and members in the declared API</target>
+        <target state="translated">선언된 API에서 public 형식 및 멤버의 Null 허용 여부 주석 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="EnableNullableInProjectToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for project '{0}'</source>
-        <target state="new">Enable nullability annotations in the public API for project '{0}'</target>
+        <target state="translated">퍼블릭 API에서 '{0}' 프로젝트에 Null 허용 여부 주석 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInTheSolutionToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for the solution</source>
-        <target state="new">Enable nullability annotations in the public API for the solution</target>
+        <target state="translated">퍼블릭 API에서 솔루션에 Null 허용 여부 주석 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
@@ -164,17 +164,17 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">모든 public 형식 및 멤버는 PublicAPI.txt에서 Null 허용 여부 주석을 포함하여 선언되어야 합니다. 그러면 코드 검토 및 소스 제어 기록에서 API Null 허용 여부 변경 내용을 쉽게 확인할 수 있고 호환성이 손상되는 변경을 방지할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
         <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="new">PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
+        <target state="translated">PublicAPI.txt에 '#nullable enable'이 없으므로 API의 Null 허용 여부 주석이 기록되지 않았습니다. 이 추적을 사용하도록 설정하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
         <source>Annotate nullability of types and members in the declared API</source>
-        <target state="new">Annotate nullability of types and members in the declared API</target>
+        <target state="translated">선언된 API에서 형식 및 멤버의 Null 허용 여부 주석 추가</target>
         <note />
       </trans-unit>
     </body>

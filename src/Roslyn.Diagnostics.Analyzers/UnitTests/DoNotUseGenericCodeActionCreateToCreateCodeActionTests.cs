@@ -3,10 +3,10 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Diagnostics.CSharp.Analyzers;
 using Roslyn.Diagnostics.VisualBasic.Analyzers;
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.CSharp.Analyzers.CSharpCodeActionCreateAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Roslyn.Diagnostics.VisualBasic.Analyzers.BasicCodeActionCreateAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
