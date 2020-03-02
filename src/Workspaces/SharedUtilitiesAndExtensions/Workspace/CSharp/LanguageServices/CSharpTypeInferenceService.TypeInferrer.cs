@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (previousToken == tupleExpression.OpenParenToken)
                     return InferTypeInTupleExpression(tupleExpression, tupleExpression.Arguments[0]);
 
-                if (previousToken.Kind() == SyntaxKind.CommaToken)
+                if (previousToken.IsKind(SyntaxKind.CommaToken))
                 {
                     var argsAndCommas = tupleExpression.Arguments.GetWithSeparators();
                     var commaIndex = argsAndCommas.IndexOf(previousToken);
