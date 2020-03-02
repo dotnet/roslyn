@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
 
-        private static SyntaxNode CreateArgumentException(
+        private SyntaxNode CreateArgumentException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
             var content = new List<SyntaxNode>()
