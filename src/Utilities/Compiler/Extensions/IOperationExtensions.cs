@@ -638,6 +638,38 @@ namespace Analyzer.Utilities.Extensions
 
             return thrownObject?.Type;
         }
+
+        public static bool HasAnyExplicitDescendant(this IOperation operation, Func<IOperation, bool>? descendIntoOperation = null)
+        {
+            var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
+            stack.Add(operation.Children.GetEnumerator());
+
+            while (stack.Any())
+            {
+                var enumerator = stack.Last();
+                stack.RemoveLast();
+                if (enumerator.MoveNext())
+                {
+                    var current = enumerator.Current;
+                    stack.Add(enumerator);
+
+                    if (current != null &&
+                        (descendIntoOperation == null || descendIntoOperation(current)))
+                    {
+                        if (!current.IsImplicit &&
+                            // This prevents non explicit operations like expression to be considered as ok
+                            (current.ConstantValue.HasValue || current.Type != null))
+                        {
+                            return true;
+                        }
+                        stack.Add(current.Children.GetEnumerator());
+                    }
+                }
+            }
+
+            stack.Free();
+            return false;
+        }
     }
 }
 
