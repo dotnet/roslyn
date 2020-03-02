@@ -3007,7 +3007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
 
                 var savedState = this.State.Clone();
-                VisitUnassignedLeftOfNullCoalescingAssignment(node);
+                AdjustStateForNullCoalescingAssignmentNonNullCase(node);
                 leftState = this.State.Clone();
                 SetState(savedState);
                 VisitAssignmentOfNullCoalescingAssignment(node, left);
@@ -3016,7 +3016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitRvalue(node.LeftOperand, isKnownToBeAnLvalue: true);
                 var savedState = this.State.Clone();
-                VisitUnassignedLeftOfNullCoalescingAssignment(node);
+                AdjustStateForNullCoalescingAssignmentNonNullCase(node);
                 leftState = this.State.Clone();
                 SetState(savedState);
                 VisitAssignmentOfNullCoalescingAssignment(node, propertyAccessOpt: null);
@@ -3053,7 +3053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This visitor represents just the non-assignment part of the null coalescing assignment
         /// operator (when the left operand is non-null).
         /// </summary>
-        protected virtual void VisitUnassignedLeftOfNullCoalescingAssignment(BoundNullCoalescingAssignmentOperator node)
+        protected virtual void AdjustStateForNullCoalescingAssignmentNonNullCase(BoundNullCoalescingAssignmentOperator node)
         {
         }
 
