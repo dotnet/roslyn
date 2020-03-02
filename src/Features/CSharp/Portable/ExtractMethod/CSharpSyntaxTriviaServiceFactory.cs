@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-        {
-            return new CSharpSyntaxTriviaService(provider);
-        }
+            => CSharpSyntaxTriviaService.Instance;
     }
 }

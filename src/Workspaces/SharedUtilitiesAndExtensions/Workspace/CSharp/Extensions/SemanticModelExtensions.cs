@@ -262,9 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var topExpression = expression.WalkUpParentheses();
-            if (topExpression.IsParentKind(SyntaxKind.Argument))
+            if (topExpression.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
             {
-                var argument = (ArgumentSyntax)topExpression.Parent;
                 if (argument.NameColon != null)
                 {
                     return argument.NameColon.Name.Identifier.ValueText;
@@ -332,14 +331,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //    as the interface type itself.
             if (type != null)
             {
-                if (type.Parent is BaseTypeSyntax && type.Parent.IsParentKind(SyntaxKind.BaseList) && ((BaseTypeSyntax)type.Parent).Type == type)
+                if (type.Parent is BaseTypeSyntax baseType &&
+                    type.Parent.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                    baseType.Type == type)
                 {
                     var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken) as INamedTypeSymbol;
                     if (containingType != null && containingType.TypeKind == TypeKind.Interface)
                     {
                         return containingType.DeclaredAccessibility;
                     }
-                    else if (((BaseListSyntax)type.Parent.Parent).Types[0] == type.Parent)
+                    else if (baseList.Types[0] == type.Parent)
                     {
                         return containingType.DeclaredAccessibility;
                     }
@@ -348,10 +349,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // 4) The type of a constant must be at least as accessible as the constant itself.
             // 5) The type of a field must be at least as accessible as the field itself.
-            if (type.IsParentKind(SyntaxKind.VariableDeclaration) &&
+            if (type.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
                 type.Parent.IsParentKind(SyntaxKind.FieldDeclaration))
             {
-                var variableDeclaration = (VariableDeclarationSyntax)type.Parent;
                 return semanticModel.GetDeclaredSymbol(
                     variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
             }
@@ -360,10 +360,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (type.IsParentKind(SyntaxKind.ObjectCreationExpression) &&
                 type.Parent.IsParentKind(SyntaxKind.EqualsValueClause) &&
                 type.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
-                type.Parent.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
+                type.Parent.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
                 type.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.FieldDeclaration))
             {
-                var variableDeclaration = (VariableDeclarationSyntax)type.Parent.Parent.Parent.Parent;
                 return semanticModel.GetDeclaredSymbol(
                     variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
             }
@@ -420,10 +419,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // 8) The type of an event must be at least as accessible as the event itself.
-            if (type.IsParentKind(SyntaxKind.VariableDeclaration) &&
+            if (type.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
                 type.Parent.IsParentKind(SyntaxKind.EventFieldDeclaration))
             {
-                var variableDeclaration = (VariableDeclarationSyntax)type.Parent;
                 var symbol = semanticModel.GetDeclaredSymbol(variableDeclaration.Variables[0], cancellationToken);
                 if (symbol != null)
                 {

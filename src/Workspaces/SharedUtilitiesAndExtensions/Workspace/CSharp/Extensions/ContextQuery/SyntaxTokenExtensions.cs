@@ -610,16 +610,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             if (node.IsKind(SyntaxKind.TypeParameterList))
             {
-                if (node.IsParentKind(SyntaxKind.InterfaceDeclaration))
-                {
-                    var decl = node.Parent as TypeDeclarationSyntax;
-                    return decl.TypeParameterList == node;
-                }
-                else if (node.IsParentKind(SyntaxKind.DelegateDeclaration))
-                {
-                    var decl = node.Parent as DelegateDeclarationSyntax;
-                    return decl.TypeParameterList == node;
-                }
+                if (node.IsParentKind(SyntaxKind.InterfaceDeclaration, out TypeDeclarationSyntax typeDecl))
+                    return typeDecl.TypeParameterList == node;
+                else if (node.IsParentKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax delegateDecl))
+                    return delegateDecl.TypeParameterList == node;
             }
 
             return false;
