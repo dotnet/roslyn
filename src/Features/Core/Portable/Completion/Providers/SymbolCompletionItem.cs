@@ -64,9 +64,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var symbol = symbols[0];
             var isGeneric = symbol.GetArity() > 0;
 
-            return item.AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
-                       .AddProperty("SymbolName", symbol.Name)
-                       .AddProperty("IsGeneric", isGeneric.ToString());
+            item = item
+                .AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
+                .AddProperty("SymbolName", symbol.Name);
+
+            return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)
