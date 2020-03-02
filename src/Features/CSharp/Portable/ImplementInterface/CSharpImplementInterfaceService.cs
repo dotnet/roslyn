@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (!cancellationToken.IsCancellationRequested)
             {
                 if (node is TypeSyntax interfaceNode && interfaceNode.Parent is BaseTypeSyntax baseType &&
-                    interfaceNode.Parent.IsParentKind(SyntaxKind.BaseList) &&
+                    baseType.IsParentKind(SyntaxKind.BaseList) &&
                     baseType.Type == interfaceNode)
                 {
                     if (interfaceNode.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration) ||
