@@ -498,6 +498,418 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             }
         }
 
+        [Fact]
+        public void Overrides_01()
+        {
+            var sourceA =
+@"public interface IA
+{
+    void F1(nint x, System.UIntPtr y);
+}
+public abstract class A
+{
+    public abstract void F2(System.IntPtr x, nuint y);
+}";
+            var sourceB =
+@"class B1 : A, IA
+{
+    public void F1(nint x, System.UIntPtr y) { }
+    public override void F2(System.IntPtr x, nuint y) { }
+}
+class B2 : A, IA
+{
+    public void F1(System.IntPtr x, nuint y) { }
+    public override void F2(nint x, System.UIntPtr y) { }
+}
+class A3 : IA
+{
+    void IA.F1(nint x, System.UIntPtr y) { }
+}
+class A4 : IA
+{
+    void IA.F1(System.IntPtr x, nuint y) { }
+}";
+
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Overrides_02()
+        {
+            var sourceA =
+@"public interface IA
+{
+    void F1(System.IntPtr x, System.UIntPtr y);
+}
+public abstract class A
+{
+    public abstract void F2(System.IntPtr x, System.UIntPtr y);
+}";
+            var sourceB =
+@"class B1 : A, IA
+{
+    public void F1(nint x, System.UIntPtr y) { }
+    public override void F2(nint x, System.UIntPtr y) { }
+}
+class B2 : A, IA
+{
+    public void F1(System.IntPtr x, nuint y) { }
+    public override void F2(System.IntPtr x, nuint y) { }
+}
+class A3 : IA
+{
+    void IA.F1(nint x, System.UIntPtr y) { }
+}
+class A4 : IA
+{
+    void IA.F1(System.IntPtr x, nuint y) { }
+}";
+
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Overrides_03()
+        {
+            var sourceA =
+@"public interface IA
+{
+    void F1(nint x, System.UIntPtr y);
+}
+public abstract class A
+{
+    public abstract void F2(System.IntPtr x, nuint y);
+}";
+            var sourceB =
+@"class B1 : A, IA
+{
+    public void F1(System.IntPtr x, System.UIntPtr y) { }
+    public override void F2(System.IntPtr x, System.UIntPtr y) { }
+}
+class A2 : IA
+{
+    void IA.F1(System.IntPtr x, System.UIntPtr y) { }
+}";
+
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Overloads_01()
+        {
+            var sourceA =
+@"public class A
+{
+    public void F1(System.IntPtr x) { }
+    public void F2(nuint y) { }
+}";
+            var sourceB =
+@"class B1 : A
+{
+    public void F1(nuint x) { }
+    public void F2(System.IntPtr y) { }
+}
+class B2 : A
+{
+    public void F1(nint x) { base.F1(x); }
+    public void F2(System.UIntPtr y) { base.F2(y); }
+}
+class B3 : A
+{
+    public new void F1(nuint x) { }
+    public new void F2(System.IntPtr y) { }
+}
+class B4 : A
+{
+    public new void F1(nint x) {  base.F1(x); }
+    public new void F2(System.UIntPtr y) { base.F2(y); }
+}";
+
+            var diagnostics = new[]
+            {
+                // (8,17): warning CS0108: 'B2.F1(nint)' hides inherited member 'A.F1(IntPtr)'. Use the new keyword if hiding was intended.
+                //     public void F1(nint x) { base.F1(x); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F1").WithArguments("B2.F1(nint)", "A.F1(System.IntPtr)").WithLocation(8, 17),
+                // (9,17): warning CS0108: 'B2.F2(UIntPtr)' hides inherited member 'A.F2(nuint)'. Use the new keyword if hiding was intended.
+                //     public void F2(System.UIntPtr y) { base.F2(y); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F2").WithArguments("B2.F2(System.UIntPtr)", "A.F2(nuint)").WithLocation(9, 17),
+                // (13,21): warning CS0109: The member 'B3.F1(nuint)' does not hide an accessible member. The new keyword is not required.
+                //     public new void F1(nuint x) { }
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "F1").WithArguments("B3.F1(nuint)").WithLocation(13, 21),
+                // (14,21): warning CS0109: The member 'B3.F2(IntPtr)' does not hide an accessible member. The new keyword is not required.
+                //     public new void F2(System.IntPtr y) { }
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "F2").WithArguments("B3.F2(System.IntPtr)").WithLocation(14, 21)
+            };
+
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(diagnostics);
+        }
+
+        [Fact]
+        public void Overloads_02()
+        {
+            var sourceA =
+@"public class A
+{
+    public void F1(System.IntPtr x) { }
+    public void F2(System.UIntPtr y) { }
+}";
+            var sourceB =
+@"class B1 : A
+{
+    public void F1(nint x) { base.F1(x); }
+    public void F2(nuint y) { base.F2(y); }
+}
+class B2 : A
+{
+    public void F1(nuint x) { }
+    public void F2(nint y) { }
+}
+class B3 : A
+{
+    public void F1(nint x) { base.F1(x); }
+    public void F2(nuint y) { base.F2(y); }
+}
+class B4 : A
+{
+    public void F1(nuint x) { }
+    public void F2(nint y) { }
+}";
+
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            var diagnostics = new[]
+            {
+                // (3,17): warning CS0108: 'B1.F1(nint)' hides inherited member 'A.F1(IntPtr)'. Use the new keyword if hiding was intended.
+                //     public void F1(nint x) { base.F1(x); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F1").WithArguments("B1.F1(nint)", "A.F1(System.IntPtr)").WithLocation(3, 17),
+                // (4,17): warning CS0108: 'B1.F2(nuint)' hides inherited member 'A.F2(UIntPtr)'. Use the new keyword if hiding was intended.
+                //     public void F2(nuint y) { base.F2(y); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F2").WithArguments("B1.F2(nuint)", "A.F2(System.UIntPtr)").WithLocation(4, 17),
+                // (13,17): warning CS0108: 'B3.F1(nint)' hides inherited member 'A.F1(IntPtr)'. Use the new keyword if hiding was intended.
+                //     public void F1(nint x) { base.F1(x); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F1").WithArguments("B3.F1(nint)", "A.F1(System.IntPtr)").WithLocation(13, 17),
+                // (14,17): warning CS0108: 'B3.F2(nuint)' hides inherited member 'A.F2(UIntPtr)'. Use the new keyword if hiding was intended.
+                //     public void F2(nuint y) { base.F2(y); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F2").WithArguments("B3.F2(nuint)", "A.F2(System.UIntPtr)").WithLocation(14, 17)
+            };
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(diagnostics);
+        }
+
+        [Fact]
+        public void Overloads_03()
+        {
+            var sourceA =
+@"public class A
+{
+    public void F1(nint x) { }
+    public void F2(nuint y) { }
+}";
+            var sourceB =
+@"class B1 : A
+{
+    public void F1(System.UIntPtr x) { }
+    public void F2(System.IntPtr y) { }
+}
+class B2 : A
+{
+    public void F1(System.IntPtr x) { base.F1(x); }
+    public void F2(System.UIntPtr y) { base.F2(y); }
+}
+class B3 : A
+{
+    public void F1(System.UIntPtr x) { }
+    public void F2(System.IntPtr y) { }
+}
+class B4 : A
+{
+    public void F1(System.IntPtr x) { base.F1(x); }
+    public void F2(System.UIntPtr y) { base.F2(y); }
+}";
+
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            var diagnostics = new[]
+            {
+                // (8,17): warning CS0108: 'B2.F1(IntPtr)' hides inherited member 'A.F1(nint)'. Use the new keyword if hiding was intended.
+                //     public void F1(System.IntPtr x) { base.F1(x); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F1").WithArguments("B2.F1(System.IntPtr)", "A.F1(nint)").WithLocation(8, 17),
+                // (9,17): warning CS0108: 'B2.F2(UIntPtr)' hides inherited member 'A.F2(nuint)'. Use the new keyword if hiding was intended.
+                //     public void F2(System.UIntPtr y) { base.F2(y); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F2").WithArguments("B2.F2(System.UIntPtr)", "A.F2(nuint)").WithLocation(9, 17),
+                // (18,17): warning CS0108: 'B4.F1(IntPtr)' hides inherited member 'A.F1(nint)'. Use the new keyword if hiding was intended.
+                //     public void F1(System.IntPtr x) { base.F1(x); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F1").WithArguments("B4.F1(System.IntPtr)", "A.F1(nint)").WithLocation(18, 17),
+                // (19,17): warning CS0108: 'B4.F2(UIntPtr)' hides inherited member 'A.F2(nuint)'. Use the new keyword if hiding was intended.
+                //     public void F2(System.UIntPtr y) { base.F2(y); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F2").WithArguments("B4.F2(System.UIntPtr)", "A.F2(nuint)").WithLocation(19, 17)
+            };
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(diagnostics);
+        }
+
+        [Fact]
+        public void Constraints_01()
+        {
+            var sourceA =
+@"public class A<T>
+{
+    public static void F<U>() where U : T { }
+}
+public class B1 : A<nint> { }
+public class B2 : A<nuint> { }
+public class B3 : A<System.IntPtr> { }
+public class B4 : A<System.UIntPtr> { }
+";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        B1.F<System.IntPtr>();
+        B2.F<System.UIntPtr>();
+        B3.F<nint>();
+        B4.F<nuint>();
+    }
+}";
+
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Constraints_02()
+        {
+            var sourceA =
+@"public class A<T>
+{
+    public static void F<U>() where U : T { }
+}
+public class B1 : A<System.IntPtr> { }
+public class B2 : A<System.UIntPtr> { }
+";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        B1.F<nint>();
+        B2.F<nuint>();
+    }
+}";
+
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Constraints_03()
+        {
+            var sourceA =
+@"public class A<T>
+{
+    public static void F<U>() where U : T { }
+}
+public class B1 : A<nint> { }
+public class B2 : A<nuint> { }
+";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        B1.F<System.IntPtr>();
+        B2.F<System.UIntPtr>();
+    }
+}";
+
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
         // PROTOTYPE: Test:
         // - @nint
         // - Type.nint, Namespace.nint
