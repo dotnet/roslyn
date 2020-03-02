@@ -272,9 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
 
-                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr))
                 {
-                    var parenExpr = token.Parent as ParenthesizedExpressionSyntax;
                     var expr = parenExpr.Expression;
 
                     if (expr is TypeSyntax)

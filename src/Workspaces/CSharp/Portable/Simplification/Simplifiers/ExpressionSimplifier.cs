@@ -547,10 +547,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsNameOrMemberAccessButNoExpression(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
             {
-                var memberAccess = (MemberAccessExpressionSyntax)node;
-
                 return memberAccess.Expression.IsKind(SyntaxKind.IdentifierName) ||
                     IsNameOrMemberAccessButNoExpression(memberAccess.Expression);
             }

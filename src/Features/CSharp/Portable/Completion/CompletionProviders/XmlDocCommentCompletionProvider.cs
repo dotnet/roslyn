@@ -194,15 +194,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // <elem attr$$
                 (elementName, attributes) = GetElementNameAndAttributes(token.Parent.Parent);
             }
-            else if (token.Parent.IsKind(SyntaxKind.XmlCrefAttribute) ||
-                     token.Parent.IsKind(SyntaxKind.XmlNameAttribute) ||
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
+            else if (token.Parent.IsKind(SyntaxKind.XmlCrefAttribute, out XmlAttributeSyntax attributeSyntax) ||
+                     token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
+                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
             {
                 // In the following, 'attr1' may be a regular text attribute, or one of the special 'cref' or 'name' attributes
                 // <elem attr1="" $$
                 // <elem attr1="" $$attr2	
                 // <elem attr1="" attr2$$
-                var attributeSyntax = (XmlAttributeSyntax)token.Parent;
 
                 if (token == attributeSyntax.EndQuoteToken)
                 {
@@ -263,12 +262,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // Handle the other general text attributes: foo="bar$$
                 attributeSyntax = xmlAttribute;
             }
-            else if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute) || token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
+            else if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
+                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
             {
                 // When there's no attribute value yet, the parent attribute is returned:
                 //     name="$$
                 //     foo="$$
-                attributeSyntax = (XmlAttributeSyntax)token.Parent;
                 if (token != attributeSyntax.StartQuoteToken)
                 {
                     attributeSyntax = null;

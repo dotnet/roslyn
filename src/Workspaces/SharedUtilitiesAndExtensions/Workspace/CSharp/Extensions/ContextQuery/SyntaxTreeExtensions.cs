@@ -578,9 +578,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 // ref $$
                 // readonly ref $$
-                if (container.IsKind(SyntaxKind.IncompleteMember))
+                if (container.IsKind(SyntaxKind.IncompleteMember, out IncompleteMemberSyntax incompleteMember))
                 {
-                    return ((IncompleteMemberSyntax)container).Type.IsKind(SyntaxKind.RefType);
+                    return incompleteMember.Type.IsKind(SyntaxKind.RefType);
                 }
 
                 if (container.IsKind(SyntaxKind.CompilationUnit) ||
@@ -852,10 +852,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //    where T : struct, |
             //    where T : Goo, |
             if (token.IsKind(SyntaxKind.CommaToken) &&
-                token.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause))
+                token.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
             {
-                var constraintClause = token.Parent as TypeParameterConstraintClauseSyntax;
-
                 // Check if there's a 'new()' constraint.  If there isn't, or we're before it, then
                 // this is a type parameter constraint context. 
                 var firstConstructorConstraint = constraintClause.Constraints.FirstOrDefault(t => t is ConstructorConstraintSyntax);
@@ -1026,10 +1024,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.InKeyword, SyntaxKind.OutKeyword,
                              SyntaxKind.ThisKeyword, SyntaxKind.ParamsKeyword) &&
-                token.Parent.IsKind(SyntaxKind.Parameter) &&
+                token.Parent.IsKind(SyntaxKind.Parameter, out parameter) &&
                 token.Parent.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
-                parameter = (ParameterSyntax)token.Parent;
                 var parameterList = (ParameterListSyntax)parameter.Parent;
 
                 parameterIndex = parameterList.Parameters.IndexOf(parameter);
@@ -1389,13 +1386,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (leftToken.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
             {
                 var outer = UnwrapPossibleTuple(leftToken.Parent);
-                if (outer.Parent.IsKind(SyntaxKind.ForEachStatement))
+                if (outer.Parent.IsKind(SyntaxKind.ForEachStatement, out ForEachStatementSyntax @foreach))
                 {
-                    var @foreach = (ForEachStatementSyntax)outer.Parent;
-
                     if (@foreach.Expression == outer &&
-                        @foreach.Type.IsKind(SyntaxKind.IdentifierName) &&
-                        ((IdentifierNameSyntax)@foreach.Type).Identifier.ValueText == "var")
+                        @foreach.Type.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
+                        identifierName.Identifier.ValueText == "var")
                     {
                         return true;
                     }
@@ -1577,8 +1572,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // out |
             if (token.IsKind(SyntaxKind.OutKeyword) &&
-                token.Parent.IsKind(SyntaxKind.Argument) &&
-                ((ArgumentSyntax)token.Parent).RefKindKeyword == token)
+                token.Parent.IsKind(SyntaxKind.Argument, out ArgumentSyntax argument) &&
+                argument.RefKindKeyword == token)
             {
                 return true;
             }
@@ -1879,10 +1874,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             if (token.IsKind(SyntaxKind.EqualsToken) &&
-                token.Parent.IsKind(SyntaxKind.EqualsValueClause))
+                token.Parent.IsKind(SyntaxKind.EqualsValueClause, out EqualsValueClauseSyntax equalsValue))
             {
-                var equalsValue = (EqualsValueClauseSyntax)token.Parent;
-
                 if (equalsValue.IsParentKind(SyntaxKind.VariableDeclarator) &&
                     equalsValue.Parent.IsParentKind(SyntaxKind.VariableDeclaration))
                 {
@@ -2175,11 +2168,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // goo ? |
             if (token.IsKind(SyntaxKind.QuestionToken) &&
-                token.Parent.IsKind(SyntaxKind.ConditionalExpression))
+                token.Parent.IsKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax conditionalExpression))
             {
                 // If the condition is simply a TypeSyntax that binds to a type, treat this as a nullable type.
-                var conditionalExpression = (ConditionalExpressionSyntax)token.Parent;
-
                 return !(conditionalExpression.Condition is TypeSyntax type)
                     || !type.IsPotentialTypeName(semanticModelOpt, cancellationToken);
             }
@@ -2319,9 +2310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // for (; |
             // for (; ; |
             if (token.IsKind(SyntaxKind.SemicolonToken) &&
-                token.Parent.IsKind(SyntaxKind.ForStatement))
+                token.Parent.IsKind(SyntaxKind.ForStatement, out ForStatementSyntax forStatement))
             {
-                var forStatement = (ForStatementSyntax)token.Parent;
                 if (token == forStatement.FirstSemicolonToken ||
                     token == forStatement.SecondSemicolonToken)
                 {
@@ -2331,13 +2321,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // for ( |
             if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.Parent.IsKind(SyntaxKind.ForStatement))
+                token.Parent.IsKind(SyntaxKind.ForStatement, out forStatement) &&
+                token == forStatement.OpenParenToken)
             {
-                var forStatement = (ForStatementSyntax)token.Parent;
-                if (token == forStatement.OpenParenToken)
-                {
-                    return true;
-                }
+                return true;
             }
 
             // for (; ; Goo(), | 
@@ -2517,18 +2504,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // $@"{x} { |
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
-                return token.Parent.IsKind(SyntaxKind.Interpolation)
-                    && ((InterpolationSyntax)token.Parent).OpenBraceToken == token;
+                return token.Parent.IsKind(SyntaxKind.Interpolation, out InterpolationSyntax interpolation)
+                    && interpolation.OpenBraceToken == token;
             }
 
             return false;
         }
 
         public static bool IsInvocationOfVarExpression(this SyntaxToken token)
-        {
-            return token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression) &&
-                ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var";
-        }
+            => token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation) &&
+               invocation.Expression.ToString() == "var";
 
         public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt = null, CancellationToken cancellationToken = default)
         {

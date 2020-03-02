@@ -429,27 +429,21 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             if (generateTypeServiceStateOptions.IsDelegateAllowed)
             {
                 // MyD1 z1 = goo;
-                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.VariableDeclaration))
+                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+                    variableDeclaration.Variables.Count != 0)
                 {
-                    var variableDeclaration = (VariableDeclarationSyntax)nameOrMemberAccessExpression.Parent;
-                    if (variableDeclaration.Variables.Count != 0)
+                    var firstVarDeclWithInitializer = variableDeclaration.Variables.FirstOrDefault(var => var.Initializer != null && var.Initializer.Value != null);
+                    if (firstVarDeclWithInitializer != null && firstVarDeclWithInitializer.Initializer != null && firstVarDeclWithInitializer.Initializer.Value != null)
                     {
-                        var firstVarDeclWithInitializer = variableDeclaration.Variables.FirstOrDefault(var => var.Initializer != null && var.Initializer.Value != null);
-                        if (firstVarDeclWithInitializer != null && firstVarDeclWithInitializer.Initializer != null && firstVarDeclWithInitializer.Initializer.Value != null)
-                        {
-                            generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, firstVarDeclWithInitializer.Initializer.Value, cancellationToken);
-                        }
+                        generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, firstVarDeclWithInitializer.Initializer.Value, cancellationToken);
                     }
                 }
 
                 // var w1 = (MyD1)goo;
-                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.CastExpression))
+                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression) &&
+                    castExpression.Expression != null)
                 {
-                    var castExpression = (CastExpressionSyntax)nameOrMemberAccessExpression.Parent;
-                    if (castExpression.Expression != null)
-                    {
-                        generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, castExpression.Expression, cancellationToken);
-                    }
+                    generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, castExpression.Expression, cancellationToken);
                 }
             }
 

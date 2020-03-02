@@ -2139,13 +2139,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var arg in arguments)
                 {
                     var expr = arg.Expression;
-                    if (expr.IsKind(SyntaxKind.DeclarationExpression))
+                    if (expr.IsKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax declExpr))
                     {
-                        AddTypeAndName((DeclarationExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
+                        AddTypeAndName(declExpr, elementTypesBuilder, elementNamesBuilder);
                     }
-                    else if (expr.IsKind(SyntaxKind.TupleExpression))
+                    else if (expr.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpr))
                     {
-                        AddTypeAndName((TupleExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
+                        AddTypeAndName(tupleExpr, elementTypesBuilder, elementNamesBuilder);
                     }
                     else if (expr is IdentifierNameSyntax name)
                     {

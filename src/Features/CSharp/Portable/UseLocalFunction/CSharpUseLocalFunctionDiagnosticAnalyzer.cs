@@ -291,21 +291,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             // var t = (Type)(<anonymous function>)
             var containingStatement = anonymousFunction.GetAncestor<StatementSyntax>();
-            if (containingStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
+            if (containingStatement.IsKind(SyntaxKind.LocalDeclarationStatement, out localDeclaration) &&
+                localDeclaration.Declaration.Variables.Count == 1)
             {
-                localDeclaration = (LocalDeclarationStatementSyntax)containingStatement;
-                if (localDeclaration.Declaration.Variables.Count == 1)
+                var variableDeclarator = localDeclaration.Declaration.Variables[0];
+                if (variableDeclarator.Initializer != null)
                 {
-                    var variableDeclarator = localDeclaration.Declaration.Variables[0];
-                    if (variableDeclarator.Initializer != null)
+                    var value = variableDeclarator.Initializer.Value.WalkDownParentheses();
+                    if (value is CastExpressionSyntax castExpression)
                     {
-                        var value = variableDeclarator.Initializer.Value.WalkDownParentheses();
-                        if (value is CastExpressionSyntax castExpression)
+                        if (castExpression.Expression.WalkDownParentheses() == anonymousFunction)
                         {
-                            if (castExpression.Expression.WalkDownParentheses() == anonymousFunction)
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }
@@ -330,23 +327,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     if (expressionStatementIndex >= 1)
                     {
                         var previousStatement = block.Statements[expressionStatementIndex - 1];
-                        if (previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
+                        if (previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement, out localDeclaration) &&
+                            localDeclaration.Declaration.Variables.Count == 1)
                         {
-                            localDeclaration = (LocalDeclarationStatementSyntax)previousStatement;
-                            if (localDeclaration.Declaration.Variables.Count == 1)
+                            var variableDeclarator = localDeclaration.Declaration.Variables[0];
+                            if (variableDeclarator.Initializer == null ||
+                                variableDeclarator.Initializer.Value.IsKind(
+                                    SyntaxKind.NullLiteralExpression,
+                                    SyntaxKind.DefaultLiteralExpression,
+                                    SyntaxKind.DefaultExpression))
                             {
-                                var variableDeclarator = localDeclaration.Declaration.Variables[0];
-                                if (variableDeclarator.Initializer == null ||
-                                    variableDeclarator.Initializer.Value.IsKind(
-                                        SyntaxKind.NullLiteralExpression,
-                                        SyntaxKind.DefaultLiteralExpression,
-                                        SyntaxKind.DefaultExpression))
+                                var identifierName = (IdentifierNameSyntax)assignment.Left;
+                                if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
                                 {
-                                    var identifierName = (IdentifierNameSyntax)assignment.Left;
-                                    if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
-                                    {
-                                        return true;
-                                    }
+                                    return true;
                                 }
                             }
                         }

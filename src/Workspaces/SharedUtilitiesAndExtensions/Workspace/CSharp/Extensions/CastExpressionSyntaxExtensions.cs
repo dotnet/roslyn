@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            if (parentNode.IsKind(SyntaxKind.ConditionalExpression) &&
-                ((ConditionalExpressionSyntax)parentNode).Condition == expression)
+            if (parentNode.IsKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax conditionalExpression) &&
+                conditionalExpression.Condition == expression)
             {
                 return semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
             }
@@ -83,10 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var expression = castExpression.WalkUpParentheses();
                 var parentNode = expression.Parent;
-                if (parentNode.IsKind(SyntaxKind.EqualsExpression) || parentNode.IsKind(SyntaxKind.NotEqualsExpression))
+                if (parentNode.IsKind(SyntaxKind.EqualsExpression, out BinaryExpressionSyntax binaryExpression) ||
+                    parentNode.IsKind(SyntaxKind.NotEqualsExpression, out binaryExpression))
                 {
                     // Reference comparison.
-                    var binaryExpression = (BinaryExpressionSyntax)parentNode;
                     other = binaryExpression.Left == expression ?
                         binaryExpression.Right :
                         binaryExpression.Left;

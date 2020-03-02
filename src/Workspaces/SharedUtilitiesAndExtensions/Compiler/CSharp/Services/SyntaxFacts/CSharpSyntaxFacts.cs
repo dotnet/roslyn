@@ -206,16 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => (node as ReturnStatementSyntax)?.Expression;
 
         public bool IsThisConstructorInitializer(SyntaxToken token)
-        {
-            return token.Parent.IsKind(SyntaxKind.ThisConstructorInitializer) &&
-                ((ConstructorInitializerSyntax)token.Parent).ThisOrBaseKeyword == token;
-        }
+            => token.Parent.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax constructorInit) &&
+               constructorInit.ThisOrBaseKeyword == token;
 
         public bool IsBaseConstructorInitializer(SyntaxToken token)
-        {
-            return token.Parent.IsKind(SyntaxKind.BaseConstructorInitializer) &&
-                ((ConstructorInitializerSyntax)token.Parent).ThisOrBaseKeyword == token;
-        }
+            => token.Parent.IsKind(SyntaxKind.BaseConstructorInitializer, out ConstructorInitializerSyntax constructorInit) &&
+               constructorInit.ThisOrBaseKeyword == token;
 
         public bool IsQueryKeyword(SyntaxToken token)
         {
@@ -1277,10 +1273,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsGlobalAttribute(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.Attribute) && node.Parent.IsKind(SyntaxKind.AttributeList) &&
-                   ((AttributeListSyntax)node.Parent).Target?.Identifier.Kind() == SyntaxKind.AssemblyKeyword;
-        }
+            => node.IsKind(SyntaxKind.Attribute) &&
+               node.Parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax attributeList) &&
+               attributeList.Target?.Identifier.Kind() == SyntaxKind.AssemblyKeyword;
 
         private static bool IsMemberDeclaration(SyntaxNode node)
         {
@@ -1341,10 +1336,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => ((ObjectCreationExpressionSyntax)node).Type;
 
         public bool IsSimpleAssignmentStatement(SyntaxNode statement)
-        {
-            return statement.IsKind(SyntaxKind.ExpressionStatement) &&
-                ((ExpressionStatementSyntax)statement).Expression.IsKind(SyntaxKind.SimpleAssignmentExpression);
-        }
+            => statement.IsKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax exprStatement) &&
+               exprStatement.Expression.IsKind(SyntaxKind.SimpleAssignmentExpression);
 
         public void GetPartsOfAssignmentStatement(
             SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
