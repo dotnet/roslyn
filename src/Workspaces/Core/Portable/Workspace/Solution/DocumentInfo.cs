@@ -143,19 +143,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         public DocumentInfo WithId(DocumentId id)
-            => With(attributes: Attributes.With(id: id ?? throw new ArgumentNullException(nameof(id))));
+            => With(attributes: Attributes.WithId(id ?? throw new ArgumentNullException(nameof(id))));
 
         public DocumentInfo WithName(string name)
-            => With(attributes: Attributes.With(name: name ?? throw new ArgumentNullException(nameof(name))));
+            => With(attributes: Attributes.WithName(name ?? throw new ArgumentNullException(nameof(name))));
 
         public DocumentInfo WithFolders(IEnumerable<string>? folders)
-            => With(attributes: Attributes.With(folders: folders.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(folders))));
+            => With(attributes: Attributes.WithFolders(folders.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(folders))));
 
         public DocumentInfo WithSourceCodeKind(SourceCodeKind kind)
-            => With(attributes: Attributes.With(sourceCodeKind: kind));
+            => With(attributes: Attributes.WithSourceCodeKind(kind));
 
         public DocumentInfo WithFilePath(string? filePath)
-            => With(attributes: Attributes.With(filePath: filePath));
+            => With(attributes: Attributes.WithFilePath(filePath));
 
         public DocumentInfo WithTextLoader(TextLoader? loader)
             => With(loader: loader);
@@ -174,32 +174,32 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// The Id of the document.
             /// </summary>
-            public DocumentId Id { get; }
+            public DocumentId Id { get; private set; }
 
             /// <summary>
             /// The name of the document.
             /// </summary>
-            public string Name { get; }
+            public string Name { get; private set; }
 
             /// <summary>
             /// The names of the logical nested folders the document is contained in.
             /// </summary>
-            public IReadOnlyList<string> Folders { get; }
+            public IReadOnlyList<string> Folders { get; private set; }
 
             /// <summary>
             /// The kind of the source code.
             /// </summary>
-            public SourceCodeKind SourceCodeKind { get; }
+            public SourceCodeKind SourceCodeKind { get; private set; }
 
             /// <summary>
             /// The file path of the document.
             /// </summary>
-            public string? FilePath { get; }
+            public string? FilePath { get; private set; }
 
             /// <summary>
             /// True if the document is a side effect of the build.
             /// </summary>
-            public bool IsGenerated { get; }
+            public bool IsGenerated { get; private set; }
 
             public DocumentAttributes(
                 DocumentId id,
@@ -217,33 +217,33 @@ namespace Microsoft.CodeAnalysis
                 IsGenerated = isGenerated;
             }
 
-            public DocumentAttributes With(
-                DocumentId? id = null,
-                string? name = null,
-                IReadOnlyList<string>? folders = null,
-                Optional<SourceCodeKind> sourceCodeKind = default,
-                Optional<string?> filePath = default,
-                Optional<bool> isGenerated = default)
+            private DocumentAttributes(DocumentAttributes other)
+                : this(other.Id,
+                       other.Name,
+                       other.Folders,
+                       other.SourceCodeKind,
+                       other.FilePath,
+                       other.IsGenerated)
             {
-                var newId = id ?? Id;
-                var newName = name ?? Name;
-                var newFolders = folders ?? Folders;
-                var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : SourceCodeKind;
-                var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
-                var newIsGenerated = isGenerated.HasValue ? isGenerated.Value : IsGenerated;
-
-                if (newId == Id &&
-                    newName == Name &&
-                    newFolders.SequenceEqual(Folders) &&
-                    newSourceCodeKind == SourceCodeKind &&
-                    newFilePath == FilePath &&
-                    newIsGenerated == IsGenerated)
-                {
-                    return this;
-                }
-
-                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated);
             }
+
+            public DocumentAttributes WithId(DocumentId value)
+                => (Id == value) ? this : new DocumentAttributes(this) { Id = value };
+
+            public DocumentAttributes WithName(string value)
+                => (Name == value) ? this : new DocumentAttributes(this) { Name = value };
+
+            public DocumentAttributes WithFolders(IReadOnlyList<string> value)
+                => (Folders == value) ? this : new DocumentAttributes(this) { Folders = value };
+
+            public DocumentAttributes WithSourceCodeKind(SourceCodeKind value)
+                => (SourceCodeKind == value) ? this : new DocumentAttributes(this) { SourceCodeKind = value };
+
+            public DocumentAttributes WithFilePath(string? value)
+                => (FilePath == value) ? this : new DocumentAttributes(this) { FilePath = value };
+
+            public DocumentAttributes WithIsGenerated(bool value)
+                => (IsGenerated == value) ? this : new DocumentAttributes(this) { IsGenerated = value };
 
             bool IObjectWritable.ShouldReuseInSerialization => true;
 
