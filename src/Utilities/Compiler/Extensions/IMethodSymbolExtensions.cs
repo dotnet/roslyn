@@ -320,6 +320,19 @@ namespace Analyzer.Utilities.Extensions
                 method.IsImplementationOfInterfaceMethod(null, iDeserializationCallback, "OnDeserialization");
         }
 
+        public static bool IsSerializationConstructor([NotNullWhen(returnValue: true)] this IMethodSymbol? method, INamedTypeSymbol? serializationInfoType, INamedTypeSymbol? streamingContextType)
+            => method.IsConstructor() &&
+                method.Parameters.Length == 2 &&
+                method.Parameters[0].Type.Equals(serializationInfoType) &&
+                method.Parameters[1].Type.Equals(streamingContextType);
+
+        public static bool IsGetObjectData([NotNullWhen(returnValue: true)] this IMethodSymbol? method, INamedTypeSymbol? serializationInfoType, INamedTypeSymbol? streamingContextType)
+            => method?.Name == "GetObjectData" &&
+                method.ReturnsVoid &&
+                method.Parameters.Length == 2 &&
+                method.Parameters[0].Type.Equals(serializationInfoType) &&
+                method.Parameters[1].Type.Equals(streamingContextType);
+
         /// <summary>
         /// Checks if the method is a property getter.
         /// </summary>
