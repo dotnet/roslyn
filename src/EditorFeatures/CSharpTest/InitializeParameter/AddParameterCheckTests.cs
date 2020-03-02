@@ -464,7 +464,7 @@ class C
 
         if (string.IsNullOrEmpty(c))
         {
-            throw new ArgumentException($""'{nameof(a)}' cannot be null or empty"", nameof(a));
+            throw new ArgumentException($""'{nameof(c)}' cannot be null or empty"", nameof(c));
         }
     }
 }", index: 3);
