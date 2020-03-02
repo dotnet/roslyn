@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // 8) The type of an event must be at least as accessible as the event itself.
             if (type.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
-                type.Parent.IsParentKind(SyntaxKind.EventFieldDeclaration))
+                variableDeclaration.IsParentKind(SyntaxKind.EventFieldDeclaration))
             {
                 var symbol = semanticModel.GetDeclaredSymbol(variableDeclaration.Variables[0], cancellationToken);
                 if (symbol != null)
