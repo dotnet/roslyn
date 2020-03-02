@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 if (previousToken.Kind() == SyntaxKind.OpenParenToken &&
                     previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr) &&
-                    !previousToken.Parent.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
+                    !parenExpr.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
                     parenExpr.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
                     symbol != null && symbol.Kind == SymbolKind.Method)
                 {
