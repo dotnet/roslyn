@@ -216,5 +216,28 @@ class Test
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task VerbatimStringWithEscapedQuote()
+        {
+            await TestInRegularAndScript1Async(@"
+class Test
+{
+    void Method()
+    {
+        var v = @""[||]a""""b"";
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var v = ""a\""b"";
+    }
+}
+");
+        }
     }
 }
