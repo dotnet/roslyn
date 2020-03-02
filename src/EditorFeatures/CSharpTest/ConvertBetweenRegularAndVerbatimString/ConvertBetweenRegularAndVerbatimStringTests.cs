@@ -239,5 +239,53 @@ class Test
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task DoNotEscapeCurlyBracesInRegularString()
+        {
+            await TestInRegularAndScript1Async(@"
+class Test
+{
+    void Method()
+    {
+        var v = ""[||]a\r\n{1}"";
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var v = @""a
+{1}"";
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task DoNotEscapeCurlyBracesInVerbatimString()
+        {
+            await TestInRegularAndScript1Async(@"
+class Test
+{
+    void Method()
+    {
+        var v = @""[||]a
+{1}"";
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var v = ""a\r\n{1}"";
+    }
+}
+");
+        }
     }
 }
