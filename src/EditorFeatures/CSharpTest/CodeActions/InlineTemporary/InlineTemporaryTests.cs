@@ -4850,5 +4850,38 @@ class C
     object Helper(CancellationToken ct) { return null; }
 }");
         }
+
+        [WorkItem(8716, "https://github.com/dotnet/roslyn/issues/8716")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotQualifyInlinedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System;
+class C
+{
+    void Main()
+    {
+        void LocalFunc()
+        {
+            Console.Write(2);
+        }
+        var [||]local = new Action(LocalFunc);
+        local();
+    }
+}",
+@"
+using System;
+class C
+{
+    void Main()
+    {
+        void LocalFunc()
+        {
+            Console.Write(2);
+        }
+        new Action(LocalFunc)();
+    }
+}");
+        }
     }
 }

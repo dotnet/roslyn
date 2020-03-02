@@ -2629,8 +2629,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // is/as are valid after expressions.
-            if (token.IsLastTokenOfNode<ExpressionSyntax>())
+            if (token.IsLastTokenOfNode<ExpressionSyntax>(out var expression))
             {
+                // 'is/as' not allowed after a anonymous-method/lambda/method-group.
+                if (expression.IsAnyLambdaOrAnonymousMethod())
+                    return false;
+
+                var symbol = semanticModel.GetSymbolInfo(expression).GetAnySymbol();
+                if (symbol is IMethodSymbol)
+                    return false;
+
                 // However, many names look like expressions.  For example:
                 //    foreach (var |
                 // ('var' is a TypeSyntax which is an expression syntax.
