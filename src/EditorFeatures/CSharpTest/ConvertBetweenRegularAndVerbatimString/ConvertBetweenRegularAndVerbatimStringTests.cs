@@ -31,6 +31,34 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task RegularStringWithMissingCloseQuote()
+        {
+            await TestMissingAsync(@"
+class Test
+{
+    void Method()
+    {
+        var v = ""[||];
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task VerbatimStringWithMissingCloseQuote()
+        {
+            await TestMissingAsync(@"
+class Test
+{
+    void Method()
+    {
+        var v = @""[||];
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
         public async Task EmptyVerbatimString()
         {
             await TestInRegularAndScript1Async(@"
@@ -161,6 +189,29 @@ class Test
     void Method()
     {
         var v = ""[||]a\0b"";
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task RegularStringWithEscapedQuote()
+        {
+            await TestInRegularAndScript1Async(@"
+class Test
+{
+    void Method()
+    {
+        var v = ""[||]a\""b"";
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var v = @""a""""b"";
     }
 }
 ");
