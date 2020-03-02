@@ -3,7 +3,9 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -11,8 +13,6 @@ namespace Test.Utilities.CodeMetrics
 {
     public abstract class CodeMetricsTestBase
     {
-        private static readonly MetadataReference s_corlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        private static readonly MetadataReference s_systemCoreReference = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
         private static readonly CompilationOptions s_CSharpDefaultOptions = new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         private static readonly CompilationOptions s_visualBasicDefaultOptions = new Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
@@ -33,14 +33,16 @@ namespace Test.Utilities.CodeMetrics
 
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
+            var defaultReferences = ReferenceAssemblies.NetFramework.Net48.Default;
+            var references = Task.Run(() => defaultReferences.ResolveAsync(language, CancellationToken.None)).GetAwaiter().GetResult();
+
 #pragma warning disable CA2000 // Dispose objects before losing scope - Current solution/project takes the dispose ownership of the created AdhocWorkspace
             var solution = new AdhocWorkspace()
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 .CurrentSolution
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .WithProjectCompilationOptions(projectId, options)
-                .AddMetadataReference(projectId, s_corlibReference)
-                .AddMetadataReference(projectId, s_systemCoreReference);
+                .AddMetadataReferences(projectId, references);
 
             int count = 0;
             foreach (var source in sources)
