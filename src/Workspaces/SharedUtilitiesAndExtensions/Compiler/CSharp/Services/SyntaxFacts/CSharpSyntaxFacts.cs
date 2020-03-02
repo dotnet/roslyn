@@ -127,10 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 #nullable restore
 
         public bool IsObjectCreationExpressionType(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.ObjectCreationExpression) &&
-                ((ObjectCreationExpressionSyntax)node.Parent).Type == node;
-        }
+            => node.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation) &&
+               objectCreation.Type == node;
 
         public bool IsAttributeName(SyntaxNode node)
         {
@@ -164,11 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsUsingDirectiveName(SyntaxNode node)
-        {
-            return
-                node.IsParentKind(SyntaxKind.UsingDirective) &&
-                ((UsingDirectiveSyntax)node.Parent).Name == node;
-        }
+            => node.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax usingDirective) &&
+               usingDirective.Name == node;
 
         public bool IsUsingAliasDirective(SyntaxNode node)
             => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
@@ -436,13 +431,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             if (typedParent.IsKind(SyntaxKind.IdentifierName))
             {
                 TypeSyntax declaredType = null;
-                if (typedParent.IsParentKind(SyntaxKind.VariableDeclaration))
+                if (typedParent.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax varDecl))
                 {
-                    declaredType = ((VariableDeclarationSyntax)typedParent.Parent).Type;
+                    declaredType = varDecl.Type;
                 }
-                else if (typedParent.IsParentKind(SyntaxKind.FieldDeclaration))
+                else if (typedParent.IsParentKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax fieldDecl))
                 {
-                    declaredType = ((FieldDeclarationSyntax)typedParent.Parent).Declaration.Type;
+                    declaredType = fieldDecl.Declaration.Type;
                 }
 
                 return declaredType == typedParent && typedToken.ValueText == "var";
@@ -643,9 +638,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     initializedInstance = objectInitializer.Parent;
                     return true;
                 }
-                else if (objectInitializer.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
+                else if (objectInitializer.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax assignment))
                 {
-                    initializedInstance = ((AssignmentExpressionSyntax)objectInitializer.Parent).Left;
+                    initializedInstance = assignment.Left;
                     return true;
                 }
             }
@@ -1217,22 +1212,16 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => (node as AssignmentExpressionSyntax)?.Right;
 
         public bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator) &&
-                ((AnonymousObjectMemberDeclaratorSyntax)node).NameEquals == null;
-        }
+            => node.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax anonObject) &&
+               anonObject.NameEquals == null;
 
         public bool IsOperandOfIncrementExpression(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.PostIncrementExpression) ||
-                node.IsParentKind(SyntaxKind.PreIncrementExpression);
-        }
+            => node.IsParentKind(SyntaxKind.PostIncrementExpression) ||
+               node.IsParentKind(SyntaxKind.PreIncrementExpression);
 
         public bool IsOperandOfDecrementExpression(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
-                node.IsParentKind(SyntaxKind.PreDecrementExpression);
-        }
+            => node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
+               node.IsParentKind(SyntaxKind.PreDecrementExpression);
 
         public bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node)
         {

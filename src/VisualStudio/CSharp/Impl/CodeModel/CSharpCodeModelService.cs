@@ -3587,8 +3587,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)
         {
-            if (!methodDeclaration.IsParentKind(SyntaxKind.ClassDeclaration) ||
-                !((ClassDeclarationSyntax)methodDeclaration.Parent).Modifiers.Any(SyntaxKind.StaticKeyword))
+            if (!methodDeclaration.IsParentKind(SyntaxKind.ClassDeclaration, out ClassDeclarationSyntax classDecl) ||
+                !classDecl.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 return false;
             }
