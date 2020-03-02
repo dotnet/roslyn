@@ -47,7 +47,7 @@ stages:
           Write-Host  "##vso[task.LogIssue type=error;]Merging with branch refs/pull/$(PrNumber)/merge failed."
         }
       displayName: Setup branch for insertion validation
-      condition: and(succeeded(), $PrNumber -ne '')
+      condition: and(succeeded(), ne(variables['PrNumber'], ''))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
