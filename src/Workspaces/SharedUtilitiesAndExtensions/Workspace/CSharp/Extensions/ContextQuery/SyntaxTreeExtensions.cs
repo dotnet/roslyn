@@ -954,7 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // Bind T to see if it is a type. If it is we don't show signature help.
             if (name.IsParentKind(SyntaxKind.LessThanExpression) &&
                 name.Parent.IsParentKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax conditional) &&
-                name.Parent.Parent.IsParentKind(SyntaxKind.ExpressionStatement) &&
+                conditional.IsParentKind(SyntaxKind.ExpressionStatement) &&
                 name.Parent.Parent.Parent.IsParentKind(SyntaxKind.GlobalStatement))
             {
                 var conditionOrType = semanticModelOpt.GetSymbolInfo(conditional.Condition, cancellationToken);
