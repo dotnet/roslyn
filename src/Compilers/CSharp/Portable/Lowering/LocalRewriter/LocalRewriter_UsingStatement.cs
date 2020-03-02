@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                Debug.Assert(node.DeclarationsOpt is { });
                 SyntaxToken awaitKeyword = node.Syntax.Kind() == SyntaxKind.UsingStatement ? ((UsingStatementSyntax)node.Syntax).AwaitKeyword : default;
                 return MakeDeclarationUsingStatement(node.Syntax,
                                                      tryBlock,
@@ -60,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                        ImmutableArray<LocalSymbol> locals,
                                                        ImmutableArray<BoundLocalDeclaration> declarations,
                                                        Conversion iDisposableConversion,
-                                                       MethodSymbol disposeMethodOpt,
-                                                       BoundAwaitableInfo awaitOpt,
+                                                       MethodSymbol? disposeMethodOpt,
+                                                       BoundAwaitableInfo? awaitOpt,
                                                        SyntaxToken awaitKeyword)
         {
             Debug.Assert(declarations != null);
@@ -144,13 +147,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   using(ResourceType temp = expression) statement;
             //
 
-            TypeSymbol expressionType = rewrittenExpression.Type;
+            TypeSymbol expressionType = rewrittenExpression.Type!;
             SyntaxNode expressionSyntax = rewrittenExpression.Syntax;
             UsingStatementSyntax usingSyntax = (UsingStatementSyntax)node.Syntax;
 
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp;
-            if ((object)expressionType == null || expressionType.IsDynamic())
+            if (expressionType is null || expressionType.IsDynamic())
             {
                 // IDisposable temp = (IDisposable) expr;
                 // or
@@ -197,8 +200,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Assumes that the local symbol will be declared (i.e. in the LocalsOpt array) of an enclosing block.
         /// Assumes that using statements with multiple locals have already been split up into multiple using statements.
         /// </remarks>
-        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion iDisposableConversion, SyntaxToken awaitKeywordOpt, BoundAwaitableInfo awaitOpt, MethodSymbol methodSymbol)
+        private BoundBlock RewriteDeclarationUsingStatement(
+            SyntaxNode usingSyntax,
+            BoundLocalDeclaration localDeclaration,
+            BoundBlock tryBlock,
+            Conversion iDisposableConversion,
+            SyntaxToken awaitKeywordOpt,
+            BoundAwaitableInfo? awaitOpt,
+            MethodSymbol? methodSymbol)
         {
+            Debug.Assert(localDeclaration.InitializerOpt is { });
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
             LocalSymbol localSymbol = localDeclaration.LocalSymbol;
@@ -254,7 +265,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local, SyntaxToken awaitKeywordOpt, BoundAwaitableInfo awaitOpt, MethodSymbol methodOpt)
+        private BoundStatement RewriteUsingStatementTryFinally(
+            SyntaxNode syntax,
+            BoundBlock tryBlock,
+            BoundLocal local,
+            SyntaxToken awaitKeywordOpt,
+            BoundAwaitableInfo? awaitOpt,
+            MethodSymbol? methodOpt)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 
@@ -346,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // local.Dispose(); or await variant
             BoundStatement disposeStatement = new BoundExpressionStatement(syntax, disposeCall);
 
-            BoundExpression ifCondition;
+            BoundExpression? ifCondition;
 
             if (isNullableValueType)
             {
@@ -397,7 +414,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return tryFinally;
         }
 
-        private BoundExpression GenerateDisposeCall(SyntaxNode syntax, BoundExpression disposedExpression, MethodSymbol methodOpt, BoundAwaitableInfo awaitOpt, SyntaxToken awaitKeyword)
+        private BoundExpression GenerateDisposeCall(
+            SyntaxNode syntax,
+            BoundExpression disposedExpression,
+            MethodSymbol? methodOpt,
+            BoundAwaitableInfo? awaitOpt,
+            SyntaxToken awaitKeyword)
         {
             Debug.Assert(awaitOpt is null || awaitKeyword != default);
 
@@ -412,14 +434,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // IAsyncDisposable.DisposeAsync()
-                    TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeyword.GetLocation());
+                    TryGetWellKnownTypeMember<MethodSymbol>(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeyword.GetLocation());
                 }
             }
 
             BoundExpression disposeCall;
             if (methodOpt is null)
             {
-                disposeCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
+                disposeCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
             }
             else
             {

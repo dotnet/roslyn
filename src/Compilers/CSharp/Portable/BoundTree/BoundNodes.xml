@@ -169,6 +169,7 @@
   </Node>
 
   <Node Name="BoundTypeExpression" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="AliasOpt" Type="AliasSymbol?"/>
 
     <!-- 
@@ -447,6 +448,7 @@
   </Node>
   
   <Node Name="BoundAssignmentOperator" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression" Null="NotApplicable"/>
     <!--  This is almost always false.
@@ -1765,7 +1767,6 @@
   </Node>
 
   <AbstractNode Name="BoundStackAllocArrayCreationBase" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="allow"/>
     <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="Count" Type="BoundExpression" Null="disallow" />
     <Field Name="InitializerOpt" Type="BoundArrayInitialization?"/>
@@ -1777,7 +1778,6 @@
          in that case it requires conversion to one or the other. In the
          special case that it is the direct initializer of a local variable
          whose type is inferred, we treat it as a pointer. -->
-    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="allow"/>
   </Node>
 
   <Node Name="BoundConvertedStackAllocExpression" Base="BoundStackAllocArrayCreationBase">
@@ -1863,7 +1863,7 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <Field Name="ReceiverOpt" Type="BoundExpression?"/>
+    <Field Name="Receiver" Type="BoundExpression"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>

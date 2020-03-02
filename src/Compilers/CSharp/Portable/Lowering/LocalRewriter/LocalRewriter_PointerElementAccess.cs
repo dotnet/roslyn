@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind additionKind = BinaryOperatorKind.Addition;
 
-            switch (rewrittenIndex.Type.SpecialType)
+            switch (rewrittenIndex.Type!.SpecialType)
             {
                 case SpecialType.System_Int32:
                     additionKind |= BinaryOperatorKind.PointerAndIntAddition;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     additionKind,
                     rewrittenExpression,
                     rewrittenIndex,
-                    rewrittenExpression.Type,
+                    rewrittenExpression.Type!,
                     method: null,
                     isPointerElementAccess: true), //see RewriterPointerNumericOperator
                 node.Type);

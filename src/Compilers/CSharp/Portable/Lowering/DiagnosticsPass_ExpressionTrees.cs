@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
             }
 
-            CheckReceiverIfField(node.ReceiverOpt);
+            CheckReceiverIfField(node.Receiver);
             return base.VisitDynamicIndexerAccess(node);
         }
 

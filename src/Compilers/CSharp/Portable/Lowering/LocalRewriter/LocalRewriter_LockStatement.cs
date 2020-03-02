@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -23,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenArgument = VisitExpression(node.Argument);
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
-            TypeSymbol argumentType = rewrittenArgument.Type;
-            if ((object)argumentType == null)
+            TypeSymbol? argumentType = rewrittenArgument.Type;
+            if (argumentType is null)
             {
                 // This isn't particularly elegant, but hopefully locking on null is
                 // not very common.
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                exitCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
+                exitCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
             }
 
             BoundStatement exitCall = new BoundExpressionStatement(lockSyntax, exitCallExpr);
@@ -162,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    enterCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
+                    enterCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
                 }
 
                 BoundStatement enterCall = new BoundExpressionStatement(

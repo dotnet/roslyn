@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Linq;
 using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -57,16 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(operand != null);
                 operand = VisitExpression(operand);
+                Debug.Assert(operand.Type is { });
 
                 if (NullableNeverHasValue(operand))
                 {
-                    operand = new BoundDefaultExpression(operand.Syntax, operand.Type.GetNullableUnderlyingType());
+                    operand = new BoundDefaultExpression(operand.Syntax, operand.Type!.GetNullableUnderlyingType());
                 }
                 else
                 {
                     operand = NullableAlwaysHasValue(operand) ?? operand;
 
-                    if (operand.Type.IsNullableType())
+                    if (operand.Type!.IsNullableType())
                     {
                         needLifting = true;
                     }
@@ -76,17 +80,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression LiftRangeExpression(BoundRangeExpression node, BoundExpression left, BoundExpression right)
+        private BoundExpression LiftRangeExpression(BoundRangeExpression node, BoundExpression? left, BoundExpression? right)
         {
             Debug.Assert(node.Type.IsNullableType());
-            Debug.Assert(left?.Type.IsNullableType() == true || right?.Type.IsNullableType() == true);
+            Debug.Assert(left?.Type?.IsNullableType() == true || right?.Type?.IsNullableType() == true);
             Debug.Assert(!(left is null && right is null));
+            Debug.Assert(node.MethodOpt is { });
 
             var sideeffects = ArrayBuilder<BoundExpression>.GetInstance();
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
             // makeRange(left.GetValueOrDefault(), right.GetValueOrDefault())
-            BoundExpression condition = null;
+            BoundExpression? condition = null;
             left = getIndexFromPossibleNullable(left);
             right = getIndexFromPossibleNullable(right);
             var rangeExpr = MakeRangeExpression(node.MethodOpt, left, right);
@@ -123,14 +128,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 value: conditionalExpression,
                 type: node.Type);
 
-            BoundExpression getIndexFromPossibleNullable(BoundExpression arg)
+            // [return: NotNullIfNotNull("arg")]
+            BoundExpression? getIndexFromPossibleNullable(BoundExpression? arg)
             {
                 if (arg is null)
                     return null;
 
                 BoundExpression tempOperand = CaptureExpressionInTempIfNeeded(arg, sideeffects, locals);
 
-                if (tempOperand.Type.IsNullableType())
+                if (tempOperand.Type!.IsNullableType())
                 {
                     BoundExpression operandHasValue = MakeOptimizedHasValue(tempOperand.Syntax, tempOperand);
 
@@ -155,8 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeRangeExpression(
             MethodSymbol constructionMethod,
-            BoundExpression left,
-            BoundExpression right)
+            BoundExpression? left,
+            BoundExpression? right)
         {
             var F = _factory;
             // The construction method may vary based on what well-known
@@ -183,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                  constructionMethod.MetadataName == "EndAt");
                     Debug.Assert(constructionMethod.IsStatic);
                     var arg = left ?? right;
-                    return F.StaticCall(constructionMethod, ImmutableArray.Create(arg));
+                    return F.StaticCall(constructionMethod, ImmutableArray.Create(arg!));
 
                 case MethodKind.PropertyGet:
                     // The only property is Range.All, so the expression must

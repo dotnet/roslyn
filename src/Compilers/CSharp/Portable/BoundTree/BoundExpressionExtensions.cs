@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsLiteralNull(this BoundExpression node)
         {
-            return node.Kind == BoundKind.Literal && node.ConstantValue.Discriminator == ConstantValueTypeDiscriminator.Null;
+            return node.Kind == BoundKind.Literal && node.ConstantValue!.Discriminator == ConstantValueTypeDiscriminator.Null;
         }
 
         public static bool IsLiteralDefault(this BoundExpression node)
@@ -75,13 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool HasExpressionType(this BoundExpression node)
         {
             // null literal, method group, and anonymous function expressions have no type.
-            return (object)node.Type != null;
+            return node.Type is { };
         }
 
         public static bool HasDynamicType(this BoundExpression node)
         {
             var type = node.Type;
-            return (object)type != null && type.IsDynamic();
+            return type is { } && type.IsDynamic();
         }
 
         public static bool MethodGroupReceiverIsDynamic(this BoundMethodGroup node)
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Special case: if we are looking for info on "M" in "new Action(M)" in the context of a parent 
                     // then we want to get the symbol that overload resolution chose for M, not on the whole method group M.
                     var delegateCreation = parent as BoundDelegateCreationExpression;
-                    if (delegateCreation != null && (object)delegateCreation.MethodOpt != null)
+                    if (delegateCreation != null && delegateCreation.MethodOpt is { })
                     {
                         symbols.Add(delegateCreation.MethodOpt);
                     }
@@ -130,13 +132,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.BadExpression:
-                    symbols.AddRange(((BoundBadExpression)node).Symbols);
+                    foreach (var s in ((BoundBadExpression)node).Symbols)
+                    {
+                        if (s is { })
+                            symbols.Add(s);
+                    }
                     break;
 
                 case BoundKind.DelegateCreationExpression:
                     var expr = (BoundDelegateCreationExpression)node;
                     var ctor = expr.Type.GetMembers(WellKnownMemberNames.InstanceConstructorName).FirstOrDefault();
-                    if ((object)ctor != null)
+                    if (ctor is { })
                     {
                         symbols.Add(ctor);
                     }
@@ -170,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     var symbol = node.ExpressionSymbol;
-                    if ((object)symbol != null)
+                    if (symbol is { })
                     {
                         symbols.Add(symbol);
                     }
@@ -202,8 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // omitting 'ref' for static methods, we'll drop the restriction on TypeExpression.
             if (expressionOpt == null) return false;
 
-            TypeSymbol receiverType = expressionOpt.Type;
-            return (object)receiverType != null && receiverType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)receiverType).IsComImport;
+            TypeSymbol? receiverType = expressionOpt.Type;
+            return receiverType is NamedTypeSymbol { Kind: SymbolKind.NamedType, IsComImport: true };
         }
     }
 }

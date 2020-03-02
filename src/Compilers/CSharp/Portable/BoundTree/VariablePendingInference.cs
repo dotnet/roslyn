@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SetInferredTypeWithAnnotations(type, null, diagnosticsOpt);
         }
 
-        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder binderOpt, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder? binderOpt, DiagnosticBag diagnosticsOpt)
         {
             Debug.Assert(binderOpt != null || type.HasType);
             Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (inferenceFailed)
             {
-                type = TypeWithAnnotations.Create(binderOpt.CreateErrorType("var"));
+                type = TypeWithAnnotations.Create(binderOpt!.CreateErrorType("var"));
             }
 
             switch (this.VariableSymbol.Kind)

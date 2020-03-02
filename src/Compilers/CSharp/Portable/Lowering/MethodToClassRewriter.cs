@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -207,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [return: NotNullIfNotNull("type")]
         public sealed override TypeSymbol VisitType(TypeSymbol type)
         {
             return TypeMap.SubstituteType(type).Type;

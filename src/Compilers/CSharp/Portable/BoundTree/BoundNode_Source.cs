@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 foreach (var catchBlock in catchBlocks)
                                 {
                                     append("catch (");
-                                    append(catchBlock.ExceptionTypeOpt.Name);
+                                    append(catchBlock.ExceptionTypeOpt?.Name);
                                     append(") ");
                                     if (catchBlock.ExceptionFilterOpt != null)
                                     {
@@ -221,13 +223,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundLiteral literal:
                         {
-                            var value = literal.ConstantValue.Value?.ToString();
+                            var value = literal.ConstantValue?.Value?.ToString();
                             if (value is null)
                             {
                                 append("null");
                                 break;
                             }
-                            switch (literal.ConstantValue.Discriminator)
+                            switch (literal.ConstantValue?.Discriminator)
                             {
                                 case ConstantValueTypeDiscriminator.String:
                                     append($@"""{value}""");
@@ -355,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                void append(string s)
+                void append(string? s)
                 {
                     builder.Append(s);
                 }

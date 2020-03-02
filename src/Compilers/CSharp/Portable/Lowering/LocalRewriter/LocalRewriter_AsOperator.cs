@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAsOperator(BoundAsOperator node)
         {
             BoundExpression rewrittenOperand = VisitExpression(node.Operand);
-            var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType);
+            var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType)!;
             TypeSymbol rewrittenType = VisitType(node.Type);
 
             return MakeAsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.Conversion, rewrittenType);

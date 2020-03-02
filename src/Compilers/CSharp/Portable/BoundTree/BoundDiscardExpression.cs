@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Diagnostics;
 
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type)
         {
-            Debug.Assert((object)Type == null && type.HasType);
+            Debug.Assert(Type is null && type.HasType);
             return this.Update(type.Type);
         }
 
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert((object)this.Type != null);
+                Debug.Assert(this.Type is { });
                 return new DiscardSymbol(TypeWithAnnotations.Create(this.Type, this.TopLevelNullability.Annotation.ToInternalAnnotation()));
             }
         }

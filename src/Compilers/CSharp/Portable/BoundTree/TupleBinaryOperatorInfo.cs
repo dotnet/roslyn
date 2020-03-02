@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -26,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class TupleBinaryOperatorInfo
     {
         internal abstract TupleBinaryOperatorInfoKind InfoKind { get; }
-        internal readonly TypeSymbol LeftConvertedTypeOpt;
-        internal readonly TypeSymbol RightConvertedTypeOpt;
+        internal readonly TypeSymbol? LeftConvertedTypeOpt;
+        internal readonly TypeSymbol? RightConvertedTypeOpt;
 #if DEBUG
         internal abstract TreeDumperNode DumpCore();
         internal string Dump() => TreeDumper.DumpCompact(DumpCore());
 #endif
 
-        private TupleBinaryOperatorInfo(TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt)
+        private TupleBinaryOperatorInfo(TypeSymbol? leftConvertedTypeOpt, TypeSymbol? rightConvertedTypeOpt)
         {
             LeftConvertedTypeOpt = leftConvertedTypeOpt;
             RightConvertedTypeOpt = rightConvertedTypeOpt;
@@ -76,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     sub.Add(new TreeDumperNode("methodSymbolOpt", MethodSymbolOpt.ToDisplayString(), null));
                 }
-                sub.Add(new TreeDumperNode("leftConversion", LeftConvertedTypeOpt.ToDisplayString(), null));
-                sub.Add(new TreeDumperNode("rightConversion", RightConvertedTypeOpt.ToDisplayString(), null));
+                sub.Add(new TreeDumperNode("leftConversion", LeftConvertedTypeOpt?.ToDisplayString(), null));
+                sub.Add(new TreeDumperNode("rightConversion", RightConvertedTypeOpt?.ToDisplayString(), null));
 
                 return new TreeDumperNode("nested", Kind, sub);
             }
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static internal readonly Multiple ErrorInstance =
                 new Multiple(operators: ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null);
 
-            internal Multiple(ImmutableArray<TupleBinaryOperatorInfo> operators, TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt)
+            internal Multiple(ImmutableArray<TupleBinaryOperatorInfo> operators, TypeSymbol? leftConvertedTypeOpt, TypeSymbol? rightConvertedTypeOpt)
                 : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
             {
                 Debug.Assert(leftConvertedTypeOpt is null || leftConvertedTypeOpt.StrippedType().IsTupleType);

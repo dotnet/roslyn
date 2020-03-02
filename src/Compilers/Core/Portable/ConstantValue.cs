@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         public static ConstantValue True { get { return ConstantValueOne.Boolean; } }
         public static ConstantValue False { get { return ConstantValueDefault.Boolean; } }
 
-        public static ConstantValue Create(string value)
+        public static ConstantValue Create(string? value)
         {
             if (value == null)
             {

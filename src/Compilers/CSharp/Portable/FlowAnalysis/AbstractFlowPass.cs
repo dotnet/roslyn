@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            VisitRvalue(node.ReceiverOpt);
+            VisitRvalue(node.Receiver);
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
             return null;
         }

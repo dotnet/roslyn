@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax = node.Syntax;
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var stores = ArrayBuilder<BoundExpression>.GetInstance();
+            Debug.Assert(node.LeftOperand.Type is { });
 
             // Rewrite LHS with temporaries to prevent double-evaluation of side effects, as we'll need to use it multiple times.
             BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, stores, temps, node.LeftOperand.HasDynamicType());
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         temps.ToImmutableAndFree(),
                         stores.ToImmutableAndFree(),
                         conditionalExpression,
-                        conditionalExpression.Type);
+                        conditionalExpression.Type!);
             }
 
             // Rewrites the null coalescing operator in the case where the result type is the underlying
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewriteNullCoalescingAssignmentForValueType()
             {
                 Debug.Assert(node.LeftOperand.Type.IsNullableType());
-                Debug.Assert(node.Type.Equals(node.RightOperand.Type));
+                Debug.Assert(node.Type!.Equals(node.RightOperand.Type));
 
                 // We lower the expression to this form:
                 //
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MakeAssignmentOperator(
                         node.Syntax,
                         transformedLHS,
-                        MakeConversionNode(tmp, transformedLHS.Type, @checked: false),
+                        MakeConversionNode(tmp, transformedLHS.Type!, @checked: false),
                         node.LeftOperand.Type,
                         used: true,
                         isChecked: false,

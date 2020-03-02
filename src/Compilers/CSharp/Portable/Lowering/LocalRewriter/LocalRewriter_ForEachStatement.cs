@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
-            TypeSymbol nodeExpressionType = collectionExpression.Type;
+            TypeSymbol nodeExpressionType = collectionExpression.Type!;
             if (nodeExpressionType.Kind == SymbolKind.ArrayType)
             {
                 ArrayTypeSymbol arrayType = (ArrayTypeSymbol)nodeExpressionType;
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool CanRewriteForEachAsFor(SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, out MethodSymbol indexerGet, out MethodSymbol lengthGet)
+        private bool CanRewriteForEachAsFor(SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, [NotNullWhen(true)] out MethodSymbol? indexerGet, [NotNullWhen(true)] out MethodSymbol? lengthGet)
         {
             lengthGet = indexerGet = null;
             var origDefinition = nodeExpressionType.OriginalDefinition;
@@ -69,17 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_Span_T))
             {
                 var spanType = (NamedTypeSymbol)nodeExpressionType;
-                lengthGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
-                indexerGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
+                lengthGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
+                indexerGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
             }
             else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
             {
                 var spanType = (NamedTypeSymbol)nodeExpressionType;
-                lengthGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
-                indexerGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
+                lengthGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
+                indexerGet = (MethodSymbol?)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
             }
 
-            return (object)lengthGet != null && (object)indexerGet != null;
+            return lengthGet is { } && indexerGet is { };
         }
 
         /// <summary>
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
             bool isAsync = node.AwaitOpt != null;
 
-            ForEachEnumeratorInfo enumeratorInfo = node.EnumeratorInfoOpt;
+            ForEachEnumeratorInfo? enumeratorInfo = node.EnumeratorInfoOpt;
             Debug.Assert(enumeratorInfo != null);
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
@@ -129,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allowExtensionAndOptionalParameters: isAsync);
 
             // E e = ((C)(x)).GetEnumerator();
-            BoundStatement enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
+            BoundStatement? enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
+            Debug.Assert(enumeratorVarDecl is { });
 
             InstrumentForEachStatementCollectionVarDeclaration(node, ref enumeratorVarDecl);
 
@@ -170,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowExtensionAndOptionalParameters: isAsync);
             if (isAsync)
             {
-                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, node.AwaitOpt, node.AwaitOpt.GetResult.ReturnType, used: true);
+                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, node.AwaitOpt!, node.AwaitOpt!.GetResult!.ReturnType, used: true);
             }
 
             BoundStatement whileLoop = RewriteWhileStatement(
@@ -235,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(enumeratorInfo.NeedsDisposal);
 
-            NamedTypeSymbol idisposableTypeSymbol = null;
+            NamedTypeSymbol? idisposableTypeSymbol = null;
             bool isImplicit = false;
             MethodSymbol disposeMethod = enumeratorInfo.DisposeMethod; // pattern-based
 
@@ -244,9 +248,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
 
                 idisposableTypeSymbol = disposeMethod.ContainingType;
+                Debug.Assert(_factory.CurrentFunction is { });
                 var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
                 _diagnostics.Add(forEachSyntax, useSiteDiagnostics);
             }
@@ -265,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.ImplicitReference;
 
                 BoundExpression receiver = enumeratorInfo.DisposeMethod is null ?
-                    ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol) :
+                    ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol!) :
                     boundEnumeratorVar;
 
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
@@ -333,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and the loop isn't async, then we include a runtime check.
                 Debug.Assert(!enumeratorType.IsSealed);
                 Debug.Assert(!enumeratorInfo.IsAsync);
+                Debug.Assert(idisposableTypeSymbol is { });
 
                 // IDisposable d
                 LocalSymbol disposableVar = _factory.SynthesizedLocal(idisposableTypeSymbol);
@@ -352,7 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: idisposableTypeSymbol);
 
                 // IDisposable d = e as IDisposable;
-                BoundStatement disposableVarDecl = MakeLocalDeclaration(forEachSyntax, disposableVar, disposableVarInitValue);
+                BoundStatement? disposableVarDecl = MakeLocalDeclaration(forEachSyntax, disposableVar, disposableVarInitValue);
+                Debug.Assert(disposableVarDecl is { });
 
                 // d.Dispose()
                 BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, method: disposeMethod);
@@ -424,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression ConvertReceiverForInvocation(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType)
         {
             Debug.Assert(!method.IsExtensionMethod);
-            if (!receiver.Type.IsReferenceType && method.ContainingType.IsInterface)
+            if (!receiver.Type!.IsReferenceType && method.ContainingType.IsInterface)
             {
                 Debug.Assert(receiverConversion.IsImplicit && !receiverConversion.IsUserDefined);
 
@@ -499,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
-            NamedTypeSymbol collectionType = (NamedTypeSymbol)collectionExpression.Type;
+            NamedTypeSymbol collectionType = (NamedTypeSymbol)collectionExpression.Type!;
 
             TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
@@ -511,7 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol collectionTemp = _factory.SynthesizedLocal(collectionType, forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
 
             // Collection a = /*node.Expression*/;
-            BoundStatement arrayVarDecl = MakeLocalDeclaration(forEachSyntax, collectionTemp, rewrittenExpression);
+            BoundStatement? arrayVarDecl = MakeLocalDeclaration(forEachSyntax, collectionTemp, rewrittenExpression);
+            Debug.Assert(arrayVarDecl is { });
 
             InstrumentForEachStatementCollectionVarDeclaration(node, ref arrayVarDecl);
 
@@ -525,8 +533,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal boundPositionVar = MakeBoundLocal(forEachSyntax, positionVar, intType);
 
             // int p = 0;
-            BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
+            BoundStatement? positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
                 MakeLiteral(forEachSyntax, ConstantValue.Default(SpecialType.System_Int32), intType));
+            Debug.Assert(positionVarDecl is { });
 
             // (V)a[p]
             BoundExpression iterationVarInitValue = MakeConversionNode(
@@ -611,13 +620,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var forEachSyntax = (CommonForEachStatementSyntax)forEachBound.Syntax;
 
             BoundStatement iterationVarDecl;
-            BoundForEachDeconstructStep deconstruction = forEachBound.DeconstructionOpt;
+            BoundForEachDeconstructStep? deconstruction = forEachBound.DeconstructionOpt;
 
             if (deconstruction == null)
             {
                 // V v = /* expression */
                 Debug.Assert(iterationVariables.Length == 1);
-                iterationVarDecl = MakeLocalDeclaration(forEachSyntax, iterationVariables[0], iterationVarValue);
+                iterationVarDecl = MakeLocalDeclaration(forEachSyntax, iterationVariables[0], iterationVarValue)!;
             }
             else
             {
@@ -702,9 +711,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
-            Debug.Assert(collectionExpression.Type.IsArray());
+            Debug.Assert(collectionExpression.Type!.IsArray());
 
-            ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type;
+            ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type!;
 
             Debug.Assert(arrayType.IsSZArray);
 
@@ -718,7 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol arrayVar = _factory.SynthesizedLocal(arrayType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
 
             // A[] a = /*node.Expression*/;
-            BoundStatement arrayVarDecl = MakeLocalDeclaration(forEachSyntax, arrayVar, rewrittenExpression);
+            BoundStatement? arrayVarDecl = MakeLocalDeclaration(forEachSyntax, arrayVar, rewrittenExpression);
+            Debug.Assert(arrayVarDecl is { });
 
             InstrumentForEachStatementCollectionVarDeclaration(node, ref arrayVarDecl);
 
@@ -732,8 +742,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal boundPositionVar = MakeBoundLocal(forEachSyntax, positionVar, intType);
 
             // int p = 0;
-            BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
+            BoundStatement? positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
                 MakeLiteral(forEachSyntax, ConstantValue.Default(SpecialType.System_Int32), intType));
+            Debug.Assert(positionVarDecl is { });
 
             // (V)a[p]
             BoundExpression iterationVarInitValue = MakeConversionNode(
@@ -828,9 +839,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
-            Debug.Assert(collectionExpression.Type.IsArray());
+            Debug.Assert(collectionExpression.Type!.IsArray());
 
-            ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type;
+            ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type!;
 
             int rank = arrayType.Rank;
             Debug.Assert(!arrayType.IsSZArray);
@@ -850,7 +861,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal boundArrayVar = MakeBoundLocal(forEachSyntax, arrayVar, arrayType);
 
             // A[...] a = /*node.Expression*/;
-            BoundStatement arrayVarDecl = MakeLocalDeclaration(forEachSyntax, arrayVar, rewrittenExpression);
+            BoundStatement? arrayVarDecl = MakeLocalDeclaration(forEachSyntax, arrayVar, rewrittenExpression);
+            Debug.Assert(arrayVarDecl is { });
 
             InstrumentForEachStatementCollectionVarDeclaration(node, ref arrayVarDecl);
 
@@ -878,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getUpperBoundMethod, dimensionArgument);
 
                 // int q_dimension = a.GetUpperBound(dimension);
-                upperVarDecl[dimension] = MakeLocalDeclaration(forEachSyntax, upperVar[dimension], currentDimensionUpperBound);
+                upperVarDecl[dimension] = MakeLocalDeclaration(forEachSyntax, upperVar[dimension], currentDimensionUpperBound)!;
             }
 
             // int p_0, p_1, ...
@@ -923,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //                 V v = (V)a[p_0, p_1, ...];   /* OR */   (D1 d1, ...) = (V)a[p_0, p_1, ...];
             //                 /* body */
             //             }
-            BoundStatement forLoop = null;
+            BoundStatement? forLoop = null;
             for (int dimension = rank - 1; dimension >= 0; dimension--)
             {
                 ImmutableArray<BoundExpression> dimensionArgument = ImmutableArray.Create(
@@ -935,7 +947,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getLowerBoundMethod, dimensionArgument);
 
                 // int p_dimension = a.GetLowerBound(dimension);
-                BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);
+                BoundStatement? positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);
+                Debug.Assert(positionVarDecl is { });
 
                 GeneratedLabelSymbol breakLabel = dimension == 0 // outermost for-loop
                     ? node.BreakLabel // i.e. the one that break statements will jump to
@@ -1021,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: type);
         }
 
-        private BoundStatement MakeLocalDeclaration(CSharpSyntaxNode syntax, LocalSymbol local, BoundExpression rewrittenInitialValue)
+        private BoundStatement? MakeLocalDeclaration(CSharpSyntaxNode syntax, LocalSymbol local, BoundExpression rewrittenInitialValue)
         {
             return RewriteLocalDeclaration(
                 originalOpt: null,
@@ -1035,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // A normal for-loop would have a sequence point on the increment.  We don't want that since the code is synthesized,
             // but we add a hidden sequence point to avoid disrupting the stepping experience.
-            return new BoundSequencePoint(null,
+            return new BoundSequencePoint(null!,
                 statementOpt: new BoundExpressionStatement(syntax,
                     expression: new BoundAssignmentOperator(syntax,
                         left: boundPositionVar,
@@ -1052,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType)));
         }
 
-        private void InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, ref BoundStatement collectionVarDecl)
+        private void InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, [NotNullIfNotNull("collectionVarDecl")] ref BoundStatement? collectionVarDecl)
         {
             if (this.Instrument)
             {
@@ -1095,14 +1108,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundStatement MakeWhileTrueLoop(BoundForEachStatement loop, BoundBlock body)
         {
-            Debug.Assert(loop.EnumeratorInfoOpt.IsAsync);
+            Debug.Assert(loop.EnumeratorInfoOpt is { IsAsync: true });
             SyntaxNode syntax = loop.Syntax;
             GeneratedLabelSymbol startLabel = new GeneratedLabelSymbol("still-true");
             BoundStatement startLabelStatement = new BoundLabelStatement(syntax, startLabel);
 
             if (this.Instrument)
             {
-                startLabelStatement = new BoundSequencePoint(null, startLabelStatement);
+                startLabelStatement = new BoundSequencePoint(null!, startLabelStatement);
             }
 
             // still-true:
