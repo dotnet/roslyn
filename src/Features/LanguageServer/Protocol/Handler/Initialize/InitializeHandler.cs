@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 DefinitionProvider = true,
                 ImplementationProvider = true,
-                CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
+                CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { ".", " ", "#", "<", ">", "\"", ":", "[", "(", "~" } },
                 SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
                 DocumentSymbolProvider = true,
                 WorkspaceSymbolProvider = true,
