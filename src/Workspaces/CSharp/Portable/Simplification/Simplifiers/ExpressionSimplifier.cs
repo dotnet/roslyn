@@ -482,9 +482,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 var symbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
 
                 if (previousToken.Kind() == SyntaxKind.OpenParenToken &&
-                    previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression) &&
+                    previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr) &&
                     !previousToken.Parent.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
-                    ((ParenthesizedExpressionSyntax)previousToken.Parent).Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
+                    parenExpr.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
                     symbol != null && symbol.Kind == SymbolKind.Method)
                 {
                     return false;

@@ -73,13 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             // var (x, y) = e;
             // foreach (var (x, y) in e) ...
-            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression))
+            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax declExpression) &&
+                declExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
             {
-                var parent = (DeclarationExpressionSyntax)typeName.Parent;
-                if (parent.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // If it is currently not var, explicit typing exists, return. 

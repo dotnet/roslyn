@@ -277,52 +277,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeInConstructorInitializer(initializer, index, argument);
                     }
 
-                    if (argument.Parent.IsParentKind(SyntaxKind.InvocationExpression))
+                    if (argument.Parent.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
                     {
-                        var invocation = argument.Parent.Parent as InvocationExpressionSyntax;
                         var index = invocation.ArgumentList.Arguments.IndexOf(argument);
-
                         return InferTypeInInvocationExpression(invocation, index, argument);
                     }
 
-                    if (argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                    if (argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax creation))
                     {
                         // new Outer(Goo());
                         //
                         // new Outer(a: Goo());
                         //
                         // etc.
-                        var creation = argument.Parent.Parent as ObjectCreationExpressionSyntax;
                         var index = creation.ArgumentList.Arguments.IndexOf(argument);
-
                         return InferTypeInObjectCreationExpression(creation, index, argument);
                     }
 
-                    if (argument.Parent.IsParentKind(SyntaxKind.ElementAccessExpression))
+                    if (argument.Parent.IsParentKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess))
                     {
                         // Outer[Goo()];
                         //
                         // Outer[a: Goo()];
                         //
                         // etc.
-                        var elementAccess = argument.Parent.Parent as ElementAccessExpressionSyntax;
                         var index = elementAccess.ArgumentList.Arguments.IndexOf(argument);
-
                         return InferTypeInElementAccessExpression(elementAccess, index, argument);
                     }
 
-                    if (argument.IsParentKind(SyntaxKind.TupleExpression))
+                    if (argument.IsParentKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression))
                     {
-                        return InferTypeInTupleExpression((TupleExpressionSyntax)argument.Parent, argument);
+                        return InferTypeInTupleExpression(tupleExpression, argument);
                     }
                 }
 
                 if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
                     argument.Parent.Parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
                     argument.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) &&
-                    argument.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                    argument.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
                 {
-                    var objectCreation = (ObjectCreationExpressionSyntax)argument.Parent.Parent.Parent.Parent.Parent;
                     var types = GetTypes(objectCreation).Select(t => t.InferredType);
 
                     if (types.Any(t => t is INamedTypeSymbol))
@@ -1164,26 +1157,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If we have a position, it has to be after the =
                 if (previousToken.HasValue && previousToken.Value != equalsValue.EqualsToken)
-                {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
 
-                if (equalsValue.IsParentKind(SyntaxKind.VariableDeclarator))
-                {
-                    return InferTypeInVariableDeclarator((VariableDeclaratorSyntax)equalsValue.Parent);
-                }
+                if (equalsValue.IsParentKind(SyntaxKind.VariableDeclarator, out VariableDeclaratorSyntax varDecl))
+                    return InferTypeInVariableDeclarator(varDecl);
 
-                if (equalsValue.IsParentKind(SyntaxKind.PropertyDeclaration))
-                {
-                    return InferTypeInPropertyDeclaration((PropertyDeclarationSyntax)equalsValue.Parent);
-                }
+                if (equalsValue.IsParentKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDecl))
+                    return InferTypeInPropertyDeclaration(propertyDecl);
 
-                if (equalsValue.IsParentKind(SyntaxKind.Parameter))
+                if (equalsValue.IsParentKind(SyntaxKind.Parameter) &&
+                    SemanticModel.GetDeclaredSymbol(equalsValue.Parent, CancellationToken) is IParameterSymbol parameter)
                 {
-                    if (SemanticModel.GetDeclaredSymbol(equalsValue.Parent, CancellationToken) is IParameterSymbol parameter)
-                    {
-                        return CreateResult(parameter.Type);
-                    }
+                    return CreateResult(parameter.Type);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1326,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (initializerExpression.IsParentKind(SyntaxKind.ImplicitArrayCreationExpression))
+                if (initializerExpression.IsParentKind(SyntaxKind.ImplicitArrayCreationExpression, out ImplicitArrayCreationExpressionSyntax implicitArray))
                 {
                     // new[] { 1, x }
 
@@ -1334,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // appropriate array type, then use the element type of the array.  Otherwise,
                     // look at the siblings of this expression and use their type instead.
 
-                    var arrayTypes = this.InferTypes((ExpressionSyntax)initializerExpression.Parent);
+                    var arrayTypes = this.InferTypes(implicitArray);
                     var elementTypes = arrayTypes.OfType<IArrayTypeSymbol>().Select(a => new TypeInferenceInfo(a.ElementType)).Where(IsUsableTypeFunc);
 
                     if (elementTypes.Any())
@@ -1354,10 +1339,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (initializerExpression.IsParentKind(SyntaxKind.EqualsValueClause))
+                else if (initializerExpression.IsParentKind(SyntaxKind.EqualsValueClause, out EqualsValueClauseSyntax equalsValueClause))
                 {
                     // = { Goo() }
-                    var equalsValueClause = (EqualsValueClauseSyntax)initializerExpression.Parent;
                     var types = InferTypeInEqualsValueClause(equalsValueClause).Select(t => t.InferredType);
 
                     if (types.Any(t => t is IArrayTypeSymbol))
@@ -1365,10 +1349,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
                     }
                 }
-                else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression))
+                else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression, out ArrayCreationExpressionSyntax arrayCreation))
                 {
                     // new int[] { Goo() } 
-                    var arrayCreation = (ArrayCreationExpressionSyntax)initializerExpression.Parent;
                     var types = GetTypes(arrayCreation).Select(t => t.InferredType);
 
                     if (types.Any(t => t is IArrayTypeSymbol))
@@ -1376,12 +1359,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
                     }
                 }
-                else if (initializerExpression.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                else if (initializerExpression.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
                 {
                     // new List<T> { Goo() } 
-
-                    var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent;
-
                     var types = GetTypes(objectCreation).Select(t => t.InferredType);
                     if (types.Any(t => t is INamedTypeSymbol))
                     {
@@ -1680,9 +1660,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = memberAccessExpression.Name.Identifier.Value;
                 if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
                     memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) &&
-                    memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
+                    memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression, out AwaitExpressionSyntax awaitExpr))
                 {
-                    return InferTypes((ExpressionSyntax)memberAccessExpression.Parent);
+                    return InferTypes(awaitExpr);
                 }
                 else if (name.Equals(nameof(Task<int>.ContinueWith)))
                 {
@@ -1704,9 +1684,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // goo.Select
                     // We want to infer IEnumerable<T>.  We can try to figure out what 
                     // T if we get a delegate as the first argument to Select/Where.
-                    if (ienumerableType != null && memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression))
+                    if (ienumerableType != null && memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
                     {
-                        var invocation = (InvocationExpressionSyntax)memberAccessExpression.Parent;
                         if (invocation.ArgumentList.Arguments.Count > 0)
                         {
                             var argumentExpression = invocation.ArgumentList.Arguments[0].Expression;
@@ -1719,10 +1698,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ? delegateType.TypeArguments[0]
                                     : this.Compilation.ObjectType;
 
-                                if (IsUnusableType(typeArg) && argumentExpression is LambdaExpressionSyntax)
+                                if (IsUnusableType(typeArg) && argumentExpression is LambdaExpressionSyntax lambdExpression)
                                 {
-                                    typeArg = InferTypeForFirstParameterOfLambda((LambdaExpressionSyntax)argumentExpression) ??
-                                        this.Compilation.ObjectType;
+                                    typeArg = InferTypeForFirstParameterOfLambda(lambdExpression) ?? this.Compilation.ObjectType;
                                 }
 
                                 return CreateResult(ienumerableType.Construct(typeArg));
@@ -2113,18 +2091,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)
             {
-                if (left.IsKind(SyntaxKind.DeclarationExpression))
+                if (left.IsKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax declExpr))
                 {
-                    return GetTypes(((DeclarationExpressionSyntax)left).Type);
+                    return GetTypes(declExpr.Type);
                 }
-                else if (left.IsKind(SyntaxKind.TupleExpression))
+                else if (left.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression))
                 {
                     // We have something of the form:
                     //   (int a, int b) = ...
                     //
                     // This is a deconstruction, and a decent deconstructable type we can infer here
                     // is ValueTuple<int,int>.
-                    var tupleType = GetTupleType((TupleExpressionSyntax)left);
+                    var tupleType = GetTupleType(tupleExpression);
 
                     if (tupleType != null)
                     {

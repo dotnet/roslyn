@@ -308,14 +308,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var typeInfo = default(TypeInfo);
 
-                if (castExpression.Parent.Parent.IsParentKind(SyntaxKind.InvocationExpression))
+                if (castExpression.Parent.Parent.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
                 {
-                    typeInfo = semanticModel.GetTypeInfo((InvocationExpressionSyntax)castExpression.Parent.Parent.Parent, cancellationToken);
+                    typeInfo = semanticModel.GetTypeInfo(invocation, cancellationToken);
                 }
 
-                if (castExpression.Parent.Parent.IsParentKind(SyntaxKind.ElementAccessExpression))
+                if (castExpression.Parent.Parent.IsParentKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess))
                 {
-                    typeInfo = semanticModel.GetTypeInfo((ElementAccessExpressionSyntax)castExpression.Parent.Parent.Parent, cancellationToken);
+                    typeInfo = semanticModel.GetTypeInfo(elementAccess, cancellationToken);
                 }
 
                 if (typeInfo.Type != null && typeInfo.Type.Kind == SymbolKind.DynamicType)

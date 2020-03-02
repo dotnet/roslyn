@@ -105,19 +105,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //   lock ((x))             -> lock (x)
             //   using ((x))            -> using (x)
             //   catch when ((x))       -> catch when (x)
-            if ((node.IsParentKind(SyntaxKind.EqualsValueClause) && ((EqualsValueClauseSyntax)node.Parent).Value == node) ||
-                (node.IsParentKind(SyntaxKind.IfStatement) && ((IfStatementSyntax)node.Parent).Condition == node) ||
-                (node.IsParentKind(SyntaxKind.ReturnStatement) && ((ReturnStatementSyntax)node.Parent).Expression == node) ||
-                (node.IsParentKind(SyntaxKind.YieldReturnStatement) && ((YieldStatementSyntax)node.Parent).Expression == node) ||
-                (node.IsParentKind(SyntaxKind.ThrowStatement) && ((ThrowStatementSyntax)node.Parent).Expression == node) ||
-                (node.IsParentKind(SyntaxKind.SwitchStatement) && ((SwitchStatementSyntax)node.Parent).Expression == node) ||
-                (node.IsParentKind(SyntaxKind.WhileStatement) && ((WhileStatementSyntax)node.Parent).Condition == node) ||
-                (node.IsParentKind(SyntaxKind.DoStatement) && ((DoStatementSyntax)node.Parent).Condition == node) ||
-                (node.IsParentKind(SyntaxKind.ForStatement) && ((ForStatementSyntax)node.Parent).Condition == node) ||
+            if ((node.IsParentKind(SyntaxKind.EqualsValueClause, out EqualsValueClauseSyntax equalsValue) && equalsValue.Value == node) ||
+                (node.IsParentKind(SyntaxKind.IfStatement, out IfStatementSyntax ifStatement) && ifStatement.Condition == node) ||
+                (node.IsParentKind(SyntaxKind.ReturnStatement, out ReturnStatementSyntax returnStatement) && returnStatement.Expression == node) ||
+                (node.IsParentKind(SyntaxKind.YieldReturnStatement, out YieldStatementSyntax yieldStatement) && yieldStatement.Expression == node) ||
+                (node.IsParentKind(SyntaxKind.ThrowStatement, out ThrowStatementSyntax throwStatement) && throwStatement.Expression == node) ||
+                (node.IsParentKind(SyntaxKind.SwitchStatement, out SwitchStatementSyntax switchStatement) && switchStatement.Expression == node) ||
+                (node.IsParentKind(SyntaxKind.WhileStatement, out WhileStatementSyntax whileStatement) && whileStatement.Condition == node) ||
+                (node.IsParentKind(SyntaxKind.DoStatement, out DoStatementSyntax doStatement) && doStatement.Condition == node) ||
+                (node.IsParentKind(SyntaxKind.ForStatement, out ForStatementSyntax forStatement) && forStatement.Condition == node) ||
                 (node.IsParentKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement) && ((CommonForEachStatementSyntax)node.Parent).Expression == node) ||
-                (node.IsParentKind(SyntaxKind.LockStatement) && ((LockStatementSyntax)node.Parent).Expression == node) ||
-                (node.IsParentKind(SyntaxKind.UsingStatement) && ((UsingStatementSyntax)node.Parent).Expression == node) ||
-                (node.IsParentKind(SyntaxKind.CatchFilterClause) && ((CatchFilterClauseSyntax)node.Parent).FilterExpression == node))
+                (node.IsParentKind(SyntaxKind.LockStatement, out LockStatementSyntax lockStatement) && lockStatement.Expression == node) ||
+                (node.IsParentKind(SyntaxKind.UsingStatement, out UsingStatementSyntax usingStatement) && usingStatement.Expression == node) ||
+                (node.IsParentKind(SyntaxKind.CatchFilterClause, out CatchFilterClauseSyntax catchFilter) && catchFilter.FilterExpression == node))
             {
                 return true;
             }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Cases:
             //   y((x)) -> y(x)
-            if (node.IsParentKind(SyntaxKind.Argument) && ((ArgumentSyntax)node.Parent).Expression == node)
+            if (node.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument) && argument.Expression == node)
             {
                 return true;
             }
@@ -215,8 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // x ?? (throw ...) -> x ?? throw ...
             if (expression.IsKind(SyntaxKind.ThrowExpression) &&
-                node.IsParentKind(SyntaxKind.CoalesceExpression) &&
-                ((BinaryExpressionSyntax)node.Parent).Right == node)
+                node.IsParentKind(SyntaxKind.CoalesceExpression, out BinaryExpressionSyntax binary) &&
+                binary.Right == node)
             {
                 return true;
             }
@@ -462,9 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //      (X?)(...)
             //      (global::X)(...)
 
-            if (node.IsParentKind(SyntaxKind.CastExpression))
+            if (node.IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression))
             {
-                var castExpression = (CastExpressionSyntax)node.Parent;
                 if (castExpression.Type.IsKind(
                         SyntaxKind.PredefinedType,
                         SyntaxKind.ArrayType,
@@ -589,9 +588,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             ExpressionSyntax previousExpression = null;
 
-            if (node.IsParentKind(SyntaxKind.Argument))
+            if (node.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
             {
-                var argument = (ArgumentSyntax)node.Parent;
                 if (argument.Parent is ArgumentListSyntax argumentList)
                 {
                     var argumentIndex = argumentList.Arguments.IndexOf(argument);
@@ -627,9 +625,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             ExpressionSyntax nextExpression = null;
 
-            if (node.IsParentKind(SyntaxKind.Argument))
+            if (node.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
             {
-                var argument = (ArgumentSyntax)node.Parent;
                 if (argument.Parent is ArgumentListSyntax argumentList)
                 {
                     var argumentIndex = argumentList.Arguments.IndexOf(argument);
