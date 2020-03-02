@@ -805,6 +805,32 @@ class B4 : A
         }
 
         [Fact]
+        public void Overloads_04()
+        {
+            var source =
+@"interface I
+{
+    void F(System.IntPtr x);
+    void F(System.UIntPtr x);
+    void F(nint y);
+}
+class C
+{
+    static void F(System.UIntPtr x) { }
+    static void F(nint y) { }
+    static void F(nuint y) { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,10): error CS0111: Type 'I' already defines a member called 'F' with the same parameter types
+                //     void F(nint y);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "F").WithArguments("F", "I").WithLocation(5, 10),
+                // (11,17): error CS0111: Type 'C' already defines a member called 'F' with the same parameter types
+                //     static void F(nuint y) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "F").WithArguments("F", "C").WithLocation(11, 17));
+        }
+
+        [Fact]
         public void Constraints_01()
         {
             var sourceA =
