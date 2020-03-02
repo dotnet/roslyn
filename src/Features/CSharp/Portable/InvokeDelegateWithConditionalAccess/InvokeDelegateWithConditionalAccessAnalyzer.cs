@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
@@ -252,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
 
             var declarator = variableDeclaration.Variables[0];
-            if (declarator.Initializer == null)
+            if (declarator.Initializer?.Value == null)
             {
                 return false;
             }
@@ -265,6 +267,21 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             // Syntactically this looks good.  Now make sure that the local is a delegate type.
             var semanticModel = syntaxContext.SemanticModel;
+
+            // The initializer can't be inlined if it's an actual lambda/method reference.
+            // These cannot be invoked with `?.` (only delegate *values* can be).
+            var initializer = declarator.Initializer.Value.WalkDownParentheses();
+            if (initializer.IsAnyLambdaOrAnonymousMethod())
+            {
+                return false;
+            }
+
+            var initializerSymbol = semanticModel.GetSymbolInfo(initializer, cancellationToken).GetAnySymbol();
+            if (initializerSymbol is IMethodSymbol)
+            {
+                return false;
+            }
+
             var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
 
             // Ok, we made a local just to check it for null and invoke it.  Looks like something
