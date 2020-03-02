@@ -1064,9 +1064,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
-                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
                 {
-                    var memberAccess = (MemberAccessExpressionSyntax)originalNode.Expression;
                     var targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(_semanticModel, memberAccess.Name);
 
                     if (targetSymbol != null && targetSymbol.IsReducedExtension() && memberAccess.Expression != null)

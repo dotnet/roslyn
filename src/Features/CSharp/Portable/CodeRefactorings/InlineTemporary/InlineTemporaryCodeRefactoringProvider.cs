@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
 
             if (!variableDeclarator.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) ||
-                !variableDeclarator.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
+                !variableDeclaration.IsParentKind(SyntaxKind.LocalDeclarationStatement))
             {
                 return;
             }
@@ -292,9 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var annotatedNodesAndTokens = root.GetAnnotatedNodesAndTokens(ReferenceAnnotation);
             foreach (var nodeOrToken in annotatedNodesAndTokens)
             {
-                if (nodeOrToken.IsNode && nodeOrToken.AsNode().IsKind(SyntaxKind.IdentifierName))
+                if (nodeOrToken.IsNode && nodeOrToken.AsNode().IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                 {
-                    yield return (IdentifierNameSyntax)nodeOrToken.AsNode();
+                    yield return identifierName;
                 }
             }
         }
@@ -394,9 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private ExpressionSyntax SkipRedundantExteriorParentheses(ExpressionSyntax expression)
         {
-            while (expression.IsKind(SyntaxKind.ParenthesizedExpression))
+            while (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesized))
             {
-                var parenthesized = (ParenthesizedExpressionSyntax)expression;
                 if (parenthesized.Expression == null ||
                     parenthesized.Expression.IsMissing)
                 {

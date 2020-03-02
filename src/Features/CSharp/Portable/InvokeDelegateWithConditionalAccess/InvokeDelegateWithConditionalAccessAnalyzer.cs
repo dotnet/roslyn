@@ -82,12 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 innerStatement = block.Statements[0];
             }
 
-            if (!innerStatement.IsKind(SyntaxKind.ExpressionStatement))
+            if (!innerStatement.IsKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax expressionStatement))
             {
                 return;
             }
-
-            var expressionStatement = (ExpressionStatementSyntax)innerStatement;
 
             // Check that it's of the form: "if (a != null) { a(); }
             if (!(expressionStatement.Expression is InvocationExpressionSyntax invocationExpression))
@@ -239,12 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
 
             var previousStatement = parentBlock.Statements[ifIndex - 1];
-            if (!previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
+            if (!previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax localDeclarationStatement))
             {
                 return false;
             }
 
-            var localDeclarationStatement = (LocalDeclarationStatementSyntax)previousStatement;
             var variableDeclaration = localDeclarationStatement.Declaration;
 
             if (variableDeclaration.Variables.Count != 1)

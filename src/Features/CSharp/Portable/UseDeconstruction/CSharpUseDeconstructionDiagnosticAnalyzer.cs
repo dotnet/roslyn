@@ -260,12 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return true;
             }
 
-            if (type.IsKind(SyntaxKind.TupleType))
+            if (type.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleType))
             {
                 // '(int x, int y) t' can be convered to '(int x, int y)'.  So all the elements
                 // need names.
 
-                var tupleType = (TupleTypeSyntax)type;
                 foreach (var element in tupleType.Elements)
                 {
                     if (element.Identifier.IsKind(SyntaxKind.None))

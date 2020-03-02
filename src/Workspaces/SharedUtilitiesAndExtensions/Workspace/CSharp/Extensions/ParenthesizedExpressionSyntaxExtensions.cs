@@ -298,9 +298,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
                 }
 
-                if (ancestor.IsKind(SyntaxKind.Interpolation))
+                if (ancestor.IsKind(SyntaxKind.Interpolation, out interpolation))
                 {
-                    interpolation = (InterpolationSyntax)ancestor;
                     break;
                 }
             }
@@ -563,28 +562,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // We can't remove parentheses from a less-than expression in the following cases:
                 //   F((x < x), x > (1 + 2))
                 //   {(x < x), x > (1 + 2)}
-
-                var lessThanExpression = (BinaryExpressionSyntax)node.Expression;
-                if (IsNextExpressionPotentiallyAmbiguous(node))
-                {
-                    return true;
-                }
-
-                return false;
+                return IsNextExpressionPotentiallyAmbiguous(node);
             }
             else if (node.Expression.IsKind(SyntaxKind.GreaterThanExpression))
             {
                 // We can't remove parentheses from a greater-than expression in the following cases:
                 //   F(x < x, (x > (1 + 2)))
                 //   {x < x, (x > (1 + 2))}
-
-                var greaterThanExpression = (BinaryExpressionSyntax)node.Expression;
-                if (IsPreviousExpressionPotentiallyAmbiguous(node))
-                {
-                    return true;
-                }
-
-                return false;
+                return IsPreviousExpressionPotentiallyAmbiguous(node);
             }
 
             return false;
@@ -615,12 +600,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             if (previousExpression == null ||
-                !previousExpression.IsKind(SyntaxKind.LessThanExpression))
+                !previousExpression.IsKind(SyntaxKind.LessThanExpression, out BinaryExpressionSyntax lessThanExpression))
             {
                 return false;
             }
-
-            var lessThanExpression = (BinaryExpressionSyntax)previousExpression;
 
             return (IsSimpleOrDottedName(lessThanExpression.Left)
                     || lessThanExpression.Left.IsKind(SyntaxKind.CastExpression))
@@ -652,12 +635,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             if (nextExpression == null ||
-                !nextExpression.IsKind(SyntaxKind.GreaterThanExpression))
+                !nextExpression.IsKind(SyntaxKind.GreaterThanExpression, out BinaryExpressionSyntax greaterThanExpression))
             {
                 return false;
             }
-
-            var greaterThanExpression = (BinaryExpressionSyntax)nextExpression;
 
             return IsSimpleOrDottedName(greaterThanExpression.Left)
                 && (greaterThanExpression.Right.IsKind(SyntaxKind.ParenthesizedExpression)

@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (type != null)
             {
                 if (type.Parent is BaseTypeSyntax baseType &&
-                    type.Parent.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                    baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
                     baseType.Type == type)
                 {
                     var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken) as INamedTypeSymbol;
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // 4) The type of a constant must be at least as accessible as the constant itself.
             // 5) The type of a field must be at least as accessible as the field itself.
             if (type.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
-                type.Parent.IsParentKind(SyntaxKind.FieldDeclaration))
+                variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
             {
                 return semanticModel.GetDeclaredSymbol(
                     variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 type.Parent.IsParentKind(SyntaxKind.EqualsValueClause) &&
                 type.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
                 type.Parent.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
-                type.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.FieldDeclaration))
+                variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
             {
                 return semanticModel.GetDeclaredSymbol(
                     variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // 8) The type of an event must be at least as accessible as the event itself.
             if (type.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
-                type.Parent.IsParentKind(SyntaxKind.EventFieldDeclaration))
+                variableDeclaration.IsParentKind(SyntaxKind.EventFieldDeclaration))
             {
                 var symbol = semanticModel.GetDeclaredSymbol(variableDeclaration.Variables[0], cancellationToken);
                 if (symbol != null)
