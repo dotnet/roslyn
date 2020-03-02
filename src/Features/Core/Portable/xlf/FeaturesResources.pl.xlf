@@ -562,8 +562,8 @@
         <target state="translated">Strumień musi obsługiwać operacje odczytu i wyszukiwania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Struct_contains_assigment_to_this_outside_the_scope_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside the scope of constructor. Make readonly fields writable</source>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
         <target state="translated">Struct zawiera przypisanie do „tego” poza zakresem konstruktora. Spraw, aby pola tylko do odczytu były zapisywalne</target>
         <note />
       </trans-unit>

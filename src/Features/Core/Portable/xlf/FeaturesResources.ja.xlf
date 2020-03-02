@@ -562,8 +562,8 @@
         <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Struct_contains_assigment_to_this_outside_the_scope_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside the scope of constructor. Make readonly fields writable</source>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
         <target state="translated">Struct contains assignment to 'this' outside the scope of constructor. Make readonly fields writable</target>
         <note />
       </trans-unit>
