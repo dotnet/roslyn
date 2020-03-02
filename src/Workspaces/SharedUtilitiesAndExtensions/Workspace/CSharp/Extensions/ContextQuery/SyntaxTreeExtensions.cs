@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (name.IsParentKind(SyntaxKind.LessThanExpression) &&
                 name.Parent.IsParentKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax conditional) &&
                 conditional.IsParentKind(SyntaxKind.ExpressionStatement) &&
-                name.Parent.Parent.Parent.IsParentKind(SyntaxKind.GlobalStatement))
+                conditional.Parent.IsParentKind(SyntaxKind.GlobalStatement))
             {
                 var conditionOrType = semanticModelOpt.GetSymbolInfo(conditional.Condition, cancellationToken);
                 if (conditionOrType.GetBestOrAllSymbols().FirstOrDefault() != null &&
@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 token.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax parameter) &&
-                token.Parent.Parent.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
+                parameter.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
                 var parameterList = (ParameterListSyntax)parameter.Parent;
 
