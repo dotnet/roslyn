@@ -29,6 +29,7 @@ class Test
 }
 ");
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
         public async Task EmptyVerbatimString()
         {
@@ -47,6 +48,57 @@ class Test
     void Method()
     {
         var v = """";
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task RegularStringWithBasicText()
+        {
+            await TestMissingAsync(@"
+class Test
+{
+    void Method()
+    {
+        var v = ""[||]a"";
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task VerbatimStringWithBasicText()
+        {
+            await TestInRegularAndScript1Async(@"
+class Test
+{
+    void Method()
+    {
+        var v = @""[||]a"";
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var v = ""a"";
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
+        public async Task RegularStringWithUnicodeEscape()
+        {
+            await TestMissingAsync(@"
+class Test
+{
+    void Method()
+    {
+        var v = ""[||]\u0001"";
     }
 }
 ");
