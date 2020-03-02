@@ -1014,10 +1014,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 token.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax parameter) &&
-                parameter.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
+                parameter.IsParentKind(SyntaxKind.ParameterList, out ParameterListSyntax parameterList) &&
+                parameterList.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
-                var parameterList = (ParameterListSyntax)parameter.Parent;
-
                 parameterIndex = parameterList.Parameters.IndexOf(parameter);
                 return true;
             }
@@ -1025,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.InKeyword, SyntaxKind.OutKeyword,
                              SyntaxKind.ThisKeyword, SyntaxKind.ParamsKeyword) &&
                 token.Parent.IsKind(SyntaxKind.Parameter, out parameter) &&
-                parameter.IsParentKind(SyntaxKind.ParameterList, out ParameterListSyntax parameterList) &&
+                parameter.IsParentKind(SyntaxKind.ParameterList, out parameterList) &&
                 parameterList.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
                 parameterIndex = parameterList.Parameters.IndexOf(parameter);

@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (type != null)
             {
                 if (type.Parent is BaseTypeSyntax baseType &&
-                    type.Parent.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                    baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
                     baseType.Type == type)
                 {
                     var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken) as INamedTypeSymbol;
