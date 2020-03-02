@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
                 var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-                settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChanged;
+                settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
 
                 VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             QueueColorSchemeUpdate(themeChanged: true);
         }
 
-        private async Task ColorSchemeChanged(object sender, PropertyChangedEventArgs args)
+        private async Task ColorSchemeChangedAsync(object sender, PropertyChangedEventArgs args)
         {
             await QueueColorSchemeUpdate();
         }
