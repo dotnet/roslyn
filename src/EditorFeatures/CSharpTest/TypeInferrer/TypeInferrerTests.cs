@@ -3081,5 +3081,21 @@ class Program
 
             await TestAsync(text, "global::System.Object", mode);
         }
+
+        [WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestValueInNestedTuple1(TestMode mode)
+        {
+            await TestInMethodAsync(
+@"(int, (string, bool)) x = ([|Goo()|], ("""", true));", "global::System.Int32", mode);
+        }
+
+        [WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestValueInNestedTuple2(TestMode mode)
+        {
+            await TestInMethodAsync(
+@"(int, (string, bool)) x = (1, ("""", [|Goo()|]));", "global::System.Boolean", mode);
+        }
     }
 }
