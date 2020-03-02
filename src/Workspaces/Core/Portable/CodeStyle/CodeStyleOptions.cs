@@ -403,13 +403,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal static class CodeStyleOptionGroups
     {
-        public static readonly OptionGroup Usings = new OptionGroup(WorkspacesResources.Organize_usings, priority: 1);
-        public static readonly OptionGroup ThisOrMe = new OptionGroup(WorkspacesResources.this_dot_and_Me_dot_preferences, priority: 2);
-        public static readonly OptionGroup PredefinedTypeNameUsage = new OptionGroup(WorkspacesResources.Language_keywords_vs_BCL_types_preferences, priority: 3);
-        public static readonly OptionGroup Parentheses = new OptionGroup(WorkspacesResources.Parentheses_preferences, priority: 4);
-        public static readonly OptionGroup Modifier = new OptionGroup(WorkspacesResources.Modifier_preferences, priority: 5);
-        public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(WorkspacesResources.Expression_level_preferences, priority: 6);
-        public static readonly OptionGroup Field = new OptionGroup(WorkspacesResources.Field_preferences, priority: 7);
-        public static readonly OptionGroup Parameter = new OptionGroup(WorkspacesResources.Parameter_preferences, priority: 8);
+        public static readonly OptionGroup Usings = new OptionGroup(CompilerExtensionsResources.Organize_usings, priority: 1);
+        public static readonly OptionGroup ThisOrMe = new OptionGroup(CompilerExtensionsResources.this_dot_and_Me_dot_preferences, priority: 2);
+        public static readonly OptionGroup PredefinedTypeNameUsage = new OptionGroup(CompilerExtensionsResources.Language_keywords_vs_BCL_types_preferences, priority: 3);
+        public static readonly OptionGroup Parentheses = new OptionGroup(CompilerExtensionsResources.Parentheses_preferences, priority: 4);
+        public static readonly OptionGroup Modifier = new OptionGroup(CompilerExtensionsResources.Modifier_preferences, priority: 5);
+        public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(CompilerExtensionsResources.Expression_level_preferences, priority: 6);
+        public static readonly OptionGroup Field = new OptionGroup(CompilerExtensionsResources.Field_preferences, priority: 7);
+        public static readonly OptionGroup Parameter = new OptionGroup(CompilerExtensionsResources.Parameter_preferences, priority: 8);
     }
 }

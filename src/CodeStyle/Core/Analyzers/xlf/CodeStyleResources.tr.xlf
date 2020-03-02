@@ -12,16 +12,6 @@
         <target state="translated">Bu seçenek için bir dil adı belirtilmelidir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Absolute_path_expected">
-        <source>Absolute path expected.</source>
-        <target state="new">Absolute path expected.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="new">An element with the same key but a different value already exists.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
         <target state="new">Arrays with more than one dimension cannot be serialized.</target>

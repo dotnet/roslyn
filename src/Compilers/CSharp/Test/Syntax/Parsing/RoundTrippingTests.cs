@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNegInvalidExternAlias01()
         {
-            ParseAndRoundTripping(Resources.InvalidExternAlias01, 0); // Parsed as field with an initializer
+            ParseAndRoundTripping(Resources.InvalidExternAlias01, errorCount: 1); // Parsed as local with an initializer
         }
 
         [WorkItem(901348, "DevDiv/Personal")]
@@ -602,7 +602,7 @@ public class Class1
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            ParseAndRoundTripping(text, errorCount: 0);
         }
 
         [Fact]
