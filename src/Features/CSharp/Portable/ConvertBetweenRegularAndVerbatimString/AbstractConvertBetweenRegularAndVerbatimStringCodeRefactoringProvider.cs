@@ -74,9 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         }
 
         private async Task<Document> ConvertAsync(
-            Document document, TStringExpressionSyntax stringExpression,
             Func<IVirtualCharService, StringBuilder, TStringExpressionSyntax, TStringExpressionSyntax> convert,
-            CancellationToken cancellationToken)
+            Document document, TStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
         {
             using var _ = PooledStringBuilder.GetInstance(out var sb);
 
@@ -88,10 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         }
 
         private Task<Document> ConvertToVerbatimStringAsync(Document document, TStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
-            => ConvertAsync(document, stringExpression, CreateVerbatimStringExpression, cancellationToken);
+            => ConvertAsync(CreateVerbatimStringExpression, document, stringExpression, cancellationToken);
 
         private Task<Document> ConvertToRegularStringAsync(Document document, TStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
-            => ConvertAsync(document, stringExpression, CreateRegularStringExpression, cancellationToken);
+            => ConvertAsync(CreateRegularStringExpression, document, stringExpression, cancellationToken);
 
         protected void AddVerbatimStringText(
             IVirtualCharService charService, StringBuilder sb, SyntaxToken stringToken)
