@@ -54,11 +54,10 @@ stages:
       condition: and(succeeded(), ne(variables['PrNumber'], ''), ne(variables['PrNumber'], 'default'))
 
     - task: tagBuildOrRelease@0
-      displayName: Tagging PR validation build
+      displayName: Tag build
       inputs:
         type: 'Build'
-        tags: 'PrValidationBuild'
-      condition: and(succeeded(), variables['IsPrValidationBuild'])
+        tags: if (variables['IsPrValidationBuild']) { 'PrValidationBuild' } else { "OfficialBuild" }
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
