@@ -26,10 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ExpressionSyntax WalkDownParentheses(this ExpressionSyntax expression)
         {
-            while (expression.IsKind(SyntaxKind.ParenthesizedExpression))
-            {
-                expression = ((ParenthesizedExpressionSyntax)expression).Expression;
-            }
+            while (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpression))
+                expression = parenExpression.Expression;
 
             return expression;
         }
@@ -558,15 +556,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var parentNonExpression = expression.GetAncestors().SkipWhile(n => n is ExpressionSyntax).FirstOrDefault();
             var topExpression = expression;
-            while (topExpression.Parent is TypeSyntax)
+            while (topExpression.Parent is TypeSyntax typeSyntax)
             {
-                topExpression = (TypeSyntax)topExpression.Parent;
+                topExpression = typeSyntax;
             }
 
             if (parentNonExpression != null &&
-                parentNonExpression.IsKind(SyntaxKind.FromClause) &&
+                parentNonExpression.IsKind(SyntaxKind.FromClause, out FromClauseSyntax fromClause) &&
                 topExpression != null &&
-                ((FromClauseSyntax)parentNonExpression).Type == topExpression)
+                fromClause.Type == topExpression)
             {
                 return false;
             }

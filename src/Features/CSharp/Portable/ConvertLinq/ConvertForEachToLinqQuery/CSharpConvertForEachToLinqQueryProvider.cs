@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             statement.SpanStart, cancellationToken), memberDeclarationSymbol)).Count();
 
                     if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax block) &&
-                        forEachInfo.ForEachStatement.Parent.Parent == memberDeclarationSyntax)
+                        block.Parent == memberDeclarationSyntax)
                     {
                         // Check that 
                         // a. There are either just a single 'yield return' or 'yield return' with 'yield break' just after.

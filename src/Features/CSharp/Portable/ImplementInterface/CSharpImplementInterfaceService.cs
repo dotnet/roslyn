@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (!cancellationToken.IsCancellationRequested)
             {
                 if (node is TypeSyntax interfaceNode && interfaceNode.Parent is BaseTypeSyntax baseType &&
-                    interfaceNode.Parent.IsParentKind(SyntaxKind.BaseList) &&
+                    baseType.IsParentKind(SyntaxKind.BaseList) &&
                     baseType.Type == interfaceNode)
                 {
                     if (interfaceNode.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration) ||
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // The dispose pattern is only applicable if the implementing type is a class that does not already declare any conflicting
             // members named 'disposedValue' or 'Dispose' (because we will be generating a 'disposedValue' field and a couple of methods
             // named 'Dispose' as part of implementing the dispose pattern).
-            return (classDecl != null) &&
+            return classDecl != null &&
                    classDecl.IsKind(SyntaxKind.ClassDeclaration) &&
-                   (symbol != null) &&
+                   symbol != null &&
                    !symbol.GetMembers().Any(m => (m.MetadataName == "Dispose") || (m.MetadataName == "disposedValue"));
         }
 
