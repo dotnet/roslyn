@@ -71,13 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return false;
             }
 
-            if (identifierName.IsMemberAccessExpressionName())
+            // ?.X.Identifier   or  ?.X.Y.Identifier  is never a generic type.
+            if (identifierName.IsMemberAccessExpressionName() &&
+                identifier.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression))
             {
-                // ?.X.Identifier   or  ?.X.Y.Identifier  is never a generic type.
-                if (identifier.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression))
-                {
-                    return false;
-                }
+                return false;
             }
 
             // Add more cases as necessary.

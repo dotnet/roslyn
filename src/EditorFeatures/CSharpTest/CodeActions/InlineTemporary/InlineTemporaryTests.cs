@@ -4851,6 +4851,32 @@ class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(18322, "https://github.com/dotnet/roslyn/issues/18322")]
+        public async Task TestInlineIntoExtensionMethodInvokedOnThis()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Class1
+{
+    void M()
+    {
+        var [|c|] = 8;
+        this.DoStuff(c);
+    }
+}
+
+public static class Class1Extensions { public static void DoStuff(this Class1 c, int x) { } }",
+@"public class Class1
+{
+    void M()
+    {
+        this.DoStuff(8);
+    }
+}
+
+public static class Class1Extensions { public static void DoStuff(this Class1 c, int x) { } }");
+        }
+
         [WorkItem(8716, "https://github.com/dotnet/roslyn/issues/8716")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DoNotQualifyInlinedLocalFunction()

@@ -62,9 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             ExpressionSyntax expression,
             CancellationToken cancellationToken)
         {
-            if (expression is TypeSyntax && expression.IsParentKind(SyntaxKind.TypeArgumentList))
+            if (expression is TypeSyntax && expression.IsParentKind(SyntaxKind.TypeArgumentList, out TypeArgumentListSyntax typeArgumentList))
             {
-                var typeArgumentList = (TypeArgumentListSyntax)expression.Parent;
                 var symbolInfo = semanticModel.GetSymbolInfo(typeArgumentList.Parent, cancellationToken);
                 var symbol = symbolInfo.GetAnySymbol();
                 if (symbol.IsConstructor())
@@ -94,12 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         protected override bool IsInInterfaceList(ExpressionSyntax expression)
         {
             if (expression is TypeSyntax &&
-                expression.Parent is BaseTypeSyntax &&
-                expression.Parent.IsParentKind(SyntaxKind.BaseList) &&
-                ((BaseTypeSyntax)expression.Parent).Type == expression)
+                expression.Parent is BaseTypeSyntax baseType &&
+                expression.Parent.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                baseType.Type == expression)
             {
-                var baseList = (BaseListSyntax)expression.Parent.Parent;
-
                 // If it's after the first item, then it's definitely an interface.
                 if (baseList.Types[0] != expression.Parent)
                 {
@@ -114,11 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             }
 
             if (expression is TypeSyntax &&
-                expression.IsParentKind(SyntaxKind.TypeConstraint) &&
-                expression.Parent.IsParentKind(SyntaxKind.TypeParameterConstraintClause))
+                expression.IsParentKind(SyntaxKind.TypeConstraint, out TypeConstraintSyntax typeConstraint) &&
+                expression.Parent.IsParentKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
             {
-                var typeConstraint = (TypeConstraintSyntax)expression.Parent;
-                var constraintClause = (TypeParameterConstraintClauseSyntax)typeConstraint.Parent;
                 var index = constraintClause.Constraints.IndexOf(typeConstraint);
 
                 // If it's after the first item, then it's definitely an interface.
