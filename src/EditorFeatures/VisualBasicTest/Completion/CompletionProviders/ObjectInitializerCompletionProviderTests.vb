@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
                 hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
-                matchingFilters As List(Of CompletionFilter)) As Task
+                matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> SourceCodeKind.Regular Then
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
                 matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters)
+                matchingFilters, flags)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

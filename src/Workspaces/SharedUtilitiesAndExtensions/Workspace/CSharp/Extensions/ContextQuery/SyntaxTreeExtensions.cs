@@ -297,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsLocalFunctionDeclarationContext(
             this SyntaxTree syntaxTree,
             int position,
+            ISet<SyntaxKind> validModifiers,
             CancellationToken cancellationToken)
         {
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
@@ -309,8 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // Also valid after certain modifiers
-            var validModifiers = SyntaxKindSet.LocalFunctionModifiers;
-
             var modifierTokens = syntaxTree.GetPrecedingModifiers(
                 position, token, out var beforeModifiersPosition);
 
@@ -328,6 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
                 token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+
                 return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken);
             }
 

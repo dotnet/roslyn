@@ -1440,4 +1440,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Document_does_not_support_syntax_trees" xml:space="preserve">
     <value>Document does not support syntax trees</value>
   </data>
+  <data name="_0_is_in_a_different_project" xml:space="preserve">
+    <value>{0} is in a different project.</value>
+  </data>
 </root>

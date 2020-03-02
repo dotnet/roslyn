@@ -11,9 +11,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Editor.Test;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -23,6 +25,7 @@ using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
+            await listener.ExpeditedWaitAsync().ConfigureAwait(false);
         }
 
         [Fact]
@@ -169,7 +172,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
+            await listener.ExpeditedWaitAsync().ConfigureAwait(false);
 
             Assert.Equal(enabledWithEditorconfig, syntaxDiagnostic);
             Assert.Equal(enabledWithEditorconfig, semanticDiagnostic);
@@ -201,7 +204,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
+            await listener.ExpeditedWaitAsync().ConfigureAwait(false);
 
             // two should have been called.
             Assert.Equal(expectedSyntax, syntax);
@@ -260,7 +263,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
+            await listener.ExpeditedWaitAsync().ConfigureAwait(false);
         }
 
         [Fact]
@@ -319,7 +322,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                     ImmutableArray.Create(DiagnosticData.Create(Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location), document.Project))));
 
             // wait for all events to raised
-            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
+            await listener.ExpeditedWaitAsync().ConfigureAwait(false);
 
             // two should have been called.
             Assert.True(syntax);
@@ -415,9 +418,80 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
             await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
 
-            await listener.CreateExpeditedWaitTask();
+            await listener.ExpeditedWaitAsync();
 
             Assert.True(called);
+        }
+
+        [Theory, CombinatorialData]
+        internal async Task TestDiagnosticSuppressor(bool includeAnalyzer, bool includeSuppressor, BackgroundAnalysisScope analysisScope)
+        {
+            var analyzers = ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
+            if (includeAnalyzer)
+            {
+                analyzers.Add(new NamedTypeAnalyzer());
+            }
+
+            if (includeSuppressor)
+            {
+                analyzers.Add(new DiagnosticSuppressorForId(NamedTypeAnalyzer.DiagnosticId));
+            }
+
+            using var workspace = TestWorkspace.CreateCSharp("class A {}", exportProvider: EditorServicesUtil.ExportProvider);
+            var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
+            workspace.SetOptions(options);
+
+            var project = workspace.CurrentSolution.Projects.Single();
+            var document = project.Documents.Single();
+
+            // create listener/service/analyzer
+            var listener = new AsynchronousOperationListener();
+            var service = new MyDiagnosticAnalyzerService(analyzers.ToImmutableAndFree(), listener, project.Language);
+
+            DiagnosticData diagnostic = null;
+            service.DiagnosticsUpdated += (s, e) =>
+            {
+                if (e.Diagnostics.Length == 0)
+                {
+                    return;
+                }
+
+                diagnostic = Assert.Single(e.Diagnostics);
+            };
+
+            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+
+            switch (analysisScope)
+            {
+                case BackgroundAnalysisScope.ActiveFile:
+                    workspace.OpenDocument(document.Id);
+                    var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
+                    documentTrackingService.SetActiveDocument(document.Id);
+                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+                    break;
+
+                case BackgroundAnalysisScope.OpenFilesAndProjects:
+                    workspace.OpenDocument(document.Id);
+                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+                    break;
+
+                case BackgroundAnalysisScope.FullSolution:
+                    await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+                    break;
+            }
+
+            await listener.ExpeditedWaitAsync();
+
+            if (includeAnalyzer)
+            {
+                Assert.True(diagnostic != null);
+                Assert.Equal(NamedTypeAnalyzer.DiagnosticId, diagnostic.Id);
+                Assert.Equal(includeSuppressor, diagnostic.IsSuppressed);
+            }
+            else
+            {
+                Assert.True(diagnostic == null);
+            }
         }
 
         private static Document GetDocumentFromIncompleteProject(AdhocWorkspace workspace)
@@ -632,6 +706,24 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor("project", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule);
             public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken) => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private class NamedTypeAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "test";
+            private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics =
+                ImmutableArray.Create(new DiagnosticDescriptor(DiagnosticId, "test", "test", "test", DiagnosticSeverity.Warning, isEnabledByDefault: true));
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(c =>
+                {
+                    c.ReportDiagnostic(Diagnostic.Create(_supportedDiagnostics[0], c.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
+            }
         }
     }
 }

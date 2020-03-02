@@ -21,7 +21,6 @@ Microsoft.CodeAnalysis.SarifVersion.Latest = 2147483647 -> Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.SarifVersion.Sarif1 = 1 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Sarif2 = 2 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersionFacts
-abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.Keys.get -> System.Collections.Generic.IEnumerable<string>
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier = 256 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 static Microsoft.CodeAnalysis.SarifVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.SarifVersion result) -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsConditional.get -> bool

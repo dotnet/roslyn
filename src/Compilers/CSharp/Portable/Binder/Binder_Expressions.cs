@@ -2650,7 +2650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new OutVariablePendingInference(declarationExpression, localSymbol, null);
                 }
 
-                CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
+                CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
                 return new BoundLocal(declarationExpression, localSymbol, BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.Type);
             }
@@ -2691,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if a bad special by ref local was found.
         /// </summary>
-        internal static bool CheckRestrictedTypeInAsync(Symbol containingSymbol, TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static bool CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync
@@ -8170,7 +8170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 (object)containingMethod == null ||
                     !containingMethod.ReturnsVoid &&
-                    !containingMethod.IsTaskReturningAsync(this.Compilation);
+                    !containingMethod.IsAsyncReturningTask(this.Compilation);
         }
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, DiagnosticBag diagnostics)
@@ -8180,7 +8180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       conditional access is not really a binary operator.
             DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), access.Display);
             diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
-            access = BadExpression(access.Syntax, access);
+            receiver = BadExpression(receiver.Syntax, receiver);
 
             return new BoundConditionalAccess(node, receiver, access, CreateErrorType(), hasErrors: true);
         }

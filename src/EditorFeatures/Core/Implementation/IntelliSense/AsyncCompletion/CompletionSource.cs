@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
             _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
 
-            // Reset a flag which means a snippet triggerred by ? + Tab.
+            // Reset a flag which means a snippet triggered by ? + Tab.
             // Set it later if met the condition.
             _snippetCompletionTriggeredIndirectly = false;
 
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         /// <summary>
-        /// We'd like to cache VS Completion item dircetly to avoid allocation completely. However it holds references
+        /// We'd like to cache VS Completion item directly to avoid allocation completely. However it holds references
         /// to transient objects, which would cause memory leak (among other potential issues) if cached. 
         /// So as a compromise,  we cache data that can be calculated from Roslyn completion item to avoid repeated 
         /// calculation cost for cached Roslyn completion items.

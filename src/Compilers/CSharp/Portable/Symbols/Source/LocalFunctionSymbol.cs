@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,10 +14,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LocalFunctionSymbol : SourceMethodSymbol
+    internal sealed class LocalFunctionSymbol : SourceMethodSymbolWithAttributes
     {
         private readonly Binder _binder;
-        private readonly LocalFunctionStatementSyntax _syntax;
         private readonly Symbol _containingSymbol;
         private readonly DeclarationModifiers _declarationModifiers;
         private readonly ImmutableArray<SourceMethodTypeParameterSymbol> _typeParameters;
@@ -27,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _lazyIsVarArg;
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
-        private TypeWithAnnotations.Boxed _lazyReturnType;
-        private TypeWithAnnotations.Boxed _lazyIteratorElementType;
+        private TypeWithAnnotations.Boxed? _lazyReturnType;
+        private TypeWithAnnotations.Boxed? _lazyIteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
@@ -39,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             Symbol containingSymbol,
             LocalFunctionStatementSyntax syntax)
+            : base(syntax.GetReference())
         {
-            _syntax = syntax;
             _containingSymbol = containingSymbol;
 
             _declarationDiagnostics = new DiagnosticBag();
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
 
-            if (_syntax.TypeParameterList != null)
+            if (syntax.TypeParameterList != null)
             {
                 binder = new WithMethodTypeParametersBinder(this, binder);
                 _typeParameters = MakeTypeParameters(_declarationDiagnostics);
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 _typeParameters = ImmutableArray<SourceMethodTypeParameterSymbol>.Empty;
-                ReportErrorIfHasConstraints(_syntax.ConstraintClauses, _declarationDiagnostics);
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, _declarationDiagnostics);
             }
 
             if (IsExtensionMethod)
@@ -104,6 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public Binder ParameterBinder => _binder;
 
+        internal LocalFunctionStatementSyntax Syntax => (LocalFunctionStatementSyntax)syntaxReferenceOpt.GetSyntax();
+
         internal void GetDeclarationDiagnostics(DiagnosticBag addTo)
         {
             // Force complete type parameters
@@ -122,6 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ComputeReturnType();
+
+            GetAttributes();
+            GetReturnTypeAttributes();
+
+            AsyncMethodChecks(_declarationDiagnostics);
 
             addTo.AddRange(_declarationDiagnostics);
         }
@@ -162,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameters = ParameterHelpers.MakeParameters(
                 _binder,
                 this,
-                _syntax.ParameterList,
+                this.Syntax.ParameterList,
                 arglistToken: out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,
@@ -178,11 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isVararg)
             {
                 diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
-            }
-
-            if (IsAsync)
-            {
-                SourceOrdinaryMethodSymbol.ReportAsyncParameterErrors(parameters, diagnostics, this.Locations[0]);
             }
 
             lock (_declarationDiagnostics)
@@ -204,15 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 ComputeReturnType();
-                return _lazyReturnType.Value;
+                return _lazyReturnType!.Value;
             }
         }
-
-        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
-
-        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override RefKind RefKind => _refKind;
 
@@ -224,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSyntax returnTypeSyntax = _syntax.ReturnType;
+            TypeSyntax returnTypeSyntax = Syntax.ReturnType;
             TypeWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
 
             var compilation = DeclaringCompilation;
@@ -233,19 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // (specifically, local functions nested in expressions in the EE).
             if (compilation is object)
             {
-                if (this.IsAsync)
-                {
-                    if (this.RefKind != RefKind.None)
-                    {
-                        ReportBadRefToken(returnTypeSyntax, diagnostics);
-                    }
-                    else if (returnType.Type.IsBadAsyncReturn(compilation))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
-                    }
-                }
-
-                var location = _syntax.ReturnType.Location;
+                var location = returnTypeSyntax.Location;
                 if (_refKind == RefKind.RefReadOnly)
                 {
                     compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
@@ -297,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // It is an error to be an extension method, but we need to compute it to report it
-                var firstParam = _syntax.ParameterList.Parameters.FirstOrDefault();
+                var firstParam = Syntax.ParameterList.Parameters.FirstOrDefault();
                 return firstParam != null &&
                     !firstParam.IsArgList &&
                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
@@ -321,39 +304,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override Symbol ContainingSymbol => _containingSymbol;
 
-        public override string Name => _syntax.Identifier.ValueText;
+        public override string Name => Syntax.Identifier.ValueText ?? "";
 
-        public SyntaxToken NameToken => _syntax.Identifier;
+        public SyntaxToken NameToken => Syntax.Identifier;
 
         public Binder SignatureBinder => _binder;
 
-        internal override bool HasSpecialName => false;
-
-        public override bool HidesBaseMethodsByName => false;
-
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
-        public override ImmutableArray<Location> Locations => ImmutableArray.Create(_syntax.Identifier.GetLocation());
-
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray.Create(_syntax.GetReference());
+        public override ImmutableArray<Location> Locations => ImmutableArray.Create(Syntax.Identifier.GetLocation());
 
         internal override bool GenerateDebugInfo => true;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-        internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
-
-        internal override ObsoleteAttributeData ObsoleteAttributeData => null;
-
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation => null;
-
         internal override CallingConvention CallingConvention => CallingConvention.Default;
 
-        internal override bool HasDeclarativeSecurity => false;
+        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            return OneOrMany.Create(Syntax.AttributeLists);
+        }
 
-        internal override bool RequiresSecurityObject => false;
+        protected override void NoteAttributesComplete(bool forReturnType) { }
 
-        public override Symbol AssociatedSymbol => null;
+        public override Symbol? AssociatedSymbol => null;
 
         public override Accessibility DeclaredAccessibility => ModifierUtils.EffectiveAccessibility(_declarationModifiers);
 
@@ -373,49 +347,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
 
-        internal bool IsExpressionBodied => _syntax.Body == null && _syntax.ExpressionBody != null;
+        internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
 
         internal override bool IsDeclaredReadOnly => false;
-
-        public override DllImportData GetDllImportData() => null;
-
-        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
-
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
-
-        internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             // Local function symbols have no "this" parameter
             thisParameter = null;
             return true;
         }
 
-        private static void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
+        private void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
         {
-            foreach (var attrList in attributes)
+            var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)syntaxReferenceOpt.SyntaxTree.Options);
+            if (diagnosticInfo is object)
             {
-                diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
+                foreach (var attrList in attributes)
+                {
+                    diagnostics.Add(diagnosticInfo, attrList.Location);
+                }
             }
         }
 
         private ImmutableArray<SourceMethodTypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<SourceMethodTypeParameterSymbol>.GetInstance();
-            var typeParameters = _syntax.TypeParameterList.Parameters;
+            var typeParameters = Syntax.TypeParameterList?.Parameters ?? default;
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
                 var parameter = typeParameters[ordinal];
@@ -424,12 +391,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
                 }
 
-                // Attributes are currently disallowed on local function type parameters
                 ReportAttributesDisallowed(parameter.AttributeLists, diagnostics);
 
                 var identifier = parameter.Identifier;
                 var location = identifier.GetLocation();
-                var name = identifier.ValueText;
+                var name = identifier.ValueText ?? "";
 
                 foreach (var @param in result)
                 {
@@ -441,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
-                if ((object)tpEnclosing != null)
+                if ((object?)tpEnclosing != null)
                 {
                     ErrorCode typeError;
                     if (tpEnclosing.ContainingSymbol.Kind == SymbolKind.Method)
@@ -475,13 +441,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyTypeParameterConstraints.IsDefault)
             {
+                var syntax = Syntax;
                 var diagnostics = DiagnosticBag.GetInstance();
                 var constraints = this.MakeTypeParameterConstraints(
                     _binder,
                     TypeParameters,
-                    _syntax.TypeParameterList,
-                    _syntax.ConstraintClauses,
-                    _syntax.Identifier.GetLocation(),
+                    syntax.TypeParameterList,
+                    syntax.ConstraintClauses,
+                    syntax.Identifier.GetLocation(),
                     diagnostics);
                 lock (_declarationDiagnostics)
                 {
@@ -500,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             // this is what lambdas do (do not use hashes of other fields)
-            return _syntax.GetHashCode();
+            return Syntax.GetHashCode();
         }
 
         public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
@@ -508,8 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)this == symbol) return true;
 
             var localFunction = symbol as LocalFunctionSymbol;
-            return (object)localFunction != null
-                && localFunction._syntax == _syntax;
+            return localFunction?.Syntax == Syntax;
         }
     }
 }

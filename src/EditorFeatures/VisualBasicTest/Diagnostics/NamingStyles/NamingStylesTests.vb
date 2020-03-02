@@ -470,5 +470,27 @@ end module",
                 options:=options.LocalsAreCamelCaseConstantsAreUpperCase)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        <WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")>
+        Public Async Function TestInterfaceNamesStartWithI() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface [|test|]
+End Interface",
+"Interface ITest
+End Interface",
+                options:=options.InterfaceNamesStartWithI)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        <WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")>
+        Public Async Function TestTypeParameterNamesStartWithT() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class classHolder(Of [|type|])
+End Class",
+"Public Class classHolder(Of TType)
+End Class",
+                options:=options.TypeParameterNamesStartWithT)
+        End Function
+
     End Class
 End Namespace

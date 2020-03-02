@@ -96,7 +96,13 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             // Find all the possible instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.
-            var viableMembers = containingType.GetMembers().WhereAsArray(IsReadableInstanceFieldOrProperty);
+            var viableMembers = containingType
+                .GetBaseTypesAndThis()
+                .Reverse()
+                .SelectAccessibleMembers<ISymbol>(containingType)
+                .Where(IsReadableInstanceFieldOrProperty)
+                .ToImmutableArray();
+
             if (viableMembers.Length == 0)
             {
                 return;

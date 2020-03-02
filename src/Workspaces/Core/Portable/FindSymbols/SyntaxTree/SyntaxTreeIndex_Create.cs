@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
             var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
             var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
-            var usingAliases = PooledDictionary<string, string>.GetInstance();
+            using var _ = PooledDictionary<string, string>.GetInstance(out var usingAliases);
 
             try
             {
@@ -283,7 +283,6 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 
                 simpleExtensionMethodInfoBuilder.Free();
                 complexExtensionMethodInfoBuilder.Free();
-                usingAliases.Free();
                 declaredSymbolInfos.Free();
             }
         }

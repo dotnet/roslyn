@@ -41,19 +41,47 @@ namespace Roslyn.Utilities
             return ImmutableArray.CreateRange<T>(items);
         }
 
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
-            => items.IsDefault ? ImmutableArray<T>.Empty : items;
-
-        internal static IReadOnlyList<T> ToImmutableReadOnlyListOrEmpty<T>(this IEnumerable<T>? items)
+        internal static IReadOnlyList<T> ToBoxedImmutableArray<T>(this IEnumerable<T>? items)
         {
-            if (items is ImmutableArray<T> array && !array.IsDefault)
+            if (items is null)
             {
-                return (IReadOnlyList<T>)items;
+                return SpecializedCollections.EmptyBoxedImmutableArray<T>();
             }
-            else
+
+            if (items is ImmutableArray<T> array)
             {
-                return items.ToImmutableArrayOrEmpty();
+                return array.IsDefaultOrEmpty ? SpecializedCollections.EmptyBoxedImmutableArray<T>() : (IReadOnlyList<T>)items;
             }
+
+            if (items is ICollection<T> collection && collection.Count == 0)
+            {
+                return SpecializedCollections.EmptyBoxedImmutableArray<T>();
+            }
+
+            return ImmutableArray.CreateRange(items);
+        }
+
+        /// <summary>
+        /// Use to validate public API input for properties that are exposed as <see cref="IReadOnlyList{T}"/>.
+        /// 
+        /// Pattern:
+        /// <code>
+        /// argument.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(argument)),
+        /// </code>
+        /// </summary>
+        internal static IReadOnlyList<T>? AsBoxedImmutableArrayWithNonNullItems<T>(this IEnumerable<T>? sequence) where T : class
+        {
+            var list = sequence.ToBoxedImmutableArray();
+
+            foreach (var item in list)
+            {
+                if (item is null)
+                {
+                    return null;
+                }
+            }
+
+            return list;
         }
 
         internal static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)

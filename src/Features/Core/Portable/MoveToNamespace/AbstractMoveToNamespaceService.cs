@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
             // Since MoveTypeService doesn't handle linked files, we need to merge the diff ourselves, 
             // otherwise, we will end up with multiple linked documents with different content.
-            var mergedSolution = await PropagateChangeToLinkedDocuments(modifiedDocument, cancellationToken).ConfigureAwait(false);
+            var mergedSolution = await PropagateChangeToLinkedDocumentsAsync(modifiedDocument, cancellationToken).ConfigureAwait(false);
             var mergedDocument = mergedSolution.GetDocument(document.Id);
 
             var syntaxRoot = await mergedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Solution> PropagateChangeToLinkedDocuments(Document document, CancellationToken cancellationToken)
+        private static async Task<Solution> PropagateChangeToLinkedDocumentsAsync(Document document, CancellationToken cancellationToken)
         {
             // Need to make sure elastic trivia is formatted properly before pushing the text to other documents.
             var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
