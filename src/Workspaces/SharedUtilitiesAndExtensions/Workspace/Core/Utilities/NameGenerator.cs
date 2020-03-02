@@ -186,5 +186,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             return name;
         }
+
+        public static string GenerateUniqueInterfaceName(string baseName, bool baseIsInterface, Func<string, bool> canUse)
+        {
+            var candidateInterfaceName = baseIsInterface ? baseName : "I" + baseName;
+            return GenerateUniqueName(candidateInterfaceName, canUse);
+        }
+
+        public static string GenerateBaseTypeName(string originalName, Func<string, bool> canUse)
+        {
+            var candidateClassName = originalName + "Base";
+            return GenerateUniqueName(candidateClassName, canUse);
+        }
     }
 }

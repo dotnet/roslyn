@@ -1,6 +1,6 @@
 ﻿<vs:DialogWindow
     x:Uid="PullMemberUpWarningDialog"
-    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.WarningDialog.PullMemberUpWarningDialog"
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.WarningDialog.MoveMembersWarningDialog"
     x:ClassModifier="internal"
     x:Name="dialog"
     xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"

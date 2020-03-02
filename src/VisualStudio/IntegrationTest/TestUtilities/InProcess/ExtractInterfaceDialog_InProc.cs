@@ -6,10 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface;
+using Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.MainDialog;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    internal class ExtractInterfaceDialog_InProc : AbstractCodeRefactorDialog_InProc<ExtractInterfaceDialog, ExtractInterfaceDialog.TestAccessor>
+    internal class ExtractInterfaceDialog_InProc : AbstractCodeRefactorDialog_InProc<MoveMembersDialog, MoveMembersDialog.TestAccessor>
     {
         private ExtractInterfaceDialog_InProc()
         {
@@ -71,20 +72,30 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void ClickSelectAll()
+        public void SetAllSelected(bool allSelected)
         {
             using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
             {
-                JoinableTaskFactory.Run(() => ClickAsync(testAccessor => testAccessor.SelectAllButton, cancellationTokenSource.Token));
+                JoinableTaskFactory.Run(async () =>
+                {
+                    await ClickAsync(testAccessor => testAccessor.SelectAllCheckBox, cancellationTokenSource.Token);
+                    var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+                    var testAccessor = GetAccessor(dialog);
+                    if (testAccessor.SelectAllCheckBox.IsChecked != allSelected)
+                    {
+                        await ClickAsync(testAccessor => testAccessor.SelectAllCheckBox, cancellationTokenSource.Token);
+                    }
+                });
             }
+        }
+        public void ClickSelectAll()
+        {
+            SetAllSelected(true);
         }
 
         public void ClickDeselectAll()
         {
-            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
-            {
-                JoinableTaskFactory.Run(() => ClickAsync(testAccessor => testAccessor.DeselectAllButton, cancellationTokenSource.Token));
-            }
+            SetAllSelected(false);
         }
 
         public void SelectSameFile()
@@ -104,8 +115,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
 
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-
-                    return dialog.fileNameTextBox.Text;
+                    var testAccessor = GetAccessor(dialog);
+                    return testAccessor.MoveToNewTypeControl.fileNameTextBox.Text;
                 });
             }
         }
@@ -120,11 +131,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
 
-                    var memberSelectionList = dialog.GetTestAccessor().Members;
+                    var memberSelectionList = GetAccessor(dialog).MemberSelectionGrid;
                     var comListItems = memberSelectionList.Items;
                     var listItems = Enumerable.Range(0, comListItems.Count).Select(comListItems.GetItemAt);
 
-                    return listItems.Cast<ExtractInterfaceDialogViewModel.MemberSymbolViewModel>()
+                    return listItems.Cast<MoveMembersSymbolViewModel>()
                         .Where(viewModel => viewModel.IsChecked)
                         .Select(viewModel => viewModel.SymbolName)
                         .ToArray();
@@ -142,8 +153,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
 
-                    var memberSelectionList = dialog.GetTestAccessor().Members;
-                    var items = memberSelectionList.Items.Cast<ExtractInterfaceDialogViewModel.MemberSymbolViewModel>().ToArray();
+                    var memberSelectionList = GetAccessor(dialog).MemberSelectionGrid;
+                    var items = memberSelectionList.Items.Cast<MoveMembersSymbolViewModel>().ToArray();
                     var itemViewModel = items.Single(x => x.SymbolName == item);
                     itemViewModel.IsChecked = !itemViewModel.IsChecked;
 
@@ -153,6 +164,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        protected override ExtractInterfaceDialog.TestAccessor GetAccessor(ExtractInterfaceDialog dialog) => dialog.GetTestAccessor();
+        protected override MoveMembersDialog.TestAccessor GetAccessor(MoveMembersDialog dialog) => dialog.GetTestAccessor();
     }
 }

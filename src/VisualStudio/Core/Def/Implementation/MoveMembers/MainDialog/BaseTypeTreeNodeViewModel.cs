@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.MainDialog
 {
     /// <summary>
     /// View model used to represent and display the inheritance graph as a tree. This tree is constructed by breadth first searching.

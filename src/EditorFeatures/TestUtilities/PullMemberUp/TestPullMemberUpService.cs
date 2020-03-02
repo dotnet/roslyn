@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
+using Microsoft.CodeAnalysis.MoveMembers;
 using Microsoft.CodeAnalysis.PullMemberUp;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
 {
@@ -24,18 +24,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             DestinationName = destinationName;
         }
 
-        public PullMembersUpOptions GetPullMemberUpOptions(Document document, ISymbol selectedNodeSymbol)
+        public PullMembersUpOptions GetPullMemberUpOptions(Document document, INamedTypeSymbol selectedNodeSymbol)
         {
             var members = selectedNodeSymbol.ContainingType.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
 
             var selectedMember = _selectedMembers == null
-                ? members.Select(member => (member, false))
-                : _selectedMembers.Select(selection => (members.Single(symbol => symbol.Name == selection.member), selection.makeAbstract));
+                ? members.Select(member => (member: member, makeAbstract: false))
+                : _selectedMembers.Select(selection => (member: members.Single(symbol => symbol.Name == selection.member), makeAbstract: selection.makeAbstract));
 
             var allInterfaces = selectedNodeSymbol.ContainingType.AllInterfaces;
             var baseClass = selectedNodeSymbol.ContainingType.BaseType;
 
-            INamedTypeSymbol destination = null;
+            var analysisResults = selectedMember.SelectAsArray(member => new MemberAnalysisResult(member.member, makeMemberDeclarationAbstract: member.makeAbstract));
+
+            INamedTypeSymbol destination = default;
             if (DestinationName == null)
             {
                 destination = allInterfaces.FirstOrDefault() ?? baseClass;
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
                     {
                         if (i.Name == DestinationName)
                         {
-                            return PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(i, selectedMember.ToImmutableArray());
+                            return new PullMembersUpOptions(i, analysisResults);
                         }
                     }
                 }
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             }
             else
             {
-                return PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination, selectedMember.ToImmutableArray());
+                return new PullMembersUpOptions(destination, analysisResults);
             }
         }
     }

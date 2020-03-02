@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
@@ -34,29 +36,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         public IEnumerable<ISymbol> ChosenMembers { get; set; }
         public bool SameFile { get; set; }
 
-        public Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
-            ISyntaxFactsService syntaxFactsService,
-            INotificationService notificationService,
-            List<ISymbol> extractableMembers,
-            string defaultInterfaceName,
-            List<string> conflictingTypeNames,
-            string defaultNamespace,
-            string generatedNameTypeParameterSuffix,
-            string languageName)
+        public Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(INamedTypeSymbol symbol, IEnumerable<ISymbol> extractableMembers, string languageName)
         {
-            this.AllExtractableMembers = extractableMembers;
-            this.DefaultInterfaceName = defaultInterfaceName;
-            this.ConflictingTypeNames = conflictingTypeNames;
-            this.DefaultNamespace = defaultNamespace;
-            this.GeneratedNameTypeParameterSuffix = generatedNameTypeParameterSuffix;
-
+            AllExtractableMembers = extractableMembers;
+            ConflictingTypeNames = symbol.ContainingNamespace.GetTypeMembers().Select(m => m.Name).ToList();
+            DefaultInterfaceName = NameGenerator.GenerateUniqueInterfaceName(symbol.Name, symbol.TypeKind == TypeKind.Interface, name => !ConflictingTypeNames.Contains(name));
             var result = IsCancelled
                 ? ExtractInterfaceOptionsResult.Cancelled
                 : new ExtractInterfaceOptionsResult(
                     isCancelled: false,
-                    includedMembers: (ChosenMembers ?? AllExtractableMembers).AsImmutable(),
-                    interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
-                    fileName: ChosenFileName ?? defaultInterfaceName,
+                    includedMembers: (ChosenMembers ?? extractableMembers).AsImmutableOrEmpty(),
+                    interfaceName: ChosenInterfaceName ?? DefaultInterfaceName,
+                    fileName: ChosenFileName ?? DefaultInterfaceName,
                     location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile);
 
             return Task.FromResult(result);

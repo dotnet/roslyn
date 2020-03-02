@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
-namespace Microsoft.CodeAnalysis.PullMemberUp
+namespace Microsoft.CodeAnalysis.MoveMembers
 {
     internal readonly struct MemberAnalysisResult
     {
@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         /// <summary>
         /// Indicate whether it would cause error if we directly pull Member into destination.
         /// </summary>
-        public bool PullMemberUpNeedsToDoExtraChanges => ChangeOriginalToPublic || ChangeOriginalToNonStatic || ChangeDestinationTypeToAbstract;
+        public bool MoveMemberNeedsToDoExtraChanges => ChangeOriginalToPublic || ChangeOriginalToNonStatic || ChangeDestinationTypeToAbstract;
 
         public MemberAnalysisResult(
             ISymbol member,
-            bool changeOriginalToPublic,
-            bool changeOriginalToNonStatic,
-            bool makeMemberDeclarationAbstract,
-            bool changeDestinationTypeToAbstract)
+            bool changeOriginalToPublic = false,
+            bool changeOriginalToNonStatic = false,
+            bool makeMemberDeclarationAbstract = false,
+            bool changeDestinationTypeToAbstract = false)
         {
             Member = member;
             ChangeOriginalToPublic = changeOriginalToPublic;

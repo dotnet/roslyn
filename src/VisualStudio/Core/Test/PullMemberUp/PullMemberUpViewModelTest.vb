@@ -11,8 +11,10 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PullMemberUp
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.Controls
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.MainDialog
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.PullMemberUp
     <[UseExportProvider]>
@@ -39,7 +41,7 @@ class MyClass : Level1BaseClass, Level1Interface
     }
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.Destinations().OfType(Of BaseTypeTreeNodeViewModel)
             Assert.Equal("Level1BaseClass", baseTypeTree(0).SymbolName)
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
             Assert.Equal("Level2Interface", baseTypeTree(0).BaseTypeNodes(0).SymbolName)
@@ -182,10 +184,11 @@ class MyClass : Level1BaseClass, Level1Interface
     internal float gravitational = 6.67e-11;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.Destinations().OfType(Of BaseTypeTreeNodeViewModel)
 
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(1)
+            Dim moveToAncestorViewModel = CType(viewModel.SelectDestinationViewModel, MoveToAncestorTypeControlViewModel)
+            moveToAncestorViewModel.SelectedDestination = baseTypeTree(1)
 
             For Each member In viewModel.Members.WhereAsArray(
                 Function(memberViewModel)
@@ -227,10 +230,11 @@ class MyClass : Level1BaseClass, Level1Interface
     internal float gravitational = 6.67e-11;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.Destinations().OfType(Of BaseTypeTreeNodeViewModel)
 
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(1)
+            Dim moveToAncestorViewModel = CType(viewModel.SelectDestinationViewModel, MoveToAncestorTypeControlViewModel)
+            moveToAncestorViewModel.SelectedDestination = baseTypeTree(1)
 
             For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.Symbol.IsKind(SymbolKind.Field))
                 Assert.False(member.IsCheckable)
@@ -270,15 +274,16 @@ class MyClass : Level1BaseClass, Level1Interface
     internal float gravitational = 6.67e-11;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.Destinations().OfType(Of BaseTypeTreeNodeViewModel)
 
             ' First select an interface, all checkbox will be disable as the previous test.
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(1)
+            Dim moveToAncestorViewModel = CType(viewModel.SelectDestinationViewModel, MoveToAncestorTypeControlViewModel)
+            moveToAncestorViewModel.SelectedDestination = baseTypeTree(1)
 
             ' Second select a class, check all checkboxs will be resumed.
             Assert.Equal("Level1BaseClass", baseTypeTree(0).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(0)
+            moveToAncestorViewModel.SelectedDestination = baseTypeTree(0)
             For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.Symbol.IsKind(SymbolKind.Field))
                 Assert.True(member.IsCheckable)
                 Assert.True(String.IsNullOrEmpty(member.TooltipText))
@@ -357,13 +362,14 @@ class MyClass : Level1BaseClass, Level1Interface
     internal float gravitational = 6.67e-11;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.Destinations().OfType(Of BaseTypeTreeNodeViewModel)
             viewModel.SelectAllMembers()
             ' select an interface, all checkbox of field will be disable
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(1)
+            Dim moveToAncestorViewModel = CType(viewModel.SelectDestinationViewModel, MoveToAncestorTypeControlViewModel)
+            moveToAncestorViewModel.SelectedDestination = baseTypeTree(1)
 
-            Dim options = viewModel.CreatePullMemberUpOptions()
+            Dim options = New PullMembersUpOptions(viewModel.SelectedDestination, viewModel.AnalyzeCheckedMembers())
             ' Make sure fields are pulled to interface
             Assert.Empty(options.MemberAnalysisResults.WhereAsArray(Function(analysisResult) analysisResult.Member.IsKind(SymbolKind.Field)))
         End Function
@@ -421,7 +427,7 @@ class MyClass : Level1BaseClass
             Assert.False(FindMemberByName("FooEvent", viewModel.Members).IsChecked)
         End Function
 
-        Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of PullMemberUpSymbolViewModel)) As PullMemberUpSymbolViewModel
+        Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of MoveMembersSymbolViewModel)) As MoveMembersSymbolViewModel
             Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.SymbolName.Equals(name))
             If (member Is Nothing) Then
                 Assert.True(False, $"No member called {name} found")
@@ -429,7 +435,7 @@ class MyClass : Level1BaseClass
             Return member
         End Function
 
-        Private Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of PullMemberUpDialogViewModel)
+        Private Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of MoveMembersDialogViewModel)
             Dim workspaceXml =
             <Workspace>
                 <Project Language=<%= languageName %> CommonReferences="true">
@@ -450,13 +456,15 @@ class MyClass : Level1BaseClass
                 Dim baseTypeTree = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(glyphService:=Nothing, workspaceDoc.Project.Solution, memberSymbol.ContainingType, CancellationToken.None)
                 Dim membersInType = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemberValid(member))
                 Dim membersViewModel = membersInType.SelectAsArray(
-                    Function(member) New PullMemberUpSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
+                    Function(member) New MoveMembersSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
                 Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, workspaceDoc.Project, CancellationToken.None)
-                Return New PullMemberUpDialogViewModel(
+                Return New MoveMembersDialogViewModel(
                     workspace.GetService(Of IWaitIndicator),
+                    CType(memberSymbol, INamedTypeSymbol),
                     membersViewModel,
-                    baseTypeTree.BaseTypeNodes,
-                    memberToDependents)
+                    memberToDependents,
+                    destinations:=baseTypeTree.BaseTypeNodes.CastArray(Of SymbolViewModel(Of INamedTypeSymbol)),
+                    fileExtension:=If(workspaceDoc.Project.Language = LanguageNames.CSharp, ".cs", ".vb"))
             End Using
         End Function
     End Class

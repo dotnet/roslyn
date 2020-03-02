@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.MoveMembers;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             ISymbol selectedMember,
             INamedTypeSymbol destination)
         {
-            var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination, ImmutableArray.Create((member: selectedMember, makeAbstract: false)));
+            var result = new PullMembersUpOptions(destination, ImmutableArray.Create(new MemberAnalysisResult(member: selectedMember)));
             if (result.PullUpOperationNeedsToDoExtraChanges ||
                 IsSelectedMemberDeclarationAlreadyInDestination(selectedMember, destination))
             {

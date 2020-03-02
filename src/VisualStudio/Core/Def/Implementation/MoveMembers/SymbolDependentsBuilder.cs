@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers
 {
     internal static class SymbolDependentsBuilder
     {

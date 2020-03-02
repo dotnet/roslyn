@@ -4,50 +4,59 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.PullMemberUp;
-using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.WarningDialog;
+using Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.Controls;
+using Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.WarningDialog;
 using Microsoft.VisualStudio.PlatformUI;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.MainDialog
 {
     /// <summary>
-    /// Interaction logic for PullMemberUpDialog.xaml
+    /// Interaction logic for MoveMembersDialog.xaml
     /// </summary>
-    internal partial class PullMemberUpDialog : DialogWindow
+    internal partial class MoveMembersDialog : DialogWindow
     {
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
-        public string PullMembersUpTitle => ServicesVSResources.Pull_Members_Up;
         public string SelectMembers => ServicesVSResources.Select_members_colon;
         public string SelectDestination => ServicesVSResources.Select_destination_colon;
-        public string Description => ServicesVSResources.Select_destination_and_members_to_pull_up;
+        public string Description { get; }
+        public bool HasDescription => !string.IsNullOrEmpty(Description);
         public string SelectPublic => ServicesVSResources.Select_Public;
         public string SelectDependents => ServicesVSResources.Select_Dependents;
         public string MembersHeader => ServicesVSResources.Members;
         public string MakeAbstractHeader => ServicesVSResources.Make_abstract;
 
-        public PullMemberUpDialogViewModel ViewModel { get; }
+        public MoveMembersDialogViewModel ViewModel { get; }
 
-        public PullMemberUpDialog(PullMemberUpDialogViewModel pullMemberUpViewModel)
+        public MoveMembersDialog(string title, string description, MoveMembersDialogViewModel pullMemberUpViewModel)
         {
+            Title = title;
+            Description = description;
             ViewModel = pullMemberUpViewModel;
             DataContext = pullMemberUpViewModel;
 
             // Set focus to first tab control when the window is loaded
             Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
-
             InitializeComponent();
+
+            this.DestinationSelectionGroupBox.Content = ViewModel.SelectDestinationViewModel.CreateUserControl();
         }
 
         private void OKButton_Click(object sender, RoutedEventArgs e)
         {
-            var options = ViewModel.CreatePullMemberUpOptions();
-            if (options.PullUpOperationNeedsToDoExtraChanges)
+            var analyzedMembers = ViewModel.AnalyzeCheckedMembers();
+            var needsChanges = analyzedMembers.Any(member => member.MoveMemberNeedsToDoExtraChanges);
+            if (needsChanges)
             {
-                if (ShowWarningDialog(options))
+                var warningViewModel = new MoveMembersWarningViewModel(ViewModel.SelectedDestination, analyzedMembers);
+                var warningDialog = new MoveMembersWarningDialog(warningViewModel);
+                if (warningDialog.ShowModal().GetValueOrDefault())
                 {
                     DialogResult = true;
                 }
@@ -56,13 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             {
                 DialogResult = true;
             }
-        }
-
-        private bool ShowWarningDialog(PullMembersUpOptions result)
-        {
-            var warningViewModel = new PullMemberUpWarningViewModel(result);
-            var warningDialog = new PullMemberUpWarningDialog(warningViewModel);
-            return warningDialog.ShowModal().GetValueOrDefault();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e) => DialogResult = false;
@@ -85,21 +87,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private void MemberSelectionCheckBox_Unchecked(object sender, RoutedEventArgs e)
             => ViewModel.SetStatesOfOkButtonAndSelectAllCheckBox();
 
-        private void Destination_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        public TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        public class TestAccessor
         {
-            if (DestinationTreeView.SelectedItem is BaseTypeTreeNodeViewModel memberGraphNode)
+            private readonly MoveMembersDialog _dialog;
+            public TestAccessor(MoveMembersDialog dialog)
             {
-                ViewModel.SelectedDestination = memberGraphNode;
+                _dialog = dialog;
             }
+
+            public Button OKButton => _dialog.OKButton;
+            public Button CancelButton => _dialog.CancelButton;
+            public CheckBox SelectAllCheckBox => _dialog.SelectAllCheckBox;
+            public RadioButton DestinationCurrentFileSelectionRadioButton => MoveToNewTypeControl.DestinationCurrentFileSelectionRadioButton;
+            public RadioButton DestinationNewFileSelectionRadioButton => MoveToNewTypeControl.DestinationNewFileSelectionRadioButton;
+            public MoveToNewTypeControl MoveToNewTypeControl => (MoveToNewTypeControl)_dialog.DestinationSelectionGroupBox.Content;
+            public DataGrid MemberSelectionGrid => _dialog.MemberSelection;
         }
-    }
-
-    internal class BooleanReverseConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => !(bool)value;
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => !(bool)value;
     }
 }

@@ -111,16 +111,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CancellationToken cancellationToken)
         {
-            var containingNamespaceDisplay = refactoringResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
-                ? string.Empty
-                : refactoringResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
-
             var extractInterfaceOptions = await GetExtractInterfaceOptionsAsync(
                 refactoringResult.DocumentToExtractFrom,
                 refactoringResult.TypeToExtractFrom,
-                refactoringResult.ExtractableMembers,
-                containingNamespaceDisplay,
-                cancellationToken).ConfigureAwait(false);
+                refactoringResult.ExtractableMembers).ConfigureAwait(false);
 
             if (extractInterfaceOptions.IsCancelled)
             {
@@ -311,27 +305,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         internal Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
             Document document,
             INamedTypeSymbol type,
-            IEnumerable<ISymbol> extractableMembers,
-            string containingNamespace,
-            CancellationToken cancellationToken)
+            IEnumerable<ISymbol> extractableMembers)
         {
-            var conflictingTypeNames = type.ContainingNamespace.GetAllTypes(cancellationToken).Select(t => t.Name);
-            var candidateInterfaceName = type.TypeKind == TypeKind.Interface ? type.Name : "I" + type.Name;
-            var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-            var generatedNameTypeParameterSuffix = GetGeneratedNameTypeParameterSuffix(GetTypeParameters(type, extractableMembers), document.Project.Solution.Workspace);
-
             var service = document.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
-            return service.GetExtractInterfaceOptionsAsync(
-                syntaxFactsService,
-                notificationService,
-                extractableMembers.ToList(),
-                defaultInterfaceName,
-                conflictingTypeNames.ToList(),
-                containingNamespace,
-                generatedNameTypeParameterSuffix,
-                document.Project.Language);
+            return service.GetExtractInterfaceOptionsAsync(type, extractableMembers, document.Project.Language);
         }
 
         private async Task<Document> GetUnformattedInterfaceDocumentAsync(

@@ -4,16 +4,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.Controls;
+using Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.MainDialog;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 {
@@ -21,53 +28,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
     internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOptionsService
     {
         private readonly IGlyphService _glyphService;
+        private readonly IWaitIndicator _waitIndicator;
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext)
+        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext, IWaitIndicator waitIndicator)
         {
             _glyphService = glyphService;
+            _waitIndicator = waitIndicator;
             _threadingContext = threadingContext;
         }
 
         public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
-            ISyntaxFactsService syntaxFactsService,
-            INotificationService notificationService,
-            List<ISymbol> extractableMembers,
-            string defaultInterfaceName,
-            List<string> allTypeNames,
-            string defaultNamespace,
-            string generatedNameTypeParameterSuffix,
+            INamedTypeSymbol symbol,
+            IEnumerable<ISymbol> extractableMembers,
             string languageName)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var viewModel = new ExtractInterfaceDialogViewModel(
-                syntaxFactsService,
-                _glyphService,
-                notificationService,
-                defaultInterfaceName,
-                extractableMembers,
-                allTypeNames,
-                defaultNamespace,
-                generatedNameTypeParameterSuffix,
-                languageName,
-                languageName == LanguageNames.CSharp ? ".cs" : ".vb");
+            var memberViewModels = extractableMembers
+                .SelectAsArray(member =>
+                    new MoveMembersSymbolViewModel(member, _glyphService)
+                    {
+                        IsChecked = true,
+                        MakeAbstract = false,
+                        IsMakeAbstractCheckable = false,
+                        IsCheckable = true
+                    });
 
-            var dialog = new ExtractInterfaceDialog(viewModel);
+            var viewModel = new MoveMembersDialogViewModel(
+                _waitIndicator,
+                symbol,
+                memberViewModels,
+                dependentsMap: null,
+                fileExtension: languageName == LanguageNames.CSharp ? ".cs" : ".vb");
+
+            var dialog = new MoveMembersDialog(ServicesVSResources.Extract_Interface, description: "", viewModel);
             var result = dialog.ShowModal();
 
             if (result.HasValue && result.Value)
             {
-                var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol);
-
+                var includedMembers = viewModel.GetCheckedMembers().Select(c => c.member);
+                var newTypeViewModel = (MoveToNewTypeControlViewModel)viewModel.SelectDestinationViewModel;
                 return new ExtractInterfaceOptionsResult(
                     isCancelled: false,
                     includedMembers: includedMembers.AsImmutable(),
-                    interfaceName: viewModel.InterfaceName.Trim(),
-                    fileName: viewModel.FileName.Trim(),
-                    location: GetLocation(viewModel.Destination));
+                    fileName: newTypeViewModel.FileName,
+                    interfaceName: viewModel.SelectedDestination.Name.Trim(),
+                    location: GetLocation(newTypeViewModel.NewSymbolDestination));
             }
             else
             {
@@ -75,12 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             }
         }
 
-        private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(InterfaceDestination destination)
+        private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(SymbolDestination destination)
         {
             switch (destination)
             {
-                case InterfaceDestination.CurrentFile: return ExtractInterfaceOptionsResult.ExtractLocation.SameFile;
-                case InterfaceDestination.NewFile: return ExtractInterfaceOptionsResult.ExtractLocation.NewFile;
+                case SymbolDestination.CurrentFile: return ExtractInterfaceOptionsResult.ExtractLocation.SameFile;
+                case SymbolDestination.NewFile: return ExtractInterfaceOptionsResult.ExtractLocation.NewFile;
                 default: throw new InvalidOperationException();
             }
         }

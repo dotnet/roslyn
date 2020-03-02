@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return _extractInterfaceService.GetExtractInterfaceOptionsAsync(
                 _typeAnalysisResult.DocumentToExtractFrom,
                 _typeAnalysisResult.TypeToExtractFrom,
-                _typeAnalysisResult.ExtractableMembers,
-                containingNamespaceDisplay,
-                cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                _typeAnalysisResult.ExtractableMembers).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)

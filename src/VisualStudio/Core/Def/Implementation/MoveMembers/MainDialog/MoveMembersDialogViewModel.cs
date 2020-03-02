@@ -7,19 +7,18 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.PullMemberUp;
+using Microsoft.CodeAnalysis.MoveMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.Controls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.MainDialog
 {
-    internal class PullMemberUpDialogViewModel : AbstractNotifyPropertyChanged
+    internal class MoveMembersDialogViewModel : AbstractNotifyPropertyChanged
     {
-        public ImmutableArray<PullMemberUpSymbolViewModel> Members { get; set; }
-        public ImmutableArray<BaseTypeTreeNodeViewModel> Destinations { get; set; }
+        public ImmutableArray<MoveMembersSymbolViewModel> Members { get; set; }
         public bool OkButtonEnabled { get => _okButtonEnabled; set => SetProperty(ref _okButtonEnabled, value, nameof(OkButtonEnabled)); }
         public bool? SelectAllCheckBoxState { get => _selectAllCheckBoxState; set => SetProperty(ref _selectAllCheckBoxState, value, nameof(SelectAllCheckBoxState)); }
         public bool SelectAllCheckBoxThreeStateEnable { get => _selectAllCheckBoxThreeStateEnable; set => SetProperty(ref _selectAllCheckBoxThreeStateEnable, value, nameof(SelectAllCheckBoxThreeStateEnable)); }
@@ -29,40 +28,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private bool _selectAllCheckBoxThreeStateEnable;
         private bool? _selectAllCheckBoxState;
         private readonly IWaitIndicator _waitIndicator;
-        private BaseTypeTreeNodeViewModel _selectedDestination;
         private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
-        private readonly ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> _symbolToMemberViewMap;
+
+        private readonly ImmutableDictionary<ISymbol, MoveMembersSymbolViewModel> _symbolToMemberViewMap;
         private bool _okButtonEnabled;
 
-        public PullMemberUpDialogViewModel(
+        public MoveMembersDialogViewModel(
             IWaitIndicator waitIndicator,
-            ImmutableArray<PullMemberUpSymbolViewModel> members,
-            ImmutableArray<BaseTypeTreeNodeViewModel> destinations,
-            ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap)
+            INamedTypeSymbol targetType,
+            ImmutableArray<MoveMembersSymbolViewModel> members,
+            ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap,
+            string fileExtension,
+            bool suggestInterface = true,
+            ImmutableArray<SymbolViewModel<INamedTypeSymbol>> destinations = default)
         {
             _waitIndicator = waitIndicator;
-            Members = members;
-            Destinations = destinations;
+            Members = members.OrderBy(m => m.SymbolName).ToImmutableArray();
             _symbolToDependentsMap = dependentsMap;
             _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
             if (destinations != default && !destinations.IsEmpty)
             {
-                // Select a destination by default
+                MovingToExistingType = true;
                 destinations[0].IsChecked = true;
+                Destinations = destinations;
+                SelectDestinationViewModel = new MoveToAncestorTypeControlViewModel(Destinations);
             }
-        }
-
-        public BaseTypeTreeNodeViewModel SelectedDestination
-        {
-            get => _selectedDestination;
-            set
+            else
             {
-                if (SetProperty(ref _selectedDestination, value, nameof(SelectedDestination)))
+                SelectDestinationViewModel = new MoveToNewTypeControlViewModel(suggestInterface, targetType, fileExtension);
+            }
+
+            SetStatesOfOkButtonAndSelectAllCheckBox();
+
+            SelectDestinationViewModel.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(ISelectDestinationViewModel.SelectedDestination))
                 {
                     var fields = Members.WhereAsArray(memberViewModel => memberViewModel.Symbol.IsKind(SymbolKind.Field));
                     var makeAbstractEnabledCheckboxes = Members.
                         WhereAsArray(memberViewModel => !memberViewModel.Symbol.IsKind(SymbolKind.Field) && !memberViewModel.Symbol.IsAbstract);
-                    var isInterface = _selectedDestination.Symbol.TypeKind == TypeKind.Interface;
+                    var isInterface = SelectedDestination.TypeKind == TypeKind.Interface;
                     // Disable field check box and make abstract if destination is interface
                     foreach (var member in fields)
                     {
@@ -74,24 +79,58 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                     {
                         member.IsMakeAbstractCheckable = !isInterface;
                     }
-
-                    SetStatesOfOkButtonAndSelectAllCheckBox();
                 }
-            }
+
+                SetStatesOfOkButtonAndSelectAllCheckBox();
+            };
         }
 
-        public PullMembersUpOptions CreatePullMemberUpOptions()
-        {
-            var selectedOptionFromDialog = Members.
+        public ISelectDestinationViewModel SelectDestinationViewModel { get; }
+        public bool MovingToExistingType { get; }
+        public ImmutableArray<SymbolViewModel<INamedTypeSymbol>> Destinations { get; }
+        public INamedTypeSymbol SelectedDestination => SelectDestinationViewModel.SelectedDestination;
+        public bool HasMembersThatCanBeAbstract => Members.Any(m => m.IsMakeAbstractCheckable);
+
+        public ImmutableArray<(ISymbol member, bool makeAbstract)> GetCheckedMembers()
+        => Members.
                 Where(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable).
                 SelectAsArray(memberViewModel =>
                     (member: memberViewModel.Symbol,
                     makeAbstract: memberViewModel.IsMakeAbstractCheckable && memberViewModel.MakeAbstract));
 
-            var options = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(
-                SelectedDestination.Symbol,
-                selectedOptionFromDialog);
-            return options;
+        public ImmutableArray<MemberAnalysisResult> AnalyzeCheckedMembers()
+        {
+            var members = GetCheckedMembers();
+            return members.SelectAsArray(memberAndMakeAbstract =>
+            {
+                if (MovingToExistingType)
+                {
+                    if (SelectedDestination.TypeKind == TypeKind.Interface)
+                    {
+                        var changeOriginalToPublic = memberAndMakeAbstract.member.DeclaredAccessibility != Accessibility.Public;
+                        var changeOriginalToNonStatic = memberAndMakeAbstract.member.IsStatic;
+                        return new MemberAnalysisResult(
+                            memberAndMakeAbstract.member,
+                            changeOriginalToPublic,
+                            changeOriginalToNonStatic,
+                            makeMemberDeclarationAbstract: false,
+                            changeDestinationTypeToAbstract: false);
+                    }
+                    else
+                    {
+                        var changeDestinationToAbstract = !SelectedDestination.IsAbstract && (memberAndMakeAbstract.makeAbstract || memberAndMakeAbstract.member.IsAbstract);
+                        return new MemberAnalysisResult(memberAndMakeAbstract.member,
+                            changeOriginalToPublic: false,
+                            changeOriginalToNonStatic: false,
+                            memberAndMakeAbstract.makeAbstract,
+                            changeDestinationTypeToAbstract: changeDestinationToAbstract);
+                    }
+                }
+                else
+                {
+                    return new MemberAnalysisResult(memberAndMakeAbstract.member);
+                }
+            });
         }
 
         public void SelectAllMembers()
@@ -170,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             return result.ToImmutableHashSet();
         }
 
-        private void SelectMembers(ImmutableArray<PullMemberUpSymbolViewModel> memberViewModels)
+        private void SelectMembers(ImmutableArray<MoveMembersSymbolViewModel> memberViewModels)
         {
             foreach (var member in memberViewModels.WhereAsArray(viewModel => viewModel.IsCheckable))
             {
@@ -182,9 +221,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         private void EnableOrDisableOkButton()
         {
+            if (!SelectDestinationViewModel.IsValid)
+            {
+                OkButtonEnabled = false;
+                return;
+            }
+
             var selectedMembers = Members
                 .Where(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable);
-            OkButtonEnabled = SelectedDestination != null && selectedMembers.Count() != 0;
+
+            if (MovingToExistingType)
+            {
+                OkButtonEnabled = SelectedDestination != null && selectedMembers.Any();
+            }
+            else
+            {
+                OkButtonEnabled = selectedMembers.Any();
+            }
         }
 
         private void CheckAndSetStateOfSelectAllCheckBox()

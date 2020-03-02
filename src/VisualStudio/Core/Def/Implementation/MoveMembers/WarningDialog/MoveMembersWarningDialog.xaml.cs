@@ -6,19 +6,19 @@ using System.Windows;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.PlatformUI;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.WarningDialog
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.WarningDialog
 {
     /// <summary>
-    /// Interaction logic for PushMemberUpWarningDialog.xaml
+    /// Interaction logic for MoveMembersWarningDialog.xaml
     /// </summary>
-    internal partial class PullMemberUpWarningDialog : DialogWindow
+    internal partial class MoveMembersWarningDialog : DialogWindow
     {
         public string Back => ServicesVSResources.Back;
         public string Finish => ServicesVSResources.Finish;
         public string WarningDialogTitle => ServicesVSResources.Review_Changes;
         public string Description => ServicesVSResources.Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below;
 
-        public PullMemberUpWarningDialog(PullMemberUpWarningViewModel viewModel)
+        public MoveMembersWarningDialog(MoveMembersWarningViewModel viewModel)
         {
             DataContext = viewModel;
             InitializeComponent();

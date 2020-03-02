@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.MoveMembers;
 
 namespace Microsoft.CodeAnalysis.PullMemberUp
 {
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         {
             Destination = destination;
             MemberAnalysisResults = memberAnalysisResults;
-            PullUpOperationNeedsToDoExtraChanges = MemberAnalysisResults.Any(result => result.PullMemberUpNeedsToDoExtraChanges);
+            PullUpOperationNeedsToDoExtraChanges = MemberAnalysisResults.Any(result => result.MoveMemberNeedsToDoExtraChanges);
         }
     }
 }
