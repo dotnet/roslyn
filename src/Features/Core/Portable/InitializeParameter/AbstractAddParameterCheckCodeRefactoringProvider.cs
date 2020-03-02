@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
     {
         protected abstract bool CanOffer(SyntaxNode body);
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
+        protected abstract SyntaxToken CreateInterpolatedStringStartToken();
+        protected abstract SyntaxToken CreateInterpolatedStringEndToken();
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -351,10 +353,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private static TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter)
+        private TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter)
             => (TStatementSyntax)generator.CreateNullCheckAndThrowStatement(semanticModel, parameter);
 
-        private static TStatementSyntax CreateStringCheckStatement(
+        private TStatementSyntax CreateStringCheckStatement(
             Compilation compilation, SyntaxGenerator generator,
             IParameterSymbol parameter, string methodName)
         {
@@ -504,7 +506,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
-        private static SyntaxNode GetTypeNode(
+        private SyntaxNode GetTypeNode(
             Compilation compilation, SyntaxGenerator generator, Type type)
         {
             var typeSymbol = compilation.GetTypeByMetadataName(type.FullName);
@@ -518,7 +520,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return generator.TypeExpression(typeSymbol);
         }
 
-        private static SyntaxNode CreateArgumentNullException(
+        private SyntaxNode CreateArgumentNullException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
             return generator.ObjectCreationExpression(
@@ -529,11 +531,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static SyntaxNode CreateArgumentException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
-            // Note "message" is not localized.  It is the name of the first parameter of 
-            // "ArgumentException"
             return generator.ObjectCreationExpression(
                 GetTypeNode(compilation, generator, typeof(ArgumentException)),
-                generator.LiteralExpression("message"),
+                generator.InterpolatedStringExpression
+                (
+                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken),
+                    new List<SyntaxNode>
+                    {
+                        generator.InterpolatedStringText(generator.InterpolatedStringTextToken($"'{{{generator.NameOfExpression(generator.IdentifierName(parameter.Name))}}}' cannot be null or empty"))
+                    },
+                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken)
+                ),
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
     }
