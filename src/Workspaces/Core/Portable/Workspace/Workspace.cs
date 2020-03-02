@@ -82,18 +82,7 @@ namespace Microsoft.CodeAnalysis
             var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService, serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty);
             _latestSolution = CreateSolution(info, emptyOptions);
 
-            TryRegisterDocumentOptionsProvider();
-        }
-
-        internal void TryRegisterDocumentOptionsProvider()
-        {
-            var documentOptionsProvider = EditorConfigDocumentOptionsProviderFactory.TryCreate(this);
-            if (documentOptionsProvider is null)
-            {
-                return;
-            }
-
-            _optionService.RegisterDocumentOptionsProvider(documentOptionsProvider);
+            _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create(this));
         }
 
         internal void LogTestMessage(string message)

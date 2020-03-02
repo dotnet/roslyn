@@ -15,14 +15,8 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 {
     internal static class EditorConfigDocumentOptionsProviderFactory
     {
-        public static IDocumentOptionsProvider? TryCreate(Workspace workspace)
+        public static IDocumentOptionsProvider Create(Workspace workspace)
         {
-            if (!ShouldUseNativeEditorConfigSupport(workspace))
-            {
-                // Simply disable if the feature isn't on
-                return null;
-            }
-
             return new EditorConfigDocumentOptionsProvider(workspace.Services.GetService<IErrorLoggerService>());
         }
 
@@ -48,6 +42,12 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
             public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
             {
+                if (!ShouldUseNativeEditorConfigSupport(document.Project.Solution.Workspace))
+                {
+                    // Simply disable if the feature isn't on
+                    return null;
+                }
+
                 var options = await document.GetAnalyzerOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 return new DocumentOptions(options, _errorLogger);
