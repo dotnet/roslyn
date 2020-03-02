@@ -44,6 +44,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectBinderSnapshot.cs" Link="Serialization\ObjectBinderSnapshot.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs" Link="Serialization\ObjectReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs" Link="Serialization\ObjectWriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceCodeKindExtensions.cs" Link="Utilities\Compiler\SourceCodeKindExtensions.cs"/>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>Execution\Desktop\DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
