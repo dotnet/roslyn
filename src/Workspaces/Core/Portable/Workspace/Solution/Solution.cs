@@ -1508,7 +1508,7 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
-        private void CheckContainsDocument([NotNull]DocumentId? documentId)
+        private void CheckContainsDocument([NotNull] DocumentId? documentId)
         {
             if (documentId == null)
             {
