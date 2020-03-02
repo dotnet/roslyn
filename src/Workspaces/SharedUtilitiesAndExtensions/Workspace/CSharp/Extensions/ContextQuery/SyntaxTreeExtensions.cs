@@ -1002,9 +1002,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             if (token.IsKind(SyntaxKind.CommaToken) &&
-                token.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
+                token.Parent.IsKind(SyntaxKind.ParameterList, out ParameterListSyntax parameterList) &&
+                parameterList.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
-                var parameterList = (ParameterListSyntax)token.Parent;
                 var commaIndex = parameterList.Parameters.GetWithSeparators().IndexOf(token);
 
                 parameterIndex = commaIndex / 2 + 1;
@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 token.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax parameter) &&
-                parameter.IsParentKind(SyntaxKind.ParameterList, out ParameterListSyntax parameterList) &&
+                parameter.IsParentKind(SyntaxKind.ParameterList, out parameterList) &&
                 parameterList.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
                 parameterIndex = parameterList.Parameters.IndexOf(parameter);
