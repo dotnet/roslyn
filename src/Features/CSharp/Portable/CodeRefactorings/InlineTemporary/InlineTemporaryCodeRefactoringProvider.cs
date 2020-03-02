@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
 
             if (!variableDeclarator.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) ||
-                !variableDeclarator.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
+                !variableDeclaration.IsParentKind(SyntaxKind.LocalDeclarationStatement))
             {
                 return;
             }
