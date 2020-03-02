@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             {
                 if (content is InterpolatedStringTextSyntax textSyntax)
                 {
+                    // Ensure our temp builder is in a empty starting state.
+                    sb.Clear();
+
                     addStringText(charService, sb, textSyntax.TextToken);
                     newContents.Add(textSyntax.WithTextToken(CreateTextToken(textSyntax.TextToken, sb)));
                 }

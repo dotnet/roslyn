@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 {
@@ -44,22 +43,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 
             var (document, _, cancellationToken) = context;
 
-            var syntaxFacts = CSharpSyntaxFacts.Instance;
             var charService = document.GetRequiredLanguageService<IVirtualCharService>();
 
             using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var subStringTokens);
 
-            AddSubStringTokens(literalExpression, subStringTokens);
             // First, ensure that we understand all text parts of the interpolation.
+            AddSubStringTokens(literalExpression, subStringTokens);
             foreach (var subToken in subStringTokens)
             {
                 var chars = charService.TryConvertToVirtualChars(subToken);
                 if (chars.IsDefault)
                     return;
             }
-
-            // Offer to convert to a verbatim string if the normal string contains simple
-            // escapes that can be directly embedded in the verbatim string.
 
             if (IsVerbatim(literalExpression))
             {
@@ -70,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             }
             else if (ContainsSimpleEscape(charService, subStringTokens))
             {
+                // Offer to convert to a verbatim string if the normal string contains simple
+                // escapes that can be directly embedded in the verbatim string.
                 context.RegisterRefactoring(new MyCodeAction(
                     CSharpFeaturesResources.Convert_to_verbatim_string,
                     c => ConvertToVerbatimStringAsync(document, literalExpression, c)));
@@ -99,9 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         protected void AddVerbatimStringText(
             IVirtualCharService charService, StringBuilder sb, SyntaxToken stringToken)
         {
-            // Ensure our temp builder is in a empty starting state.
-            sb.Clear();
-
             var isInterpolation = this.IsInterpolation;
             var chars = charService.TryConvertToVirtualChars(stringToken);
 
@@ -136,9 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         protected void AddRegularStringText(
             IVirtualCharService charService, StringBuilder sb, SyntaxToken stringToken)
         {
-            // Ensure our temp builder is in a empty starting state.
-            sb.Clear();
-
             var isInterpolation = this.IsInterpolation;
             var chars = charService.TryConvertToVirtualChars(stringToken);
 
