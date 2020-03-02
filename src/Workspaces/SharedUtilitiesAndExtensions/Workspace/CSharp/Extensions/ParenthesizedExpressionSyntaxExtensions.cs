@@ -213,6 +213,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // (this)   -> this
+            if (expression.IsKind(SyntaxKind.ThisExpression))
+            {
+                return true;
+            }
+
             // x ?? (throw ...) -> x ?? throw ...
             if (expression.IsKind(SyntaxKind.ThrowExpression) &&
                 node.IsParentKind(SyntaxKind.CoalesceExpression, out BinaryExpressionSyntax binary) &&
