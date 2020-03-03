@@ -137,6 +137,16 @@
         <target state="translated">Configurar severidade de {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Configure_severity_for_all_0_analyzers">
+        <source>Configure severity for all '{0}' analyzers</source>
+        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_analyzers">
+        <source>Configure severity for all analyzers</source>
+        <target state="new">Configure severity for all analyzers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Converter para LINQ</target>
