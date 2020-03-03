@@ -41,6 +41,76 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         [Fact]
+        public void ExpressionTreePatternIndexAndRange()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+struct S
+{
+    public int Length => 0;
+    public S Slice(int start, int length) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int[], int>> e = (int[] a) => a[new Index(0, true)]; // 1
+        Expression<Func<List<int>, int>> e2 = (List<int> a) => a[new Index(0, true)]; // 2
+        
+        Expression<Func<int[], int[]>> e3 = (int[] a) => a[new Range(0, 1)]; // 3
+        Expression<Func<S, S>> e4 = (S s) => s[new Range(0, 1)]; // 4
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(
+                new[] { src, TestSources.GetSubArray, });
+            comp.VerifyEmitDiagnostics(
+                // (16,55): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<int[], int>> e = (int[] a) => a[new Index(0, true)]; // 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Index(0, true)]").WithLocation(16, 55),
+                // (17,64): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<List<int>, int>> e2 = (List<int> a) => a[new Index(0, true)]; // 2
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Index(0, true)]").WithLocation(17, 64),
+                // (19,58): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<int[], int[]>> e3 = (int[] a) => a[new Range(0, 1)]; // 3
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Range(0, 1)]").WithLocation(19, 58),
+                // (20,46): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<S, S>> e4 = (S s) => s[new Range(0, 1)]; // 4
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "s[new Range(0, 1)]").WithLocation(20, 46)
+            );
+        }
+
+        [Fact]
+        public void ExpressionTreeFromEndIndexAndRange()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<Index>> e = () => ^1;
+        Expression<Func<Range>> e2 = () => 1..2;
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyEmitDiagnostics(
+                // (10,43): error CS8791: An expression tree may not contain a from-end index ('^') expression.
+                //         Expression<Func<Index>> e = () => ^1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsFromEndIndexExpression, "^1").WithLocation(10, 43),
+                // (11,44): error CS8792: An expression tree may not contain a range ('..') expression.
+                //         Expression<Func<Range>> e2 = () => 1..2;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsRangeExpression, "1..2").WithLocation(11, 44)
+            );
+        }
+
+        [Fact]
         public void PatternIndexArray()
         {
             var src = @"

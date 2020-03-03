@@ -173,7 +173,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                    exprDataFlow.WrittenInside.Contains(localOrParameter);
         }
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract ISemanticFactsService GetSemanticFactsService();
 
         private bool TryFindAssignmentExpression(

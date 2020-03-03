@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analyzersPerReference = analyzerInfoCache.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateStateSetMap(analyzerInfoCache, language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: true);
+                    var analyzerMap = CreateStateSetMap(language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: true);
                     VerifyUniqueStateNames(analyzerMap.Values);
 
                     return new HostAnalyzerStateSets(analyzerInfoCache, language, analyzerMap);

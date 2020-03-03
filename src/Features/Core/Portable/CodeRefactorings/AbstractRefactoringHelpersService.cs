@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return ImmutableArray<TSyntaxNode>.Empty;
             }
 
-            var syntaxFacts = document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
-            var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpan(document, selectionRaw, cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpanAsync(document, selectionRaw, cancellationToken).ConfigureAwait(false);
 
             // If user selected only whitespace we don't want to return anything. We could do following:
             //  1) Consider token that owns (as its trivia) the whitespace.
@@ -98,9 +98,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 // as long as it is on the first line of such expression (arbitrary heuristic).
 
                 // First we need to get tokens we might potentially be touching, tokenToRightOrIn and tokenToLeft.
-                var (tokenToRightOrIn, tokenToLeft, location) = await GetTokensToRightOrInToLeftAndUpdatedLocation(
+                var (tokenToRightOrIn, tokenToLeft, location) = await GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
                     document, root, selectionTrimmed, cancellationToken).ConfigureAwait(false);
-
 
                 // In addition to per-node extr also check if current location (if selection is empty) is in a header of higher level
                 // desired node once. We do that only for locations because otherwise `[|int|] A { get; set; }) would trigger all refactorings for 
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 {
                     // Reason to treat Arguments (and potentially others) as Expression-like: 
                     // https://github.com/dotnet/roslyn/pull/37295#issuecomment-516145904
-                    await AddNodesDeepIn(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
+                    await AddNodesDeepInAsync(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private async Task<(SyntaxToken tokenToRightOrIn, SyntaxToken tokenToLeft, int location)> GetTokensToRightOrInToLeftAndUpdatedLocation(
+        private async Task<(SyntaxToken tokenToRightOrIn, SyntaxToken tokenToLeft, int location)> GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
             Document document,
             SyntaxNode root,
             TextSpan selectionTrimmed,
@@ -448,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        protected virtual async Task AddNodesDeepIn<TSyntaxNode>(
+        protected virtual async Task AddNodesDeepInAsync<TSyntaxNode>(
             Document document, int position,
             ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode

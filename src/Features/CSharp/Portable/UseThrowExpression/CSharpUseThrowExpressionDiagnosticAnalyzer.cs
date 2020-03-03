@@ -23,9 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression
             return csOptions.LanguageVersion >= LanguageVersion.CSharp7;
         }
 
-        protected override ISyntaxFactsService GetSyntaxFactsService()
-            => CSharpSyntaxFactsService.Instance;
-
         protected override ISemanticFactsService GetSemanticFactsService()
             => CSharpSemanticFactsService.Instance;
     }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override bool RequiresExplicitImplementationForInterfaceMembers => false;
 
-        internal override ISyntaxFactsService SyntaxFacts => CSharpSyntaxFactsService.Instance;
+        internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
@@ -292,36 +293,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 getAccessorStatements = null;
                 setAccessorStatements = null;
             }
-            else
-            {
-                if (getAccessorStatements == null && hasGetter)
-                {
-                    getAccessorStatements = SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-                }
-
-                if (setAccessorStatements == null && hasSetter)
-                {
-                    setAccessorStatements = SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-                }
-            }
 
             if (hasGetter)
-            {
                 accessors.Add(AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, getAccessorStatements));
-            }
 
             if (hasSetter)
-            {
                 accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, setAccessorStatements));
-            }
 
             var actualModifiers = modifiers - (DeclarationModifiers.ReadOnly | DeclarationModifiers.WriteOnly);
 
             return SyntaxFactory.PropertyDeclaration(
-                default,
+                attributeLists: default,
                 AsModifierList(accessibility, actualModifiers, SyntaxKind.PropertyDeclaration),
                 (TypeSyntax)type,
-                default,
+                explicitInterfaceSpecifier: default,
                 name.ToIdentifierToken(),
                 SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
         }
@@ -3434,14 +3419,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return DefaultExpression(type.GenerateTypeSyntax());
         }
 
-        internal override SyntaxNode AddParentheses(SyntaxNode expression)
+        internal override SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
-            return Parenthesize(expression);
+            return Parenthesize(expression, includeElasticTrivia, addSimplifierAnnotation);
         }
 
-        private static ExpressionSyntax Parenthesize(SyntaxNode expression)
+        private static ExpressionSyntax Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
-            return ((ExpressionSyntax)expression).Parenthesize();
+            return ((ExpressionSyntax)expression).Parenthesize(includeElasticTrivia, addSimplifierAnnotation);
         }
 
         public override SyntaxNode IsTypeExpression(SyntaxNode expression, SyntaxNode type)

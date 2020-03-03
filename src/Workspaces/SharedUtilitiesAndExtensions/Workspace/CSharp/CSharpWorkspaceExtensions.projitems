@@ -9,7 +9,6 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArrowExpressionClauseSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AttributeArgumentSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BaseArgumentListSyntaxExtensions.cs" />
@@ -22,10 +21,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTokenExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ConversionExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveSyntaxEqualityComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DocumentationCommentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ForEachStatementSyntaxExtensions.cs" />
@@ -34,9 +29,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.ExpressionSyntaxGeneratorVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.TypeSyntaxGeneratorVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.DeclarationFinder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.LocalDeclarationMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\NamespaceDeclarationSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\NameSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.cs" />
@@ -45,7 +37,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SeparatedSyntaxListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.SingleLineRewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTokenExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTokenListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTreeExtensions.cs" />
@@ -55,12 +46,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpAddImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpCommandLineParserService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSemanticFactsServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSymbolDeclarationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSyntaxFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSyntaxFactsServiceFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSyntaxKindsServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpTypeInferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpGeneratedCodeRecognitionService.cs" />

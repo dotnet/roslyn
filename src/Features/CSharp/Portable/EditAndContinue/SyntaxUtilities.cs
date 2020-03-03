@@ -216,27 +216,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.FieldDeclaration))
-            {
-                return ((FieldDeclarationSyntax)node).Modifiers;
-            }
+            if (node.IsKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax fieldDecl))
+                return fieldDecl.Modifiers;
 
-            if (node.IsKind(SyntaxKind.PropertyDeclaration))
-            {
-                return ((PropertyDeclarationSyntax)node).Modifiers;
-            }
+            if (node.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDecl))
+                return propertyDecl.Modifiers;
 
             return null;
         }
 
         public static bool IsParameterlessConstructor(SyntaxNode declaration)
         {
-            if (!declaration.IsKind(SyntaxKind.ConstructorDeclaration))
+            if (!declaration.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax ctor))
             {
                 return false;
             }
 
-            var ctor = (ConstructorDeclarationSyntax)declaration;
             return ctor.ParameterList.Parameters.Count == 0;
         }
 
@@ -305,8 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             // each declarator in the declaration translates to a suspension point: await DisposeAsync
             if (node.IsKind(SyntaxKind.VariableDeclarator) &&
-                node.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) &&
-                ((LocalDeclarationStatementSyntax)node.Parent.Parent).AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
+                node.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax localDecl) &&
+                localDecl.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
             {
                 return true;
             }
