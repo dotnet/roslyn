@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 text[trivia.SpanStart] == ch;
         }
 
-        private async Task<Document> FixAllAsync(
+        private async Task<SyntaxNode> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             string equivalenceKey, CancellationToken cancellationToken)
         {
@@ -305,7 +305,9 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             }
 
             var finalText = text.WithChanges(edits);
-            return document.WithText(finalText);
+            var finalDoc = document.WithText(finalText);
+
+            return await finalDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
