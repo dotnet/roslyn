@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     highlights.Add(.InKeyword.Span)
                 End With
             Else
-                Contract.Fail("Expected ForStatementSyntax or ForEachStatementSyntax, but was " & forBlock.ForOrForEachStatement.GetTypeDisplayName())
+                Throw Contract.UnexpectedValue(forBlock.ForOrForEachStatement)
             End If
 
             highlights.AddRange(

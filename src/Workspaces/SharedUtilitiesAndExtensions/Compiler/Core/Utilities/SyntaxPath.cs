@@ -79,7 +79,7 @@ namespace Roslyn.Utilities
                     }
                 }
 
-                Contract.Fail();
+                throw Contract.Unreachable;
             }
         }
 

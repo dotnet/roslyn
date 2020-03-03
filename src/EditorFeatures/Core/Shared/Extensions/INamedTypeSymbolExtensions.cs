@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case TypeKind.Error:
                     return StandardGlyphGroup.GlyphGroupError;
                 default:
-                    return Contract.FailWithReturn<StandardGlyphGroup>("Unknown named type symbol kind!");
+                    throw Contract.UnexpectedValue(symbol.TypeKind);
             }
         }
     }

@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return multiLineLambdaExpression.Statements
             End If
 
-            Return Contract.FailWithReturn(Of SyntaxList(Of StatementSyntax))("unknown statements container!")
+            Throw Contract.UnexpectedValue(node)
         End Function
 
         <Extension()>

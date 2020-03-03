@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         return 2;
 
                     default:
-                        return Contract.FailWithReturn<int>("unknown part kind");
+                        throw Contract.UnexpectedValue(group);
                 }
             }
 

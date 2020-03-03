@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             ElseIf token.TrailingTrivia.Contains(trivia) Then
                 Return CreateCommentsRegions(token.TrailingTrivia)
             Else
-                Return Contract.FailWithReturn(Of ImmutableArray(Of BlockSpan))()
+                Throw Contract.Unreachable
             End If
         End Function
 

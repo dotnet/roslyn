@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                       Return lastTokenWithTrailingTrivia
                                                   End If
 
-                                                  Return Contract.FailWithReturn(Of SyntaxToken)("Shouldn't reach here")
+                                                  Return Contract.UnexpectedValue(o)
                                               End Function)
 
                 Return True

@@ -344,19 +344,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         }
 
         private static int GetNamespaceId(SyntaxNode container, NamespaceDeclarationSyntax target, ref int index)
-        {
-            if (container is CompilationUnitSyntax compilation)
+            => container switch
             {
-                return GetNamespaceId(compilation.Members, target, ref index);
-            }
-
-            if (container is NamespaceDeclarationSyntax @namespace)
-            {
-                return GetNamespaceId(@namespace.Members, target, ref index);
-            }
-
-            return Contract.FailWithReturn<int>("shouldn't reach here");
-        }
+                CompilationUnitSyntax compilation => GetNamespaceId(compilation.Members, target, ref index),
+                NamespaceDeclarationSyntax @namespace => GetNamespaceId(@namespace.Members, target, ref index),
+                _ => throw Contract.UnexpectedValue(container)
+            };
 
         private static int GetNamespaceId(SyntaxList<MemberDeclarationSyntax> members, NamespaceDeclarationSyntax target, ref int index)
         {

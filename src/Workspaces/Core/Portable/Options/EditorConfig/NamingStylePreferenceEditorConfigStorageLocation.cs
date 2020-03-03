@@ -39,11 +39,8 @@ namespace Microsoft.CodeAnalysis.Options
                 // no existing naming styles were passed so just return the set of styles that were parsed from editorconfig
                 return (result: editorconfigNamingStylePreferences, succeeded: true);
             }
-            else
-            {
-                return Contract.FailWithReturn<(object, bool)>(
-                    $"{nameof(NamingStylePreferenceEditorConfigStorageLocation)} can only be called with {nameof(PerLanguageOption<NamingStylePreferences>)}<{nameof(NamingStylePreferences)}>.");
-            }
+
+            throw Contract.UnexpectedValue(type);
         }
     }
 }

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
                 }
 
-                return Contract.FailWithReturn<CSharpCodeGenerator>("Unknown selection");
+                throw Contract.UnexpectedValue(selectionResult);
             }
 
             protected CSharpCodeGenerator(

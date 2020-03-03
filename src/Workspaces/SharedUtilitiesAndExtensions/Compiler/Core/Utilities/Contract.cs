@@ -7,21 +7,41 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Roslyn.Utilities
 {
     internal static class Contract
     {
+        public static Exception Unreachable
+            => ExceptionUtilities.Unreachable;
+
+        public static Exception UnexpectedValue(object? o)
+            => ExceptionUtilities.UnexpectedValue(o);
+
         /// <summary>
         /// Throws a non-accessible exception if the provided value is null.  This method executes in
         /// all builds
         /// </summary>
-        public static void ThrowIfNull<T>([NotNull] T value, string? message = null) where T : class?
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNull<T>([NotNull] T value) where T : class?
         {
-            if (value == null)
+            if (value is null)
             {
-                message ??= "Unexpected Null";
-                Fail(message);
+                Fail("Unexpected null");
+            }
+        }
+
+        /// <summary>
+        /// Throws a non-accessible exception if the provided value is null.  This method executes in
+        /// all builds
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNull<T>([NotNull] T value, string? message) where T : class?
+        {
+            if (value is null)
+            {
+                Fail(message ?? "Unexpected null");
             }
         }
 
@@ -29,11 +49,24 @@ namespace Roslyn.Utilities
         /// Throws a non-accessible exception if the provided value is false.  This method executes
         /// in all builds
         /// </summary>
-        public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string? message = null)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition)
         {
             if (!condition)
             {
-                message ??= "Unexpected false";
+                Fail("Unexpected false");
+            }
+        }
+
+        /// <summary>
+        /// Throws a non-accessible exception if the provided value is false.  This method executes
+        /// in all builds
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string message)
+        {
+            if (!condition)
+            {
                 Fail(message);
             }
         }
@@ -42,32 +75,34 @@ namespace Roslyn.Utilities
         /// Throws a non-accessible exception if the provided value is true. This method executes in
         /// all builds.
         /// </summary>
-        public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, string? message = null)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition)
         {
             if (condition)
             {
-                message ??= "Unexpected true";
+                Fail("Unexpected true");
+            }
+        }
+
+        /// <summary>
+        /// Throws a non-accessible exception if the provided value is true. This method executes in
+        /// all builds.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, string message)
+        {
+            if (condition)
+            {
                 Fail(message);
             }
         }
 
         [DebuggerHidden]
         [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void Fail(string message = "Unexpected")
         {
             throw new InvalidOperationException(message);
-        }
-
-        [DebuggerHidden]
-        [DoesNotReturn]
-        public static T FailWithReturn<T>(string message = "Unexpected")
-        {
-            throw new InvalidOperationException(message);
-        }
-
-        public static void InvalidEnumValue<T>(T value)
-        {
-            Fail(string.Format("Invalid Enumeration value {0}", value));
         }
     }
 }

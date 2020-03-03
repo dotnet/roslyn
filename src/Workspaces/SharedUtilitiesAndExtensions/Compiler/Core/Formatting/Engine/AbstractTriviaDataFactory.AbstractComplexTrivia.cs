@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return this;
                 }
 
-                return Contract.FailWithReturn<TriviaData>("Can not reach here");
+                throw Contract.Unreachable;
             }
 
             public override TriviaData WithLine(
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     }
                 }
 
-                return Contract.FailWithReturn<TriviaData>("Can not reach here");
+                throw Contract.Unreachable;
             }
 
             public override TriviaData WithIndentation(

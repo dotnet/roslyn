@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return false;
                 }
 
-                return Contract.FailWithReturn<bool>("This can't happen");
+                throw Contract.Unreachable;
             }
 
             private bool OnRegion(SyntaxTrivia trivia, int currentIndex)

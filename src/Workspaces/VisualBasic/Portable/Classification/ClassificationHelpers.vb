@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
-                Return Contract.FailWithReturn(Of String)("Unhandled token kind: " & token.Kind().ToString())
+                Throw Contract.UnexpectedValue(token.Kind())
             End If
         End Function
 
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Case SyntaxKind.StructureStatement
                     Return ClassificationTypeNames.StructName
                 Case Else
-                    Return Contract.FailWithReturn(Of String)("Unhandled type declaration")
+                    Throw Contract.UnexpectedValue(identifier.Parent.Kind)
             End Select
         End Function
 

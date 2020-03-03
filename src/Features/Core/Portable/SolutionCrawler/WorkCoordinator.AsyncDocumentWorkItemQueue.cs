@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return true;
                     }
 
-                    return Contract.FailWithReturn<bool>("how?");
+                    throw Contract.Unreachable;
                 }
 
                 private DocumentId GetBestDocumentId_NoLock(

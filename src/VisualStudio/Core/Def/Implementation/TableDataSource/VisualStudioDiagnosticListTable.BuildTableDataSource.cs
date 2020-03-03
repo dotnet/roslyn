@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     public override object Key => _source._key;
                     public override string BuildTool => PredefinedBuildTools.Build;
                     public override bool SupportSpanTracking => false;
-                    public override DocumentId TrackingDocumentId => Contract.FailWithReturn<DocumentId>("This should never be called");
+                    public override DocumentId TrackingDocumentId => throw Contract.Unreachable;
 
                     public override ImmutableArray<DiagnosticTableItem> GetItems()
                     {
