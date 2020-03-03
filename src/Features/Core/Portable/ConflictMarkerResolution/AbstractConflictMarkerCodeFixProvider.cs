@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 token = token.GetNextToken(includeZeroWidth: true);
                 if (token.RawKind == 0)
                 {
-                    return default;
+                    return null;
                 }
             }
         }
