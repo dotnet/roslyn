@@ -347,12 +347,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Conversion.IsExtensionMethod; }
         }
 
-        public MethodSymbol SymbolOpt
+        public MethodSymbol? SymbolOpt
         {
             get { return this.Conversion.Method; }
         }
 
-        public override Symbol ExpressionSymbol
+        public override Symbol? ExpressionSymbol
         {
             get { return this.SymbolOpt; }
         }

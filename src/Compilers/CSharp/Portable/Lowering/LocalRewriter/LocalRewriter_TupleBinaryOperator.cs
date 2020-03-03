@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         var newArguments = builder.ToImmutableAndFree();
                         tuple = new BoundConvertedTupleLiteral(
-                            tuple.Syntax, sourceTuple: null, wasTargetTyped: true, newArguments, ImmutableArray<string>.Empty,
+                            tuple.Syntax, sourceTuple: null, wasTargetTyped: true, newArguments, ImmutableArray<string?>.Empty,
                             ImmutableArray<bool>.Empty, conversion.Type, conversion.HasErrors);
                         return true;
                     }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new BoundConvertedTupleLiteral(
-                    syntax, sourceTuple: null, wasTargetTyped: true, fieldAccessorsBuilder.ToImmutableAndFree(), ImmutableArray<string>.Empty,
+                    syntax, sourceTuple: null, wasTargetTyped: true, fieldAccessorsBuilder.ToImmutableAndFree(), ImmutableArray<string?>.Empty,
                     ImmutableArray<bool>.Empty, expr.Type, expr.HasErrors);
             }
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var newArguments = builder.ToImmutableAndFree();
                     return new BoundConvertedTupleLiteral(
-                        tuple.Syntax, sourceTuple: null, wasTargetTyped: false, newArguments, ImmutableArray<string>.Empty,
+                        tuple.Syntax, sourceTuple: null, wasTargetTyped: false, newArguments, ImmutableArray<string?>.Empty,
                         ImmutableArray<bool>.Empty, tuple.Type, tuple.HasErrors);
                 }
             }
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             sourceTuple: null,
                             wasTargetTyped: false,
                             arguments: argumentBuilder.ToImmutableAndFree(),
-                            argumentNamesOpt: ImmutableArray<string>.Empty,
+                            argumentNamesOpt: ImmutableArray<string?>.Empty,
                             inferredNamesOpt: ImmutableArray<bool>.Empty,
                             type: expr.Type,
                             hasErrors: expr.HasErrors).WithSuppression(expr.IsSuppressed);

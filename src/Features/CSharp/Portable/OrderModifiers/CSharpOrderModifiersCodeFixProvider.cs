@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.OrderModifiers;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 
         [ImportingConstructor]
         public CSharpOrderModifiersCodeFixProvider()
-            : base(CSharpSyntaxFactsService.Instance, CSharpCodeStyleOptions.PreferredModifierOrder, CSharpOrderModifiersHelper.Instance)
+            : base(CSharpSyntaxFacts.Instance, CSharpCodeStyleOptions.PreferredModifierOrder, CSharpOrderModifiersHelper.Instance)
         {
         }
 

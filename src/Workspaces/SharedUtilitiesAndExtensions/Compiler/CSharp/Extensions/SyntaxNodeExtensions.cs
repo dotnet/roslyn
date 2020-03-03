@@ -43,6 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsParentKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind)
             => CodeAnalysis.CSharpExtensions.IsKind(node?.Parent, kind);
 
+        public static bool IsParentKind<TNode>([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind, [NotNullWhen(returnValue: true)] out TNode? result)
+            where TNode : SyntaxNode
+        {
+            if (node.IsParentKind(kind))
+            {
+                result = (TNode)node.Parent!;
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
+
         public static bool IsParentKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2)
             => IsKind(node?.Parent, kind1, kind2);
 
@@ -255,10 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var current = node;
             while (current?.Parent != null)
             {
-                if (current.IsParentKind(SyntaxKind.ConditionalAccessExpression) &&
-                    ((ConditionalAccessExpressionSyntax)current.Parent).WhenNotNull == current)
+                if (current.IsParentKind(SyntaxKind.ConditionalAccessExpression, out ConditionalAccessExpressionSyntax? conditional) &&
+                    conditional.WhenNotNull == current)
                 {
-                    return (ConditionalAccessExpressionSyntax)current.Parent;
+                    return conditional;
                 }
 
                 current = current.Parent;
@@ -325,10 +338,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsLeftSideOfAssignExpression([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-        {
-            return node.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
-                ((AssignmentExpressionSyntax)node.Parent!).Left == node;
-        }
+            => node.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment) &&
+               assignment.Left == node;
 
         public static bool IsLeftSideOfAnyAssignExpression(this SyntaxNode node)
         {
@@ -728,12 +739,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => CSharpSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out strippedTrivia);
 
         public static bool IsVariableDeclaratorValue(this SyntaxNode node)
-        {
-            return
-                node.IsParentKind(SyntaxKind.EqualsValueClause) &&
-                node.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
-                ((EqualsValueClauseSyntax)node.Parent).Value == node;
-        }
+            => node.IsParentKind(SyntaxKind.EqualsValueClause, out EqualsValueClauseSyntax? equalsValue) &&
+               equalsValue.IsParentKind(SyntaxKind.VariableDeclarator) &&
+               equalsValue.Value == node;
 
         public static BlockSyntax? FindInnermostCommonBlock(this IEnumerable<SyntaxNode> nodes)
         {

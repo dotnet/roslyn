@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < leftTargets.Count; i++)
             {
                 BoundExpression? resultPart;
-                if (leftTargets[i].HasNestedVariables)
+                if (leftTargets[i].NestedVariables is { } nested)
                 {
-                    resultPart = ApplyDeconstructionConversion(leftTargets[i].NestedVariables, rightParts[i],
+                    resultPart = ApplyDeconstructionConversion(nested, rightParts[i],
                         underlyingConversions[i], temps, effects, isUsed, inInit);
                 }
                 else
@@ -145,8 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         rightPart = EvaluateSideEffectingArgumentToTemp(rightPart, effects.init, temps);
                     }
-                    BoundExpression leftTarget = leftTargets[i].Single;
-                    Debug.Assert(leftTarget.Type is { });
+                    BoundExpression? leftTarget = leftTargets[i].Single;
+                    Debug.Assert(leftTarget is { Type: { } });
 
                     resultPart = EvaluateConversionToTemp(rightPart, underlyingConversions[i], leftTarget.Type, temps,
                         effects.conversions);

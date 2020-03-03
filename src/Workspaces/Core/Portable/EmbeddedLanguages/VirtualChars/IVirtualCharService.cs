@@ -55,5 +55,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// token's <see cref="SyntaxToken.ValueText"/>.
         /// </summary>
         VirtualCharSequence TryConvertToVirtualChars(SyntaxToken token);
+
+        /// <summary>
+        /// Produces the appropriate escape version of <paramref name="ch"/> to be placed in a
+        /// normal string literal.  For example if <paramref name="ch"/> is the <c>tab</c>
+        /// character, then this would produce <c>t</c> as <c>\t</c> is what would go into a string
+        /// literal.
+        /// </summary>
+        bool TryGetEscapeCharacter(char ch, out char escapeChar);
     }
 }

@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             Contract.ThrowIfFalse(preference == ExpressionBodyPreference.WhenOnSingleLine);
-            return CSharpSyntaxFactsService.Instance.IsOnSingleLine(expression, fullSpan: false);
+            return CSharpSyntaxFacts.Instance.IsOnSingleLine(expression, fullSpan: false);
         }
 
         private static bool TryGetExpression(

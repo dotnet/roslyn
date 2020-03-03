@@ -5,6 +5,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                 return FeaturesResources.paren_Unknown_paren;
             }
 
-            if (CSharpSyntaxFactsService.Instance.IsGlobalAttribute(node))
+            if (CSharpSyntaxFacts.Instance.IsGlobalAttribute(node))
             {
                 return "assembly: " + node.ConvertToSingleLine();
             }
