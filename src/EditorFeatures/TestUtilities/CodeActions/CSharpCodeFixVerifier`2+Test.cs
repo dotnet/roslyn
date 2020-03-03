@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Roslyn.Utilities;
 
@@ -34,20 +37,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    var parseOptions = (CSharpParseOptions)solution.GetProject(projectId).ParseOptions;
+                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    var compilationOptions = solution.GetProject(projectId).CompilationOptions;
+                    var compilationOptions = solution.GetRequiredProject(projectId).CompilationOptions!;
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_nullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
+#if !CODE_STYLE // TODO: Add support for Options based tests in CodeStyle layer
+                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, Options);
+                    if (analyzerConfigSource is object)
+                    {
+                        foreach (var id in solution.ProjectIds)
+                        {
+                            var documentId = DocumentId.CreateNewId(id, ".editorconfig");
+                            solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", analyzerConfigSource, filePath: "/.editorconfig");
+                        }
+                    }
+
                     var options = solution.Options;
-                    foreach (var (key, value) in Options)
+                    foreach (var (key, value) in remainingOptions)
                     {
                         options = options.WithChangedOption(key, value);
                     }
 
                     solution = solution.WithOptions(options);
+#endif
 
                     return solution;
                 });
@@ -73,15 +88,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp8;
 
+#if !CODE_STYLE // TODO: Add support for Options based tests in CodeStyle layer
             /// <summary>
             /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
             /// using a collection initializer.
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
+#endif
 
+            public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
+
+#if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
             {
                 return new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+            }
+#endif
+
+            protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
+            {
+                return DiagnosticSelector?.Invoke(fixableDiagnostics)
+                    ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
             }
         }
     }

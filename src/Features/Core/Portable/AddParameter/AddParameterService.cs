@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var solution = invocationDocument.Project.Solution;
 
             var referencedSymbols = fixAllReferences
-                ? await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false)
+                ? await FindMethodDeclarationReferencesAsync(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
 
             var anySymbolReferencesNotInSource = referencedSymbols.Any(symbol => !symbol.IsFromSource());
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return solution;
         }
 
-        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferences(
+        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(
             Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
         {
             var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);

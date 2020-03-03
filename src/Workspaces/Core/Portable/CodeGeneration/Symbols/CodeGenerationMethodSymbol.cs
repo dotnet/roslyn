@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 CodeGenerationMethodInfo.GetIsNew(this),
                 CodeGenerationMethodInfo.GetIsUnsafe(this),
                 CodeGenerationMethodInfo.GetIsPartial(this),
-                CodeGenerationMethodInfo.GetIsAsync(this),
+                CodeGenerationMethodInfo.GetIsAsyncMethod(this),
                 CodeGenerationMethodInfo.GetStatements(this),
                 CodeGenerationMethodInfo.GetHandlesExpressions(this));
 

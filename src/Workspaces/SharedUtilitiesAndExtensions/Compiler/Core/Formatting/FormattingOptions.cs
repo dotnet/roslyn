@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             => s_parenthesesPreferenceMap.TryGetValue(endOfLineValue.Trim(), out var parsedOption) ? parsedOption : NewLine.DefaultValue;
 
         private static string GetEndOfLineEditorConfigString(string option)
-            => s_parenthesesPreferenceMap.TryGetKey(option, out var editorConfigString) ? editorConfigString : null;
+            => s_parenthesesPreferenceMap.TryGetKey(option, out var editorConfigString) ? editorConfigString : "unset";
 
         internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(OptionGroup.Default, nameof(AllowDisjointSpanMerging), defaultValue: false);
 

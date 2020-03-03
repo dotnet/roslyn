@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
-    public sealed class OptionsCollection : IEnumerable<KeyValuePair<OptionKey, object>>
+    public sealed class OptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey, object>>
     {
         private readonly Dictionary<OptionKey, object> _options = new Dictionary<OptionKey, object>();
         private readonly string _languageName;
@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             _languageName = languageName;
         }
+
+        public int Count => _options.Count;
 
         public void Add<T>(Option<T> option, T value)
             => _options.Add(new OptionKey(option), value);
