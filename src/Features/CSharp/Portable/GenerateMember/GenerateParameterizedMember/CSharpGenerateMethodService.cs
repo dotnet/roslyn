@@ -107,9 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
 
             if (memberAccess == null || memberAccess.Name == simpleName)
             {
-                if (simpleNameOrMemberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression))
+                if (simpleNameOrMemberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression, out invocationExpressionOpt))
                 {
-                    invocationExpressionOpt = (InvocationExpressionSyntax)simpleNameOrMemberAccessExpression.Parent;
                     isInConditionalAccessExpression = inConditionalMemberAccess;
                     return !invocationExpressionOpt.ArgumentList.CloseParenToken.IsMissing;
                 }

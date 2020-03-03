@@ -482,9 +482,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 var symbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
 
                 if (previousToken.Kind() == SyntaxKind.OpenParenToken &&
-                    previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression) &&
-                    !previousToken.Parent.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
-                    ((ParenthesizedExpressionSyntax)previousToken.Parent).Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
+                    previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr) &&
+                    !parenExpr.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
+                    parenExpr.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
                     symbol != null && symbol.Kind == SymbolKind.Method)
                 {
                     return false;
@@ -547,10 +547,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsNameOrMemberAccessButNoExpression(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
             {
-                var memberAccess = (MemberAccessExpressionSyntax)node;
-
                 return memberAccess.Expression.IsKind(SyntaxKind.IdentifierName) ||
                     IsNameOrMemberAccessButNoExpression(memberAccess.Expression);
             }

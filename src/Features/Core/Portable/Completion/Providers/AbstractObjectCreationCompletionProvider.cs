@@ -43,18 +43,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 supportedPlatforms: supportedPlatformData);
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return GetSymbolsWorkerInternal(context, position, options, preselect: false, cancellationToken);
+            return GetSymbolsCoreAsync(context, position, options, preselect: false, cancellationToken);
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(
+        protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(
             SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return GetSymbolsWorkerInternal(context, position, options, preselect: true, cancellationToken);
+            return GetSymbolsCoreAsync(context, position, options, preselect: true, cancellationToken);
         }
 
-        private Task<ImmutableArray<ISymbol>> GetSymbolsWorkerInternal(
+        private Task<ImmutableArray<ISymbol>> GetSymbolsCoreAsync(
             SyntaxContext context, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var newExpression = GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);

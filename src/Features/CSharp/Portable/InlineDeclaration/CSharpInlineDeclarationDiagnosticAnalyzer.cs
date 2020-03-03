@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var argumentExpression = argumentNode.Expression;
-            if (argumentExpression.Kind() != SyntaxKind.IdentifierName)
+            if (!argumentExpression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
             {
                 // has to be exactly the form "out i".  i.e. "out this.i" or "out v[i]" are legal
                 // cases for out-arguments, but could not be converted to an out-variable-declaration.
@@ -106,8 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // variable doesn't change semantics.
                 return;
             }
-
-            var identifierName = (IdentifierNameSyntax)argumentExpression;
 
             // Don't offer to inline variables named "_".  It can cause is to create a discard symbol
             // which would cause a break.

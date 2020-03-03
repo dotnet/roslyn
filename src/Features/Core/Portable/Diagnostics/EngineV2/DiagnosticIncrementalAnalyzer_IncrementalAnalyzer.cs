@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
-                var compilation = await GetOrCreateCompilationWithAnalyzers(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
+                var compilation = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -321,6 +321,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // once we support editorconfig fully, third party can use this
                 // ability as well and we can remove this kind special treatment on builtin
                 // analyzer.
+                return true;
+            }
+
+            if (analyzer is DiagnosticSuppressor)
+            {
+                // Always execute diagnostic suppressors.
                 return true;
             }
 

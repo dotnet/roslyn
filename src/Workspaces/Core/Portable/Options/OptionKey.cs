@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
+using Roslyn.Utilities;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
@@ -10,12 +13,13 @@ using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 
 namespace Microsoft.CodeAnalysis.Options
 {
+    [NonDefaultable]
     public readonly struct OptionKey : IEquatable<OptionKey>
     {
         public IOption Option { get; }
-        public string Language { get; }
+        public string? Language { get; }
 
-        public OptionKey(IOption option, string language = null)
+        public OptionKey(IOption option, string? language = null)
         {
             if (language != null && !option.IsPerLanguage)
             {
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Options
             this.Language = language;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is OptionKey key &&
                    Equals(key);

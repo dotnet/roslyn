@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var actual = await new CodeLensReferencesService().GetFullyQualifiedName(workspace.CurrentSolution,
+                            var actual = await new CodeLensReferencesService().GetFullyQualifiedNameAsync(workspace.CurrentSolution,
                                 annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                             Assert.Equal(expected, actual);
                         }
