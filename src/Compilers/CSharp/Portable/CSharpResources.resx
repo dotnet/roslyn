@@ -6016,4 +6016,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SimpleProgramMultipleUnitsWithExecutableStatements" xml:space="preserve">
     <value>In all but one compilation unit the top-level statements must all be local function declarations.</value>
   </data>
+  <data name="ERR_TopLevelStatementAfterNamespaceOrType" xml:space="preserve">
+    <value>Top-level statements must precede namespace and type declarations.</value>
+  </data>
 </root>

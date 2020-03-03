@@ -150,6 +150,12 @@ class Program
                 // (12,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
                 //     {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(12, 5),
+                // (17,5): error CS9002: Top-level statements must precede namespace and type declarations.
+                //     static async ref readonly Task M<T>()
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"static async ref readonly Task M<T>()
+    {
+        throw null;
+    }").WithLocation(17, 5),
                 // (22,25): error CS1031: Type expected
                 //     public ref readonly virtual int* P1 => throw null;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(22, 25),

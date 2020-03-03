@@ -136,6 +136,9 @@ class C
                 // (15,4): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // [a]fod;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "fod").WithLocation(15, 4),
+                // (15,7): error CS9002: Top-level statements must precede namespace and type declarations.
+                // [a]fod;
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, ";").WithLocation(15, 7),
                 // (16,3): error CS1003: Syntax error, ']' expected
                 // [b
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(16, 3)
@@ -600,6 +603,9 @@ using goo.bar;
                 // (1,10): error CS1513: } expected
                 // class c2 4
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "4").WithLocation(1, 10),
+                // (1,10): error CS9002: Top-level statements must precede namespace and type declarations.
+                // class c2 4
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "4").WithLocation(1, 10),
                 // (1,11): error CS1002: ; expected
                 // class c2 4
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11)
@@ -655,6 +661,12 @@ class Test : Itest
                 // (5,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
                 //    {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(5, 4),
+                // (7,4): error CS9002: Top-level statements must precede namespace and type declarations.
+                //    public static int Main()
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"public static int Main()
+   {
+       return 1;
+   }").WithLocation(7, 4),
                 // (7,4): error CS0106: The modifier 'public' is not valid for this item
                 //    public static int Main()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 4),
@@ -783,6 +795,10 @@ class Test : Itest
                 // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
+                // (1,16): error CS9002: Top-level statements must precede namespace and type declarations.
+                // public class S.D 
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D 
+").WithLocation(1, 16),
                 // (1,17): error CS1002: ; expected
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 17),
@@ -954,7 +970,10 @@ partial delegate E { }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(2, 20),
                 // (2,20): error CS1002: ; expected
                 // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS9002: Top-level statements must precede namespace and type declarations.
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -1170,6 +1189,9 @@ public class A
                 // (4,12): error CS1513: } expected
                 // 	int goo	{	void goo() {}	} // Error
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "void").WithLocation(4, 12),
+                // (5,2): error CS9002: Top-level statements must precede namespace and type declarations.
+                // 	static int Main() {	return 1;    }
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "static int Main() {	return 1;    }").WithLocation(5, 2),
                 // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1)

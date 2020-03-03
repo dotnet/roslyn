@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // PROTOTYPE(SimplePrograms): report statements out of order, i.e. after namespace/type declarations, etc.
             if (hasAwait)
             {
                 _returnType = Binder.GetWellKnownType(containingType.DeclaringCompilation, WellKnownType.System_Threading_Tasks_Task, diagnostics, NoLocation.Singleton);
