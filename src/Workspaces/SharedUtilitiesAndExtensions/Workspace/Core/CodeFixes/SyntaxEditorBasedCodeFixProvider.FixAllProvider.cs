@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// subclass needs to provide is how each document will apply all the fixes to all the 
         /// diagnostics in that document.
         /// </summary>
-        internal sealed class SyntaxEditorBasedFixAllProvider : AbstractParallelFixAllProvider
+        internal sealed class SyntaxEditorBasedFixAllProvider : AbstractConcurrentFixAllProvider
         {
             private readonly SyntaxEditorBasedCodeFixProvider _codeFixProvider;
 

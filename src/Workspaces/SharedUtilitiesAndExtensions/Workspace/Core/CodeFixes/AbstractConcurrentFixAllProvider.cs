@@ -12,14 +12,14 @@ using Microsoft.CodeAnalysis.CodeStyle;
 namespace Microsoft.CodeAnalysis.Shared.CodeFixes
 {
     /// <summary>
-    /// A simple implementation of a <see cref="FixAllProvider"/> that handles parallelizing
+    /// A simple implementation of a <see cref="FixAllProvider"/> that handles concurrent
     /// execution over all the <see cref="Document"/>s in a <see cref="Project"/>.
     /// <para/>
     /// Subclasses need only concern them selves with processing all the diagnostics for a specific
     /// <see cref="Document"/>.  This class will then merge all the disparate changes to all
     /// those documents into a full solution change.
     /// </summary>
-    internal abstract class AbstractParallelFixAllProvider : FixAllProvider
+    internal abstract class AbstractConcurrentFixAllProvider : FixAllProvider
     {
         /// <summary>
         /// Overridden by subclasses to fix all the <see cref="Diagnostic"/>s provided in the given
