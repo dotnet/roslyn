@@ -48,15 +48,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
                 Range = ProtocolConversions.TextSpanToRange(span, text)
             };
 
-            var commands = await lspClient.RequestAsync(LSP.Methods.TextDocumentCodeAction.ToLSRequest(), codeActionParams, cancellationToken).ConfigureAwait(false);
-            if (commands == null)
+            var results = await lspClient.RequestAsync(LSP.Methods.TextDocumentCodeAction.ToLSRequest(), codeActionParams, cancellationToken).ConfigureAwait(false);
+            if (results == null)
             {
                 return;
             }
 
-            foreach (var command in commands)
+            foreach (var result in results)
             {
-                if (LanguageServicesUtils.TryParseJson(command, out LSP.Command lspCommand))
+                if (result.Value is LSP.Command lspCommand)
                 {
                     // The command can either wrap a Command or a CodeAction.
                     // If a Command, leave it unchanged; we want to dispatch it to the host to execute.
