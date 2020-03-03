@@ -1989,16 +1989,20 @@ class C
         Console.WriteLine(x);|]
     }
 }";
-            var expected = @"class Program
+            var expected = @"using System;
+
+class C
 {
-    public Program(string a, int b)
-        : this(a, NewMethod())
+    public void Test()
     {
+        int x = 0;
+        NewMethod(x);
     }
 
-    private static Program NewMethod()
+    private static void NewMethod(int x)
     {
-        return new Program();
+        void Local() { }
+        Console.WriteLine(x);
     }
 }";
 
