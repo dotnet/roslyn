@@ -91,7 +91,7 @@ if ($InstallLocality -eq 'machine') {
         Install-DotNet -Version $sdkVersion
     }
 
-    $runtimeVersions |% {
+    $runtimeVersions | Get-Unique |% {
         if ($PSCmdlet.ShouldProcess(".NET Core runtime $_", "Install")) {
             Install-DotNet -Version $_ -Runtime
         }
