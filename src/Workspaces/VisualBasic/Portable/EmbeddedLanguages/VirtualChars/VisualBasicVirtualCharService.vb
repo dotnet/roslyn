@@ -18,6 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
         Public Sub New()
         End Sub
 
+        Public Overrides Function TryGetEscapeCharacter(ch As Char, ByRef escapedChar As Char) As Boolean
+            ' Not needed yet for VB.  Implement when there is an appropriate consumer that needs
+            ' this.
+            Throw New NotImplementedException()
+        End Function
+
         Protected Overrides Function IsStringLiteralToken(token As SyntaxToken) As Boolean
             Return token.Kind() = SyntaxKind.StringLiteralToken
         End Function
