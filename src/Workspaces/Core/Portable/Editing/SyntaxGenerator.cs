@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
-        internal abstract ISyntaxFactsService SyntaxFacts { get; }
+        internal abstract ISyntaxFacts SyntaxFacts { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
         internal abstract SyntaxTrivia Whitespace(string text);
@@ -279,8 +279,18 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Creates a property declaration.
+        /// Creates a property declaration. The property will have a <c>get</c> accessor if
+        /// <see cref="DeclarationModifiers.IsWriteOnly"/> is <see langword="false"/> and will have
+        /// a <c>set</c> accessor if <see cref="DeclarationModifiers.IsReadOnly"/> is <see
+        /// langword="false"/>.
         /// </summary>
+        /// <remarks>
+        /// In C# there is a distinction betwene passing in <see langword="null"/> for <paramref
+        /// name="getAccessorStatements"/> or <paramref name="setAccessorStatements"/> versus
+        /// passing in an empty list. <see langword="null"/> will produce an auto-property-accessor
+        /// (i.e. <c>get;</c>) whereas an empty list will produce an accessor with an empty block
+        /// (i.e. <c>get { }</c>).
+        /// </remarks>
         public abstract SyntaxNode PropertyDeclaration(
             string name,
             SyntaxNode type,
@@ -836,7 +846,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var args = attribute.ConstructorArguments.Select(a => this.AttributeArgument(this.TypedConstantExpression(a)))
                     .Concat(attribute.NamedArguments.Select(n => this.AttributeArgument(n.Key, this.TypedConstantExpression(n.Value))))
-                    .ToImmutableReadOnlyListOrEmpty();
+                    .ToBoxedImmutableArray();
 
             return Attribute(
                 name: this.TypeExpression(attribute.AttributeClass),
@@ -1978,9 +1988,29 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse);
 
-        internal abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
-        internal abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
-        internal abstract SyntaxNode ElementBindingExpression(SyntaxNode argumentList);
+        /// <summary>
+        /// Creates an expression that denotes a conditional access operation. Use <see
+        /// cref="MemberBindingExpression"/> and <see
+        /// cref="ElementBindingExpression(IEnumerable{SyntaxNode})"/> to generate the <paramref
+        /// name="whenNotNull"/> argument.
+        /// </summary>
+        public abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
+
+        /// <summary>
+        /// Creates an expression that denotes a member binding operation.
+        /// </summary>
+        public abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
+
+        /// <summary>
+        /// Creates an expression that denotes an element binding operation.
+        /// </summary>
+        public abstract SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments);
+
+        /// <summary>
+        /// Creates an expression that denotes an element binding operation.
+        /// </summary>
+        public SyntaxNode ElementBindingExpression(params SyntaxNode[] arguments)
+            => ElementBindingExpression((IEnumerable<SyntaxNode>)arguments);
 
         /// <summary>
         /// Creates an expression that denotes a coalesce operation. 
@@ -2256,7 +2286,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Wraps with parens.
         /// </summary>
-        internal abstract SyntaxNode AddParentheses(SyntaxNode expression);
+        internal abstract SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
 
         /// <summary>
         /// Creates an nameof expression.

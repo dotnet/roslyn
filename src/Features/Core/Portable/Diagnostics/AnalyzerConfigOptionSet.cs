@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// This class proxies requests for option values first to the <see cref="AnalyzerConfigOptions" /> then to a backup <see cref="OptionSet" /> if provided.
     /// </summary>
-    internal sealed class AnalyzerConfigOptionSet : OptionSet
+    internal sealed partial class AnalyzerConfigOptionSet : OptionSet
     {
         private readonly AnalyzerConfigOptions _analyzerConfigOptions;
         private readonly OptionSet? _optionSet;
@@ -37,6 +37,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
         {
             throw new NotImplementedException();
+        }
+
+        private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
+        {
+            if (_optionSet is null)
+            {
+                return _analyzerConfigOptions;
+            }
+
+            return new AnalyzerConfigOptionsImpl(_analyzerConfigOptions, _optionSet.AsAnalyzerConfigOptions(optionService, language));
         }
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Host
                     if (_weakReference == null || !_weakReference.TryGetTarget(out instance))
                     {
                         instance = _recoverySource.GetValue(cancellationToken);
-                        saveTask = EnsureInstanceIsSaved(instance);
+                        saveTask = EnsureInstanceIsSavedAsync(instance);
                     }
                 }
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Host
                     if (_weakReference == null || !_weakReference.TryGetTarget(out instance))
                     {
                         instance = await _recoverySource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                        saveTask = EnsureInstanceIsSaved(instance);
+                        saveTask = EnsureInstanceIsSavedAsync(instance);
                     }
                 }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Host
             }, TaskScheduler.Default);
         }
 
-        private Task? EnsureInstanceIsSaved(T instance)
+        private Task? EnsureInstanceIsSavedAsync(T instance)
         {
             if (_weakReference == null)
             {

@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        private const string RoslynLanguageServices = "Roslyn Language Services";
-
         /// <summary>
         /// This is in charge of anything related to <see cref="StateSet"/>
         /// </summary>
@@ -263,13 +261,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
-                DiagnosticAnalyzerInfoCache analyzerInfoCache,
                 string language,
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection,
                 bool includeFileContentLoadAnalyzer)
             {
-                var compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
-
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, StateSet>();
 
                 if (includeFileContentLoadAnalyzer)
@@ -292,30 +287,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             continue;
                         }
 
-                        var buildToolName = analyzer == compilerAnalyzer ?
-                            PredefinedBuildTools.Live : GetBuildToolName(analyzerInfoCache, language, analyzer);
+                        var buildToolName = analyzer.IsBuiltInAnalyzer() ?
+                            PredefinedBuildTools.Live : analyzer.GetAnalyzerAssemblyName();
 
                         builder.Add(analyzer, new StateSet(language, analyzer, buildToolName));
                     }
                 }
 
                 return builder.ToImmutable();
-            }
-
-            private static string GetBuildToolName(DiagnosticAnalyzerInfoCache analyzerInfoCache, string language, DiagnosticAnalyzer analyzer)
-            {
-                var packageName = analyzerInfoCache.GetDiagnosticAnalyzerPackageName(language, analyzer);
-                if (packageName == null)
-                {
-                    return analyzer.GetAnalyzerAssemblyName();
-                }
-
-                if (packageName == RoslynLanguageServices)
-                {
-                    return PredefinedBuildTools.Live;
-                }
-
-                return $"{analyzer.GetAnalyzerAssemblyName()} [{packageName}]";
             }
 
             [Conditional("DEBUG")]

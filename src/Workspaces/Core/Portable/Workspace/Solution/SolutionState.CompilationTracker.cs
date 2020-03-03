@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private partial class CompilationTracker
         {
-            private static readonly Func<ProjectState, string> s_logBuildCompilationAsync = LogBuildCompilationAsync;
+            private static readonly Func<ProjectState, string> s_logBuildCompilationAsync =
+                state => string.Join(",", state.AssemblyName, state.DocumentIds.Count);
 
             public ProjectState ProjectState { get; }
 
@@ -339,11 +340,6 @@ namespace Microsoft.CodeAnalysis
             {
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return compilationInfo.Compilation;
-            }
-
-            private static string LogBuildCompilationAsync(ProjectState state)
-            {
-                return string.Join(",", state.AssemblyName, state.DocumentIds.Count);
             }
 
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionState solution, CancellationToken cancellationToken)

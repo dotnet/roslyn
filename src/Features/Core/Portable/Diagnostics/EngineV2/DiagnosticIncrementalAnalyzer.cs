@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 var handleActiveFile = true;
-                var documentSet = PooledHashSet<DocumentId>.GetInstance();
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -138,8 +138,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         documentSet.Clear();
                     }
                 }
-
-                documentSet.Free();
             });
         }
 
@@ -147,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
-                var documentSet = PooledHashSet<DocumentId>.GetInstance();
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -162,8 +160,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         documentSet.Clear();
                     }
                 }
-
-                documentSet.Free();
             });
         }
 

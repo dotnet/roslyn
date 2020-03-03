@@ -101,11 +101,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
                 var result = ArrayBuilder<WrappingGroup>.GetInstance();
-                await AddWrappingGroups(result).ConfigureAwait(false);
+                await AddWrappingGroupsAsync(result).ConfigureAwait(false);
                 return result.ToImmutableAndFree();
             }
 
-            private async Task AddWrappingGroups(ArrayBuilder<WrappingGroup> result)
+            private async Task AddWrappingGroupsAsync(ArrayBuilder<WrappingGroup> result)
             {
                 result.Add(await GetWrapEveryGroupAsync().ConfigureAwait(false));
                 result.Add(await GetUnwrapGroupAsync().ConfigureAwait(false));

@@ -1758,7 +1758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoOutputDirectory = 8771,
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8772,
 
-        // available 8761-8779
+        // available 8773-8779
 
         #region diagnostics introduced for C# 9.0
 
@@ -1767,6 +1767,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RelationalPatternWithNaN = 8782,
 
         ERR_ConditionalOnLocalFunction = 8783,
+
+        ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
+        ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
+        ERR_ExpressionTreeContainsRangeExpression = 8792,
 
         #endregion diagnostics introduced for C# 9.0
 
