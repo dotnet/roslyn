@@ -825,7 +825,7 @@ using goo.bar;
 using goo.bar;
 ");
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
-            Assert.Equal(3, tokens.Count);
+            Assert.Equal(6, tokens.Count);
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeSkipped: false);
@@ -836,7 +836,7 @@ using goo.bar;
             }
 
             // descendant tokens includes EOF
-            Assert.Equal(tokens.Count - 2, list.Count);
+            Assert.Equal(tokens.Count - 1, list.Count);
             for (int i = 0; i < list.Count; i++)
             {
                 Assert.Equal(list[i], tokens[i]);
@@ -929,7 +929,7 @@ using goo.bar;
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
 
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
-            Assert.Equal(3, tokens.Count);
+            Assert.Equal(6, tokens.Count);
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetLastToken(includeSkipped: false);
@@ -941,7 +941,7 @@ using goo.bar;
             list.Reverse();
 
             // descendant tokens includes EOF
-            Assert.Equal(tokens.Count, list.Count + 2);
+            Assert.Equal(tokens.Count, list.Count + 1);
             for (int i = 0; i < list.Count; i++)
             {
                 Assert.Equal(tokens[i], list[i]);

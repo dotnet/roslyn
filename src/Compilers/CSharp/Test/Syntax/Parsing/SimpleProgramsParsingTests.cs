@@ -109,36 +109,24 @@ class C
 [a]fod;
 [b";
             UsingTree(text,
-                // (2,5): error CS1002: ; expected
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // asas]
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(2, 5),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "asas").WithLocation(2, 1),
                 // (2,5): error CS1022: Type or namespace definition, or end-of-file expected
                 // asas]
                 Diagnostic(ErrorCode.ERR_EOFExpected, "]").WithLocation(2, 5),
-                // (3,1): error CS0439: An extern alias declaration must precede all other elements defined in the namespace
-                // extern alias A;
-                Diagnostic(ErrorCode.ERR_ExternAfterElements, "extern").WithLocation(3, 1),
-                // (4,5): error CS1002: ; expected
+                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // asas
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 5),
-                // (5,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-                // using System;
-                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using System;").WithLocation(5, 1),
-                // (6,10): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "asas").WithLocation(4, 1),
+                // (6,1): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // sadasdasd]
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(6, 10),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "sadasdasd").WithLocation(6, 1),
                 // (6,10): error CS1022: Type or namespace definition, or end-of-file expected
                 // sadasdasd]
                 Diagnostic(ErrorCode.ERR_EOFExpected, "]").WithLocation(6, 10),
-                // (8,2): error CS1730: Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations
-                // [assembly: goo]
-                Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly").WithLocation(8, 2),
-                // (15,4): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (15,1): error CS9002: Top-level statements must precede namespace and type declarations.
                 // [a]fod;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "fod").WithLocation(15, 4),
-                // (15,7): error CS9002: Top-level statements must precede namespace and type declarations.
-                // [a]fod;
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, ";").WithLocation(15, 7),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[a]fod;").WithLocation(15, 1),
                 // (16,3): error CS1003: Syntax error, ']' expected
                 // [b
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(16, 3)
@@ -146,38 +134,38 @@ class C
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.ExternAliasDirective);
                 {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "asas");
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
+                    N(SyntaxKind.ExternKeyword);
+                    N(SyntaxKind.AliasKeyword);
+                    N(SyntaxKind.IdentifierToken, "A");
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.UsingDirective);
                 {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "asas");
-                        }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.IdentifierToken, "System");
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.AttributeList);
                 {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.AttributeTargetSpecifier);
+                    {
+                        N(SyntaxKind.AssemblyKeyword);
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.Attribute);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "sadasdasd");
+                            N(SyntaxKind.IdentifierToken, "goo");
                         }
-                        M(SyntaxKind.SemicolonToken);
                     }
+                    N(SyntaxKind.CloseBracketToken);
                 }
                 N(SyntaxKind.ClassDeclaration);
                 {
@@ -186,29 +174,26 @@ class C
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "a");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "fod");
-                    }
-                }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.EmptyStatement);
+                    N(SyntaxKind.ExpressionStatement);
                     {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "fod");
+                        }
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
@@ -565,26 +550,29 @@ int x = 0;
 using goo.bar;
 ";
             UsingTree(test,
-                // (1,8): error CS1002: ; expected
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // garbage
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 8),
-                // (2,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-                // using goo.bar;
-                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using goo.bar;").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.UsingDirective);
                 {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "garbage");
+                            N(SyntaxKind.IdentifierToken, "goo");
                         }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "bar");
+                        }
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -795,13 +783,13 @@ class Test : Itest
                 // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
-                // (1,16): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (1,16): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // public class S.D 
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D 
-").WithLocation(1, 16),
-                // (1,17): error CS1002: ; expected
-                // public class S.D 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D").WithLocation(1, 16),
+                // (2,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // {
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
+").WithLocation(2, 1),
                 // (2,2): error CS1513: } expected
                 // {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 2),
@@ -820,15 +808,11 @@ class Test : Itest
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "D");
-                        }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.IdentifierToken, "D");
                     }
                 }
                 N(SyntaxKind.GlobalStatement);
@@ -887,9 +871,9 @@ class Test : Itest
                 // (1,27): error CS1002: ; expected
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Basic").WithLocation(1, 27),
-                // (1,32): error CS1002: ; expected
+                // (1,27): error CS0116: A namespace cannot directly contain members such as fields or methods
                 //  > Roslyn.Utilities.dll!  Basic
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 32)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -933,15 +917,11 @@ class Test : Itest
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Basic");
-                        }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.IdentifierToken, "Basic");
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -1066,7 +1046,7 @@ partial delegate E { }
             EOF();
         }
 
-        [Fact(Skip = "PROTOTYPE(SimplePrograms): Merge with master caused behavior change in the parser.")]
+        [Fact]
         public void Multiplication()
         {
             // pointer decl
@@ -1120,22 +1100,18 @@ partial delegate E { }
 #endif
 aeu";
             UsingTree(test,
-                // (4,4): error CS1002: ; expected
+                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // aeu
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 4)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "aeu").WithLocation(4, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "aeu");
-                        }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.IdentifierToken, "aeu");
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -1622,6 +1598,147 @@ using VT2 = (int, int);
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(530131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
+        public void MetadataReferenceWithInvalidAlias()
+        {
+            var test = "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}";
+
+            UsingTree(test,
+                // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
+                // (1,61): error CS1026: ) expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
+                // (1,61): error CS1002: ; expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.ExternKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "alias");
+                        }
+                        N(SyntaxKind.IdentifierToken, "Alias");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Identifier_01()
+        {
+            var test = "e";
+
+            UsingTree(test,
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // e
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Identifier_02()
+        {
+            var test =
+@"
+[Flags]
+e
+";
+
+            UsingTree(test,
+                // (3,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // e
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(3, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Flags");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestSkippedTest()
+        {
+            var test = "abc using";
+
+            UsingTree(test,
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // abc using
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "abc").WithLocation(1, 1),
+                // (1,10): error CS1001: Identifier expected
+                // abc using
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 10),
+                // (1,10): error CS1002: ; expected
+                // abc using
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 10)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -568,18 +570,12 @@ System.Console.WriteLine(g);
                 // (10,1): error CS0106: The modifier 'volatile' is not valid for this item
                 // volatile string e = "Hi!";
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(10, 1),
-                // (13,8): error CS0116: A namespace cannot directly contain members such as fields or methods
-                // string f = "Hi!";
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "f").WithLocation(13, 8),
-                // (14,26): error CS0103: The name 'f' does not exist in the current context
-                // System.Console.WriteLine(f);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(14, 26),
-                // (16,14): error CS0116: A namespace cannot directly contain members such as fields or methods
-                // const string g = "Hi!";
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "g").WithLocation(16, 14),
-                // (17,26): error CS0103: The name 'g' does not exist in the current context
-                // System.Console.WriteLine(g);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "g").WithArguments("g").WithLocation(17, 26)
+                // (12,1): error CS7014: Attributes are not valid in this context.
+                // [System.Obsolete()]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[System.Obsolete()]").WithLocation(12, 1),
+                // (15,1): error CS7014: Attributes are not valid in this context.
+                // [System.Obsolete()]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[System.Obsolete()]").WithLocation(15, 1)
                 );
         }
 
@@ -697,6 +693,38 @@ System.Console.Write(x);
             var symbol2 = model2.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single());
             Assert.Equal("System.Int32 x", symbol2.ToTestDisplayString());
             Assert.Same(symbol1, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single()).Symbol);
+        }
+
+        [Fact]
+        public void LocalDeclarationStatement_08()
+        {
+            var text = @"
+int a = 0;
+int b = 0;
+int c = -100;
+
+ref int d = ref c;
+d = 300;
+d = ref local(true, ref a, ref b);
+d = 100;
+d = ref local(false, ref a, ref b);
+d = 200;
+
+System.Console.Write(a);
+System.Console.Write(' ');
+System.Console.Write(b);
+System.Console.Write(' ');
+System.Console.Write(c);
+
+ref int local(bool flag, ref int a, ref int b)
+{
+    return ref flag ? ref a : ref b;
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "100 200 300", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -2460,12 +2488,9 @@ localI();
                 // (16,13): error CS0179: 'localH()' cannot be extern and declare a body
                 // extern void localH() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "localH").WithArguments("localH()").WithLocation(16, 13),
-                // (19,6): error CS0116: A namespace cannot directly contain members such as fields or methods
-                // void localI() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localI").WithLocation(19, 6),
-                // (20,1): error CS0103: The name 'localI' does not exist in the current context
+                // (20,1): warning CS0612: 'localI()' is obsolete
                 // localI();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "localI").WithArguments("localI").WithLocation(20, 1)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "localI()").WithArguments("localI()").WithLocation(20, 1)
                 );
         }
 
@@ -3381,5 +3406,222 @@ void local() => System.Console.WriteLine(1);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "void local() => System.Console.WriteLine(1);").WithLocation(6, 1)
                 );
         }
+
+        [Fact]
+        public void Attributes_01()
+        {
+            var text1 = @"
+[MyAttribute(i)]
+const int i = 1;
+
+[MyAttribute(i + 1)]
+System.Console.Write(i);
+
+[MyAttribute(i + 2)]
+int j = i;
+System.Console.Write(j);
+
+[MyAttribute(i + 3)]
+new MyAttribute(i);
+
+[MyAttribute(i + 4)]
+local();
+
+[MyAttribute(i + 5)]
+void local() {}
+
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(int x) {}
+}
+";
+            var comp = CreateCompilation(text1, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS7014: Attributes are not valid in this context.
+                // [MyAttribute(i)]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[MyAttribute(i)]").WithLocation(2, 1),
+                // (5,1): error CS7014: Attributes are not valid in this context.
+                // [MyAttribute(i + 1)]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[MyAttribute(i + 1)]").WithLocation(5, 1),
+                // (8,1): error CS7014: Attributes are not valid in this context.
+                // [MyAttribute(i + 2)]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[MyAttribute(i + 2)]").WithLocation(8, 1),
+                // (12,1): error CS7014: Attributes are not valid in this context.
+                // [MyAttribute(i + 3)]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[MyAttribute(i + 3)]").WithLocation(12, 1),
+                // (15,1): error CS7014: Attributes are not valid in this context.
+                // [MyAttribute(i + 4)]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[MyAttribute(i + 4)]").WithLocation(15, 1)
+                );
+
+            var tree1 = comp.SyntaxTrees[0];
+
+            var model1 = comp.GetSemanticModel(tree1);
+            var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var declSymbol = model1.GetDeclaredSymbol(localDecl);
+            Assert.Equal("System.Int32 i", declSymbol.ToTestDisplayString());
+
+            var localRefs = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "i").ToArray();
+            Assert.Equal(9, localRefs.Length);
+
+            foreach (var localRef in localRefs)
+            {
+                var refSymbol = model1.GetSymbolInfo(localRef).Symbol;
+                Assert.Same(declSymbol, refSymbol);
+                Assert.Contains(declSymbol.Name, model1.LookupNames(localRef.SpanStart));
+                Assert.Contains(declSymbol, model1.LookupSymbols(localRef.SpanStart));
+                Assert.Same(declSymbol, model1.LookupSymbols(localRef.SpanStart, name: declSymbol.Name).Single());
+            }
+
+            localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            declSymbol = model1.GetDeclaredSymbol(localDecl);
+            Assert.Equal("System.Int32 j", declSymbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Attributes_02()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+return;
+
+#pragma warning disable 8321 // Unreferenced local function
+
+[MethodImpl(MethodImplOptions.ForwardRef)]
+static void forwardRef()  { System.Console.WriteLine(0); }
+
+[MethodImpl(MethodImplOptions.NoInlining)]
+static void noInlining() { System.Console.WriteLine(1); }
+
+[MethodImpl(MethodImplOptions.NoOptimization)]
+static void noOptimization() { System.Console.WriteLine(2); }
+
+[MethodImpl(MethodImplOptions.Synchronized)]
+static void synchronized() { System.Console.WriteLine(3); }
+
+[MethodImpl(MethodImplOptions.InternalCall)]
+extern static void internalCallStatic();
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: DefaultParseOptions,
+                assemblyValidator: validateAssembly,
+                verify: Verification.Skipped);
+
+            var comp = verifier.Compilation;
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var localFunctions = syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToList();
+
+            checkImplAttributes(localFunctions[0], MethodImplAttributes.ForwardRef);
+            checkImplAttributes(localFunctions[1], MethodImplAttributes.NoInlining);
+            checkImplAttributes(localFunctions[2], MethodImplAttributes.NoOptimization);
+            checkImplAttributes(localFunctions[3], MethodImplAttributes.Synchronized);
+            checkImplAttributes(localFunctions[4], MethodImplAttributes.InternalCall);
+
+            void checkImplAttributes(LocalFunctionStatementSyntax localFunctionStatement, MethodImplAttributes expectedFlags)
+            {
+                var localFunction = semanticModel.GetDeclaredSymbol(localFunctionStatement).GetSymbol<LocalFunctionSymbol>();
+                Assert.Equal(expectedFlags, localFunction.ImplementationAttributes);
+            }
+
+            void validateAssembly(PEAssembly assembly)
+            {
+                var peReader = assembly.GetMetadataReader();
+
+                foreach (var methodHandle in peReader.MethodDefinitions)
+                {
+                    var methodDef = peReader.GetMethodDefinition(methodHandle);
+                    var actualFlags = methodDef.ImplAttributes;
+
+                    var methodName = peReader.GetString(methodDef.Name);
+                    var expectedFlags = methodName switch
+                    {
+                        "<$Main>g__forwardRef|0_0" => MethodImplAttributes.ForwardRef,
+                        "<$Main>g__noInlining|0_1" => MethodImplAttributes.NoInlining,
+                        "<$Main>g__noOptimization|0_2" => MethodImplAttributes.NoOptimization,
+                        "<$Main>g__synchronized|0_3" => MethodImplAttributes.Synchronized,
+                        "<$Main>g__internalCallStatic|0_4" => MethodImplAttributes.InternalCall,
+                        ".ctor" => MethodImplAttributes.IL,
+                        "$Main" => MethodImplAttributes.IL,
+                        _ => throw TestExceptionUtilities.UnexpectedValue(methodName)
+                    };
+
+                    Assert.Equal(expectedFlags, actualFlags);
+                }
+            }
+        }
+
+        [Fact]
+        public void Attributes_03()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+local1();
+
+[DllImport(
+    ""something.dll"",
+    EntryPoint = ""a"",
+    CharSet = CharSet.Ansi,
+    SetLastError = true,
+    ExactSpelling = true,
+    PreserveSig = false,
+    CallingConvention = CallingConvention.Cdecl,
+    BestFitMapping = false,
+    ThrowOnUnmappableChar = true)]
+static extern void local1();
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: DefaultParseOptions,
+                symbolValidator: validate,
+                verify: Verification.Skipped);
+
+            var comp = verifier.Compilation;
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+            var localFunction = semanticModel
+                .GetDeclaredSymbol(syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single())
+                .GetSymbol<LocalFunctionSymbol>();
+
+            Assert.Equal(new[] { "DllImportAttribute" }, GetAttributeNames(localFunction.GetAttributes()));
+            validateLocalFunction(localFunction);
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("$Program");
+                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(cClass.GetAttributes().As<CSharpAttributeData>()));
+
+                Assert.Empty(cClass.GetMethod("$Main").GetAttributes());
+
+                var localFn1 = cClass.GetMethod("<$Main>g__local1|0_0");
+
+                Assert.Empty(localFn1.GetAttributes());
+                validateLocalFunction(localFn1);
+            }
+
+            static void validateLocalFunction(MethodSymbol localFunction)
+            {
+                Assert.True(localFunction.IsExtern);
+
+                var importData = localFunction.GetDllImportData();
+                Assert.NotNull(importData);
+                Assert.Equal("something.dll", importData.ModuleName);
+                Assert.Equal("a", importData.EntryPointName);
+                Assert.Equal(CharSet.Ansi, importData.CharacterSet);
+                Assert.True(importData.SetLastError);
+                Assert.True(importData.ExactSpelling);
+                Assert.Equal(MethodImplAttributes.IL, localFunction.ImplementationAttributes);
+                Assert.Equal(CallingConvention.Cdecl, importData.CallingConvention);
+                Assert.False(importData.BestFitMapping);
+                Assert.True(importData.ThrowOnUnmappableCharacter);
+            }
+        }
+
     }
 }
