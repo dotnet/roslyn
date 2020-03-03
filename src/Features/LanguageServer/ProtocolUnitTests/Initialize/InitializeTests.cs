@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
             Assert.True(actual.DocumentHighlightProvider);
 
             Assert.True(actual.CompletionProvider.ResolveProvider);
-            Assert.Equal(new[] { "." }, actual.CompletionProvider.TriggerCharacters);
+            Assert.Equal(new[] { ".", " ", "#", "<", ">", "\"", ":", "[", "(", "~" }, actual.CompletionProvider.TriggerCharacters);
 
             Assert.Equal(new[] { "(", "," }, actual.SignatureHelpProvider.TriggerCharacters);
 
