@@ -629,6 +629,53 @@ class Program
         }
 
         [Fact]
+        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        public async Task FixAllReturnType_Invocation()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    void M(string value)
+    {
+        M({|FixAllInDocument:null|});
+    }
+    void M2(string value)
+    {
+        M2(null);
+    }
+    string Test(bool? value)
+    {
+        return value?.ToString();
+    }
+    string Test2(bool? value)
+    {
+        return null;
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    void M(string? value)
+    {
+        M(null);
+    }
+    void M2(string? value)
+    {
+        M2(null);
+    }
+    string Test(bool? value)
+    {
+        return value?.ToString();
+    }
+    string Test2(bool? value)
+    {
+        return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         [WorkItem(39420, "https://github.com/dotnet/roslyn/issues/39420")]
         public async Task FixReturnType_TernaryExpression_Function()
         {
@@ -650,6 +697,7 @@ class Program
     }
 }", parameters: s_nullableFeature);
         }
+
         [Fact]
         [WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
         public async Task FixReturnType_Default()

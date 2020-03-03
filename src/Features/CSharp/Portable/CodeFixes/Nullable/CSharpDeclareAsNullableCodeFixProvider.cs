@@ -23,8 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DeclareAsNullable), Shared]
     internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        private const string IsConditionalOperatorEquivalenceKey = nameof(IsConditionalOperatorEquivalenceKey);
-        private const string IsOtherEquivalenceKey = nameof(IsOtherEquivalenceKey);
+        // We want to distinguish different situations:
+        // 1. null assignments: `return null;`, `x = null;` (high confidence that the null is introduced deliberately and the API should be updated)
+        // 2. invocation with null: `M(null);` (test code might do this even though the API should remain not-nullable, so FixAll should be invoked with care)
+        // 3. conditional: `return x?.ToString();`
+        private const string AssigningNullLiteralEquivalenceKey = nameof(AssigningNullLiteralEquivalenceKey);
+        private const string ConditionalOperatorEquivalenceKey = nameof(ConditionalOperatorEquivalenceKey);
+        private const string InvokingWithNullLiteralEquivalenceKey = nameof(InvokingWithNullLiteralEquivalenceKey);
 
         [ImportingConstructor]
         public CSharpDeclareAsNullableCodeFixProvider()
@@ -59,7 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
         private string GetEquivalenceKey(SyntaxNode node)
         {
-            return node.IsKind(SyntaxKind.ConditionalAccessExpression) ? IsConditionalOperatorEquivalenceKey : IsOtherEquivalenceKey;
+            return node.IsParentKind(SyntaxKind.Argument) ? InvokingWithNullLiteralEquivalenceKey :
+                node.IsKind(SyntaxKind.ConditionalAccessExpression) ? ConditionalOperatorEquivalenceKey :
+                AssigningNullLiteralEquivalenceKey;
         }
 
         protected override async Task FixAllAsync(
@@ -75,8 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 MakeDeclarationNullable(editor, node, alreadyHandled, model);
             }
-
-            alreadyHandled.Free();
         }
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
@@ -208,10 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             // void M(string x = null) { }
-            if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax parameter))
+            if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax optionalParameter))
             {
-                var parameter = (ParameterSyntax)node.Parent.Parent;
-                var parameterSymbol = model.GetDeclaredSymbol(parameter);
+                var parameterSymbol = model.GetDeclaredSymbol(optionalParameter);
                 return ParameterTypeSyntax(parameterSymbol);
             }
 
@@ -257,11 +261,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return null;
             }
 
-            TypeSyntax ParameterTypeSyntax(IParameterSymbol parameter)
+            static TypeSyntax ParameterTypeSyntax(IParameterSymbol parameterSymbol)
             {
-                if (parameter is object &&
-                    parameter.DeclaringSyntaxReferences[0].GetSyntax() is ParameterSyntax parameterSyntax &&
-                    parameter.ContainingSymbol is IMethodSymbol method &&
+                if (parameterSymbol is object &&
+                    parameterSymbol.DeclaringSyntaxReferences[0].GetSyntax() is ParameterSyntax parameterSyntax &&
+                    parameterSymbol.ContainingSymbol is IMethodSymbol method &&
                     method.GetAllMethodSymbolsOfPartialParts().Length == 1)
                 {
                     return parameterSyntax.Type;
