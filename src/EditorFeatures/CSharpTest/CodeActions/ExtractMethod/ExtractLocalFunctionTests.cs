@@ -4730,7 +4730,7 @@ class C
     static void Main(string[] args)
     {
         void Local() { }
-        NewMethod();
+        {|Rename:NewMethod|}();
 
         void NewMethod()
         {
