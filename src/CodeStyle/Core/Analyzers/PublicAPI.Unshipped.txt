@@ -1,1 +1,8 @@
-
+Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions
+Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.CodeStyleOptions() -> void
+static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
+static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
+static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.QualifyEventAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
+static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.QualifyFieldAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
+static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.QualifyMethodAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
+static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.QualifyPropertyAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>

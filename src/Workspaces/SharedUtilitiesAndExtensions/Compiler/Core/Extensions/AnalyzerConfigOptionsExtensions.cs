@@ -1,20 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis
 {
-    internal static class AnalyzerConfigOptionsExtensions
+    internal static partial class AnalyzerConfigOptionsExtensions
     {
-        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option<T> option, out T value)
+        public static T GetOption<T>(this AnalyzerConfigOptions optionSet, Option<T> option)
         {
-            return TryGetEditorConfigOption(analyzerConfigOptions, (IOption)option, out value);
+            if (!TryGetEditorConfigOption(optionSet, option, out T value))
+            {
+                value = option.DefaultValue;
+            }
+
+            return value;
         }
 
-        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option, out T value)
+        public static T GetOption<T>(this AnalyzerConfigOptions optionSet, PerLanguageOption<T> option, string language)
         {
-            return TryGetEditorConfigOption(analyzerConfigOptions, option, out value);
+            if (!TryGetEditorConfigOption(optionSet, option, out T value))
+            {
+                value = option.DefaultValue;
+            }
+
+            return value;
         }
 
         public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, out T value)
