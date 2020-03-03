@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageServiceFactory(GetType(ISyntaxFactsService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxFactsServiceFactory
+    Partial Friend NotInheritable Class VisualBasicSyntaxFactsServiceFactory
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>

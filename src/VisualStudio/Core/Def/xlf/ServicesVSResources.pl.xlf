@@ -127,11 +127,6 @@
         <target state="translated">Element jest nieprawidłowy.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enhanced">
-        <source>Enhanced</source>
-        <target state="new">Enhanced</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Entire_solution">
         <source>Entire solution</source>
         <target state="translated">Całe rozwiązanie</target>
@@ -600,6 +595,11 @@
       <trans-unit id="Visual_Studio_2017">
         <source>Visual Studio 2017</source>
         <target state="new">Visual Studio 2017</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_2019">
+        <source>Visual Studio 2019</source>
+        <target state="new">Visual Studio 2019</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">

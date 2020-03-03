@@ -70,7 +70,7 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Debugging\Resources\*.*"/>
+    <Compile Remove="Debugging\Resources\*.*" />
     <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
   </ItemGroup>
   <ItemGroup>

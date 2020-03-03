@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.TextEdit[]> HandleRequestAsync(Solution solution, LSP.DocumentFormattingParams request, LSP.ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
-            return await GetTextEdits(solution, request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            return await GetTextEditsAsync(solution, request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
         }
     }
 }

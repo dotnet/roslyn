@@ -1792,5 +1792,73 @@ class X
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
+
+        [WorkItem(10174, "https://github.com/dotnet/roslyn/issues/10174")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task VarInPropertyPattern()
+        {
+            await TestAsync(
+@"
+using System;
+
+class Person { public string Name; }
+
+class Program
+{
+    void Goo(object o)
+    {
+        if (o is Person { Name: var n })
+        {
+            Console.WriteLine(n);
+        }
+    }
+}",
+                Keyword("using"),
+                Namespace("System"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("string"),
+                Field("Name"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("Program"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Parameter("o"),
+                Keyword("is"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Field("Name"),
+                Punctuation.Colon,
+                Keyword("var"),
+                Identifier("n"),
+                Punctuation.CloseCurly,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Class("Console"),
+                Static("Console"),
+                Operators.Dot,
+                Method("WriteLine"),
+                Static("WriteLine"),
+                Punctuation.OpenParen,
+                Local("n"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }

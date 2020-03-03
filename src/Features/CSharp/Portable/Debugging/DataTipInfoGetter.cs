@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 // NOTE(cyrusn): This behavior is to mimic what we did in Dev10, I'm not sure if it's
                 // necessary or not.
-                if (expression.IsKind(SyntaxKind.InvocationExpression))
+                if (expression.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
                 {
-                    expression = ((InvocationExpressionSyntax)expression).Expression;
+                    expression = invocation.Expression;
                 }
 
                 string textOpt = null;

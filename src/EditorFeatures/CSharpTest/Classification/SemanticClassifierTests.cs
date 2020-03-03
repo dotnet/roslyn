@@ -2368,7 +2368,7 @@ struct Type<T>
             }
 
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2390,7 +2390,7 @@ struct Type<T>
             var tagger = provider.CreateTagger<IClassificationTag>(document.GetTextBuffer());
             using var disposable = (IDisposable)tagger;
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
 
             var tags = tagger.GetTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection());
             var allTags = tagger.GetAllTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
