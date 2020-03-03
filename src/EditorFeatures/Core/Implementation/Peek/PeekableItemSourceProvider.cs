@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 
         [ImportingConstructor]
         public PeekableItemSourceProvider(
-            [Import(AllowDefault = true)] IPeekableItemFactory peekableItemFactory,
+            IPeekableItemFactory peekableItemFactory,
             [Import(AllowDefault = true)] IPeekResultFactory peekResultFactory,
             IWaitIndicator waitIndicator)
         {
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 
         public IPeekableItemSource TryCreatePeekableItemSource(ITextBuffer textBuffer)
         {
-            // These may not be available in other hosts such as Visual Studio for Mac.
-            if (_peekableItemFactory == null || _peekResultFactory == null)
+            // This may not be available in other hosts such as Visual Studio for Mac.
+            if (_peekResultFactory == null)
             {
                 return null;
             }
