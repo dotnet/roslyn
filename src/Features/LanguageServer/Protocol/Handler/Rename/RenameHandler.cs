@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly IThreadingContext _threadingContext;
 
+
+        [ImportingConstructor]
         public RenameHandler(IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;

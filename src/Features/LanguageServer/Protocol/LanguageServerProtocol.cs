@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             => ExecuteRequestAsync<LSP.TextDocumentPositionParams, object>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
-        /// Answers a rename request by returning the workspace edit for a given symbol definition.
+        /// Answers a rename request by returning the workspace edit for a given symbol.
         /// https://microsoft.github.io/language-server-protocol/specification#textDocument_rename
         /// </summary>
         /// <param name="solution">the solution containing the request.</param>
