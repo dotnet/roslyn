@@ -120,13 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BitVector GetCapturedBitmask()
         {
-            BitVector mask = BitVector.AllSet(1);
+            BitVector mask = BitVector.AllSet(nextVariableSlot);
             for (int slot = 1; slot < nextVariableSlot; slot++)
             {
-                if (IsCapturedInLocalFunction(slot))
-                {
-                    mask[slot] = true;
-                }
+                mask[slot] = IsCapturedInLocalFunction(slot);
             }
 
             return mask;
