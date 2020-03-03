@@ -34,9 +34,9 @@ ref public partial struct S {}
                 // (2,1): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
                 // ref partial struct S {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(2, 1),
-                // (3,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
                 // ref partial public struct S {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref and partial modifier ordering").WithLocation(3, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(3, 1),
                 // (3,5): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // ref partial public struct S {}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("ref and partial modifier ordering").WithLocation(3, 5),
@@ -46,6 +46,22 @@ ref public partial struct S {}
                 // (4,9): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
                 // partial ref struct S {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(4, 9),
+                // (5,1): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+                // ref public partial struct S {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(5, 1)
+                );
+
+            tree = ParseTree(text, options: TestOptions.Regular8);
+            tree.GetDiagnostics().Verify(
+                // (2,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // ref partial struct S {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref and partial modifier ordering").WithLocation(3, 1),
+                // (3,5): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // ref partial public struct S {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("ref and partial modifier ordering").WithLocation(3, 5),
+                // (4,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("ref and partial modifier ordering").WithLocation(4, 1),
                 // (5,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // ref public partial struct S {}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref and partial modifier ordering").WithLocation(5, 1)

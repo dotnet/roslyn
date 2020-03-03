@@ -1057,27 +1057,39 @@ tryAgain:
 
                     case DeclarationModifiers.Ref:
                         {
-                            var flags = ScanRefStruct(forAccessors);
-                            if (flags == ScanRefStructFlags.NotModifier)
+                            if (!ScanForTypeDeclaration())
                             {
+                                if (forAccessors && IsPossibleAccessorModifier())
+                                {
+                                    // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
+                                    modTok = this.EatToken();
+                                    break;
+                                }
+
+                                // Not a modifier
                                 return;
                             }
 
+                            // 'ref' is in a type declaration
                             modTok = this.EatToken();
-                            if (flags == ScanRefStructFlags.TreatAsModifier)
+
+                            // Now we check availability. If the language version is too low to allow ref structs,
+                            // don't bother checking ordering
+                            if (!IsFeatureEnabled(MessageID.IDS_FeatureRefStructs))
                             {
-                                // Not a ref struct but we will parse it
-                                // to report better diagnostics later in binding
+                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
                                 break;
                             }
 
-                            modTok = CheckFeatureAvailability(modTok,
-                                flags switch
-                                {
-                                    ScanRefStructFlags.RefStruct => MessageID.IDS_FeatureRefPartialModOrdering,
-                                    ScanRefStructFlags.RefStructV8 => MessageID.IDS_FeatureRefStructs,
-                                    _ => throw ExceptionUtilities.UnexpectedValue(flags)
-                                });
+                            // Now check ordering. C# 8 required to be immediately followed by 'struct'
+                            // or 'partial struct'
+                            var next = CurrentToken;
+                            if (next.Kind != SyntaxKind.StructKeyword &&
+                                (next.ContextualKind != SyntaxKind.PartialKeyword ||
+                                 PeekToken(1).Kind != SyntaxKind.StructKeyword))
+                            {
+                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefPartialModOrdering);
+                            }
 
                             break;
                         }
@@ -1143,43 +1155,19 @@ tryAgain:
             return true;
         }
 
-        private enum ScanRefStructFlags
-        {
-            /// <summary>
-            /// Definitely a ref struct.
-            /// </summary>
-            RefStruct,
-            /// <summary>
-            /// Definitely a ref struct (C# 8.0)
-            /// </summary>
-            RefStructV8,
-            /// <summary>
-            /// Treat as modifier for better diagnostics to be reported during binding.
-            /// </summary>
-            TreatAsModifier,
-            /// <summary>
-            /// Not a modifier.
-            /// </summary>
-            NotModifier,
-        }
 
-        private ScanRefStructFlags ScanRefStruct(bool forAccessors)
+        /// <summary>
+        /// Check if the current token is a contextual modifier before a type declaration.
+        /// </summary>
+        private bool ScanForTypeDeclaration()
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+            Debug.Assert(IsAnyModifier(this.CurrentToken));
             for (int peekIndex = 1; ; peekIndex++)
             {
                 var currentToken = this.PeekToken(peekIndex);
                 if (!IsAnyModifier(currentToken))
                 {
-                    SyntaxToken prevToken;
-                    return currentToken.Kind == SyntaxKind.StructKeyword
-                        ? (prevToken = this.PeekToken(peekIndex - 1)).Kind == SyntaxKind.RefKeyword ||
-                           (this.PeekToken(peekIndex - 2).Kind == SyntaxKind.RefKeyword && prevToken.ContextualKind == SyntaxKind.PartialKeyword)
-                            ? ScanRefStructFlags.RefStructV8
-                            : ScanRefStructFlags.RefStruct
-                        : IsPossibleStartOfTypeDeclaration(currentToken.Kind) || (forAccessors && this.IsPossibleAccessorModifier())
-                            ? ScanRefStructFlags.TreatAsModifier
-                            : ScanRefStructFlags.NotModifier;
+                    return IsPossibleStartOfTypeDeclaration(currentToken.Kind);
                 }
             }
         }
