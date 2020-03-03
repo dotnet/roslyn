@@ -92,6 +92,11 @@
         <target state="translated">Zadanie, na które oczekiwano, nie zwraca wartości</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Nie można zastosować zmian — nieoczekiwany błąd: „{0}”</target>

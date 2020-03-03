@@ -112,7 +112,38 @@ class Derived : Base
     {
         inner.Method();
     }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task SkipInaccessibleMember()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class Base
+{
+    public abstract void Method1();
+    protected abstract void Method2();
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    public abstract void Method1();
+    protected abstract void Method2();
+}
+
+class {|Conflict:Derived|} : Base
+{
+    Base inner;
+
+    public override void Method1()
+    {
+        inner.Method1();
+    }
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -149,7 +180,7 @@ class Derived : Base
 
 class DerivedAgain : Derived
 {
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -178,7 +209,7 @@ class Derived<T> : Base where T : Base
     {
         inner.Method();
     }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -249,7 +280,7 @@ class Derived : Base
     {
         inner.Method();
     }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -275,7 +306,7 @@ class Derived : Base
     Base inner;
 
     public override int Property { get => inner.Property; set => inner.Property = value; }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -342,7 +373,7 @@ class Derived : Base
     public override int GetOnly => inner.GetOnly;
 
     public override int SetOnly { set => inner.SetOnly = value; }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -425,7 +456,7 @@ class Derived : Base
             inner.Event -= value;
         }
     }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -458,7 +489,7 @@ class Derived : Base
     {
         inner.Method();
     }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -502,7 +533,7 @@ class Derived : Base
     {
         inner.Method();
     }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -531,7 +562,7 @@ class Derived : Base
     {
         inner.Method();
     }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -560,7 +591,7 @@ class Derived : Base
     {
         inner.Method();
     }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -604,7 +635,7 @@ class Derived : Base
     {
         inner.Method();
     }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -633,7 +664,7 @@ class Derived : Base
 
     public override int InternalGet { internal get => inner.InternalGet; set => inner.InternalGet = value; }
     public override int InternalSet { get => inner.InternalSet; internal set => inner.InternalSet = value; }
-}", index: 1, title: "Implement through 'inner'");
+}", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
     }
 }

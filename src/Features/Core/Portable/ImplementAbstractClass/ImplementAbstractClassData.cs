@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -25,24 +26,27 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
     {
         private readonly Document _document;
         private readonly SyntaxNode _classNode;
+        private readonly SyntaxToken _classIdentifier;
         private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers;
 
         public readonly INamedTypeSymbol ClassType;
         public readonly INamedTypeSymbol AbstractClassType;
 
         public ImplementAbstractClassData(
-            Document document, SyntaxNode classNode, INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
+            Document document, SyntaxNode classNode, SyntaxToken classIdentifier,
+            INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
         {
             _document = document;
             _classNode = classNode;
+            _classIdentifier = classIdentifier;
             ClassType = classType;
             AbstractClassType = abstractClassType;
             _unimplementedMembers = unimplementedMembers;
         }
 
         public static async Task<ImplementAbstractClassData?> TryGetDataAsync(
-            Document document, SyntaxNode classNode, CancellationToken cancellationToken)
+            Document document, SyntaxNode classNode, SyntaxToken classIdentifier, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (!(semanticModel.GetDeclaredSymbol(classNode) is INamedTypeSymbol classType))
@@ -63,19 +67,23 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (unimplementedMembers.IsEmpty)
                 return null;
 
-            return new ImplementAbstractClassData(document, classNode, classType, abstractClassType, unimplementedMembers);
+            return new ImplementAbstractClassData(
+                document, classNode, classIdentifier,
+                classType, abstractClassType, unimplementedMembers);
         }
 
-        public static async Task<Document?> TryImplementAbstractClassAsync(Document document, SyntaxNode classNode, CancellationToken cancellationToken)
+        public static async Task<Document?> TryImplementAbstractClassAsync(
+            Document document, SyntaxNode classNode, SyntaxToken classIdentifier, CancellationToken cancellationToken)
         {
-            var data = await TryGetDataAsync(document, classNode, cancellationToken).ConfigureAwait(false);
+            var data = await TryGetDataAsync(document, classNode, classIdentifier, cancellationToken).ConfigureAwait(false);
             if (data == null)
                 return null;
 
-            return await data.ImplementAbstractClassAsync(throughMember: null, cancellationToken).ConfigureAwait(false);
+            return await data.ImplementAbstractClassAsync(throughMember: null, canDelegateAllMembers: null, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<Document> ImplementAbstractClassAsync(ISymbol? throughMember, CancellationToken cancellationToken)
+        public async Task<Document> ImplementAbstractClassAsync(
+            ISymbol? throughMember, bool? canDelegateAllMembers, CancellationToken cancellationToken)
         {
             var compilation = await _document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -87,15 +95,31 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
             var groupMembers = insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
-            return await CodeGenerator.AddMemberDeclarationsAsync(
-                _document.Project.Solution,
-                this.ClassType,
+            // If we're implementing through one of our members, but we can't delegate all members
+            // through it, then give an error message on the class decl letting the user know.
+
+            var classNodeToAddMembersTo = _classNode;
+            if (throughMember != null && canDelegateAllMembers == false)
+            {
+                classNodeToAddMembersTo = _classNode.ReplaceToken(
+                    _classIdentifier,
+                    _classIdentifier.WithAdditionalAnnotations(ConflictAnnotation.Create(
+                        FeaturesResources.Base_classes_contain_inaccessible_unimplemented_members)));
+            }
+
+            var updatedClassNode = CodeGenerator.AddMemberDeclarations(
+                classNodeToAddMembersTo,
                 memberDefinitions,
+                _document.Project.Solution.Workspace,
                 new CodeGenerationOptions(
-                    contextLocation: _classNode.GetLocation(),
+                    contextLocation: classNodeToAddMembersTo.GetLocation(),
                     autoInsertionLocation: groupMembers,
-                    sortMembers: groupMembers),
-                cancellationToken).ConfigureAwait(false);
+                    sortMembers: groupMembers));
+
+            var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newRoot = root.ReplaceNode(_classNode, updatedClassNode);
+
+            return _document.WithSyntaxRoot(newRoot);
         }
 
         private ImmutableArray<ISymbol> GenerateMembers(
@@ -136,7 +160,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (throughMember != null &&
                 !member.IsAccessibleWithin(this.ClassType, throughMember.GetMemberType()))
             {
-                throughMember = null;
+                return null;
             }
 
             return member switch
@@ -242,7 +266,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private bool ShouldGenerateAccessor(IMethodSymbol? method)
             => method != null && this.ClassType.FindImplementationForAbstractMember(method) == null;
 
-        public IEnumerable<ISymbol> GetDelegatableMembers()
+        public IEnumerable<(ISymbol symbol, bool canDelegateAllMembers)> GetDelegatableMembers()
         {
             var fields = this.ClassType.GetMembers()
                 .OfType<IFieldSymbol>()
@@ -262,13 +286,17 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             foreach (var fieldOrProp in fields.Concat(properties))
             {
                 var fieldOrPropType = fieldOrProp.GetMemberType();
-                foreach (var (type, members) in _unimplementedMembers)
+                var allUnimplementedMembers = _unimplementedMembers.SelectMany(t => t.members).ToImmutableArray();
+
+                var accessibleCount = allUnimplementedMembers.Count(m => m.IsAccessibleWithin(this.ClassType, throughType: fieldOrPropType));
+                if (accessibleCount > 0)
                 {
-                    if (members.Any(m => m.IsAccessibleWithin(this.ClassType, throughType: fieldOrPropType)))
-                    {
-                        yield return fieldOrProp;
-                        break;
-                    }
+                    // there was at least one unimplemented member that we could implement here
+                    // through one of our members.  Return this as a a delegatable member.  Also
+                    // indicate if we will be able to delegate all unimplemented members through
+                    // this.  If not, we'll let the user know that they can delegate through this
+                    // but that it will not fully fix the error.
+                    yield return (fieldOrProp, canDelegateAllMembers: accessibleCount == allUnimplementedMembers.Length);
                 }
             }
         }
