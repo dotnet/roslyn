@@ -547,6 +547,11 @@
         <target state="translated">Sostituisci '{0}' con '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Resolve_conflict_markers">
+        <source>Resolve conflict markers</source>
+        <target state="new">Resolve conflict markers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Modifica non applicabile</target>

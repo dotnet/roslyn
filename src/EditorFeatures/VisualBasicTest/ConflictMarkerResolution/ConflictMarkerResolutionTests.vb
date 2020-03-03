@@ -128,5 +128,117 @@ namespace N
     end class
 end namespace", index:=2)
         End Function
+
+        <WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        Public Async Function TestFixAll1() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+namespace N
+{|FixAllInDocument:<<<<<<<|} This is mine!
+    class Program
+    end class
+=======
+    class Program2
+    end class
+>>>>>>> This is theirs!
+
+<<<<<<< This is mine!
+    class Program3
+    end class
+=======
+    class Program4
+    end class
+>>>>>>> This is theirs!
+end namespace",
+"
+imports System
+
+namespace N
+    class Program
+    end class
+
+    class Program3
+    end class
+end namespace", index:=0)
+        End Function
+
+        <WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        Public Async Function TestFixAll2() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+namespace N
+{|FixAllInDocument:<<<<<<<|} This is mine!
+    class Program
+    end class
+=======
+    class Program2
+    end class
+>>>>>>> This is theirs!
+
+<<<<<<< This is mine!
+    class Program3
+    end class
+=======
+    class Program4
+    end class
+>>>>>>> This is theirs!
+end namespace",
+"
+imports System
+
+namespace N
+    class Program2
+    end class
+
+    class Program4
+    end class
+end namespace", index:=1)
+        End Function
+
+        <WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
+        Public Async Function TestFixAll3() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+namespace N
+{|FixAllInDocument:<<<<<<<|} This is mine!
+    class Program
+    end class
+=======
+    class Program2
+    end class
+>>>>>>> This is theirs!
+
+<<<<<<< This is mine!
+    class Program3
+    end class
+=======
+    class Program4
+    end class
+>>>>>>> This is theirs!
+end namespace",
+"
+imports System
+
+namespace N
+    class Program
+    end class
+    class Program2
+    end class
+
+    class Program3
+    end class
+    class Program4
+    end class
+end namespace", index:=2)
+        End Function
     End Class
 End Namespace
