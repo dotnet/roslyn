@@ -38,26 +38,31 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
 
-    - powershell: |
-        Write-Host "Setting up the build for PR validation by merging refs/pull/$(PrNumber)/merge into $(SourceBranchName)."
-        if ($SourceBranchName -notlike '*-vs-deps') {
-          Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $(SourceBranchName), which is not a vs-deps branch."
-        }
-        git pull origin refs/pull/$(PrNumber)/merge
-        if (!$?) {
-          Write-Host  "##vso[task.LogIssue type=error;]Merging with branch refs/pull/$(PrNumber)/merge failed."
-          exit 1
-        } else {
-          Write-Host "##vso[task.setvariable variable=IsPrValidationBuild]$true"
-        }
-      displayName: Setup branch for insertion validation
-      condition: and(succeeded(), ne(variables['PrNumber'], ''), ne(variables['PrNumber'], 'default'))
+    - powershell: Write-Host "##vso[task.setvariable variable=IsPrValidationBuild]($(PrNumber) -ne '') -and ($(PrNumber) -ne 'default')"
+      displayName: Setting IsPrValidationBuild variable
 
     - task: tagBuildOrRelease@0
       displayName: Tag build
       inputs:
         type: 'Build'
         tags: if (variables['IsPrValidationBuild']) { 'PrValidationBuild' } else { "OfficialBuild" }
+
+    - powershell: |
+        if ($SourceBranchName -notlike '*-vs-deps') {
+          Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $(SourceBranchName), which is not a vs-deps branch."
+        }
+        Write-Host "Setting up the build for PR validation by merging refs/pull/$(PrNumber)/merge into $(SourceBranchName)..."
+        git pull origin refs/pull/$(PrNumber)/merge
+        if (!$?) {
+          Write-Host "##vso[task.LogIssue type=error;]Merging branch refs/pull/$(PrNumber)/merge failed."
+          exit 1
+        }
+        Write-Host "Getting the hash of refs/pull/$(PrNumber)/head..."
+        $headSha = (git ls-remote origin refs/pull/$(PrNumber)/head) | Out-String
+        Write-Host "$(headSha)."
+      displayName: Setup branch for insertion validation
+      condition: and(succeeded(), variables['IsPrValidationBuild'])
+
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
