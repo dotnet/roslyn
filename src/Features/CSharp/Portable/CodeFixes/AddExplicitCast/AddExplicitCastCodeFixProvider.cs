@@ -108,11 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         }
 
         /// <summary>
-        /// Output the current type info of the target node and the conversion type(s) that the target node is going to be cast by.
-        /// Implicit downcast can appear on Variable Declaration, Return Statement, and Function Invocation, for example:
-        /// Base b; Derived d = [||]b;       
-        /// object b is the current node with type *Base*, and the conversion type which object b is going to be cast by is *Derived*
+        /// Output the current type information of the target node and the conversion type(s) that the target node is going to be cast by.
+        /// Implicit downcast can appear on Variable Declaration, Return Statement, and Function Invocation
         /// </summary>
+        /// For example:
+        /// Base b; Derived d = [||]b;       
+        /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by is {Derived}
+        /// 
         /// root: The root of the tree of nodes.
         /// targetNode: The node to be cast.
         /// targetNodeType: Output the type of "targetNode".
@@ -161,19 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         continue;
                     }
 
-                    // Test if all arguments can match all parameters, otherwise it is not the perfect match function. For example:
-                    // class Base { }
-                    // class Derived1 : Base { }
-                    // class Derived2 : Base { }
-                    // void DoSomething(int i, Derived1 d) { }
-                    // void DoSomething(string s, Derived2 d) { }
-                    // 
-                    // Base b;
-                    // DoSomething(1, [||]b);
-                    //
-                    // *void DoSomething(string s, Derived2 d) { }* is not the perfect match candidate function for
-                    // *DoSomething(1, [||]b)* because int and string are not ancestor-descendant relationship. Thus,
-                    // Derived2 is not a potential conversion type
                     if (IsArgumentListAndParameterListPerfectMatch(semanticModel, argumentList.Arguments, methodSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
                     {
                         var correspondingParameter = methodSymbol.Parameters[paramIndex];
@@ -217,12 +206,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         }
 
         /// <summary>
-        /// Try to test if the invocation node is available to invoke the method.
+        /// Test if all argument types can convert to corresponding parameter types, otherwise they are not the perfect matched.
         /// </summary>
+        /// For example:
+        /// class Base { }
+        /// class Derived1 : Base { }
+        /// class Derived2 : Base { }
+        /// class Derived3 : Base { }
+        /// void DoSomething(int i, Derived1 d) { }
+        /// void DoSomething(string s, Derived2 d) { }
+        /// void DoSomething(int i, Derived3 d) { }
+        /// 
+        /// Base b;
+        /// DoSomething(1, [||]b);
+        ///
+        /// *void DoSomething(string s, Derived2 d) { }* is not the perfect match candidate function for
+        /// *DoSomething(1, [||]b)* because int and string are not ancestor-descendant relationship. Thus,
+        /// Derived2 is not a potential conversion type.
+        /// 
         /// arguments: The arguments of invocation expression
         /// parameters: The parameters of function
         /// targetArgument: The target argument that contains target node
-        /// targetParamIndex: Output the corresponding parameter index of the target arugment
+        /// targetParamIndex: Output the corresponding parameter index of the target arugment if function returns true
         /// <returns>
         /// True, if arguments and parameters match perfectly.
         /// False, otherwise.
