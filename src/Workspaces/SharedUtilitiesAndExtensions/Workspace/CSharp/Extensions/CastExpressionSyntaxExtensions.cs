@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            if (parentNode.IsKind(SyntaxKind.ConditionalExpression) &&
-                ((ConditionalExpressionSyntax)parentNode).Condition == expression)
+            if (parentNode.IsKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax conditionalExpression) &&
+                conditionalExpression.Condition == expression)
             {
                 return semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
             }
@@ -83,10 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var expression = castExpression.WalkUpParentheses();
                 var parentNode = expression.Parent;
-                if (parentNode.IsKind(SyntaxKind.EqualsExpression) || parentNode.IsKind(SyntaxKind.NotEqualsExpression))
+                if (parentNode.IsKind(SyntaxKind.EqualsExpression, out BinaryExpressionSyntax binaryExpression) ||
+                    parentNode.IsKind(SyntaxKind.NotEqualsExpression, out binaryExpression))
                 {
                     // Reference comparison.
-                    var binaryExpression = (BinaryExpressionSyntax)parentNode;
                     other = binaryExpression.Left == expression ?
                         binaryExpression.Right :
                         binaryExpression.Left;
@@ -308,14 +308,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var typeInfo = default(TypeInfo);
 
-                if (castExpression.Parent.Parent.IsParentKind(SyntaxKind.InvocationExpression))
+                if (castExpression.Parent.Parent.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
                 {
-                    typeInfo = semanticModel.GetTypeInfo((InvocationExpressionSyntax)castExpression.Parent.Parent.Parent, cancellationToken);
+                    typeInfo = semanticModel.GetTypeInfo(invocation, cancellationToken);
                 }
 
-                if (castExpression.Parent.Parent.IsParentKind(SyntaxKind.ElementAccessExpression))
+                if (castExpression.Parent.Parent.IsParentKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess))
                 {
-                    typeInfo = semanticModel.GetTypeInfo((ElementAccessExpressionSyntax)castExpression.Parent.Parent.Parent, cancellationToken);
+                    typeInfo = semanticModel.GetTypeInfo(elementAccess, cancellationToken);
                 }
 
                 if (typeInfo.Type != null && typeInfo.Type.Kind == SymbolKind.DynamicType)

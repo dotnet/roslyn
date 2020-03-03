@@ -54,13 +54,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 case CS7036:
                 case CS0428:
                 case CS1061:
-                    if (node.IsKind(SyntaxKind.ConditionalAccessExpression))
+                    if (node.IsKind(SyntaxKind.ConditionalAccessExpression, out ConditionalAccessExpressionSyntax conditionalAccess))
                     {
-                        node = (node as ConditionalAccessExpressionSyntax).WhenNotNull;
+                        node = conditionalAccess.WhenNotNull;
                     }
-                    else if (node.IsKind(SyntaxKind.MemberBindingExpression))
+                    else if (node.IsKind(SyntaxKind.MemberBindingExpression, out MemberBindingExpressionSyntax memberBinding1))
                     {
-                        node = (node as MemberBindingExpressionSyntax).Name;
+                        node = memberBinding1.Name;
                     }
                     else if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
                     {

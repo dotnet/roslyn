@@ -476,7 +476,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
                     if (textBuffer == null)
                     {
-                        WatsonReporter.Report("Text buffer is missing for opened Live Share document.", new LiveShareTextBufferMissingException());
+                        // Text buffer is missing for opened Live Share document.
+                        FatalError.ReportWithoutCrash(new LiveShareTextBufferMissingException());
                         return;
                     }
 

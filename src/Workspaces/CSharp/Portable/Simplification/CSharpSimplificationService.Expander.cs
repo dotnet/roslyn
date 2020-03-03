@@ -84,9 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (type.IsDelegateType() &&
                     argument.IsParentKind(SyntaxKind.ArgumentList) &&
-                    argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                    argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreationExpression))
                 {
-                    var objectCreationExpression = (ObjectCreationExpressionSyntax)argument.Parent.Parent;
                     var objectCreationType = _semanticModel.GetTypeInfo(objectCreationExpression).Type;
                     if (objectCreationType.Equals(type))
                     {
@@ -1065,9 +1064,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
-                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
                 {
-                    var memberAccess = (MemberAccessExpressionSyntax)originalNode.Expression;
                     var targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(_semanticModel, memberAccess.Name);
 
                     if (targetSymbol != null && targetSymbol.IsReducedExtension() && memberAccess.Expression != null)
