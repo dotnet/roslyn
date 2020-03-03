@@ -22,17 +22,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public sealed override FixAllProvider GetFixAllProvider()
             => _supportsFixAll ? new SyntaxEditorBasedFixAllProvider(this) : null;
 
-        protected Task<Document> FixAsync(
-            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
+        protected Task<Document> FixAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+            => FixAllAsync(document, ImmutableArray.Create(diagnostic), equivalenceKey: "", cancellationToken);
 
         private Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            string equivalenceKey, CancellationToken cancellationToken)
         {
             return FixAllWithEditorAsync(document,
-                editor => FixAllAsync(document, diagnostics, editor, cancellationToken),
+                editor => FixAllAsync(document, diagnostics, editor, equivalenceKey, cancellationToken),
                 cancellationToken);
         }
 
@@ -52,8 +50,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal abstract CodeFixCategory CodeFixCategory { get; }
 
-        protected abstract Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken);
+        /// <summary>
+        /// Method to override in subclasses to actually implement fix-all behavior for the provided
+        /// <paramref name="document"/> given the selected set of <paramref name="diagnostics"/>.
+        /// <para/>
+        /// This method should be overridden when the subclass does not care about the fix-all
+        /// equivalence-key when determining what to do.
+        /// <para/>
+        /// One of <see cref="FixAllAsync(Document, ImmutableArray{Diagnostic}, SyntaxEditor, CancellationToken)"/> or
+        /// <see cref="FixAllAsync(Document, ImmutableArray{Diagnostic}, SyntaxEditor, string, CancellationToken)"/> must be overridden.
+        /// </summary>
+        protected virtual Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        /// <summary>
+        /// Method to override in subclasses to actually implement fix-all behavior for the provided
+        /// <paramref name="document"/> given the selected set of <paramref name="diagnostics"/>.
+        /// <para/>
+        /// This method should be overridden when the subclass does care about the fix-all
+        /// equivalence-key when determining what to do.
+        /// <para/>
+        /// One of <see cref="FixAllAsync(Document, ImmutableArray{Diagnostic}, SyntaxEditor, CancellationToken)"/> or
+        /// <see cref="FixAllAsync(Document, ImmutableArray{Diagnostic}, SyntaxEditor, string, CancellationToken)"/> must be overridden.
+        /// </summary>
+        protected virtual Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, string equivalenceKey, CancellationToken cancellationToken)
+            => FixAllAsync(document, diagnostics, editor, cancellationToken);
 
         /// <summary>
         /// Whether or not this diagnostic should be included when performing a FixAll.  This is
