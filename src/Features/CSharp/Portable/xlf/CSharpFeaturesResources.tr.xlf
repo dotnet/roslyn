@@ -87,6 +87,11 @@
         <target state="translated">Yönteme dönüştür</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_regular_string">
+        <source>Convert to regular string</source>
+        <target state="new">Convert to regular string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
         <source>Convert to 'switch' expression</source>
         <target state="translated">'switch' deyimine dönüştür</target>
@@ -95,6 +100,11 @@
       <trans-unit id="Convert_to_switch_statement">
         <source>Convert to 'switch' statement</source>
         <target state="translated">'switch' ifadesine dönüştür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_verbatim_string">
+        <source>Convert to verbatim string</source>
+        <target state="new">Convert to verbatim string</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">

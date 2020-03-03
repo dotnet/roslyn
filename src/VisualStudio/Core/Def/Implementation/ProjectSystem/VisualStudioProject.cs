@@ -1201,7 +1201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     FileNameUtilities.GetFileName(fullPath),
-                    folders: folders.IsDefault ? null : (IEnumerable<string>)folders,
+                    folders: folders.NullToEmpty(),
                     sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
                     filePath: fullPath,
@@ -1590,8 +1590,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, IEnumerable<string> folders)
+            private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, ImmutableArray<string> folders)
             {
+                Contract.ThrowIfTrue(folders.IsDefault);
+
                 // we use this file path for editorconfig. 
                 var filePath = fileInfo.FilePath;
 

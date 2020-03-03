@@ -133,12 +133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 var argument = invocation.ArgumentList.Arguments[i];
                 if (argument.NameColon != null ||
                     argument.RefOrOutKeyword.Kind() != SyntaxKind.None ||
-                    !argument.Expression.IsKind(SyntaxKind.IdentifierName))
+                    !argument.Expression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                 {
                     return false;
                 }
 
-                var identifierName = (IdentifierNameSyntax)argument.Expression;
                 if (identifierName.Identifier.ValueText != paramNames[i].ValueText)
                 {
                     return false;

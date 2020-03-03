@@ -79,6 +79,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitArrayCreation(node);
         }
 
+        public override BoundNode VisitArrayAccess(BoundArrayAccess node)
+        {
+            if (_inExpressionLambda &&
+                node.Indices.Length == 1 &&
+                node.Indices[0].Type!.SpecialType == SpecialType.None)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, node);
+            }
+
+            return base.VisitArrayAccess(node);
+        }
+
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, node);
+            }
+
+            return base.VisitIndexOrRangePatternIndexerAccess(node);
+        }
+
+        public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsFromEndIndexExpression, node);
+            }
+
+            return base.VisitFromEndIndexExpression(node);
+        }
+
+        public override BoundNode VisitRangeExpression(BoundRangeExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsRangeExpression, node);
+            }
+
+            return base.VisitRangeExpression(node);
+        }
+
         public override BoundNode VisitSizeOfOperator(BoundSizeOfOperator node)
         {
             if (_inExpressionLambda && node.ConstantValue == null)

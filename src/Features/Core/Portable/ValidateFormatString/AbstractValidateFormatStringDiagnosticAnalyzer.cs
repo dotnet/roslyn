@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         private const string NameOfArgsParameter = "args";
         private const string NameOfFormatStringParameter = "format";
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract SyntaxNode GetArgumentExpression(SyntaxNode syntaxNode);
         protected abstract SyntaxNode? TryGetMatchingNamedArgument(SeparatedSyntaxList<SyntaxNode> arguments, string searchArgumentName);
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                     return;
                 }
 
-                var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+                var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
                 startContext.RegisterSyntaxNodeAction(
                     c => AnalyzeNode(c, formatProviderType),
                     syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.InvocationExpression));
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             Constraint = nameof(AnalyzerHelper.GetOption) + " is expensive and should be avoided if a syntax-based fast path exists.")]
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol formatProviderType)
         {
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             var expression = syntaxFacts.GetExpressionOfInvocationExpression(context.Node);
 
             if (!IsValidFormatMethod(syntaxFacts, expression))
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 formatString, formatStringLiteralExpressionSyntax.SpanStart);
         }
 
-        private bool IsValidFormatMethod(ISyntaxFactsService syntaxFacts, SyntaxNode expression)
+        private bool IsValidFormatMethod(ISyntaxFacts syntaxFacts, SyntaxNode expression)
         {
             // When calling string.Format(...), the expression will be MemberAccessExpressionSyntax
             if (syntaxFacts.IsSimpleMemberAccessExpression(expression))
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             SemanticModel semanticModel,
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters,
-            ISyntaxFactsService syntaxFacts)
+            ISyntaxFacts syntaxFacts)
         {
             var argsArgumentType = TryGetArgsArgumentType(semanticModel, arguments, parameters, syntaxFacts);
             return argsArgumentType is IArrayTypeSymbol arrayType && arrayType.ElementType.IsReferenceType;
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             SemanticModel semanticModel,
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters,
-            ISyntaxFactsService syntaxFacts)
+            ISyntaxFacts syntaxFacts)
         {
             var argsArgument = TryGetArgument(NameOfArgsParameter, arguments, parameters);
             if (argsArgument == null)
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         protected SyntaxNode? TryGetFormatStringLiteralExpressionSyntax(
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters,
-            ISyntaxFactsService syntaxFacts)
+            ISyntaxFacts syntaxFacts)
         {
             var formatArgumentSyntax = TryGetArgument(
                 NameOfFormatStringParameter,

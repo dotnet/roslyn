@@ -277,16 +277,6 @@
         <target state="translated">'GetHashCode' uygulaması basitleştirilebilir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="translated">Tüm arabirimleri açıkça uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="translated">Açıkça uygula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">'{0}' öğesini açıkça uygula</target>
@@ -302,14 +292,29 @@
         <target state="new">Implement abstract class</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">Tüm arabirimleri örtük olarak uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Örtük olarak uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
