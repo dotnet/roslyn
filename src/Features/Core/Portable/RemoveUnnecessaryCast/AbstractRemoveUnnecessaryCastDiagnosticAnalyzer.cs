@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
 {
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
                 return null;
             }
 
+            RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
             return Diagnostic.Create(
                 UnnecessaryWithSuggestionDescriptor,
                 node.SyntaxTree.GetLocation(GetFadeSpan(node)),

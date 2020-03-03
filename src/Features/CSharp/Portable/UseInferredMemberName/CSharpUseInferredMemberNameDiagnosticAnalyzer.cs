@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseInferredMemberName;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 {
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     properties: null));
 
             // Also fade out the part of the name-colon syntax
+            RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
             var fadeSpan = TextSpan.FromBounds(nameColon.Name.SpanStart, nameColon.ColonToken.Span.End);
             context.ReportDiagnostic(
                 Diagnostic.Create(
@@ -93,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     properties: null));
 
             // Also fade out the part of the name-equals syntax
+            RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
             var fadeSpan = TextSpan.FromBounds(nameEquals.Name.SpanStart, nameEquals.EqualsToken.Span.End);
             context.ReportDiagnostic(
                 Diagnostic.Create(

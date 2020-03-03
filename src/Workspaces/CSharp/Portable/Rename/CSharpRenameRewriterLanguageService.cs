@@ -299,30 +299,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     return true;
                 }
 
-                if (node.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression))
+                if (node.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression, out ParenthesizedLambdaExpressionSyntax parenLambda))
                 {
-                    var parent = (ParenthesizedLambdaExpressionSyntax)node;
-                    if (ReferenceEquals(parent.ParameterList, node))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return ReferenceEquals(parenLambda.ParameterList, node);
                 }
 
-                if (node.IsParentKind(SyntaxKind.SimpleLambdaExpression))
+                if (node.IsParentKind(SyntaxKind.SimpleLambdaExpression, out SimpleLambdaExpressionSyntax simpleLambda))
                 {
-                    var parent = (SimpleLambdaExpressionSyntax)node;
-                    if (ReferenceEquals(parent.Parameter, node))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return ReferenceEquals(simpleLambda.Parameter, node);
                 }
 
                 return true;
@@ -606,9 +590,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 else
                 {
                     var parsedIdentifier = SyntaxFactory.ParseName(currentNewIdentifier);
-                    if (parsedIdentifier.IsKind(SyntaxKind.IdentifierName))
+                    if (parsedIdentifier.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                     {
-                        valueText = ((IdentifierNameSyntax)parsedIdentifier).Identifier.ValueText;
+                        valueText = identifierName.Identifier.ValueText;
                     }
                 }
 
@@ -746,12 +730,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             SyntaxToken token,
             IEnumerable<ISymbol> newReferencedSymbols)
         {
-            if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
+            if (token.Parent.IsKind(SyntaxKind.IdentifierName, out ExpressionSyntax expression) &&
                 token.Parent.IsParentKind(SyntaxKind.InvocationExpression) &&
                 token.GetPreviousToken().Kind() != SyntaxKind.DotToken &&
                 token.GetNextToken().Kind() != SyntaxKind.DotToken)
             {
-                var expression = (ExpressionSyntax)token.Parent;
                 var enclosingMemberDeclaration = expression.FirstAncestorOrSelf<MemberDeclarationSyntax>();
                 if (enclosingMemberDeclaration != null)
                 {
@@ -1263,17 +1246,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             var nodeToSpeculate = node.GetAncestorsOrThis(n => SpeculationAnalyzer.CanSpeculateOnNode(n)).LastOrDefault();
             if (nodeToSpeculate == null)
             {
-                if (node.IsKind(SyntaxKind.NameMemberCref))
+                if (node.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax nameMember))
                 {
-                    nodeToSpeculate = ((NameMemberCrefSyntax)node).Name;
+                    nodeToSpeculate = nameMember.Name;
                 }
-                else if (node.IsKind(SyntaxKind.QualifiedCref))
+                else if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax qualifiedCref))
                 {
-                    nodeToSpeculate = ((QualifiedCrefSyntax)node).Container;
+                    nodeToSpeculate = qualifiedCref.Container;
                 }
-                else if (node.IsKind(SyntaxKind.TypeConstraint))
+                else if (node.IsKind(SyntaxKind.TypeConstraint, out TypeConstraintSyntax typeConstraint))
                 {
-                    nodeToSpeculate = ((TypeConstraintSyntax)node).Type;
+                    nodeToSpeculate = typeConstraint.Type;
                 }
                 else if (node is BaseTypeSyntax baseType)
                 {

@@ -673,4 +673,10 @@
     <value>Reverse 'for' statement</value>
     <comment>{Locked="for"} "for" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Convert_to_regular_string" xml:space="preserve">
+    <value>Convert to regular string</value>
+  </data>
+  <data name="Convert_to_verbatim_string" xml:space="preserve">
+    <value>Convert to verbatim string</value>
+  </data>
 </root>

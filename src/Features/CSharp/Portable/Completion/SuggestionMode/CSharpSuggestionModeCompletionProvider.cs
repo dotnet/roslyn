@@ -123,8 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             // A lambda that is being typed may be parsed as a tuple without names
             // For example, "(a, b" could be the start of either a tuple or lambda
             // But "(a: b, c" cannot be a lambda
-            if (token.SyntaxTree.IsPossibleTupleContext(token, position) && token.Parent.IsKind(SyntaxKind.TupleExpression) &&
-               !((TupleExpressionSyntax)token.Parent).HasNames())
+            if (token.SyntaxTree.IsPossibleTupleContext(token, position) &&
+                token.Parent.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression) &&
+                !tupleExpression.HasNames())
             {
                 position = token.Parent.SpanStart;
             }

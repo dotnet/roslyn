@@ -52,13 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
-            if (!variableDeclarator.IsParentKind(SyntaxKind.VariableDeclaration) ||
-                !variableDeclarator.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
+            if (!variableDeclarator.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) ||
+                !variableDeclaration.IsParentKind(SyntaxKind.LocalDeclarationStatement))
             {
                 return;
             }
 
-            var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
             if (variableDeclarator.Initializer == null ||
                 variableDeclarator.Initializer.Value.IsMissing ||
                 variableDeclarator.Initializer.Value.IsKind(SyntaxKind.StackAllocArrayCreationExpression))
@@ -132,9 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 identifierNode = identifier;
             }
 
-            if (identifierNode.IsParentKind(SyntaxKind.Argument))
+            if (identifierNode.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
             {
-                var argument = (ArgumentSyntax)identifierNode.Parent;
                 if (argument.RefOrOutKeyword.Kind() != SyntaxKind.None)
                 {
                     return true;
@@ -294,9 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var annotatedNodesAndTokens = root.GetAnnotatedNodesAndTokens(ReferenceAnnotation);
             foreach (var nodeOrToken in annotatedNodesAndTokens)
             {
-                if (nodeOrToken.IsNode && nodeOrToken.AsNode().IsKind(SyntaxKind.IdentifierName))
+                if (nodeOrToken.IsNode && nodeOrToken.AsNode().IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                 {
-                    yield return (IdentifierNameSyntax)nodeOrToken.AsNode();
+                    yield return identifierName;
                 }
             }
         }
@@ -385,11 +383,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             // If the local is parented by a label statement, we can't remove this statement. Instead,
             // we'll replace the local declaration with an empty expression statement.
-            if (newLocalDeclaration.IsParentKind(SyntaxKind.LabeledStatement))
+            if (newLocalDeclaration.IsParentKind(SyntaxKind.LabeledStatement, out LabeledStatementSyntax labeledStatement))
             {
-                var labeledStatement = (LabeledStatementSyntax)newLocalDeclaration.Parent;
                 var newLabeledStatement = labeledStatement.ReplaceNode(newLocalDeclaration, SyntaxFactory.ParseStatement(""));
-
                 return newScope.ReplaceNode(labeledStatement, newLabeledStatement);
             }
 
@@ -398,9 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private ExpressionSyntax SkipRedundantExteriorParentheses(ExpressionSyntax expression)
         {
-            while (expression.IsKind(SyntaxKind.ParenthesizedExpression))
+            while (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesized))
             {
-                var parenthesized = (ParenthesizedExpressionSyntax)expression;
                 if (parenthesized.Expression == null ||
                     parenthesized.Expression.IsMissing)
                 {
@@ -582,9 +577,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 {
                     return false;
                 }
-                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
+                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax assignment))
                 {
-                    return ((AssignmentExpressionSyntax)parent.Parent).Left == parent;
+                    return assignment.Left == parent;
                 }
 
                 parent = parent.Parent;

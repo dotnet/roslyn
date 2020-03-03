@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -377,14 +378,23 @@ namespace Microsoft.CodeAnalysis
             return this.SetParseOptions(this.ParseOptions.WithKind(kind));
         }
 
+        // TODO: https://github.com/dotnet/roslyn/issues/37125
+        // if FilePath is null, then this will change the name of the underlying tree, but we aren't producing a new tree in that case.
         public DocumentState UpdateName(string name)
+            => UpdateAttributes(Attributes.With(name: name));
+
+        public DocumentState UpdateFolders(IReadOnlyList<string> folders)
+            => UpdateAttributes(Attributes.With(folders: folders));
+
+        private DocumentState UpdateAttributes(DocumentInfo.DocumentAttributes attributes)
         {
-            // TODO: if FilePath is null, then this will change the name of the underlying tree, but we aren't producing a new tree in that case.
+            Debug.Assert(attributes != Attributes);
+
             return new DocumentState(
                 _languageServices,
                 solutionServices,
                 Services,
-                Attributes.With(name: name),
+                attributes,
                 _options,
                 _analyzerConfigSetSource,
                 sourceText,
@@ -392,23 +402,10 @@ namespace Microsoft.CodeAnalysis
                 _treeSource);
         }
 
-        public DocumentState UpdateFolders(ImmutableArray<string> folders)
+        public DocumentState UpdateFilePath(string? filePath)
         {
-            return new DocumentState(
-                _languageServices,
-                solutionServices,
-                Services,
-                Attributes.With(folders: folders),
-                _options,
-                _analyzerConfigSetSource,
-                sourceText,
-                TextAndVersionSource,
-                _treeSource);
-        }
-
-        public DocumentState UpdateFilePath(string filePath)
-        {
-            var newAttributes = this.Attributes.With(filePath: filePath);
+            var newAttributes = Attributes.With(filePath: filePath);
+            Debug.Assert(newAttributes != Attributes);
 
             // TODO: it's overkill to fully reparse the tree if we had the tree already; all we have to do is update the
             // file path and diagnostic options for that tree.
@@ -586,14 +583,9 @@ namespace Microsoft.CodeAnalysis
                 treeSource: newTreeSource);
         }
 
-        public new DocumentState UpdateText(TextLoader loader, PreservationMode mode)
-        {
-            return UpdateText(loader, text: null, mode: mode);
-        }
-
         internal DocumentState UpdateText(TextLoader loader, SourceText? text, PreservationMode mode)
         {
-            var documentState = (DocumentState)base.UpdateText(loader, mode);
+            var documentState = (DocumentState)UpdateText(loader, mode);
 
             // If we are given a SourceText directly, fork it since we didn't pass that into the base.
             // TODO: understand why this is being called this way at all. It seems we only have a text in a specific case
@@ -618,11 +610,6 @@ namespace Microsoft.CodeAnalysis
 
         internal DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)
         {
-            if (newRoot == null)
-            {
-                throw new ArgumentNullException(nameof(newRoot));
-            }
-
             if (!SupportsSyntaxTree)
             {
                 throw new InvalidOperationException();

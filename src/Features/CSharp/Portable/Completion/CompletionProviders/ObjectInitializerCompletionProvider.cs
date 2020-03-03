@@ -118,13 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // new Goo { bar = $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
             {
-                if (!(token.Parent.Parent is ObjectCreationExpressionSyntax objectCreation))
-                {
-                    return null;
-                }
-
                 var type = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
                 if (type is ITypeParameterSymbol typeParameterSymbol)
                 {
