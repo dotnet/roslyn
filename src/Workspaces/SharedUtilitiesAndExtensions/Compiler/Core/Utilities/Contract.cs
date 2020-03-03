@@ -37,11 +37,11 @@ namespace Roslyn.Utilities
         /// all builds
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>([NotNull] T value, string? message) where T : class?
+        public static void ThrowIfNull<T>([NotNull] T value, string message) where T : class?
         {
             if (value is null)
             {
-                Fail(message ?? "Unexpected null");
+                Fail(message);
             }
         }
 
