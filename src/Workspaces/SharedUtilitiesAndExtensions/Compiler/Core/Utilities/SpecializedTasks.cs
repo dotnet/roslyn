@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -21,27 +22,35 @@ namespace Roslyn.Utilities
         [Obsolete("Use Task.CompletedTask instead which is available in the framework.")]
         public static readonly Task EmptyTask = Task.CompletedTask;
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<T?> AsNullable<T>(this Task<T> task) where T : class
             => task!;
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<T> Default<T>() where T : struct
             => TasksOfStruct<T>.Default;
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<T?> Null<T>() where T : class
             => TasksOfClass<T>.Null;
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<IReadOnlyList<T>> EmptyReadOnlyList<T>()
             => EmptyTasks<T>.EmptyReadOnlyList;
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<IList<T>> EmptyList<T>()
             => EmptyTasks<T>.EmptyList;
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<ImmutableArray<T>> EmptyImmutableArray<T>()
             => EmptyTasks<T>.EmptyImmutableArray;
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<IEnumerable<T>> EmptyEnumerable<T>()
             => EmptyTasks<T>.EmptyEnumerable;
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<T> FromResult<T>(T t) where T : class
             => FromResultCache<T>.FromResult(t);
 
@@ -68,6 +77,7 @@ namespace Roslyn.Utilities
             private static readonly ConditionalWeakTable<T, Task<T>> s_fromResultCache = new ConditionalWeakTable<T, Task<T>>();
             private static readonly ConditionalWeakTable<T, Task<T>>.CreateValueCallback s_taskCreationCallback = Task.FromResult<T>;
 
+            [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
             public static Task<T> FromResult(T t)
             {
                 return s_fromResultCache.GetValue(t, s_taskCreationCallback);

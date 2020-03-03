@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     using (data.AsyncToken)
                     {
                         // we have a hint. check whether we can take advantage of it
-                        if (await TryEnqueueFromHint(data.Document, data.ChangedMember).ConfigureAwait(continueOnCapturedContext: false))
+                        if (await TryEnqueueFromHintAsync(data.Document, data.ChangedMember).ConfigureAwait(continueOnCapturedContext: false))
                         {
                             return;
                         }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return DequeueWorker(_workGate, _pendingWork, CancellationToken);
                 }
 
-                private async Task<bool> TryEnqueueFromHint(Document document, SyntaxPath changedMember)
+                private async Task<bool> TryEnqueueFromHintAsync(Document document, SyntaxPath changedMember)
                 {
                     if (changedMember == null)
                     {

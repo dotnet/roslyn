@@ -691,6 +691,12 @@ Do you want to continue?</value>
   <data name="Configure_0_code_style" xml:space="preserve">
     <value>Configure {0} code style</value>
   </data>
+  <data name="Configure_severity_for_all_0_analyzers" xml:space="preserve">
+    <value>Configure severity for all '{0}' analyzers</value>
+  </data>
+  <data name="Configure_severity_for_all_analyzers" xml:space="preserve">
+    <value>Configure severity for all analyzers</value>
+  </data>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
   </data>

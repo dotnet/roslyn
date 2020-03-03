@@ -33,7 +33,6 @@
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
     <MicrosoftVisualStudioLanguageServerPackagesVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerPackagesVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.5.0-beta2-20074-05</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <!-- 
     Dependency versions
@@ -70,8 +69,8 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
     <MicrosoftDiaSymReaderVersion>1.3.0</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta2-19409-01</MicrosoftDiaSymReaderConverterVersion>
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta2-19409-01</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta2-20115-01</MicrosoftDiaSymReaderConverterVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta2-20115-01</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.7.0</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.5.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetVersionToolsVersion>3.0.0-preview1-03617-02</MicrosoftDotNetVersionToolsVersion>

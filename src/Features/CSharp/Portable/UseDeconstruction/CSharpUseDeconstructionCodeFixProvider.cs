@@ -149,8 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // i.e.   (int x, int y) t = ...   will be converted to (int x, int y) = ...
             //
             // If we had the "var t" form we'll convert that to the declaration expression "var (x, y)"
-            return typeNode.IsKind(SyntaxKind.TupleType)
-                ? (ExpressionSyntax)CreateTupleExpression((TupleTypeSyntax)typeNode)
+            return typeNode.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleTypeSyntax)
+                ? (ExpressionSyntax)CreateTupleExpression(tupleTypeSyntax)
                 : CreateDeclarationExpression(tupleType, typeNode);
         }
 

@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
     internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractSyntaxWrapper
         where TBinaryExpressionSyntax : SyntaxNode
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly IPrecedenceService _precedenceService;
 
         protected AbstractBinaryExpressionWrapper(
             IIndentationService indentationService,
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             IPrecedenceService precedenceService) : base(indentationService)
         {
             _syntaxFacts = syntaxFacts;

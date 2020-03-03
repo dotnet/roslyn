@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty;
                 }
 
-                return CreateStateSetMap(_analyzerInfoCache, project.Language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: false);
+                return CreateStateSetMap(project.Language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: false);
             }
 
             private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetOrUpdateProjectAnalyzerMap(Project project)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private ImmutableDictionary<DiagnosticAnalyzer, StateSet> UpdateProjectAnalyzerMap(Project project)
             {
                 var newAnalyzersPerReference = _analyzerInfoCache.CreateProjectDiagnosticAnalyzersPerReference(project);
-                var newMap = CreateStateSetMap(_analyzerInfoCache, project.Language, newAnalyzersPerReference.Values, includeFileContentLoadAnalyzer: false);
+                var newMap = CreateStateSetMap(project.Language, newAnalyzersPerReference.Values, includeFileContentLoadAnalyzer: false);
 
                 RaiseProjectAnalyzerReferenceChangedIfNeeded(project, newAnalyzersPerReference, newMap);
 

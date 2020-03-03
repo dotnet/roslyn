@@ -214,8 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var constraintClauses = default(SyntaxList<TypeParameterConstraintClauseSyntax>);
 
-            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block)
-                ? (BlockSyntax)anonymousFunction.Body
+            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block, out BlockSyntax block)
+                ? block
                 : null;
 
             var expressionBody = anonymousFunction.Body is ExpressionSyntax expression

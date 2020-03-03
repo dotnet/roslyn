@@ -8,14 +8,17 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -86,6 +89,8 @@ namespace Microsoft.CodeAnalysis
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
             var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService, serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty);
             _latestSolution = CreateSolution(info, emptyOptions);
+
+            _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create(this));
         }
 
         internal void LogTestMessage(string message)
@@ -233,6 +238,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Executes an action as a background task, as part of a sequential queue of tasks.
         /// </summary>
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task ScheduleTask(Action action, string taskName = "Workspace.Task")
         {
             return _taskQueue.ScheduleTask(action, taskName);
@@ -241,6 +247,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Execute a function as a background task, as part of a sequential queue of tasks.
         /// </summary>
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task<T> ScheduleTask<T>(Func<T> func, string taskName = "Workspace.Task")
         {
             return _taskQueue.ScheduleTask(func, taskName);

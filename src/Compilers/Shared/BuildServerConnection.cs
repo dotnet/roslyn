@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static bool IsCompilerServerSupported => GetPipeNameForPathOpt("") is object;
 
-        public static Task<BuildResponse> RunServerCompilation(
+        public static Task<BuildResponse> RunServerCompilationAsync(
             RequestLanguage language,
             string? sharedCompilationId,
             List<string> arguments,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             var pipeNameOpt = sharedCompilationId ?? GetPipeNameForPathOpt(buildPaths.ClientDirectory);
 
-            return RunServerCompilationCore(
+            return RunServerCompilationCoreAsync(
                 language,
                 arguments,
                 buildPaths,
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken: cancellationToken);
         }
 
-        internal static async Task<BuildResponse> RunServerCompilationCore(
+        internal static async Task<BuildResponse> RunServerCompilationCoreAsync(
             RequestLanguage language,
             List<string> arguments,
             BuildPathsAlt buildPaths,
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                                       keepAlive,
                                                       libEnvVariable);
 
-                    return await TryCompile(pipe, request, cancellationToken).ConfigureAwait(false);
+                    return await TryCompileAsync(pipe, request, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Try to compile using the server. Returns a null-containing Task if a response
         /// from the server cannot be retrieved.
         /// </summary>
-        private static async Task<BuildResponse> TryCompile(NamedPipeClientStream pipeStream,
+        private static async Task<BuildResponse> TryCompileAsync(NamedPipeClientStream pipeStream,
                                                             BuildRequest request,
                                                             CancellationToken cancellationToken)
         {
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 Log("Begin reading response");
 
                 var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
-                var monitorTask = CreateMonitorDisconnectTask(pipeStream, "client", serverCts.Token);
+                var monitorTask = MonitorDisconnectAsync(pipeStream, "client", serverCts.Token);
                 await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
 
                 Log("End reading response");
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
         /// which serves to check the pipe for disconnection.
         /// </summary>
-        internal static async Task CreateMonitorDisconnectTask(
+        internal static async Task MonitorDisconnectAsync(
             PipeStream pipeStream,
             string? identifier = null,
             CancellationToken cancellationToken = default(CancellationToken))

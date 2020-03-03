@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolution
@@ -448,6 +449,147 @@ namespace N
         }
     }
 
+}", index: 2);
+        }
+
+        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestFixAll1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+namespace N
+{
+{|FixAllInDocument:<<<<<<<|} This is mine!
+    class Program
+    {
+    }
+=======
+    class Program2
+    {
+    }
+>>>>>>> This is theirs!
+
+<<<<<<< This is mine!
+    class Program3
+    {
+    }
+=======
+    class Program4
+    {
+    }
+>>>>>>> This is theirs!
+}",
+@"
+using System;
+
+namespace N
+{
+    class Program
+    {
+    }
+
+    class Program3
+    {
+    }
+}", index: 0);
+        }
+
+        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestFixAll2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+namespace N
+{
+{|FixAllInDocument:<<<<<<<|} This is mine!
+    class Program
+    {
+    }
+=======
+    class Program2
+    {
+    }
+>>>>>>> This is theirs!
+
+<<<<<<< This is mine!
+    class Program3
+    {
+    }
+=======
+    class Program4
+    {
+    }
+>>>>>>> This is theirs!
+}",
+@"
+using System;
+
+namespace N
+{
+    class Program2
+    {
+    }
+
+    class Program4
+    {
+    }
+}", index: 1);
+        }
+
+        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestFixAll3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+namespace N
+{
+{|FixAllInDocument:<<<<<<<|} This is mine!
+    class Program
+    {
+    }
+=======
+    class Program2
+    {
+    }
+>>>>>>> This is theirs!
+
+<<<<<<< This is mine!
+    class Program3
+    {
+    }
+=======
+    class Program4
+    {
+    }
+>>>>>>> This is theirs!
+}",
+@"
+using System;
+
+namespace N
+{
+    class Program
+    {
+    }
+    class Program2
+    {
+    }
+
+    class Program3
+    {
+    }
+    class Program4
+    {
+    }
 }", index: 2);
         }
     }
