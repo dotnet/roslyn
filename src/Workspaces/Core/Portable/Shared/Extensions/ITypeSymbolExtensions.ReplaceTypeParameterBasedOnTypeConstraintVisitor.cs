@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ITypeSymbolExtensions
     {
-        private class ReplaceTypeParameterBasedOnTypeConstraintVisitor : SymbolVisitor<ValueTask<ITypeSymbol>>
+        private class ReplaceTypeParameterBasedOnTypeConstraintVisitor : AsyncSymbolVisitor<ITypeSymbol>
         {
             private readonly CancellationToken _cancellationToken;
             private readonly Compilation _compilation;
@@ -31,18 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _cancellationToken = cancellationToken;
             }
 
-            public override ValueTask<ITypeSymbol> Visit(ISymbol symbol)
-            {
-                if (symbol is null)
-                    throw new NotImplementedException();
-
-                return base.Visit(symbol);
-            }
-
-            public override ValueTask<ITypeSymbol> DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+            protected override ITypeSymbol DefaultResult => throw new NotImplementedException();
 
             public override ValueTask<ITypeSymbol> VisitDynamicType(IDynamicTypeSymbol symbol)
             {
