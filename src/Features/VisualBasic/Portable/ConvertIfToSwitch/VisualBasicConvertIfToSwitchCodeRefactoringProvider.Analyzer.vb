@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
         Private NotInheritable Class VisualBasicAnalyzer
             Inherits Analyzer
 
-            Public Sub New(syntaxFacts As ISyntaxFactsService, features As Feature)
+            Public Sub New(syntaxFacts As ISyntaxFacts, features As Feature)
                 MyBase.New(syntaxFacts, features)
             End Sub
 

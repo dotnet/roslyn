@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.FileHeaders;
 using Roslyn.Utilities;
 

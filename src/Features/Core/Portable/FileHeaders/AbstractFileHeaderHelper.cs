@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {

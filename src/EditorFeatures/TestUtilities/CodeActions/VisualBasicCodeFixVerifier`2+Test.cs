@@ -30,18 +30,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    if (EditorConfig is object)
-                    {
-                        var documentId = DocumentId.CreateNewId(projectId, "/.editorconfig");
-                        solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", SourceText.From(EditorConfig, Encoding.UTF8), filePath: "/.editorconfig");
-                    }
-
                     var parseOptions = (VisualBasicParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
 #if !CODE_STYLE // TODO: Add support for Options based tests in CodeStyle layer
+                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, Options);
+#else
+                    var analyzerConfigSource = SourceText.From("", Encoding.UTF8);
+#endif
+
+                    if (EditorConfig is object)
+                    {
+                        analyzerConfigSource = SourceText.From(EditorConfig + analyzerConfigSource, Encoding.UTF8);
+                    }
+                    else
+                    {
+                        analyzerConfigSource = SourceText.From("root = true" + Environment.NewLine + analyzerConfigSource, Encoding.UTF8);
+                    }
+
+                    if (analyzerConfigSource is object)
+                    {
+                        foreach (var id in solution.ProjectIds)
+                        {
+                            var documentId = DocumentId.CreateNewId(id, ".editorconfig");
+                            solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", analyzerConfigSource, filePath: "/.editorconfig");
+                        }
+                    }
+
+#if !CODE_STYLE // TODO: Add support for Options based tests in CodeStyle layer
                     var options = solution.Options;
-                    foreach (var (key, value) in Options)
+                    foreach (var (key, value) in remainingOptions)
                     {
                         options = options.WithChangedOption(key, value);
                     }

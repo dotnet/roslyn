@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CreateContext(
+        Protected Overrides Function CreateContextAsync(
                                                   workspace As Workspace,
                                                   semanticModel As SemanticModel,
                                                   position As Integer,

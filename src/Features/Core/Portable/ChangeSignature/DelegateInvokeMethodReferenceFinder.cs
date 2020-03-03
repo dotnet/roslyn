@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 foreach (var document in project.Documents)
                 {
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
-                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvoke(
+                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
                         symbolAndProjectId, document, cancellationToken).ConfigureAwait(false));
                 }
             }

@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         public const string Ellipsis = "...";
 
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
 
-        protected AbstractDocumentationCommentService(ISyntaxFactsService syntaxFacts)
+        protected AbstractDocumentationCommentService(ISyntaxFacts syntaxFacts)
         {
             _syntaxFacts = syntaxFacts;
         }

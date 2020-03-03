@@ -5,8 +5,13 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
@@ -75,5 +80,61 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
             }
         }
+
+#if !CODE_STYLE
+        public static (SourceText? analyzerConfig, IEnumerable<KeyValuePair<OptionKey, object?>> options) ConvertOptionsToAnalyzerConfig(string defaultFileExtension, OptionsCollection options)
+        {
+            if (options.Count == 0)
+            {
+                return (null, options);
+            }
+
+            var optionSet = new OptionSetWrapper(options.ToDictionary<KeyValuePair<OptionKey, object?>, OptionKey, object?>(option => option.Key, option => option.Value));
+            var remainingOptions = new List<KeyValuePair<OptionKey, object?>>();
+
+            var analyzerConfig = new StringBuilder();
+            analyzerConfig.AppendLine();
+            analyzerConfig.AppendLine($"[*.{defaultFileExtension}]");
+            foreach (var (key, value) in options)
+            {
+                var editorConfigStorageLocation = key.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
+                if (editorConfigStorageLocation is null)
+                {
+                    remainingOptions.Add(KeyValuePairUtil.Create<OptionKey, object?>(key, value));
+                    continue;
+                }
+
+                analyzerConfig.AppendLine(editorConfigStorageLocation.GetEditorConfigString(value, optionSet));
+            }
+
+            return (SourceText.From(analyzerConfig.ToString(), Encoding.UTF8), remainingOptions);
+        }
+
+        private sealed class OptionSetWrapper : OptionSet
+        {
+            private readonly Dictionary<OptionKey, object?> _options;
+
+            public OptionSetWrapper(Dictionary<OptionKey, object?> options)
+            {
+                _options = options;
+            }
+
+            public override object? GetOption(OptionKey optionKey)
+            {
+                if (!_options.TryGetValue(optionKey, out var value))
+                {
+                    value = optionKey.Option.DefaultValue;
+                }
+
+                return value;
+            }
+
+            public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
+                => throw new NotSupportedException();
+
+            internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+                => SpecializedCollections.EmptyEnumerable<OptionKey>();
+        }
+#endif
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editing
@@ -149,6 +150,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Partial, isPartial));
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Public API.")]
         public DeclarationModifiers WithAsync(bool isAsync)
         {
             return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Async, isAsync));

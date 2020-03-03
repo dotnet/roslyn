@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -15,6 +16,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SyntaxTreeExtensions
     {
+        public static bool OverlapsHiddenPosition([NotNullWhen(returnValue: true)] this SyntaxTree? tree, TextSpan span, CancellationToken cancellationToken)
+        {
+            if (tree == null)
+            {
+                return false;
+            }
+
+            var text = tree.GetText(cancellationToken);
+
+            return text.OverlapsHiddenPosition(span, (position, cancellationToken2) =>
+                {
+                    // implements the ASP.NET IsHidden rule
+                    var lineVisibility = tree.GetLineVisibility(position, cancellationToken2);
+                    return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
+                },
+                cancellationToken);
+        }
+
         public static bool IsScript(this SyntaxTree syntaxTree)
         {
             return syntaxTree.Options.Kind != SourceCodeKind.Regular;
@@ -27,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static Task<SyntaxToken> GetTouchingWordAsync(
             this SyntaxTree syntaxTree,
             int position,
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             CancellationToken cancellationToken,
             bool findInsideTrivia = false)
         {

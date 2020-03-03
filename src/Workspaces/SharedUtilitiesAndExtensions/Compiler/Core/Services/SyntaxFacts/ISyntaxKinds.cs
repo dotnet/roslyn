@@ -4,7 +4,7 @@
 
 #nullable enable
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.LanguageServices
 {
     /// <summary>
     /// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have

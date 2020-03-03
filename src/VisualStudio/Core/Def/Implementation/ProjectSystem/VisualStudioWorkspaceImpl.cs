@@ -1633,7 +1633,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void ConvertMetadataReferencesToProjectReferences_NoLock(ProjectId projectId, string outputPath)
         {
             var modifiedSolution = this.CurrentSolution;
-            var projectIdsChanged = PooledHashSet<ProjectId>.GetInstance();
+            using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
 
             foreach (var projectIdToRetarget in this.CurrentSolution.ProjectIds)
             {
@@ -1664,7 +1664,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             SetSolutionAndRaiseWorkspaceChanged_NoLock(modifiedSolution, projectIdsChanged);
-            projectIdsChanged.Free();
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
@@ -1705,7 +1704,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void ConvertProjectReferencesToMetadataReferences_NoLock(ProjectId projectId, string outputPath)
         {
             var modifiedSolution = this.CurrentSolution;
-            var projectIdsChanged = PooledHashSet<ProjectId>.GetInstance();
+            using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
 
             foreach (var projectIdToRetarget in this.CurrentSolution.ProjectIds)
             {
@@ -1742,7 +1741,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             SetSolutionAndRaiseWorkspaceChanged_NoLock(modifiedSolution, projectIdsChanged);
-            projectIdsChanged.Free();
         }
 
         public ProjectReference TryCreateConvertedProjectReference(ProjectId referencingProject, string path, MetadataReferenceProperties properties)
@@ -1857,7 +1855,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 var newSolution = CurrentSolution;
-                var changedProjectIds = PooledHashSet<ProjectId>.GetInstance();
+                using var _ = PooledHashSet<ProjectId>.GetInstance(out var changedProjectIds);
 
                 foreach (var project in CurrentSolution.Projects)
                 {
@@ -1885,7 +1883,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 SetSolutionAndRaiseWorkspaceChanged_NoLock(newSolution, changedProjectIds);
-                changedProjectIds.Free();
             }
         }
 

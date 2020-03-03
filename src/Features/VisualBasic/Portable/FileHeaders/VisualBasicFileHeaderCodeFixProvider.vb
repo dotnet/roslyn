@@ -5,6 +5,8 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.FileHeaders
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicFileHeaderCodeFixProvider))>

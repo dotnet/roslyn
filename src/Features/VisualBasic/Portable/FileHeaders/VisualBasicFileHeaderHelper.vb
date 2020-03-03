@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.FileHeaders
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
     Friend NotInheritable Class VisualBasicFileHeaderHelper

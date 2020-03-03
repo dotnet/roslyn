@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
 
                     // Does type have any aliases?
-                    var alias = await type.FindApplicableAlias(position, semanticModel, cancellationToken).ConfigureAwait(false);
+                    var alias = await type.FindApplicableAliasAsync(position, semanticModel, cancellationToken).ConfigureAwait(false);
 
                     var displayService = document.GetLanguageService<ISymbolDisplayService>();
                     var displayText = alias != null
