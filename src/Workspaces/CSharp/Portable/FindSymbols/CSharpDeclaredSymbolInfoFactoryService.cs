@@ -78,13 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         {
             for (var current = node; current != null; current = current.Parent)
             {
-                if (current.IsKind(SyntaxKind.NamespaceDeclaration))
+                if (current.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax nsDecl))
                 {
-                    ProcessUsings(aliasMaps, ((NamespaceDeclarationSyntax)current).Usings);
+                    ProcessUsings(aliasMaps, nsDecl.Usings);
                 }
-                else if (current.IsKind(SyntaxKind.CompilationUnit))
+                else if (current.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
                 {
-                    ProcessUsings(aliasMaps, ((CompilationUnitSyntax)current).Usings);
+                    ProcessUsings(aliasMaps, compilationUnit.Usings);
                 }
             }
         }

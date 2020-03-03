@@ -153,6 +153,35 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                    TryAddMultiCharacterEscape(result, tokenText, offset, index);
         }
 
+        public override bool TryGetEscapeCharacter(char ch, out char escapedChar)
+        {
+            // Keep in sync with TryAddSingleCharacterEscape
+            switch (ch)
+            {
+                // Note: we don't care about single quote as that doesn't need to be escaped when
+                // producing a normal C# string literal.
+
+                // case '\'':
+
+                // escaped characters that translate to themselves.  
+                case '"': escapedChar = '"'; return true;
+                case '\\': escapedChar = '\\'; return true;
+
+                // translate escapes as per C# spec 2.4.4.4
+                case '\0': escapedChar = '0'; return true;
+                case '\a': escapedChar = 'a'; return true;
+                case '\b': escapedChar = 'b'; return true;
+                case '\f': escapedChar = 'f'; return true;
+                case '\n': escapedChar = 'n'; return true;
+                case '\r': escapedChar = 'r'; return true;
+                case '\t': escapedChar = 't'; return true;
+                case '\v': escapedChar = 'v'; return true;
+            }
+
+            escapedChar = default;
+            return false;
+        }
+
         private bool TryAddSingleCharacterEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
         {
@@ -160,6 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             Debug.Assert(tokenText[index] == '\\');
 
             var ch = tokenText[index + 1];
+
+            // Keep in sync with EscapeForRegularString
             switch (ch)
             {
                 // escaped characters that translate to themselves

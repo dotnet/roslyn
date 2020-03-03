@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             AssertIsForeground();
 
             // We use ConfigureAwait(true) to stay on the UI thread.
-            await diffViewer.SizeToFitAsync(ThreadingContext).ConfigureAwait(true);
+            await diffViewer.SizeToFitAsync(ThreadingContext, cancellationToken: cancellationToken).ConfigureAwait(true);
 
             leftWorkspace?.EnableDiagnostic();
             rightWorkspace?.EnableDiagnostic();

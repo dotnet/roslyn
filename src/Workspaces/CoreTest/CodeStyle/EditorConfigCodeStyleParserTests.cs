@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -81,10 +83,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
             var storageLocation = CodeStyleOptions.RequireAccessibilityModifiers.StorageLocations
                 .OfType<EditorConfigStorageLocation<CodeStyleOption<AccessibilityModifiersRequired>>>()
                 .Single();
-            var allRawConventions = new Dictionary<string, string> { { storageLocation.KeyName, args } };
+            var allRawConventions = new Dictionary<string, string?> { { storageLocation.KeyName, args } };
 
             Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(CodeStyleOption<AccessibilityModifiersRequired>), out var parsedCodeStyleOption));
-            var codeStyleOption = (CodeStyleOption<AccessibilityModifiersRequired>)parsedCodeStyleOption;
+            var codeStyleOption = (CodeStyleOption<AccessibilityModifiersRequired>)parsedCodeStyleOption!;
             Assert.Equal((AccessibilityModifiersRequired)value, codeStyleOption.Value);
             Assert.Equal(severity, codeStyleOption.Notification.Severity);
         }
@@ -103,10 +105,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
             var storageLocation = FormattingOptions.NewLine.StorageLocations
                 .OfType<EditorConfigStorageLocation<string>>()
                 .Single();
-            var allRawConventions = new Dictionary<string, string> { { storageLocation.KeyName, configurationString } };
+            var allRawConventions = new Dictionary<string, string?> { { storageLocation.KeyName, configurationString } };
 
             Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(string), out var parsedNewLine));
-            Assert.Equal(newLine, (string)parsedNewLine);
+            Assert.Equal(newLine, (string?)parsedNewLine);
         }
     }
 }
