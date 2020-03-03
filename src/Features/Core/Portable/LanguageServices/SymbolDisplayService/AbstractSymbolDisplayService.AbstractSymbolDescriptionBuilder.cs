@@ -354,6 +354,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                     case SymbolDescriptionGroups.Documentation:
                     case SymbolDescriptionGroups.ReturnsDocumentation:
+                    case SymbolDescriptionGroups.ValueDocumentation:
                         return 1;
 
                     case SymbolDescriptionGroups.AnonymousTypes:

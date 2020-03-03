@@ -6839,5 +6839,48 @@ class Program
                 Documentation("Summary text"),
                 Returns($"\r\n{FeaturesResources.Returns_colon}\r\n  Returns text"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithValueOnMethod()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <value>
+    /// Value text
+    /// </value>
+    int M()
+    {
+        return $$M();
+    }
+}",
+                MainDescription("int Program.M()"),
+                Documentation("Summary text"),
+                Value($"\r\n{FeaturesResources.Value_colon}\r\n  Value text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithValueOnPropertyAccessor()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <value>
+    /// Value text
+    /// </value>
+    int M { $$get; }
+}",
+                MainDescription("int Program.M.get"),
+                Documentation("Summary text"),
+                Value($"\r\n{FeaturesResources.Value_colon}\r\n  Value text"));
+        }
     }
 }

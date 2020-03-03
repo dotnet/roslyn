@@ -231,6 +231,19 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.ReturnsDocumentationComments, builder.ToImmutable());
             }
 
+            var valueDocumentationContent = GetValueDocumentationContent(documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
+            if (!valueDocumentationContent.IsDefaultOrEmpty)
+            {
+                var builder = ImmutableArray.CreateBuilder<TaggedText>();
+                builder.AddLineBreak();
+                builder.AddText(FeaturesResources.Value_colon);
+                builder.AddLineBreak();
+                builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
+                builder.AddRange(valueDocumentationContent);
+                builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                AddSection(QuickInfoSectionKinds.ValueDocumentationComments, builder.ToImmutable());
+            }
+
             if (TryGetGroupText(SymbolDescriptionGroups.TypeParameterMap, out var typeParameterMapText))
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
@@ -332,6 +345,30 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             else if (documentedSymbol is object)
             {
                 var documentation = documentedSymbol.GetReturnsDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
+                if (documentation != null)
+                {
+                    return documentation.ToImmutableArray();
+                }
+            }
+
+            return default;
+        }
+
+        private ImmutableArray<TaggedText> GetValueDocumentationContent(
+            ISymbol? documentedSymbol,
+            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            IDocumentationCommentFormattingService formatter,
+            CancellationToken cancellationToken)
+        {
+            if (sections.TryGetValue(SymbolDescriptionGroups.ValueDocumentation, out var parts))
+            {
+                return parts;
+            }
+            else if (documentedSymbol is object)
+            {
+                var documentation = documentedSymbol.GetValueDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
                 if (documentation != null)
                 {
                     return documentation.ToImmutableArray();

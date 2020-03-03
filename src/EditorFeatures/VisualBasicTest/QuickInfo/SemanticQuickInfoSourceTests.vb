@@ -2543,5 +2543,47 @@ End Class",
                 Documentation("Summary text"),
                 Returns($"{vbCrLf}{FeaturesResources.Returns_colon}{vbCrLf}  Returns text"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithValueOnFunction() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <value>
+    ''' Value text
+    ''' </value>
+    Function M() As Integer
+        Return $$M()
+    End Function
+End Class",
+                MainDescription("Function C.M() As Integer"),
+                Documentation("Summary text"),
+                Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithValueOnPropertyAccessor() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <value>
+    ''' Value text
+    ''' </value>
+    ReadOnly Property M As Integer
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class",
+                MainDescription("Property Get C.M() As Integer"),
+                Documentation("Summary text"),
+                Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
+        End Function
     End Class
 End Namespace

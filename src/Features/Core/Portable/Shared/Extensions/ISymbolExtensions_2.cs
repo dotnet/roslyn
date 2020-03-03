@@ -193,6 +193,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : SpecializedCollections.EmptyEnumerable<TaggedText>();
         }
 
+        public static IEnumerable<TaggedText> GetValueDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+        {
+            var documentation = GetValueDocumentation(symbol, semanticModel.Compilation, cancellationToken);
+            return documentation != null
+                ? formatter.Format(documentation, semanticModel, position, CrefFormat)
+                : SpecializedCollections.EmptyEnumerable<TaggedText>();
+        }
+
         private static string? GetDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
             => symbol switch
             {
@@ -208,6 +216,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken).ReturnsText,
                 _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).ReturnsText,
+            };
+
+        private static string? GetValueDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
+            => symbol switch
+            {
+                IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken).ValueText,
+                _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).ValueText,
             };
 
         private static string? GetParameterDocumentation(IParameterSymbol parameter, Compilation compilation, CancellationToken cancellationToken)
