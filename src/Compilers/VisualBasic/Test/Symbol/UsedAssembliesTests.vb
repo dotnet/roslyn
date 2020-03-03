@@ -4730,5 +4730,62 @@ End Class
             CompileWithUsedAssemblyReferences(source3, targetFramework:=TargetFramework.StandardAndVBRuntime)
         End Sub
 
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        <WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")>
+        Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_IndirectInterfaces(ByVal useImageReferences As Boolean)
+
+            Dim getReference As Func(Of Compilation, MetadataReference) = Function(c) If(useImageReferences, c.EmitToImageReference(), c.ToMetadataReference())
+
+            Dim valueTuple_source = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return ""{"" + Item1?.ToString() + "", "" + Item2?.ToString() + ""}""
+        End Function
+    End Structure
+End Namespace
+"
+            Dim valueTuple_comp = CreateCompilationWithMscorlib40(valueTuple_source)
+
+            Dim tupleElementNamesAttribute_comp = CreateCompilationWithMscorlib40(
+"
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.Property Or AttributeTargets.ReturnValue Or AttributeTargets.Class Or AttributeTargets.Struct )>
+    public class TupleElementNamesAttribute : Inherits Attribute
+        public Sub New(transformNames As String())
+	    End Sub
+    End Class
+End Namespace
+")
+            tupleElementNamesAttribute_comp.AssertNoDiagnostics()
+
+            Dim lib1_source = "
+Imports System.Threading.Tasks
+
+Public Interface I2(Of T, TResult)
+    Function ExecuteAsync(parameter As T) As Task(Of TResult)
+End Interface
+
+Public Interface I1(Of T)
+    Inherits I2(Of T, (a As Object, b As Object))
+End Interface
+"
+            Dim lib1_refs = {getReference(valueTuple_comp), getReference(tupleElementNamesAttribute_comp)}
+            Dim lib1_comp = CreateCompilationWithMscorlib40(lib1_source, references:=lib1_refs)
+            lib1_comp.AssertNoDiagnostics()
+            CompileWithUsedAssemblyReferences(lib1_comp, specificReferencesToAssert:=lib1_refs)
+
+        End Sub
+
     End Class
 End Namespace
