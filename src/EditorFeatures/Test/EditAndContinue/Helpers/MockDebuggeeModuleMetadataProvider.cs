@@ -13,17 +13,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal class MockDebuggeeModuleMetadataProvider : IDebuggeeModuleMetadataProvider
     {
         public Func<Guid, (int errorCode, string? errorMessage)?>? IsEditAndContinueAvailable;
-        public Action<Guid>? PrepareModuleForUpdate;
         public Func<Guid, DebuggeeModuleInfo>? TryGetBaselineModuleInfo;
 
         public Task<(int errorCode, string? errorMessage)?> GetEncAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
             => Task.FromResult((IsEditAndContinueAvailable ?? throw new NotImplementedException())(mvid));
 
-        Task IDebuggeeModuleMetadataProvider.PrepareModuleForUpdate(Guid mvid, CancellationToken cancellationToken)
-        {
-            (PrepareModuleForUpdate ?? throw new NotImplementedException())(mvid);
-            return Task.CompletedTask;
-        }
+        Task IDebuggeeModuleMetadataProvider.PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
+            => Task.CompletedTask;
 
         DebuggeeModuleInfo IDebuggeeModuleMetadataProvider.TryGetBaselineModuleInfo(Guid mvid)
             => (TryGetBaselineModuleInfo ?? throw new NotImplementedException())(mvid);

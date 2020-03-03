@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         private readonly Mock<IActiveStatementTrackingService> _mockActiveStatementTrackingService;
         private readonly MockCompilationOutputsProviderService _mockCompilationOutputsService;
 
-        private readonly List<Guid> _modulesPreparedForUpdate;
         private readonly List<DiagnosticsUpdatedArgs> _emitDiagnosticsUpdated;
         private int _emitDiagnosticsClearedCount;
         private readonly List<string> _telemetryLog;
@@ -49,7 +48,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public EditAndContinueWorkspaceServiceTests()
         {
-            _modulesPreparedForUpdate = new List<Guid>();
             _mockDiagnosticService = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
             _mockDiagnosticService.Setup(s => s.Reanalyze(It.IsAny<Workspace>(), It.IsAny<IEnumerable<ProjectId>>(), It.IsAny<IEnumerable<DocumentId>>(), It.IsAny<bool>()));
 
@@ -60,8 +58,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             _mockDebugeeModuleMetadataProvider = new MockDebuggeeModuleMetadataProvider
             {
-                IsEditAndContinueAvailable = _ => (0, null),
-                PrepareModuleForUpdate = mvid => _modulesPreparedForUpdate.Add(mvid)
+                IsEditAndContinueAvailable = _ => (0, null)
             };
 
             _mockActiveStatementTrackingService = new Mock<IActiveStatementTrackingService>(MockBehavior.Strict);
@@ -973,7 +970,7 @@ class C1
 
                 var service = CreateEditAndContinueService(workspace);
 
-                StartDebuggingSession(service);
+                var debuggingSession = StartDebuggingSession(service);
 
                 service.StartEditSession(s_noActiveStatements);
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
@@ -1004,7 +1001,7 @@ class C1
                 service.EndDebuggingSession();
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-                AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+                AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
                 AssertEx.Equal(new[]
                 {
@@ -1068,7 +1065,7 @@ class C1
 
                 var service = CreateEditAndContinueService(workspace);
 
-                StartDebuggingSession(service);
+                var debuggingSession = StartDebuggingSession(service);
 
                 service.StartEditSession(s_noActiveStatements);
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
@@ -1095,7 +1092,7 @@ class C1
                 service.EndDebuggingSession();
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-                AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+                AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
                 AssertEx.Equal(new[]
                 {
@@ -1186,7 +1183,7 @@ class C1
             service.EndDebuggingSession();
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-            AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+            AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
             AssertEx.Equal(new[]
             {
@@ -1318,7 +1315,7 @@ class C1
 
                 var service = CreateEditAndContinueService(workspace);
 
-                StartDebuggingSession(service);
+                var debuggingSession = StartDebuggingSession(service);
 
                 service.StartEditSession(s_noActiveStatements);
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
@@ -1345,7 +1342,7 @@ class C1
                 service.EndDebuggingSession();
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-                AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+                AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
                 AssertEx.Equal(new[]
                 {
@@ -1367,7 +1364,7 @@ class C1
 
             var service = CreateEditAndContinueService(workspace);
 
-            StartDebuggingSession(service);
+            var debuggingSession = StartDebuggingSession(service);
 
             service.StartEditSession(s_noActiveStatements);
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
@@ -1402,7 +1399,7 @@ class C1
             service.EndDebuggingSession();
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-            AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+            AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
             AssertEx.Equal(new[]
             {
@@ -1719,7 +1716,7 @@ class C1
 
             var service = CreateEditAndContinueService(workspace);
 
-            StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             service.StartEditSession(s_noActiveStatements);
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
@@ -1759,7 +1756,7 @@ class C1
             // no diagnostics reported via a document analyzer
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-            Assert.Empty(_modulesPreparedForUpdate);
+            Assert.Empty(debuggingSession.Test_GetModulesPreparedForUpdate());
         }
 
         [Theory]
@@ -1780,7 +1777,7 @@ class C1
 
             var service = CreateEditAndContinueService(workspace);
 
-            StartDebuggingSession(service);
+            var debuggingSession = StartDebuggingSession(service);
 
             service.StartEditSession(s_noActiveStatements);
             var editSession = service.Test_GetEditSession();
@@ -1858,7 +1855,7 @@ class C1
             service.EndDebuggingSession();
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-            AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+            AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
             // the debugger disposes the module metadata and SymReader:
             debuggeeModuleInfo.Dispose();

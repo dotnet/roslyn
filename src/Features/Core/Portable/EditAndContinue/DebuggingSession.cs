@@ -105,6 +105,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => NonRemappableRegions = nonRemappableRegions;
 
         // test only
+        internal ImmutableHashSet<Guid> Test_GetModulesPreparedForUpdate()
+        {
+            lock (_modulesPreparedForUpdateGuard)
+            {
+                return _modulesPreparedForUpdate.ToImmutableHashSet();
+            }
+        }
+
+        // test only
         internal EmitBaseline Test_GetProjectEmitBaseline(ProjectId id)
         {
             lock (_projectEmitBaselinesGuard)
@@ -146,7 +155,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // fire and forget:
-            _ = Task.Run(() => DebugeeModuleMetadataProvider.PrepareModuleForUpdate(mvid, cancellationToken));
+            _ = Task.Run(() => DebugeeModuleMetadataProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
         }
 
         public void CommitSolutionUpdate(PendingSolutionUpdate update)

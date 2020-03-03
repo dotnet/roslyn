@@ -36,6 +36,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Notifies the debugger that a document changed that may affect the given module when the change is applied.
         /// </summary>
-        Task PrepareModuleForUpdate(Guid mvid, CancellationToken cancellationToken);
+        Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken);
     }
 }

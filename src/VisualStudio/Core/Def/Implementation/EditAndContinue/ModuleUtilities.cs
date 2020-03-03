@@ -54,7 +54,27 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         internal static LinePositionSpan ToLinePositionSpan(this DkmTextSpan span)
-            => new LinePositionSpan(new LinePosition(span.StartLine - 1, span.StartColumn - 1), new LinePosition(span.EndLine - 1, span.EndColumn - 1));
+        {
+            // ignore invalid/unsupported spans - they might come from stack frames of non-managed languages
+            if (span.StartLine <= 0 || span.EndLine <= 0)
+            {
+                return default;
+            }
+
+            // C++ produces spans without columns
+            if (span.StartColumn == 0 && span.EndColumn == 0)
+            {
+                return new LinePositionSpan(new LinePosition(span.StartLine - 1, 0), new LinePosition(span.EndLine - 1, 0));
+            }
+
+            // ignore invalid/unsupported spans - they might come from stack frames of non-managed languages
+            if (span.StartColumn <= 0 || span.EndColumn <= 0)
+            {
+                return default;
+            }
+
+            return new LinePositionSpan(new LinePosition(span.StartLine - 1, span.StartColumn - 1), new LinePosition(span.EndLine - 1, span.EndColumn - 1));
+        }
 
         internal static DkmTextSpan ToDebuggerSpan(this LinePositionSpan span, int lineDelta = 0)
             => new DkmTextSpan(

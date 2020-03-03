@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
 
-        public Task PrepareModuleForUpdate(Guid mvid, CancellationToken cancellationToken)
+        public Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
             => _managedModuleInfoProvider.PrepareModuleForUpdate(mvid, cancellationToken);
     }
 }
