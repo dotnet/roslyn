@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             RegisterCodeFixes(context, startTrivia, equalsTrivia, endTrivia);
         }
 
-        private (SyntaxTrivia equalsTrivia, SyntaxTrivia endTrivia)? TryGetConflictTrivia(
-            SourceText text, SyntaxTrivia startTrivia)
+        private (SyntaxTrivia equalsTrivia, SyntaxTrivia endTrivia)? TryGetConflictTrivia(SourceText text, SyntaxTrivia startTrivia)
         {
             var token = startTrivia.Token;
 
