@@ -13,14 +13,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
-    internal abstract class AbstractResolveConflictMarkerCodeFixProvider : CodeFixProvider
+    internal abstract partial class AbstractResolveConflictMarkerCodeFixProvider : CodeFixProvider
     {
         private const string TakeTopEquivalenceKey = nameof(TakeTopEquivalenceKey);
         private const string TakeBottomEquivalenceKey = nameof(TakeBottomEquivalenceKey);
@@ -247,17 +246,6 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 text[trivia.SpanStart] == ch;
         }
 
-        private class ConflictMarkerFixAllProvider : AbstractParallelFixAllProvider
-        {
-            private readonly AbstractResolveConflictMarkerCodeFixProvider _codeFixProvider;
-
-            public ConflictMarkerFixAllProvider(AbstractResolveConflictMarkerCodeFixProvider codeFixProvider)
-                => _codeFixProvider = codeFixProvider;
-
-            protected override Task<Document> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> filteredDiagnostics)
-                => _codeFixProvider.FixAllAsync(document, filteredDiagnostics, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken);
-        }
-
         private async Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             string equivalenceKey, CancellationToken cancellationToken)
@@ -272,9 +260,12 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 (d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start).ToImmutableArray();
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+            // Create a single array of edits to apply.  Then walk over all the
+            // conflict-marker-regions we want to fix and add the edits for each
+            // region into that array.  Then apply the array just once to get the
+            // final document.
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var edits);
 
             foreach (var diagnostic in diagnostics)
