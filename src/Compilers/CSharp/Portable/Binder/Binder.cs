@@ -155,6 +155,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets a binder for a node that must be not null, and asserts
+        /// if it is not.
+        /// </summary>
+        internal Binder GetRequiredBinder(SyntaxNode node)
+        {
+            var binder = GetBinder(node);
+            RoslynDebug.Assert(binder is object);
+            return binder;
+        }
+
+        /// <summary>
         /// Get locals declared immediately in scope designated by the node.
         /// </summary>
         internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
@@ -674,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics);
         }
@@ -682,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsSymbolAccessibleConditional(
             Symbol symbol,
             NamedTypeSymbol within,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref HashSet<DiagnosticInfo>? useSiteDiagnostics,
             TypeSymbol? throughTypeOpt = null)
         {
             return this.Flags.Includes(BinderFlags.IgnoreAccessibility) || AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics, throughTypeOpt);
@@ -693,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol within,
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref HashSet<DiagnosticInfo>? useSiteDiagnostics,
             ConsList<TypeSymbol>? basesBeingResolved = null)
         {
             if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))

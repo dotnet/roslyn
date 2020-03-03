@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
@@ -34,6 +35,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(string someValue)
     {
         _ = $""prefix {someValue} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString(""|}g{|Unnecessary:"")|}} suffix"";
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = $""prefix {someValue:g} suffix"";
     }
 }");
         }
@@ -177,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3} suffix"";
+        _ = $""prefix {someValue,3} suffix"";
     }
 }");
         }
@@ -197,13 +218,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,3} suffix"";
+        _ = $""prefix {someValue,-3} suffix"";
     }
 }");
         }
 
         [Fact]
-        public async Task PadLeftWithComplexConstantExpressionRequiringParentheses()
+        public async Task PadLeftWithComplexConstantExpression()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -219,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(string someValue)
     {
         const int someConstant = 1;
-        _ = $""prefix {someValue,-((byte)3.3 + someConstant)} suffix"";
+        _ = $""prefix {someValue,(byte)3.3 + someConstant} suffix"";
     }
 }");
         }
@@ -239,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3} suffix"";
+        _ = $""prefix {someValue,3} suffix"";
     }
 }");
         }
@@ -259,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,3} suffix"";
+        _ = $""prefix {someValue,-3} suffix"";
     }
 }");
         }
@@ -291,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task PadRightWithComplexConstantExpression()
+        public async Task PadRightWithComplexConstantExpressionRequiringParentheses()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -307,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(string someValue)
     {
         const int someConstant = 1;
-        _ = $""prefix {someValue,(byte)3.3 + someConstant} suffix"";
+        _ = $""prefix {someValue,-((byte)3.3 + someConstant)} suffix"";
     }
 }");
         }
@@ -399,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3:goo} suffix"";
+        _ = $""prefix {someValue,3:goo} suffix"";
     }
 }");
         }
@@ -419,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,3:goo} suffix"";
+        _ = $""prefix {someValue,-3:goo} suffix"";
     }
 }");
         }
@@ -490,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3} suffix"";
+        _ = $""prefix {someValue,3} suffix"";
     }
 }");
         }
@@ -547,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue.PadLeft(3),3} suffix"";
+        _ = $""prefix {someValue.PadLeft(3),-3} suffix"";
     }
 }");
         }
@@ -561,6 +582,84 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(string someValue)
     {
         _ = $""prefix {someValue.PadLeft(3)[||].PadRight(3),3} suffix"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        public async Task MissingOnImplicitToStringReceiver()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    override string ToString() => ""Goobar"";
+
+    string GetViaInterpolation() => $""Hello {ToString[||]()}"";
+}");
+        }
+
+        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        public async Task MissingOnImplicitToStringReceiverWithArg()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    string ToString(string arg) => ""Goobar"";
+
+    string GetViaInterpolation() => $""Hello {ToString[||](""g"")}"";
+}");
+        }
+
+        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        public async Task MissingOnStaticToStringReceiver()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    public static string ToString() => ""Goobar"";
+
+    string GetViaInterpolation() => $""Hello {ToString[||]()}"";
+}");
+        }
+
+        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        public async Task MissingOnStaticToStringReceiverWithArg()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    public static string ToString(string arg) => ""Goobar"";
+
+    string GetViaInterpolation() => $""Hello {ToString[||](""g"")}"";
+}");
+        }
+
+        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        public async Task MissingOnImplicitPadLeft()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    public string PadLeft(int val) => """";
+
+    void M(string someValue)
+    {
+        _ = $""prefix {[||]PadLeft(3)} suffix"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(41381, "https://github.com/dotnet/roslyn/issues/41381")]
+        public async Task MissingOnStaticPadLeft()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    public static string PadLeft(int val) => """";
+
+    void M(string someValue)
+    {
+        _ = $""prefix {[||]PadLeft(3)} suffix"";
     }
 }");
         }

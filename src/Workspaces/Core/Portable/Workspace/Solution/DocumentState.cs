@@ -769,9 +769,10 @@ namespace Microsoft.CodeAnalysis
             {
                 var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
 
-                if (!RoslynString.IsNullOrEmpty(projectPath))
+                if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
                 {
-                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
+                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, Name);
                 }
             }
 

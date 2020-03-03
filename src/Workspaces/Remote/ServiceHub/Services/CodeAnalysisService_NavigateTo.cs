@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteNavigateToSearchService
     {
         public Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(
-            DocumentId documentId, string searchPattern, string[] kinds, CancellationToken cancellationToken)
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, string searchPattern, string[] kinds, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
                     var project = solution.GetDocument(documentId);
                     var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
-            ProjectId projectId, DocumentId[] priorityDocumentIds, string searchPattern, string[] kinds, CancellationToken cancellationToken)
+            PinnedSolutionInfo solutionInfo, ProjectId projectId, DocumentId[] priorityDocumentIds, string searchPattern, string[] kinds, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
                     var project = solution.GetProject(projectId);
                     var priorityDocuments = priorityDocumentIds.Select(d => solution.GetDocument(d))

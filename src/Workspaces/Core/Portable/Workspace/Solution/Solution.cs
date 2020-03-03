@@ -891,7 +891,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveDocument(documentId);
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            return RemoveDocuments(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified documents.
+        /// </summary>
+        public Solution RemoveDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveDocuments(documentIds);
             if (newState == _state)
             {
                 return this;
@@ -905,7 +918,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveAdditionalDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveAdditionalDocument(documentId);
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            return RemoveAdditionalDocuments(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified additional documents.
+        /// </summary>
+        public Solution RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveAdditionalDocuments(documentIds);
             if (newState == _state)
             {
                 return this;
@@ -914,9 +940,25 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>.
+        /// </summary>
         public Solution RemoveAnalyzerConfigDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveAnalyzerConfigDocument(documentId);
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            return RemoveAnalyzerConfigDocuments(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>s.
+        /// </summary>
+        public Solution RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveAnalyzerConfigDocuments(documentIds);
             if (newState == _state)
             {
                 return this;

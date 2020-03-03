@@ -272,11 +272,13 @@ namespace Microsoft.CodeAnalysis
             switch (_projectInfo.Language)
             {
                 case LanguageNames.CSharp:
-                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.cs");
+                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.cs")!;
                     break;
 
                 case LanguageNames.VisualBasic:
-                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.vb");
+                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.vb")!;
                     break;
 
                 default:
@@ -309,14 +311,14 @@ namespace Microsoft.CodeAnalysis
             // PROTOTYPE: why isn't this just a provided implementation?
             private sealed class WorkspaceAnalyzerConfigOptions : AnalyzerConfigOptions
             {
-                private readonly ImmutableDictionary<string, string> _analyzerOptions;
+                private readonly ImmutableDictionary<string, string> _backing;
 
                 public WorkspaceAnalyzerConfigOptions(AnalyzerConfigOptionsResult analyzerConfigOptions)
                 {
-                    _analyzerOptions = analyzerConfigOptions.AnalyzerOptions;
+                    _backing = analyzerConfigOptions.AnalyzerOptions;
                 }
 
-                public override bool TryGetValue(string key, [NotNullWhen(returnValue: true)] out string? value) => _analyzerOptions.TryGetValue(key, out value);
+                public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
             }
         }
 
@@ -782,31 +784,25 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigSet: newAnalyzerConfigSet);
         }
 
-        public ProjectState RemoveDocument(DocumentId documentId)
+        public ProjectState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            Debug.Assert(this.DocumentStates.ContainsKey(documentId));
-
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                documentIds: _documentIds.Remove(documentId),
-                documentStates: _documentStates.Remove(documentId));
+                documentIds: _documentIds.RemoveRange(documentIds),
+                documentStates: _documentStates.RemoveRange(documentIds));
         }
 
-        public ProjectState RemoveAdditionalDocument(DocumentId documentId)
+        public ProjectState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            Debug.Assert(this.AdditionalDocumentStates.ContainsKey(documentId));
-
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                additionalDocumentIds: _additionalDocumentIds.Remove(documentId),
-                additionalDocumentStates: _additionalDocumentStates.Remove(documentId));
+                additionalDocumentIds: _additionalDocumentIds.RemoveRange(documentIds),
+                additionalDocumentStates: _additionalDocumentStates.RemoveRange(documentIds));
         }
 
-        public ProjectState RemoveAnalyzerConfigDocument(DocumentId documentId)
+        public ProjectState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            Debug.Assert(_analyzerConfigDocumentStates.ContainsKey(documentId));
-
-            var newAnalyzerConfigDocumentStates = _analyzerConfigDocumentStates.Remove(documentId);
+            var newAnalyzerConfigDocumentStates = _analyzerConfigDocumentStates.RemoveRange(documentIds);
 
             return CreateNewStateForChangedAnalyzerConfigDocuments(newAnalyzerConfigDocumentStates);
         }

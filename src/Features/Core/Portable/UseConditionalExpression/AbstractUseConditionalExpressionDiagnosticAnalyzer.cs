@@ -48,16 +48,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             var language = ifStatement.Language;
-            var syntaxTree = ifStatement.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(_option, language);
+            var option = context.GetOption(_option, language);
             if (!option.Value)
             {
                 return;

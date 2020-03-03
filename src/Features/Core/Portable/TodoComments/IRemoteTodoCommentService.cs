@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
@@ -13,6 +14,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// </summary>
     internal interface IRemoteTodoCommentService
     {
-        Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
+        Task<IList<TodoComment>> GetTodoCommentsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
     }
 }

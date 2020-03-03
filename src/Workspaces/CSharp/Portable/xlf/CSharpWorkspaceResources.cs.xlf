@@ -2,16 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CSharpWorkspaceResources.resx">
     <body>
-      <trans-unit id="Code_block_preferences">
-        <source>Code-block preferences</source>
-        <target state="translated">Předvolby bloků kódu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expression_bodied_members">
-        <source>Expression-bodied members</source>
-        <target state="translated">Členy s výrazem v těle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_preferences">
         <source>Indentation preferences</source>
         <target state="translated">Předvolby odsazení</target>
@@ -27,11 +17,6 @@
         <target state="translated">Obor názvů nejde přidat do tohoto cílového umístění.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expected_string_or_char_literal">
-        <source>Expected string or char literal</source>
-        <target state="translated">Očekával se řetězcový nebo znakový literál.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Node_does_not_descend_from_root">
         <source>Node does not descend from root.</source>
         <target state="translated">Uzel nesestupuje z kořene.</target>
@@ -40,16 +25,6 @@
       <trans-unit id="Node_not_in_parent_s_child_list">
         <source>Node not in parent's child list</source>
         <target state="translated">Uzel není v seznamu podřízených položek u nadřazené položky.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_checking_preferences">
-        <source>Null-checking preferences</source>
-        <target state="translated">Předvolby kontrol hodnoty null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pattern_matching_preferences">
-        <source>Pattern matching preferences</source>
-        <target state="translated">Předvolby porovnávání vzorů</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
@@ -90,16 +65,6 @@
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
         <target state="translated">Předvolby zalamování</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_directive_preferences">
-        <source>'using' directive preferences</source>
-        <target state="translated">Předvolby direktivy using</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="var_preferences">
-        <source>var preferences</source>
-        <target state="translated">Předvolby pro var</target>
         <note />
       </trans-unit>
     </body>

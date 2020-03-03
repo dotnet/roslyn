@@ -5179,6 +5179,35 @@ class C
         }
 
         [Fact]
+        public void TestLookupStaticMembers_PositionNeedsAdjustment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        void local1() { }
+
+        b
+
+        local1();
+
+    }
+}
+";
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().Single(node => node is IdentifierNameSyntax { Identifier: { ValueText: "b" } });
+            var symbols = model.LookupStaticMembers(node.SpanStart);
+            Assert.Contains(symbols, s => s.Name == "local1");
+        }
+
+        [Fact]
         public void InvalidParameterWithDefaultValue_Method()
         {
             var source =

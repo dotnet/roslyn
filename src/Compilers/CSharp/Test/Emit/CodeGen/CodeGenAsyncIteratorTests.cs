@@ -124,8 +124,8 @@ class C
             comp.VerifyEmitDiagnostics(expected);
         }
 
-        private CSharpCompilation CreateCompilationWithAsyncIterator(CSharpTestSource source, CSharpCompilationOptions options = null)
-            => CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options);
+        private CSharpCompilation CreateCompilationWithAsyncIterator(CSharpTestSource source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+            => CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options, parseOptions: parseOptions);
 
         [Fact]
         [WorkItem(38961, "https://github.com/dotnet/roslyn/issues/38961")]
@@ -3123,6 +3123,269 @@ class C
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_LocalFunction()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Threading;
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        async System.Collections.Generic.IAsyncEnumerable<int> local([EnumeratorCancellation] CancellationToken token)
+        {
+            _ = token;
+            await System.Threading.Tasks.Task.CompletedTask;
+            yield return 3;
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, EnumeratorCancellationAttributeType, AsyncStreamsTypes }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            var expectedFields = new[] {
+                "FieldDefinition:Int32 <>1__state",
+                "FieldDefinition:System.Runtime.CompilerServices.AsyncIteratorMethodBuilder <>t__builder",
+                "FieldDefinition:System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1{Boolean} <>v__promiseOfValueOrEnd",
+                "FieldDefinition:Int32 <>2__current",
+                "FieldDefinition:Boolean <>w__disposeMode",
+                "FieldDefinition:System.Threading.CancellationTokenSource <>x__combinedTokens",
+                "FieldDefinition:Int32 <>l__initialThreadId",
+                "FieldDefinition:System.Threading.CancellationToken token",
+                "FieldDefinition:System.Threading.CancellationToken <>3__token",
+                "FieldDefinition:System.Runtime.CompilerServices.TaskAwaiter <>u__1"
+            };
+            VerifyStateMachineFields(comp, "<<M>g__local|0_0>d", expectedFields);
+
+            // we generate initialization logic for the token parameter
+            verifier.VerifyIL("C.<<M>g__local|0_0>d.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
+{
+  // Code size      176 (0xb0)
+  .maxstack  3
+  .locals init (C.<<M>g__local|0_0>d V_0,
+                System.Threading.CancellationToken V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_0035
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""int C.<<M>g__local|0_0>d.<>l__initialThreadId""
+  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0015:  bne.un.s   IL_0035
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.s   -3
+  IL_001a:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+  IL_001f:  ldarg.0
+  IL_0020:  call       ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()""
+  IL_0025:  stfld      ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
+  IL_002a:  ldarg.0
+  IL_002b:  ldc.i4.0
+  IL_002c:  stfld      ""bool C.<<M>g__local|0_0>d.<>w__disposeMode""
+  IL_0031:  ldarg.0
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_003d
+  IL_0035:  ldc.i4.s   -3
+  IL_0037:  newobj     ""C.<<M>g__local|0_0>d..ctor(int)""
+  IL_003c:  stloc.0
+  IL_003d:  ldarg.0
+  IL_003e:  ldflda     ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.<>3__token""
+  IL_0043:  ldloca.s   V_1
+  IL_0045:  initobj    ""System.Threading.CancellationToken""
+  IL_004b:  ldloc.1
+  IL_004c:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+  IL_0051:  brfalse.s  IL_005c
+  IL_0053:  ldloc.0
+  IL_0054:  ldarg.1
+  IL_0055:  stfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.token""
+  IL_005a:  br.s       IL_00ae
+  IL_005c:  ldarga.s   V_1
+  IL_005e:  ldarg.0
+  IL_005f:  ldfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.<>3__token""
+  IL_0064:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+  IL_0069:  brtrue.s   IL_007d
+  IL_006b:  ldarga.s   V_1
+  IL_006d:  ldloca.s   V_1
+  IL_006f:  initobj    ""System.Threading.CancellationToken""
+  IL_0075:  ldloc.1
+  IL_0076:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+  IL_007b:  brfalse.s  IL_008b
+  IL_007d:  ldloc.0
+  IL_007e:  ldarg.0
+  IL_007f:  ldfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.<>3__token""
+  IL_0084:  stfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.token""
+  IL_0089:  br.s       IL_00ae
+  IL_008b:  ldarg.0
+  IL_008c:  ldarg.0
+  IL_008d:  ldfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.<>3__token""
+  IL_0092:  ldarg.1
+  IL_0093:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
+  IL_0098:  stfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+  IL_009d:  ldloc.0
+  IL_009e:  ldarg.0
+  IL_009f:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+  IL_00a4:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
+  IL_00a9:  stfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.token""
+  IL_00ae:  ldloc.0
+  IL_00af:  ret
+}");
+
+            // we generate disposal logic for the combinedTokens field
+            verifier.VerifyIL("C.<<M>g__local|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      329 (0x149)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<<M>g__local|0_0>d V_2,
+                System.Exception V_3)
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  sub
+    IL_000b:  switch    (
+        IL_00b4,
+        IL_0024,
+        IL_0024,
+        IL_0024,
+        IL_007b)
+    IL_0024:  ldarg.0
+    IL_0025:  ldfld      ""bool C.<<M>g__local|0_0>d.<>w__disposeMode""
+    IL_002a:  brfalse.s  IL_0031
+    IL_002c:  leave      IL_0102
+    IL_0031:  ldarg.0
+    IL_0032:  ldc.i4.m1
+    IL_0033:  dup
+    IL_0034:  stloc.0
+    IL_0035:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+    // sequence point: _ = token;
+    IL_003a:  ldarg.0
+    IL_003b:  ldfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.token""
+    IL_0040:  pop
+    // sequence point: await System.Threading.Tasks.Task.CompletedTask;
+    IL_0041:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get""
+    IL_0046:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_004b:  stloc.1
+    // sequence point: <hidden>
+    IL_004c:  ldloca.s   V_1
+    IL_004e:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_0053:  brtrue.s   IL_0097
+    IL_0055:  ldarg.0
+    IL_0056:  ldc.i4.0
+    IL_0057:  dup
+    IL_0058:  stloc.0
+    IL_0059:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+    // async: yield
+    IL_005e:  ldarg.0
+    IL_005f:  ldloc.1
+    IL_0060:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<<M>g__local|0_0>d.<>u__1""
+    IL_0065:  ldarg.0
+    IL_0066:  stloc.2
+    IL_0067:  ldarg.0
+    IL_0068:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
+    IL_006d:  ldloca.s   V_1
+    IL_006f:  ldloca.s   V_2
+    IL_0071:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<<M>g__local|0_0>d>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<<M>g__local|0_0>d)""
+    IL_0076:  leave      IL_0148
+    // async: resume
+    IL_007b:  ldarg.0
+    IL_007c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<<M>g__local|0_0>d.<>u__1""
+    IL_0081:  stloc.1
+    IL_0082:  ldarg.0
+    IL_0083:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<<M>g__local|0_0>d.<>u__1""
+    IL_0088:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.m1
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+    IL_0097:  ldloca.s   V_1
+    IL_0099:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    // sequence point: yield return 3;
+    IL_009e:  ldarg.0
+    IL_009f:  ldc.i4.3
+    IL_00a0:  stfld      ""int C.<<M>g__local|0_0>d.<>2__current""
+    IL_00a5:  ldarg.0
+    IL_00a6:  ldc.i4.s   -4
+    IL_00a8:  dup
+    IL_00a9:  stloc.0
+    IL_00aa:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+    IL_00af:  leave      IL_013c
+    // sequence point: <hidden>
+    IL_00b4:  ldarg.0
+    IL_00b5:  ldc.i4.m1
+    IL_00b6:  dup
+    IL_00b7:  stloc.0
+    IL_00b8:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+    IL_00bd:  ldarg.0
+    IL_00be:  ldfld      ""bool C.<<M>g__local|0_0>d.<>w__disposeMode""
+    IL_00c3:  pop
+    // sequence point: <hidden>
+    IL_00c4:  leave.s    IL_0102
+  }
+  catch System.Exception
+  {
+    // sequence point: <hidden>
+    IL_00c6:  stloc.3
+    IL_00c7:  ldarg.0
+    IL_00c8:  ldc.i4.s   -2
+    IL_00ca:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+    IL_00cf:  ldarg.0
+    IL_00d0:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+    IL_00d5:  brfalse.s  IL_00e9
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+    IL_00dd:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
+    IL_00e2:  ldarg.0
+    IL_00e3:  ldnull
+    IL_00e4:  stfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+    IL_00e9:  ldarg.0
+    IL_00ea:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<<M>g__local|0_0>d.<>v__promiseOfValueOrEnd""
+    IL_00ef:  ldloc.3
+    IL_00f0:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_00f5:  ldarg.0
+    IL_00f6:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
+    IL_00fb:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+    IL_0100:  leave.s    IL_0148
+  }
+  // sequence point: }
+  IL_0102:  ldarg.0
+  IL_0103:  ldc.i4.s   -2
+  IL_0105:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+  // sequence point: <hidden>
+  IL_010a:  ldarg.0
+  IL_010b:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+  IL_0110:  brfalse.s  IL_0124
+  IL_0112:  ldarg.0
+  IL_0113:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+  IL_0118:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
+  IL_011d:  ldarg.0
+  IL_011e:  ldnull
+  IL_011f:  stfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
+  IL_0124:  ldarg.0
+  IL_0125:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<<M>g__local|0_0>d.<>v__promiseOfValueOrEnd""
+  IL_012a:  ldc.i4.0
+  IL_012b:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0130:  ldarg.0
+  IL_0131:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
+  IL_0136:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()""
+  IL_013b:  ret
+  IL_013c:  ldarg.0
+  IL_013d:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<<M>g__local|0_0>d.<>v__promiseOfValueOrEnd""
+  IL_0142:  ldc.i4.1
+  IL_0143:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0148:  ret
+}", sequencePoints: "C+<<M>g__local|0_0>d.MoveNext", source: source);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_NoUsage()
         {
             string source = @"
@@ -6072,6 +6335,58 @@ class C
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenParameter_NoTokenPassedInGetAsyncEnumerator_LocalFunction()
+        {
+            string source = @"
+using static System.Console;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        using CancellationTokenSource source = new CancellationTokenSource();
+        CancellationToken token = source.Token;
+        var enumerable = localIter(42, token, token);
+        await using var enumerator = enumerable.GetAsyncEnumerator(); // no token passed
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 42
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 43
+
+        source.Cancel();
+        try
+        {
+            await enumerator.MoveNextAsync();
+        }
+        catch (System.OperationCanceledException)
+        {
+            Write(""Cancelled"");
+        }
+
+        static async System.Collections.Generic.IAsyncEnumerable<int> localIter(int value, [EnumeratorCancellation] CancellationToken token, CancellationToken origToken)
+        {
+            if (!token.Equals(origToken)) throw null; // no need for a combined token
+            yield return value++;
+            await Task.Yield();
+            yield return value++;
+            token.ThrowIfCancellationRequested();
+            Write(""SKIPPED"");
+            yield return value++;
+        }
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+
+            // IL for GetAsyncEnumerator is verified by AsyncIteratorWithAwaitCompletedAndYield_LocalFunction already
+        }
+
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SameTokenPassedInGetAsyncEnumerator()
         {
             string source = @"
@@ -6302,6 +6617,139 @@ class C
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenParameter_SomeTokenPassedInGetAsyncEnumerator_LocalFunction()
+        {
+            string source = @"
+using static System.Console;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        using CancellationTokenSource source = new CancellationTokenSource();
+        CancellationToken token = source.Token;
+        var enumerable = Iter(42, default, token);
+        await using var enumerator = enumerable.GetAsyncEnumerator(token); // some token passed
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 42
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 43
+
+        source.Cancel();
+        try
+        {
+            await enumerator.MoveNextAsync();
+        }
+        catch (System.OperationCanceledException)
+        {
+            Write(""Cancelled"");
+        }
+        static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1, CancellationToken origToken)
+        {
+            if (!token1.Equals(origToken)) throw null;
+            yield return value++;
+            await Task.Yield();
+            yield return value++;
+            token1.ThrowIfCancellationRequested();
+            Write(""SKIPPED"");
+            yield return value++;
+        }
+    }
+}";
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+
+                // GetAsyncEnumerator's token parameter is used directly, since the argument token is default
+                verifier.VerifyIL("C.<<Main>g__Iter|0_0>d.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
+{
+  // Code size      200 (0xc8)
+  .maxstack  3
+  .locals init (C.<<Main>g__Iter|0_0>d V_0,
+                System.Threading.CancellationToken V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<<Main>g__Iter|0_0>d.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_0035
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""int C.<<Main>g__Iter|0_0>d.<>l__initialThreadId""
+  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0015:  bne.un.s   IL_0035
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.s   -3
+  IL_001a:  stfld      ""int C.<<Main>g__Iter|0_0>d.<>1__state""
+  IL_001f:  ldarg.0
+  IL_0020:  call       ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()""
+  IL_0025:  stfld      ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<<Main>g__Iter|0_0>d.<>t__builder""
+  IL_002a:  ldarg.0
+  IL_002b:  ldc.i4.0
+  IL_002c:  stfld      ""bool C.<<Main>g__Iter|0_0>d.<>w__disposeMode""
+  IL_0031:  ldarg.0
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_003d
+  IL_0035:  ldc.i4.s   -3
+  IL_0037:  newobj     ""C.<<Main>g__Iter|0_0>d..ctor(int)""
+  IL_003c:  stloc.0
+  IL_003d:  ldloc.0
+  IL_003e:  ldarg.0
+  IL_003f:  ldfld      ""int C.<<Main>g__Iter|0_0>d.<>3__value""
+  IL_0044:  stfld      ""int C.<<Main>g__Iter|0_0>d.value""
+  IL_0049:  ldarg.0
+  IL_004a:  ldflda     ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
+  IL_004f:  ldloca.s   V_1
+  IL_0051:  initobj    ""System.Threading.CancellationToken""
+  IL_0057:  ldloc.1
+  IL_0058:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+  IL_005d:  brfalse.s  IL_0068
+  IL_005f:  ldloc.0
+  IL_0060:  ldarg.1
+  IL_0061:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
+  IL_0066:  br.s       IL_00ba
+  IL_0068:  ldarga.s   V_1
+  IL_006a:  ldarg.0
+  IL_006b:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
+  IL_0070:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+  IL_0075:  brtrue.s   IL_0089
+  IL_0077:  ldarga.s   V_1
+  IL_0079:  ldloca.s   V_1
+  IL_007b:  initobj    ""System.Threading.CancellationToken""
+  IL_0081:  ldloc.1
+  IL_0082:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+  IL_0087:  brfalse.s  IL_0097
+  IL_0089:  ldloc.0
+  IL_008a:  ldarg.0
+  IL_008b:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
+  IL_0090:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
+  IL_0095:  br.s       IL_00ba
+  IL_0097:  ldarg.0
+  IL_0098:  ldarg.0
+  IL_0099:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
+  IL_009e:  ldarg.1
+  IL_009f:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
+  IL_00a4:  stfld      ""System.Threading.CancellationTokenSource C.<<Main>g__Iter|0_0>d.<>x__combinedTokens""
+  IL_00a9:  ldloc.0
+  IL_00aa:  ldarg.0
+  IL_00ab:  ldfld      ""System.Threading.CancellationTokenSource C.<<Main>g__Iter|0_0>d.<>x__combinedTokens""
+  IL_00b0:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
+  IL_00b5:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
+  IL_00ba:  ldloc.0
+  IL_00bb:  ldarg.0
+  IL_00bc:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__origToken""
+  IL_00c1:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.origToken""
+  IL_00c6:  ldloc.0
+  IL_00c7:  ret
+}
+");
+            }
+        }
+
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SomeTokenPassedInGetAsyncEnumerator_OptionalParameter()
         {
             string source = @"
@@ -6399,6 +6847,52 @@ class C
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenParameter_SomeTokenPassedInGetAsyncEnumerator_ButNoAttribute_LocalFunction()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        using CancellationTokenSource source = new CancellationTokenSource();
+        CancellationToken token = source.Token;
+        var enumerable = Iter(42, default);
+        await using var enumerator = enumerable.GetAsyncEnumerator(token); // some token passed
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 42
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 43
+
+        source.Cancel();
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 44
+
+        static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, CancellationToken token1) // no attribute set
+        {
+            yield return value++;
+            await Task.Yield();
+            yield return value++;
+            token1.ThrowIfCancellationRequested();
+            Write(""REACHED "");
+            yield return value++;
+        }
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (24,71): warning CS8425: Async-iterator 'Iter(int, CancellationToken)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
+                //         static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, CancellationToken token1) // no attribute set
+                Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "Iter").WithArguments("Iter(int, System.Threading.CancellationToken)").WithLocation(24, 71)
+                );
+            CompileAndVerify(comp, expectedOutput: "42 43 REACHED 44");
+        }
+
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_SomeOtherTokenPassedInGetAsyncEnumerator()
         {
             string source = @"
@@ -6452,6 +6946,66 @@ class C
                 foreach (var sourceToCancel in new[] { "source1", "source2" })
                 {
                     var comp = CreateCompilationWithAsyncIterator(new[] { source.Replace("SOURCETOCANCEL", sourceToCancel), EnumeratorCancellationAttributeType }, options: options);
+                    comp.VerifyDiagnostics();
+                    CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+                }
+            }
+        }
+
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenParameter_SomeOtherTokenPassedInGetAsyncEnumerator_LocalFunction()
+        {
+            string source = @"
+using static System.Console;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        using CancellationTokenSource source1 = new CancellationTokenSource();
+        CancellationToken token1 = source1.Token;
+        using CancellationTokenSource source2 = new CancellationTokenSource();
+        CancellationToken token2 = source2.Token;
+        var enumerable = Iter(token1, token2, token1, 42);
+
+        await using var enumerator = enumerable.GetAsyncEnumerator(token2); // some other token passed
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 42
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 43
+
+        SOURCETOCANCEL.Cancel();
+        try
+        {
+            await enumerator.MoveNextAsync();
+        }
+        catch (System.OperationCanceledException)
+        {
+            Write(""Cancelled"");
+        }
+
+        static async System.Collections.Generic.IAsyncEnumerable<int> Iter(CancellationToken token1, CancellationToken token2, [EnumeratorCancellation] CancellationToken token3, int value) // note: token is in first position
+        {
+            if (token3.Equals(token1) || token3.Equals(token2)) throw null;
+            yield return value++;
+            await Task.Yield();
+            yield return value++;
+            token3.ThrowIfCancellationRequested();
+            Write(""SKIPPED"");
+            yield return value++;
+        }
+    }
+}";
+            // cancelling either the token given as argument or the one given to GetAsyncEnumerator results in cancelling the combined token3
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                foreach (var sourceToCancel in new[] { "source1", "source2" })
+                {
+                    var comp = CreateCompilationWithAsyncIterator(new[] { source.Replace("SOURCETOCANCEL", sourceToCancel), EnumeratorCancellationAttributeType }, options: options, parseOptions: TestOptions.RegularPreview);
                     comp.VerifyDiagnostics();
                     CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
                 }
@@ -6518,6 +7072,37 @@ class C
                 // (6,73): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] int value)
                 Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("value").WithLocation(6, 73)
+                );
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        [WorkItem(39961, "https://github.com/dotnet/roslyn/issues/39961")]
+        public void CancellationTokenParameter_WrongParameterType_LocalFunction()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in Iter(42))
+        {
+            System.Console.Write(i);
+        }
+        static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] int value) // 1
+        {
+            yield return value++;
+            await Task.Yield();
+        }
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, TestOptions.DebugExe, TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (12,77): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
+                //         static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] int value) // 1
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("value").WithLocation(12, 77)
                 );
             CompileAndVerify(comp, expectedOutput: "42");
         }
@@ -6921,12 +7506,8 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
-            comp.VerifyDiagnostics(
-                // (13,70): error CS8205: Attributes are not allowed on local function parameters or type parameters
-                //         async System.Collections.Generic.IAsyncEnumerable<int> local([EnumeratorCancellation] CancellationToken token)
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[EnumeratorCancellation]").WithLocation(13, 70)
-                );
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, EnumeratorCancellationAttributeType, AsyncStreamsTypes }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(35166, "https://github.com/dotnet/roslyn/issues/35166")]

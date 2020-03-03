@@ -1,7 +1,3 @@
 <Project>
   <Import Project="..\..\Directory.Build.targets"/>
-  <ItemGroup>
-    <!-- The analyzer does not apply to CodeStyle layer -->
-    <PackageReference Remove="Roslyn.Diagnostics.Analyzers"/>
-  </ItemGroup>
 </Project>
