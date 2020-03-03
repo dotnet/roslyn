@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -78,6 +79,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             {
                 return _symbol.Accept<TResult>(visitor);
+            }
+
+            public ValueTask AcceptAsync(AsyncSymbolVisitor visitor)
+            {
+                return _symbol.AcceptAsync(visitor);
+            }
+
+            public ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor)
+            {
+                return _symbol.AcceptAsync<TResult>(visitor);
             }
 
             public ImmutableArray<AttributeData> GetAttributes()

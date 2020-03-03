@@ -112,11 +112,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw New NotSupportedException()
         End Sub
 
+        Public Overrides Function AcceptAsync(visitor As AsyncSymbolVisitor) As ValueTask
+            Throw New NotSupportedException()
+        End Function
+
         Public Overloads Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
             Throw New NotSupportedException()
         End Sub
 
         Public Overloads Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
+            Throw New NotSupportedException()
+        End Function
+
+        Public Overrides Function AcceptAsync(Of TResult)(visitor As AsyncSymbolVisitor(Of TResult)) As ValueTask(Of TResult)
             Throw New NotSupportedException()
         End Function
 

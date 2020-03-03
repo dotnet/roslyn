@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
@@ -39,6 +40,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitNamespace(this);
+        }
+
+        public override ValueTask AcceptAsync(AsyncSymbolVisitor visitor)
+        {
+            return visitor.VisitNamespaceAsync(this);
+        }
+
+        public override ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor)
+        {
+            return visitor.VisitNamespaceAsync(this);
         }
 
         public new IEnumerable<INamespaceOrTypeSymbol> GetMembers()

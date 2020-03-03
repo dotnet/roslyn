@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -58,6 +59,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitEvent(this);
+
+        public override ValueTask AcceptAsync(AsyncSymbolVisitor visitor)
+            => visitor.VisitEventAsync(this);
+
+        public override ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor)
+            => visitor.VisitEventAsync(this);
 
         public new IEventSymbol OriginalDefinition => this;
 

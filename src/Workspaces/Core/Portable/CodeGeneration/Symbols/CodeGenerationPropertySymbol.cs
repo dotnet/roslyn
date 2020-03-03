@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -66,6 +67,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitProperty(this);
+
+        public override ValueTask AcceptAsync(AsyncSymbolVisitor visitor)
+            => visitor.VisitPropertyAsync(this);
+
+        public override ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor)
+            => visitor.VisitPropertyAsync(this);
 
         public bool IsReadOnly => this.GetMethod != null && this.SetMethod == null;
 

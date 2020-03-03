@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -203,6 +204,8 @@ namespace Microsoft.CodeAnalysis
 
         void Accept(SymbolVisitor visitor);
         TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
+        ValueTask AcceptAsync(AsyncSymbolVisitor visitor);
+        ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor);
 
         /// <summary>
         /// Returns the Documentation Comment ID for the symbol, or null if the symbol doesn't

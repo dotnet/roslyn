@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -34,6 +35,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitPointerType(this);
+        }
+
+        public override ValueTask AcceptAsync(AsyncSymbolVisitor visitor)
+        {
+            return visitor.VisitPointerTypeAsync(this);
+        }
+
+        public override ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor)
+        {
+            return visitor.VisitPointerTypeAsync(this);
         }
 
         public ImmutableArray<CustomModifier> CustomModifiers

@@ -6,6 +6,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -41,5 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override void Accept(SymbolVisitor visitor) => visitor.VisitDiscard(this);
         [return: MaybeNull]
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
+        protected override ValueTask AcceptAsync(AsyncSymbolVisitor visitor) => visitor.VisitDiscardAsync(this);
+        protected override ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor) => visitor.VisitDiscardAsync(this);
     }
 }

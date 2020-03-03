@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -317,6 +318,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitMethod(this);
+        }
+
+        protected override ValueTask AcceptAsync(AsyncSymbolVisitor visitor)
+        {
+            return visitor.VisitMethodAsync(this);
+        }
+
+        protected override ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor)
+        {
+            return visitor.VisitMethodAsync(this);
         }
 
         #endregion

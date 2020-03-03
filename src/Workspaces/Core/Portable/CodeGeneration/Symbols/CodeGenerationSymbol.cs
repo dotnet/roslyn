@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -179,6 +180,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract void Accept(SymbolVisitor visitor);
 
         public abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
+
+        public abstract ValueTask AcceptAsync(AsyncSymbolVisitor visitor);
+
+        public abstract ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor);
 
         public string GetDocumentationCommentId()
         {

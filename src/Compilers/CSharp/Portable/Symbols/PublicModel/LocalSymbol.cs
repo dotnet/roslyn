@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -65,6 +66,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected sealed override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitLocal(this);
+        }
+
+        protected sealed override ValueTask AcceptAsync(AsyncSymbolVisitor visitor)
+        {
+            return visitor.VisitLocalAsync(this);
+        }
+
+        protected sealed override ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor)
+        {
+            return visitor.VisitLocalAsync(this);
         }
 
         #endregion

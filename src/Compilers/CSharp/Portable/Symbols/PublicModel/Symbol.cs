@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -141,6 +142,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         }
 
         protected abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
+
+        ValueTask ISymbol.AcceptAsync(AsyncSymbolVisitor visitor)
+        {
+            return AcceptAsync(visitor);
+        }
+
+        protected abstract ValueTask AcceptAsync(AsyncSymbolVisitor visitor);
+
+        ValueTask<TResult> ISymbol.AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor)
+        {
+            return AcceptAsync(visitor);
+        }
+
+        protected abstract ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor);
 
         string ISymbol.GetDocumentationCommentId()
         {

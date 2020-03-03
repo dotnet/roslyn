@@ -1,2 +1,49 @@
+Microsoft.CodeAnalysis.AsyncSymbolVisitor
+Microsoft.CodeAnalysis.AsyncSymbolVisitor.AsyncSymbolVisitor() -> void
+Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>
+Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.AsyncSymbolVisitor() -> void
 Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, bool isScript, bool isInputRedirected) -> void
 Microsoft.CodeAnalysis.CommandLineSourceFile.IsInputRedirected.get -> bool
+Microsoft.CodeAnalysis.ISymbol.AcceptAsync(Microsoft.CodeAnalysis.AsyncSymbolVisitor visitor) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ISymbol.AcceptAsync<TResult>(Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult> visitor) -> System.Threading.Tasks.ValueTask<TResult>
+abstract Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.DefaultResult.get -> TResult
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.DefaultVisitAsync(Microsoft.CodeAnalysis.ISymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitAliasAsync(Microsoft.CodeAnalysis.IAliasSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitArrayTypeAsync(Microsoft.CodeAnalysis.IArrayTypeSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitAssemblyAsync(Microsoft.CodeAnalysis.IAssemblySymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitAsync(Microsoft.CodeAnalysis.ISymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitDiscardAsync(Microsoft.CodeAnalysis.IDiscardSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitDynamicTypeAsync(Microsoft.CodeAnalysis.IDynamicTypeSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitEventAsync(Microsoft.CodeAnalysis.IEventSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitFieldAsync(Microsoft.CodeAnalysis.IFieldSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitLabelAsync(Microsoft.CodeAnalysis.ILabelSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitLocalAsync(Microsoft.CodeAnalysis.ILocalSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitMethodAsync(Microsoft.CodeAnalysis.IMethodSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitModuleAsync(Microsoft.CodeAnalysis.IModuleSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitNamedTypeAsync(Microsoft.CodeAnalysis.INamedTypeSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitNamespaceAsync(Microsoft.CodeAnalysis.INamespaceSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitParameterAsync(Microsoft.CodeAnalysis.IParameterSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitPointerTypeAsync(Microsoft.CodeAnalysis.IPointerTypeSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitPropertyAsync(Microsoft.CodeAnalysis.IPropertySymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitRangeVariableAsync(Microsoft.CodeAnalysis.IRangeVariableSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor.VisitTypeParameterAsync(Microsoft.CodeAnalysis.ITypeParameterSymbol symbol) -> System.Threading.Tasks.ValueTask
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.DefaultVisitAsync(Microsoft.CodeAnalysis.ISymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitAliasAsync(Microsoft.CodeAnalysis.IAliasSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitArrayTypeAsync(Microsoft.CodeAnalysis.IArrayTypeSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitAssemblyAsync(Microsoft.CodeAnalysis.IAssemblySymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitAsync(Microsoft.CodeAnalysis.ISymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitDiscardAsync(Microsoft.CodeAnalysis.IDiscardSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitDynamicTypeAsync(Microsoft.CodeAnalysis.IDynamicTypeSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitEventAsync(Microsoft.CodeAnalysis.IEventSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitFieldAsync(Microsoft.CodeAnalysis.IFieldSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitLabelAsync(Microsoft.CodeAnalysis.ILabelSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitLocalAsync(Microsoft.CodeAnalysis.ILocalSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitMethodAsync(Microsoft.CodeAnalysis.IMethodSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitModuleAsync(Microsoft.CodeAnalysis.IModuleSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitNamedTypeAsync(Microsoft.CodeAnalysis.INamedTypeSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitNamespaceAsync(Microsoft.CodeAnalysis.INamespaceSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitParameterAsync(Microsoft.CodeAnalysis.IParameterSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitPointerTypeAsync(Microsoft.CodeAnalysis.IPointerTypeSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitPropertyAsync(Microsoft.CodeAnalysis.IPropertySymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitRangeVariableAsync(Microsoft.CodeAnalysis.IRangeVariableSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>
+virtual Microsoft.CodeAnalysis.AsyncSymbolVisitor<TResult>.VisitTypeParameterAsync(Microsoft.CodeAnalysis.ITypeParameterSymbol symbol) -> System.Threading.Tasks.ValueTask<TResult>

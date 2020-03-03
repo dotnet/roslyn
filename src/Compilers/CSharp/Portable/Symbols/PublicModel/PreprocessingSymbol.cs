@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -68,6 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         void ISymbol.Accept(SymbolVisitor visitor) => throw new System.NotSupportedException();
 
         TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor) => throw new System.NotSupportedException();
+
+        ValueTask ISymbol.AcceptAsync(AsyncSymbolVisitor visitor) => throw new NotSupportedException();
+
+        ValueTask<TResult> ISymbol.AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor) => throw new NotSupportedException();
 
         string ISymbol.GetDocumentationCommentId() => null;
 

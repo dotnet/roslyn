@@ -2,13 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -562,6 +560,14 @@ Done:
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitNamespace(Me)
+        End Function
+
+        Public Overrides Function AcceptAsync(visitor As AsyncSymbolVisitor) As ValueTask
+            Return visitor.VisitNamespaceAsync(Me)
+        End Function
+
+        Public Overrides Function AcceptAsync(Of TResult)(visitor As AsyncSymbolVisitor(Of TResult)) As ValueTask(Of TResult)
+            Return visitor.VisitNamespaceAsync(Me)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

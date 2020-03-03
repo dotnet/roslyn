@@ -1062,6 +1062,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public MustOverride Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult Implements ISymbol.Accept
 
+        Public MustOverride Function AcceptAsync(visitor As AsyncSymbolVisitor) As ValueTask Implements ISymbol.AcceptAsync
+
+        Public MustOverride Function AcceptAsync(Of TResult)(visitor As AsyncSymbolVisitor(Of TResult)) As ValueTask(Of TResult) Implements ISymbol.AcceptAsync
+
         Public MustOverride Sub Accept(visitor As VisualBasicSymbolVisitor)
 
         Public MustOverride Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult

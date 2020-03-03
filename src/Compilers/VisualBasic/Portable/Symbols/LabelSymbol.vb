@@ -2,13 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -123,6 +117,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitLabel(Me)
+        End Function
+
+        Public Overrides Function AcceptAsync(visitor As AsyncSymbolVisitor) As ValueTask
+            Return visitor.VisitLabelAsync(Me)
+        End Function
+
+        Public Overrides Function AcceptAsync(Of TResult)(visitor As AsyncSymbolVisitor(Of TResult)) As ValueTask(Of TResult)
+            Return visitor.VisitLabelAsync(Me)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

@@ -423,6 +423,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitLocal(Me)
         End Function
 
+        Public Overrides Function AcceptAsync(visitor As AsyncSymbolVisitor) As ValueTask
+            Return visitor.VisitLocalAsync(Me)
+        End Function
+
+        Public Overrides Function AcceptAsync(Of TResult)(visitor As AsyncSymbolVisitor(Of TResult)) As ValueTask(Of TResult)
+            Return visitor.VisitLocalAsync(Me)
+        End Function
+
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
             visitor.VisitLocal(Me)
         End Sub

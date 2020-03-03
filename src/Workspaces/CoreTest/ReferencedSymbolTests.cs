@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -255,6 +256,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ValueTask AcceptAsync(AsyncSymbolVisitor visitor)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ValueTask<TResult> AcceptAsync<TResult>(AsyncSymbolVisitor<TResult> visitor)
             {
                 throw new NotImplementedException();
             }
