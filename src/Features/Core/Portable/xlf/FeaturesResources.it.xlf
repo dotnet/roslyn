@@ -577,11 +577,6 @@
         <target state="translated">Il flusso deve supportare operazioni di lettura e ricerca.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="translated">Struct contiene l'assegnazione a "questo" al di fuori dell'ambito del costruttore. Rendi scrivibili i campi di sola lettura</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Elimina {0}</target>

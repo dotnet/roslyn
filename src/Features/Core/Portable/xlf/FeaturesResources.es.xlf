@@ -577,11 +577,6 @@
         <target state="translated">La secuencia debe admitir las operaciones de lectura y búsqueda.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="translated">Struct contiene asignación a 'esto' fuera del alcance del constructor. Hacer que los campos de solo lectura se puedan escribir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Suprimir {0}</target>
