@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             context.RegisterCodeFix(
                 new MyCodeAction(
                     FeaturesResources.Implement_abstract_class,
-                    c => data.ImplementAbstractClassAsync(throughMember: null, c), id),
+                    c => data.ImplementAbstractClassAsync(classNode, throughMember: null, canDelegateAllMembers: null, c), id),
                 context.Diagnostics);
 
-            foreach (var through in data.GetDelegatableMembers())
+            foreach (var (through, canDelegateAllMembers) in data.GetDelegatableMembers())
             {
                 id = GetCodeActionId(
                     abstractClassType.ContainingAssembly.Name,
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 context.RegisterCodeFix(
                     new MyCodeAction(
                         string.Format(FeaturesResources.Implement_through_0, through.Name),
-                        c => data.ImplementAbstractClassAsync(through, c), id),
+                        c => data.ImplementAbstractClassAsync(classNode, through, canDelegateAllMembers, c), id),
                     context.Diagnostics);
             }
         }
