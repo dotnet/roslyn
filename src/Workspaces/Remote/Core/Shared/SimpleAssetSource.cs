@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
                 }
                 else
                 {
-                    throw Contract.Unreachable;
+                    throw Contract.UnexpectedValue(checksum);
                 }
             }
 
