@@ -11,16 +11,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
-    internal abstract class AbstractResolveConflictMarkerCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractResolveConflictMarkerCodeFixProvider : CodeFixProvider
     {
         private const string TakeTopEquivalenceKey = nameof(TakeTopEquivalenceKey);
         private const string TakeBottomEquivalenceKey = nameof(TakeBottomEquivalenceKey);
@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
+        public override FixAllProvider GetFixAllProvider()
+            => new ConflictMarkerFixAllProvider(this);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -246,10 +247,20 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 text[trivia.SpanStart] == ch;
         }
 
-        protected override async Task FixAllAsync(
+        private class ConflictMarkerFixAllProvider : AbstractParallelFixAllProvider
+        {
+            private readonly AbstractResolveConflictMarkerCodeFixProvider _codeFixProvider;
+
+            public ConflictMarkerFixAllProvider(AbstractResolveConflictMarkerCodeFixProvider codeFixProvider)
+                => _codeFixProvider = codeFixProvider;
+
+            protected override Task<Document> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> filteredDiagnostics)
+                => _codeFixProvider.FixAllAsync(document, filteredDiagnostics, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken);
+        }
+
+        private async Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, string equivalenceKey,
-            CancellationToken cancellationToken)
+            string equivalenceKey, CancellationToken cancellationToken)
         {
             Debug.Assert(
                 equivalenceKey == TakeTopEquivalenceKey ||
@@ -304,10 +315,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             }
 
             var finalText = text.WithChanges(edits);
-            var finalTree = tree.WithChangedText(finalText);
-            var finalRoot = finalTree.GetRoot(cancellationToken);
-
-            editor.ReplaceNode(root, finalRoot);
+            return document.WithText(finalText);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

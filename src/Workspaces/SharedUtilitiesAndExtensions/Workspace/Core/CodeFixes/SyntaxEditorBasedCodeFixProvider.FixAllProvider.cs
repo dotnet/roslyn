@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Shared.CodeFixes;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -18,86 +16,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// subclass needs to provide is how each document will apply all the fixes to all the 
         /// diagnostics in that document.
         /// </summary>
-        internal sealed class SyntaxEditorBasedFixAllProvider : FixAllProvider
+        internal sealed class SyntaxEditorBasedFixAllProvider : AbstractParallelFixAllProvider
         {
             private readonly SyntaxEditorBasedCodeFixProvider _codeFixProvider;
 
             public SyntaxEditorBasedFixAllProvider(SyntaxEditorBasedCodeFixProvider codeFixProvider)
-            {
-                _codeFixProvider = codeFixProvider;
-            }
+                => _codeFixProvider = codeFixProvider;
 
-            public sealed override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
-            {
-                var documentsAndDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
-            }
+            protected override bool IncludeDiagnosticDuringFixAll(FixAllContext fixAllContext, Diagnostic diagnostic)
+                => _codeFixProvider.IncludeDiagnosticDuringFixAll(diagnostic, fixAllContext.Document, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken);
 
-            private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
-            {
-                var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
-
-                // Filter out any documents that we don't have any diagnostics for.
-                return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
-
-                static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(FixAllContext fixAllContext)
-                {
-                    return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
-                        fixAllContext,
-                        progressTrackerOpt: null).ConfigureAwait(false);
-                }
-            }
-
-            private async Task<CodeAction> GetFixAsync(
-                ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-                FixAllContext fixAllContext)
-            {
-                // Process all documents in parallel.
-                var updatedDocumentTasks = documentsAndDiagnosticsToFixMap.Select(
-                    kvp => FixDocumentAsync(kvp.Key, kvp.Value, fixAllContext));
-
-                await Task.WhenAll(updatedDocumentTasks).ConfigureAwait(false);
-
-                var currentSolution = fixAllContext.Solution;
-                foreach (var task in updatedDocumentTasks)
-                {
-                    // 'await' the tasks so that if any completed in a canceled manner then we'll
-                    // throw the right exception here.  Calling .Result on the tasks might end up
-                    // with AggregateExceptions being thrown instead.
-                    var updatedDocument = await task.ConfigureAwait(false);
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(
-                        updatedDocument.Id,
-                        await updatedDocument.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false));
-                }
-
-                var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
-                return new CustomCodeActions.SolutionChangeAction(title, _ => Task.FromResult(currentSolution));
-            }
-
-            private async Task<Document> FixDocumentAsync(
-                Document document, ImmutableArray<Diagnostic> diagnostics, FixAllContext fixAllContext)
-            {
-                var cancellationToken = fixAllContext.CancellationToken;
-                var equivalenceKey = fixAllContext.CodeActionEquivalenceKey;
-
-                // Ensure that diagnostics for this document are always in document location
-                // order.  This provides a consistent and deterministic order for fixers
-                // that want to update a document.
-                // Also ensure that we do not pass in duplicates by invoking Distinct.
-                // See https://github.com/dotnet/roslyn/issues/31381, that seems to be causing duplicate diagnostics.
-                var filteredDiagnostics = diagnostics.Distinct()
-                                                     .WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(d, fixAllContext.Document, equivalenceKey, cancellationToken))
-                                                     .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
-
-                // PERF: Do not invoke FixAllAsync on the code fix provider if there are no diagnostics to be fixed.
-                if (filteredDiagnostics.Length == 0)
-                {
-                    return document;
-                }
-
-                return await _codeFixProvider.FixAllAsync(
-                    document, filteredDiagnostics, equivalenceKey, cancellationToken).ConfigureAwait(false);
-            }
+            protected override Task<Document> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> filteredDiagnostics)
+                => _codeFixProvider.FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken);
         }
     }
 }
