@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Roslyn.Utilities;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ITypeSymbolExtensions
     {
-        private class ReplaceTypeParameterBasedOnTypeConstraintVisitor : SymbolVisitor<ITypeSymbol>
+        private class ReplaceTypeParameterBasedOnTypeConstraintVisitor : SymbolVisitor<ValueTask<ITypeSymbol>>
         {
             private readonly CancellationToken _cancellationToken;
             private readonly Compilation _compilation;
@@ -30,19 +31,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _cancellationToken = cancellationToken;
             }
 
-            public override ITypeSymbol DefaultVisit(ISymbol node)
+            public override ValueTask<ITypeSymbol> Visit(ISymbol symbol)
+            {
+                if (symbol is null)
+                    throw new NotImplementedException();
+
+                return base.Visit(symbol);
+            }
+
+            public override ValueTask<ITypeSymbol> DefaultVisit(ISymbol node)
             {
                 throw new NotImplementedException();
             }
 
-            public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
+            public override ValueTask<ITypeSymbol> VisitDynamicType(IDynamicTypeSymbol symbol)
             {
-                return symbol;
+                return new ValueTask<ITypeSymbol>(symbol);
             }
 
-            public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)
+            public override async ValueTask<ITypeSymbol> VisitArrayType(IArrayTypeSymbol symbol)
             {
-                var elementType = symbol.ElementType.Accept(this);
+                var elementType = await symbol.ElementType.Accept(this).ConfigureAwait(false);
                 if (elementType != null && elementType.Equals(symbol.ElementType))
                 {
                     return symbol;
@@ -51,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
             }
 
-            public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
+            public override async ValueTask<ITypeSymbol> VisitNamedType(INamedTypeSymbol symbol)
             {
-                var arguments = symbol.TypeArguments.Select(t => t.Accept(this)).ToArray();
+                var arguments = (await Task.WhenAll(symbol.TypeArguments.Select(t => t.Accept(this).AsTask())).ConfigureAwait(false)).ToArray();
                 if (arguments.SequenceEqual(symbol.TypeArguments))
                 {
                     return symbol;
@@ -62,9 +71,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return symbol.ConstructedFrom.Construct(arguments.ToArray());
             }
 
-            public override ITypeSymbol VisitPointerType(IPointerTypeSymbol symbol)
+            public override async ValueTask<ITypeSymbol> VisitPointerType(IPointerTypeSymbol symbol)
             {
-                var elementType = symbol.PointedAtType.Accept(this);
+                var elementType = await symbol.PointedAtType.Accept(this).ConfigureAwait(false);
                 if (elementType != null && elementType.Equals(symbol.PointedAtType))
                 {
                     return symbol;
@@ -73,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return _compilation.CreatePointerTypeSymbol(elementType);
             }
 
-            public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
+            public override async ValueTask<ITypeSymbol> VisitTypeParameter(ITypeParameterSymbol symbol)
             {
                 if (_availableTypeParameterNames.Contains(symbol.Name))
                 {
@@ -98,13 +107,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         if (symbol.ConstraintTypes.All(t => t is INamedTypeSymbol))
                         {
                             var immutableProjects = _solution.Projects.ToImmutableHashSet();
-                            var derivedImplementedTypesOfEachConstraintType = symbol.ConstraintTypes.Select(ct =>
+                            var derivedImplementedTypesOfEachConstraintType = (await Task.WhenAll(symbol.ConstraintTypes.Select(async ct =>
                             {
                                 var derivedAndImplementedTypes = new List<INamedTypeSymbol>();
-                                var derivedClasses = SymbolFinder.FindDerivedClassesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken);
-                                var implementedTypes = DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken);
+                                var derivedClasses = await SymbolFinder.FindDerivedClassesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).ConfigureAwait(false);
+                                var implementedTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).ConfigureAwait(false);
                                 return derivedClasses.Concat(implementedTypes.Select(s => s.Symbol)).ToList();
-                            }).ToList();
+                            })).ConfigureAwait(false)).ToList();
 
                             var intersectingTypes = derivedImplementedTypesOfEachConstraintType.Aggregate((x, y) => x.Intersect(y).ToList());
 
@@ -115,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                                 // If the resultant intersecting type contains any Type arguments that could be replaced 
                                 // using the type constraints then recursively update the type until all constraints are appropriately handled
-                                var typeConstraintConvertedType = resultantIntersectingType.Accept(this);
+                                var typeConstraintConvertedType = await resultantIntersectingType.Accept(this).ConfigureAwait(false);
                                 var knownSimilarTypesInCompilation = SymbolFinder.FindSimilarSymbols(typeConstraintConvertedType, _compilation, _cancellationToken);
                                 if (knownSimilarTypesInCompilation.Any())
                                 {
