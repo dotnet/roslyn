@@ -6251,5 +6251,183 @@ class Program
   IL_0003:  ret
 }");
         }
+
+        [Fact]
+        public void ConstantFolding()
+        {
+            constantFolding("nint", "const nint A = -2147483648;", "+A", "-2147483648");
+            constantFolding("nint", "const nint A = 2147483647;", "+A", "2147483647");
+            constantFolding("nuint", "const nuint A = 0;", "+A", "0");
+            constantFolding("nuint", "const nuint A = 4294967295;", "+A", "4294967295");
+
+            constantFolding("nint", "const nint A = -2147483648;", "-A", null);
+            constantFolding("nint", "const nint A = -2147483647;", "-A", "2147483647");
+            constantFolding("nint", "const nint A = 2147483647;", "-A", "-2147483647");
+            constantFolding("nuint", "const nuint A = 0;", "-A", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-A").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_NoImplicitConvCast
+            constantFolding("nuint", "const nuint A = 1;", "-A", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-A").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_NoImplicitConvCast
+            constantFolding("nuint", "const nuint A = 4294967295;", "-A", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-A").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_NoImplicitConvCast
+
+            constantFolding("nint", "const nint A = -2147483648;", "~A", "2147483647");
+            constantFolding("nint", "const nint A = 2147483647;", "~A", "-2147483648");
+            constantFolding("nuint", "const nuint A = 0;", "~A", "4294967295"); // PROTOTYPE: Should this be an error?
+            constantFolding("nuint", "const nuint A = 4294967295;", "~A", "0"); // PROTOTYPE: Should this be an error?
+
+            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A + B", null);
+            constantFolding("nint", "const nint A = -2147483647; const nint B = -1;", "A + B", "-2147483648");
+            constantFolding("nint", "const nint A = 1; const nint B = 2147483647;", "A + B", null);
+            constantFolding("nint", "const nint A = 1; const nint B = 2147483646;", "A + B", "2147483647");
+            constantFolding("nuint", "const nuint A = 1; const nuint B = 4294967295;", "A + B", null);
+            constantFolding("nuint", "const nuint A = 1; const nuint B = 4294967294;", "A + B", "4294967295");
+
+            constantFolding("nint", "const nint A = -2147483648; const nint B = 1;", "A - B", null);
+            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A - B", "-2147483647");
+            constantFolding("nint", "const nint A = -1; const nint B = 2147483647;", "A - B", "-2147483648");
+            constantFolding("nint", "const nint A = -2; const nint B = 2147483647;", "A - B", null);
+            constantFolding("nuint", "const nuint A = 0; const nuint B = 1;", "A - B", null);
+            constantFolding("nuint", "const nuint A = 4294967295; const nuint B = 4294967295;", "A - B", "0");
+
+            constantFolding("nint", "const nint A = -2147483648; const nint B = 2;", "A * B", null);
+            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A * B", null);
+            constantFolding("nint", "const nint A = -1; const nint B = 2147483647;", "A * B", "-2147483647");
+            constantFolding("nint", "const nint A = 2; const nint B = 2147483647;", "A * B", null);
+            constantFolding("nuint", "const nuint A = 4294967295; const nuint B = 2;", "A * B", null);
+            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2;", "A * B", "4294967294");
+
+            constantFolding("nint", "const nint A = -2147483648; const nint B = 1;", "A / B", "-2147483648");
+            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A / B", null);
+            constantFolding("nint", "const nint A = 1; const nint B = 0;", "A / B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A / B"));
+            constantFolding("nint", "const nint A = 0; const nint B = 0;", "A / B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A / B"));
+            constantFolding("nuint", "const nuint A = 4294967295; const nuint B = 2;", "A / B", "2147483647");
+            constantFolding("nuint", "const nuint A = 1; const nuint B = 0;", "A / B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A / B"));
+            constantFolding("nuint", "const nuint A = 0; const nuint B = 0;", "A / B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A / B"));
+
+            constantFolding("nint", "const nint A = -2147483648; const nint B = 2;", "A % B", "0");
+            constantFolding("nint", "const nint A = -2147483648; const nint B = -2;", "A % B", "0");
+            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A % B", "0");
+            constantFolding("nint", "const nint A = 1; const nint B = 0;", "A % B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A % B"));
+            constantFolding("nint", "const nint A = 0; const nint B = 0;", "A % B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A % B"));
+            constantFolding("nuint", "const nuint A = 4294967295; const nuint B = 2;", "A % B", "1");
+            constantFolding("nuint", "const nuint A = 1; const nuint B = 0;", "A % B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A % B"));
+            constantFolding("nuint", "const nuint A = 0; const nuint B = 0;", "A % B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A % B"));
+
+            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A < B", "False");
+            constantFolding("bool", "const nint A = -2147483648; const nint B = 2147483647;", "A < B", "True");
+            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A < B", "False");
+            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A < B", "False");
+            constantFolding("bool", "const nuint A = 0; const nuint B = 4294967295;", "A < B", "True");
+            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A < B", "False");
+
+            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A <= B", "True");
+            constantFolding("bool", "const nint A = 2147483647; const nint B = -2147483648;", "A <= B", "False");
+            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A <= B", "True");
+            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A <= B", "True");
+            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 0;", "A <= B", "False");
+            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A <= B", "True");
+
+            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A > B", "False");
+            constantFolding("bool", "const nint A = 2147483647; const nint B = -2147483648;", "A > B", "True");
+            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A > B", "False");
+            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A > B", "False");
+            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 0;", "A > B", "True");
+            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A > B", "False");
+
+            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A >= B", "True");
+            constantFolding("bool", "const nint A = -2147483648; const nint B = 2147483647;", "A >= B", "False");
+            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A >= B", "True");
+            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A >= B", "True");
+            constantFolding("bool", "const nuint A = 0; const nuint B = 4294967295;", "A >= B", "False");
+            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A >= B", "True");
+
+            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A == B", "True");
+            constantFolding("bool", "const nint A = -2147483648; const nint B = 2147483647;", "A == B", "False");
+            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A == B", "True");
+            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A == B", "True");
+            constantFolding("bool", "const nuint A = 0; const nuint B = 4294967295;", "A == B", "False");
+            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A == B", "True");
+
+            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A != B", "False");
+            constantFolding("bool", "const nint A = -2147483648; const nint B = 2147483647;", "A != B", "True");
+            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A != B", "False");
+            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A != B", "False");
+            constantFolding("bool", "const nuint A = 0; const nuint B = 4294967295;", "A != B", "True");
+            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A != B", "False");
+
+            constantFolding("nint", "const nint A = -2147483648; const int B = 0;", "A << B", "-2147483648");
+            constantFolding("nint", "const nint A = -2147483648; const int B = 1;", "A << B", "0");
+            constantFolding("nint", "const nint A = -1; const int B = 31;", "A << B", "-2147483648");
+            constantFolding("nint", "const nint A = -1; const int B = 32;", "A << B", "-1");
+            constantFolding("nuint", "const nuint A = 0; const int B = 1;", "A << B", "0");
+            constantFolding("nuint", "const nuint A = 4294967295; const int B = 1;", "A << B", "4294967294");
+            constantFolding("nuint", "const nuint A = 1; const int B = 31;", "A << B", "2147483648");
+            constantFolding("nuint", "const nuint A = 1; const int B = 32;", "A << B", "1");
+
+            constantFolding("nint", "const nint A = -2147483648; const int B = 0;", "A >> B", "-2147483648");
+            constantFolding("nint", "const nint A = -2147483648; const int B = 1;", "A >> B", "-1073741824");
+            constantFolding("nint", "const nint A = -1; const int B = 31;", "A >> B", "-1");
+            constantFolding("nint", "const nint A = -1; const int B = 32;", "A >> B", "-1");
+            constantFolding("nuint", "const nuint A = 0; const int B = 1;", "A >> B", "0");
+            constantFolding("nuint", "const nuint A = 4294967295; const int B = 1;", "A >> B", "2147483647");
+            constantFolding("nuint", "const nuint A = 1; const int B = 31;", "A >> B", "0");
+            constantFolding("nuint", "const nuint A = 1; const int B = 32;", "A >> B", "1");
+
+            constantFolding("nint", "const nint A = -2147483648; const nint B = 0;", "A & B", "0");
+            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A & B", "-2147483648");
+            constantFolding("nint", "const nint A = -2147483648; const nint B = 2147483647;", "A & B", "0");
+            constantFolding("nuint", "const nuint A = 0; const nuint B = 4294967295;", "A & B", "0");
+            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 4294967295;", "A & B", "2147483647");
+            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2147483648;", "A & B", "0");
+
+            constantFolding("nint", "const nint A = -2147483648; const nint B = 0;", "A | B", "-2147483648");
+            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A | B", "-1");
+            constantFolding("nint", "const nint A = 2147483647; const nint B = 2147483647;", "A | B", "2147483647");
+            constantFolding("nuint", "const nuint A = 0; const nuint B = 4294967295;", "A | B", "4294967295");
+            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2147483647;", "A | B", "2147483647");
+            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2147483648;", "A | B", "4294967295");
+
+            constantFolding("nint", "const nint A = -2147483648; const nint B = 0;", "A ^ B", "-2147483648");
+            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A ^ B", "2147483647");
+            constantFolding("nint", "const nint A = 2147483647; const nint B = 2147483647;", "A ^ B", "0");
+            constantFolding("nuint", "const nuint A = 0; const nuint B = 4294967295;", "A ^ B", "4294967295");
+            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2147483647;", "A ^ B", "0");
+            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2147483648;", "A ^ B", "4294967295");
+
+            void constantFolding(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription diagnostic = null)
+            {
+                var diagnostics = (diagnostic is null) ?
+                    (expectedResult is null) ?
+                        new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) } :
+                        Array.Empty<DiagnosticDescription>() :
+                    new[] { diagnostic };
+                verify(opType, declarations, expr, expectedResult, diagnostics);
+                verify(opType, declarations, $"checked ({expr})", expectedResult, diagnostics);
+                verify(opType, declarations, $"unchecked ({expr})", expectedResult, (diagnostic is null) ? Array.Empty<DiagnosticDescription>() : diagnostics);
+            }
+
+            void verify(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
+            {
+                string sourceA =
+$@"public class Library
+{{
+    {declarations}
+    public const {opType} F = {expr};
+}}";
+                var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                if (expectedDiagnostics.Length > 0) return;
+
+                string sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(Library.F);
+    }
+}";
+                var refA = comp.EmitToImageReference();
+                comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                CompileAndVerify(comp, expectedOutput: expectedResult);
+            }
+        }
     }
 }
