@@ -45,8 +45,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
 #if !CODE_STYLE // TODO: Add support for Options based tests in CodeStyle layer
+                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, Options);
+                    if (analyzerConfigSource is object)
+                    {
+                        foreach (var id in solution.ProjectIds)
+                        {
+                            var documentId = DocumentId.CreateNewId(id, ".editorconfig");
+                            solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", analyzerConfigSource, filePath: "/.editorconfig");
+                        }
+                    }
+
                     var options = solution.Options;
-                    foreach (var (key, value) in Options)
+                    foreach (var (key, value) in remainingOptions)
                     {
                         options = options.WithChangedOption(key, value);
                     }
