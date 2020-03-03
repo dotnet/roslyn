@@ -2,20 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal class RenameHandler : ILspRequestHandler<RenameParams, WorkspaceEdit, Solution>
+    [Shared]
+    [ExportLspMethod(LSP.Methods.TextDocumentRenameName)]
+    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit>
     {
         private readonly IThreadingContext _threadingContext;
 
@@ -24,9 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             _threadingContext = threadingContext;
         }
 
-        public async Task<WorkspaceEdit> HandleAsync(RenameParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit> HandleRequestAsync(Solution solution, RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            var solution = requestContext.Context;
             WorkspaceEdit workspaceEdit = null;
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document != null)
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 // This is typically quick. It's marked configureawait(false) so that the bulk of the rename operation can happen
                 // in background threads.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var renameInfo = await renameService.GetRenameInfoAsync(document, position, false, cancellationToken).ConfigureAwait(false);
                 if (!renameInfo.CanRename)
                 {
                     return workspaceEdit;
