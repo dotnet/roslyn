@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly Option<string> FileHeaderTemplate = CreateCommonOption(
             CodeStyleOptionGroups.Usings, nameof(FileHeaderTemplate),
             defaultValue: "",
-            EditorConfigStorageLocation.ForStringOption("file_header_template"));
+            EditorConfigStorageLocation.ForStringOption("file_header_template", emptyStringRepresentation: "unset"));
 
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new BidirectionalMap<string, AccessibilityModifiersRequired>(new[]

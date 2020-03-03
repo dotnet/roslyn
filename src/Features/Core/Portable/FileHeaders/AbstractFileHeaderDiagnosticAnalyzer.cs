@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected AbstractFileHeaderDiagnosticAnalyzer()
+        protected AbstractFileHeaderDiagnosticAnalyzer(string language)
             : base(
                 IDEDiagnosticIds.FileHeaderMismatch,
                 CodeStyleOptions.FileHeaderTemplate,
-                LanguageNames.CSharp,
+                language,
                 new LocalizableResourceString(nameof(FeaturesResources.The_file_header_is_missing_or_not_located_at_the_top_of_the_file), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 new LocalizableResourceString(nameof(FeaturesResources.A_source_file_is_missing_a_required_header), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

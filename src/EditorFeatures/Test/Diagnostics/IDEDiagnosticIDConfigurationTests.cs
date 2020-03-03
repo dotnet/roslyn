@@ -359,6 +359,9 @@ dotnet_style_prefer_simplified_interpolation = true:suggestion
 # IDE0072
 dotnet_diagnostic.IDE0072.severity = %value%
 
+# IDE0073
+dotnet_diagnostic.IDE0073.severity = %value%
+
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -492,6 +495,9 @@ dotnet_diagnostic.IDE0070.severity = %value%
 
 # IDE0071
 dotnet_style_prefer_simplified_interpolation = true:suggestion
+
+# IDE0073
+dotnet_diagnostic.IDE0073.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -847,6 +853,9 @@ dotnet_style_prefer_simplified_interpolation = true:suggestion
 # IDE0072
 No editorconfig based code style option
 
+# IDE0073, FileHeaderTemplate
+file_header_template = unset
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -1013,6 +1022,9 @@ No editorconfig based code style option
 
 # IDE0071, PreferSimplifiedInterpolation
 dotnet_style_prefer_simplified_interpolation = true:suggestion
+
+# IDE0073, FileHeaderTemplate
+file_header_template = unset
 
 # IDE1006
 No editorconfig based code style option

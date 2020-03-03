@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
     Friend Class VisualBasicFileHeaderDiagnosticAnalyzer
         Inherits AbstractFileHeaderDiagnosticAnalyzer
 
+        Public Sub New()
+            MyBase.New(LanguageNames.VisualBasic)
+        End Sub
+
         Protected Overrides ReadOnly Property FileHeaderHelper As AbstractFileHeaderHelper
             Get
                 Return VisualBasicFileHeaderHelper.Instance

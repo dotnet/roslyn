@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Options
         public static EditorConfigStorageLocation<int> ForInt32Option(string keyName)
             => new EditorConfigStorageLocation<int>(keyName, s_parseInt32, s_getInt32EditorConfigStringForValue);
 
-        public static EditorConfigStorageLocation<string> ForStringOption(string keyName)
-            => new EditorConfigStorageLocation<string>(keyName, s_parseString, s_getStringEditorConfigStringForValue);
+        public static EditorConfigStorageLocation<string> ForStringOption(string keyName, string emptyStringRepresentation)
+            => new EditorConfigStorageLocation<string>(keyName, s_parseString, (string value) => string.IsNullOrEmpty(value) ? emptyStringRepresentation : s_getStringEditorConfigStringForValue(value));
 
         public static EditorConfigStorageLocation<CodeStyleOption<bool>> ForBoolCodeStyleOption(string keyName)
             => new EditorConfigStorageLocation<CodeStyleOption<bool>>(keyName, s_parseBoolCodeStyleOption, s_getBoolCodeStyleOptionEditorConfigStringForValue);
