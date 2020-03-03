@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            var rewrittenCondition = (BoundExpression)Visit(node.Condition);
-            var rewrittenBody = (BoundStatement)Visit(node.Body);
+            var rewrittenCondition = VisitExpression(node.Condition);
+            var rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // mark the initial jump as hidden. We do it to tell that this is not a part of previous statement. This
                 // jump may be a target of another jump (for example if loops are nested) and that would give the
                 // impression that the previous statement is being re-executed.
-                gotoContinue = new BoundSequencePoint(null!, gotoContinue);
+                gotoContinue = BoundSequencePoint.Hidden(gotoContinue);
             }
 
             return BoundStatementList.Synthesized(syntax, hasErrors,
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Instrument && !loop.WasCompilerGenerated)
             {
                 ifNotConditionGotoBreak = _instrumenter.InstrumentWhileStatementConditionalGotoStartOrBreak(loop, ifNotConditionGotoBreak);
-                continueLabelStatement = new BoundSequencePoint(null!, continueLabelStatement);
+                continueLabelStatement = BoundSequencePoint.Hidden(continueLabelStatement);
             }
 
             return BoundStatementList.Synthesized(syntax, hasErrors,

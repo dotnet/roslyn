@@ -208,7 +208,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        [return: NotNullIfNotNull("type")]
         public sealed override TypeSymbol VisitType(TypeSymbol type)
         {
             return TypeMap.SubstituteType(type).Type;

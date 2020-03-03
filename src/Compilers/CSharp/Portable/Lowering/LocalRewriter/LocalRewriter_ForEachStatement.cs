@@ -111,8 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(enumeratorInfo != null);
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
-            BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
-            BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
+            BoundExpression rewrittenExpression = VisitExpression(collectionExpression);
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             MethodSymbol getEnumeratorMethod = enumeratorInfo.GetEnumeratorMethod;
             TypeSymbol enumeratorType = getEnumeratorMethod.ReturnType;
@@ -431,7 +432,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression ConvertReceiverForInvocation(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType)
         {
             Debug.Assert(!method.IsExtensionMethod);
-            if (!receiver.Type!.IsReferenceType && method.ContainingType.IsInterface)
+            Debug.Assert(receiver.Type is { });
+            if (!receiver.Type.IsReferenceType && method.ContainingType.IsInterface)
             {
                 Debug.Assert(receiverConversion.IsImplicit && !receiverConversion.IsUserDefined);
 
@@ -511,8 +513,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
-            BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
-            BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
+            BoundExpression rewrittenExpression = VisitExpression(collectionExpression);
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             // Collection a
             LocalSymbol collectionTemp = _factory.SynthesizedLocal(collectionType, forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
@@ -720,8 +723,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
-            BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
-            BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
+            BoundExpression rewrittenExpression = VisitExpression(collectionExpression);
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             // A[] a
             LocalSymbol arrayVar = _factory.SynthesizedLocal(arrayType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
@@ -853,8 +857,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getLowerBoundMethod = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetLowerBound);
             MethodSymbol getUpperBoundMethod = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetUpperBound);
 
-            BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
-            BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
+            BoundExpression rewrittenExpression = VisitExpression(collectionExpression);
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             // A[...] a
             LocalSymbol arrayVar = _factory.SynthesizedLocal(arrayType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
@@ -1048,7 +1053,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // A normal for-loop would have a sequence point on the increment.  We don't want that since the code is synthesized,
             // but we add a hidden sequence point to avoid disrupting the stepping experience.
-            return new BoundSequencePoint(null!,
+            // A bound sequence point is permitted to have a null syntax to make a hidden sequence point.
+            return BoundSequencePoint.Hidden(
                 statementOpt: new BoundExpressionStatement(syntax,
                     expression: new BoundAssignmentOperator(syntax,
                         left: boundPositionVar,
@@ -1115,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.Instrument)
             {
-                startLabelStatement = new BoundSequencePoint(null!, startLabelStatement);
+                startLabelStatement = BoundSequencePoint.Hidden(startLabelStatement);
             }
 
             // still-true:

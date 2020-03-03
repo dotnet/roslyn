@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             var rewrittenCondition = VisitExpression(node.Condition);
             var rewrittenConsequence = VisitStatement(node.Consequence);
+            Debug.Assert(rewrittenConsequence is { });
             var rewrittenAlternative = VisitStatement(node.AlternativeOpt);
             var syntax = (IfStatementSyntax)node.Syntax;
 
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, afterif));
                 builder.Add(rewrittenConsequence);
-                builder.Add(new BoundSequencePoint(null!, null));
+                builder.Add(BoundSequencePoint.Hidden());
                 builder.Add(new BoundLabelStatement(syntax, afterif));
                 var statements = builder.ToImmutableAndFree();
                 return new BoundStatementList(syntax, statements, hasErrors);
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(new BoundGotoStatement(syntax, afterif));
                 builder.Add(new BoundLabelStatement(syntax, alt));
                 builder.Add(rewrittenAlternativeOpt);
-                builder.Add(new BoundSequencePoint(null!, null));
+                builder.Add(BoundSequencePoint.Hidden());
                 builder.Add(new BoundLabelStatement(syntax, afterif));
                 return new BoundStatementList(syntax, builder.ToImmutableAndFree(), hasErrors);
             }

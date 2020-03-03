@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
-            BoundExpression rewrittenLeft = (BoundExpression)Visit(node.LeftOperand);
-            BoundExpression rewrittenRight = (BoundExpression)Visit(node.RightOperand);
+            BoundExpression rewrittenLeft = VisitExpression(node.LeftOperand);
+            BoundExpression rewrittenRight = VisitExpression(node.RightOperand);
             TypeSymbol? rewrittenResultType = VisitType(node.Type);
 
             return MakeNullCoalescingOperator(node.Syntax, rewrittenLeft, rewrittenRight, node.LeftConversion, node.OperatorResultKind, rewrittenResultType);

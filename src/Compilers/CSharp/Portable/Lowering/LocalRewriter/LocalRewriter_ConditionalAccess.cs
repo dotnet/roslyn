@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_inExpressionLambda);
 
             var loweredReceiver = this.VisitExpression(node.Receiver);
-            var receiverType = loweredReceiver.Type!;
+            Debug.Assert(loweredReceiver.Type is { });
+            var receiverType = loweredReceiver.Type;
 
             // Check trivial case
             if (loweredReceiver.IsDefaultValue() && receiverType.IsReferenceType)
@@ -147,11 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (loweringKind)
             {
                 case ConditionalAccessLoweringKind.LoweredConditionalAccess:
+                    Debug.Assert(loweredReceiver.Type is { });
                     result = new BoundLoweredConditionalAccess(
                         node.Syntax,
                         loweredReceiver,
                         receiverType.IsNullableType() ?
-                                 UnsafeGetNullableMethod(node.Syntax, loweredReceiver.Type!, SpecialMember.System_Nullable_T_get_HasValue) :
+                                 UnsafeGetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue) :
                                  null,
                         loweredAccessExpression,
                         null,

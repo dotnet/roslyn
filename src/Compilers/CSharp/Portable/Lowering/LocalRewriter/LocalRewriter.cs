@@ -106,7 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
 
                 statement.CheckLocalsDefined();
-                var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
+                var loweredStatement = localRewriter.VisitStatement(statement);
+                Debug.Assert(loweredStatement is { });
                 loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
@@ -150,7 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _factory.CompilationState.ModuleBuilderOpt; }
         }
 
-        [return: NotNullIfNotNull("node")]
+        /// <summary>
+        /// Return the translated node, or null if no code is necessary in the translation.
+        /// </summary>
         public override BoundNode? Visit(BoundNode? node)
         {
             if (node == null)
@@ -180,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitExpressionImpl(node);
         }
 
-        [return: NotNullIfNotNull("node")]
         private BoundStatement? VisitStatement(BoundStatement? node)
         {
             if (node == null)
@@ -212,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Dynamic type will be erased in emit phase. It is considered equivalent to Object in lowered bound trees.
             // Unused deconstructions are lowered to produce a return value that isn't a tuple type.
             Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) ||
-                    visited.Type!.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
+                    visited.Type is { } && visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
                     IsUnusedDeconstruction(node));
 
             if (visited != null &&
@@ -364,7 +366,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression PlaceholderReplacement(BoundValuePlaceholderBase placeholder)
         {
-            var value = _placeholderReplacementMapDoNotUseDirectly![placeholder];
+            Debug.Assert(_placeholderReplacementMapDoNotUseDirectly is { });
+            var value = _placeholderReplacementMapDoNotUseDirectly[placeholder];
             AssertPlaceholderReplacement(placeholder, value);
             return value;
         }
@@ -372,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Conditional("DEBUG")]
         private static void AssertPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
         {
-            Debug.Assert(value.Type!.Equals(placeholder.Type, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(value.Type is { } && value.Type.Equals(placeholder.Type, TypeCompareKind.AllIgnoreOptions));
         }
 
         /// <summary>
@@ -398,8 +401,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void RemovePlaceholderReplacement(BoundValuePlaceholderBase placeholder)
         {
-            Debug.Assert((object)placeholder != null);
-            bool removed = _placeholderReplacementMapDoNotUseDirectly!.Remove(placeholder);
+            Debug.Assert(placeholder is { });
+            Debug.Assert(_placeholderReplacementMapDoNotUseDirectly is { });
+            bool removed = _placeholderReplacementMapDoNotUseDirectly.Remove(placeholder);
 
             Debug.Assert(removed);
         }
@@ -449,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((syntax != null) ^ (location != null));
 
             symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional, location: location);
-            return ((object)symbol != null);
+            return symbol is { };
         }
 
         /// <summary>
@@ -498,7 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.GetTypeFromHandle is null);
 
-            var sourceType = (BoundTypeExpression)this.Visit(node.SourceType);
+            var sourceType = (BoundTypeExpression?)this.Visit(node.SourceType);
+            Debug.Assert(sourceType is { });
             var type = this.VisitType(node.Type);
 
             // Emit needs this helper
@@ -515,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.GetTypeFromHandle is null);
 
-            var operand = (BoundExpression)this.Visit(node.Operand);
+            var operand = this.VisitExpression(node.Operand);
             var type = this.VisitType(node.Type);
 
             // Emit needs this helper
@@ -661,7 +666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // array[Range] is compiled to:
                 // System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray(array, Range)
 
-                var elementType = ((ArrayTypeSymbol)node.Expression.Type!).ElementTypeWithAnnotations;
+                Debug.Assert(node.Expression.Type is { TypeKind: TypeKind.Array });
+                var elementType = ((ArrayTypeSymbol)node.Expression.Type).ElementTypeWithAnnotations;
 
                 resultExpr = F.Call(
                     receiver: null,
@@ -684,7 +690,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntax is ExpressionSyntax && syntax?.Parent!.Kind() == SyntaxKind.EqualsValueClause) // Should be the initial value.
             {
-                switch (syntax.Parent.Parent!.Kind())
+                Debug.Assert(syntax.Parent.Parent is { });
+                switch (syntax.Parent.Parent.Kind())
                 {
                     case SyntaxKind.VariableDeclarator:
                     case SyntaxKind.PropertyDeclaration:
@@ -840,8 +847,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var eventAccess = (BoundEventAccess)expr;
                     if (eventAccess.IsUsableAsField)
                     {
-                        return eventAccess.EventSymbol.IsStatic ||
-                            CanBePassedByReference(eventAccess.ReceiverOpt!);
+                        if (eventAccess.EventSymbol.IsStatic)
+                            return true;
+
+                        Debug.Assert(eventAccess.ReceiverOpt is { });
+                        return CanBePassedByReference(eventAccess.ReceiverOpt);
                     }
 
                     return false;
@@ -850,7 +860,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var fieldAccess = (BoundFieldAccess)expr;
                     if (!fieldAccess.FieldSymbol.IsStatic)
                     {
-                        return CanBePassedByReference(fieldAccess.ReceiverOpt!);
+                        Debug.Assert(fieldAccess.ReceiverOpt is { });
+                        return CanBePassedByReference(fieldAccess.ReceiverOpt);
                     }
 
                     return true;

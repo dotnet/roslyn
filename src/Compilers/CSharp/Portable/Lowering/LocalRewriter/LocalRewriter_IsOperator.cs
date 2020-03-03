@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsOperator(BoundIsOperator node)
         {
             BoundExpression rewrittenOperand = VisitExpression(node.Operand);
-            var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType)!;
+            var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType);
             TypeSymbol rewrittenType = VisitType(node.Type);
 
             return MakeIsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.Conversion, rewrittenType);

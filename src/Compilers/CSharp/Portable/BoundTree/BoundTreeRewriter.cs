@@ -135,13 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binary = (BoundBinaryOperator)child;
             }
 
-            var left = (BoundExpression?)this.Visit(child)!;
+            var left = (BoundExpression?)this.Visit(child);
+            Debug.Assert(left is { });
 
             do
             {
                 binary = stack.Pop();
-                var right = (BoundExpression?)this.Visit(binary.Right)!;
-                var type = this.VisitType(binary.Type)!;
+                var right = (BoundExpression?)this.Visit(binary.Right);
+                Debug.Assert(right is { });
+                var type = this.VisitType(binary.Type);
                 left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, left, right, type);
             }
             while (stack.Count > 0);

@@ -298,11 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (loweredLeft.ConstantValue == ConstantValue.True) return loweredRight;
                         if (loweredRight.ConstantValue == ConstantValue.True) return loweredLeft;
 
+                        Debug.Assert(loweredLeft.Type is { });
+                        Debug.Assert(loweredRight.Type is { });
                         if (loweredLeft.ConstantValue == ConstantValue.False)
-                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredRight, loweredRight.Type!);
+                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredRight, loweredRight.Type);
 
                         if (loweredRight.ConstantValue == ConstantValue.False)
-                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredLeft, loweredLeft.Type!);
+                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredLeft, loweredLeft.Type);
 
                         goto default;
 
@@ -310,11 +312,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (loweredLeft.ConstantValue == ConstantValue.False) return loweredRight;
                         if (loweredRight.ConstantValue == ConstantValue.False) return loweredLeft;
 
+                        Debug.Assert(loweredLeft.Type is { });
+                        Debug.Assert(loweredRight.Type is { });
                         if (loweredLeft.ConstantValue == ConstantValue.True)
-                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredRight, loweredRight.Type!);
+                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredRight, loweredRight.Type);
 
                         if (loweredRight.ConstantValue == ConstantValue.True)
-                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredLeft, loweredLeft.Type!);
+                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredLeft, loweredLeft.Type);
 
                         goto default;
 
@@ -322,11 +326,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (loweredLeft.ConstantValue == ConstantValue.False) return loweredRight;
                         if (loweredRight.ConstantValue == ConstantValue.False) return loweredLeft;
 
+                        Debug.Assert(loweredLeft.Type is { });
+                        Debug.Assert(loweredRight.Type is { });
                         if (loweredLeft.ConstantValue == ConstantValue.True)
-                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredRight, loweredRight.Type!);
+                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredRight, loweredRight.Type);
 
                         if (loweredRight.ConstantValue == ConstantValue.True)
-                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredLeft, loweredLeft.Type!);
+                            return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredLeft, loweredLeft.Type);
 
                         goto default;
 
@@ -512,7 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operatorKind.Operator() == BinaryOperatorKind.NotEqual ||
                     operatorKind.Operator() == BinaryOperatorKind.Equal)
                 {
-                    whenNullOpt = RewriteLiftedBinaryOperator(syntax, operatorKind, _factory.Default(loweredLeft.Type!), loweredRight, type, method);
+                    Debug.Assert(loweredLeft.Type is { });
+                    whenNullOpt = RewriteLiftedBinaryOperator(syntax, operatorKind, _factory.Default(loweredLeft.Type), loweredRight, type, method);
                 }
 
                 result = conditionalLeft!.Update(
@@ -1889,8 +1896,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteDecimalBinaryOperation(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight, BinaryOperatorKind operatorKind)
         {
-            Debug.Assert(loweredLeft.Type!.SpecialType == SpecialType.System_Decimal);
-            Debug.Assert(loweredRight.Type!.SpecialType == SpecialType.System_Decimal);
+            Debug.Assert(loweredLeft.Type is { SpecialType: SpecialType.System_Decimal });
+            Debug.Assert(loweredRight.Type is { SpecialType: SpecialType.System_Decimal });
 
             SpecialMember member;
 
@@ -1985,7 +1992,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SyntaxNode rightSyntax = loweredRight.Syntax;
             ConstantValue? rightConstantValue = loweredRight.ConstantValue;
-            TypeSymbol rightType = loweredRight.Type!;
+            Debug.Assert(loweredRight.Type is { });
+            TypeSymbol rightType = loweredRight.Type;
             Debug.Assert(rightType.SpecialType == SpecialType.System_Int32);
 
             if (rightConstantValue != null && rightConstantValue.IsIntegral)
@@ -2043,11 +2051,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isLeftPointer)
             {
-                loweredRight = MakeSizeOfMultiplication(loweredRight, (PointerTypeSymbol)loweredLeft.Type!, kind.IsChecked());
+                Debug.Assert(loweredLeft.Type is { TypeKind: TypeKind.Pointer });
+                loweredRight = MakeSizeOfMultiplication(loweredRight, (PointerTypeSymbol)loweredLeft.Type, kind.IsChecked());
             }
             else
             {
-                loweredLeft = MakeSizeOfMultiplication(loweredLeft, (PointerTypeSymbol)loweredRight.Type!, kind.IsChecked());
+                Debug.Assert(loweredRight.Type is { TypeKind: TypeKind.Pointer });
+                loweredLeft = MakeSizeOfMultiplication(loweredLeft, (PointerTypeSymbol)loweredRight.Type, kind.IsChecked());
             }
 
             if (isPointerElementAccess)
@@ -2085,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeSizeOfMultiplication(BoundExpression numericOperand, PointerTypeSymbol pointerType, bool isChecked)
         {
             var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType);
-            Debug.Assert(sizeOfExpression.Type!.SpecialType == SpecialType.System_Int32);
+            Debug.Assert(sizeOfExpression.Type is { SpecialType: SpecialType.System_Int32 });
 
             // Common case: adding or subtracting one  (e.g. for ++)
             if (numericOperand.ConstantValue?.UInt64Value == 1)
@@ -2095,7 +2105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return sizeOfExpression;
             }
 
-            var numericSpecialType = numericOperand.Type!.SpecialType;
+            Debug.Assert(numericOperand.Type is { });
+            var numericSpecialType = numericOperand.Type.SpecialType;
 
             // Optimization: the size is exactly one byte, then multiplication is unnecessary.
             if (sizeOfExpression.ConstantValue?.Int32Value == 1)
@@ -2231,11 +2242,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression loweredRight,
             TypeSymbol returnType)
         {
-            Debug.Assert(loweredLeft.Type!.IsPointerType());
-            Debug.Assert(loweredRight.Type!.IsPointerType());
+            Debug.Assert(loweredLeft.Type is { TypeKind: TypeKind.Pointer });
+            Debug.Assert(loweredRight.Type is { TypeKind: TypeKind.Pointer });
             Debug.Assert(returnType.SpecialType == SpecialType.System_Int64);
 
-            PointerTypeSymbol pointerType = (PointerTypeSymbol)loweredLeft.Type!;
+            PointerTypeSymbol pointerType = (PointerTypeSymbol)loweredLeft.Type;
             var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType);
 
             // NOTE: to match dev10, the result of the subtraction is treated as an IntPtr

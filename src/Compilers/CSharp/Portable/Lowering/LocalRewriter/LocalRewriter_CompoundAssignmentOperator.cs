@@ -191,7 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
             // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
             // SPEC VIOLATION: as value types.
-            var variableRepresentsLocation = rewrittenReceiver.Type!.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
+            Debug.Assert(rewrittenReceiver.Type is { });
+            var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
             var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
             stores.Add(assignmentToTemp);
@@ -236,7 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
                 // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
                 // SPEC VIOLATION: as value types.
-                var variableRepresentsLocation = rewrittenReceiver.Type!.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
+                Debug.Assert(rewrittenReceiver.Type is { });
+                var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
                 var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
                 transformedReceiver = receiverTemp;
@@ -398,11 +400,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(fieldOrEvent.Kind == SymbolKind.Field || fieldOrEvent.Kind == SymbolKind.Event);
 
             //If the receiver is static or is the receiver is of kind "Base" or "this", then we can just generate field = field + value
-            if (fieldOrEvent.IsStatic || !CanChangeValueBetweenReads(receiver!))
+            if (fieldOrEvent.IsStatic)
             {
                 return true;
             }
-            else if (!receiver!.Type!.IsReferenceType)
+
+            Debug.Assert(receiver is { Type: { } });
+            if (!CanChangeValueBetweenReads(receiver))
+            {
+                return true;
+            }
+            else if (!receiver.Type.IsReferenceType)
             {
                 return false;
             }
@@ -411,7 +419,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver.Kind != BoundKind.TypeExpression);
             BoundExpression rewrittenReceiver = VisitExpression(receiver);
 
-            if (rewrittenReceiver.Type!.IsTypeParameter())
+            Debug.Assert(rewrittenReceiver.Type is { });
+            if (rewrittenReceiver.Type.IsTypeParameter())
             {
                 var memberContainingType = fieldOrEvent.ContainingType;
 
@@ -814,7 +823,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ObjectCreationExpression:
                     // common production of lowered conversions to nullable
                     // new S?(arg)
-                    if (expression.Type!.IsNullableType())
+                    Debug.Assert(expression.Type is { });
+                    if (expression.Type.IsNullableType())
                     {
                         var objCreation = (BoundObjectCreationExpression)expression;
                         return objCreation.Arguments.Length == 1 && ReadIsSideeffecting(objCreation.Arguments[0]);
@@ -833,7 +843,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (IsSpecialMember(method, SpecialMember.System_Nullable_T_GetValueOrDefault) ||
                             IsSpecialMember(method, SpecialMember.System_Nullable_T_get_HasValue))
                         {
-                            return ReadIsSideeffecting(call.ReceiverOpt!);
+                            Debug.Assert(call.ReceiverOpt is { });
+                            return ReadIsSideeffecting(call.ReceiverOpt);
                         }
                     }
 

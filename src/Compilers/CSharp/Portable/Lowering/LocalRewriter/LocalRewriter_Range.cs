@@ -64,13 +64,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (NullableNeverHasValue(operand))
                 {
-                    operand = new BoundDefaultExpression(operand.Syntax, operand.Type!.GetNullableUnderlyingType());
+                    operand = new BoundDefaultExpression(operand.Syntax, operand.Type.GetNullableUnderlyingType());
                 }
                 else
                 {
                     operand = NullableAlwaysHasValue(operand) ?? operand;
+                    Debug.Assert(operand.Type is { });
 
-                    if (operand.Type!.IsNullableType())
+                    if (operand.Type.IsNullableType())
                     {
                         needLifting = true;
                     }
@@ -135,8 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
 
                 BoundExpression tempOperand = CaptureExpressionInTempIfNeeded(arg, sideeffects, locals);
+                Debug.Assert(tempOperand.Type is { });
 
-                if (tempOperand.Type!.IsNullableType())
+                if (tempOperand.Type.IsNullableType())
                 {
                     BoundExpression operandHasValue = MakeOptimizedHasValue(tempOperand.Syntax, tempOperand);
 
@@ -189,7 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                  constructionMethod.MetadataName == "EndAt");
                     Debug.Assert(constructionMethod.IsStatic);
                     var arg = left ?? right;
-                    return F.StaticCall(constructionMethod, ImmutableArray.Create(arg!));
+                    Debug.Assert(arg is { });
+                    return F.StaticCall(constructionMethod, ImmutableArray.Create(arg));
 
                 case MethodKind.PropertyGet:
                     // The only property is Range.All, so the expression must

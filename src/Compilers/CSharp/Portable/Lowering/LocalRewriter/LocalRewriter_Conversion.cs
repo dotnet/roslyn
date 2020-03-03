@@ -377,7 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)method != null);
                         var oldSyntax = _factory.Syntax;
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt!;
+                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
+                        Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
                         return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
                                                                    isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);

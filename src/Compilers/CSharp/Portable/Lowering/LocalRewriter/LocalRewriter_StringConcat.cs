@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             loweredLeft = ConvertConcatExprToString(syntax, loweredLeft);
             loweredRight = ConvertConcatExprToString(syntax, loweredRight);
 
-            Debug.Assert(loweredLeft.Type!.IsStringType() || loweredLeft.ConstantValue?.IsNull == true || loweredLeft.Type!.IsErrorType());
-            Debug.Assert(loweredRight.Type!.IsStringType() || loweredRight.ConstantValue?.IsNull == true || loweredRight.Type!.IsErrorType());
+            Debug.Assert(loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsErrorType()) || loweredLeft.ConstantValue?.IsNull == true);
+            Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValue?.IsNull == true);
 
             // try fold two args without flattening.
             var folded = TryFoldTwoConcatOperands(syntax, loweredLeft, loweredRight);
@@ -267,7 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!leftConst.IsDefaultValue && !rightConst.IsDefaultValue)
             {
-                if (leftVal!.Length + rightVal!.Length < 0)
+                Debug.Assert(leftVal is { } && rightVal is { });
+                if (leftVal.Length + rightVal.Length < 0)
                 {
                     return null;
                 }
@@ -299,8 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
-            Debug.Assert(loweredLeft.HasAnyErrors || loweredLeft.Type!.IsStringType());
-            Debug.Assert(loweredRight.HasAnyErrors || loweredRight.Type!.IsStringType());
+            Debug.Assert(loweredLeft.HasAnyErrors || loweredLeft.Type is { } && loweredLeft.Type.IsStringType());
+            Debug.Assert(loweredRight.HasAnyErrors || loweredRight.Type is { } && loweredRight.Type.IsStringType());
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringString);
             Debug.Assert((object)method != null);
@@ -310,9 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
         {
-            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type!.IsStringType());
-            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type!.IsStringType());
-            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type!.IsStringType());
+            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && loweredFirst.Type.IsStringType());
+            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && loweredSecond.Type.IsStringType());
+            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && loweredThird.Type.IsStringType());
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringString);
             Debug.Assert((object)method != null);
@@ -322,10 +323,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
         {
-            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type!.IsStringType());
-            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type!.IsStringType());
-            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type!.IsStringType());
-            Debug.Assert(loweredFourth.HasAnyErrors || loweredFourth.Type!.IsStringType());
+            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && loweredFirst.Type.IsStringType());
+            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && loweredSecond.Type.IsStringType());
+            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && loweredThird.Type.IsStringType());
+            Debug.Assert(loweredFourth.HasAnyErrors || loweredFourth.Type is { } && loweredFourth.Type.IsStringType());
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringStringString);
             Debug.Assert((object)method != null);

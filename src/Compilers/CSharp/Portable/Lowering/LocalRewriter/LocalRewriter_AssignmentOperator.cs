@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -378,9 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, T newElement)
+        private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, [NotNull] T newElement)
         {
-            Debug.Assert(newElement != null);
             return possibleNull.NullToEmpty().Add(newElement);
         }
     }

@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            BoundStatement rewrittenBody = VisitStatement(node.Body);
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
             statementBuilder.Add(rewrittenBody);
             statementBuilder.Add(_factory.HiddenSequencePoint());
 

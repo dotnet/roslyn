@@ -4,10 +4,9 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -15,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
-            BoundBlock tryBlock = (BoundBlock)this.Visit(node.TryBlock);
+            BoundBlock? tryBlock = (BoundBlock?)this.Visit(node.TryBlock);
+            Debug.Assert(tryBlock is { });
 
             var origSawAwait = _sawAwait;
             _sawAwait = false;
@@ -90,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression? rewrittenExceptionSourceOpt = (BoundExpression?)this.Visit(node.ExceptionSourceOpt);
             BoundExpression? rewrittenFilter = (BoundExpression?)this.Visit(node.ExceptionFilterOpt);
-            BoundBlock rewrittenBody = (BoundBlock)this.Visit(node.Body);
+            BoundBlock? rewrittenBody = (BoundBlock?)this.Visit(node.Body);
+            Debug.Assert(rewrittenBody is { });
             TypeSymbol? rewrittenExceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 

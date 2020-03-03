@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
             bool allowUnexpandedForm = true)
         {
-            if (_binder == null || _binder.Flags != flags)
+            if (_binder is null || _binder.Flags != flags)
             {
                 _binder = new SyntheticBinderImpl(this).WithFlags(flags);
             }
@@ -297,22 +297,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Property(BoundExpression? receiverOpt, WellKnownMember member)
         {
-            var propertySym = (PropertySymbol)WellKnownMember(member)!;
-            Debug.Assert(receiverOpt == null ||
-                receiverOpt.Type!.GetMembers(propertySym.Name).OfType<PropertySymbol>().Single() == propertySym);
+            var propertySym = (PropertySymbol)WellKnownMember(member);
+            Debug.Assert(receiverOpt is null || receiverOpt.Type is { } &&
+                receiverOpt.Type.GetMembers(propertySym.Name).OfType<PropertySymbol>().Single() == propertySym);
             Binder.ReportUseSiteDiagnostics(propertySym, Diagnostics, Syntax);
             return Property(receiverOpt, propertySym);
         }
 
         public BoundExpression Property(BoundExpression? receiverOpt, PropertySymbol property)
         {
-            Debug.Assert((receiverOpt == null) == property.IsStatic);
+            Debug.Assert((receiverOpt is null) == property.IsStatic);
             return Call(receiverOpt, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
         }
 
         public BoundExpression Indexer(BoundExpression? receiverOpt, PropertySymbol property, BoundExpression arg0)
         {
-            Debug.Assert((receiverOpt == null) == property.IsStatic);
+            Debug.Assert((receiverOpt is null) == property.IsStatic);
             return Call(receiverOpt, property.GetMethod, arg0); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
         }
 
@@ -343,18 +343,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="wm">The desired well-known member</param>
         /// <param name="isOptional">If true, the method may return null for a missing member without an exception</param>
         /// <returns>A symbol for the well-known member, or null if it is missing and <paramref name="isOptional"/> == true</returns>
-        public Symbol? WellKnownMember(WellKnownMember wm, bool isOptional = false)
+        public Symbol? WellKnownMember(WellKnownMember wm, bool isOptional)
         {
             Symbol wellKnownMember = Binder.GetWellKnownTypeMember(Compilation, wm, Diagnostics, syntax: Syntax, isOptional: true);
-            if (wellKnownMember == null && !isOptional)
+            if (wellKnownMember is null && !isOptional)
             {
                 RuntimeMembers.MemberDescriptor memberDescriptor = WellKnownMembers.GetDescriptor(wm);
                 var diagnostic = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name), Syntax.Location);
                 throw new MissingPredefinedMember(diagnostic);
             }
 
-            // NOTE: The result is not null when isOptional is false, but there is no annotation to specify that.
             return wellKnownMember;
+        }
+
+        public Symbol WellKnownMember(WellKnownMember wm)
+        {
+            return WellKnownMember(wm, false)!;
         }
 
         public MethodSymbol? WellKnownMethod(WellKnownMember wm, bool isOptional)
@@ -377,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Symbol SpecialMember(SpecialMember sm)
         {
             Symbol specialMember = Compilation.GetSpecialTypeMember(sm);
-            if (specialMember == null)
+            if (specialMember is null)
             {
                 RuntimeMembers.MemberDescriptor memberDescriptor = SpecialMembers.GetDescriptor(sm);
                 var diagnostic = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name), Syntax.Location);
@@ -655,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression StaticCall(TypeSymbol receiver, MethodSymbol method, params BoundExpression[] args)
         {
-            if ((object)method == null)
+            if (method is null)
             {
                 return new BoundBadExpression(Syntax, default(LookupResultKind), ImmutableArray<Symbol?>.Empty, args.AsImmutable(), receiver);
             }
@@ -734,8 +738,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
         {
+            Debug.Assert(valueTypeReceiver.Type is { });
             Debug.Assert(TypeSymbol.Equals(valueTypeReceiver.Type, referenceTypeReceiver.Type, TypeCompareKind.ConsiderEverything2));
-            return new BoundComplexConditionalReceiver(Syntax, valueTypeReceiver, referenceTypeReceiver, valueTypeReceiver.Type!) { WasCompilerGenerated = true };
+            return new BoundComplexConditionalReceiver(Syntax, valueTypeReceiver, referenceTypeReceiver, valueTypeReceiver.Type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Coalesce(BoundExpression left, BoundExpression right)
@@ -807,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Block(statements.ToImmutableAndFree());
         }
 
-        public BoundThrowStatement Throw(BoundExpression? e = null)
+        public BoundThrowStatement Throw(BoundExpression e)
         {
             return new BoundThrowStatement(Syntax, e) { WasCompilerGenerated = true };
         }
@@ -851,20 +856,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSequence Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol? type = null)
         {
-            return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, type ?? result.Type!) { WasCompilerGenerated = true };
+            Debug.Assert(result.Type is { });
+            var resultType = type ?? result.Type;
+            return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, resultType) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
         {
+            Debug.Assert(result.Type is { });
             return
                 locals.IsDefaultOrEmpty && sideEffects.IsDefaultOrEmpty
                 ? result
-                : new BoundSequence(Syntax, locals, sideEffects, result, result.Type!) { WasCompilerGenerated = true };
+                : new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
         public BoundSpillSequence SpillSequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression result)
         {
-            return new BoundSpillSequence(Syntax, locals, sideEffects, result, result.Type!) { WasCompilerGenerated = true };
+            Debug.Assert(result.Type is { });
+            return new BoundSpillSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -921,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             statements.Add(Label(breakLabel));
-            Debug.Assert(statements[0] == null);
+            Debug.Assert(statements[0] is null);
             statements[0] = new BoundSwitchDispatch(Syntax, ex, caseBuilder.ToImmutableAndFree(), breakLabel, null) { WasCompilerGenerated = true };
             return Block(statements.ToImmutableAndFree());
         }
@@ -1022,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStatement HiddenSequencePoint(BoundStatement? statementOpt = null)
         {
-            return new BoundSequencePoint(null!, statementOpt) { WasCompilerGenerated = true };
+            return BoundSequencePoint.Hidden(statementOpt);
         }
 
         public BoundStatement ThrowNull()
@@ -1206,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
 
             // If this happens, we should probably check if the method has ObsoleteAttribute.
-            Debug.Assert((object)c.Method == null, "Why are we synthesizing a user-defined conversion after initial binding?");
+            Debug.Assert(c.Method is null, "Why are we synthesizing a user-defined conversion after initial binding?");
 
             return Convert(type, arg, c);
         }
@@ -1215,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // NOTE: We can see user-defined conversions at this point because there are places in the bound tree where
             // the binder stashes Conversion objects for later consumption (e.g. foreach, nullable, increment).
-            if ((object)conversion.Method != null && !TypeSymbol.Equals(conversion.Method.Parameters[0].Type, arg.Type, TypeCompareKind.ConsiderEverything2))
+            if (conversion.Method is { } && !TypeSymbol.Equals(conversion.Method.Parameters[0].Type, arg.Type, TypeCompareKind.ConsiderEverything2))
             {
                 arg = Convert(conversion.Method.Parameters[0].Type, arg);
             }
@@ -1361,6 +1370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
+            Debug.Assert(argument.Type is { });
             MethodSymbol? containingMethod = this.CurrentFunction;
             Debug.Assert(containingMethod is { });
 
@@ -1392,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = argument.Syntax;
-            var type = argument.Type!;
+            var type = argument.Type;
 
             var local = new BoundLocal(
                 syntax,

@@ -539,7 +539,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         //     GetS().M(d); // becomes Site(GetS(), d) without ref on the target obj arg
         internal static RefKind GetReceiverRefKind(BoundExpression loweredReceiver)
         {
-            if (!loweredReceiver.Type!.IsValueType)
+            Debug.Assert(loweredReceiver.Type is { });
+            if (!loweredReceiver.Type.IsValueType)
             {
                 return RefKind.None;
             }
@@ -619,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol? delegateTypeOverMethodTypeParameters = GetDelegateType(loweredReceiver, receiverRefKind, loweredArguments, refKinds, loweredRight, resultType);
             NamedTypeSymbol callSiteTypeGeneric = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T);
             MethodSymbol callSiteFactoryGeneric = _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_CallSite_T__Create);
-            FieldSymbol callSiteTargetFieldGeneric = (FieldSymbol)_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_CallSite_T__Target)!;
+            FieldSymbol callSiteTargetFieldGeneric = (FieldSymbol)_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_CallSite_T__Target);
             MethodSymbol delegateInvoke;
 
             if (binderConstruction == null ||

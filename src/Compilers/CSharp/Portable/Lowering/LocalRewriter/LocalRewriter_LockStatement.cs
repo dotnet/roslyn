@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LockStatementSyntax lockSyntax = (LockStatementSyntax)node.Syntax;
 
             BoundExpression rewrittenArgument = VisitExpression(node.Argument);
-            BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             TypeSymbol? argumentType = rewrittenArgument.Type;
             if (argumentType is null)
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundLockTakenTempInit,
                         new BoundTryStatement(
                             lockSyntax,
-                            BoundBlock.SynthesizedNoLocals(lockSyntax, ImmutableArray.Create(
+                            BoundBlock.SynthesizedNoLocals(lockSyntax, ImmutableArray.Create<BoundStatement>(
                                 enterCall,
                                 rewrittenBody)),
                             ImmutableArray<BoundCatchBlock>.Empty,

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         loweredReceiver = new BoundTypeExpression(node.Syntax, null, firstContainer);
                     }
-                    else if (hasImplicitReceiver && _factory.TopLevelMethod is { } && !_factory.TopLevelMethod.RequiresInstanceReceiver)
+                    else if (hasImplicitReceiver && _factory.TopLevelMethod is { RequiresInstanceReceiver: false })
                     {
                         // Calling a static method defined on the current class via its simple name.
                         Debug.Assert(_factory.CurrentType is { });
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var correspondingStore = -1;
                     for (int i = firstUnclaimedStore; i < tempStores.Count; i++)
                     {
-                        if (tempStores[i]!.Left == argument)
+                        if (tempStores[i].Left == argument)
                         {
                             correspondingStore = i;
                             break;
@@ -1055,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // store found?
                     if (correspondingStore != -1)
                     {
-                        var value = tempStores[correspondingStore]!.Right;
+                        var value = tempStores[correspondingStore].Right;
                         Debug.Assert(value.Type is { });
 
                         // the matched store will not need to go into side-effects, only ones before it will
@@ -1267,9 +1267,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(binder is { });
                 isLowering = false;
-                compilation = binder.Compilation;
+                compilation = binder!.Compilation;
             }
 
             // TODO: Ideally, the enableCallerInfo parameter would be of just bool type with only 'true' and 'false' values, and all callers
@@ -1383,8 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(binder is { });
-                    memberName = binder.ContainingMember().GetMemberCallerName();
+                    memberName = binder!.ContainingMember().GetMemberCallerName();
                 }
 
                 BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), compilation.GetSpecialType(SpecialType.System_String), localRewriter);

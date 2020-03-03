@@ -17,10 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAsOperator(BoundAsOperator node)
         {
             BoundExpression rewrittenOperand = VisitExpression(node.Operand);
-            var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType)!;
+            var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType);
             TypeSymbol rewrittenType = VisitType(node.Type);
 
             return MakeAsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.Conversion, rewrittenType);
+        }
+
+        public override BoundNode VisitTypeExpression(BoundTypeExpression node)
+        {
+            var result = base.VisitTypeExpression(node);
+            Debug.Assert(result is { });
+            return result;
         }
 
         private BoundExpression MakeAsOperator(

@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             BoundBlock tryBlock = rewrittenBody.Kind == BoundKind.Block
                 ? (BoundBlock)rewrittenBody
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If expr is the constant null then we can elide the whole thing and simply generate the statement. 
 
-            BoundExpression rewrittenExpression = (BoundExpression)Visit(node.ExpressionOpt);
+            BoundExpression rewrittenExpression = VisitExpression(node.ExpressionOpt);
             if (rewrittenExpression.ConstantValue == ConstantValue.Null)
             {
                 Debug.Assert(node.Locals.IsEmpty); // TODO: This might not be a valid assumption in presence of semicolon operator.
@@ -147,7 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   using(ResourceType temp = expression) statement;
             //
 
-            TypeSymbol expressionType = rewrittenExpression.Type!;
+            Debug.Assert(rewrittenExpression.Type is { });
+            TypeSymbol expressionType = rewrittenExpression.Type;
             SyntaxNode expressionSyntax = rewrittenExpression.Syntax;
             UsingStatementSyntax usingSyntax = (UsingStatementSyntax)node.Syntax;
 
@@ -218,7 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundLocal boundLocal = new BoundLocal(declarationSyntax, localSymbol, localDeclaration.InitializerOpt.ConstantValue, localType);
 
-            BoundStatement rewrittenDeclaration = (BoundStatement)Visit(localDeclaration);
+            BoundStatement? rewrittenDeclaration = VisitStatement(localDeclaration);
+            Debug.Assert(rewrittenDeclaration is { });
 
             // If we know that the expression is null, then we know that the null check in the finally block
             // will fail, and the Dispose call will never happen.  That is, the finally block will have no effect.

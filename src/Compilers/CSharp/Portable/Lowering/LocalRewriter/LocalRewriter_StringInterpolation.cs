@@ -98,11 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stringBuilder.Append('{').Append(nextFormatPosition++);
                     if (fillin.Alignment != null && !fillin.Alignment.HasErrors)
                     {
-                        stringBuilder.Append(',').Append(fillin.Alignment.ConstantValue!.Int64Value);
+                        Debug.Assert(fillin.Alignment.ConstantValue is { });
+                        stringBuilder.Append(',').Append(fillin.Alignment.ConstantValue.Int64Value);
                     }
                     if (fillin.Format != null && !fillin.Format.HasErrors)
                     {
-                        stringBuilder.Append(':').Append(fillin.Format.ConstantValue!.StringValue);
+                        Debug.Assert(fillin.Format.ConstantValue is { });
+                        stringBuilder.Append(':').Append(fillin.Format.ConstantValue.StringValue);
                     }
                     stringBuilder.Append('}');
                     var value = fillin.Value;
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
         {
-            Debug.Assert(node.Type!.SpecialType == SpecialType.System_String); // if target-converted, we should not get here.
+            Debug.Assert(node.Type is { SpecialType: SpecialType.System_String }); // if target-converted, we should not get here.
 
             BoundExpression? result;
 
@@ -150,12 +152,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // this is one of the literal parts
-                        Debug.Assert(part is BoundLiteral && part.ConstantValue != null);
-                        part = _factory.StringLiteral(Unescape(part.ConstantValue.StringValue!));
+                        Debug.Assert(part is BoundLiteral && part.ConstantValue is { StringValue: { } });
+                        part = _factory.StringLiteral(Unescape(part.ConstantValue.StringValue));
                     }
 
                     result = result == null ?
-                        part! :
+                        part :
                         _factory.Binary(BinaryOperatorKind.StringConcatenation, node.Type, result, part);
                 }
 

@@ -214,11 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var F = _factory;
 
+            Debug.Assert(receiver.Type is { });
             var receiverLocal = F.StoreToTemp(
                 VisitExpression(receiver),
                 out var receiverStore,
                 // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
-                receiver.Type!.IsReferenceType ? RefKind.None : RefKind.Ref);
+                receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
             var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
             var indexLocal = F.StoreToTemp(
                 MakePatternIndexOffsetExpression(argument, lengthLocal, out bool usedLength),
