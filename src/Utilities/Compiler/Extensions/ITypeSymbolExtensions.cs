@@ -139,7 +139,7 @@ namespace Analyzer.Utilities.Extensions
                     || IsInterfaceOrImplementsInterface(type, iAsyncDisposable);
             }
 
-#if NET_ANALYZERS
+#if CODEANALYSIS_V3_OR_BETTER
             if (type.IsRefLikeType)
             {
                 return type.GetMembers("Dispose").OfType<IMethodSymbol>()

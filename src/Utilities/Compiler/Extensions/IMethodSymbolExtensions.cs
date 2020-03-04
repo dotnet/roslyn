@@ -283,7 +283,7 @@ namespace Analyzer.Utilities.Extensions
                 if (IsDisposeImplementation(method, iDisposable) ||
                     (Equals(method.ContainingType, iDisposable) &&
                      method.HasDisposeMethodSignature())
-#if NET_ANALYZERS
+#if CODEANALYSIS_V3_OR_BETTER
                     || (method.ContainingType.IsRefLikeType &&
                      method.HasDisposeSignatureByConvention())
 #endif
