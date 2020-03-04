@@ -3386,7 +3386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _builder.EmitOpCode(ILOpCode.Calli, stackBehavior);
-            EmitFunctionPointerSymbolToken(ptrInvocation.FunctionPointer, ptrInvocation.Syntax);
+            EmitSignatureToken(ptrInvocation.FunctionPointer, ptrInvocation.Syntax);
             EmitCallOrCalliCleanup(ptrInvocation.Syntax, useKind, method);
         }
 

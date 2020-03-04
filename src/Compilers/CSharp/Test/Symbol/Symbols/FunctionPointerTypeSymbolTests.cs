@@ -831,5 +831,31 @@ unsafe class C
                     //         p4(in s);
                     Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(16, 15));
         }
+
+        [Fact]
+        public void InaccessibleNestedTypes()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+class B<T> {}
+class C
+{
+    private class D {}
+}
+class E
+{
+    void M()
+    {
+        B<C.D> b;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                    // (11,13): error CS0122: 'C.D' is inaccessible due to its protection level
+                    //         B<C.D> b;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("C.D").WithLocation(11, 13),
+                    // (11,16): warning CS0168: The variable 'b' is declared but never used
+                    //         B<C.D> b;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(11, 16));
+        }
     }
 }

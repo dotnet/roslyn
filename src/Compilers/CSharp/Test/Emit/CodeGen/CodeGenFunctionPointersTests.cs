@@ -1702,20 +1702,17 @@ Returned");
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {
-  // Code size       30 (0x1e)
+  // Code size       28 (0x1c)
   .maxstack  2
-  .locals init (delegate*<string,string> V_0, //inner
-                delegate*<string,string> V_1)
+  .locals init (delegate*<string,string> V_0)
   IL_0000:  call       ""delegate*<delegate*<string,string>> Program.LoadPtr()""
-  IL_0005:  calli      0x2
+  IL_0005:  calli      0x1
   IL_000a:  stloc.0
-  IL_000b:  ldloc.0
-  IL_000c:  stloc.1
-  IL_000d:  ldstr      ""Returned""
-  IL_0012:  ldloc.1
-  IL_0013:  calli      0x3
-  IL_0018:  call       ""void System.Console.WriteLine(string)""
-  IL_001d:  ret
+  IL_000b:  ldstr      ""Returned""
+  IL_0010:  ldloc.0
+  IL_0011:  calli      0x2
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
 }");
         }
 
@@ -1852,23 +1849,20 @@ unsafe class C
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {
-  // Code size       29 (0x1d)
+  // Code size       27 (0x1b)
   .maxstack  2
-  .locals init (delegate*<ref string,void> V_0, //pointer
-                string V_1, //str
-                delegate*<ref string,void> V_2)
+  .locals init (string V_0, //str
+                delegate*<ref string,void> V_1)
   IL_0000:  call       ""delegate*<ref string,void> Program.LoadPtr()""
-  IL_0005:  stloc.0
-  IL_0006:  ldstr      ""Unset""
+  IL_0005:  ldstr      ""Unset""
+  IL_000a:  stloc.0
   IL_000b:  stloc.1
-  IL_000c:  ldloc.0
-  IL_000d:  stloc.2
-  IL_000e:  ldloca.s   V_1
-  IL_0010:  ldloc.2
-  IL_0011:  calli      0x3
-  IL_0016:  ldloc.1
-  IL_0017:  call       ""void System.Console.WriteLine(string)""
-  IL_001c:  ret
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldloc.1
+  IL_000f:  calli      0x2
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
 }");
         }
 

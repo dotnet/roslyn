@@ -1675,23 +1675,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(node.RefKind, expressionOpt);
         }
 
-        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
-        {
-            BoundExpression invokedExpression = (BoundExpression)this.Visit(node.InvokedExpression);
-
-            if (invokedExpression is BoundLocal { LocalSymbol: var localSymbol }
-                && node.Arguments.Length > 0
-                && CanScheduleToStack(localSymbol))
-            {
-                // This local's side effects must come before the argument's side effects, but it must
-                // be on top of the stack when calling the function pointer
-                ShouldNotSchedule(localSymbol);
-            }
-
-            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            return node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, node.Type);
-        }
-
         // Ensures that there are no stack locals.
         // It is done by accessing virtual "empty" local that is at the bottom of all stack locals.
         private void EnsureOnlyEvalStack()
