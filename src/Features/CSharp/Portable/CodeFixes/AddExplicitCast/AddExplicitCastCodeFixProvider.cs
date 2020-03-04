@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -27,7 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
-    internal sealed partial class AddExplicitCastCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed partial class AddExplicitCastCodeFixProvider : AbstractAddExplicitCastCodeFixProvider
     {
         /// <summary>
         /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
@@ -113,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     actions.ToImmutableAndFree(), isInlinable: false),
                     context.Diagnostics);
             }
+            return Task.FromResult(CSharpFeaturesResources.Add_explicit_cast);
         }
 
         private static SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
