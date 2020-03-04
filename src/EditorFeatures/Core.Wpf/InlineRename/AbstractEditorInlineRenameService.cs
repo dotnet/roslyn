@@ -159,18 +159,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var symbolLocations = symbol.Locations;
 
             // Does our symbol exist in an unchangeable location?
-            var documentSpans = new List<DocumentSpan>();
+            var documentSpans = ArrayBuilder<DocumentSpan>.GetInstance();
             foreach (var location in symbolLocations)
             {
-                // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
-                documentSpans.Add(new DocumentSpan(document, location.SourceSpan));
-
                 if (location.IsInMetadata)
                 {
                     return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_that_are_defined_in_metadata);
                 }
                 else if (location.IsInSource)
                 {
+                    // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
+                    documentSpans.Add(new DocumentSpan(document, location.SourceSpan));
+
                     if (document.Project.IsSubmission)
                     {
                         var solution = document.Project.Solution;
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             return new SymbolInlineRenameInfo(
                 refactorNotifyServices, document, triggerToken.Span,
-                symbolAndProjectId, forceRenameOverloads, documentSpans, cancellationToken);
+                symbolAndProjectId, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
         }
 
         private async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)

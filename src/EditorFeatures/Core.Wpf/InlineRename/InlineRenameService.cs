@@ -66,9 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var editorRenameService = document.GetLanguageService<IEditorInlineRenameService>();
             var renameInfo = editorRenameService.GetRenameInfoAsync(document, textSpan.Start, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (IsReadOnlyOrCannotNavigateToSpan(renameInfo, document, cancellationToken))
+
+            var readOnlyOrCannotNavigateToSpanSessionInfo = IsReadOnlyOrCannotNavigateToSpan(renameInfo, document, cancellationToken);
+            if (readOnlyOrCannotNavigateToSpanSessionInfo != null)
             {
-                return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                return readOnlyOrCannotNavigateToSpanSessionInfo;
             }
 
             if (!renameInfo.CanRename)
@@ -92,23 +94,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             return new InlineRenameSessionInfo(ActiveSession);
 
-            static bool IsReadOnlyOrCannotNavigateToSpan(IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
+            static InlineRenameSessionInfo IsReadOnlyOrCannotNavigateToSpan(IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
             {
-                // This is unpleasant, but we do everything synchronously.  That's because we end up
-                // needing to make calls on the UI thread to determine if the locations of the symbol
-                // are in readonly buffer sections or not.  If we go pure async we have the following
-                // problem:
-                //   1) if we call ConfigureAwait(false), then we might call into the text buffer on 
-                //      the wrong thread.
-                //   2) if we try to call those pieces of code on the UI thread, then we will deadlock
-                //      as our caller often is doing a 'Wait' on us, and our UI calling code won't run.
-                if (renameInfo is SymbolInlineRenameInfo symbolInlineRenameInfo)
+                if (renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename)
                 {
                     var workspace = document.Project.Solution.Workspace;
                     var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                    foreach (var documentSpan in symbolInlineRenameInfo.DocumentSpans)
+                    foreach (var documentSpan in renameInfoWithFileRename.DefinitionLocations)
                     {
-                        var sourceText = documentSpan.Document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                        var sourceText = documentSpan.Document.GetTextSynchronously(cancellationToken);
                         var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
 
                         if (textSnapshot != null)
@@ -116,15 +110,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             var buffer = textSnapshot.TextBuffer;
                             var originalSpan = documentSpan.SourceSpan.ToSnapshotSpan(textSnapshot).TranslateTo(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                            if (buffer.IsReadOnly(originalSpan) || !navigationService.CanNavigateToSpan(workspace, document.Id, documentSpan.SourceSpan))
+                            if (buffer.IsReadOnly(originalSpan))
                             {
-                                return true;
+                                return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file);
+                            }
+
+                            if (!navigationService.CanNavigateToSpan(workspace, document.Id, documentSpan.SourceSpan))
+                            {
+                                return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to);
                             }
                         }
                     }
                 }
 
-                return false;
+                return null;
             }
         }
 

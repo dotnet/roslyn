@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Represents information about the ability to rename a particular location.
         /// </summary>
-        internal partial class SymbolInlineRenameInfo : IInlineRenameInfoWithFileRename
+        private partial class SymbolInlineRenameInfo : IInlineRenameInfoWithFileRename
         {
             private const string AttributeSuffix = "Attribute";
 
@@ -37,9 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             /// <summary>
             /// Whether or not we shortened the trigger span (say because we were renaming an attribute,
-            /// and we didn't select the 'Attribute' portion of the name.
+            /// and we didn't select the 'Attribute' portion of the name).
             /// </summary>
-            private readonly bool _shortenedTriggerSpan;
             private readonly bool _isRenamingAttributePrefix;
 
             public bool CanRename { get; }
@@ -48,7 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public SymbolAndProjectId RenameSymbolAndProjectId { get; }
             public bool HasOverloads { get; }
             public bool ForceRenameOverloads { get; }
-            public IEnumerable<DocumentSpan> DocumentSpans { get; }
+
+            /// <summary>
+            /// The locations of the potential rename candidates for the symbol.
+            /// </summary>
+            public ImmutableArray<DocumentSpan> DefinitionLocations { get; }
 
             public ISymbol RenameSymbol => RenameSymbolAndProjectId.Symbol;
 
@@ -58,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 TextSpan triggerSpan,
                 SymbolAndProjectId renameSymbolAndProjectId,
                 bool forceRenameOverloads,
-                IEnumerable<DocumentSpan> documentSpans,
+                ImmutableArray<DocumentSpan> definitionLocations,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
@@ -73,9 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _isRenamingAttributePrefix = CanRenameAttributePrefix(document, triggerSpan, cancellationToken);
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
 
-                _shortenedTriggerSpan = this.TriggerSpan != triggerSpan;
-
-                this.DocumentSpans = documentSpans;
+                this.DefinitionLocations = definitionLocations;
             }
 
             private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
@@ -183,6 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public string DisplayName => RenameSymbol.Name;
             public string FullDisplayName => RenameSymbol.ToDisplayString();
             public Glyph Glyph => RenameSymbol.GetGlyph();
+            ImmutableArray<DocumentSpan> IInlineRenameInfoWithFileRename.DefinitionLocations { get => this.DefinitionLocations; }
 
             public string GetFinalSymbolName(string replacementText)
             {

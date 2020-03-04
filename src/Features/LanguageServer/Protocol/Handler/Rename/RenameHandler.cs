@@ -14,12 +14,10 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentRenameName)]
+    [ExportLspMethod(LSP.Methods.TextDocumentRenameName), Shared]
     internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit>
     {
         private readonly IThreadingContext _threadingContext;
-
 
         [ImportingConstructor]
         public RenameHandler(IThreadingContext threadingContext)
