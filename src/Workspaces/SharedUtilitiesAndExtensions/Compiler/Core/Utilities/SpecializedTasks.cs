@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -53,6 +54,39 @@ namespace Roslyn.Utilities
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<T> FromResult<T>(T t) where T : class
             => FromResultCache<T>.FromResult(t);
+
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Naming is modeled after Task.WhenAll.")]
+        public static ValueTask<T[]> WhenAll<T>(IEnumerable<ValueTask<T>> tasks)
+        {
+            var taskArray = tasks.AsArray();
+            if (taskArray.Length == 0)
+                return new ValueTask<T[]>(Array.Empty<T>());
+
+            var allCompletedSuccessfully = true;
+            for (var i = 0; i < taskArray.Length; i++)
+            {
+                if (!taskArray[i].IsCompletedSuccessfully)
+                {
+                    allCompletedSuccessfully = false;
+                    break;
+                }
+            }
+
+            if (allCompletedSuccessfully)
+            {
+                var result = new T[taskArray.Length];
+                for (var i = 0; i < taskArray.Length; i++)
+                {
+                    result[i] = taskArray[i].Result;
+                }
+
+                return new ValueTask<T[]>(result);
+            }
+            else
+            {
+                return new ValueTask<T[]>(Task.WhenAll(taskArray.Select(task => task.AsTask())));
+            }
+        }
 
         private static class TasksOfStruct<T> where T : struct
         {
