@@ -12,6 +12,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion
     <UseExportProvider>
     Public Class CompletionProviderOrderTests
+        ''' <summary>
+        ''' Verifies the exact order of all built-in completion providers.
+        ''' </summary>
         <Fact>
         Public Sub TestCompletionProviderOrder()
             Dim completionProviderExports = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExports(Of CompletionProvider, CompletionProviderMetadata)()
@@ -47,6 +50,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion
                 String.Join(Environment.NewLine, actualOrder.Select(Function(x) x.FullName)))
         End Sub
 
+        ''' <summary>
+        ''' Verifies that the order of built-in completion providers is deterministic.
+        ''' </summary>
         <Fact>
         Public Sub TestCompletionProviderOrderMetadata()
             Dim completionProviderExports = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExports(Of CompletionProvider, CompletionProviderMetadata)()

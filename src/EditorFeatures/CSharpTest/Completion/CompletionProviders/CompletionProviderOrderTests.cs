@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class CompletionProviderOrderTests
     {
+        /// <summary>
+        /// Verifies the exact order of all built-in completion providers.
+        /// </summary>
         [Fact]
         public void TestCompletionProviderOrder()
         {
@@ -76,6 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 string.Join(Environment.NewLine, actualOrder.Select(x => x.FullName)));
         }
 
+        /// <summary>
+        /// Verifies that the order of built-in completion providers is deterministic.
+        /// </summary>
         [Fact]
         public void TestCompletionProviderOrderMetadata()
         {

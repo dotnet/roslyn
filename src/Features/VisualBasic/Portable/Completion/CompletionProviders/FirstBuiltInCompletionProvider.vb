@@ -6,6 +6,10 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.Completion
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    ''' <summary>
+    ''' Provides a completion provider that always appears before any built-in completion provider. This completion
+    ''' provider does not provide any completions.
+    ''' </summary>
     <ExportCompletionProvider(NameOf(FirstBuiltInCompletionProvider), LanguageNames.VisualBasic)>
     <[Shared]>
     Friend Class FirstBuiltInCompletionProvider

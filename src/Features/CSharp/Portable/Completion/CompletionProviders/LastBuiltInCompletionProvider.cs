@@ -10,6 +10,10 @@ using Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    /// <summary>
+    /// Provides a completion provider that always appears after all built-in completion providers. This completion
+    /// provider does not provide any completions.
+    /// </summary>
     [ExportCompletionProvider(nameof(LastBuiltInCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(EmbeddedLanguageCompletionProvider))]
     [Shared]
