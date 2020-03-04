@@ -252,6 +252,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             CancellationToken cancellationToken,
             Func<string, SymbolNamesWithValueOption<TValue>.NameParts>? getTypeAndSuffixFunc = null)
+            where TValue : notnull
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: SymbolNamesWithValueOption<TValue>.Empty);
