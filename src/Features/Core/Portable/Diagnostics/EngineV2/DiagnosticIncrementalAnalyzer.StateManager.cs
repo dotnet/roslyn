@@ -150,20 +150,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var hostStateSetMap = hostStateSets.ToDictionary(s => s.Analyzer, s => s);
 
                 // create project analyzer reference identity map
-                var referenceIdentities = project.AnalyzerReferences.Select(r => _analyzerInfoCache.GetAnalyzerReferenceIdentity(r)).ToSet();
+                var projectAnalyzerReferenceIds = project.AnalyzerReferences.Select(r => _analyzerInfoCache.GetAnalyzerReferenceIdentity(r)).ToSet();
 
                 // create build only stateSet array
                 var stateSets = ImmutableArray.CreateBuilder<StateSet>();
 
-                // we always include compiler analyzer in build only state
+                // include compiler analyzer in build only state, if available
+                StateSet? compilerStateSet = null;
                 var compilerAnalyzer = _analyzerInfoCache.GetCompilerDiagnosticAnalyzer(project.Language);
-                if (compilerAnalyzer == null)
-                {
-                    // only way to get here is if MEF is corrupted.
-                    FailFast.OnFatalException(new Exception("How can this happen?"));
-                }
-
-                if (hostStateSetMap.TryGetValue(compilerAnalyzer, out var compilerStateSet))
+                if (compilerAnalyzer != null && hostStateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
                 {
                     stateSets.Add(compilerStateSet);
                 }
@@ -172,10 +167,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 stateSets.AddRange(GetOrUpdateProjectAnalyzerMap(project).Values);
 
                 // now add analyzers that exist in both host and project
-                var analyzerMap = _analyzerInfoCache.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
-                foreach (var (identity, analyzers) in analyzerMap)
+                var hostAnalyzersById = _analyzerInfoCache.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
+                foreach (var (identity, analyzers) in hostAnalyzersById)
                 {
-                    if (!referenceIdentities.Contains(identity))
+                    if (!projectAnalyzerReferenceIds.Contains(identity))
                     {
                         // it is from host analyzer package rather than project analyzer reference
                         // which build doesn't have

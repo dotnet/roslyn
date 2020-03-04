@@ -55,12 +55,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<string, DiagnosticAnalyzer> _compilerDiagnosticAnalyzerMap;
 
         /// <summary>
-        /// Set of diagnostic ids supported by a given compiler diagnostic analyzer.
-        /// Allows us to quickly determine whether a diagnostic is a compiler diagnostic.
-        /// </summary>
-        private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
-
-        /// <summary>
         /// Supported descriptors of each <see cref="DiagnosticAnalyzer"/>. 
         /// </summary>
         /// <remarks>
@@ -101,7 +95,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap.Value), isThreadSafe: true);
 
             _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
-            _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
             _descriptorsInfo = new ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo>();
         }
 
@@ -163,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
         {
             var options = project.CompilationOptions;
-            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
+            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
             {
                 return false;
             }
@@ -256,22 +249,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Check whether given <see cref="DiagnosticData"/> belong to compiler diagnostic analyzer
-        /// </summary>
-        public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
-        {
-            _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
-            if (_compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer) &&
-                _compilerDiagnosticAnalyzerDescriptorMap.TryGetValue(compilerAnalyzer, out var idMap) &&
-                idMap.Contains(diagnostic.Id))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Return compiler <see cref="DiagnosticAnalyzer"/> for the given language.
         /// </summary>
         public DiagnosticAnalyzer? GetCompilerDiagnosticAnalyzer(string language)
@@ -283,31 +260,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Check whether given <see cref="DiagnosticAnalyzer"/> is compiler analyzer for the language or not.
-        /// </summary>
-        public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
-        {
-            _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
-            return _compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer) && compilerAnalyzer == analyzer;
-        }
-
-        public bool SupportAnalysisKind(DiagnosticAnalyzer analyzer, string language, AnalysisKind kind)
-        {
-            // compiler diagnostic analyzer always supports all kinds:
-            if (IsCompilerDiagnosticAnalyzer(language, analyzer))
-            {
-                return true;
-            }
-
-            return kind switch
-            {
-                AnalysisKind.Syntax => analyzer.SupportsSyntaxDiagnosticAnalysis(),
-                AnalysisKind.Semantic => analyzer.SupportsSemanticDiagnosticAnalysis(),
-                _ => throw ExceptionUtilities.UnexpectedValue(kind)
-            };
         }
 
         private ImmutableDictionary<object, AnalyzerReference> CreateProjectAnalyzerReferencesMap(Project project)
@@ -368,7 +320,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (analyzer.IsCompilerAnalyzer())
                 {
-                    ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerDescriptorMap, analyzer, a => new HashSet<string>(GetDiagnosticDescriptors(a).Select(d => d.Id)));
                     ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerMap, language, analyzer);
                     return;
                 }

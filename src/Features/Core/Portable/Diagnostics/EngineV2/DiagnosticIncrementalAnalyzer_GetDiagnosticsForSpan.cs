@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly IEnumerable<StateSet> _stateSets;
             private readonly CompilationWithAnalyzers? _compilation;
-            private readonly DiagnosticAnalyzer? _compilerAnalyzer;
 
             private readonly TextSpan _range;
             private readonly bool _blockForData;
@@ -99,7 +98,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _stateSets = stateSets;
                 _diagnosticId = diagnosticId;
                 _compilation = compilation;
-                _compilerAnalyzer = _owner.DiagnosticAnalyzerInfoCache.GetCompilerDiagnosticAnalyzer(_document.Project.Language);
 
                 _range = range;
                 _blockForData = blockForData;
@@ -160,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // unfortunately, we need to special case compiler diagnostic analyzer so that
                 // we can do span based analysis even though we implemented it as semantic model analysis
-                if (stateSet.Analyzer == _compilerAnalyzer)
+                if (stateSet.Analyzer.IsCompilerAnalyzer())
                 {
                     return await TryGetSyntaxAndSemanticCompilerDiagnosticsAsync(stateSet, list, cancellationToken).ConfigureAwait(false);
                 }
@@ -325,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 List<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                if (!_owner.DiagnosticAnalyzerInfoCache.SupportAnalysisKind(stateSet.Analyzer, stateSet.Language, kind))
+                if (!_owner.DiagnosticAnalyzerInfoCache.SupportAnalysisKind(stateSet.Analyzer, kind))
                 {
                     return true;
                 }

@@ -13,8 +13,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
         {
             // TODO: find better way.
-            var typeString = analyzer.GetType().ToString();
+            var typeString = analyzer.GetType().FullName;
             if (typeString == CSharpCompilerAnalyzerTypeName)
             {
                 return true;
@@ -416,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // quick optimization to reduce allocations.
-            if (compilationWithAnalyzers == null || !analyzerInfoCache.SupportAnalysisKind(analyzer, document.Project.Language, kind))
+            if (compilationWithAnalyzers == null || !analyzerInfoCache.SupportAnalysisKind(analyzer, kind))
             {
                 if (kind == AnalysisKind.Syntax)
                 {
@@ -428,8 +426,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
-            if (kind != AnalysisKind.Syntax &&
-                analyzerInfoCache.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
+            if (kind != AnalysisKind.Syntax && analyzer.IsCompilerAnalyzer())
             {
                 var isEnabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 

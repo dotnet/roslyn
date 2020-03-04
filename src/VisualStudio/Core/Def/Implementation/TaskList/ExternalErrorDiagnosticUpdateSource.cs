@@ -513,8 +513,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // REVIEW: current design is that we special case compiler analyzer case and we accept only document level
                 //         diagnostic as live. otherwise, we let them be build errors. we changed compiler analyzer accordingly as well
                 //         so that it doesn't report project level diagnostic as live errors.
-                if (_owner._diagnosticService.AnalyzerInfoCache.IsCompilerDiagnostic(project.Language, diagnosticData) &&
-                    !IsDocumentLevelDiagnostic(diagnosticData))
+                if (!IsDocumentLevelDiagnostic(diagnosticData) &&
+                    diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
                 {
                     // compiler error but project level error
                     return false;
