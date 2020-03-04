@@ -21,5 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
             : base(CS0534)
         {
         }
+
+        protected override SyntaxToken GetClassIdentifier(ClassDeclarationSyntax classNode)
+            => classNode.Identifier;
     }
 }

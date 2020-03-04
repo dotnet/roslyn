@@ -8,9 +8,15 @@
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #endif
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+{
+    public interface IEditorConfigStorageLocation2 : IEditorConfigStorageLocation
+#else
 namespace Microsoft.CodeAnalysis.Options
 {
     internal interface IEditorConfigStorageLocation2 : IEditorConfigStorageLocation
+#endif
     {
         string KeyName { get; }
 

@@ -92,6 +92,11 @@
         <target state="translated">Zadanie, na które oczekiwano, nie zwraca wartości</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Nie można zastosować zmian — nieoczekiwany błąd: „{0}”</target>
@@ -462,29 +467,9 @@
         <target state="translated">Parametr „{0}” można usunąć, ponieważ jego wartość początkowa nie jest nigdy używana</target>
         <note />
       </trans-unit>
-      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">Prywatną składową „{0}” można usunąć, ponieważ przypisana do niej wartość nie jest nigdy odczytywana.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">Prywatna składowa „{0}” jest nieużywana.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">Zmodyfikowanie pliku źródłowego {0} uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
-        <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="translated">Metodę prywatną „{0}” można usunąć, ponieważ nie jest nigdy wywoływana.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
-        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">Właściwość prywatną „{0}” można przekonwertować na metodę, ponieważ jej metoda dostępu get nie jest nigdy wywoływana.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -512,16 +497,6 @@
         <target state="translated">Usuń nadmiarowe przypisanie</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unread_private_members">
-        <source>Remove unread private members</source>
-        <target state="translated">Usuń nieodczytywane składowe prywatne</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">Usuń nieużywaną składową</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_parameter">
         <source>Remove unused parameter</source>
         <target state="translated">Usuń nieużywany parametr</target>
@@ -537,14 +512,14 @@
         <target state="translated">Usuń nieużywany parametr „{0}”, jeśli nie jest częścią dostarczonego publicznego API</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_private_members">
-        <source>Remove unused private members</source>
-        <target state="translated">Usuń nieużywane prywatne składowe</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Zamień element „{0}” na element „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolve_conflict_markers">
+        <source>Resolve conflict markers</source>
+        <target state="new">Resolve conflict markers</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -571,6 +546,11 @@
         <source>Stream must support read and seek operations.</source>
         <target state="translated">Strumień musi obsługiwać operacje odczytu i wyszukiwania.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
+        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>

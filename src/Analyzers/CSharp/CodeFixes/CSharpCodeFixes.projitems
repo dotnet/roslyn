@@ -12,4 +12,7 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" GenerateSource="true" Link="CSharpCodeFixesResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersCodeFixProvider.cs" />
+  </ItemGroup>
 </Project>
