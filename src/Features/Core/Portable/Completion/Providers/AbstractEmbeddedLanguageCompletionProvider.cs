@@ -32,11 +32,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected ImmutableArray<IEmbeddedLanguage> GetLanguageProviders(Func<object, IEmbeddedLanguagesProvider> languagesProvider, object state)
+        protected ImmutableArray<IEmbeddedLanguage> GetLanguageProviders<T>(Func<T, Document> documentProvider, T state)
         {
             if (_languageProviders.IsDefault)
             {
-                ImmutableInterlocked.InterlockedInitialize(ref _languageProviders, languagesProvider(state)?.Languages ?? ImmutableArray<IEmbeddedLanguage>.Empty);
+                var languagesProvider = documentProvider(state).Project.LanguageServices.GetService<IEmbeddedLanguagesProvider>();
+                ImmutableInterlocked.InterlockedInitialize(ref _languageProviders, languagesProvider?.Languages ?? ImmutableArray<IEmbeddedLanguage>.Empty);
             }
 
             return _languageProviders;
@@ -44,14 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            Func<object, IEmbeddedLanguagesProvider> languagesProvider =
-                state =>
-                {
-                    var document = ((SourceText)state).GetOpenDocumentInCurrentContextWithChanges();
-                    return document.Project.LanguageServices.GetService<IEmbeddedLanguagesProvider>();
-                };
-
-            foreach (var language in GetLanguageProviders(languagesProvider, text))
+            foreach (var language in GetLanguageProviders(text => text.GetOpenDocumentInCurrentContextWithChanges(), text))
             {
                 var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
@@ -69,10 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            Func<object, IEmbeddedLanguagesProvider> languagesProvider =
-                state => ((CompletionContext)state).Document.Project.LanguageServices.GetService<IEmbeddedLanguagesProvider>();
-
-            foreach (var language in GetLanguageProviders(languagesProvider, context))
+            foreach (var language in GetLanguageProviders(context => context.Document, context))
             {
                 var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
