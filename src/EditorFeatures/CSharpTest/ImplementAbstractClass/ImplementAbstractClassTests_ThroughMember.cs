@@ -147,6 +147,27 @@ class {|Conflict:Derived|} : Base
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task TestNotOfferedWhenOnlyUnimplementedMemberIsInaccessible()
+        {
+            await TestExactActionSetOfferedAsync(
+@"abstract class Base
+{
+    public abstract void Method1();
+    protected abstract void Method2();
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+
+    public override void Method1()
+    {
+        inner.Method1();
+    }
+}", new string[] { FeaturesResources.Implement_abstract_class });
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task FieldOfMoreSpecificTypeIsSuggested()
         {
             await TestInRegularAndScriptAsync(
