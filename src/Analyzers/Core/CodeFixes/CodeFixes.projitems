@@ -14,5 +14,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)PredefinedCodeFixProviderNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\AbstractRemoveUnusedMembersCodeFixProvider.cs" />
   </ItemGroup>
 </Project>
