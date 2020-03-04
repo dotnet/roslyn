@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private async ValueTask<ImmutableArray<IParameterSymbol>> DetermineParametersAsync(CancellationToken cancellationToken)
             {
                 var modifiers = DetermineParameterModifiers(cancellationToken);
-                var types = (await Task.WhenAll(DetermineParameterTypes(cancellationToken).Select(t => FixTypeAsync(t, cancellationToken).AsTask())).ConfigureAwait(false)).ToList();
+                var types = await SpecializedTasks.WhenAll(DetermineParameterTypes(cancellationToken).Select(t => FixTypeAsync(t, cancellationToken))).ConfigureAwait(false);
                 var optionality = DetermineParameterOptionality(cancellationToken);
                 var names = DetermineParameterNames(cancellationToken);
 

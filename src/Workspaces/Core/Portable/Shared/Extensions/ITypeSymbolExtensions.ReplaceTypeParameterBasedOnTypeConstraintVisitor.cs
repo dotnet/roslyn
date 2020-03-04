@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override async ValueTask<ITypeSymbol> VisitNamedType(INamedTypeSymbol symbol)
             {
-                var arguments = (await Task.WhenAll(symbol.TypeArguments.Select(t => t.Accept(this).AsTask())).ConfigureAwait(false)).ToArray();
+                var arguments = await SpecializedTasks.WhenAll(symbol.TypeArguments.Select(t => t.Accept(this))).ConfigureAwait(false);
                 if (arguments.SequenceEqual(symbol.TypeArguments))
                 {
                     return symbol;
@@ -96,13 +96,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         if (symbol.ConstraintTypes.All(t => t is INamedTypeSymbol))
                         {
                             var immutableProjects = _solution.Projects.ToImmutableHashSet();
-                            var derivedImplementedTypesOfEachConstraintType = (await Task.WhenAll(symbol.ConstraintTypes.Select(async ct =>
+                            var derivedImplementedTypesOfEachConstraintType = await Task.WhenAll(symbol.ConstraintTypes.Select(async ct =>
                             {
                                 var derivedAndImplementedTypes = new List<INamedTypeSymbol>();
                                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).ConfigureAwait(false);
                                 var implementedTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).ConfigureAwait(false);
                                 return derivedClasses.Concat(implementedTypes.Select(s => s.Symbol)).ToList();
-                            })).ConfigureAwait(false)).ToList();
+                            })).ConfigureAwait(false);
 
                             var intersectingTypes = derivedImplementedTypesOfEachConstraintType.Aggregate((x, y) => x.Intersect(y).ToList());
 
