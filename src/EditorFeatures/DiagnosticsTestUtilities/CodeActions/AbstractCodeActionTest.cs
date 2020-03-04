@@ -23,7 +23,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
-    public abstract class AbstractCodeActionTest : AbstractCodeActionOrUserDiagnosticTest
+    public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserDiagnosticTest
     {
         protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(
             Workspace workspace, TestParameters parameters);

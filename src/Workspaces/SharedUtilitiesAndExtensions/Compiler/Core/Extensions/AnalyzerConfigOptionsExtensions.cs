@@ -2,15 +2,30 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class AnalyzerConfigOptionsExtensions
     {
+#if CODE_STYLE
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option, string language)
+        {
+            // Language is not used for .editorconfig lookups
+            _ = language;
+
+            return GetOption(analyzerConfigOptions, option);
+        }
+#endif
+
         public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option<T> option)
         {
-            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out var value))
+            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out T value))
             {
                 Debug.Fail("Failed to find a .editorconfig key for the option.");
                 value = option.DefaultValue;
@@ -21,23 +36,13 @@ namespace Microsoft.CodeAnalysis
 
         public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option)
         {
-            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out var value))
+            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out T value))
             {
                 Debug.Fail("Failed to find a .editorconfig key for the option.");
                 value = option.DefaultValue;
             }
 
             return value;
-        }
-
-        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option<T> option, out T value)
-        {
-            return TryGetEditorConfigOption(analyzerConfigOptions, (IOption)option, out value);
-        }
-
-        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option, out T value)
-        {
-            return TryGetEditorConfigOption(analyzerConfigOptions, (IOption)option, out value);
         }
 
         public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, out T value)

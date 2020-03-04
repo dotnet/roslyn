@@ -12,4 +12,7 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCodeFixesResources.resx" GenerateSource="true" Link="VisualBasicCodeFixesResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)VisualBasicCodeFixesResources.resx" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersCodeFixProvider.vb" />
+  </ItemGroup>
 </Project>
