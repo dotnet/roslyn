@@ -2038,6 +2038,8 @@ tryAgain:
 
             try
             {
+                TerminatorState saveTerm;
+                bool wasInAsync;
 
                 //
                 // Check for the following cases to disambiguate between member declarations and expressions.
@@ -2054,7 +2056,7 @@ tryAgain:
                 //
                 if (!haveAttributes || !IsScript)
                 {
-                    bool wasInAsync = IsInAsync;
+                    wasInAsync = IsInAsync;
                     if (!IsScript)
                     {
                         IsInAsync = true; // We are implicitly in an async context
@@ -2192,9 +2194,9 @@ tryAgain:
                             this.CurrentToken.Kind != SyntaxKind.EndOfFileToken &&
                             this.IsPossibleStatement(acceptAccessibilityMods: true))
                         {
-                            var saveTerm = _termState;
+                            saveTerm = _termState;
                             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-                            bool wasInAsync = IsInAsync;
+                            wasInAsync = IsInAsync;
                             if (!IsScript)
                             {
                                 IsInAsync = true; // We are implicitly in an async context
@@ -2207,26 +2209,9 @@ tryAgain:
                             IsInAsync = wasInAsync;
                             _termState = saveTerm;
 
-                            switch (statement?.Kind)
+                            if (isAcceptableNonDeclarationStatement(statement, IsScript))
                             {
-                                case null:
-                                    break;
-
-                                case SyntaxKind.LocalDeclarationStatement:
-                                case SyntaxKind.LocalFunctionStatement:
-                                    break;
-
-                                case SyntaxKind.ExpressionStatement when
-                                            !IsScript &&
-                                            ((ExpressionStatementSyntax)statement) is var exprStatement &&
-                                            exprStatement.Expression.Kind == SyntaxKind.IdentifierName &&
-                                            exprStatement.SemicolonToken.IsMissing:
-                                    // Do not parse a single identifier as an expression statement in a Simple Program, this could be a beginning of a keyword and
-                                    // we want completion to offer it.
-                                    break;
-
-                                default:
-                                    return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
+                                return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
                             }
                         }
 
@@ -2246,18 +2231,17 @@ tryAgain:
 
 parse_member_name:;
                     // If we've seen the ref keyword, we know we must have an indexer, method, property, or local.
-                    bool isRefType = type.Kind == SyntaxKind.RefType;
 
                     // Check here for operators
                     // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
-                    if (!isRefType && IsOperatorKeyword())
+                    if (!type.IsRef && IsOperatorKeyword())
                     {
                         return this.ParseOperatorDeclaration(attributes, modifiers, type);
                     }
 
-                    if ((!isRefType || !IsScript) && IsFieldDeclaration(isEvent: false))
+                    if ((!type.IsRef || !IsScript) && IsFieldDeclaration(isEvent: false))
                     {
-                        var saveTerm = _termState;
+                        saveTerm = _termState;
 
                         if ((!haveAttributes && !haveModifiers) || !IsScript)
                         {
@@ -2276,7 +2260,7 @@ parse_member_name:;
                             }
                         }
 
-                        if (!isRefType)
+                        if (!type.IsRef)
                         {
                             return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
                         }
@@ -2386,6 +2370,30 @@ parse_member_name:;
                     this.Release(ref resetOnFailurePoint);
                 }
             }
+
+            static bool isAcceptableNonDeclarationStatement(StatementSyntax statement, bool isScript)
+            {
+                switch (statement?.Kind)
+                {
+                    case null:
+                    case SyntaxKind.LocalDeclarationStatement:
+                    case SyntaxKind.LocalFunctionStatement:
+                    case SyntaxKind.ExpressionStatement when
+                                !isScript &&
+                                // Do not parse a single identifier as an expression statement in a Simple Program, this could be a beginning of a keyword and
+                                // we want completion to offer it.
+                                ((ExpressionStatementSyntax)statement) is var exprStatement &&
+                                exprStatement.Expression.Kind == SyntaxKind.IdentifierName &&
+                                exprStatement.SemicolonToken.IsMissing:
+
+                        return false;
+
+                    default:
+                        return true;
+                }
+            }
+
+
         }
 
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
