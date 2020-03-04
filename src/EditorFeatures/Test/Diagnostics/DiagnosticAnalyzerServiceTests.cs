@@ -548,13 +548,14 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             }
 
             internal MyDiagnosticAnalyzerService(IEnumerable<DiagnosticAnalyzer> analyzers, IAsynchronousOperationListener listener, string language = LanguageNames.CSharp)
-                : base(new DiagnosticAnalyzerInfoCache(
+                : base(new DiagnosticAnalyzerInfoCache(),
+                       new HostDiagnosticAnalyzers(
                             ImmutableArray.Create<AnalyzerReference>(
                                 new TestAnalyzerReferenceByLanguage(
                                     ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(language, ImmutableArray.CreateRange(analyzers))))),
-                      hostDiagnosticUpdateSource: null,
-                      registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
-                      listener: listener)
+                       hostDiagnosticUpdateSource: null,
+                       registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
+                       listener: listener)
             {
             }
         }

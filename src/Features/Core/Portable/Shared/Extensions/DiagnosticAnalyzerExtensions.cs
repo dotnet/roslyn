@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis
             };
 
-        public static bool SupportAnalysisKind(DiagnosticAnalyzer analyzer, AnalysisKind kind)
+        public static bool SupportAnalysisKind(this DiagnosticAnalyzer analyzer, AnalysisKind kind)
         {
             // compiler diagnostic analyzer always supports all kinds:
             if (analyzer.IsCompilerAnalyzer())

@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private partial class StateManager
         {
-            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
             private readonly IPersistentStorageService _persistentStorageService;
+            private readonly HostDiagnosticAnalyzers _hostAnalyzers;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache, IPersistentStorageService persistentStorageService)
+            public StateManager(HostDiagnosticAnalyzers hostAnalyzers, IPersistentStorageService persistentStorageService)
             {
-                _analyzerInfoCache = analyzerInfoCache;
+                _hostAnalyzers = hostAnalyzers;
                 _persistentStorageService = persistentStorageService;
 
                 _hostAnalyzerStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
@@ -150,14 +150,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var hostStateSetMap = hostStateSets.ToDictionary(s => s.Analyzer, s => s);
 
                 // create project analyzer reference identity map
-                var projectAnalyzerReferenceIds = project.AnalyzerReferences.Select(r => _analyzerInfoCache.GetAnalyzerReferenceIdentity(r)).ToSet();
+                var projectAnalyzerReferenceIds = project.AnalyzerReferences.Select(r => r.Id).ToSet();
 
                 // create build only stateSet array
                 var stateSets = ImmutableArray.CreateBuilder<StateSet>();
 
                 // include compiler analyzer in build only state, if available
                 StateSet? compilerStateSet = null;
-                var compilerAnalyzer = _analyzerInfoCache.GetCompilerDiagnosticAnalyzer(project.Language);
+                var compilerAnalyzer = _hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null && hostStateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
                 {
                     stateSets.Add(compilerStateSet);
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 stateSets.AddRange(GetOrUpdateProjectAnalyzerMap(project).Values);
 
                 // now add analyzers that exist in both host and project
-                var hostAnalyzersById = _analyzerInfoCache.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
+                var hostAnalyzersById = _hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
                 foreach (var (identity, analyzers) in hostAnalyzersById)
                 {
                     if (!projectAnalyzerReferenceIds.Contains(identity))

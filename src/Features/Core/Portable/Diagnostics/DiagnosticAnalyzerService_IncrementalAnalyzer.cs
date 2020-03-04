@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, AnalyzerInfoCache, _hostDiagnosticUpdateSource);
+            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, HostAnalyzers, AnalyzerInfoCache, _hostDiagnosticUpdateSource);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)

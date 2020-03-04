@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -386,7 +387,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             Document document,
             AnalysisKind kind,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
             CompilationWithAnalyzers? compilationWithAnalyzers,
             TextSpan? span,
             CancellationToken cancellationToken)
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // quick optimization to reduce allocations.
-            if (compilationWithAnalyzers == null || !analyzerInfoCache.SupportAnalysisKind(analyzer, kind))
+            if (compilationWithAnalyzers == null || !analyzer.SupportAnalysisKind(kind))
             {
                 if (kind == AnalysisKind.Syntax)
                 {
