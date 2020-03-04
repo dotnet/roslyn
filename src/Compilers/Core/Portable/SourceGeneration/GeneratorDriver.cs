@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
     ///   - A full generation pass will run every generator and produce all possible generated source
     ///   - At any time an 'edit' maybe supplied, which represents potential future work
     ///   - TryApplyChanges can be called, which will iterate through the pending edits and try and attempt to 
-    ///     bring the state back to what it would be if a full generation occured by running partial generation
+    ///     bring the state back to what it would be if a full generation occurred by running partial generation
     ///     on generators that support it
     ///   - At any time a full generation pass can be re-run, resetting the pending edits
     /// </remarks>
