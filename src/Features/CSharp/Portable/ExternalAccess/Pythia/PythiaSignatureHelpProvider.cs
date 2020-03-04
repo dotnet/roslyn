@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
     [ExtensionOrder(Before = "InvocationExpressionSignatureHelpProvider")]
     internal sealed class PythiaSignatureHelpProvider : InvocationExpressionSignatureHelpProviderBase
     {
-        private readonly Lazy<IPythiaSignatureHelpProviderImplementation?> _lazyImplementation;
+        private readonly Lazy<IPythiaSignatureHelpProviderImplementation> _lazyImplementation;
 
         [ImportingConstructor]
-        public PythiaSignatureHelpProvider([Import(AllowDefault = true)] Lazy<IPythiaSignatureHelpProviderImplementation?> implementation)
+        public PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation)
         {
             _lazyImplementation = implementation;
         }
 
-        internal override Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
+        internal async override Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
             ImmutableArray<IMethodSymbol> accessibleMethods,
             Document document,
             InvocationExpressionSyntax invocationExpression,
@@ -40,25 +40,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
             SymbolInfo currentSymbol,
             CancellationToken cancellationToken)
         {
-            var implementation = _lazyImplementation.Value;
-            if (implementation != null)
-            {
-                return GetMethodGroupItemsAndSelectionImplAsync(implementation, accessibleMethods, document, invocationExpression, semanticModel, currentSymbol, cancellationToken);
-            }
-
-            return base.GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, currentSymbol, cancellationToken);
-        }
-
-        private static async Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionImplAsync(
-            IPythiaSignatureHelpProviderImplementation implementation,
-            ImmutableArray<IMethodSymbol> accessibleMethods,
-            Document document,
-            InvocationExpressionSyntax invocationExpression,
-            SemanticModel semanticModel,
-            SymbolInfo currentSymbol,
-            CancellationToken cancellationToken)
-        {
-            var (items, selectedItemIndex) = await implementation.GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, currentSymbol, cancellationToken).ConfigureAwait(false);
+            var (items, selectedItemIndex) = await _lazyImplementation.Value.GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, currentSymbol, cancellationToken).ConfigureAwait(false);
             return (items.SelectAsArray(item => item.UnderlyingObject), selectedItemIndex);
         }
     }
