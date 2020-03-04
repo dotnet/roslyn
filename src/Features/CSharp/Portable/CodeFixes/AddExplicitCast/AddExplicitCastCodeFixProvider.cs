@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             foreach (var targetNodeConversionType in mutablePotentialConversionTypes)
             {
                 var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(targetNodeType, targetNodeConversionType);
-                if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression) && !commonConversion.IsUserDefined)
+                if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression) && !(commonConversion.IsUserDefined || commonConversion.IsNumeric))
                 {
                     continue;
                 }
@@ -232,6 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// True, if arguments and parameters match perfectly.
         /// False, otherwise.
         /// </returns>
+        // TODO: May need an API to replace this function,
+        // link: https://github.com/dotnet/roslyn/issues/42149
         private static bool IsArgumentListAndParameterListPerfectMatch(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
             ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument, CancellationToken cancellationToken, out int targetParamIndex)
         {
@@ -381,11 +383,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             public int Compare(ITypeSymbol x, ITypeSymbol y)
             {
                 // if the node has the explicit conversion operator, then it has the shortest distance
-                var x_dist = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, x).IsUserDefined ?
+                var xComversion = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, x);
+                var xDist = xComversion.IsUserDefined || xComversion.IsNumeric ?
                     0 : GetInheritanceDistance(_baseType, x);
-                var y_dist = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, y).IsUserDefined ?
+
+                var yComversion = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, y);
+                var yDist = yComversion.IsUserDefined || yComversion.IsNumeric ?
                     0 : GetInheritanceDistance(_baseType, y);
-                return x_dist.CompareTo(y_dist);
+                return xDist.CompareTo(yDist);
             }
 
             public InheritanceDistanceComparer(SemanticModel semanticModel, ITypeSymbol baseType)

@@ -1326,6 +1326,28 @@ class Program
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task ObjectInitializer7_NumericType()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+using System;
+class Program
+{
+    void M() {
+        int i = [||]new Double();
+    }
+}",
+            @"
+using System;
+class Program
+{
+    void M() {
+        int i = (int)new Double();
+    }
+}");
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
         public async Task RedundantCast1()
         {
