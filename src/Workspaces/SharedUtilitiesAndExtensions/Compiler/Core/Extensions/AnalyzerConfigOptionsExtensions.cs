@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
 
         public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option<T> option)
         {
-            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out T value))
+            if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
             {
                 Debug.Fail("Failed to find a .editorconfig key for the option.");
                 value = option.DefaultValue;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
 
         public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option)
         {
-            if (!TryGetEditorConfigOption(analyzerConfigOptions, option, out T value))
+            if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
             {
                 Debug.Fail("Failed to find a .editorconfig key for the option.");
                 value = option.DefaultValue;
@@ -45,8 +45,15 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
+        public static bool TryGetEditorConfigOptionOrDefault<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, out T value)
+            => TryGetEditorConfigOption(analyzerConfigOptions, option, useDefaultIfMissing: true, out value);
+
         public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, out T value)
+            => TryGetEditorConfigOption(analyzerConfigOptions, option, useDefaultIfMissing: false, out value);
+
+        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, bool useDefaultIfMissing, out T value)
         {
+            var hasEditorConfigStorage = false;
             foreach (var storageLocation in option.StorageLocations)
             {
                 // This code path will avoid allocating a Dictionary wrapper since we can get direct access to the KeyName.
@@ -57,16 +64,31 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                if (storageLocation is IEditorConfigStorageLocation configStorageLocation &&
-                   configStorageLocation.TryGetOption(analyzerConfigOptions, option.Type, out var objectValue))
+                if (!(storageLocation is IEditorConfigStorageLocation configStorageLocation))
+                {
+                    continue;
+                }
+
+                // This option has .editorconfig storage defined, even if the current configuration does not provide a
+                // value for it.
+                hasEditorConfigStorage = true;
+                if (configStorageLocation.TryGetOption(analyzerConfigOptions, option.Type, out var objectValue))
                 {
                     value = (T)objectValue;
                     return true;
                 }
             }
 
-            value = default;
-            return false;
+            if (useDefaultIfMissing)
+            {
+                value = (T)option.DefaultValue;
+                return hasEditorConfigStorage;
+            }
+            else
+            {
+                value = default;
+                return false;
+            }
         }
     }
 }
