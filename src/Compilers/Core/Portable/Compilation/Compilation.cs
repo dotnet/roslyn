@@ -850,6 +850,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The TypeSymbol for the type 'dynamic' in this Compilation.
         /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
         public ITypeSymbol DynamicType { get { return CommonDynamicType; } }
         protected abstract ITypeSymbol CommonDynamicType { get; }
 
@@ -930,6 +931,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new PointerTypeSymbol representing a pointer type tied to a type in this
         /// Compilation.
         /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
         public IPointerTypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
         {
             return CommonCreatePointerTypeSymbol(pointedAtType);
@@ -940,6 +942,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a new INamedTypeSymbol representing a native integer.
         /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
         public INamedTypeSymbol CreateNativeIntegerTypeSymbol(bool signed)
         {
             return CommonCreateNativeIntegerTypeSymbol(signed);
