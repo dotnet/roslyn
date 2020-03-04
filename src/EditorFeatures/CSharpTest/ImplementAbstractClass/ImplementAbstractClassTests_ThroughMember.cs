@@ -687,5 +687,56 @@ class Derived : Base
     public override int InternalSet { get => inner.InternalSet; internal set => inner.InternalSet = value; }
 }", index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
+
+        [Fact]
+        public async Task TestCrossProjectWithInaccessibleMemberInCase()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public abstract class Base
+{
+    public abstract void Method1();
+    internal abstract void Method2();
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+class [|Derived|] : Base
+{
+    Base inner;
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public abstract class Base
+{
+    public abstract void Method1();
+    internal abstract void Method2();
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+class {|Conflict:Derived|} : Base
+{
+    Base inner;
+
+    public override void Method1()
+    {
+        inner.Method1();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>", index: 1);
+        }
     }
 }
