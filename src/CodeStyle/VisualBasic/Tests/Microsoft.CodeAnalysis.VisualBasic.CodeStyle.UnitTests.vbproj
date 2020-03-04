@@ -11,6 +11,10 @@
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\EditorFeatures\VisualBasicTest\Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" Link="AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" />
+    <Compile Include="..\..\..\EditorFeatures\VisualBasicTest\Utils.vb" Link="Utils.vb" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion)" />
   </ItemGroup>
@@ -53,6 +57,16 @@
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.CodeAnalysis.Editor.Shared.Extensions" />
+    <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
+    <Import Include="Microsoft.CodeAnalysis.Test.Utilities" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.UnitTests" />
+    <Import Include="Roslyn.Test.Utilities" />
+    <Import Include="System.Threading.Tasks" />
+    <Import Include="Xunit" />
   </ItemGroup>
   <Import Project="..\..\..\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems" Label="Shared" />
 </Project>
