@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Translate the single test into _sideEffectBuilder and _conjunctBuilder.
             /// </summary>
-            private void LowerOneTest(BoundDagTest test)
+            private void LowerOneTest(BoundDagTest test, bool invert = false)
             {
                 _factory.Syntax = test.Syntax;
                 switch (test)
@@ -80,6 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var testExpression = LowerTest(test);
                             if (testExpression != null)
                             {
+                                if (invert)
+                                    testExpression = _factory.Not(testExpression);
+
                                 AddConjunct(testExpression);
                             }
 
@@ -102,6 +106,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 decisionDag = ShareTempsAndEvaluateInput(loweredInput, decisionDag, expr => _sideEffectBuilder.Add(expr), out _);
                 var node = decisionDag.RootNode;
 
+                return
+                    CanProduceLinearSequence(node, whenTrueLabel, whenFalseLabel) ? ProduceLinearTestSequence(node, whenTrueLabel, whenFalseLabel) :
+                    CanProduceLinearSequence(node, whenFalseLabel, whenTrueLabel) ? _factory.Not(ProduceLinearTestSequence(node, whenFalseLabel, whenTrueLabel)) :
+                    throw new NotImplementedException("Lowering of complex is-pattern expressions");
+            }
+
+            private bool IsFailureNode(BoundDecisionDagNode node, LabelSymbol whenFalseLabel)
+            {
+                if (node is BoundWhenDecisionDagNode w)
+                    node = w.WhenTrue;
+                return node is BoundLeafDecisionDagNode l && l.Label == whenFalseLabel;
+            }
+
+            private bool CanProduceLinearSequence(
+                BoundDecisionDagNode node,
+                LabelSymbol whenTrueLabel,
+                LabelSymbol whenFalseLabel)
+            {
+                while (true)
+                {
+                    switch (node)
+                    {
+                        case BoundWhenDecisionDagNode w:
+                            Debug.Assert(w.WhenFalse is null);
+                            node = w.WhenTrue;
+                            break;
+                        case BoundLeafDecisionDagNode n:
+                            return n.Label == whenTrueLabel;
+                        case BoundEvaluationDecisionDagNode e:
+                            node = e.Next;
+                            break;
+                        case BoundTestDecisionDagNode t:
+                            bool falseFail = IsFailureNode(t.WhenFalse, whenFalseLabel);
+                            if (falseFail == IsFailureNode(t.WhenTrue, whenFalseLabel))
+                                return false;
+                            node = falseFail ? t.WhenTrue : t.WhenFalse;
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(node);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Translate an is-pattern expression into a sequence of tests separated by the control-flow-and operator.
+            /// </summary>
+            private BoundExpression ProduceLinearTestSequence(
+                BoundDecisionDagNode node,
+                LabelSymbol whenTrueLabel,
+                LabelSymbol whenFalseLabel)
+            {
                 // We follow the "good" path in the decision dag. We depend on it being nicely linear in structure.
                 // If we add "or" patterns that assumption breaks down.
                 while (node.Kind != BoundKind.LeafDecisionDagNode && node.Kind != BoundKind.WhenDecisionDagNode)
@@ -116,7 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundTestDecisionDagNode testNode:
                             {
-                                Debug.Assert(testNode.WhenFalse is BoundLeafDecisionDagNode x && x.Label == whenFalseLabel);
                                 if (testNode.WhenTrue is BoundEvaluationDecisionDagNode e &&
                                     TryLowerTypeTestAndCast(testNode.Test, e.Evaluation, out BoundExpression sideEffect, out BoundExpression testExpression))
                                 {
@@ -126,30 +180,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    LowerOneTest(testNode.Test);
-                                    node = testNode.WhenTrue;
+                                    bool invertTest = IsFailureNode(testNode.WhenTrue, whenFalseLabel);
+                                    LowerOneTest(testNode.Test, invertTest);
+                                    node = invertTest ? testNode.WhenFalse : testNode.WhenTrue;
                                 }
                             }
                             break;
                     }
                 }
 
-                // When we get to "the end", we see if it is a success node.
+                // When we get to "the end", it is a success node.
                 switch (node)
                 {
                     case BoundLeafDecisionDagNode leafNode:
-                        {
-                            if (leafNode.Label == whenFalseLabel)
-                            {
-                                // It is not clear that this can occur given the dag "optimizations" we performed earlier.
-                                AddConjunct(_factory.Literal(false));
-                            }
-                            else
-                            {
-                                Debug.Assert(leafNode.Label == whenTrueLabel);
-                            }
-                        }
-
+                        Debug.Assert(leafNode.Label == whenTrueLabel);
                         break;
 
                     case BoundWhenDecisionDagNode whenNode:
@@ -170,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(decisionDag.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind);
                 }
 
                 if (_sideEffectBuilder.Count > 0 || _conjunctBuilder.Count == 0)
