@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// IL gen will use these fake tokens during codegen and later, when actual token values are known
     /// the method bodies will be patched.
     /// To support these two scenarios we need two maps - Item-->uint, and uint-->Item.  (the second is really just a list).
+    /// This map supports tokens of type <see cref="Cci.ISignature"/> and <see cref="Cci.IReference"/>.
     /// </summary>
     internal sealed class TokenMap
     {

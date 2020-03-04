@@ -983,8 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.ReportDiagnostics(
                         binder: this, location: GetLocationForOverloadResolutionDiagnostic(node, expression), nodeOpt: node, diagnostics: diagnostics, name: name,
                         receiver: methodGroup.Receiver, invokedExpression: expression, arguments: analyzedArguments, memberGroup: methodGroup.Methods.ToImmutable(),
-                        typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt, functionPointerMethodBeingInvoked: null,
-                        queryClause: queryClause);
+                        typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt, queryClause: queryClause);
                 }
 
                 return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
@@ -1683,16 +1682,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodsBuilder.ToImmutableAndFree(),
                     typeContainingConstructor: null,
                     delegateTypeBeingInvoked: null,
-                    functionPointerMethodBeingInvoked: funcPtr.Signature,
                     returnRefKind: funcPtr.Signature.RefKind);
 
                 return new BoundFunctionPointerInvocation(
                     node,
                     boundExpression,
-                    funcPtr,
                     analyzedArguments.Arguments.SelectAsArray((expr, args) => args.binder.BindToNaturalType(expr, args.diagnostics), (binder: this, diagnostics)),
                     analyzedArguments.RefKinds.ToImmutableOrNull(),
-                    CreateErrorType(),
+                    funcPtr.Signature.ReturnType,
                     hasErrors: true);
             }
 
@@ -1724,7 +1721,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundFunctionPointerInvocation(
                 node,
                 boundExpression,
-                funcPtr,
                 args,
                 refKinds,
                 funcPtr.Signature.ReturnType,

@@ -1689,7 +1689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            return node.Update(invokedExpression, node.FunctionPointer, arguments, node.ArgumentRefKindsOpt, node.Type);
+            return node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, node.Type);
         }
 
         // Ensures that there are no stack locals.

@@ -1051,17 +1051,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFunctionPointerInvocation : BoundExpression
     {
-        public BoundFunctionPointerInvocation(SyntaxNode syntax, BoundExpression invokedExpression, FunctionPointerTypeSymbol functionPointer, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundFunctionPointerInvocation(SyntaxNode syntax, BoundExpression invokedExpression, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.FunctionPointerInvocation, syntax, type, hasErrors || invokedExpression.HasErrors() || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(invokedExpression is object, "Field 'invokedExpression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(functionPointer is object, "Field 'functionPointer' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.InvokedExpression = invokedExpression;
-            this.FunctionPointer = functionPointer;
             this.Arguments = arguments;
             this.ArgumentRefKindsOpt = argumentRefKindsOpt;
         }
@@ -1071,19 +1069,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression InvokedExpression { get; }
 
-        public FunctionPointerTypeSymbol FunctionPointer { get; }
-
         public ImmutableArray<BoundExpression> Arguments { get; }
 
         public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitFunctionPointerInvocation(this);
 
-        public BoundFunctionPointerInvocation Update(BoundExpression invokedExpression, FunctionPointerTypeSymbol functionPointer, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol type)
+        public BoundFunctionPointerInvocation Update(BoundExpression invokedExpression, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol type)
         {
-            if (invokedExpression != this.InvokedExpression || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(functionPointer, this.FunctionPointer) || arguments != this.Arguments || argumentRefKindsOpt != this.ArgumentRefKindsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (invokedExpression != this.InvokedExpression || arguments != this.Arguments || argumentRefKindsOpt != this.ArgumentRefKindsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundFunctionPointerInvocation(this.Syntax, invokedExpression, functionPointer, arguments, argumentRefKindsOpt, type, this.HasErrors);
+                var result = new BoundFunctionPointerInvocation(this.Syntax, invokedExpression, arguments, argumentRefKindsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9201,7 +9197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression invokedExpression = (BoundExpression)this.Visit(node.InvokedExpression);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(invokedExpression, node.FunctionPointer, arguments, node.ArgumentRefKindsOpt, type);
+            return node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, type);
         }
         public override BoundNode? VisitRefTypeOperator(BoundRefTypeOperator node)
         {
@@ -10467,19 +10463,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
-            FunctionPointerTypeSymbol functionPointer = GetUpdatedSymbol(node, node.FunctionPointer);
             BoundExpression invokedExpression = (BoundExpression)this.Visit(node.InvokedExpression);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             BoundFunctionPointerInvocation updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(invokedExpression, functionPointer, arguments, node.ArgumentRefKindsOpt, infoAndType.Type);
+                updatedNode = node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(invokedExpression, functionPointer, arguments, node.ArgumentRefKindsOpt, node.Type);
+                updatedNode = node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, node.Type);
             }
             return updatedNode;
         }
@@ -12633,7 +12628,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node, object? arg) => new TreeDumperNode("functionPointerInvocation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("invokedExpression", null, new TreeDumperNode[] { Visit(node.InvokedExpression, null) }),
-            new TreeDumperNode("functionPointer", node.FunctionPointer, null),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
             new TreeDumperNode("type", node.Type, null),

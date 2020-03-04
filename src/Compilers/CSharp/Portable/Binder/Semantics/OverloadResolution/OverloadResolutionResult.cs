@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<T> memberGroup, // the T is just a convenience for the caller
             NamedTypeSymbol typeContainingConstructor,
             NamedTypeSymbol delegateTypeBeingInvoked,
-            FunctionPointerMethodSymbol functionPointerMethodBeingInvoked,
             CSharpSyntaxNode queryClause = null,
             bool isMethodGroupConversion = false,
             RefKind? returnRefKind = null,
@@ -531,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isMethodGroupConversion)
             {
-                ReportBadParameterCount(diagnostics, name, arguments, symbols, location, typeContainingConstructor, delegateTypeBeingInvoked, functionPointerMethodBeingInvoked);
+                ReportBadParameterCount(diagnostics, name, arguments, symbols, location, typeContainingConstructor, delegateTypeBeingInvoked);
             }
         }
 
@@ -865,13 +864,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Symbol> symbols,
             Location location,
             NamedTypeSymbol typeContainingConstructor,
-            NamedTypeSymbol delegateTypeBeingInvoked,
-            FunctionPointerMethodSymbol functionPointerMethodBeingInvoked)
+            NamedTypeSymbol delegateTypeBeingInvoked)
         {
             // error CS1501: No overload for method 'M' takes n arguments
             // error CS1729: 'M' does not contain a constructor that takes n arguments
             // error CS1593: Delegate 'M' does not take n arguments
             // error CS8757: Function pointer 'M' does not take n arguments
+
+            FunctionPointerMethodSymbol functionPointerMethodBeingInvoked = symbols.IsDefault || symbols.Length != 1
+                ? null
+                : symbols[0] as FunctionPointerMethodSymbol;
 
             (ErrorCode code, object target) = (typeContainingConstructor, delegateTypeBeingInvoked, functionPointerMethodBeingInvoked) switch
             {

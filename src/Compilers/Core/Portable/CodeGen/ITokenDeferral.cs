@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         Cci.IMethodReference GetInitArrayHelper();
 
         string GetStringFromToken(uint token);
+        /// <summary>
+        /// Gets the <see cref="Cci.IReference"/> or <see cref="Cci.ISignature"/> corresponding to this token.
+        /// </summary>
         object GetReferenceFromToken(uint token);
 
         ArrayMethods ArrayMethods { get; }

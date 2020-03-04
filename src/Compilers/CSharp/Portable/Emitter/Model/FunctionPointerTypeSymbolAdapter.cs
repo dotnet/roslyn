@@ -47,10 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         IDefinition? IReference.AsDefinition(EmitContext context) => null;
 
         /// <summary>
-        /// We need to be able to differentiate between a FunctionPointer used a type and function pointer used
+        /// We need to be able to differentiate between a FunctionPointer used as a type and a function pointer used
         /// as a StandaloneMethodSig. To do this, we wrap the <see cref="FunctionPointerMethodSymbol"/> in a
         /// <see cref="FunctionPointerMethodSignature"/>, to hide its implementation of <see cref="IMethodSymbol"/>.
         /// </summary>
+        // PROTOTYPE(func-ptr): Provide a way for nullability info to compare correctly in MetadataEntityReferenceComparer.
         private sealed class FunctionPointerMethodSignature : ISignature
         {
             private readonly ISignature _underlying;

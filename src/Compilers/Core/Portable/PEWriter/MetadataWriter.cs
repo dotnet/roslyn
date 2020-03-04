@@ -3061,6 +3061,10 @@ namespace Microsoft.Cci
                 {
                     _referenceVisitor.VisitMethodBodyReference(reference);
                 }
+                else if (entity is ISignature signature)
+                {
+                    _referenceVisitor.VisitSignature(signature);
+                }
 
                 EntityHandle handle = GetHandle(entity);
                 _pseudoSymbolTokenToTokenMap[index] = handle;

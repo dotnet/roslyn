@@ -335,9 +335,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).IsSZArray;
         }
 
-        public static bool IsFunctionPointerType(this TypeSymbol type)
+        public static bool IsFunctionPointer(this TypeSymbol type)
         {
-            RoslynDebug.Assert((object)type != null);
             return type.TypeKind == TypeKind.FunctionPointer;
         }
 

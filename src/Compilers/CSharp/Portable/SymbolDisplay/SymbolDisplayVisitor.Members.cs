@@ -275,11 +275,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
-                    param.Accept(this);
+                    param.Accept(this.NotFirstVisitor);
                     AddPunctuation(SyntaxKind.CommaToken);
                 }
 
-                symbol.ReturnType.Accept(this);
+                symbol.ReturnType.Accept(this.NotFirstVisitor);
 
                 AddPunctuation(SyntaxKind.GreaterThanToken);
                 return;

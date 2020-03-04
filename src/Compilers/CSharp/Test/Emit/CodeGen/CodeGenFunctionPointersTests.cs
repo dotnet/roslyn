@@ -5,25 +5,32 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenFunctionPointersTests : CSharpTestBase
     {
-        private CompilationVerifier CompileAndVerifyFunctionPointers(string source, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null, Verification verify = Verification.Passes)
+        private CompilationVerifier CompileAndVerifyFunctionPointers(
+            string source,
+            MetadataReference[]? references = null,
+            Action<ModuleSymbol>? symbolValidator = null,
+            string? expectedOutput = null)
         {
-            return CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: verify);
+            return CompileAndVerify(source, references, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
         {
             var comp = CreateCompilationWithIL(source, ilStub, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe);
-            return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator);
+            return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator, verify: Verification.Skipped);
         }
 
         [Theory]
@@ -254,7 +261,7 @@ public unsafe class C
 {
     public delegate*<string, void> Prop1 { get; set; }
     public delegate* stdcall<int> Prop2 { get => throw null; set => throw null; }
-}", symbolValidator: symbolValidator, verify: Verification.Skipped);
+}", symbolValidator: symbolValidator);
 
             compVerifier.VerifyIL("C.Prop1.get", expectedIL: @"
 {
@@ -435,7 +442,7 @@ unsafe struct S
 {
     public delegate*<S, S> Field;
     public delegate*<S, S> Property { get; set; }
-}", verify: Verification.Skipped);
+}");
         }
 
         [Fact]
@@ -629,73 +636,732 @@ unsafe class Caller
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""Called""
   IL_000b:  ldloc.0
-  IL_000c:  calli      0x4
+  IL_000c:  calli      0x3
   IL_0011:  ret
 }");
         }
 
-        [Theory(Skip = "PROTOTYPE(func-ptr)")]
+        [Theory]
         [InlineData("cdecl")]
-        [InlineData("thiscall")]
         [InlineData("stdcall")]
         public void UnmanagedCallingConventions(string convention)
         {
+            // Use IntPtr Marshal.GetFunctionPointerForDelegate<TDelgate>(TDelegate delegate) to
+            // get a function pointer around a native calling convention
             var ilStub = $@"
-.class public auto ansi beforefieldinit Program
+.class public auto ansi beforefieldinit UnmanagedFunctionPointer
     extends [mscorlib]System.Object
 {{
+    // Nested Types
+    .class nested private auto ansi sealed CombineStrings
+        extends [mscorlib]System.MulticastDelegate
+    {{
+        .custom instance void [mscorlib]System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.CallingConvention) = (
+            01 00 {(convention == "cdecl" ? "02" : "03")} 00 00 00 00 00
+        )
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor (
+                object 'object',
+                native int 'method'
+            ) runtime managed 
+        {{
+        }} // end of method CombineStrings::.ctor
+
+        .method public hidebysig newslot virtual 
+            instance string Invoke (
+                string s1,
+                string s2
+            ) runtime managed 
+        {{
+        }} // end of method CombineStrings::Invoke
+
+        .method public hidebysig newslot virtual 
+            instance class [mscorlib]System.IAsyncResult BeginInvoke (
+                string s1,
+                string s2,
+                class [mscorlib]System.AsyncCallback callback,
+                object 'object'
+            ) runtime managed 
+        {{
+        }} // end of method CombineStrings::BeginInvoke
+
+        .method public hidebysig newslot virtual 
+            instance string EndInvoke (
+                class [mscorlib]System.IAsyncResult result
+            ) runtime managed 
+        {{
+        }} // end of method CombineStrings::EndInvoke
+    }} // end of class CombineStrings
+
     // Methods
-    .method public hidebysig static 
-        method unmanaged {convention} void *() LoadPtr () cil managed 
-    {{
-        nop
-        ldftn unmanaged cdecl void Program::Called()
-        ret
-    }} // end of method Program::Main
-
     .method private hidebysig static 
-        unmanaged {convention} void Called () cil managed 
+        string CombineStringsImpl (
+            string s1,
+            string s2
+        ) cil managed 
     {{
-        nop
-        ldstr ""Called""
-        call void [mscorlib]System.Console::WriteLine(string)
-        nop
-        ret
-    }} // end of Program::Called
+        // Method begins at RVA 0x2050
+        // Code size 13 (0xd)
+        .maxstack 2
+        .locals init (
+            [0] string
+        )
 
-    .method public hidebysig specialname rtspecialname
-        instance void .ctor() cil managed
+        ldarg.0
+        ldarg.1
+        call string [mscorlib]System.String::Concat(string, string)
+        ret
+    }} // end of method UnmanagedFunctionPointer::CombineStringsImpl
+
+    .method public hidebysig static 
+        method unmanaged {convention} string *(string, string) GetFuncPtr () cil managed 
     {{
-            ldarg.0
-            call instance void[mscorlib] System.Object::.ctor()
-            nop
-            ret
-    }} // end of Program::.ctor
-}}
-";
+        // Method begins at RVA 0x206c
+        // Code size 23 (0x17)
+        .maxstack 2
+        .locals init (
+            [0] native int
+        )
+
+        nop
+        ldnull
+        ldftn string UnmanagedFunctionPointer::CombineStringsImpl(string, string)
+        newobj instance void UnmanagedFunctionPointer/CombineStrings::.ctor(object, native int)
+        call native int [mscorlib]System.Runtime.InteropServices.Marshal::GetFunctionPointerForDelegate<class UnmanagedFunctionPointer/CombineStrings>(!!0)
+        stloc.0
+        ldloc.0
+        box [mscorlib]System.IntPtr
+		call void [mscorlib]System.GC::KeepAlive(object)
+        ldloc.0
+        ret
+    }} // end of method UnmanagedFunctionPointer::GetFuncPtr
+}} // end of class UnmanagedFunctionPointer";
 
             var source = $@"
+using System;
 class Caller
 {{
     public unsafe static void Main()
     {{
-        Call(Program.LoadPtr());
+        Call(UnmanagedFunctionPointer.GetFuncPtr());
     }}
 
-    public unsafe static void Call(delegate* {convention}<void> ptr)
+    public unsafe static void Call(delegate* {convention}<string, string, string> ptr)
     {{
-        ptr();
+        Console.WriteLine(ptr(""Hello"", "" World""));
     }}
 }}";
 
-            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: "Called");
-            verifier.VerifyIL($"Caller.Call(delegate* {convention}<void>)", @"
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: "Hello World");
+            // PROTOTYPE(func-ptr): Add calling convention when the formatter supports it
+            verifier.VerifyIL($"Caller.Call(delegate*<string,string,string>)", @"
 {
-  // Code size        7 (0x7)
-  .maxstack  1
+  // Code size       24 (0x18)
+  .maxstack  3
+  .locals init (delegate*<string,string,string> V_0)
   IL_0000:  ldarg.0
-  IL_0001:  calli      0x2
-  IL_0006:  ret
+  IL_0001:  stloc.0
+  IL_0002:  ldstr      ""Hello""
+  IL_0007:  ldstr      "" World""
+  IL_000c:  ldloc.0
+  IL_000d:  calli      0x2
+  IL_0012:  call       ""void System.Console.WriteLine(string)""
+  IL_0017:  ret
+}");
+        }
+
+        [Fact]
+        public void ThiscallSimpleReturn()
+        {
+            var ilSource = @"
+.class private auto ansi '<Module>'
+{
+} // end of class <Module>
+
+.class public sequential ansi sealed beforefieldinit S
+    extends [mscorlib]System.ValueType
+{
+    // Fields
+    .field public int32 i
+
+    // Methods
+    .method public hidebysig static 
+        int32 GetInt (
+            valuetype S* s
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 12 (0xc)
+        .maxstack 1
+        .locals init (
+            [0] int32
+        )
+
+        nop
+        ldarg.0
+        ldfld int32 S::i
+        ret
+    } // end of method S::GetInt
+
+    .method public hidebysig static 
+        int32 GetReturn (
+            valuetype S* s,
+            int32 i
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2068
+        // Code size 14 (0xe)
+        .maxstack 2
+        .locals init (
+            [0] int32
+        )
+
+        nop
+        ldarg.0
+        ldfld int32 S::i
+        ldarg.1
+        add
+        ret
+    } // end of method S::GetReturn
+
+} // end of class S
+
+.class public auto ansi beforefieldinit UnmanagedFunctionPointer
+    extends [mscorlib]System.Object
+{
+    // Nested Types
+    .class nested private auto ansi sealed SingleParam
+        extends [mscorlib]System.MulticastDelegate
+    {
+        .custom instance void [mscorlib]System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.CallingConvention) = (
+            01 00 04 00 00 00 00 00
+        )
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor (
+                object 'object',
+                native int 'method'
+            ) runtime managed 
+        {
+        } // end of method SingleParam::.ctor
+
+        .method public hidebysig newslot virtual 
+            instance int32 Invoke (
+                valuetype S* s
+            ) runtime managed 
+        {
+        } // end of method SingleParam::Invoke
+
+        .method public hidebysig newslot virtual 
+            instance class [mscorlib]System.IAsyncResult BeginInvoke (
+                valuetype S* s,
+                class [mscorlib]System.AsyncCallback callback,
+                object 'object'
+            ) runtime managed 
+        {
+        } // end of method SingleParam::BeginInvoke
+
+        .method public hidebysig newslot virtual 
+            instance int32 EndInvoke (
+                class [mscorlib]System.IAsyncResult result
+            ) runtime managed 
+        {
+        } // end of method SingleParam::EndInvoke
+
+    } // end of class SingleParam
+
+    .class nested private auto ansi sealed MultipleParams
+        extends [mscorlib]System.MulticastDelegate
+    {
+        .custom instance void [mscorlib]System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.CallingConvention) = (
+            01 00 04 00 00 00 00 00
+        )
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor (
+                object 'object',
+                native int 'method'
+            ) runtime managed 
+        {
+        } // end of method MultipleParams::.ctor
+
+        .method public hidebysig newslot virtual 
+            instance int32 Invoke (
+                valuetype S* s,
+                int32 i
+            ) runtime managed 
+        {
+        } // end of method MultipleParams::Invoke
+
+        .method public hidebysig newslot virtual 
+            instance class [mscorlib]System.IAsyncResult BeginInvoke (
+                valuetype S* s,
+                int32 i,
+                class [mscorlib]System.AsyncCallback callback,
+                object 'object'
+            ) runtime managed 
+        {
+        } // end of method MultipleParams::BeginInvoke
+
+        .method public hidebysig newslot virtual 
+            instance int32 EndInvoke (
+                class [mscorlib]System.IAsyncResult result
+            ) runtime managed 
+        {
+        } // end of method MultipleParams::EndInvoke
+
+    } // end of class MultipleParams
+
+
+    // Methods
+    .method public hidebysig static 
+        method unmanaged thiscall int32 *(valuetype S*) GetFuncPtrSingleParam () cil managed 
+    {
+        // Method begins at RVA 0x2084
+        // Code size 37 (0x25)
+        .maxstack 2
+        .locals init (
+            [0] native int,
+            [1] native int
+        )
+
+        nop
+        ldnull
+        ldftn int32 S::GetInt(valuetype S*)
+        newobj instance void UnmanagedFunctionPointer/SingleParam::.ctor(object, native int)
+        call native int [mscorlib]System.Runtime.InteropServices.Marshal::GetFunctionPointerForDelegate<class UnmanagedFunctionPointer/SingleParam>(!!0)
+        stloc.0
+        ldloc.0
+        box [mscorlib]System.IntPtr
+        call void [mscorlib]System.GC::KeepAlive(object)
+        ldloc.0
+        ret
+    } // end of method UnmanagedFunctionPointer::GetFuncPtrSingleParam
+
+    .method public hidebysig static 
+        method unmanaged thiscall int32 *(valuetype S*, int32) GetFuncPtrMultipleParams () cil managed 
+    {
+        // Method begins at RVA 0x20b8
+        // Code size 37 (0x25)
+        .maxstack 2
+        .locals init (
+            [0] native int,
+            [1] native int
+        )
+
+        nop
+        ldnull
+        ldftn int32 S::GetReturn(valuetype S*, int32)
+        newobj instance void UnmanagedFunctionPointer/MultipleParams::.ctor(object, native int)
+        call native int [mscorlib]System.Runtime.InteropServices.Marshal::GetFunctionPointerForDelegate<class UnmanagedFunctionPointer/MultipleParams>(!!0)
+        stloc.0
+        ldloc.0
+        box [mscorlib]System.IntPtr
+        call void [mscorlib]System.GC::KeepAlive(object)
+        ldloc.0
+        ret
+    } // end of method UnmanagedFunctionPointer::GetFuncPtrMultipleParams
+} // end of class UnmanagedFunctionPointer
+";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(@"
+using System;
+unsafe class C
+{
+    public static void Main()
+    {
+        TestSingle();
+        TestMultiple();
+    }
+
+    public static void TestSingle()
+    {
+        S s = new S();
+        s.i = 1;
+        var i = UnmanagedFunctionPointer.GetFuncPtrSingleParam()(&s);
+        Console.Write(i);
+    }
+
+    public static void TestMultiple()
+    {
+        S s = new S();
+        s.i = 2;
+        var i = UnmanagedFunctionPointer.GetFuncPtrMultipleParams()(&s, 3);
+        Console.Write(i);
+    }
+}", ilSource, expectedOutput: @"15");
+
+            verifier.VerifyIL("C.TestSingle()", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (S V_0, //s
+                delegate*<S*,int> V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.1
+  IL_000b:  stfld      ""int S.i""
+  IL_0010:  call       ""delegate*<S*,int> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  conv.u
+  IL_0019:  ldloc.1
+  IL_001a:  calli      0x5
+  IL_001f:  call       ""void System.Console.Write(int)""
+  IL_0024:  ret
+}
+");
+
+            verifier.VerifyIL("C.TestMultiple()", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (S V_0, //s
+                delegate*<S*,int,int> V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.2
+  IL_000b:  stfld      ""int S.i""
+  IL_0010:  call       ""delegate*<S*,int,int> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  conv.u
+  IL_0019:  ldc.i4.3
+  IL_001a:  ldloc.1
+  IL_001b:  calli      0x8
+  IL_0020:  call       ""void System.Console.Write(int)""
+  IL_0025:  ret
+}
+");
+        }
+
+        // Fails on .net core due to https://github.com/dotnet/runtime/issues/33129
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void ThiscallBlittable()
+        {
+            var ilSource = @"
+.class public sequential ansi sealed beforefieldinit IntWrapper
+    extends [mscorlib]System.ValueType
+{
+    // Fields
+    .field public int32 i
+
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 i
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 9 (0x9)
+        .maxstack 8
+
+        nop
+        ldarg.0
+        ldarg.1
+        stfld int32 IntWrapper::i
+        ret
+    } // end of method IntWrapper::.ctor
+
+} // end of class IntWrapper
+
+.class public sequential ansi sealed beforefieldinit ReturnWrapper
+    extends [mscorlib]System.ValueType
+{
+    // Fields
+    .field public int32 i1
+    .field public float32 f2
+
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            int32 i1,
+            float32 f2
+        ) cil managed 
+    {
+        // Method begins at RVA 0x205a
+        // Code size 16 (0x10)
+        .maxstack 8
+
+        nop
+        ldarg.0
+        ldarg.1
+        stfld int32 ReturnWrapper::i1
+        ldarg.0
+        ldarg.2
+        stfld float32 ReturnWrapper::f2
+        ret
+    } // end of method ReturnWrapper::.ctor
+
+} // end of class ReturnWrapper
+
+.class public sequential ansi sealed beforefieldinit S
+    extends [mscorlib]System.ValueType
+{
+    // Fields
+    .field public int32 i
+
+    // Methods
+    .method public hidebysig static 
+        valuetype IntWrapper GetInt (
+            valuetype S* s
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206c
+        // Code size 17 (0x11)
+        .maxstack 1
+        .locals init (
+            [0] valuetype IntWrapper
+        )
+
+        nop
+        ldarg.0
+        ldfld int32 S::i
+        newobj instance void IntWrapper::.ctor(int32)
+        ret
+    } // end of method S::GetInt
+
+    .method public hidebysig static 
+        valuetype ReturnWrapper GetReturn (
+            valuetype S* s,
+            float32 f
+        ) cil managed 
+    {
+        // Method begins at RVA 0x208c
+        // Code size 18 (0x12)
+        .maxstack 2
+        .locals init (
+            [0] valuetype ReturnWrapper
+        )
+
+        nop
+        ldarg.0
+        ldfld int32 S::i
+        ldarg.1
+        newobj instance void ReturnWrapper::.ctor(int32, float32)
+        ret
+    } // end of method S::GetReturn
+
+} // end of class S
+
+.class public auto ansi beforefieldinit UnmanagedFunctionPointer
+    extends [mscorlib]System.Object
+{
+    // Nested Types
+    .class nested private auto ansi sealed SingleParam
+        extends [mscorlib]System.MulticastDelegate
+    {
+        .custom instance void [mscorlib]System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.CallingConvention) = (
+            01 00 04 00 00 00 00 00
+        )
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor (
+                object 'object',
+                native int 'method'
+            ) runtime managed 
+        {
+        } // end of method SingleParam::.ctor
+
+        .method public hidebysig newslot virtual 
+            instance valuetype IntWrapper Invoke (
+                valuetype S* s
+            ) runtime managed 
+        {
+        } // end of method SingleParam::Invoke
+
+        .method public hidebysig newslot virtual 
+            instance class [mscorlib]System.IAsyncResult BeginInvoke (
+                valuetype S* s,
+                class [mscorlib]System.AsyncCallback callback,
+                object 'object'
+            ) runtime managed 
+        {
+        } // end of method SingleParam::BeginInvoke
+
+        .method public hidebysig newslot virtual 
+            instance valuetype IntWrapper EndInvoke (
+                class [mscorlib]System.IAsyncResult result
+            ) runtime managed 
+        {
+        } // end of method SingleParam::EndInvoke
+
+    } // end of class SingleParam
+
+    .class nested private auto ansi sealed MultipleParams
+        extends [mscorlib]System.MulticastDelegate
+    {
+        .custom instance void [mscorlib]System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.CallingConvention) = (
+            01 00 04 00 00 00 00 00
+        )
+        // Methods
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor (
+                object 'object',
+                native int 'method'
+            ) runtime managed 
+        {
+        } // end of method MultipleParams::.ctor
+
+        .method public hidebysig newslot virtual 
+            instance valuetype ReturnWrapper Invoke (
+                valuetype S* s,
+                float32 f
+            ) runtime managed 
+        {
+        } // end of method MultipleParams::Invoke
+
+        .method public hidebysig newslot virtual 
+            instance class [mscorlib]System.IAsyncResult BeginInvoke (
+                valuetype S* s,
+                float32 f,
+                class [mscorlib]System.AsyncCallback callback,
+                object 'object'
+            ) runtime managed 
+        {
+        } // end of method MultipleParams::BeginInvoke
+
+        .method public hidebysig newslot virtual 
+            instance valuetype ReturnWrapper EndInvoke (
+                class [mscorlib]System.IAsyncResult result
+            ) runtime managed 
+        {
+        } // end of method MultipleParams::EndInvoke
+
+    } // end of class MultipleParams
+
+
+    // Methods
+    .method public hidebysig static 
+        method unmanaged thiscall valuetype IntWrapper *(valuetype S*) GetFuncPtrSingleParam () cil managed 
+    {
+        // Method begins at RVA 0x20ac
+        // Code size 37 (0x25)
+        .maxstack 2
+        .locals init (
+            [0] native int,
+            [1] native int
+        )
+
+        nop
+        ldnull
+        ldftn valuetype IntWrapper S::GetInt(valuetype S*)
+        newobj instance void UnmanagedFunctionPointer/SingleParam::.ctor(object, native int)
+        call native int [mscorlib]System.Runtime.InteropServices.Marshal::GetFunctionPointerForDelegate<class UnmanagedFunctionPointer/SingleParam>(!!0)
+        stloc.0
+        ldloc.0
+        box [mscorlib]System.IntPtr
+        call void [mscorlib]System.GC::KeepAlive(object)
+        ldloc.0
+        ret
+    } // end of method UnmanagedFunctionPointer::GetFuncPtrSingleParam
+
+    .method public hidebysig static 
+        method unmanaged thiscall valuetype ReturnWrapper *(valuetype S*, float32) GetFuncPtrMultipleParams () cil managed 
+    {
+        // Method begins at RVA 0x20e0
+        // Code size 37 (0x25)
+        .maxstack 2
+        .locals init (
+            [0] native int,
+            [1] native int
+        )
+
+        nop
+        ldnull
+        ldftn valuetype ReturnWrapper S::GetReturn(valuetype S*, float32)
+        newobj instance void UnmanagedFunctionPointer/MultipleParams::.ctor(object, native int)
+        call native int [mscorlib]System.Runtime.InteropServices.Marshal::GetFunctionPointerForDelegate<class UnmanagedFunctionPointer/MultipleParams>(!!0)
+        stloc.0
+        ldloc.0
+        box [mscorlib]System.IntPtr
+        call void [mscorlib]System.GC::KeepAlive(object)
+        ldloc.0
+        ret
+    } // end of method UnmanagedFunctionPointer::GetFuncPtrMultipleParams
+} // end of class UnmanagedFunctionPointer
+";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(@"
+using System;
+unsafe class C
+{
+    public static void Main()
+    {
+        TestSingle();
+        TestMultiple();
+    }
+
+    public static void TestSingle()
+    {
+        S s = new S();
+        s.i = 1;
+        var intWrapper = UnmanagedFunctionPointer.GetFuncPtrSingleParam()(&s);
+        Console.WriteLine(intWrapper.i);
+    }
+
+    public static void TestMultiple()
+    {
+        S s = new S();
+        s.i = 2;
+        var returnWrapper = UnmanagedFunctionPointer.GetFuncPtrMultipleParams()(&s, 3.5f);
+        Console.Write(returnWrapper.i1);
+        Console.Write(returnWrapper.f2);
+    }
+}", ilSource, expectedOutput: @"
+1
+23.5
+");
+
+            verifier.VerifyIL("C.TestSingle()", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  .locals init (S V_0, //s
+                delegate*<S*,IntWrapper> V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.1
+  IL_000b:  stfld      ""int S.i""
+  IL_0010:  call       ""delegate*<S*,IntWrapper> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  conv.u
+  IL_0019:  ldloc.1
+  IL_001a:  calli      0x5
+  IL_001f:  ldfld      ""int IntWrapper.i""
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  ret
+}");
+
+            verifier.VerifyIL("C.TestMultiple()", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (S V_0, //s
+                delegate*<S*,float,ReturnWrapper> V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.2
+  IL_000b:  stfld      ""int S.i""
+  IL_0010:  call       ""delegate*<S*,float,ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  conv.u
+  IL_0019:  ldc.r4     3.5
+  IL_001e:  ldloc.1
+  IL_001f:  calli      0x9
+  IL_0024:  dup
+  IL_0025:  ldfld      ""int ReturnWrapper.i1""
+  IL_002a:  call       ""void System.Console.Write(int)""
+  IL_002f:  ldfld      ""float ReturnWrapper.f2""
+  IL_0034:  call       ""void System.Console.Write(float)""
+  IL_0039:  ret
 }");
         }
 
@@ -808,7 +1474,7 @@ Getting 4
   IL_0010:  ldstr      ""2""
   IL_0015:  call       ""string C.GetArg(string)""
   IL_001a:  ldloc.0
-  IL_001b:  calli      0x6
+  IL_001b:  calli      0x5
   IL_0020:  ret
 }");
 
@@ -824,7 +1490,7 @@ Getting 4
   IL_0010:  ldstr      ""4""
   IL_0015:  call       ""string C.GetArg(string)""
   IL_001a:  ldloc.0
-  IL_001b:  calli      0x6
+  IL_001b:  calli      0x5
   IL_0020:  ret
 }");
         }
@@ -892,7 +1558,7 @@ Returned");
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""Returned""
   IL_000b:  ldloc.0
-  IL_000c:  calli      0x2
+  IL_000c:  calli      0x1
   IL_0011:  call       ""void System.Console.WriteLine(string)""
   IL_0016:  ret
 }");
@@ -942,7 +1608,7 @@ unsafe class C
 {
     static void Main()
     {
-        var retValue = Program.LoadPtr()(""Unused"");
+        Program.LoadPtr()(""Unused"");
         Console.WriteLine(""Constant"");
     }
 }
@@ -961,7 +1627,7 @@ Constant");
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""Unused""
   IL_000b:  ldloc.0
-  IL_000c:  calli      0x2
+  IL_000c:  calli      0x1
   IL_0011:  pop
   IL_0012:  ldstr      ""Constant""
   IL_0017:  call       ""void System.Console.WriteLine(string)""
@@ -1036,17 +1702,20 @@ Returned");
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {
-  // Code size       28 (0x1c)
+  // Code size       30 (0x1e)
   .maxstack  2
-  .locals init (delegate*<string,string> V_0) //inner
+  .locals init (delegate*<string,string> V_0, //inner
+                delegate*<string,string> V_1)
   IL_0000:  call       ""delegate*<delegate*<string,string>> Program.LoadPtr()""
   IL_0005:  calli      0x2
   IL_000a:  stloc.0
-  IL_000b:  ldstr      ""Returned""
-  IL_0010:  ldloc.0
-  IL_0011:  calli      0x3
-  IL_0016:  call       ""void System.Console.WriteLine(string)""
-  IL_001b:  ret
+  IL_000b:  ldloc.0
+  IL_000c:  stloc.1
+  IL_000d:  ldstr      ""Returned""
+  IL_0012:  ldloc.1
+  IL_0013:  calli      0x3
+  IL_0018:  call       ""void System.Console.WriteLine(string)""
+  IL_001d:  ret
 }");
         }
 
@@ -1123,7 +1792,7 @@ Implicit conversion
   IL_0006:  newobj     ""C..ctor()""
   IL_000b:  call       ""Program C.op_Implicit(C)""
   IL_0010:  ldloc.0
-  IL_0011:  calli      0x4
+  IL_0011:  calli      0x3
   IL_0016:  ret
 }");
         }
@@ -1183,25 +1852,28 @@ unsafe class C
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {
-  // Code size       27 (0x1b)
+  // Code size       29 (0x1d)
   .maxstack  2
   .locals init (delegate*<ref string,void> V_0, //pointer
-                string V_1) //str
+                string V_1, //str
+                delegate*<ref string,void> V_2)
   IL_0000:  call       ""delegate*<ref string,void> Program.LoadPtr()""
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""Unset""
   IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  ldloc.0
-  IL_000f:  calli      0x3
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ret
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.2
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldloc.2
+  IL_0011:  calli      0x3
+  IL_0016:  ldloc.1
+  IL_0017:  call       ""void System.Console.WriteLine(string)""
+  IL_001c:  ret
 }");
         }
 
         [Fact]
-        public void RefReturnUnused()
+        public void RefReturnUsedByValue()
         {
             var ilStub = @"
 .class public auto ansi beforefieldinit Program
@@ -1332,6 +2004,119 @@ unsafe class C
         }
 
         [Fact]
+        public void ModifiedReceiverInParameter()
+        {
+
+            var ilStub = @"
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        method string *(string) LoadPtr1 () cil managed 
+    {
+        nop
+        ldftn string Program::Called1(string)
+        ret
+    } // end of method Program::LoadPtr1
+
+    .method public hidebysig static 
+        method string *(string) LoadPtr2 () cil managed 
+    {
+        nop
+        ldftn string Program::Called2(string)
+        ret
+    } // end of method Program::LoadPtr2
+
+    .method private hidebysig static 
+        string Called1 (string) cil managed 
+    {
+        nop
+        ldstr ""Called Function 1""
+        call void [mscorlib]System.Console::WriteLine(string)
+        ldarg.0
+        call void [mscorlib]System.Console::WriteLine(string)
+        ldstr ""Returned From Function 1""
+        ret
+    } // end of Program::Called1
+
+    .method private hidebysig static 
+        string Called2 (string) cil managed 
+    {
+        nop
+        ldstr ""Called Function 2""
+        call void [mscorlib]System.Console::WriteLine(string)
+        ldarg.0
+        call void [mscorlib]System.Console::WriteLine(string)
+        ldstr ""Returned From Function 2""
+        ret
+    } // end of Program::Called2
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+    {
+            ldarg.0
+            call instance void[mscorlib] System.Object::.ctor()
+            nop
+            ret
+    } // end of Program::.ctor
+}
+";
+
+            var source = @"
+using System;
+unsafe class C
+{
+    public static void Main()
+    {
+        var ptr = Program.LoadPtr1();
+        Console.WriteLine(ptr((ptr = Program.LoadPtr2())(""Argument To Function 2"")));
+        Console.WriteLine(ptr(""Argument To Function 2""));
+    }
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: @"
+Called Function 2
+Argument To Function 2
+Called Function 1
+Returned From Function 2
+Returned From Function 1
+Called Function 2
+Argument To Function 2
+Returned From Function 2");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       57 (0x39)
+  .maxstack  2
+  .locals init (delegate*<string,string> V_0, //ptr
+                delegate*<string,string> V_1,
+                delegate*<string,string> V_2)
+  IL_0000:  call       ""delegate*<string,string> Program.LoadPtr1()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  stloc.1
+  IL_0008:  call       ""delegate*<string,string> Program.LoadPtr2()""
+  IL_000d:  dup
+  IL_000e:  stloc.0
+  IL_000f:  stloc.2
+  IL_0010:  ldstr      ""Argument To Function 2""
+  IL_0015:  ldloc.2
+  IL_0016:  calli      0x3
+  IL_001b:  ldloc.1
+  IL_001c:  calli      0x3
+  IL_0021:  call       ""void System.Console.WriteLine(string)""
+  IL_0026:  ldloc.0
+  IL_0027:  stloc.1
+  IL_0028:  ldstr      ""Argument To Function 2""
+  IL_002d:  ldloc.1
+  IL_002e:  calli      0x3
+  IL_0033:  call       ""void System.Console.WriteLine(string)""
+  IL_0038:  ret
+}");
+        }
+
+        [Fact]
         public void Typeof()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -1358,7 +2143,117 @@ class C
 }");
         }
 
-        // typeof() on function pointer
+        private const string NoPiaInterfaces = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+[assembly: PrimaryInteropAssemblyAttribute(1,1)]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface I1
+{
+    string GetStr();
+}
+
+[ComImport]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58270"")]
+public interface I2{}";
+
+        [Fact]
+        public void NoPiaInSignature()
+        {
+            var nopiaReference = CreateCompilation(NoPiaInterfaces).EmitToImageReference(embedInteropTypes: true);
+
+            CompileAndVerifyFunctionPointers(@"
+unsafe class C
+{
+    public delegate*<I2, I1> M() => throw null;
+}", references: new[] { nopiaReference }, symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                Assert.Equal(1, module.ReferencedAssemblies.Length);
+                Assert.NotEqual(nopiaReference.Display, module.ReferencedAssemblies[0].Name);
+
+                var i1 = module.GlobalNamespace.GetTypeMembers("I1").Single();
+                Assert.NotNull(i1);
+                Assert.Equal(module, i1.ContainingModule);
+
+                var i2 = module.GlobalNamespace.GetTypeMembers("I2").Single();
+                Assert.NotNull(i2);
+                Assert.Equal(module, i2.ContainingModule);
+
+                var c = module.GlobalNamespace.GetTypeMembers("C").Single();
+                var m = c.GetMethod("M");
+
+                var returnType = (FunctionPointerTypeSymbol)m.ReturnType;
+                Assert.Equal(i1, returnType.Signature.ReturnType);
+                Assert.Equal(i2, returnType.Signature.ParameterTypesWithAnnotations[0].Type);
+            }
+        }
+
+        [Fact]
+        public void NoPiaInTypeOf()
+        {
+            var nopiaReference = CreateCompilation(NoPiaInterfaces).EmitToImageReference(embedInteropTypes: true);
+
+            CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    public Type M() => typeof(delegate*<I1, I2>);
+}", references: new[] { nopiaReference }, symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                Assert.Equal(1, module.ReferencedAssemblies.Length);
+                Assert.NotEqual(nopiaReference.Display, module.ReferencedAssemblies[0].Name);
+
+                var i1 = module.GlobalNamespace.GetTypeMembers("I1").Single();
+                Assert.NotNull(i1);
+                Assert.Equal(module, i1.ContainingModule);
+
+                var i2 = module.GlobalNamespace.GetTypeMembers("I2").Single();
+                Assert.NotNull(i2);
+                Assert.Equal(module, i2.ContainingModule);
+            }
+        }
+
+        [Fact]
+        public void NoPiaInCall()
+        {
+            var nopiaReference = CreateCompilation(NoPiaInterfaces).EmitToImageReference(embedInteropTypes: true);
+
+            var intermediate = CreateCompilation(@"
+using System;
+public unsafe class C
+{
+    public delegate*<I1> M() => throw null;
+}", references: new[] { nopiaReference }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+
+            CompileAndVerifyFunctionPointers(@"
+unsafe class C2
+{
+    public void M(C c)
+    {
+        _ = c.M()();
+    }
+}", references: new[] { nopiaReference, intermediate }, symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                Assert.Equal(2, module.ReferencedAssemblies.Length);
+                Assert.DoesNotContain(nopiaReference.Display, module.ReferencedAssemblies.Select(a => a.Name));
+                Assert.Equal(intermediate.Display, module.ReferencedAssemblies[1].Name);
+
+                var i1 = module.GlobalNamespace.GetTypeMembers("I1").Single();
+                Assert.NotNull(i1);
+                Assert.Equal(module, i1.ContainingModule);
+            }
+        }
 
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {

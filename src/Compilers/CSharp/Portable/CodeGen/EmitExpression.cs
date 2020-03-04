@@ -1653,56 +1653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(actualMethodTargetedByTheCall, call.Syntax,
                             actualMethodTargetedByTheCall.IsVararg ? (BoundArgListOperator)call.Arguments[call.Arguments.Length - 1] : null);
 
-            if (!method.ReturnsVoid)
-            {
-                EmitPopIfUnused(useKind != UseKind.Unused);
-            }
-            else if (_ilEmitStyle == ILEmitStyle.Debug)
-            {
-                // The only void methods with usable return values are constructors and we represent those
-                // as BoundObjectCreationExpressions, not BoundCalls.
-                Debug.Assert(useKind == UseKind.Unused, "Using the return value of a void method.");
-                Debug.Assert(_method.GenerateDebugInfo, "Implied by this.emitSequencePoints");
-
-                // DevDiv #15135.  When a method like System.Diagnostics.Debugger.Break() is called, the
-                // debugger sees an event indicating that a user break (vs a breakpoint) has occurred.
-                // When this happens, it uses ICorDebugILFrame.GetIP(out uint, out CorDebugMappingResult)
-                // to determine the current instruction pointer.  This method returns the instruction
-                // *after* the call.  The source location is then given by the last sequence point before
-                // or on this instruction.  As a result, if the instruction after the call has its own
-                // sequence point, then that sequence point will be used to determine the source location
-                // and the debugging experience will be disrupted.  The easiest way to ensure that the next
-                // instruction does not have a sequence point is to insert a nop.  Obviously, we only do this
-                // if debugging is enabled and optimization is disabled.
-
-                // From ILGENREC::genCall:
-                //   We want to generate a NOP after CALL opcodes that end a statement so the debugger
-                //   has better stepping behavior
-
-                // CONSIDER: In the native compiler, there's an additional restriction on when this nop is
-                // inserted.  It is quite complicated, but it basically seems to say that, if we thought
-                // we could omit the temp-and-copy for a struct construction and it turned out that we
-                // couldn't (perhaps because the assigned local was captured by a lambda), and if we're
-                // not using the result of the constructor call (how can this even happen?), then we don't
-                // want to insert the nop.  Since the consequence of not implementing this complicated logic
-                // is an extra nop in debug code, this is likely not a priority.
-
-                // CONSIDER: The native compiler also checks !(tree->flags & EXF_NODEBUGINFO).  We don't have
-                // this mutable bit on our bound nodes, so we can't exactly match the behavior.  We might be
-                // able to approximate the native behavior by inspecting call.WasCompilerGenerated, but it is
-                // not in a reliable state after lowering.
-
-                _builder.EmitOpCode(ILOpCode.Nop);
-            }
-
-            if (useKind == UseKind.UsedAsValue && method.RefKind != RefKind.None)
-            {
-                EmitLoadIndirect(method.ReturnType, call.Syntax);
-            }
-            else if (useKind == UseKind.UsedAsAddress)
-            {
-                Debug.Assert(method.RefKind != RefKind.None);
-            }
+            EmitCallOrCalliCleanup(call.Syntax, useKind, method);
 
             FreeOptTemp(tempOpt);
         }
@@ -3416,12 +3367,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitCalli(BoundFunctionPointerInvocation ptrInvocation, UseKind useKind)
         {
             FunctionPointerMethodSymbol method = ptrInvocation.FunctionPointer.Signature;
+
+            EmitExpression(ptrInvocation.InvokedExpression, used: true);
+            LocalDefinition temp = null;
+            if (ptrInvocation.Arguments.Length > 0)
+            {
+                temp = AllocateTemp(ptrInvocation.InvokedExpression.Type, ptrInvocation.Syntax);
+                _builder.EmitLocalStore(temp);
+            }
+
             EmitArguments(ptrInvocation.Arguments, method.Parameters, ptrInvocation.ArgumentRefKindsOpt);
             var stackBehavior = GetCallStackBehavior(ptrInvocation.FunctionPointer.Signature, ptrInvocation.Arguments);
-            EmitExpression(ptrInvocation.InvokedExpression, used: true);
-            _builder.EmitOpCode(ILOpCode.Calli, stackBehavior);
-            EmitSymbolToken(ptrInvocation.FunctionPointer, ptrInvocation.Syntax);
 
+            if (temp is object)
+            {
+                _builder.EmitLocalLoad(temp);
+                FreeTemp(temp);
+            }
+
+            _builder.EmitOpCode(ILOpCode.Calli, stackBehavior);
+            EmitFunctionPointerSymbolToken(ptrInvocation.FunctionPointer, ptrInvocation.Syntax);
+            EmitCallOrCalliCleanup(ptrInvocation.Syntax, useKind, method);
+        }
+
+        private void EmitCallOrCalliCleanup(SyntaxNode syntax, UseKind useKind, MethodSymbol method)
+        {
             if (!method.ReturnsVoid)
             {
                 EmitPopIfUnused(useKind != UseKind.Unused);
@@ -3444,12 +3414,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // instruction does not have a sequence point is to insert a nop.  Obviously, we only do this
                 // if debugging is enabled and optimization is disabled.
 
+                // From ILGENREC::genCall:
+                //   We want to generate a NOP after CALL opcodes that end a statement so the debugger
+                //   has better stepping behavior
+
+                // CONSIDER: In the native compiler, there's an additional restriction on when this nop is
+                // inserted.  It is quite complicated, but it basically seems to say that, if we thought
+                // we could omit the temp-and-copy for a struct construction and it turned out that we
+                // couldn't (perhaps because the assigned local was captured by a lambda), and if we're
+                // not using the result of the constructor call (how can this even happen?), then we don't
+                // want to insert the nop.  Since the consequence of not implementing this complicated logic
+                // is an extra nop in debug code, this is likely not a priority.
+
+                // CONSIDER: The native compiler also checks !(tree->flags & EXF_NODEBUGINFO).  We don't have
+                // this mutable bit on our bound nodes, so we can't exactly match the behavior.  We might be
+                // able to approximate the native behavior by inspecting call.WasCompilerGenerated, but it is
+                // not in a reliable state after lowering.
+
                 _builder.EmitOpCode(ILOpCode.Nop);
             }
 
             if (useKind == UseKind.UsedAsValue && method.RefKind != RefKind.None)
             {
-                EmitLoadIndirect(method.ReturnType, ptrInvocation.Syntax);
+                EmitLoadIndirect(method.ReturnType, syntax);
             }
             else if (useKind == UseKind.UsedAsAddress)
             {
