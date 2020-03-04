@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_nullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
-#if !CODE_STYLE // TODO: Add support for Options based tests in CodeStyle layer
                     var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, Options);
                     if (analyzerConfigSource is object)
                     {
@@ -55,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         }
                     }
 
+#if !CODE_STYLE
                     var options = solution.Options;
                     foreach (var (key, value) in remainingOptions)
                     {
@@ -88,13 +88,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp8;
 
-#if !CODE_STYLE // TODO: Add support for Options based tests in CodeStyle layer
             /// <summary>
             /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
             /// using a collection initializer.
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
-#endif
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 
