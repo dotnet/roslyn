@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -456,9 +458,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' For hint satisfaction it should be demoted to Narrowing. This is required for the following case, otherwise,
                             ' type of t is ambiguous.
                             '
-                            '    Foo2Params({1, 2, 3}, {1L, 2L, 3L})
+                            '    Goo2Params({1, 2, 3}, {1L, 2L, 3L})
                             '
-                            '    Function Foo2Params(Of t)(x As t, y As t) As String
+                            '    Function Goo2Params(Of t)(x As t, y As t) As String
 
                             conversion = ConversionKind.Narrowing
                         End If

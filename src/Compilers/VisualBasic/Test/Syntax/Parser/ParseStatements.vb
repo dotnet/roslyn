@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -16,7 +18,7 @@ Public Class ParseStatements
     Public Sub ParseIf()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
 
                     if true then f() else if true then g()
 
@@ -51,7 +53,7 @@ Public Class ParseStatements
     Public Sub ParseDo()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
 
                      Do
                      Loop  
@@ -74,7 +76,7 @@ Public Class ParseStatements
     Public Sub ParseWhile()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         dim x = 1
 
                         while x < 1
@@ -95,7 +97,7 @@ Public Class ParseStatements
     Public Sub ParseFor()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         for i = 0 to 100
                         next
                     end sub
@@ -107,7 +109,7 @@ Public Class ParseStatements
     Public Sub ParseForEach()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         for each c in "hello"
                         next
                     end sub
@@ -119,7 +121,7 @@ Public Class ParseStatements
     Public Sub ParseSelect()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         select i
                             case 0
                             case 1
@@ -135,7 +137,7 @@ Public Class ParseStatements
     Public Sub ParseTry()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         try
                         catch 
                         finally    
@@ -149,14 +151,14 @@ Public Class ParseStatements
     Public Sub ParseUsing()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         using e0
                         end using
 
                         using e1 as new C, e2 as new C
                         end using
 
-                        using e3 as new with {.foo="bar"}
+                        using e3 as new with {.goo="bar"}
                         end using
                     end sub
                End Module
@@ -167,7 +169,7 @@ Public Class ParseStatements
     Public Sub ParseUsingMultipleVariablesInAsNew()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         dim a, b as new C
                         using e1, e2 as new C, e3 as new C
                         end using
@@ -180,7 +182,7 @@ Public Class ParseStatements
     Public Sub ParseContinue()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         do
                             continue do
                         loop
@@ -303,7 +305,7 @@ Public Class ParseStatements
         'Bug 868414 - Exception when return is missing expression.
         ParseAndVerify(<![CDATA[
                 Class Class1
-                    Function Foo() As Integer
+                    Function Goo() As Integer
                         Return
                     End Function
                 End Class
@@ -327,13 +329,13 @@ Public Class ParseStatements
     Public Sub ParseLineIfThen()
         ParseAndVerify(<![CDATA[
             Class Class1
-                Function Foo() As Boolean
+                Function Goo() As Boolean
                     Return True
                 End Function
                 Sub Bar()
-                    If Foo() = True Then Return True
+                    If Goo() = True Then Return True
 
-                    If Foo() <> True Then
+                    If Goo() <> True Then
                         Return Not True
                     End If
                 End Sub
@@ -344,14 +346,14 @@ Public Class ParseStatements
     <WorkItem(539194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539194")>
     <Fact>
     Public Sub ParseSingleLineIfThenWithColon()
-        ' Foo should be a call statement and not a label
+        ' Goo should be a call statement and not a label
         Dim tree = ParseAndVerify(<![CDATA[
 Module M
   Sub Main()
-    If True Then Foo: Else 
+    If True Then Goo: Else 
   End Sub
  
-  Sub Foo()
+  Sub Goo()
   End Sub
 End Module
         ]]>)
@@ -360,9 +362,9 @@ End Module
         Dim moduleM = TryCast(compUnit.ChildNodesAndTokens()(0).AsNode, TypeBlockSyntax)
         Dim subMain = TryCast(moduleM.ChildNodesAndTokens()(1).AsNode, MethodBlockSyntax)
         Dim ifStmt = TryCast(subMain.ChildNodesAndTokens()(1).AsNode, SingleLineIfStatementSyntax)
-        Dim foo = ifStmt.Statements(0)
-        Assert.Equal(SyntaxKind.ExpressionStatement, foo.Kind)
-        Assert.Equal(SyntaxKind.InvocationExpression, DirectCast(foo, ExpressionStatementSyntax).Expression.Kind)
+        Dim goo = ifStmt.Statements(0)
+        Assert.Equal(SyntaxKind.ExpressionStatement, goo.Kind)
+        Assert.Equal(SyntaxKind.InvocationExpression, DirectCast(goo, ExpressionStatementSyntax).Expression.Kind)
     End Sub
 
     <Fact>
@@ -695,7 +697,7 @@ End Module
         ParseAndVerify(<![CDATA[
             Class Class1
                 Public vobja() As Object
-                Public Sub Foo()
+                Public Sub Goo()
                     Erase vobja
                 End Sub                
             End Class
@@ -707,7 +709,7 @@ End Module
     Public Sub ParseError()
         ParseAndVerify(<![CDATA[
             Class Class1
-                Public Sub Foo()
+                Public Sub Goo()
                     Error 5
                 End Sub                
             End Class
@@ -719,7 +721,7 @@ End Module
     Public Sub ParseLabel()
         ParseAndVerify(<![CDATA[
             Class Class1
-                Public Sub Foo()
+                Public Sub Goo()
             10:     Dim x = 42
                 End Sub                
             End Class
@@ -732,10 +734,10 @@ End Module
         ParseAndVerify(<![CDATA[
             Module M
               Sub Main()
-                Foo : Foo : Foo()
+                Goo : Goo : Goo()
               End Sub
  
-              Sub Foo()
+              Sub Goo()
               End Sub
             End Module
         ]]>)
@@ -762,45 +764,45 @@ End Module
               End Sub
 
 ::
-#region "foo" 
-              Sub Foo()
+#region "goo" 
+              Sub Goo()
               End Sub
 ::
 #end region
-              Sub Foo_()
+              Sub Goo_()
               End Sub
 
 
               ''' <summary>
               ''' </summary>  
-              :Sub Foo2()
+              :Sub Goo2()
               :End Sub
 
               ''' <summary>
               ''' </summary>  
-              Sub Foo2_()
+              Sub Goo2_()
               End Sub
 
               :<summary()>
-              Sub Foo3()
+              Sub Goo3()
               :End Sub
 
 #if false
 #end if
-              Sub Foo4()
+              Sub Goo4()
                 :              
               :End Sub
 
               :' nice little innocent comment
-              Sub Foo5()
+              Sub Goo5()
               End Sub
 
 #garbage on
-    Sub Foo6()
+    Sub Goo6()
     End Sub
 
 #Const CustomerNumber = 36
-    Sub Foo7()
+    Sub Goo7()
     End Sub
             End Module
         ]]>, <errors>
@@ -810,8 +812,8 @@ End Module
              </errors>)
 
         ' doesn't work, most probably because of the line break ...
-        'Diagnostic(ERRID.ERR_MethodMustBeFirstStatementOnLine, "Sub Foo2()"),
-        'Diagnostic(ERRID.ERR_MethodMustBeFirstStatementOnLine, "<summary()>" + vbCrLf + "              Sub Foo3()"),
+        'Diagnostic(ERRID.ERR_MethodMustBeFirstStatementOnLine, "Sub Goo2()"),
+        'Diagnostic(ERRID.ERR_MethodMustBeFirstStatementOnLine, "<summary()>" + vbCrLf + "              Sub Goo3()"),
         'Diagnostic(ERRID.ERR_ExpectedConditionalDirective, "#"))
     End Sub
 
@@ -820,7 +822,7 @@ End Module
     Public Sub ParseMid()
         ParseAndVerify(<![CDATA[
             Class Class1
-                Public Sub Foo(ByRef r As aType)
+                Public Sub Goo(ByRef r As aType)
                     Mid$(r.S(2, 2), 1, 1) = "-"
                     Mid(r.S(2, 2), 1, 1) = "-"
                 End Sub                
@@ -833,8 +835,8 @@ End Module
     Public Sub ParseMidIdentifier1()
         ParseAndVerify(<![CDATA[
             Class Mid
-                Public Sub Foo(ByRef r As aType)
-                    Mid.Foo(nothing) ' Roslyn will now recognize this correctly as a member access
+                Public Sub Goo(ByRef r As aType)
+                    Mid.Goo(nothing) ' Roslyn will now recognize this correctly as a member access
                     
                     Dim mid(42) as Integer
                     mid(23) = 33 ' false recognition as mid statement assignment -> error for missing ,
@@ -854,7 +856,7 @@ End Module
     Public Sub ParseMidIdentifier2()
         ParseAndVerify(<![CDATA[
             Class Mid
-                Public Sub Foo(ByRef r As aType)
+                Public Sub Goo(ByRef r As aType)
                 End Sub                
 
                 Public Sub Mid(p as Integer)
@@ -958,26 +960,26 @@ End Module
     Public Sub ParseAndAlsoInOrElseArgumentList()
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub Foo(ByVal x As Boolean)
+                Sub Goo(ByVal x As Boolean)
                 End Sub
                 Function Bar() As Boolean
                 End Function
 
                 Sub Main()
-                    Foo(True AndAlso Bar())
+                    Goo(True AndAlso Bar())
                 End Sub
             End Module
         ]]>)
 
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub Foo(ByVal x As Boolean)
+                Sub Goo(ByVal x As Boolean)
                 End Sub
                 Function Bar() As Boolean
                 End Function
 
                 Sub Main()
-                    Foo(False OrElse Bar())
+                    Goo(False OrElse Bar())
                 End Sub
             End Module
         ]]>)
@@ -988,8 +990,8 @@ End Module
     Public Sub ParseLineIfThenWithFollowingStatement()
         ParseAndVerify(<![CDATA[
         Class c1
-            Sub foo()
-                If True Then foo()
+            Sub goo()
+                If True Then goo()
                 bar()
             End Sub
         End Class
@@ -1224,7 +1226,7 @@ End Module
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub Main()
-                    Foo(
+                    Goo(
                         GetType(
                             Integer
                         )
@@ -1344,10 +1346,10 @@ End Class
     Public Sub ParseLambdaMethodArgument()
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub Foo(a As Action)
+                Sub Goo(a As Action)
                 End Sub
                 Sub Main()
-                    Foo(Sub()
+                    Goo(Sub()
                             Environment.ExitCode = 42
                         End Sub)
                 End Sub
@@ -1356,10 +1358,10 @@ End Class
 
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub Foo(a As Action)
+                Sub Goo(a As Action)
                 End Sub
                 Sub Main()
-                    Foo(Sub(c) Console.WriteLine(c))
+                    Goo(Sub(c) Console.WriteLine(c))
                 End Sub
             End Module
         ]]>)
@@ -1855,7 +1857,7 @@ End Module
     Public Sub ParseLambdaNestedCall()
         ParseAndVerify(<![CDATA[
             Class Class1
-                Function Foo()
+                Function Goo()
                     Dim x = Sub() Call Sub()
                                            Console.WriteLine("hi")
                                        End Sub
@@ -2004,9 +2006,9 @@ End Module
     <WorkItem(537169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537169")>
     <Fact>
     Public Sub ParseGettypeNextString()
-        ParseAndVerify(<![CDATA[Next.foo(GetType(Func(Of A))), "")]]>,
-            Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next.foo(GetType(Func(Of A))), """""),
-            Diagnostic(ERRID.ERR_ExtraNextVariable, ".foo(GetType(Func(Of A)))"))
+        ParseAndVerify(<![CDATA[Next.goo(GetType(Func(Of A))), "")]]>,
+            Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next.goo(GetType(Func(Of A))), """""),
+            Diagnostic(ERRID.ERR_ExtraNextVariable, ".goo(GetType(Func(Of A)))"))
     End Sub
 
     <WorkItem(538515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538515")>
@@ -2240,10 +2242,10 @@ End Module
         Dim code = <String>
     Module Module1
         Sub Main()
-             If True Then Foo(1) Else Foo(2) :: If True Then Foo(3) Else Foo(4) : Foo(5)
+             If True Then Goo(1) Else Goo(2) :: If True Then Goo(3) Else Goo(4) : Goo(5)
         End Sub
 
-        Private Sub Foo(i As Integer)
+        Private Sub Goo(i As Integer)
             Console.WriteLine(i)
         End Sub
     End Module
@@ -2336,7 +2338,7 @@ End Module
         Assert.Equal(stmt.Kind, SyntaxKind.MultiLineIfBlock)
         Assert.True(stmt.HasErrors)
 
-        stmt = SyntaxFactory.ParseExecutableStatement("If True then foo()")
+        stmt = SyntaxFactory.ParseExecutableStatement("If True then goo()")
         Assert.Equal(stmt.Kind, SyntaxKind.SingleLineIfStatement)
         Assert.False(stmt.HasErrors)
     End Sub
@@ -2381,7 +2383,7 @@ End Module
                 3
             End Module
             Module Module2
-                Foo:
+                Goo:
             End Module
         ]]>,
         <errors>
@@ -2410,7 +2412,7 @@ End Module
     <Fact()>
     Public Sub BC30035ERR_Syntax_ParseErrorPrecededByComment()
         ParseAndVerify(<![CDATA[Module M1
-Sub Foo
+Sub Goo
 'this is a 
 'long
 'comment
@@ -2426,7 +2428,7 @@ End Module]]>,
     Public Sub BC30058ERR_ExpectedCase()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         select i
                             dim j = false
                             case 0
@@ -2462,7 +2464,7 @@ End Module]]>,
     Public Sub BC30072ERR_CaseNoSelect()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         case 0
                     end sub
                End Module
@@ -2508,7 +2510,7 @@ End Module]]>,
     Public Sub BC30084ERR_ExpectedNext_ParseErrorCatchClosesForBlock()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                   Sub Foo()
+                   Sub Goo()
                        Try
                             For u = 0 To 2 Step 1
                                 For i = 0 To 2 Step 1
@@ -2560,14 +2562,14 @@ End Module]]>,
     Public Sub BC30091ERR_LoopNoMatchingDo_ParseDoWithErrors()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
 
                     loop
 
                     do while true
                     loop until true
 
-                    do foo
+                    do goo
                     loop
 
                     do
@@ -2587,7 +2589,7 @@ End Module]]>,
     Public Sub BC30095ERR_ExpectedEndSelect()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         if true then
                             select i
                                 case 0
@@ -2653,7 +2655,7 @@ End Module]]>,
     Public Sub BC30205ERR_ExpectedEOS_ParseLineIfDanglingElseIf()
         ParseAndVerify(<![CDATA[
         class c
-            sub foo()
+            sub goo()
                 if true then elseif
             end sub
         end class
@@ -2742,7 +2744,7 @@ End Module]]>,
     Public Sub BC30289ERR_InvInsideEndsProc_ParseSingleLineLambdaWithClass()
         ParseAndVerify(<![CDATA[
         Module M1
-            Sub Foo()
+            Sub Goo()
                 Try
                     Dim x1 = Sub(y) Class C
                 End Try
@@ -2758,7 +2760,7 @@ End Module]]>,
     Public Sub BC30321ERR_CaseAfterCaseElse()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         select i
                             case 0
                             case 1
@@ -2779,7 +2781,7 @@ End Module]]>,
     Public Sub BC30379ERR_CatchAfterFinally()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         try
                         catch 
                         finally  
@@ -2797,7 +2799,7 @@ End Module]]>,
     Public Sub BC30381ERR_FinallyAfterFinally()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         try
                         catch 
                         finally  
@@ -2815,7 +2817,7 @@ End Module]]>,
     Public Sub BC30384ERR_ExpectedEndTry()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         try
                         catch 
                         finally    
@@ -2856,7 +2858,7 @@ End Namespace
     Public Sub BC30429ERR_InvalidEndSub_ParseLambdaWithEndSubInsideTryBlock()
         ParseAndVerify(<![CDATA[
         Module M1
-            Sub Foo()
+            Sub Goo()
                 Try
                     Dim x1 = Sub(y) End Sub
                 End Try
@@ -2917,7 +2919,7 @@ End Module]]>,
     Public Sub BC30781ERR_ExpectedContinueKind()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         do
                             continue 
                         loop
@@ -3208,7 +3210,7 @@ End Module]]>,
     Public Sub BC36008ERR_ExpectedEndUsing()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         using e0
 
                     end sub
@@ -3303,7 +3305,7 @@ End Module
     Public Sub BC36673ERR_MultilineLambdaMissingSub()
         ParseAndVerify(<![CDATA[
                 Module M1
-                     Sub Foo()
+                     Sub Goo()
                         If True Then
                             'COMPILEERROR : BC36673, "Sub()" 
                             Dim x = Sub()
@@ -3325,7 +3327,7 @@ End Module
 
         ParseAndVerify(<![CDATA[
                     Class Class1
-                       Public MustOverride Property Foo() As Date = Now
+                       Public MustOverride Property Goo() As Date = Now
                     End Class
             ]]>,
     <errors>
@@ -3349,7 +3351,7 @@ End Module
     Public Sub ParseExpectedEndSelect()
         ParseAndVerify(<![CDATA[
                            Class Class1
-                              Sub Foo()
+                              Sub Goo()
                                  Dim q = From x In {1, 2, 3} _
                                          Where True _
                                          'Comment
@@ -3367,7 +3369,7 @@ End Module
     Public Sub ParseObsoleteArgumentsNeedParensAndArgumentSyntax()
         ParseAndVerify(<![CDATA[
                           Class Class1
-                                 Sub Foo()
+                                 Sub Goo()
                                       Dim q = From x In {1, 2} _
                                              'Comment
                                                Where true _
@@ -3389,17 +3391,17 @@ End Module
                 Sub Main()
                     Dim x0 = New List(Of Integer) FROM {2,3} with {.capacity=2}
 
-                    Dim a As New C2() From {"Hello World!"} with {.a = "foo"}
-                    Dim b As New C2() with {.a = "foo"} From {"Hello World!"}
-                    Dim c as C2 = New C2() From {"Hello World!"} with {.a = "foo"}
-                    Dim d as c2 = New C2() with {.a = "foo"} From {"Hello World!"}
+                    Dim a As New C2() From {"Hello World!"} with {.a = "goo"}
+                    Dim b As New C2() with {.a = "goo"} From {"Hello World!"}
+                    Dim c as C2 = New C2() From {"Hello World!"} with {.a = "goo"}
+                    Dim d as c2 = New C2() with {.a = "goo"} From {"Hello World!"}
                 End Sub
             End Module
         ]]>, Diagnostic(ERRID.ERR_CantCombineInitializers, "FROM {2,3}"),
              Diagnostic(ERRID.ERR_CantCombineInitializers, "with"),
              Diagnostic(ERRID.ERR_CantCombineInitializers, "From"),
              Diagnostic(ERRID.ERR_CantCombineInitializers, "From {""Hello World!""}"),
-             Diagnostic(ERRID.ERR_CantCombineInitializers, "with {.a = ""foo""}"))
+             Diagnostic(ERRID.ERR_CantCombineInitializers, "with {.a = ""goo""}"))
     End Sub
 
     <Fact()>
@@ -3407,7 +3409,7 @@ End Module
         'Tree loses text when declaring a property Let/End Let
         ParseAndVerify(<![CDATA[
             Class Class1
-                Property Foo() as Single
+                Property Goo() as Single
                     Let
                     End Let
                     Get 
@@ -3437,7 +3439,7 @@ End Module
                           End Sub
                      End Module
 
-            ]]>, Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf),
+            ]]>, Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, Environment.NewLine),
                  Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "                                    "))
     End Sub
 
@@ -3445,10 +3447,10 @@ End Module
     <Fact()>
     Public Sub ParseExpectedXmlnsAndExpectedEQAndExpectedXmlName()
         ParseAndVerify(<![CDATA[
-                     Imports < xmlns:ns3="foo">
-                     Imports <xmlns :ns4="foo">
-                     Imports <xmlns: ns5="foo">
-                     Imports < xmlns="foo">
+                     Imports < xmlns:ns3="goo">
+                     Imports <xmlns :ns4="goo">
+                     Imports <xmlns: ns5="goo">
+                     Imports < xmlns="goo">
                      Module Module1
                         Sub Main()
                         End Sub
@@ -3551,12 +3553,12 @@ If]]>,
     Public Sub ParseExplicitLCs()
         ParseAndVerify(<![CDATA[
 Namespace RegressDev10660280
-Sub Foo1(ByVal x As Integer, _
+Sub Goo1(ByVal x As Integer, _
 ByVal y As Integer _
 )
-apCompare(2, x, "Value of foo1")
+apCompare(2, x, "Value of goo1")
 End Sub
-Sub Foo2( _
+Sub Goo2( _
  _
 
 ]]>,
@@ -3631,7 +3633,7 @@ Sub Foo2( _
             try
                 dim j =2
                 dim k =4
-            public sub foo
+            public sub goo
         End sub
     End Module
 End Namespace
@@ -3792,7 +3794,7 @@ End Namespace
         ' This is a single line if-then-else with a multi-line-if-then
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub foo()
+                Sub goo()
                     If False Then Else if true then
 
                     If False Then Else if true then
@@ -3814,7 +3816,7 @@ End Namespace
         ' This is a single line if-then-else with a multi-line-if-then
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub foo()
+                Sub goo()
                     If False Then if true then
 
                     If False Then if true then
@@ -3835,7 +3837,7 @@ End Namespace
         ' This is a single line if-then-else with a multi-line-if-then
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub foo()
+                Sub goo()
                     If False Then  Else do 
 
                     If False Then  Else do 
@@ -3855,7 +3857,7 @@ End Namespace
         ' This is a single line if-then-else with a multi-line-if-then
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub foo()
+                Sub goo()
                     If False Then do 
 
                     If False Then do 
@@ -3876,7 +3878,7 @@ End Namespace
         'this is a "multi line if" missing a "then". "f()" after "true" is error as well as missing "end if
         ParseAndVerify(<![CDATA[
             Module Module1
-                sub foo()
+                sub goo()
                     if true f() 
                     if true then else if true f() is an error
                 End Sub
@@ -3913,7 +3915,7 @@ End Namespace
                 Public Property Class As String
                 Const End As String
 
-                Sub Foo()
+                Sub Goo()
                     ' keyword is not an identifier, inside of method body
                     Dim Namespace as integer
                     Dim Class
@@ -3936,7 +3938,7 @@ End Namespace
             ' binding errors, not reported here.
             dim class c2
             end class
-            dim module foo
+            dim module goo
             end module
         ]]>, Diagnostic(ERRID.ERR_ExpectedEndClass, "Class C1").WithLocation(2, 13),
              Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Namespace").WithLocation(19, 33),
@@ -4141,7 +4143,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+        Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
         compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedNext, "For j = 1 To 10"),
                                        Diagnostic(ERRID.ERR_ExtraNextVariable, "i"),
                                        Diagnostic(ERRID.ERR_NameNotDeclared1, "j").WithArguments("j"))
@@ -4165,7 +4167,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompileAndVerify(compilation)
 
         CompilationUtils.AssertNoErrors(compilation)
@@ -4194,7 +4196,7 @@ End Module
 </compilation>
 
         'Should be No errors and a single line lambda is in use
-        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompilationUtils.AssertTheseDiagnostics(Compilation, <expected>
                                                              </expected>)
         CompileAndVerify(Compilation)
@@ -4224,7 +4226,7 @@ End Module
 </compilation>
 
         'Should be No errors and a single line lambda is in use
-        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompilationUtils.AssertTheseDiagnostics(Compilation, <expected>
                                                              </expected>)
         CompileAndVerify(Compilation)
@@ -7599,53 +7601,88 @@ End Class
     <WorkItem(648998, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648998")>
     <Fact()>
     Public Sub Bug648998()
-        ParseAndVerify(<![CDATA[
+        Dim tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y, z = Nothing
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-                <error id="30241"/>
-                <error id="30198"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y, z = Nothing
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y, z = Nothing
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y, z = Nothing
+           ~~~~~~~~~~~
+BC30198: ')' expected.
+    Dim y, z = Nothing
+                      ~
+                                    ]]></errors>)
+
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y()
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y()
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y()
+~
+                                    ]]></errors>)
+
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-                <error id="30198"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y
+~
+BC30198: ')' expected.
+    Dim y
+    ~
+                                    ]]></errors>)
+
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
         b True,
         c:=Nothing)
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-            </errors>)
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        b True,
+        ~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        b True,
+          ~~~~
+BC30198: ')' expected.
+        b True,
+               ~
+BC30201: Expression expected.
+        b True,
+               ~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        b True,
+               ~
+BC30188: Declaration expected.
+        c:=Nothing)
+        ~
+                                    ]]></errors>)
+
     End Sub
 
     <WorkItem(649162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649162")>
@@ -8406,9 +8443,101 @@ End Module
 )
     End Sub
 
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithNoSpaceBeforeCommentV16()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic16)
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithMultipleSpacesBeforeCommentV16()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _   ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic16)
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithCommentV16()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic16)
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithCommentV15()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15),
+            Diagnostic(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, "' Comment").WithLocation(4, 36).WithArguments("16")
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithCommentV15_5()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15_5),
+            Diagnostic(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, "' Comment").WithLocation(4, 36).WithArguments("16")
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithoutComment()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _
+                    = 1
+            End Sub
+     End Module
+    ]]>
+        )
+    End Sub
+
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_01()
+    Public Sub ParseLineIfFollowedByAnotherStatement_01()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8431,7 +8560,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8454,7 +8583,7 @@ BC30081: 'If' must end with a matching 'End If'.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_02()
+    Public Sub ParseLineIfFollowedByAnotherStatement_02()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8485,7 +8614,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8508,7 +8637,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_03()
+    Public Sub ParseLineIfFollowedByAnotherStatement_03()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8533,7 +8662,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8547,7 +8676,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_04()
+    Public Sub ParseLineIfFollowedByAnotherStatement_04()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8578,7 +8707,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
@@ -8595,7 +8724,7 @@ BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_05()
+    Public Sub ParseLineIfFollowedByAnotherStatement_05()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8622,7 +8751,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8636,7 +8765,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_06()
+    Public Sub ParseLineIfFollowedByAnotherStatement_06()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8663,7 +8792,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8677,7 +8806,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_07()
+    Public Sub ParseLineIfFollowedByAnotherStatement_07()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8748,7 +8877,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8777,7 +8906,7 @@ BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_08()
+    Public Sub ParseLineIfFollowedByAnotherStatement_08()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8797,7 +8926,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 </expected>)
@@ -8805,7 +8934,7 @@ End Module
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_09()
+    Public Sub ParseLineIfFollowedByAnotherStatement_09()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8840,7 +8969,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8869,7 +8998,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_10()
+    Public Sub ParseLineIfFollowedByAnotherStatement_10()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8904,7 +9033,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8933,7 +9062,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_11()
+    Public Sub ParseLineIfFollowedByAnotherStatement_11()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -8953,7 +9082,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8964,7 +9093,7 @@ BC30205: End of statement expected.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_12()
+    Public Sub ParseLineIfFollowedByAnotherStatement_12()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9012,7 +9141,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -9029,7 +9158,7 @@ Else 3")
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_13()
+    Public Sub ParseLineIfFollowedByAnotherStatement_13()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9045,7 +9174,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30199: '(' expected.
@@ -9059,7 +9188,7 @@ BC33104: 'If' operator requires either two or three operands.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_14()
+    Public Sub ParseLineIfFollowedByAnotherStatement_14()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9075,7 +9204,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30199: '(' expected.
@@ -9089,7 +9218,7 @@ BC33104: 'If' operator requires either two or three operands.
 
     <Fact>
     <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
-    Public Sub ParseLineIfFollwedByAnotherStatement_15()
+    Public Sub ParseLineIfFollowedByAnotherStatement_15()
         Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -9105,7 +9234,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30199: '(' expected.
@@ -9137,7 +9266,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -9172,7 +9301,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -9204,7 +9333,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
@@ -9227,7 +9356,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
@@ -9253,7 +9382,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30625: 'Module' statement must end with a matching 'End Module'.

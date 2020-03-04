@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,10 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
@@ -19,15 +23,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseDefaultLiteralCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseDefaultLiteralCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
@@ -44,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
             var parseOptions = (CSharpParseOptions)document.Project.ParseOptions;
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var preferSimpleDefaultExpression = options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Value;
 
             var workspace = document.Project.Solution.Workspace;
             var originalRoot = editor.OriginalRoot;
@@ -51,55 +63,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             var originalNodes = diagnostics.SelectAsArray(
                 d => (DefaultExpressionSyntax)originalRoot.FindNode(d.Location.SourceSpan, getInnermostNodeForTie: true));
 
-            // This code fix will not make changes that affect the semantics of a statement or declaration. Therefore,
-            // we can skip the expensive verification step in cases where only one default expression appears within the
-            // group.
-            var nodesBySemanticBoundary = originalNodes.GroupBy(node => GetSemanticBoundary(node));
-            var nodesToVerify = nodesBySemanticBoundary.Where(group => group.Skip(1).Any()).Flatten().ToSet();
-
-            // We're going to be continually editing this tree.  Track all the nodes we
-            // care about so we can find them across each edit.
-            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalNodes));
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var originalDefaultExpression in originalNodes)
-            {
-                var defaultExpression = currentRoot.GetCurrentNode(originalDefaultExpression);
-                var skipVerification = !nodesToVerify.Contains(originalDefaultExpression);
-
-                if (skipVerification || defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, options, semanticModel, cancellationToken))
-                {
-                    var replacement = SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
-                                                   .WithTriviaFrom(defaultExpression);
-
-                    document = document.WithSyntaxRoot(currentRoot.ReplaceNode(defaultExpression, replacement));
-
-                    semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            editor.ReplaceNode(originalRoot, currentRoot);
-        }
-
-        private static SyntaxNode GetSemanticBoundary(DefaultExpressionSyntax node)
-        {
-            // Notes:
-            // 1. Syntax which doesn't fall into one of the "safe buckets" will get placed into a single group keyed off
-            //    the root of the tree. If more than one such node exists in the document, all will be verified.
-            // 2. Cannot include ArgumentSyntax because it could affect generic argument inference.
-            return node.FirstAncestorOrSelf<SyntaxNode>(n =>
-                n is StatementSyntax
-                || n is ParameterSyntax
-                || n is VariableDeclaratorSyntax
-                || n.Parent == null);
+            await editor.ApplyExpressionLevelSemanticEditsAsync(
+                document, originalNodes,
+                (semanticModel, defaultExpression) => defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, preferSimpleDefaultExpression, semanticModel, cancellationToken),
+                (_, currentRoot, defaultExpression) => currentRoot.ReplaceNode(
+                    defaultExpression,
+                    SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression).WithTriviaFrom(defaultExpression)),
+                cancellationToken).ConfigureAwait(false);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Simplify_default_expression, createChangedDocument)
+                : base(FeaturesResources.Simplify_default_expression, createChangedDocument, FeaturesResources.Simplify_default_expression)
             {
             }
         }

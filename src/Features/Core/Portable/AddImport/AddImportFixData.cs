@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// May be empty for fixes that don't need to add an import and only do something like
         /// add a project/metadata reference.
         /// </summary>
-        public ImmutableArray<TextChange> TextChanges { get; }
+        public IList<TextChange> TextChanges { get; }
 
         /// <summary>
         /// String to display in the lightbulb menu.
@@ -29,14 +30,14 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// <summary>
         /// Tags that control what glyph is displayed in the lightbulb menu.
         /// </summary>
-        public ImmutableArray<string> Tags { get; private set; }
+        public IList<string> Tags { get; private set; }
 
         /// <summary>
         /// The priority this item should have in the lightbulb list.
         /// </summary>
         public CodeActionPriority Priority { get; private set; }
 
-        #region When adding P2P refrences.
+        #region When adding P2P references.
 
         /// <summary>
         /// The optional id for a <see cref="Project"/> we'd like to add a reference to.

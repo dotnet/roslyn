@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             => GetTypeName(GetInfo(destructor), destructor);
 
         private static ImmutableArray<SyntaxNode> GetStatements(CodeGenerationDestructorInfo info)
-            => info?._statements ?? default(ImmutableArray<SyntaxNode>);
+            => info?._statements ?? default;
 
         private static string GetTypeName(CodeGenerationDestructorInfo info, IMethodSymbol constructor)
             => info == null ? constructor.ContainingType.Name : info._typeName;

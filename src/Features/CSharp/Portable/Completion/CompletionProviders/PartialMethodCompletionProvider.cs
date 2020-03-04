@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -33,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
         {
             var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
-            var lastStatement = methodDeclaration.Body.Statements.Last();
-            return lastStatement.GetLocation().SourceSpan.End;
+            return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration);
         }
 
         protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             token = targetToken;
 
-            modifiers = default(DeclarationModifiers);
+            modifiers = default;
 
             if (targetToken.IsKind(SyntaxKind.VoidKeyword, SyntaxKind.PartialKeyword) ||
                 (targetToken.Kind() == SyntaxKind.IdentifierToken && targetToken.HasMatchingText(SyntaxKind.PartialKeyword)))
@@ -96,14 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var touchingToken = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var token = touchingToken.GetPreviousToken();
 
-            bool foundPartial = touchingToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword);
-            bool foundAsync = false;
+            var foundPartial = touchingToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword);
+            var foundAsync = false;
 
             while (IsOnSameLine(token, touchingToken, tree.GetText(cancellationToken)))
             {
                 if (token.IsKind(SyntaxKind.ExternKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword))
                 {
-                    modifiers = default(DeclarationModifiers);
+                    modifiers = default;
                     return false;
                 }
 

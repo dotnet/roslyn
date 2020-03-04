@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -25,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Public Sub IsTextualTriggerCharacterTest()
             TestCommonIsTextualTriggerCharacter()
 
-            VerifyTextualTriggerCharacter("foo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
+            VerifyTextualTriggerCharacter("goo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -99,15 +101,15 @@ End Class
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function TestUnionOfKeywordsFromBothFiles() As Task
             Dim markup = <Workspace>
-                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="FOO=true">
+                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO=true">
                                  <Document FilePath="CurrentDocument.vb"><![CDATA[
 Class C
             Dim x As Integer
-#if FOO then
-    sub foo()
+#if GOO then
+    sub goo()
 #End If
         $$
-#If FOO Then
+#If GOO Then
     end sub
 
 #End If

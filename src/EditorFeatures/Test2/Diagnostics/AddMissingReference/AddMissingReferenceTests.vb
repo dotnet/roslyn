@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection
 Imports System.Threading.Tasks
@@ -111,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                     <Project Language="Visual Basic" AssemblyName="VBProject" CommonReferences="true">
                         <ProjectReference>VBProject2</ProjectReference>
                         <Document>
-                            Public Class Foo
+                            Public Class Goo
                                 Sub M()
                                     AddHandler ModuleWithEvent.E$$, Sub() Exit Sub
                                 End Sub
@@ -136,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VBProject" CommonReferences="true">
                         <MetadataReference><%= s_presentationCoreAssembly.Location %></MetadataReference>
-                        <Document>Public Class Foo : Inherits System.Windows.UIElement$$ : End Class</Document>
+                        <Document>Public Class Goo : Inherits System.Windows.UIElement$$ : End Class</Document>
                     </Project>
                 </Workspace>,
                 "VBProject", s_windowsBaseAssembly.FullName)
@@ -149,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                     <Project Language="Visual Basic" AssemblyName="VBProject" CommonReferences="true">
                         <ProjectReference>VBProject2</ProjectReference>
                         <Document>
-                            Public Class Foo
+                            Public Class Goo
                                 Sub M()
                                     ModuleWithEvent.E$$(Nothing)
                                 End Sub
@@ -174,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
                         <MetadataReference><%= s_presentationCoreAssembly.Location %></MetadataReference>
-                        <Document>public class Foo : System.Windows.UIElement$$ { }</Document>
+                        <Document>public class Goo : System.Windows.UIElement$$ { }</Document>
                     </Project>
                 </Workspace>,
                 "CSharpProject", s_windowsBaseAssembly.FullName)

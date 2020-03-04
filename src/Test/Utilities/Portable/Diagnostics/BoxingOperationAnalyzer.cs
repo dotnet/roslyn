@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -38,22 +40,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                  {
                      IOperation operation = operationContext.Operation;
 
-                     if (operation.Kind == OperationKind.ConversionExpression)
+                     if (operation.Kind == OperationKind.Conversion)
                      {
-                         IConversionExpression conversion = (IConversionExpression)operation;
+                         IConversionOperation conversion = (IConversionOperation)operation;
                          if (conversion.Type.IsReferenceType &&
                              conversion.Operand.Type != null &&
                              conversion.Operand.Type.IsValueType &&
-                             !conversion.UsesOperatorMethod)
+                             conversion.OperatorMethod == null)
                          {
                              Report(operationContext, conversion.Syntax);
                          }
                      }
 
                      // Calls to instance methods of value types don’t have conversions.
-                     if (operation.Kind == OperationKind.InvocationExpression)
+                     if (operation.Kind == OperationKind.Invocation)
                      {
-                         IInvocationExpression invocation = (IInvocationExpression)operation;
+                         IInvocationOperation invocation = (IInvocationOperation)operation;
 
                          if (invocation.Instance != null &&
                              invocation.Instance.Type.IsValueType &&
@@ -63,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                          }
                      }
                  },
-                 OperationKind.ConversionExpression,
-                 OperationKind.InvocationExpression);
+                 OperationKind.Conversion,
+                 OperationKind.Invocation);
         }
 
         /// <summary>Reports a diagnostic warning for a boxing operation.</summary>

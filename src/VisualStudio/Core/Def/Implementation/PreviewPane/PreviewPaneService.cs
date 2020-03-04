@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -18,18 +20,22 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
+using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
+using SVsUIShell = Microsoft.VisualStudio.Shell.Interop.SVsUIShell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
     [ExportWorkspaceServiceFactory(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
     internal class PreviewPaneService : ForegroundThreadAffinitizedObject, IPreviewPaneService, IWorkspaceServiceFactory
     {
-        private readonly EnvDTE.DTE _dte;
+        private readonly IVsUIShell _uiShell;
 
         [ImportingConstructor]
-        public PreviewPaneService(SVsServiceProvider serviceProvider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public PreviewPaneService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
-            _dte = serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
+            _uiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell;
         }
 
         IWorkspaceService IWorkspaceServiceFactory.CreateService(HostWorkspaceServices workspaceServices)
@@ -67,34 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return null;
         }
 
-        private static Uri GetHelpLink(DiagnosticData diagnostic, string language, string projectType, out string helpLinkToolTipText)
+        object IPreviewPaneService.GetPreviewPane(DiagnosticData data, IReadOnlyList<object> previewContent)
         {
-            var isBing = false;
-            helpLinkToolTipText = string.Empty;
-            if (!BrowserHelper.TryGetUri(diagnostic.HelpLink, out var helpLink))
-            {
-                // We use the ENU version of the message for bing search.
-                helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.ENUMessageForBingSearch, language, projectType);
-                isBing = true;
-            }
-
-            // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
-            if (helpLink != null)
-            {
-                var prefix = isBing
-                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, diagnostic.Id)
-                    : string.Format(ServicesVSResources.Get_help_for_0, diagnostic.Id);
-
-                helpLinkToolTipText = $"{prefix}\r\n{helpLink}";
-            }
-
-            return helpLink;
-        }
-
-        object IPreviewPaneService.GetPreviewPane(
-            DiagnosticData diagnostic, string language, string projectType, IReadOnlyList<object> previewContent)
-        {
-            var title = diagnostic?.Message;
+            var title = data?.Message;
 
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -107,28 +88,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
                 return new PreviewPane(
                     severityIcon: null, id: null, title: null, description: null, helpLink: null, helpLinkToolTipText: null,
-                    previewContent: previewContent, logIdVerbatimInTelemetry: false, dte: _dte);
+                    previewContent: previewContent, logIdVerbatimInTelemetry: false, uiShell: _uiShell);
             }
 
-            var helpLinkToolTipText = string.Empty;
-            Uri helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
+            var helpLinkUri = BrowserHelper.GetHelpLink(data);
+            var helpLinkToolTip = BrowserHelper.GetHelpLinkToolTip(data.Id, helpLinkUri);
 
-            Guid optionPageGuid = default(Guid);
-            if (diagnostic.Properties.TryGetValue("OptionName", out var optionName))
+            Guid optionPageGuid = default;
+            if (data.Properties.TryGetValue("OptionName", out var optionName))
             {
-                diagnostic.Properties.TryGetValue("OptionLanguage", out var optionLanguage);
+                data.Properties.TryGetValue("OptionLanguage", out var optionLanguage);
                 optionPageGuid = GetOptionPageGuidForOptionName(optionName, optionLanguage);
             }
 
             return new PreviewPane(
-                severityIcon: GetSeverityIconForDiagnostic(diagnostic),
-                id: diagnostic.Id, title: title,
-                description: diagnostic.Description.ToString(CultureInfo.CurrentUICulture),
-                helpLink: helpLink,
-                helpLinkToolTipText: helpLinkToolTipText,
+                severityIcon: GetSeverityIconForDiagnostic(data),
+                id: data.Id, title: title,
+                description: data.Description.ToString(CultureInfo.CurrentUICulture),
+                helpLink: helpLinkUri,
+                helpLinkToolTipText: helpLinkToolTip,
                 previewContent: previewContent,
-                logIdVerbatimInTelemetry: diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
-                dte: _dte,
+                logIdVerbatimInTelemetry: data.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
+                uiShell: _uiShell,
                 optionPageGuid: optionPageGuid);
         }
 
@@ -157,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 }
             }
 
-            return default(Guid);
+            return default;
         }
     }
 }

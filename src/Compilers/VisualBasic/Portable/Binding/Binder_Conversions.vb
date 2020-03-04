@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -49,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
 
-            Return ApplyConversion(node, targetType, argument, isExplicit:=True, diagnostics:=diagnostics)
+            Return ApplyConversion(node, targetType, argument, isExplicit:=True, diagnostics)
         End Function
 
         Private Function BindDirectCastExpression(
@@ -577,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportNoConversionError(argument.Syntax, sourceType, targetType, diagnostics, copybackConversionParamName)
                 End If
 
-                Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, targetType, hasErrors:=True)
+                Return New BoundConversion(tree, argument, convKind.Key And (Not ConversionKind.UserDefined), CheckOverflow, isExplicit, targetType, hasErrors:=True)
             End If
 
 DoneWithDiagnostics:
@@ -732,10 +734,10 @@ DoneWithDiagnostics:
             End If
 
             ' Variance scenario 1:                                  | Variance scenario 3:
-            ' Dim x as IEnumerable(Of Tiger) = New List(Of Animal)  | Dim x As IFoo(Of Animal) = New MyFoo
-            ' "List(Of Animal) cannot be converted to               | "MyFoo cannot be converted to IFoo(Of Animal).
+            ' Dim x as IEnumerable(Of Tiger) = New List(Of Animal)  | Dim x As IGoo(Of Animal) = New MyGoo
+            ' "List(Of Animal) cannot be converted to               | "MyGoo cannot be converted to IGoo(Of Animal).
             ' IEnumerable(Of Tiger) because 'Animal' is not derived | Consider changing the 'T' in the definition
-            ' from 'Tiger', as required for the 'Out' generic       | of interface IFoo(Of T) to an Out type
+            ' from 'Tiger', as required for the 'Out' generic       | of interface IGoo(Of T) to an Out type
             ' parameter 'T' in 'IEnumerable(Of Out T)'"             | parameter, Out T."
             '                                                       |
             ' (1) If the user attempts a conversion to              | (1) If the user attempts a conversion to some
@@ -752,7 +754,7 @@ DoneWithDiagnostics:
             '     or Out variance                                   | (5) Then pick the first difference Dj/Sj
             ' (5) Then pick on the one such difference Si/Di/Ti     | (6) and report "SOURCE cannot be converted to
             ' (6) and report "SOURCE cannot be converted to DEST    |     DEST. Consider changing Tj in the definition
-            '     because Si is not derived from Di, as required    |     of interface/delegate IFoo(Of T) to an
+            '     because Si is not derived from Di, as required    |     of interface/delegate IGoo(Of T) to an
             '     for the 'In/Out' generic parameter 'T' in         |     In/Out type parameter, In/Out T".
             '     'IEnumerable(Of Out T)'"                          |
             Dim matchingGenericInstantiation As NamedTypeSymbol
@@ -1110,7 +1112,7 @@ DoneWithDiagnostics:
 
             ReportUseSiteError(diagnostics, tree, convKind.Value)
 
-            ReportDiagnosticsIfObsolete(diagnostics, convKind.Value, tree)
+            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, convKind.Value, tree)
 
             Debug.Assert(convKind.Value.IsUserDefinedOperator())
             If Me.ContainingMember Is convKind.Value Then
@@ -1179,16 +1181,6 @@ DoneWithDiagnostics:
                         ' Reclassify enclosed expression.
                         If ReclassifyExpression(enclosed, conversionSemantics, enclosed.Syntax, convKind, isExplicit, targetType, diagnostics) Then
                             argument = parenthesized.Update(enclosed, enclosed.Type)
-
-                            If conversionSemantics = SyntaxKind.CTypeKeyword Then
-                                argument = ApplyConversion(tree, targetType, argument, isExplicit, diagnostics)
-                            ElseIf conversionSemantics = SyntaxKind.DirectCastKeyword Then
-                                argument = ApplyDirectCastConversion(tree, argument, targetType, diagnostics)
-                            ElseIf conversionSemantics = SyntaxKind.TryCastKeyword Then
-                                argument = ApplyTryCastConversion(tree, argument, targetType, diagnostics)
-                            Else
-                                Throw ExceptionUtilities.UnexpectedValue(conversionSemantics)
-                            End If
 
                             Return True
                         End If
@@ -1661,7 +1653,7 @@ DoneWithDiagnostics:
                 convertedArguments.ToImmutableAndFree(),
                 targetType)
 
-            If sourceTuple.Type <> destination AndAlso convKind <> Nothing Then
+            If Not TypeSymbol.Equals(sourceTuple.Type, destination, TypeCompareKind.ConsiderEverything) AndAlso convKind <> Nothing Then
                 ' literal cast is applied to the literal 
                 result = New BoundConversion(sourceTuple.Syntax, result, convKind, checked:=False, explicitCastInCode:=isExplicit, type:=destination)
             End If

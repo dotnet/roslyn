@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -20,8 +22,15 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     internal class UseCoalesceExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseCoalesceExpressionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
@@ -31,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
@@ -74,7 +83,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
                     var coalesceExpression = GetCoalesceExpression(
                         syntaxFacts, g, whenPart, whenTrue, conditionalPartLow,
-                        currentWhenTrue, currentWhenFalse);
+                        currentWhenTrue, currentWhenFalse)
+                        .WithTrailingTrivia(conditionalExpression.GetTrailingTrivia());
 
                     if (semanticFacts.IsInExpressionTree(
                             semanticModel, conditionalExpression, expressionTypeOpt, cancellationToken))
@@ -88,9 +98,9 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         }
 
         private static SyntaxNode GetCoalesceExpression(
-            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
-            SyntaxNode whenPart, SyntaxNode whenTrue, 
-            SyntaxNode conditionalPartLow, 
+            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator,
+            SyntaxNode whenPart, SyntaxNode whenTrue,
+            SyntaxNode conditionalPartLow,
             SyntaxNode currentWhenTrue, SyntaxNode currentWhenFalse)
         {
             return whenPart == whenTrue

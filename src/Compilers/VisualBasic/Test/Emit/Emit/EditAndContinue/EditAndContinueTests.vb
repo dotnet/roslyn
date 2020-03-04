@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -44,7 +46,7 @@ Class C
     End Sub
 End Class
 ")
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim e0 = compilation0.GetMember(Of MethodSymbol)("C.E")
@@ -101,7 +103,7 @@ Class Bad
   Inherits Bad
 End Class
 ")
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim g0 = compilation0.GetMember(Of MethodSymbol)("C.G")
@@ -141,7 +143,7 @@ Class C
     End Function
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugExe, references:={ValueTupleRef, SystemRuntimeFacadeRef})
+            Dim compilation0 = CreateCompilationWithMscorlib40({source0}, options:=TestOptions.DebugExe, references:={ValueTupleRef, SystemRuntimeFacadeRef})
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim bytes0 = compilation0.EmitToArray()
@@ -203,7 +205,7 @@ Partial Class C
 End Class
 </file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim bytes0 = compilation0.EmitToArray()
@@ -286,7 +288,7 @@ Class B
 End Class
 </file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
             Dim compilation2 = compilation1.WithSource(source2)
             Dim compilation3 = compilation2.WithSource(source3)
@@ -420,7 +422,7 @@ Class C
 End Class
 </file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim bytes0 = compilation0.EmitToArray()
@@ -455,7 +457,7 @@ End Class
 
         <Fact>
         Public Sub NamespacesAndOverloads()
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(options:=TestOptions.DebugDll, sources:=
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(options:=TestOptions.DebugDll, source:=
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -610,7 +612,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources0, TestOptions.DebugDll.WithModuleName("MODULE"))
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(sources0, TestOptions.DebugDll.WithModuleName("MODULE"))
             Dim compilation1 = compilation0.WithSource(sources1)
 
             Dim testData0 = New CompilationTestData()
@@ -625,7 +627,7 @@ End Class
   IL_0001:  ldc.i4.3
   IL_0002:  newarr     ""Integer""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000d:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
@@ -710,7 +712,7 @@ End Class
 ]]></file>
                           </compilation>
             Const ComputeStringHashName As String = "ComputeStringHash"
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(sources, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources)
 
             Dim testData0 = New CompilationTestData()
@@ -778,7 +780,7 @@ Module M
 End Module
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(sources0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
 
             ' Verify full metadata contains expected rows.
@@ -959,7 +961,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim matcher = CreateMatcher(compilation1, compilation0)
@@ -986,7 +988,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim matcher = CreateMatcher(compilation1, compilation0)
@@ -1017,7 +1019,7 @@ End Class
                     </file>
                 </compilation>
             Dim metadata = CompileIL(ilSource)
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, {metadata}, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source, {metadata}, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim member1 = compilation1.GetMember(Of MethodSymbol)("B.F")
@@ -1066,11 +1068,11 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilationPIA = CreateCompilationWithMscorlibAndVBRuntime(sourcesPIA)
+            Dim compilationPIA = CreateCompilationWithMscorlib40AndVBRuntime(sourcesPIA)
             compilationPIA.AssertTheseDiagnostics()
             Dim referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes:=True)
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources0, options:=TestOptions.DebugDll, references:={referencePIA})
             Dim compilation1 = compilation0.WithSource(sources1)
 
             Dim testData0 = New CompilationTestData()
@@ -1162,10 +1164,10 @@ Class C(Of T)
 End Class
 ]]></file>
                             </compilation>
-            Dim compilationPIA = CreateCompilationWithMscorlibAndVBRuntime(sourcesPIA)
+            Dim compilationPIA = CreateCompilationWithMscorlib40AndVBRuntime(sourcesPIA)
             compilationPIA.AssertTheseDiagnostics()
             Dim referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes:=True)
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources0, options:=TestOptions.DebugDll, references:={referencePIA})
             Dim compilation1A = compilation0.WithSource(sources1A)
             Dim compilation1B = compilation0.WithSource(sources1B)
 
@@ -1248,10 +1250,10 @@ Class C(Of T)
 End Class
 ]]></file>
                           </compilation>
-            Dim compilationPIA = CreateCompilationWithMscorlibAndVBRuntime(sourcesPIA)
+            Dim compilationPIA = CreateCompilationWithMscorlib40AndVBRuntime(sourcesPIA)
             compilationPIA.AssertTheseDiagnostics()
             Dim referencePIA = AssemblyMetadata.CreateFromImage(compilationPIA.EmitToArray()).GetReference(embedInteropTypes:=True)
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources, options:=TestOptions.DebugDll, references:={referencePIA})
             Dim compilation1 = compilation0.WithSource(sources)
 
             Dim bytes0 = compilation0.EmitToArray()
@@ -1311,7 +1313,7 @@ Class C
     End Function
 End Class
 ")
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, options:=ComSafeDebugDll)
 
             compilation0.AssertNoDiagnostics()
 
@@ -1377,7 +1379,7 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim bytes0 = compilation0.EmitToArray()
@@ -1464,7 +1466,7 @@ Module Module1
 End Module</file>
 </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim testData0 = New CompilationTestData()
@@ -1527,7 +1529,7 @@ Module Module1
 End Module</file>
 </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim testData0 = New CompilationTestData()
@@ -1589,7 +1591,7 @@ End Class
 </file>
 </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim testData0 = New CompilationTestData()
@@ -1636,7 +1638,7 @@ End Class
         ''' <summary>
         ''' Local slots must be preserved based on signature.
         ''' </summary>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PreserveLocalSlots()
             Dim sources0 = <compilation>
                                <file><![CDATA[
@@ -1740,7 +1742,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim compilation2 = compilation1.WithSource(sources2)
             Dim compilation3 = compilation2.WithSource(sources3)
@@ -1793,16 +1795,19 @@ End Class
 
             diff1.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method token="0x6000004">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30"/>
-                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="25"/>
-                <entry offset="0x7" startLine="10" startColumn="13" endLine="10" endColumn="31"/>
-                <entry offset="0xd" startLine="11" startColumn="13" endLine="11" endColumn="30"/>
-                <entry offset="0x14" startLine="12" startColumn="9" endLine="12" endColumn="13"/>
-                <entry offset="0x21" startLine="13" startColumn="9" endLine="13" endColumn="13"/>
-                <entry offset="0x28" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
+                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30" document="1"/>
+                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="25" document="1"/>
+                <entry offset="0x7" startLine="10" startColumn="13" endLine="10" endColumn="31" document="1"/>
+                <entry offset="0xd" startLine="11" startColumn="13" endLine="11" endColumn="30" document="1"/>
+                <entry offset="0x14" startLine="12" startColumn="9" endLine="12" endColumn="13" document="1"/>
+                <entry offset="0x21" startLine="13" startColumn="9" endLine="13" endColumn="13" document="1"/>
+                <entry offset="0x28" startLine="14" startColumn="5" endLine="14" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x29">
                 <currentnamespace name=""/>
@@ -1842,15 +1847,18 @@ End Class
 
             diff2.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method token="0x6000004">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30"/>
-                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="30"/>
-                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="25"/>
-                <entry offset="0xe" startLine="11" startColumn="9" endLine="11" endColumn="13"/>
-                <entry offset="0x1b" startLine="12" startColumn="9" endLine="12" endColumn="13"/>
-                <entry offset="0x22" startLine="13" startColumn="5" endLine="13" endColumn="12"/>
+                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30" document="1"/>
+                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="30" document="1"/>
+                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="25" document="1"/>
+                <entry offset="0xe" startLine="11" startColumn="9" endLine="11" endColumn="13" document="1"/>
+                <entry offset="0x1b" startLine="12" startColumn="9" endLine="12" endColumn="13" document="1"/>
+                <entry offset="0x22" startLine="13" startColumn="5" endLine="13" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x23">
                 <currentnamespace name=""/>
@@ -1897,15 +1905,18 @@ End Class
 
             diff3.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method token="0x6000005">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="19"/>
-                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="30"/>
-                <entry offset="0x7" startLine="16" startColumn="13" endLine="16" endColumn="30"/>
-                <entry offset="0xd" startLine="17" startColumn="9" endLine="17" endColumn="13"/>
-                <entry offset="0x19" startLine="18" startColumn="9" endLine="18" endColumn="13"/>
-                <entry offset="0x25" startLine="19" startColumn="5" endLine="19" endColumn="12"/>
+                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="19" document="1"/>
+                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="30" document="1"/>
+                <entry offset="0x7" startLine="16" startColumn="13" endLine="16" endColumn="30" document="1"/>
+                <entry offset="0xd" startLine="17" startColumn="9" endLine="17" endColumn="13" document="1"/>
+                <entry offset="0x19" startLine="18" startColumn="9" endLine="18" endColumn="13" document="1"/>
+                <entry offset="0x25" startLine="19" startColumn="5" endLine="19" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x26">
                 <currentnamespace name=""/>
@@ -1920,7 +1931,7 @@ End Class
         ''' <summary>
         ''' Preserve locals for method added after initial compilation.
         ''' </summary>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PreserveLocalSlots_NewMethod()
             Dim sources0 = <compilation>
                                <file><![CDATA[
@@ -1950,7 +1961,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim compilation2 = compilation1.WithSource(sources2)
 
@@ -1983,13 +1994,16 @@ End Class
 ]]>.Value)
             diff2.VerifyPdb({&H06000002UI},
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method token="0x6000002">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="19"/>
-                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="18"/>
-                <entry offset="0x3" startLine="4" startColumn="13" endLine="4" endColumn="29"/>
-                <entry offset="0x9" startLine="5" startColumn="5" endLine="5" endColumn="12"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="19" document="1"/>
+                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="18" document="1"/>
+                <entry offset="0x3" startLine="4" startColumn="13" endLine="4" endColumn="29" document="1"/>
+                <entry offset="0x9" startLine="5" startColumn="5" endLine="5" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xa">
                 <currentnamespace name=""/>
@@ -2032,7 +2046,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -2085,7 +2099,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2158,7 +2172,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2259,7 +2273,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2346,7 +2360,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2432,7 +2446,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2614,7 +2628,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2794,7 +2808,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2961,20 +2975,20 @@ Class C
         Return Nothing
     End Function
     Shared Sub M(o As object)
-        for i as double = foo() to foo() step foo()
-            for j as double = foo() to foo() step foo()
+        for i as double = goo() to goo() step goo()
+            for j as double = goo() to goo() step goo()
             next
         next
     End Sub
 
-    shared function foo() as double
+    shared function goo() as double
         return 1
     end function
 End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -2995,11 +3009,11 @@ End Class
                 Boolean V_8,
                 Double V_9) //j
   IL_0000:  nop
-  IL_0001:  call       ""Function C.foo() As Double""
+  IL_0001:  call       ""Function C.goo() As Double""
   IL_0006:  stloc.0
-  IL_0007:  call       ""Function C.foo() As Double""
+  IL_0007:  call       ""Function C.goo() As Double""
   IL_000c:  stloc.1
-  IL_000d:  call       ""Function C.foo() As Double""
+  IL_000d:  call       ""Function C.goo() As Double""
   IL_0012:  stloc.2
   IL_0013:  ldloc.2
   IL_0014:  ldc.r8     0
@@ -3010,11 +3024,11 @@ End Class
   IL_0023:  ldloc.0
   IL_0024:  stloc.s    V_4
   IL_0026:  br.s       IL_007c
-  IL_0028:  call       ""Function C.foo() As Double""
+  IL_0028:  call       ""Function C.goo() As Double""
   IL_002d:  stloc.s    V_5
-  IL_002f:  call       ""Function C.foo() As Double""
+  IL_002f:  call       ""Function C.goo() As Double""
   IL_0034:  stloc.s    V_6
-  IL_0036:  call       ""Function C.foo() As Double""
+  IL_0036:  call       ""Function C.goo() As Double""
   IL_003b:  stloc.s    V_7
   IL_003d:  ldloc.s    V_7
   IL_003f:  ldc.r8     0
@@ -3088,11 +3102,11 @@ End Class
                 Boolean V_8,
                 Double V_9) //j
   IL_0000:  nop
-  IL_0001:  call       ""Function C.foo() As Double""
+  IL_0001:  call       ""Function C.goo() As Double""
   IL_0006:  stloc.0
-  IL_0007:  call       ""Function C.foo() As Double""
+  IL_0007:  call       ""Function C.goo() As Double""
   IL_000c:  stloc.1
-  IL_000d:  call       ""Function C.foo() As Double""
+  IL_000d:  call       ""Function C.goo() As Double""
   IL_0012:  stloc.2
   IL_0013:  ldloc.2
   IL_0014:  ldc.r8     0
@@ -3103,11 +3117,11 @@ End Class
   IL_0023:  ldloc.0
   IL_0024:  stloc.s    V_4
   IL_0026:  br.s       IL_007c
-  IL_0028:  call       ""Function C.foo() As Double""
+  IL_0028:  call       ""Function C.goo() As Double""
   IL_002d:  stloc.s    V_5
-  IL_002f:  call       ""Function C.foo() As Double""
+  IL_002f:  call       ""Function C.goo() As Double""
   IL_0034:  stloc.s    V_6
-  IL_0036:  call       ""Function C.foo() As Double""
+  IL_0036:  call       ""Function C.goo() As Double""
   IL_003b:  stloc.s    V_7
   IL_003d:  ldloc.s    V_7
   IL_003f:  ldc.r8     0
@@ -3187,7 +3201,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -3288,7 +3302,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -3389,7 +3403,7 @@ End Class
 
 
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -3491,7 +3505,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
@@ -3612,7 +3626,7 @@ Class C
     End Sub
 End Class
 ")
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 
@@ -3699,7 +3713,7 @@ Class C
     End Sub
 End Class
 ")
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 
@@ -3794,7 +3808,7 @@ Namespace M
 End Namespace
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
 
             Dim testData0 = New CompilationTestData()
@@ -3916,7 +3930,7 @@ Class B
 End Class
 ")
 
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
             Dim compilation3 = compilation2.WithSource(source3.Tree)
@@ -4090,7 +4104,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim compilation2 = compilation1.WithSource(sources2)
             Dim compilation3 = compilation2.WithSource(sources3)
@@ -4166,7 +4180,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -4249,7 +4263,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim compilation2 = compilation1.WithSource(sources2)
             Dim testData0 = New CompilationTestData()
@@ -4465,7 +4479,7 @@ Class C
     End Sub
 End Class
 ")
-            Dim compilation0 = CreateCompilationWithMscorlib({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 
@@ -4599,7 +4613,7 @@ End Class
             Dim metadata0 = DirectCast(CompileIL(ilSource, prependDefaultHeader:=False), MetadataImageReference)
             ' Still need a compilation with source for the initial
             ' generation - to get a MethodSymbol and syntax map.
-            Dim compilation0 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             Dim moduleMetadata0 = DirectCast(metadata0.GetMetadataNoCopy(), AssemblyMetadata).GetModules(0)
@@ -4686,7 +4700,7 @@ Module M
 End Module
 </file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
             Dim bytes0 = compilation0.EmitToArray()
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
@@ -4722,7 +4736,7 @@ Module M
 End Module
 </file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(source0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
             Dim bytes0 = compilation0.EmitToArray()
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
@@ -4752,7 +4766,7 @@ End Module
 
 #End Region
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SymWriterErrors()
             Dim source0 =
 <compilation>
@@ -4770,7 +4784,7 @@ End Module
         End Class
 ]]></file>
 </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             ' Verify full metadata contains expected rows.
@@ -4783,7 +4797,7 @@ End Module
                             testData:=New CompilationTestData With {.SymWriterFactory = Function() New MockSymUnmanagedWriter()})
 
                 diff1.EmitResult.Diagnostics.Verify(
-                    Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments(New NotImplementedException().Message))
+                    Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments("MockSymUnmanagedWriter error message"))
 
                 Assert.False(diff1.EmitResult.Success)
             End Using
@@ -4812,7 +4826,7 @@ End Class
             Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:={New KeyValuePair(Of String, Object)("Defined", True)})
             Dim tree0 = VisualBasicSyntaxTree.ParseText(source0, parseOptions)
             Dim tree1 = VisualBasicSyntaxTree.ParseText(source0.Replace("' Body", "N1(): N2()"), parseOptions)
-            Dim compilation0 = CreateCompilationWithMscorlib({tree0}, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({tree0}, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.ReplaceSyntaxTree(tree0, tree1)
 
             Dim bytes0 = compilation0.EmitToArray()
@@ -4875,10 +4889,10 @@ Public Class Y
 End Class
 "
 
-            Dim compilationA0 = CreateCompilationWithMscorlib({sourceA0}, options:=TestOptions.DebugDll, assemblyName:="LibA")
+            Dim compilationA0 = CreateCompilationWithMscorlib40({sourceA0}, options:=TestOptions.DebugDll, assemblyName:="LibA")
             Dim compilationA1 = compilationA0.WithSource(sourceA1)
-            Dim compilationB0 = CreateCompilationWithMscorlib({sourceB0}, {compilationA0.ToMetadataReference()}, options:=TestOptions.DebugDll, assemblyName:="LibB")
-            Dim compilationB1 = CreateCompilationWithMscorlib({sourceB1}, {compilationA1.ToMetadataReference()}, options:=TestOptions.DebugDll, assemblyName:="LibB")
+            Dim compilationB0 = CreateCompilationWithMscorlib40({sourceB0}, {compilationA0.ToMetadataReference()}, options:=TestOptions.DebugDll, assemblyName:="LibB")
+            Dim compilationB1 = CreateCompilationWithMscorlib40({sourceB1}, {compilationA1.ToMetadataReference()}, options:=TestOptions.DebugDll, assemblyName:="LibB")
 
             Dim bytesA0 = compilationA0.EmitToArray()
             Dim bytesB0 = compilationB0.EmitToArray()
@@ -4939,10 +4953,10 @@ Public Class B
     End Sub
 End Class"
 
-            Dim compilationA = CreateCompilationWithMscorlib({sourceA}, options:=TestOptions.DebugDll, assemblyName:="AssemblyA")
+            Dim compilationA = CreateCompilationWithMscorlib40({sourceA}, options:=TestOptions.DebugDll, assemblyName:="AssemblyA")
             Dim aRef = compilationA.ToMetadataReference()
 
-            Dim compilationB0 = CreateCompilationWithMscorlib({sourceB0}, {aRef}, options:=TestOptions.DebugDll, assemblyName:="AssemblyB")
+            Dim compilationB0 = CreateCompilationWithMscorlib40({sourceB0}, {aRef}, options:=TestOptions.DebugDll, assemblyName:="AssemblyB")
             Dim compilationB1 = compilationB0.WithSource(sourceB1)
             Dim compilationB2 = compilationB1.WithSource(sourceB2)
 
@@ -5025,7 +5039,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, {MsvbRef}, ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, {MsvbRef}, ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)
@@ -5168,7 +5182,7 @@ Public Class C
     End Sub
 End Class")
 
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, {MsvbRef}, ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, {MsvbRef}, ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)

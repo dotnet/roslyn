@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Private ReadOnly _pool As ObjectPool(Of IReductionRewriter)
 
             Protected CancellationToken As CancellationToken
-            Private _parseOptions As ParseOptions
+            Protected Property ParseOptions As VisualBasicParseOptions
             Private _simplificationOptions As OptionSet
 
             Private ReadOnly _processedParentNodes As HashSet(Of SyntaxNode) = New HashSet(Of SyntaxNode)()
@@ -29,13 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Sub
 
             Public Sub Initialize(parseOptions As ParseOptions, optionSet As OptionSet, cancellationToken As CancellationToken) Implements IReductionRewriter.Initialize
-                _parseOptions = parseOptions
+                Me.ParseOptions = DirectCast(parseOptions, VisualBasicParseOptions)
                 _simplificationOptions = optionSet
                 cancellationToken = cancellationToken
             End Sub
 
             Public Sub Dispose() Implements IDisposable.Dispose
-                _parseOptions = Nothing
+                ParseOptions = Nothing
                 _simplificationOptions = Nothing
                 CancellationToken = CancellationToken.None
                 _processedParentNodes.Clear()

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -48,6 +50,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
+            End Get
+        End Property
+
         Public MustOverride Overrides Function GetLocalForFunctionValue() As LocalSymbol
 
         Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
@@ -75,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' UNDONE: additional filtering based on options?
             If (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly)) = 0 Then
                 For Each param In _parameterMap.Values
-                    If originalBinder.CanAddLookupSymbolInfo(param, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(param, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(param, param.Name, 0)
                     End If
                 Next

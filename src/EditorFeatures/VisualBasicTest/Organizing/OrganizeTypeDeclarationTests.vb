@@ -1,7 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.Commanding.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
@@ -193,7 +197,7 @@ end class</element>
         End Sub
         Shared Friend Function Bar() As Integer
         End Function
-        Shared Private Function Foo() As Integer
+        Shared Private Function Goo() As Integer
         End Function
         Function Goo() As Integer
         End Function  
@@ -203,7 +207,7 @@ End class</element>
 
             Dim final =
     <element>class C 
-        Shared Private Function Foo() As Integer
+        Shared Private Function Goo() As Integer
         End Function
         Shared Public Sub Main(args As String())
         End Sub
@@ -907,7 +911,7 @@ end class</element>
         Public Async Function TestBug2592() As Task
             Dim initial =
 <element>Namespace Acme
-    Public Class Foo
+    Public Class Goo
         
         
         Shared Public Sub Main(args As String())
@@ -920,7 +924,7 @@ End Namespace</element>
 
             Dim final =
 <element>Namespace Acme
-    Public Class Foo
+    Public Class Goo
         
         
         Public Shared Function Bar() As Integer
@@ -937,14 +941,15 @@ End Namespace</element>
         <Trait(Traits.Feature, Traits.Features.Organizing)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestOrganizingCommandsDisabledInSubmission()
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
-                            Private $foo As Object
+                            Private $goo As Object
                         End Class
                     </Submission>
                 </Workspace>,
@@ -956,22 +961,13 @@ End Namespace</element>
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New OrganizeDocumentCommandHandler(workspace.GetService(Of Host.IWaitIndicator))
-                Dim delegatedToNext = False
-                Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
+                Dim handler = New OrganizeDocumentCommandHandler(exportProvider.GetExportedValue(Of IThreadingContext)())
 
-                Dim state = handler.GetCommandState(New Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
-                delegatedToNext = False
+                Dim state = handler.GetCommandState(New SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
 
-                state = handler.GetCommandState(New Commands.OrganizeDocumentCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                state = handler.GetCommandState(New OrganizeDocumentCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
             End Using
         End Sub
     End Class

@@ -1,11 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeSymbol _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
         internal SubstitutedPropertySymbol(SubstitutedNamedTypeSymbol containingType, PropertySymbol originalDefinition)
@@ -22,16 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
-                if ((object)_lazyType == null)
+                if (_lazyType == null)
                 {
-                    Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.Type).Type, null);
+                    var type = _containingType.TypeSubstitution.SubstituteType(OriginalDefinition.TypeWithAnnotations);
+                    Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
                 }
 
-                return _lazyType;
+                return _lazyType.Value;
             }
         }
 
@@ -62,11 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return OriginalDefinition.GetAttributes();
-        }
-
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get { return _containingType.TypeSubstitution.SubstituteCustomModifiers(OriginalDefinition.Type, OriginalDefinition.TypeCustomModifiers); }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers

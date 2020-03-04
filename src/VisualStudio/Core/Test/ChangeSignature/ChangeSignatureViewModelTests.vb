@@ -1,21 +1,26 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Notification
-Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.VisualStudio.Text.Classification
+Imports Roslyn.Test.Utilities
+Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
-    Public Class ReorderParametersViewModelTests
+    <[UseExportProvider]>
+    Public Class ChangeSignatureViewModelTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ReorderParameters_MethodWithTwoNormalParameters_UpDownArrowsNotOfferedWhenNoSelection() As Tasks.Task
@@ -234,6 +239,27 @@ class MyClass
                 type:="int[,]")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WorkItem(30315, "https://github.com/dotnet/roslyn/issues/30315")>
+        Public Async Function ChangeSignature_ParameterDisplay_Nullable() As Tasks.Task
+            Dim markup = <Text><![CDATA[
+#nullable enable
+class MyClass
+{
+    public string? $$M(string? x)
+    {
+    }
+}"]]></Text>
+
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+            VerifyOpeningState(viewModel, "public string? M(string? x)")
+            VerifyParameterInfo(
+                viewModel,
+                parameterIndex:=0,
+                type:="string?")
+        End Function
+
         Private Sub VerifyAlteredState(
            viewModelTestState As ChangeSignatureViewModelTestState,
            Optional monitor As PropertyChangedTestMonitor = Nothing,
@@ -336,7 +362,7 @@ class MyClass
 
             Dim workspaceXml =
             <Workspace>
-                <Project Language=<%= languageName %> CommonReferences="true" Features="refLocalsAndReturns">
+                <Project Language=<%= languageName %> CommonReferences="true">
                     <Document><%= markup.NormalizedValue.Replace(vbCrLf, vbLf) %></Document>
                 </Project>
             </Workspace>
@@ -352,9 +378,34 @@ class MyClass
                 Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
 
-                Dim viewModel = New ChangeSignatureDialogViewModel(New TestNotificationService(), ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol.IsExtensionMethod()), symbol, workspace.ExportProvider.GetExport(Of ClassificationTypeMap)().Value)
+                Dim viewModel = New ChangeSignatureDialogViewModel(
+                    New TestNotificationService(),
+                    ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol.IsExtensionMethod(), selectedIndex:=0),
+                    symbol,
+                    workspace.ExportProvider.GetExportedValue(Of IClassificationFormatMapService)().GetClassificationFormatMap("text"),
+                    workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)())
                 Return New ChangeSignatureViewModelTestState(viewModel, symbol.GetParameters())
             End Using
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestRefKindsDisplayedCorrectly() As Tasks.Task
+            Dim includedInTest = {RefKind.None, RefKind.Ref, RefKind.Out, RefKind.In, RefKind.RefReadOnly}
+            Assert.Equal(includedInTest, EnumUtilities.GetValues(Of RefKind)())
+
+            Dim markup = <Text><![CDATA[
+class Test
+{
+    private void Method$$(int p1, ref int p2, in int p3, out int p4) { }
+}"]]></Text>
+
+            Dim state = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            VerifyOpeningState(state.ViewModel, "private void Method(int p1, ref int p2, in int p3, out int p4)")
+
+            Assert.Equal("", state.ViewModel.AllParameters(0).Modifier)
+            Assert.Equal("ref", state.ViewModel.AllParameters(1).Modifier)
+            Assert.Equal("in", state.ViewModel.AllParameters(2).Modifier)
+            Assert.Equal("out", state.ViewModel.AllParameters(3).Modifier)
         End Function
     End Class
 End Namespace

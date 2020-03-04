@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -381,7 +383,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -435,7 +437,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -500,7 +502,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -521,7 +523,9 @@ BC30452: Operator 'OrElse' is not defined for types 'Module1.B3' and 'Module1.B3
             Next
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
+        <WorkItem(23232, "https://github.com/dotnet/roslyn/issues/23232")>
         Public Sub ShortCircuiting5()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -562,7 +566,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -585,6 +589,36 @@ BC30521: Overload resolution failed because no accessible 'Or' is most specific 
                 Dim symbolInfo = model.GetSymbolInfo(node)
                 Assert.Null(symbolInfo.Symbol)
             Next
+
+            compilation.VerifyOperationTree(CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 1), expectedOperationTree:=
+            <![CDATA[
+IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'New B3() An ... so New B2()')
+  Left: 
+    IObjectCreationOperation (Constructor: Sub Module1.B3..ctor()) (OperationKind.ObjectCreation, Type: Module1.B3, IsInvalid) (Syntax: 'New B3()')
+      Arguments(0)
+      Initializer: 
+        null
+  Right: 
+    IObjectCreationOperation (Constructor: Sub Module1.B2..ctor()) (OperationKind.ObjectCreation, Type: Module1.B2, IsInvalid) (Syntax: 'New B2()')
+      Arguments(0)
+      Initializer: 
+        null
+]]>.Value)
+
+            compilation.VerifyOperationTree(CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 2), expectedOperationTree:=
+            <![CDATA[
+IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'New B3() OrElse New B2()')
+  Left: 
+    IObjectCreationOperation (Constructor: Sub Module1.B3..ctor()) (OperationKind.ObjectCreation, Type: Module1.B3, IsInvalid) (Syntax: 'New B3()')
+      Arguments(0)
+      Initializer: 
+        null
+  Right: 
+    IObjectCreationOperation (Constructor: Sub Module1.B2..ctor()) (OperationKind.ObjectCreation, Type: Module1.B2, IsInvalid) (Syntax: 'New B2()')
+      Arguments(0)
+      Initializer: 
+        null
+]]>.Value)
         End Sub
 
         <Fact>
@@ -1043,7 +1077,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -1107,7 +1141,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -1178,7 +1212,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -1241,7 +1275,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -1303,7 +1337,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -1486,7 +1520,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1530,7 +1564,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1579,7 +1613,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
                              expectedOutput:=
@@ -1805,7 +1839,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim verifier = CompileAndVerify(compilation,
@@ -1864,7 +1898,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
 #If LIFTED_CONVERSIONS_SUPPORTED Then
@@ -1950,7 +1984,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim verifier = CompileAndVerify(compilation,
@@ -2018,7 +2052,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
 #If LIFTED_CONVERSIONS_SUPPORTED Then
@@ -2106,7 +2140,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim verifier = CompileAndVerify(compilation,
@@ -2153,7 +2187,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
@@ -2171,18 +2205,18 @@ Binary Divide
     <file name="a.vb"><![CDATA[
 Imports System
 
-Interface IFoo
+Interface IGoo
     Function F() As String
 End Interface
 
-Class Foo
-    Implements IFoo
+Class Goo
+    Implements IGoo
 
-    Public Function F() As String Implements IFoo.F
+    Public Function F() As String Implements IGoo.F
         Return "A"
     End Function
 
-    Shared Operator &(f As Foo, s As String) As Foo
+    Shared Operator &(f As Goo, s As String) As Goo
         Console.WriteLine("&")
         Return f
     End Operator
@@ -2191,15 +2225,15 @@ End Class
 
 Module Module1
     Sub Main()
-        Dim x As IFoo = New Foo()
-        Dim y As New Foo
+        Dim x As IGoo = New Goo()
+        Dim y As New Goo
         y &= x.F()
     End Sub
 End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
@@ -2341,7 +2375,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
 
@@ -2431,7 +2465,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
@@ -2499,7 +2533,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
@@ -2535,7 +2569,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                         options:=TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
@@ -2560,7 +2594,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             Dim model = GetSemanticModel(compilation, "a.vb")
 
             Dim typeSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
@@ -2599,7 +2633,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             Dim model = GetSemanticModel(compilation, "a.vb")
 
             Dim typeSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)

@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expressions
 
@@ -65,22 +67,22 @@ CBool({VBWorkspaceResources.expression}) As Boolean")
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, AllTypeConversionOperatorKeywords)
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, AllTypeConversionOperatorKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, AllTypeConversionOperatorKeywords)
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, AllTypeConversionOperatorKeywords)
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AllAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, AllTypeConversionOperatorKeywords)
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, AllTypeConversionOperatorKeywords)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -159,10 +161,10 @@ Loop Until |</MethodBody>, AllTypeConversionOperatorKeywords)
 <File>
 Module Program
     Sub Main(args As String())
-        Dim f1 As New Foo2( |
+        Dim f1 As New Goo2( |
     End Sub
 
-    Delegate Sub Foo2()
+    Delegate Sub Goo2()
 
     Function Bar2() As Object
         Return Nothing

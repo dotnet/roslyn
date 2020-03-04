@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -48,23 +50,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool IsDefinitionOrDistinct()
         {
-            return this.IsDefinition || !this.Equals(this.OriginalDefinition);
+            return this.IsDefinition || !this.Equals(this.OriginalDefinition, SymbolEqualityComparer.ConsiderEverything.CompareKind);
         }
 
         IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
-            return GetCustomAttributesToEmit(((PEModuleBuilder)context.Module).CompilationState);
+            return GetCustomAttributesToEmit((PEModuleBuilder)context.Module);
         }
 
-        internal virtual IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal virtual IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             CheckDefinitionInvariant();
 
             Debug.Assert(this.Kind != SymbolKind.Assembly);
-            return GetCustomAttributesToEmit(compilationState, emittingAssemblyAttributesInNetModule: false);
+            return GetCustomAttributesToEmit(moduleBuilder, emittingAssemblyAttributesInNetModule: false);
         }
 
-        internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState, bool emittingAssemblyAttributesInNetModule)
+        internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder, bool emittingAssemblyAttributesInNetModule)
         {
             CheckDefinitionInvariant();
             Debug.Assert(this.Kind != SymbolKind.Assembly);
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<CSharpAttributeData> userDefined;
             ArrayBuilder<SynthesizedAttributeData> synthesized = null;
             userDefined = this.GetAttributes();
-            this.AddSynthesizedAttributes(compilationState, ref synthesized);
+            this.AddSynthesizedAttributes(moduleBuilder, ref synthesized);
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.

@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -51,12 +53,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             throw new InvalidOperationException();
         }
 
-        protected override IndexerDeclarationSyntax WithGenerateBody(
-            IndexerDeclarationSyntax declaration, OptionSet options)
+        protected override IndexerDeclarationSyntax WithGenerateBody(SemanticModel semanticModel, IndexerDeclarationSyntax declaration)
         {
-            return WithAccessorList(declaration, options);
+            return WithAccessorList(semanticModel, declaration);
         }
 
-        protected override bool CreateReturnStatementForExpression(IndexerDeclarationSyntax declaration) => true;
+        protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, IndexerDeclarationSyntax declaration) => true;
+
+        protected override bool TryConvertToExpressionBody(
+            IndexerDeclarationSyntax declaration, ParseOptions options,
+            ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax arrowExpression,
+            out SyntaxToken semicolonToken)
+        {
+            return this.TryConvertToExpressionBodyForBaseProperty(
+                declaration, options, conversionPreference,
+                out arrowExpression, out semicolonToken);
+        }
+
+        protected override Location GetDiagnosticLocation(IndexerDeclarationSyntax declaration)
+        {
+            var body = GetBody(declaration);
+            if (body != null)
+            {
+                return base.GetDiagnosticLocation(declaration);
+            }
+
+            var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
+            return getAccessor.ExpressionBody.GetLocation();
+        }
     }
 }

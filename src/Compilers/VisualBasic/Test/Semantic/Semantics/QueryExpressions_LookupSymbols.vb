@@ -1,6 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -8,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub From_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -143,7 +147,7 @@ End Module
 
         <Fact>
         Public Sub Select_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -248,7 +252,7 @@ End Module
 
         <Fact>
         Public Sub Filter_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -318,7 +322,7 @@ End Module
 
         <Fact>
         Public Sub Let_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -435,7 +439,7 @@ End Module
 
         <Fact>
         Public Sub Partition_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -489,8 +493,9 @@ End Module
         End Sub
 
         <Fact>
+        <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub GroupBy_Lookup1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -755,11 +760,85 @@ End Module
                 Assert.Equal("s1 As System.Int32", semanticModel.LookupSymbols(pos15, name:="s1").Single.ToTestDisplayString())
                 Assert.Equal("s2 As System.Int32", semanticModel.LookupSymbols(pos15, name:="s2").Single.ToTestDisplayString())
             End If
+
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of QueryExpressionSyntax)().First()
+
+            Assert.Equal("From s1 In qi, s2 in qi Group ", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'From s1 In  ... in qi Group')
+  Expression: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group ')
+      Children(4):
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 's2 in qi')
+            Children(3):
+                ILocalReferenceOperation: qi (OperationKind.LocalReference, Type: QueryAble, IsInvalid) (Syntax: 'qi')
+                IAnonymousFunctionOperation (Symbol: Function (s1 As System.Int32) As ?) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'qi')
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'qi')
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'qi')
+                      ReturnedValue: 
+                        ILocalReferenceOperation: qi (OperationKind.LocalReference, Type: QueryAble) (Syntax: 'qi')
+                IAnonymousFunctionOperation (Symbol: Function (s1 As System.Int32, s2 As System.Int32) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: 'From s1 In qi, s2 in qi')
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'From s1 In qi, s2 in qi')
+                    IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'From s1 In qi, s2 in qi')
+                      ReturnedValue: 
+                        IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 in qi')
+                          Initializers(2):
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 's1 In qi')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 in qi')
+                                Right: 
+                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 in qi')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 in qi')
+                                Right: 
+                                  IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+          IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) As ?) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+              IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+                ReturnedValue: 
+                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                    Children(0)
+          IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) As ?) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+              IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+                ReturnedValue: 
+                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                    Children(0)
+          IAnonymousFunctionOperation (Symbol: Function ($315 As ?, $VB$ItAnonymous As ?) As <anonymous type: Key $315 As ?, Key $315 As ?>) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group ')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group ')
+              IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group ')
+                ReturnedValue: 
+                  IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key $315 As ?, Key $315 As ?>, IsInvalid, IsImplicit) (Syntax: 'Group ')
+                    Initializers(2):
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group ')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $315 As ?, Key $315 As ?>.$315 As ? (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $315 As ?, Key $315 As ?>, IsInvalid, IsImplicit) (Syntax: 'Group ')
+                          Right: 
+                            IParameterReferenceOperation: $315 (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: '')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $315 As ?, Key $315 As ?>.$315 As ? (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $315 As ?, Key $315 As ?>, IsInvalid, IsImplicit) (Syntax: 'Group ')
+                          Right: 
+                            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+                              Children(1):
+                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group ')
+]]>.Value)
         End Sub
 
         <Fact>
         Public Sub GroupBy_Lookup2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -839,7 +918,7 @@ End Module
 
         <Fact>
         Public Sub GroupBy_Lookup3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -853,7 +932,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, references:={SystemCoreRef})
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -869,7 +948,7 @@ End Module
 
         <Fact>
         Public Sub OrderBy_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -993,7 +1072,7 @@ End Module
 
         <Fact>
         Public Sub Join_Lookup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1199,7 +1278,7 @@ End Module
 
         <Fact>
         Public Sub GroupJoin_Lookup1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1412,7 +1491,7 @@ End Module
 
         <Fact>
         Public Sub GroupJoin_Lookup2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1480,7 +1559,7 @@ End Module
 
         <Fact>
         Public Sub Aggregate_Lookup1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1631,7 +1710,7 @@ End Module
 
         <Fact>
         Public Sub Aggregate_Lookup2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1795,7 +1874,7 @@ End Module
 
         <Fact>
         Public Sub Aggregate_Lookup3()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1874,7 +1953,7 @@ End Module
 
         <Fact>
         Public Sub Aggregate_Lookup4()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off

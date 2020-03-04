@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -218,16 +221,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// is empty, the returned task waits for an element to be enqueued. If <see cref="Complete"/> 
         /// is called before an element becomes available, the returned task is cancelled.
         /// </summary>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public Task<TElement> DequeueAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return WithCancellation(DequeueAsyncCore(), cancellationToken);
+            return WithCancellationAsync(DequeueCoreAsync(), cancellationToken);
         }
 
         /// <summary>
         /// 
         /// Note: The early cancellation behavior is intentional.
         /// </summary>
-        private static Task<T> WithCancellation<T>(Task<T> task, CancellationToken cancellationToken)
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        private static Task<T> WithCancellationAsync<T>(Task<T> task, CancellationToken cancellationToken)
         {
             if (task.IsCompleted || !cancellationToken.CanBeCanceled)
             {
@@ -242,7 +247,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return task.ContinueWith(t => t, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap();
         }
 
-        private Task<TElement> DequeueAsyncCore()
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        private Task<TElement> DequeueCoreAsync()
         {
             lock (SyncObject)
             {

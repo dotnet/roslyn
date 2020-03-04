@@ -1,17 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Reflection.Metadata;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PropertyDefinitionHandle _handle;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
-        private readonly TypeSymbol _propertyType;
+        private readonly TypeWithAnnotations _propertyTypeWithAnnotations;
         private readonly PEMethodSymbol _getMethod;
         private readonly PEMethodSymbol _setMethod;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
@@ -70,18 +73,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(propertyParams.Length > 0);
 
             var returnInfo = propertyParams[0];
-            PEPropertySymbol result;
 
-            if (returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty)
-            {
-                result = new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, 0, propertyParams, metadataDecoder);
-            }
-            else
-            {
-                result = new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder);
-            }
+            PEPropertySymbol result = returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty
+                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, 0, propertyParams, metadataDecoder)
+                : new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder);
 
-            if (propEx != null)
+            // A property should always have this modreq, and vice versa.
+            var isBad = (result.RefKind == RefKind.In) != result.RefCustomModifiers.HasInAttributeModifier();
+
+            if (propEx != null || isBad)
             {
                 result._lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, result);
             }
@@ -132,7 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // use the parameter names from one of the indexers
             // NB: prefer setter names to getter names if both are present.
             bool isBad;
-            _parameters = GetParameters(moduleSymbol, this, propertyParams, setMethodParams ?? getMethodParams, out isBad);
+
+            _parameters = setMethodParams is null
+                ? GetParameters(moduleSymbol, this, propertyParams, getMethodParams, getMethod.IsMetadataVirtual(), out isBad)
+                : GetParameters(moduleSymbol, this, propertyParams, setMethodParams, setMethod.IsMetadataVirtual(), out isBad);
 
             if (getEx != null || setEx != null || mrEx != null || isBad)
             {
@@ -140,16 +143,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var returnInfo = propertyParams[0];
-            _refKind = returnInfo.IsByRef ? RefKind.Ref : RefKind.None;
+            var typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
+
+            if (returnInfo.IsByRef)
+            {
+                if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
+                {
+                    _refKind = RefKind.RefReadOnly;
+                }
+                else
+                {
+                    _refKind = RefKind.Ref;
+                }
+            }
+            else
+            {
+                _refKind = RefKind.None;
+            }
 
             // CONSIDER: Can we make parameter type computation lazy?
             TypeSymbol originalPropertyType = returnInfo.Type;
-            _propertyType = DynamicTypeDecoder.TransformType(originalPropertyType, countOfCustomModifiers, handle, moduleSymbol, _refKind);
+
+            originalPropertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers.Length, handle, moduleSymbol, _refKind);
 
             // Dynamify object type if necessary
-            _propertyType = _propertyType.AsDynamicIfNoPia(_containingType);
+            originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
 
-            _propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(_propertyType, handle, moduleSymbol);
+            // We start without annotation (they will be decoded below)
+            var propertyTypeWithAnnotations = TypeWithAnnotations.Create(originalPropertyType, customModifiers: typeCustomModifiers);
+
+            // Decode nullable before tuple types to avoid converting between
+            // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
+
+            // The containing type is passed to NullableTypeDecoder.TransformType to determine access
+            // because the property does not have explicit accessibility in metadata.
+            propertyTypeWithAnnotations = NullableTypeDecoder.TransformType(propertyTypeWithAnnotations, handle, moduleSymbol, accessSymbol: _containingType, nullableContext: _containingType);
+            propertyTypeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyTypeWithAnnotations, handle, moduleSymbol);
+
+            _propertyTypeWithAnnotations = propertyTypeWithAnnotations;
 
             // A property is bogus and must be accessed by calling its accessors directly if the
             // accessor signatures do not agree, both with each other and with the property,
@@ -456,19 +487,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _refKind; }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _propertyType; }
-        }
-
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
+            get { return _propertyTypeWithAnnotations; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -516,12 +542,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (_lazyCustomAttributes.IsDefault)
             {
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-                containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
+
+                ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
+                      _handle,
+                      out _,
+                      this.RefKind == RefKind.RefReadOnly ? AttributeDescription.IsReadOnlyAttribute : default);
+
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
             }
             return _lazyCustomAttributes;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             return GetAttributes();
         }
@@ -554,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 foreach (var prop in propertiesWithImplementedGetters)
                 {
-                    if ((object)prop.SetMethod == null || propertiesWithImplementedSetters.Contains(prop))
+                    if (!prop.SetMethod.IsImplementable() || propertiesWithImplementedSetters.Contains(prop))
                     {
                         builder.Add(prop);
                     }
@@ -564,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     // No need to worry about duplicates.  If prop was added by the previous loop,
                     // then it must have a GetMethod.
-                    if ((object)prop.GetMethod == null)
+                    if (!prop.GetMethod.IsImplementable())
                     {
                         builder.Add(prop);
                     }
@@ -634,6 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEPropertySymbol property,
             ParamInfo<TypeSymbol>[] propertyParams,
             ParamInfo<TypeSymbol>[] accessorParams,
+            bool isPropertyVirtual,
             out bool anyParameterIsBad)
         {
             anyParameterIsBad = false;
@@ -655,13 +688,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
                 var ordinal = i - 1;
                 bool isBad;
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, ordinal, paramHandle, propertyParam, out isBad);
+
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, nullableContext: property, out isBad);
 
                 if (isBad)
                 {
                     anyParameterIsBad = true;
                 }
             }
+
             return parameters.AsImmutableOrNull();
         }
 
@@ -686,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule));
+                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule), ignoreByRefLikeMarker: false);
                 return _lazyObsoleteAttributeData;
             }
         }
@@ -706,7 +741,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol
         {
-            private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
             public PEPropertySymbolWithCustomModifiers(
@@ -717,18 +751,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 PEMethodSymbol setMethod,
                 ParamInfo<TypeSymbol>[] propertyParams,
                 MetadataDecoder metadataDecoder)
-                : base (moduleSymbol, containingType, handle, getMethod, setMethod,
+                : base(moduleSymbol, containingType, handle, getMethod, setMethod,
                         propertyParams[0].CustomModifiers.NullToEmpty().Length + propertyParams[0].RefCustomModifiers.NullToEmpty().Length,
                         propertyParams, metadataDecoder)
             {
                 var returnInfo = propertyParams[0];
-                _typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);
-            }
-
-            public override ImmutableArray<CustomModifier> TypeCustomModifiers
-            {
-                get { return _typeCustomModifiers; }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers

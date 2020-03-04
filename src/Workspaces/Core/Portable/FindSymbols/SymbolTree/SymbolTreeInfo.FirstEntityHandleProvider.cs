@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -51,11 +53,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // We'll never get function pointer types in any types we care about, so we can
             // just return the empty string.  Similarly, as we never construct generics,
             // there is no need to provide anything for the generic parameter names.
-            public EntityHandle GetFunctionPointerType(MethodSignature<EntityHandle> signature) => default(EntityHandle);
-            public EntityHandle GetGenericMethodParameter(object genericContext, int index) => default(EntityHandle);
-            public EntityHandle GetGenericTypeParameter(object genericContext, int index) => default(EntityHandle);
+            public EntityHandle GetFunctionPointerType(MethodSignature<EntityHandle> signature) => default;
+            public EntityHandle GetGenericMethodParameter(object genericContext, int index) => default;
+            public EntityHandle GetGenericTypeParameter(object genericContext, int index) => default;
 
-            public EntityHandle GetPrimitiveType(PrimitiveTypeCode typeCode) => default(EntityHandle);
+            public EntityHandle GetPrimitiveType(PrimitiveTypeCode typeCode) => default;
         }
     }
 }

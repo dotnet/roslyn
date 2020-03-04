@@ -1,37 +1,36 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Text;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
-    [Export(typeof(TestExtensionErrorHandler))]
     [Export(typeof(IExtensionErrorHandler))]
     internal class TestExtensionErrorHandler : IExtensionErrorHandler
     {
-        private List<Exception> _exceptions = new List<Exception>();
+        private ImmutableList<Exception> _exceptions = ImmutableList<Exception>.Empty;
+
+        [ImportingConstructor]
+        public TestExtensionErrorHandler()
+        {
+        }
 
         public void HandleError(object sender, Exception exception)
         {
-            if (exception is ArgumentOutOfRangeException && ((ArgumentOutOfRangeException)exception).ParamName == "span")
+            // Work around bug that is fixed in https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/209513
+            if (exception is NullReferenceException && exception.StackTrace.Contains("SpanTrackingWpfToolTipPresenter"))
             {
-                // TODO: this is known bug 655591, fixed by Jack in changeset 931906
-                // Remove this workaround once the fix reaches the DP branch and we all move over.
                 return;
             }
 
-            _exceptions.Add(exception);
-        }
-
-        public ICollection<Exception> GetExceptions()
-        {
-            // We'll clear off our list, so that way we don't report this for other tests
-            var newExceptions = _exceptions;
-            _exceptions = new List<Exception>();
-            return newExceptions;
+            ExceptionUtilities.FailFast(exception);
         }
     }
 }

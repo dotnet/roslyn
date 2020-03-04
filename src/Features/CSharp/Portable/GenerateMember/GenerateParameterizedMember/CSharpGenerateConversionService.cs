@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,11 +11,9 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMember
 {
@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
     internal partial class CSharpGenerateConversionService :
         AbstractGenerateConversionService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpGenerateConversionService()
+        {
+        }
+
         protected override bool IsImplicitConversionGeneration(SyntaxNode node)
         {
             return node is ExpressionSyntax &&
@@ -67,15 +72,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             if (TryGetConversionMethodAndTypeToGenerateIn(document, expression, classInterfaceModuleStructTypes, cancellationToken, out methodSymbol, out typeToGenerateIn))
             {
                 identifierToken = SyntaxFactory.Token(
-                    default(SyntaxTriviaList),
+                    default,
                     SyntaxKind.ImplicitKeyword,
                     WellKnownMemberNames.ImplicitConversionName,
                     WellKnownMemberNames.ImplicitConversionName,
-                    default(SyntaxTriviaList));
+                    default);
                 return true;
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             methodSymbol = null;
             typeToGenerateIn = null;
             return false;
@@ -93,15 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             if (TryGetConversionMethodAndTypeToGenerateIn(document, expression, classInterfaceModuleStructTypes, cancellationToken, out methodSymbol, out typeToGenerateIn))
             {
                 identifierToken = SyntaxFactory.Token(
-                    default(SyntaxTriviaList),
+                    default,
                     SyntaxKind.ImplicitKeyword,
                     WellKnownMemberNames.ExplicitConversionName,
                     WellKnownMemberNames.ExplicitConversionName,
-                    default(SyntaxTriviaList));
+                    default);
                 return true;
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             methodSymbol = null;
             typeToGenerateIn = null;
             return false;
@@ -115,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             out IMethodSymbol methodSymbol,
             out INamedTypeSymbol typeToGenerateIn)
         {
-            var castExpression = expression as CastExpressionSyntax;
-            if (castExpression != null)
+            if (expression is CastExpressionSyntax castExpression)
             {
                 return TryGetExplicitConversionMethodAndTypeToGenerateIn(
                     document,
@@ -146,8 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
         {
             methodSymbol = null;
             typeToGenerateIn = document.SemanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type as INamedTypeSymbol;
-            var parameterSymbol = document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
-            if (typeToGenerateIn == null || parameterSymbol == null || typeToGenerateIn.IsErrorType() || parameterSymbol.IsErrorType())
+            if (typeToGenerateIn == null
+                || !(document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type is INamedTypeSymbol parameterSymbol)
+                || typeToGenerateIn.IsErrorType()
+                || parameterSymbol.IsErrorType())
             {
                 return false;
             }
@@ -158,8 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
                     document.Project.Solution,
                     typeToGenerateIn,
                     true,
-                    classInterfaceModuleStructTypes,
-                    cancellationToken))
+                    classInterfaceModuleStructTypes))
             {
                 typeToGenerateIn = parameterSymbol;
             }
@@ -177,8 +182,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
         {
             methodSymbol = null;
             typeToGenerateIn = document.SemanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType as INamedTypeSymbol;
-            var parameterSymbol = document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type as INamedTypeSymbol;
-            if (typeToGenerateIn == null || parameterSymbol == null || typeToGenerateIn.IsErrorType() || parameterSymbol.IsErrorType())
+            if (typeToGenerateIn == null
+                || !(document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type is INamedTypeSymbol parameterSymbol)
+                || typeToGenerateIn.IsErrorType()
+                || parameterSymbol.IsErrorType())
             {
                 return false;
             }
@@ -189,8 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
                     document.Project.Solution,
                     typeToGenerateIn,
                     true,
-                    classInterfaceModuleStructTypes,
-                    cancellationToken))
+                    classInterfaceModuleStructTypes))
             {
                 typeToGenerateIn = parameterSymbol;
             }
@@ -209,10 +215,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: ImmutableArray<AttributeData>.Empty,
-                accessibility: default(Accessibility),
-                modifiers: default(DeclarationModifiers),
+                accessibility: default,
+                modifiers: default,
                 returnType: typeToGenerateIn,
-                returnsByRef: false,
+                refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: null,
                 typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,

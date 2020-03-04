@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return keywords?.Select(k => CreateItem(k, syntaxContext));
         }
 
-        protected static ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.Intrinsic);
+        protected static ImmutableArray<string> s_Tags = ImmutableArray.Create(WellKnownTags.Intrinsic);
 
         protected static CompletionItemRules s_keywordRules = CompletionItemRules.Default;
 
@@ -76,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
+                displayTextSuffix: "",
                 rules: s_keywordRules.WithMatchPriority(keyword.MatchPriority),
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,

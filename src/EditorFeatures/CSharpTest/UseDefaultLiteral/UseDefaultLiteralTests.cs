@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseDefaultLiteralDiagnosticAnalyzer(), new CSharpUseDefaultLiteralCodeFixProvider());
 
-        private static readonly CSharpParseOptions s_parseOptions = 
+        private static readonly CSharpParseOptions s_parseOptions =
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
 
         private static readonly TestParameters s_testParameters =
@@ -29,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
 @"
 class C
 {
-    void Foo(string s = [||]default(string))
+    void Goo(string s = [||]default(string))
     {
     }
 }", parameters: new TestParameters(
@@ -43,14 +46,14 @@ class C
 @"
 class C
 {
-    void Foo(string s = [||]default(string))
+    void Goo(string s = [||]default(string))
     {
     }
 }",
 @"
 class C
 {
-    void Foo(string s = default)
+    void Goo(string s = default)
     {
     }
 }", parseOptions: s_parseOptions);
@@ -63,7 +66,7 @@ class C
 @"
 class C
 {
-    void Foo(string s)
+    void Goo(string s)
     {
         if (s == [||]default(string)) { }
     }
@@ -71,7 +74,7 @@ class C
 @"
 class C
 {
-    void Foo(string s)
+    void Goo(string s)
     {
         if (s == default) { }
     }
@@ -85,7 +88,7 @@ class C
 @"
 class C
 {
-    string Foo()
+    string Goo()
     {
         return [||]default(string);
     }
@@ -93,7 +96,7 @@ class C
 @"
 class C
 {
-    string Foo()
+    string Goo()
     {
         return default;
     }
@@ -107,7 +110,7 @@ class C
 @"
 class C
 {
-    string Foo()
+    string Goo()
     {
         return [||]default(int);
     }
@@ -123,7 +126,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string> f = () => [||]default(string);
     }
@@ -133,7 +136,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string> f = () => [||]default;
     }
@@ -149,7 +152,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string> f = () => [||]default(int);
     }
@@ -163,7 +166,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = [||]default(string);
     }
@@ -171,7 +174,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = default;
     }
@@ -185,7 +188,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = [||]default(int);
     }
@@ -199,11 +202,11 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var s = [||]default(string);
     }
-}",  parameters: s_testParameters);
+}", parameters: s_testParameters);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
@@ -213,7 +216,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar([||]default(string));
     }
@@ -223,7 +226,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(default);
     }
@@ -239,7 +242,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar([||]default(string));
     }
@@ -256,7 +259,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         var v = b ? [||]default(string) : default(string);
     }
@@ -264,7 +267,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         var v = b ? default : default(string);
     }
@@ -278,7 +281,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         var v = b ? default(string) : [||]default(string);
     }
@@ -286,7 +289,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         var v = b ? default(string) : default;
     }
@@ -300,7 +303,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s1 = {|FixAllInDocument:default|}(string);
         string s2 = default(string);
@@ -309,7 +312,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s1 = default;
         string s2 = default;
@@ -324,7 +327,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         string s1 = b ? {|FixAllInDocument:default|}(string) : default(string);
     }
@@ -332,7 +335,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         string s1 = b ? default : default(string);
     }
@@ -346,7 +349,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s1 = {|FixAllInDocument:default|}(string);
         string s2 = default(int);
@@ -355,12 +358,284 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s1 = default;
         string s2 = default(int);
     }
 }", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestDoNotOfferIfTypeWouldChange()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+struct S
+{
+    void M()
+    {
+        var s = new S();
+        s.Equals([||]default(S));
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestDoNotOfferIfTypeWouldChange2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+struct S<T>
+{
+    void M()
+    {
+        var s = new S<int>();
+        s.Equals([||]default(S<int>));
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestOnShadowedMethod()
+        {
+            await TestAsync(
+@"
+struct S
+{
+    void M()
+    {
+        var s = new S();
+        s.Equals([||]default(S));
+    }
+
+    public new bool Equals(S s) => true;
+}",
+
+@"
+struct S
+{
+    void M()
+    {
+        var s = new S();
+        s.Equals(default);
+    }
+
+    public new bool Equals(S s) => true;
+}", parseOptions: s_parseOptions);
+        }
+
+        [WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInSwitchCase()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case [||]default(bool):
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInSwitchCase_InsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case ([||]default(bool)):
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInSwitchCase_InsideCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default(bool):
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default:
+        }
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternSwitchCase()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case [||]default(bool) when true:
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternSwitchCase_InsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case ([||]default(bool)) when true:
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInPatternSwitchCase_InsideCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default(bool) when true:
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default when true:
+        }
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInPatternSwitchCase_InsideWhenClause()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case default(bool) when [||]default(bool):
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case default(bool) when default:
+        }
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternIs()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        if (true is [||]default(bool));
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternIs_InsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        if (true is ([||]default(bool)));
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInPatternIs_InsideCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        if (true is (bool)[||]default(bool));
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        if (true is (bool)default);
+    }
+}", parameters: s_testParameters);
         }
     }
 }

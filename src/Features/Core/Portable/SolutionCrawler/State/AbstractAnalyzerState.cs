@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -7,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 {
@@ -26,11 +27,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
         protected abstract void WriteTo(Stream stream, TData data, CancellationToken cancellationToken);
         protected abstract Task<bool> WriteStreamAsync(IPersistentStorage storage, TValue value, Stream stream, CancellationToken cancellationToken);
 
-        public int Count => this.DataCache.Count;
+        public int Count => DataCache.Count;
 
         public int GetDataCount(TKey key)
         {
-            if (!this.DataCache.TryGetValue(key, out var entry))
+            if (!DataCache.TryGetValue(key, out var entry))
             {
                 return 0;
             }
@@ -40,10 +41,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
         public async Task<TData> TryGetExistingDataAsync(TValue value, CancellationToken cancellationToken)
         {
-            if (!this.DataCache.TryGetValue(GetCacheKey(value), out var entry))
+            if (!DataCache.TryGetValue(GetCacheKey(value), out var entry))
             {
                 // we don't have data
-                return default(TData);
+                return default;
             }
 
             // we have in memory cache for the document
@@ -58,20 +59,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             try
             {
-                using (var storage = persistService.GetStorage(solution))
-                using (var stream = await ReadStreamAsync(storage, value, cancellationToken).ConfigureAwait(false))
+                using var storage = persistService.GetStorage(solution);
+                using var stream = await ReadStreamAsync(storage, value, cancellationToken).ConfigureAwait(false);
+
+                if (stream != null)
                 {
-                    if (stream != null)
-                    {
-                        return TryGetExistingData(stream, value, cancellationToken);
-                    }
+                    return TryGetExistingData(stream, value, cancellationToken);
                 }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
             }
 
-            return default(TData);
+            return default;
         }
 
         public async Task PersistAsync(TValue value, TData data, CancellationToken cancellationToken)
@@ -82,34 +82,30 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             // if data is for opened document or if persistence failed, 
             // we keep small cache so that we don't pay cost of deserialize/serializing data that keep changing
-            this.DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default(TData), GetCount(data));
+            DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default, GetCount(data));
         }
 
-        public bool Remove(TKey id)
+        public virtual bool Remove(TKey id)
         {
             // remove doesn't actually remove data from the persistent storage
             // that will be automatically managed by the service itself.
-            return this.DataCache.TryRemove(id, out var entry);
+            return DataCache.TryRemove(id, out _);
         }
 
         private async Task<bool> WriteToStreamAsync(TValue value, TData data, CancellationToken cancellationToken)
         {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            {
-                WriteTo(stream, data, cancellationToken);
+            using var stream = SerializableBytes.CreateWritableStream();
+            WriteTo(stream, data, cancellationToken);
 
-                var solution = GetSolution(value);
-                var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var solution = GetSolution(value);
+            var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-                using (var storage = persistService.GetStorage(solution))
-                {
-                    stream.Position = 0;
-                    return await WriteStreamAsync(storage, value, stream, cancellationToken).ConfigureAwait(false);
-                }
-            }
+            using var storage = persistService.GetStorage(solution);
+            stream.Position = 0;
+            return await WriteStreamAsync(storage, value, stream, cancellationToken).ConfigureAwait(false);
         }
 
-        protected struct CacheEntry
+        protected readonly struct CacheEntry
         {
             public readonly TData Data;
             public readonly int Count;
@@ -120,7 +116,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
                 Count = count;
             }
 
-            public bool HasCachedData => !object.Equals(Data, default(TData));
+            public bool HasCachedData => !object.Equals(Data, default);
         }
     }
 }

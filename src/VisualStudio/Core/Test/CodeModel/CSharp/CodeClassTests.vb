@@ -1,13 +1,15 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     Public Class CodeClassTests
@@ -1070,19 +1072,19 @@ class $$C { }
         Public Sub TestComment2()
             Dim code =
 <Code>
-// Foo
+// Goo
 // Bar
 class $$C { }
 </Code>
 
-            TestComment(code, "Foo" & vbCrLf & "Bar" & vbCrLf)
+            TestComment(code, "Goo" & vbCrLf & "Bar" & vbCrLf)
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestComment3()
             Dim code =
 <Code>
-class B { } // Foo
+class B { } // Goo
 // Bar
 class $$C { }
 </Code>
@@ -1094,7 +1096,7 @@ class $$C { }
         Public Sub TestComment4()
             Dim code =
 <Code>
-class B { } // Foo
+class B { } // Goo
 /* Bar */
 class $$C { }
 </Code>
@@ -1106,7 +1108,7 @@ class $$C { }
         Public Sub TestComment5()
             Dim code =
 <Code>
-class B { } // Foo
+class B { } // Goo
 /*
     Bar
 */
@@ -1120,7 +1122,7 @@ class $$C { }
         Public Sub TestComment6()
             Dim code =
 <Code>
-class B { } // Foo
+class B { } // Goo
 /*
     Hello
     World!
@@ -1135,7 +1137,7 @@ class $$C { }
         Public Sub TestComment7()
             Dim code =
 <Code>
-class B { } // Foo
+class B { } // Goo
 /*
     Hello
     
@@ -1167,7 +1169,7 @@ class $$C { }
         Public Sub TestComment9()
             Dim code =
 <Code>
-// Foo
+// Goo
 /// &lt;summary&gt;Bar&lt;/summary&gt;
 class $$C { }
 </Code>
@@ -1801,14 +1803,14 @@ class $$C { }
 <Code>
 class C
 {
-    void Foo()
+    void Goo()
     {
 
     }
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "void"})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1824,14 +1826,14 @@ class $$C
 <Code>
 class C
 {
-    void Foo()
+    void Goo()
     {
 
     }
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "void"})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1847,14 +1849,14 @@ class $$C
 <Code>
 class C
 {
-    void Foo()
+    void Goo()
     {
 
     }
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "System.Void"})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "System.Void"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1871,7 +1873,7 @@ class $$C
 <Code>
 class C
 {
-    void Foo()
+    void Goo()
     {
 
     }
@@ -1880,7 +1882,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "void"})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1899,14 +1901,14 @@ class C
 {
     int i;
 
-    void Foo()
+    void Goo()
     {
 
     }
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "void", .Position = 1})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void", .Position = 1})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1925,14 +1927,14 @@ class C
 {
     int i;
 
-    void Foo()
+    void Goo()
     {
 
     }
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "void", .Position = "i"})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void", .Position = "i"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2160,7 +2162,7 @@ class C
 {
     string Name
     {
-        get => default(string);
+        get => default;
         set
         {
         }
@@ -2188,7 +2190,7 @@ class C
     {
         get
         {
-            return default(string);
+            return default;
         }
 
         set
@@ -2202,8 +2204,8 @@ class C
                 code, expected,
                 New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
                 New Dictionary(Of OptionKey, Object) From {
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement},
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement}
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement},
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement}
                 })
         End Function
 
@@ -2220,7 +2222,7 @@ class C$$
 <Code>
 class C
 {
-    string Name => default(string);
+    string Name => default;
 }
 </Code>
 
@@ -2244,7 +2246,7 @@ class C
     {
         get
         {
-            return default(string);
+            return default;
         }
     }
 }
@@ -2253,8 +2255,8 @@ class C
             Await TestAddProperty(
                 code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
                 New Dictionary(Of OptionKey, Object) From {
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement},
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement}
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement},
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement}
                 })
         End Function
 
@@ -2331,7 +2333,7 @@ class C
 <Code>
 class $$C
 {
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2339,13 +2341,13 @@ class $$C
 <Code>
 class C
 {
-    void Foo() { }
+    void Goo() { }
 
     int i;
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "Foo"})
+            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "Goo"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2355,7 +2357,7 @@ class C
 class $$C
 {
     int x;
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2366,7 +2368,7 @@ class C
     int x;
     int i;
 
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2381,7 +2383,7 @@ class $$C
 {
     int x;
 
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2392,7 +2394,7 @@ class C
     int x;
     int i;
 
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2407,7 +2409,7 @@ class $$C
 {
     int x, y;
 
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2418,7 +2420,7 @@ class C
     int x, y;
     int i;
 
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2433,7 +2435,7 @@ class $$C
 {
     int x, y;
 
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2444,7 +2446,7 @@ class C
     int x, y;
     int i;
 
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2457,7 +2459,7 @@ class C
 <Code>
 class $$C
 {
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2467,7 +2469,7 @@ class C
 {
     int i;
 
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2480,7 +2482,7 @@ class C
 <Code>
 class $$C
 {
-    void Foo() { }
+    void Goo() { }
 }
 </Code>
 
@@ -2488,7 +2490,7 @@ class $$C
 <Code>
 class C
 {
-    void Foo() { }
+    void Goo() { }
 
     int i;
 }
@@ -2679,7 +2681,7 @@ class C
 <Code>
 class $$C
 {
-    #region Foo
+    #region Goo
     int i = 0;
     #endregion
 }
@@ -2689,7 +2691,7 @@ class $$C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
     int i = 0;
     #endregion
 
@@ -2707,7 +2709,7 @@ class C
 <Code>
 class $$C
 {
-    int i = 0; // Foo
+    int i = 0; // Goo
 }
 </Code>
 
@@ -2715,7 +2717,7 @@ class $$C
 <Code>
 class C
 {
-    int i = 0; // Foo
+    int i = 0; // Goo
     int j;
 }
 </Code>
@@ -2803,7 +2805,7 @@ interface I { }
 <Code>
 class $$C
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2816,7 +2818,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2828,7 +2830,7 @@ class $$C
     /// <summary>
     /// Doc comment.
     /// </summary>
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2841,7 +2843,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2851,7 +2853,7 @@ class C
 class $$C
 {
     // Comment comment comment
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2864,7 +2866,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2875,7 +2877,7 @@ class $$C
 {
     // Comment comment comment
 
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2889,7 +2891,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2904,7 +2906,7 @@ class $$C
     /// <summary>
     /// Doc comment.
     /// </summary>
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2920,7 +2922,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2935,7 +2937,7 @@ class $$C
     /// <summary>
     /// This comment is deleted.
     /// </summary>
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2949,7 +2951,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2986,7 +2988,7 @@ class $$C
     {
     }
 
-    void Foo()
+    void Goo()
     {
     }
 
@@ -3010,7 +3012,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3332,7 +3334,7 @@ class C
         Public Async Function TestSetComment1() As Task
             Dim code =
 <Code>
-// Foo
+// Goo
 
 // Bar
 class $$C { }
@@ -3350,14 +3352,14 @@ class C { }
         Public Async Function TestSetComment2() As Task
             Dim code =
 <Code>
-// Foo
+// Goo
 /// &lt;summary&gt;Bar&lt;/summary&gt;
 class $$C { }
 </Code>
 
             Dim expected =
 <Code>
-// Foo
+// Goo
 /// &lt;summary&gt;Bar&lt;/summary&gt;
 // Bar
 class C { }
@@ -3370,7 +3372,7 @@ class C { }
         Public Async Function TestSetComment3() As Task
             Dim code =
 <Code>
-// Foo
+// Goo
 
 // Bar
 class $$C { }
@@ -3471,13 +3473,13 @@ class C { }
         Public Async Function TestSetDocComment3() As Task
             Dim code =
 <Code>
-// Foo
+// Goo
 class $$C { }
 </Code>
 
             Dim expected =
 <Code>
-// Foo
+// Goo
 /// &lt;summary&gt;Blah&lt;/summary&gt;
 class C { }
 </Code>
@@ -3490,14 +3492,14 @@ class C { }
             Dim code =
 <Code>
 /// &lt;summary&gt;FogBar&lt;/summary&gt;
-// Foo
+// Goo
 class $$C { }
 </Code>
 
             Dim expected =
 <Code>
 /// &lt;summary&gt;Blah&lt;/summary&gt;
-// Foo
+// Goo
 class C { }
 </Code>
 
@@ -3783,7 +3785,7 @@ class C
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
-class $$Foo
+class $$Goo
 {
 }
 </Code>
@@ -3802,9 +3804,9 @@ class Bar
         Public Async Function TestSetName2() As Task
             Dim code =
 <Code>
-class $$Foo
+class $$Goo
 {
-    Foo()
+    Goo()
     {
     }
 }
@@ -3827,11 +3829,11 @@ class Bar
         Public Async Function TestSetName3() As Task
             Dim code =
 <Code>
-partial class $$Foo
+partial class $$Goo
 {
 }
 
-partial class Foo
+partial class Goo
 {
 }
 </Code>
@@ -3842,7 +3844,7 @@ partial class Bar
 {
 }
 
-partial class Foo
+partial class Goo
 {
 }
 </Code>
@@ -3937,7 +3939,7 @@ class $$C
         Public Sub TestExternalClass_ImplementedInterfaces()
             Dim code =
 <Code>
-class $$Foo : System.Collections.Generic.List&lt;int&gt;
+class $$Goo : System.Collections.Generic.List&lt;int&gt;
 {
 }
 </Code>

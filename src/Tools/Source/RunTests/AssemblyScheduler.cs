@@ -29,13 +29,13 @@ namespace RunTests
             ExtraArguments = extraArguments;
         }
 
-        internal AssemblyInfo(string assemblyPath, bool useHmtl)
+        internal AssemblyInfo(string assemblyPath, string targetFrameworkMoniker, string architecture, bool useHmtl)
         {
             AssemblyPath = assemblyPath;
             DisplayName = Path.GetFileName(assemblyPath);
 
             var suffix = useHmtl ? "html" : "xml";
-            ResultsFileName = $"{DisplayName}.{suffix}";
+            ResultsFileName = $"{DisplayName}_{targetFrameworkMoniker}_{architecture}.{suffix}";
             ExtraArguments = string.Empty;
         }
 
@@ -235,7 +235,7 @@ namespace RunTests
 
         public AssemblyInfo CreateAssemblyInfo(string assemblyPath)
         {
-            return new AssemblyInfo(assemblyPath, _options.UseHtml);
+            return new AssemblyInfo(assemblyPath, _options.TargetFrameworkMoniker, _options.Test64 ? "x64" : "x86", _options.UseHtml);
         }
 
         private static List<TypeInfo> GetTypeInfoList(string assemblyPath)
@@ -275,7 +275,7 @@ namespace RunTests
         }
 
         /// <summary>
-        /// Determine if this type should be one of the `class` values passed to xunit.  This
+        /// Determine if this type should be one of the <c>class</c> values passed to xunit.  This
         /// code doesn't actually resolve base types or trace through inherrited Fact attributes
         /// hence we have to error on the side of including types with no tests vs. excluding them.
         /// </summary>
@@ -286,7 +286,7 @@ namespace RunTests
                 TypeAttributes.Public == (type.Attributes & TypeAttributes.Public) ||
                 TypeAttributes.NestedPublic == (type.Attributes & TypeAttributes.NestedPublic);
             if (!isPublic ||
-                TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract)  ||
+                TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract) ||
                 TypeAttributes.Class != (type.Attributes & TypeAttributes.Class))
             {
                 return false;
@@ -337,7 +337,7 @@ namespace RunTests
         private static bool IsValidIdentifier(MetadataReader reader, StringHandle handle)
         {
             var name = reader.GetString(handle);
-            for (int i=  0; i < name.Length; i++)
+            for (int i = 0; i < name.Length; i++)
             {
                 switch (name[i])
                 {
@@ -359,8 +359,8 @@ namespace RunTests
             }
 
             var typeRef = reader.GetTypeReference((TypeReferenceHandle)type.BaseType);
-            return 
-                reader.GetString(typeRef.Namespace) == "System" && 
+            return
+                reader.GetString(typeRef.Namespace) == "System" &&
                 reader.GetString(typeRef.Name) == "Object";
         }
 
@@ -375,7 +375,7 @@ namespace RunTests
                 var declaringTypeFullName = GetFullName(reader, declaringType);
                 return $"{declaringTypeFullName}+{typeName}";
             }
-            
+
             var namespaceName = reader.GetString(type.Namespace);
             if (string.IsNullOrEmpty(namespaceName))
             {

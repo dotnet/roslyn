@@ -1,11 +1,15 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
+    <[UseExportProvider]>
     Public Class CommitWithViewTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
@@ -93,11 +97,13 @@ End Module
                     </Project>
                 </Workspace>)
 
+                Dim initialTextSnapshot = testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot
+
                 testData.EditorOperations.InsertText("    ")
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
 
                 ' The text should snap back to what it originally was
-                Dim originalText = testData.Workspace.Documents.Single().InitialTextSnapshot.GetLineFromLineNumber(5).GetText()
+                Dim originalText = initialTextSnapshot.GetLineFromLineNumber(5).GetText()
                 Assert.Equal(originalText, testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(5).GetText())
             End Using
         End Sub
@@ -142,11 +148,11 @@ $$</Document>
                     </Project>
                 </Workspace>)
 
-                testData.EditorOperations.InsertText("#const   foo=2.0d")
+                testData.EditorOperations.InsertText("#const   goo=2.0d")
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
 
-                Assert.Equal("#Const foo = 2D", testData.Buffer.CurrentSnapshot.Lines.Last().GetText().Trim())
+                Assert.Equal("#Const goo = 2D", testData.Buffer.CurrentSnapshot.Lines.Last().GetText().Trim())
             End Using
         End Sub
 
@@ -160,7 +166,7 @@ $$</Document>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
 Module M[|
-    dim foo = 1 + _
+    dim goo = 1 + _
         _$$
         3|]
 End Module
@@ -172,7 +178,7 @@ End Module
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
 
-                Assert.Equal("    Dim foo = 1 + _", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(2).GetText())
+                Assert.Equal("    Dim goo = 1 + _", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(2).GetText())
                 testData.AssertHadCommit(True)
             End Using
         End Sub
@@ -186,7 +192,7 @@ End Module
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>[|
 $$|]
-Class Foo
+Class Goo
 End Class
                         </Document>
                     </Project>
@@ -207,7 +213,7 @@ End Class
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-Class Foo[|
+Class Goo[|
     $$|]
     Sub Bar()
     End Sub
@@ -231,7 +237,7 @@ End Class
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
-Class Foo[|
+Class Goo[|
     <ClsCompilant>
     Sub $$Bar()
     End Sub|]
@@ -240,7 +246,7 @@ End Class
                     </Project>
                 </Workspace>)
 
-                testData.EditorOperations.InsertText("Foo")
+                testData.EditorOperations.InsertText("Goo")
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
 
                 testData.AssertHadCommit(True)
@@ -254,7 +260,7 @@ End Class
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
-Class Foo[|
+Class Goo[|
     <ClsCompilant>
     Sub $$Bar()
     End Sub|]
@@ -264,7 +270,7 @@ End Class
                 </Workspace>)
 
                 testData.StartInlineRenameSession()
-                testData.EditorOperations.InsertText("Foo")
+                testData.EditorOperations.InsertText("Goo")
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
 
                 testData.AssertHadCommit(False)
@@ -293,7 +299,9 @@ End Module
                 </Workspace>)
 
                 testData.EditorOperations.InsertText("_")
-                testData.CommandHandler.ExecuteCommand(New ReturnKeyCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertNewLine())
+                testData.CommandHandler.ExecuteCommand(New ReturnKeyCommandArgs(testData.View, testData.Buffer),
+                                                       Sub() testData.EditorOperations.InsertNewLine(),
+                                                       TestCommandExecutionContext.Create())
 
                 ' So far we should have had no commit
                 testData.AssertHadCommit(False)
@@ -322,6 +330,8 @@ End Module
                     </Project>
                 </Workspace>)
 
+                Dim initialTextSnapshot = testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot
+
                 testData.EditorOperations.Backspace()
                 testData.EditorOperations.Backspace()
                 testData.EditorOperations.Backspace()
@@ -332,7 +342,7 @@ End Module
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
                 testData.AssertHadCommit(True)
 
-                Assert.Equal(testData.Workspace.Documents.Single().InitialTextSnapshot.GetText(), testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(initialTextSnapshot.GetText(), testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -526,7 +536,7 @@ End Module
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
 Namespace Program[|
-    Enum Foo
+    Enum Goo
         Alpha
         Bravo
         Charlie
@@ -551,7 +561,7 @@ End Namespace
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-Class Foo
+Class Goo
     Public Property Bar As Integer[|
         Get
         $$|]
@@ -576,8 +586,8 @@ End Namespace
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-Class Foo
-    Sub Foo()[|
+Class Goo
+    Sub Goo()[|
         SyncLock Me
         Dim x = 42
         $$|]
@@ -643,7 +653,7 @@ Module Module1
     End Sub
 End Module
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -701,7 +711,7 @@ Module Program
     End Sub
 End Module
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -732,7 +742,7 @@ End Class</Code>
                 testData.EditorOperations.MoveLineDown(extendSelection:=False)
 
                 ' The text should snap back to what it originally was
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -759,7 +769,7 @@ End Class</Code>
 
                 testData.EditorOperations.InsertNewLine()
 
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -795,7 +805,7 @@ End Module</Code>
 
                 testData.EditorOperations.InsertNewLine()
 
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -823,7 +833,7 @@ End Module|]</Document>
                 Dim view = document.GetTextView()
                 view.Selection.Select(snapshotspan, isReversed:=False)
                 Dim selArgs = New FormatSelectionCommandArgs(view, document.GetTextBuffer())
-                testData.CommandHandler.ExecuteCommand(selArgs, Sub() Return)
+                testData.CommandHandler.ExecuteCommand(selArgs, Sub() Return, TestCommandExecutionContext.Create())
             End Using
         End Sub
 
@@ -854,7 +864,7 @@ Class C
     End Sub
 End Class
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -885,7 +895,7 @@ Class C
     End Sub
 End Class
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -916,7 +926,7 @@ Class C
     End Sub
 End Class
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -940,7 +950,7 @@ End Class
 
 
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -964,7 +974,7 @@ End Class
 
 
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -994,7 +1004,7 @@ Module Program
     End Sub
 End Module
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -1020,7 +1030,7 @@ Module M1
     'Comment
 End Module
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -1046,7 +1056,7 @@ Module M1
 
 End Module
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -1081,7 +1091,7 @@ Class C
     End Sub
 End Class
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -1120,7 +1130,7 @@ Class C
     End Sub
 End Class
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
     End Class

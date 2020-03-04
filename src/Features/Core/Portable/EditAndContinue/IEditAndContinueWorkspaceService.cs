@@ -1,31 +1,36 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal interface IEditAndContinueWorkspaceService : IWorkspaceService
     {
-        EditSession EditSession { get; }
-        DebuggingSession DebuggingSession { get; }
+        Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken);
+        Task<bool> HasChangesAsync(string sourceFilePath, CancellationToken cancellationToken);
+        Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(CancellationToken cancellationToken);
 
-        event EventHandler<DebuggingStateChangedEventArgs> BeforeDebuggingStateChanged;
-        void OnBeforeDebuggingStateChanged(DebuggingState before, DebuggingState after);
+        void CommitSolutionUpdate();
+        void DiscardSolutionUpdate();
 
-        void StartDebuggingSession(Solution currentSolution);
+        bool IsDebuggingSessionInProgress { get; }
+        void OnSourceFileUpdated(DocumentId documentId);
 
-        void StartEditSession(
-            Solution currentSolution,
-            IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> activeStatements,
-            ImmutableDictionary<ProjectId, ProjectReadOnlyReason> projects,
-            bool stoppedAtException);
-
+        void StartDebuggingSession();
+        void StartEditSession();
         void EndEditSession();
         void EndDebuggingSession();
 
-        bool IsProjectReadOnly(ProjectId id, out SessionReadOnlyReason sessionReason, out ProjectReadOnlyReason projectReason);
+        Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken);
+        Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken);
+
+        void ReportApplyChangesException(string message);
     }
 }

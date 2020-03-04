@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportWorkspaceService(typeof(ISymbolRenamedCodeActionOperationFactoryWorkspaceService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioSymbolRenamedCodeActionOperationFactoryWorkspaceService : ISymbolRenamedCodeActionOperationFactoryWorkspaceService
     {
@@ -29,9 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             return new RenameSymbolOperation(
                 _refactorNotifyServices,
-                symbol ?? throw new ArgumentNullException(nameof(symbol)), 
-                newName ?? throw new ArgumentNullException(nameof(newName)), 
-                startingSolution ?? throw new ArgumentNullException(nameof(startingSolution)), 
+                symbol ?? throw new ArgumentNullException(nameof(symbol)),
+                newName ?? throw new ArgumentNullException(nameof(newName)),
+                startingSolution ?? throw new ArgumentNullException(nameof(startingSolution)),
                 updatedSolution ?? throw new ArgumentNullException(nameof(updatedSolution)));
         }
 
@@ -44,8 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly Solution _updatedSolution;
 
             public RenameSymbolOperation(
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices, 
-                ISymbol symbol, 
+                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+                ISymbol symbol,
                 string newName,
                 Solution startingSolution,
                 Solution updatedSolution)
@@ -57,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _updatedSolution = updatedSolution;
             }
 
-            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
+            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default)
             {
                 var updatedDocumentIds = _updatedSolution.GetChanges(_startingSolution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());
 

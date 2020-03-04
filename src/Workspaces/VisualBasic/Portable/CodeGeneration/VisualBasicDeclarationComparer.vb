@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -172,6 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim result = 0
             If EqualConstness(x.Modifiers, y.Modifiers, result) AndAlso
                EqualSharedness(x.Modifiers, y.Modifiers, result) AndAlso
+               EqualReadOnlyNess(x.Modifiers, y.Modifiers, result) AndAlso
                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) Then
 
                 If _includeName Then
@@ -363,6 +366,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function EqualSharedness(x As SyntaxTokenList, y As SyntaxTokenList, ByRef comparisonResult As Integer) As Boolean
             Return BothHaveModifier(x, y, SyntaxKind.SharedKeyword, comparisonResult)
+        End Function
+
+        Private Shared Function EqualReadOnlyness(x As SyntaxTokenList, y As SyntaxTokenList, ByRef comparisonResult As Integer) As Boolean
+            Return BothHaveModifier(x, y, SyntaxKind.ReadOnlyKeyword, comparisonResult)
         End Function
 
         Private Shared Function EqualConstness(x As SyntaxTokenList, y As SyntaxTokenList, ByRef comparisonResult As Integer) As Boolean

@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -156,10 +158,10 @@ End Class
             Dim markup = <Text><![CDATA[
 Module Program
     Sub Main(args As String())
-        Dim z = New Foo() With {.z$$ }
+        Dim z = New Goo() With {.z$$ }
     End Sub
 
-    Class Foo
+    Class Goo
         Property A As Integer
             Get
 
@@ -300,14 +302,14 @@ End Class
             Dim markup = <Text><![CDATA[
 ''' <completionlist cref="Program"/>
 Class Program
-    Public Shared Foo As Integer
+    Public Shared Goo As Integer
 
     Sub Main(args As String())
         Dim p As Program = New $$
     End Sub
 End Class
 ]]></Text>.Value
-            Await VerifyItemIsAbsentAsync(markup, "Program.Foo")
+            Await VerifyItemIsAbsentAsync(markup, "Program.Goo")
         End Function
 
         <WorkItem(954694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954694")>

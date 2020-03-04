@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 
@@ -12,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Class $$Foo
-                                Dim f As Foo
+                            Class $$Goo
+                                Dim f As Goo
                             End Class
                         </Document>
                     </Project>
@@ -28,10 +30,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Class {|Definition:$$Foo|}
+                            Class {|Definition:$$Goo|}
                                 Public Sub {|Definition:New|}()
-                                    Dim x = New {|Reference:Foo|}()
-                                    Dim y As New {|Reference:Foo|}()
+                                    Dim x = New {|Reference:Goo|}()
+                                    Dim y As New {|Reference:Goo|}()
                                 End Sub
                             End Class
                         </Document>
@@ -47,10 +49,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Class {|Definition:Foo|}
+                            Class {|Definition:Goo|}
                                 Public Sub Blah()
-                                    Dim x = New {|Reference:$$Foo|}()
-                                    Dim y As New {|Reference:Foo|}()
+                                    Dim x = New {|Reference:$$Goo|}()
+                                    Dim y As New {|Reference:Goo|}()
                                 End Sub
                             End Class
                         </Document>
@@ -67,13 +69,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
 Interface I
-    Sub {|Definition:$$Foo|}()
+    Sub {|Definition:$$Goo|}()
 End Interface
 
 Class C
     Implements I
 
-    Public Sub Bar() Implements I.{|Reference:Foo|}
+    Public Sub Bar() Implements I.{|Reference:Goo|}
     End Sub
 End Class
                         </Document>
@@ -90,13 +92,13 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
 Interface I
-    Sub {|Definition:Foo|}()
+    Sub {|Definition:Goo|}()
 End Interface
 
 Class C
     Implements I
 
-    Public Sub Bar() Implements I.{|Reference:$$Foo|}
+    Public Sub Bar() Implements I.{|Reference:$$Goo|}
     End Sub
 End Class
                         </Document>
@@ -113,13 +115,13 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
 Interface I
-    Sub {|Definition:Foo|}()
+    Sub {|Definition:Goo|}()
 End Interface
 
 Class C
     Implements I
 
-    Public Sub {|Definition:Foo|}() Implements I.{|Reference:$$Foo|}
+    Public Sub {|Definition:Goo|}() Implements I.{|Reference:$$Goo|}
     End Sub
 End Class
                         </Document>
@@ -218,7 +220,7 @@ End Class
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
 Class C
-    Default Public Property Foo($${|Definition:x|} As Integer) As Integer
+    Default Public Property Goo($${|Definition:x|} As Integer) As Integer
         Get
             Return {|Reference:x|}
         End Get
@@ -240,7 +242,7 @@ End Class
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-Class Foo
+Class Goo
     Public Sub New()
         Dim {|Definition:$$x|} As Integer
         {|WrittenReference:x|} = 0
@@ -259,13 +261,13 @@ End Class
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-Class Foo
+Class Goo
     Public Sub New()
         Dim {|Definition:$$x|} As Integer
-        Foo({|WrittenReference:x|})
+        Goo({|WrittenReference:x|})
     End Sub
 
-    Public Sub Foo(ByRef a as Integer)
+    Public Sub Goo(ByRef a as Integer)
     End Sub
 End Class
                     </Document>

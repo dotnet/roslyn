@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
@@ -257,8 +259,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function BeginsBaseLiteral(c As Char) As Boolean
             Return (c = "H"c Or c = "O"c Or c = "B"c Or c = "h"c Or c = "o"c Or c = "b"c) OrElse
-                    (IsFullWidth(c) AndAlso (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_B Or c = FULLWIDTH_LATIN_SMALL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_O Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_B))
+                    (IsFullWidth(c) AndAlso (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_H) Or
+                                            (c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_SMALL_LETTER_O) Or
+                                            (c = FULLWIDTH_LATIN_CAPITAL_LETTER_B Or c = FULLWIDTH_LATIN_SMALL_LETTER_B))
         End Function
+
 
         Private Shared ReadOnly s_isIDChar As Boolean() =
         {

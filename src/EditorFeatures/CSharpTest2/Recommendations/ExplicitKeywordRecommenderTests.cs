@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,7 +46,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -63,14 +65,14 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterExtern()
         {
-            await VerifyAbsenceAsync(@"extern alias Foo;
+            await VerifyAbsenceAsync(@"extern alias Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterUsing()
         {
-            await VerifyAbsenceAsync(@"using Foo;
+            await VerifyAbsenceAsync(@"using Goo;
 $$");
         }
 
@@ -91,7 +93,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDelegateDeclaration()
         {
-            await VerifyAbsenceAsync(@"delegate void Foo();
+            await VerifyAbsenceAsync(@"delegate void Goo();
 $$");
         }
 
@@ -99,7 +101,7 @@ $$");
         public async Task TestNotAfterMethod()
         {
             await VerifyAbsenceAsync(@"class C {
-  void Foo() {}
+  void Goo() {}
   $$");
         }
 
@@ -108,7 +110,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"partial class C {
-  void Foo() {}
+  void Goo() {}
   $$");
         }
 
@@ -135,20 +137,20 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAssemblyAttribute()
         {
-            await VerifyAbsenceAsync(@"[assembly: foo]
+            await VerifyAbsenceAsync(@"[assembly: goo]
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterRootAttribute()
         {
-            await VerifyAbsenceAsync(@"[foo]
+            await VerifyAbsenceAsync(@"[goo]
 $$");
         }
 
@@ -157,7 +159,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"partial class C {
-  [foo]
+  [goo]
   $$");
         }
 
@@ -291,7 +293,7 @@ $$");
         public async Task TestNotBetweenUsings()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"using Foo;
+@"using Goo;
 $$
 using Bar;"));
         }

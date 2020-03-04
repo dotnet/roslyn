@@ -1,7 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop
 Imports Roslyn.Test.Utilities
@@ -16,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
-Delegate Sub $$Foo(i As Integer)
+Delegate Sub $$Goo(i As Integer)
 </Code>
 
             TestGetStartPoint(code,
@@ -47,7 +50,7 @@ Delegate Sub $$Foo(i As Integer)
             Dim code =
 <Code>
 &lt;System.CLSCompliant(True)&gt;
-Delegate Sub $$Foo(i As Integer)
+Delegate Sub $$Goo(i As Integer)
 </Code>
 
             TestGetStartPoint(code,
@@ -81,7 +84,7 @@ Delegate Sub $$Foo(i As Integer)
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
-Delegate Sub $$Foo(i As Integer)
+Delegate Sub $$Goo(i As Integer)
 </Code>
 
             TestGetEndPoint(code,
@@ -112,7 +115,7 @@ Delegate Sub $$Foo(i As Integer)
             Dim code =
 <Code>
 &lt;System.CLSCompliant(True)&gt;
-Delegate Sub $$Foo(i As Integer)
+Delegate Sub $$Goo(i As Integer)
 </Code>
 
             TestGetEndPoint(code,

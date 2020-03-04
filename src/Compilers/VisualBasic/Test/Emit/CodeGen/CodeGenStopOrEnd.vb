@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 
 Imports Microsoft.CodeAnalysis
@@ -31,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       26 (0x1a)
@@ -56,24 +58,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Public Module Module1
                     Public Sub Main()
                         Console.Writeline("Start")
-                        Foo()
+                        Goo()
                         Console.Writeline("End")
                     End Sub
 
-                    Sub Foo
-                        Console.Writeline("Foo")
+                    Sub Goo
+                        Console.Writeline("Goo")
                         Stop
                     End Sub
                 End Module
                     </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
-            Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Foo",
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Goo",
             <![CDATA[{
   // Code size       16 (0x10)
   .maxstack  1
-  IL_0000:  ldstr      "Foo"
+  IL_0000:  ldstr      "Goo"
   IL_0005:  call       "Sub System.Console.WriteLine(String)"
   IL_000a:  call       "Sub System.Diagnostics.Debugger.Break()"
   IL_000f:  ret
@@ -91,12 +93,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Public Module Module1
                     Public Sub Main()
                         Console.Writeline("Start")
-                        Foo() : Stop
+                        Goo() : Stop
                         Console.Writeline("End")
                     End Sub
 
-                    Sub Foo
-                        Console.Writeline("Foo")
+                    Sub Goo
+                        Console.Writeline("Goo")
                     End Sub
                 End Module
                     </file>
@@ -106,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   .maxstack  1
   IL_0000:  ldstr      "Start"
   IL_0005:  call       "Sub System.Console.WriteLine(String)"
-  IL_000a:  call       "Sub Module1.Foo()"
+  IL_000a:  call       "Sub Module1.Goo()"
   IL_000f:  call       "Sub System.Diagnostics.Debugger.Break()"
   IL_0014:  ldstr      "End"
   IL_0019:  call       "Sub System.Console.WriteLine(String)"
@@ -126,21 +128,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Module Module1
             Public Sub Main()
                 Console.Writeline("Start")
-                Foo()
+                Goo()
                 Console.Writeline("End")
             End Sub
 
-            Sub Foo
-                Console.Writeline("Foo")
+            Sub Goo
+                Console.Writeline("Goo")
                 Stop
             End Sub
         End Module
             </file>
-    </compilation>).VerifyIL("Module1.Foo",
+    </compilation>).VerifyIL("Module1.Goo",
             <![CDATA[{
   // Code size       16 (0x10)
   .maxstack  1
-  IL_0000:  ldstr      "Foo"
+  IL_0000:  ldstr      "Goo"
   IL_0005:  call       "Sub System.Console.WriteLine(String)"
   IL_000a:  call       "Sub System.Diagnostics.Debugger.Break()"
   IL_000f:  ret
@@ -166,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       26 (0x1a)
@@ -196,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       16 (0x10)
@@ -208,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 }]]>)
 
             ' We are looking for a nop after a call to System.Diagnostics.Debugger.Break():
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.DebugExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.DebugExe)
             compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       19 (0x13)

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -33,6 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub Validate()
             Debug.Assert((AccessKind And LateBoundAccessKind.Call) = 0 OrElse (AccessKind And Not LateBoundAccessKind.Call) = 0)
             Debug.Assert(Type.IsObjectType())
+            Debug.Assert(ReceiverOpt Is Nothing OrElse ReceiverOpt.Kind <> BoundKind.TypeExpression)
         End Sub
 #End If
     End Class

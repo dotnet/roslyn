@@ -1,13 +1,16 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
+    <[UseExportProvider]>
     Public Class PropertyBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub DontApplyForAutoProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    Property foo As Integer
+    Property goo As Integer
 End Class",
                 caret:={1, -1})
         End Sub
@@ -16,7 +19,7 @@ End Class",
         Public Sub DontApplyForAutoPropertyWithEmptyParens()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    Property foo() As Integer
+    Property goo() As Integer
 End Class",
                 caret:={1, -1})
         End Sub
@@ -26,7 +29,7 @@ End Class",
         Public Sub DontApplyForMustInheritProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="MustInherit Class C
-    MustOverride Property foo(x as integer) As Integer
+    MustOverride Property goo(x as integer) As Integer
 End Class",
             caret:={1, -1})
         End Sub
@@ -35,11 +38,11 @@ End Class",
         Public Sub TestApplyForPropertyWithParameters()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Property foo(i As Integer) As Integer
+    Property goo(i As Integer) As Integer
 End Class",
                 beforeCaret:={1, -1},
                 after:="Class c1
-    Property foo(i As Integer) As Integer
+    Property goo(i As Integer) As Integer
         Get
 
         End Get
@@ -55,7 +58,7 @@ End Class",
         Public Sub DontApplyForReadOnlyProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    ReadOnly Property foo As Integer
+    ReadOnly Property goo As Integer
 End Class",
                 caret:={1, -1})
         End Sub
@@ -64,7 +67,7 @@ End Class",
         Public Sub DontApplyForReadOnlyPropertyAfterExistingGet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    ReadOnly Property foo As Integer
+    ReadOnly Property goo As Integer
         Get
 
         End Get
@@ -77,7 +80,7 @@ End Class",
         Public Sub DontApplyForReadOnlyWithSecondGetPropertyAfterExistingGet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    ReadOnly Property foo As Integer
+    ReadOnly Property goo As Integer
         Get
 
         End Get
@@ -92,7 +95,7 @@ End Class",
         Public Sub DontApplyForWriteOnlyProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    WriteOnly Property foo As Integer
+    WriteOnly Property goo As Integer
 End Class",
                 caret:={1, -1})
         End Sub
@@ -101,12 +104,12 @@ End Class",
         Public Sub TestApplyOnGetForRegularProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Property foo As Integer
+    Property goo As Integer
         Get
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-    Property foo As Integer
+    Property goo As Integer
         Get
 
         End Get
@@ -122,12 +125,12 @@ End Class",
         Public Sub TestApplyOnSetForRegularProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Property foo As Integer
+    Property goo As Integer
         Set
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-    Property foo As Integer
+    Property goo As Integer
         Set(value As Integer)
 
         End Set
@@ -143,7 +146,7 @@ End Class",
         Public Sub DontApplyForReadOnlyPropertyIfEndPropertyMissingWhenInvokedAfterProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    ReadOnly Property foo As Integer
+    ReadOnly Property goo As Integer
         Get
 End Class",
                 caret:={1, -1})
@@ -153,7 +156,7 @@ End Class",
         Public Sub TestApplyOnGetForRegularPropertyWithSetPresent()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Property foo As Integer
+    Property goo As Integer
         Get
 
         Set(ByVal value As Integer)
@@ -163,7 +166,7 @@ End Class",
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-    Property foo As Integer
+    Property goo As Integer
         Get
 
         End Get
@@ -180,7 +183,7 @@ End Class",
         Public Sub DontApplyForWriteOnlyPropertyWithTypeCharacter()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    WriteOnly Property foo$
+    WriteOnly Property goo$
 End Class",
                 caret:={1, -1})
         End Sub
@@ -190,11 +193,11 @@ End Class",
         Public Sub TestApplyForPropertyWithIndexer()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Property foo(arg as Integer) As Integer
+    Property goo(arg as Integer) As Integer
 End Class",
                 beforeCaret:={1, -1},
                 after:="Class c1
-    Property foo(arg as Integer) As Integer
+    Property goo(arg as Integer) As Integer
         Get
 
         End Get
@@ -211,7 +214,7 @@ End Class",
         Public Sub DontApplyForDuplicateGet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    ReadOnly Property foo As Integer
+    ReadOnly Property goo As Integer
         Get
 
         End Get
@@ -226,7 +229,7 @@ End Class",
         Public Sub DontApplyForDuplicateSet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    WriteOnly Property foo As Integer
+    WriteOnly Property goo As Integer
         Set(ByVal value As Integer)
 
         End Set
@@ -241,7 +244,7 @@ End Class",
         Public Sub DontApplyForSetInReadOnly()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    ReadOnly Property foo As Integer
+    ReadOnly Property goo As Integer
         Set
     End Property
 End Class",
@@ -253,7 +256,7 @@ End Class",
         Public Sub DontApplyForGetInReadOnly()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    WriteOnly Property foo As Integer
+    WriteOnly Property goo As Integer
         Get
     End Property
 End Class",
@@ -264,7 +267,7 @@ End Class",
         Public Sub VerifyInternationalCharacter()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-    WriteOnly Property fooæ
+    WriteOnly Property gooæ
 End Class",
                 caret:={1, -1})
         End Sub
@@ -273,8 +276,8 @@ End Class",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub DontApplyInsideAnInterface()
             VerifyStatementEndConstructNotApplied(
-                text:="Interface IFoo
-    Property Foo(x As Integer) As String
+                text:="Interface IGoo
+    Property Goo(x As Integer) As String
 End Interface",
                 caret:={1, -1})
         End Sub
@@ -284,11 +287,11 @@ End Interface",
         Public Sub TestDontGenerateSetForReadonlyProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Readonly Property foo(arg as Integer) As Integer
+    Readonly Property goo(arg as Integer) As Integer
 End Class",
                 beforeCaret:={1, -1},
                 after:="Class c1
-    Readonly Property foo(arg as Integer) As Integer
+    Readonly Property goo(arg as Integer) As Integer
         Get
 
         End Get
@@ -302,11 +305,11 @@ End Class",
         Public Sub TestDontGenerateGetForWriteonlyProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-    Writeonly Property foo(arg as Integer) As Integer
+    Writeonly Property goo(arg as Integer) As Integer
 End Class",
                 beforeCaret:={1, -1},
                 after:="Class c1
-    Writeonly Property foo(arg as Integer) As Integer
+    Writeonly Property goo(arg as Integer) As Integer
         Set(value As Integer)
 
         End Set

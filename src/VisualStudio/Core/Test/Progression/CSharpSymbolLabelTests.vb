@@ -1,10 +1,14 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
+    <[UseExportProvider]>
     Public Class CSharpSymbolLabelTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestNamedType() As Task
@@ -57,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
-                                class C { void $$M(params string[] foo) { } }
+                                class C { void $$M(params string[] goo) { } }
                             </Document>
                         </Project>
                     </Workspace>)
@@ -87,7 +91,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
-                                class C { void $$M(out string foo, ref string bar) { } }
+                                class C { void $$M(out string goo, ref string bar) { } }
                             </Document>
                         </Project>
                     </Workspace>)
@@ -179,12 +183,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
-                                delegate void $$Foo();
+                                delegate void $$Goo();
                             </Document>
                         </Project>
                     </Workspace>)
 
-                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "Foo() : void", "Foo : void")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "Goo() : void", "Goo : void")
             End Using
         End Function
     End Class

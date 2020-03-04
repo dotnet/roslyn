@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -6,10 +8,8 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
-using Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -83,13 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
 
                 var workspace = new TestWorkspace();
 
-                var listener = new AggregateAsynchronousOperationListener(
-                    Enumerable.Empty<Lazy<IAsynchronousOperationListener, FeatureMetadata>>(),
-                    FeatureAttribute.LineSeparators);
-                Manager = AdornmentManager<Tag>.Create(_textView.Object,
-                                                       aggregatorService.Object,
-                                                       listener,
-                                                       adornmentLayerName: layerName);
+                Manager = AdornmentManager<Tag>.Create(
+                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                    _textView.Object,
+                    aggregatorService.Object,
+                    AsynchronousOperationListenerProvider.NullListener,
+                    adornmentLayerName: layerName);
             }
 
             public void RaiseLayoutChanged()

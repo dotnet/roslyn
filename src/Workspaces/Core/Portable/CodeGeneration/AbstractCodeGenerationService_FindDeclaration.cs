@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -108,6 +110,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return availableIndices != null && availableIndices.Any(b => b);
         }
 
+        /// <summary>
+        /// Return the most relevant declaration to namespaceOrType,
+        /// it will first search the context node contained within,
+        /// then the declaration in the same file, then non auto-generated file,
+        /// then all the potential location. Return null if no declaration.
+        /// </summary>
+        public async Task<SyntaxNode> FindMostRelevantNameSpaceOrTypeDeclarationAsync(
+            Solution solution,
+            INamespaceOrTypeSymbol namespaceOrType,
+            CodeGenerationOptions options,
+            CancellationToken cancellationToken)
+        {
+            var option = options ?? CodeGenerationOptions.Default;
+            var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, option, cancellationToken).ConfigureAwait(false);
+            return declaration;
+        }
+
         private async Task<(SyntaxNode declaration, IList<bool> availableIndices)> FindMostRelevantDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,
@@ -162,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
                 // Then, prefer a declaration from the same file.
                 declaration = await SelectFirstOrDefaultAsync(declarations.Where(r => r.SyntaxTree == locationOpt.SourceTree), node => true, cancellationToken).ConfigureAwait(false);
-                fallbackDeclaration = fallbackDeclaration ?? declaration;
+                fallbackDeclaration ??= declaration;
                 if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 {
                     return (declaration, availableIndices);

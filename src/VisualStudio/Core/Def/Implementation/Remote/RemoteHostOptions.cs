@@ -1,13 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal static class RemoteHostOptions
     {
-        [ExportOption]
         public static readonly Option<bool> RemoteHost = new Option<bool>(
             nameof(InternalFeatureOnOffOptions), nameof(RemoteHost), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RemoteHost)));
@@ -23,29 +29,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         //
         // When primary workspace is staled, missing data will be synced to OOP on
         // demand and cached for 3 min. enough for primary workspace in OOP to be synced to latest.
-        [ExportOption]
         public static readonly Option<int> SolutionChecksumMonitorBackOffTimeSpanInMS = new Option<int>(
             nameof(InternalFeatureOnOffOptions), nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 4000,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(SolutionChecksumMonitorBackOffTimeSpanInMS)));
 
-        // Default timeout for service hub HubClient.RequestServiceAsync call
-        // it turns out HubClient.RequestServiceAsync has internal timeout on how long it will try to connect requested service from service hub
-        // if it can't connect, then it throws its own cancellation exception.
-        // this is our timeout on how long we will try keep connecting. so far I saw over 2-3 seconds before connection made 
-        // when there are many (over 10+ requests) at the same time. one of reasons of this is we put our service hub process as "Below Normal" priority.
-        // normally response time is within 10s ms. at most 100ms. if priority is changed to "Normal", most of time 10s ms.
-        [ExportOption]
-        public static readonly Option<int> RequestServiceTimeoutInMS = new Option<int>(
-            nameof(InternalFeatureOnOffOptions), nameof(RequestServiceTimeoutInMS), defaultValue: 10 * 60 * 1000,
-            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RequestServiceTimeoutInMS)));
-
         // This options allow users to restart OOP when it is killed by users
-        [ExportOption]
         public static readonly Option<bool> RestartRemoteHostAllowed = new Option<bool>(
             nameof(InternalFeatureOnOffOptions), nameof(RestartRemoteHostAllowed), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RestartRemoteHostAllowed)));
 
-        [ExportOption]
+        // use 64bit OOP
+        public static readonly Option<bool> OOP64Bit = new Option<bool>(
+            nameof(InternalFeatureOnOffOptions), nameof(OOP64Bit), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(OOP64Bit)));
+
         public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHostTest), defaultValue: false);
+
+        public static readonly Option<bool> EnableConnectionPool = new Option<bool>(
+            nameof(InternalFeatureOnOffOptions), nameof(EnableConnectionPool), defaultValue: true,
+            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(EnableConnectionPool)));
+
+        /// <summary>
+        /// default 15 is chosen which is big enough but not too big for service hub to handle
+        /// </summary>
+        public static readonly Option<int> MaxPoolConnection = new Option<int>(
+            nameof(InternalFeatureOnOffOptions), nameof(MaxPoolConnection), defaultValue: 15,
+            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(MaxPoolConnection)));
+
+        public static bool IsServiceHubProcess64Bit(Workspace workspace)
+            => workspace.Options.GetOption(OOP64Bit) ||
+               workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RoslynOOP64bit);
+    }
+
+    [ExportOptionProvider, Shared]
+    internal class RemoteHostOptionsProvider : IOptionProvider
+    {
+        [ImportingConstructor]
+        public RemoteHostOptionsProvider()
+        {
+        }
+
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            RemoteHostOptions.RemoteHost,
+            RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS,
+            RemoteHostOptions.RestartRemoteHostAllowed,
+            RemoteHostOptions.OOP64Bit,
+            RemoteHostOptions.RemoteHostTest,
+            RemoteHostOptions.EnableConnectionPool,
+            RemoteHostOptions.MaxPoolConnection);
     }
 }

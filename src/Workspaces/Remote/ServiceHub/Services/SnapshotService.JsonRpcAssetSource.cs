@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class SnapshotService
     {
-        private class JsonRpcAssetSource : AssetSource
+        private sealed class JsonRpcAssetSource : AssetSource
         {
             private readonly SnapshotService _owner;
 
@@ -30,58 +33,70 @@ namespace Microsoft.CodeAnalysis.Remote
                 _owner = owner;
             }
 
-            public override async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken callerCancellationToken)
+            public override async Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
             {
-                // it should succeed as long as matching VS is alive
-                // TODO: add logging mechanism using Logger
-
-                // this can be called in two ways. 
-                // 1. Connection to get asset is closed (the asset source we were using is disconnected - _assetChannelCancellationToken)
-                //    if this asset source's channel is closed, service will move to next asset source to get the asset as long as callerCancellationToken
-                //    is not cancelled
-                //
-                // 2. Request to required this asset has cancelled. (callerCancellationToken)
-                using (var mergedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_owner.CancellationToken, callerCancellationToken))
-                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, mergedCancellationToken.Token))
+                return await _owner.RunServiceAsync(() =>
                 {
-                    return await _owner.Rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
-                        new object[] { scopeId, checksums.ToArray() },
-                        (s, c) => ReadAssets(s, scopeId, checksums, c), mergedCancellationToken.Token).ConfigureAwait(false);
-                }
+                    using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, cancellationToken))
+                    {
+                        return _owner.EndPoint.InvokeAsync(
+                            WellKnownServiceHubServices.AssetService_RequestAssetAsync,
+                            new object[] { scopeId, checksums.ToArray() },
+                            (stream, cancellationToken) => Task.FromResult(ReadAssets(stream, scopeId, checksums, serializerService, cancellationToken)),
+                            cancellationToken);
+                    }
+                }, cancellationToken).ConfigureAwait(false);
             }
 
-            private IList<ValueTuple<Checksum, object>> ReadAssets(
-                Stream stream, int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken)
+            public override async Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
             {
-                var results = new List<ValueTuple<Checksum, object>>();
-
-                using (var reader = ObjectReader.TryGetReader(stream))
+                return await _owner.RunServiceAsync(() =>
                 {
-                    Debug.Assert(reader != null,
-@"We only ge a reader for data transmitted between live processes.
-This data should always be correct as we're never persisting the data between sessions.");
-
-                    var responseScopeId = reader.ReadInt32();
-                    Contract.ThrowIfFalse(scopeId == responseScopeId);
-
-                    var count = reader.ReadInt32();
-                    Contract.ThrowIfFalse(count == checksums.Count);
-
-                    for (var i = 0; i < count; i++)
+                    using (RoslynLogger.LogBlock(FunctionId.SnapshotService_IsExperimentEnabledAsync, experimentName, cancellationToken))
                     {
-                        var responseChecksum = Checksum.ReadFrom(reader);
-                        Contract.ThrowIfFalse(checksums.Contains(responseChecksum));
-
-                        var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
-
-                        // in service hub, cancellation means simply closed stream
-                        var @object = AssetService.Deserialize<object>(kind, reader, cancellationToken);
-
-                        results.Add(ValueTuple.Create(responseChecksum, @object));
+                        return _owner.EndPoint.InvokeAsync<bool>(
+                            WellKnownServiceHubServices.AssetService_IsExperimentEnabledAsync,
+                            new object[] { experimentName },
+                            cancellationToken);
                     }
+                }, cancellationToken).ConfigureAwait(false);
+            }
 
-                    return results;
+            private static IList<(Checksum, object)> ReadAssets(
+                Stream stream,
+                int scopeId,
+                ISet<Checksum> checksums,
+                ISerializerService serializerService,
+                CancellationToken cancellationToken)
+            {
+                var results = new List<(Checksum, object)>();
+
+                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
+
+                // We only get a reader for data transmitted between live processes.
+                // This data should always be correct as we're never persisting the data between sessions.
+                Contract.ThrowIfNull(reader);
+
+                var responseScopeId = reader.ReadInt32();
+                Contract.ThrowIfFalse(scopeId == responseScopeId);
+
+                var count = reader.ReadInt32();
+                Contract.ThrowIfFalse(count == checksums.Count);
+
+                for (var i = 0; i < count; i++)
+                {
+                    var responseChecksum = Checksum.ReadFrom(reader);
+                    Contract.ThrowIfFalse(checksums.Contains(responseChecksum));
+
+                    var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
+
+                    // in service hub, cancellation means simply closed stream
+                    var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
+
+                    results.Add((responseChecksum, result));
                 }
+
+                return results;
             }
 
             private static string GetRequestLogInfo(int serviceId, IEnumerable<Checksum> checksums)

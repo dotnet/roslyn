@@ -1,7 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -193,7 +196,7 @@ class C
 <Code>
 class C
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 </Code>
 
@@ -202,7 +205,7 @@ class C
                  Remove("x", "C"),
                  Remove("j", "C"),
                  Remove("y", "C"),
-                 Add("Foo", "C"))
+                 Add("Goo", "C"))
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
@@ -285,12 +288,12 @@ class C
 <Code>
 class C
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Add("Foo", "C"))
+                 Add("Goo", "C"))
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
@@ -625,7 +628,7 @@ namespace N
 <Code>
 namespace N
 {
-    public delegate void Foo();
+    public delegate void Goo();
 }
 </Code>
 
@@ -699,7 +702,7 @@ class B
 <Code>
 class C
 {
-    int foo;
+    int goo;
 }
 </Code>
 
@@ -708,12 +711,12 @@ class C
 class C
 {
     [System.CLSCompliant(true)]
-    int foo;
+    int goo;
 }
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Add("System.CLSCompliant", "foo"))
+                 Add("System.CLSCompliant", "goo"))
         End Function
 
         <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
@@ -723,7 +726,7 @@ class C
 <Code>
 class C
 {
-    int foo, bar;
+    int goo, bar;
 }
 </Code>
 
@@ -732,12 +735,12 @@ class C
 class C
 {
     [System.CLSCompliant(true)]
-    int foo, bar;
+    int goo, bar;
 }
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Add("System.CLSCompliant", "foo"),
+                 Add("System.CLSCompliant", "goo"),
                  Add("System.CLSCompliant", "bar"))
         End Function
 
@@ -749,7 +752,7 @@ class C
 class C
 {
     [System.CLSCompliant(true)]
-    int foo;
+    int goo;
 }
 </Code>
 
@@ -757,12 +760,12 @@ class C
 <Code>
 class C
 {
-    int foo;
+    int goo;
 }
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Remove("System.CLSCompliant", "foo"))
+                 Remove("System.CLSCompliant", "goo"))
         End Function
 
         <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
@@ -773,7 +776,7 @@ class C
 class C
 {
     [System.CLSCompliant(true)]
-    int foo, bar;
+    int goo, bar;
 }
 </Code>
 
@@ -781,12 +784,12 @@ class C
 <Code>
 class C
 {
-    int foo, bar;
+    int goo, bar;
 }
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Remove("System.CLSCompliant", "foo"),
+                 Remove("System.CLSCompliant", "goo"),
                  Remove("System.CLSCompliant", "bar"))
         End Function
 
@@ -798,7 +801,7 @@ class C
 class C
 {
     [System.CLSCompliant(true)]
-    int foo;
+    int goo;
 }
 </Code>
 
@@ -807,12 +810,12 @@ class C
 class C
 {
     [System.CLSCompliant(false)]
-    int foo;
+    int goo;
 }
 </Code>
 
             Await TestAsync(code, changedCode,
-                 ArgChange("System.CLSCompliant", "foo"))
+                 ArgChange("System.CLSCompliant", "goo"))
         End Function
 
         <WorkItem(1147865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147865")>
@@ -824,7 +827,7 @@ class C
 class C
 {
     [System.CLSCompliant(true)]
-    int foo, bar;
+    int goo, bar;
 }
 </Code>
 
@@ -833,12 +836,12 @@ class C
 class C
 {
     [System.CLSCompliant(false)]
-    int foo, bar;
+    int goo, bar;
 }
 </Code>
 
             Await TestAsync(code, changedCode,
-                 ArgChange("System.CLSCompliant", "foo"),
+                 ArgChange("System.CLSCompliant", "goo"),
                  ArgChange("System.CLSCompliant", "bar"))
         End Function
 

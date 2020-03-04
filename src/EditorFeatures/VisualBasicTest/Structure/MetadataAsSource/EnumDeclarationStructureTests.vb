@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -22,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
-Enum $$Foo
+Enum $$Goo
     Bar
     Baz
 End Enum
@@ -34,8 +36,8 @@ End Enum
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithAttributes() As Task
             Dim code = "
-{|hint:{|textspan:<Foo>
-|}Enum $$Foo|}
+{|hint:{|textspan:<Goo>
+|}Enum $$Goo|}
     Bar
     Baz
 End Enum
@@ -50,8 +52,8 @@ End Enum
             Dim code = "
 {|hint:{|textspan:' Summary:
 '     This is a summary.
-<Foo>
-|}Enum $$Foo|}
+<Goo>
+|}Enum $$Goo|}
     Bar
     Baz
 End Enum
@@ -66,8 +68,8 @@ End Enum
             Dim code = "
 {|hint:{|textspan:' Summary:
 '     This is a summary.
-<Foo>
-|}Public Enum $$Foo|}
+<Goo>
+|}Public Enum $$Goo|}
     Bar
     Baz
 End Enum

@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -27,12 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     }
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public override bool OpenFileOnly(Workspace workspace) => false;
+        public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckDiagnosticAnalyzer();
 
         public CSharpIsAndCastCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeCheckId,
+                   CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -46,75 +49,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var options = syntaxContext.Options;
             var syntaxTree = syntaxContext.Node.SyntaxTree;
             var cancellationToken = syntaxContext.CancellationToken;
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
-            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, syntaxTree, cancellationToken);
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
             }
 
-            var severity = styleOption.Notification.Value;
+            var severity = styleOption.Notification.Severity;
+
+            // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
+            // in projects targeting a lesser version.
+            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
+            {
+                return;
+            }
 
             var isExpression = (BinaryExpressionSyntax)syntaxContext.Node;
 
-            // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
-            if (((CSharpParseOptions)isExpression.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
-            {
-                return;
-            }
-
-            // The is check has to be in an if check: "if (x is Type)
-            if (!isExpression.Parent.IsKind(SyntaxKind.IfStatement))
-            {
-                return;
-            }
-
-            var ifStatement = (IfStatementSyntax)isExpression.Parent;
-            if (!ifStatement.Statement.IsKind(SyntaxKind.Block))
-            {
-                return;
-            }
-
-            var ifBlock = (BlockSyntax)ifStatement.Statement;
-            if (ifBlock.Statements.Count == 0)
-            {
-                return;
-            }
-
-            var firstStatement = ifBlock.Statements[0];
-            if (!firstStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
-            {
-                return;
-            }
-
-            var localDeclarationStatement = (LocalDeclarationStatementSyntax)firstStatement;
-            if (localDeclarationStatement.Declaration.Variables.Count != 1)
-            {
-                return;
-            }
-
-            var declarator = localDeclarationStatement.Declaration.Variables[0];
-            if (declarator.Initializer == null)
-            {
-                return;
-            }
-
-            var declaratorValue = declarator.Initializer.Value.WalkDownParentheses();
-            if (!declaratorValue.IsKind(SyntaxKind.CastExpression))
-            {
-                return;
-            }
-
-            var castExpression = (CastExpressionSyntax)declaratorValue;
-            if (!SyntaxFactory.AreEquivalent(isExpression.Left.WalkDownParentheses(), castExpression.Expression.WalkDownParentheses(), topLevel: false) ||
-                !SyntaxFactory.AreEquivalent(isExpression.Right.WalkDownParentheses(), castExpression.Type, topLevel: false))
+            if (!TryGetPatternPieces(isExpression,
+                    out var ifStatement, out var localDeclarationStatement,
+                    out var declarator, out var castExpression))
             {
                 return;
             }
@@ -152,6 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            if (isType?.TypeKind == TypeKind.Dynamic)
+            {
+                // Not legal to use dynamic in a pattern.
+                return;
+            }
+
             if (!localSymbol.Type.Equals(isType))
             {
                 // we have something like:
@@ -178,10 +140,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 localDeclarationStatement.GetLocation());
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(severity),
+            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 localDeclarationStatement.GetLocation(),
-                additionalLocations));
+                severity,
+                additionalLocations,
+                properties: null));
+        }
+
+        public bool TryGetPatternPieces(
+            BinaryExpressionSyntax isExpression,
+            out IfStatementSyntax ifStatement,
+            out LocalDeclarationStatementSyntax localDeclarationStatement,
+            out VariableDeclaratorSyntax declarator,
+            out CastExpressionSyntax castExpression)
+        {
+            ifStatement = null;
+            localDeclarationStatement = null;
+            declarator = null;
+            castExpression = null;
+
+            // The is check has to be in an if check: "if (x is Type)
+            if (!isExpression.Parent.IsKind(SyntaxKind.IfStatement, out ifStatement))
+            {
+                return false;
+            }
+
+            if (!ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax ifBlock))
+            {
+                return false;
+            }
+
+            if (ifBlock.Statements.Count == 0)
+            {
+                return false;
+            }
+
+            var firstStatement = ifBlock.Statements[0];
+            if (!firstStatement.IsKind(SyntaxKind.LocalDeclarationStatement, out localDeclarationStatement))
+            {
+                return false;
+            }
+
+            if (localDeclarationStatement.Declaration.Variables.Count != 1)
+            {
+                return false;
+            }
+
+            declarator = localDeclarationStatement.Declaration.Variables[0];
+            if (declarator.Initializer == null)
+            {
+                return false;
+            }
+
+            var declaratorValue = declarator.Initializer.Value.WalkDownParentheses();
+            if (!declaratorValue.IsKind(SyntaxKind.CastExpression, out castExpression))
+            {
+                return false;
+            }
+
+            if (!SyntaxFactory.AreEquivalent(isExpression.Left.WalkDownParentheses(), castExpression.Expression.WalkDownParentheses(), topLevel: false) ||
+                !SyntaxFactory.AreEquivalent(isExpression.Right.WalkDownParentheses(), castExpression.Type, topLevel: false))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private bool ContainsVariableDeclaration(
@@ -195,6 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

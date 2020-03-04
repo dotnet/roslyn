@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         // If there was a conflict at ConflictCheckSpan during rename, then the next phase in rename uses ComplexifiedTargetSpan span to be expanded to resolve the conflict
         public TextSpan ComplexifiedTargetSpan { get; }
 
-        public RelatedLocation(TextSpan location, DocumentId documentId, RelatedLocationType type, bool isReference = false, TextSpan complexifiedTargetSpan = default(TextSpan))
+        public RelatedLocation(TextSpan location, DocumentId documentId, RelatedLocationType type, bool isReference = false, TextSpan complexifiedTargetSpan = default)
         {
             this.ConflictCheckSpan = location;
             this.Type = type;

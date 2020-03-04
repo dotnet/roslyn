@@ -1,9 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
@@ -92,6 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         public const string CS1929 = nameof(CS1929);
 
         /// <summary>
+        /// Property cannot be used like a method
+        /// </summary>
+        public const string CS1955 = nameof(CS1955);
+
+        /// <summary>
         /// Cannot convert method group 'X' to non-delegate type 'Y'. Did you intend to invoke the method?
         /// </summary>
         public const string CS0428 = nameof(CS0428);
@@ -106,6 +114,17 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         /// </summary>
         public const string CS8129 = nameof(CS8129);
 
+        /// <summary>
+        /// Internal symbol inaccessible because public key is wrong
+        /// </summary>
+        public const string CS0281 = nameof(CS0281);
+
+        /// <summary>
+        /// 'X' does not contain a definition for 'Y' and no extension method 'Y' accepting a first argument of type 'X' could be found (are you missing a using directive for 'System'?)
+        /// Specialized for WinRT
+        /// </summary>
+        public const string CS4036 = nameof(CS4036);
+
         public static ImmutableArray<string> FixableTypeIds =
             ImmutableArray.Create(
                 CS0103,
@@ -117,7 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 CS0616,
                 CS1580,
                 CS1581,
-                CS8129);
+                CS8129,
+                IDEDiagnosticIds.UnboundIdentifierId);
 
         public static ImmutableArray<string> FixableDiagnosticIds =
             FixableTypeIds.Concat(ImmutableArray.Create(
@@ -128,8 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     CS1574,
                     CS1584,
                     CS1929,
+                    CS1955,
                     CS0428,
-                    CS7036));
+                    CS7036,
+                    CS0281,
+                    CS4036));
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]
@@ -137,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
     {
         public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 
+        [ImportingConstructor]
         public CSharpAddImportCodeFixProvider()
         {
         }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
 using System;
@@ -271,8 +273,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 // add new references:
                 foreach (var reference in Options.MetadataReferences)
                 {
-                    var unresolved = reference as UnresolvedMetadataReference;
-                    if (unresolved != null)
+                    if (reference is UnresolvedMetadataReference unresolved)
                     {
                         var resolved = resolver.ResolveReference(unresolved.Reference, null, unresolved.Properties);
                         if (resolved.IsDefault)
@@ -542,8 +543,8 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private async Task<ScriptState<T>> RunSubmissionsAsync(
             ScriptExecutionState executionState,
-            ImmutableArray<Func<object[], Task>> precedingExecutors, 
-            Func<object[], Task> currentExecutor, 
+            ImmutableArray<Func<object[], Task>> precedingExecutors,
+            Func<object[], Task> currentExecutor,
             Func<Exception, bool> catchExceptionOpt,
             CancellationToken cancellationToken)
         {

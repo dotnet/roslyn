@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -515,14 +517,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a threadsafty element within an xml documentation comment.
+        ''' Creates a threadsafety element within an xml documentation comment.
         ''' </summary>
         Public Shared Function XmlThreadSafetyElement() As XmlEmptyElementSyntax
             Return XmlThreadSafetyElement(True, False)
         End Function
 
         ''' <summary>
-        ''' Creates a threadsafty element within an xml documentation comment.
+        ''' Creates a threadsafety element within an xml documentation comment.
         ''' </summary>
         ''' <param name="isStatic" static="sfd">Indicates whether static member of this type are safe for multi-threaded operations.</param>
         ''' <param name="isInstance">Indicates whether instance members of this type are safe for multi-threaded operations.</param>
@@ -555,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates a syntax node for a priliminary element within a xml documentation comment.
+        ''' Creates a syntax node for a preliminary element within a xml documentation comment.
         ''' </summary>
         Public Shared Function XmlPreliminaryElement() As XmlEmptyElementSyntax
             Return XmlEmptyElement(DocumentationCommentXmlNames.PreliminaryElementName)
@@ -748,7 +750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 XmlAttribute(
                     XmlName(
                         Nothing,
-                        XmlTextLiteralToken(DocumentationCommentXmlNames.KeywordElementName, DocumentationCommentXmlNames.KeywordElementName)),
+                        XmlTextLiteralToken(DocumentationCommentXmlNames.LangwordAttributeName, DocumentationCommentXmlNames.LangwordAttributeName)),
                     XmlString(
                         Token(SyntaxKind.DoubleQuoteToken),
                         SyntaxTokenList.Create(XmlTextLiteralToken(keyword, keyword)),

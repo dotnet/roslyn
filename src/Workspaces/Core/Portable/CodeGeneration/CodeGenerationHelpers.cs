@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static SyntaxNode GenerateThrowStatement(
             SyntaxGenerator factory,
             SemanticDocument document,
-            string exceptionMetadataName,
-            CancellationToken cancellationToken)
+            string exceptionMetadataName)
         {
             var compilation = document.SemanticModel.Compilation;
             var exceptionType = compilation.GetTypeByMetadataName(exceptionMetadataName);
@@ -47,10 +48,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return syntax;
         }
 
-        public static TSyntaxNode AddCleanupAnnotationsTo<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
-        {
-            return node.WithAdditionalAnnotations(Formatter.Annotation);
-        }
+        public static TSyntaxNode AddFormatterAndCodeGeneratorAnnotationsTo<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => node.WithAdditionalAnnotations(Formatter.Annotation, CodeGenerator.Annotation);
 
         public static void CheckNodeType<TSyntaxNode1>(SyntaxNode node, string argumentName)
             where TSyntaxNode1 : SyntaxNode
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (forward)
             {
-                for (int i = index; i < availableIndices.Count; i++)
+                for (var i = index; i < availableIndices.Count; i++)
                 {
                     if (availableIndices[i])
                     {
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
             else
             {
-                for (int i = index; i >= 0; i--)
+                for (var i = index; i >= 0; i--)
                 {
                     if (availableIndices[i])
                     {
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return -1;
         }
 
-        public static bool TryGetDocumentationComment(ISymbol symbol, string commentToken, out string comment, CancellationToken cancellationToken = default(CancellationToken))
+        public static bool TryGetDocumentationComment(ISymbol symbol, string commentToken, out string comment, CancellationToken cancellationToken = default)
         {
             var xml = symbol.GetDocumentationCommentXml(cancellationToken: cancellationToken);
             if (string.IsNullOrEmpty(xml))
@@ -215,9 +214,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             Contract.ThrowIfNull(symbol);
 
-            return options != null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1 ?
-                symbol.DeclaringSyntaxReferences[0].GetSyntax() as T :
-                null;
+            return options != null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1
+                ? symbol.DeclaringSyntaxReferences[0].GetSyntax() as T
+                : null;
         }
 
         public static T GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)
@@ -348,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             where TDeclarationSyntax : SyntaxNode
         {
             var result = TryGetDesiredIndexIfGroupedWorker(
-                declarationList, declaration, availableIndices, 
+                declarationList, declaration, availableIndices,
                 comparerWithoutNameCheck, comparerWithNameCheck);
             if (result == null)
             {

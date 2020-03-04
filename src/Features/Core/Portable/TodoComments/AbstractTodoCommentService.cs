@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
@@ -19,13 +20,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
         // on remote host, so we need to make sure given input always belong to right workspace where
         // the session belong to.
         private readonly Workspace _workspace;
-        private readonly SemaphoreSlim _gate;
-
-        private KeepAliveSession _sessionDoNotAccessDirectly;
 
         protected AbstractTodoCommentService(Workspace workspace)
         {
-            _gate = new SemaphoreSlim(initialCount: 1);
             _workspace = workspace;
         }
 
@@ -36,58 +33,42 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         protected abstract string GetNormalizedText(string message);
         protected abstract int GetCommentStartingIndex(string message);
-        protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList);
+        protected abstract void AppendTodoComments(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList);
 
-        public async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        public async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             // make sure given input is right one
             Contract.ThrowIfFalse(_workspace == document.Project.Solution.Workspace);
 
-            // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
-            // so inproc one will always run
-            var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client != null && !document.IsOpen())
+            // run todo scanner on remote host. 
+            // we only run closed files to make open document to have better responsiveness. 
+            // also we cache everything related to open files anyway, no saving by running
+            // them in remote host
+            if (!document.IsOpen())
             {
-                // run todo scanner on remote host. 
-                // we only run closed files to make open document to have better responsiveness. 
-                // also we cache everything related to open files anyway, no saving by running
-                // them in remote host
-                return await GetTodoCommentsInRemoteHostAsync(client, document, commentDescriptors, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.TryRunRemoteAsync<IList<TodoComment>>(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
+                        document.Project.Solution,
+                        new object[] { document.Id, commentDescriptors },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue)
+                    {
+                        return result.Value;
+                    }
+                }
             }
 
             return await GetTodoCommentsInCurrentProcessAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
-            RemoteHostClient client, Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
-        {
-            var keepAliveSession = await TryGetKeepAliveSessionAsync(client, cancellationToken).ConfigureAwait(false);
-
-            var result = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
-                nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
-                document.Project.Solution,
-                new object[] { document.Id, commentDescriptors }).ConfigureAwait(false);
-
-            return result ?? SpecializedCollections.EmptyList<TodoComment>();
-        }
-
-        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client, CancellationToken cancellation)
-        {
-            using (await _gate.DisposableWaitAsync(cancellation).ConfigureAwait(false))
-            {
-                if (_sessionDoNotAccessDirectly == null)
-                {
-                    // we give cancellation none here since the cancellation will cause KeepAlive session to be shutdown
-                    // when raised
-                    _sessionDoNotAccessDirectly = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(CancellationToken.None).ConfigureAwait(false);
-                }
-
-                return _sessionDoNotAccessDirectly;
-            }
-        }
-
         private async Task<IList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(
-            Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+            Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -117,7 +98,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             return PreprocessorHasComment(trivia) || IsSingleLineComment(trivia) || IsMultilineComment(trivia);
         }
 
-        protected void AppendTodoCommentInfoFromSingleLine(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, string message, int start, List<TodoComment> todoList)
+        protected void AppendTodoCommentInfoFromSingleLine(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, string message, int start, List<TodoComment> todoList)
         {
             var index = GetCommentStartingIndex(message);
             if (index >= message.Length)
@@ -149,7 +130,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
         }
 
-        protected void ProcessMultilineComment(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, int postfixLength, List<TodoComment> todoList)
+        protected void ProcessMultilineComment(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, int postfixLength, List<TodoComment> todoList)
         {
             // this is okay since we know it is already alive
             var text = document.Text;

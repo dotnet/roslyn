@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -24,9 +26,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsThisConstructorInitializer,
                 bool containsBaseConstructorInitializer,
                 bool containsElementAccessExpression,
-                bool containsIndexerMemberCref) :
-                this(predefinedTypes, predefinedOperators,
-                     ConvertToContainingNodeFlag(
+                bool containsIndexerMemberCref,
+                bool containsDeconstruction,
+                bool containsAwait,
+                bool containsTupleExpressionOrTupleType)
+                : this(predefinedTypes, predefinedOperators,
+                       ConvertToContainingNodeFlag(
                          containsForEachStatement,
                          containsLockStatement,
                          containsUsingStatement,
@@ -34,7 +39,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsThisConstructorInitializer,
                          containsBaseConstructorInitializer,
                          containsElementAccessExpression,
-                         containsIndexerMemberCref))
+                         containsIndexerMemberCref,
+                         containsDeconstruction,
+                         containsAwait,
+                         containsTupleExpressionOrTupleType))
             {
             }
 
@@ -53,18 +61,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsThisConstructorInitializer,
                 bool containsBaseConstructorInitializer,
                 bool containsElementAccessExpression,
-                bool containsIndexerMemberCref)
+                bool containsIndexerMemberCref,
+                bool containsDeconstruction,
+                bool containsAwait,
+                bool containsTupleExpressionOrTupleType)
             {
                 var containingNodes = ContainingNodes.None;
 
-                containingNodes = containsForEachStatement ? (containingNodes | ContainingNodes.ContainsForEachStatement) : containingNodes;
-                containingNodes = containsLockStatement ? (containingNodes | ContainingNodes.ContainsLockStatement) : containingNodes;
-                containingNodes = containsUsingStatement ? (containingNodes | ContainingNodes.ContainsUsingStatement) : containingNodes;
-                containingNodes = containsQueryExpression ? (containingNodes | ContainingNodes.ContainsQueryExpression) : containingNodes;
-                containingNodes = containsThisConstructorInitializer ? (containingNodes | ContainingNodes.ContainsThisConstructorInitializer) : containingNodes;
-                containingNodes = containsBaseConstructorInitializer ? (containingNodes | ContainingNodes.ContainsBaseConstructorInitializer) : containingNodes;
-                containingNodes = containsElementAccessExpression ? (containingNodes | ContainingNodes.ContainsElementAccessExpression) : containingNodes;
-                containingNodes = containsIndexerMemberCref ? (containingNodes | ContainingNodes.ContainsIndexerMemberCref) : containingNodes;
+                containingNodes |= containsForEachStatement ? ContainingNodes.ContainsForEachStatement : 0;
+                containingNodes |= containsLockStatement ? ContainingNodes.ContainsLockStatement : 0;
+                containingNodes |= containsUsingStatement ? ContainingNodes.ContainsUsingStatement : 0;
+                containingNodes |= containsQueryExpression ? ContainingNodes.ContainsQueryExpression : 0;
+                containingNodes |= containsThisConstructorInitializer ? ContainingNodes.ContainsThisConstructorInitializer : 0;
+                containingNodes |= containsBaseConstructorInitializer ? ContainingNodes.ContainsBaseConstructorInitializer : 0;
+                containingNodes |= containsElementAccessExpression ? ContainingNodes.ContainsElementAccessExpression : 0;
+                containingNodes |= containsIndexerMemberCref ? ContainingNodes.ContainsIndexerMemberCref : 0;
+                containingNodes |= containsDeconstruction ? ContainingNodes.ContainsDeconstruction : 0;
+                containingNodes |= containsAwait ? ContainingNodes.ContainsAwait : 0;
+                containingNodes |= containsTupleExpressionOrTupleType ? ContainingNodes.ContainsTupleExpressionOrTupleType : 0;
 
                 return containingNodes;
             }
@@ -77,6 +91,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public bool ContainsForEachStatement
                 => (_containingNodes & ContainingNodes.ContainsForEachStatement) == ContainingNodes.ContainsForEachStatement;
+
+            public bool ContainsDeconstruction
+                => (_containingNodes & ContainingNodes.ContainsDeconstruction) == ContainingNodes.ContainsDeconstruction;
+
+            public bool ContainsAwait
+                => (_containingNodes & ContainingNodes.ContainsAwait) == ContainingNodes.ContainsAwait;
 
             public bool ContainsLockStatement
                 => (_containingNodes & ContainingNodes.ContainsLockStatement) == ContainingNodes.ContainsLockStatement;
@@ -98,6 +118,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public bool ContainsIndexerMemberCref
                 => (_containingNodes & ContainingNodes.ContainsIndexerMemberCref) == ContainingNodes.ContainsIndexerMemberCref;
+
+            public bool ContainsTupleExpressionOrTupleType
+                => (_containingNodes & ContainingNodes.ContainsTupleExpressionOrTupleType) == ContainingNodes.ContainsTupleExpressionOrTupleType;
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -135,6 +158,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsBaseConstructorInitializer = 1 << 5,
                 ContainsElementAccessExpression = 1 << 6,
                 ContainsIndexerMemberCref = 1 << 7,
+                ContainsDeconstruction = 1 << 8,
+                ContainsAwait = 1 << 9,
+                ContainsTupleExpressionOrTupleType = 1 << 10,
             }
         }
     }

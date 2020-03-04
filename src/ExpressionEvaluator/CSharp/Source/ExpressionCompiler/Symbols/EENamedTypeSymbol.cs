@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -90,6 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _methods = getMethods(currentFrame, this);
         }
 
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            => throw ExceptionUtilities.Unreachable;
+
         internal ImmutableArray<MethodSymbol> Methods
         {
             get { return _methods; }
@@ -120,22 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _typeParameters; }
         }
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
-            get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
-        {
-            return GetEmptyTypeArgumentCustomModifiers(ordinal);
+            get { return GetTypeParametersAsTypeArguments(); }
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -213,12 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _baseType;
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -243,9 +235,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get { return false; }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return true; }
         }
 
         internal override TypeLayout Layout
@@ -278,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _baseType; }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -318,6 +315,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        public sealed override bool IsRefLikeType
+        {
+            get { return false; }
+        }
+
+        public sealed override bool IsReadOnly
+        {
+            get { return false; }
+        }
+
         public override bool IsSealed
         {
             get { return true; }
@@ -332,6 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             get { return false; }
         }
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

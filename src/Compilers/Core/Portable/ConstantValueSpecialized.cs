@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using Microsoft.CodeAnalysis.Text;
@@ -8,6 +12,19 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class ConstantValue
     {
+        /// <summary>
+        /// The IEEE floating-point spec doesn't specify which bit pattern an implementation
+        /// is required to use when producing NaN values.  Indeed, the spec does recommend
+        /// "diagnostic" information "left to the implementer’s discretion" be placed in the
+        /// undefined bits. It is therefore likely that NaNs produced on different platforms
+        /// will differ even for the same arithmetic such as 0.0 / 0.0.  To ensure that the
+        /// compiler behaves in a deterministic way, we force NaN values to use the
+        /// IEEE "canonical" form with the diagnostic bits set to zero and the sign bit set
+        /// to one.  Conversion of this value to float produces the corresponding
+        /// canonical NaN of the float type (IEEE Std 754-2008 section 6.2.3).
+        /// </summary>
+        private static double _s_IEEE_canonical_NaN = BitConverter.Int64BitsToDouble(unchecked((long)0xFFF8000000000000UL));
+
         private sealed class ConstantValueBad : ConstantValue
         {
             private ConstantValueBad() { }
@@ -28,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // all instances of this class are singletons
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return ReferenceEquals(this, other);
             }
@@ -64,7 +81,15 @@ namespace Microsoft.CodeAnalysis
                 get { return SpecialType.None; }
             }
 
-            public override string StringValue
+            public override string? StringValue
+            {
+                get
+                {
+                    return null;
+                }
+            }
+
+            internal override Rope? RopeValue
             {
                 get
                 {
@@ -73,7 +98,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // all instances of this class are singletons
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return ReferenceEquals(this, other);
             }
@@ -99,12 +124,19 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class ConstantValueString : ConstantValue
         {
-            private readonly string _value;
+            private readonly Rope _value;
 
             public ConstantValueString(string value)
             {
                 // we should have just one Null regardless string or object.
-                System.Diagnostics.Debug.Assert(value != null, "null strings should be represented as Null constant.");
+                RoslynDebug.Assert(value != null, "null strings should be represented as Null constant.");
+                _value = Rope.ForString(value);
+            }
+
+            public ConstantValueString(Rope value)
+            {
+                // we should have just one Null regardless string or object.
+                RoslynDebug.Assert(value != null, "null strings should be represented as Null constant.");
                 _value = value;
             }
 
@@ -125,6 +157,14 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
+                    return _value.ToString();
+                }
+            }
+
+            internal override Rope RopeValue
+            {
+                get
+                {
                     return _value;
                 }
             }
@@ -134,9 +174,9 @@ namespace Microsoft.CodeAnalysis
                 return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
-                return base.Equals(other) && _value == other.StringValue;
+                return base.Equals(other) && _value.Equals(other.RopeValue);
             }
 
             internal override string GetValueToDisplay()
@@ -180,7 +220,7 @@ namespace Microsoft.CodeAnalysis
                 return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.DecimalValue;
             }
@@ -221,7 +261,7 @@ namespace Microsoft.CodeAnalysis
                 return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.DateTimeValue;
             }
@@ -340,7 +380,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // all instances of this class are singletons
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return ReferenceEquals(this, other);
             }
@@ -363,7 +403,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 if (ReferenceEquals(other, this))
                 {
@@ -386,7 +426,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 if (ReferenceEquals(other, this))
                 {
@@ -409,7 +449,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 if (ReferenceEquals(other, this))
                 {
@@ -494,7 +534,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // all instances of this class are singletons
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return ReferenceEquals(this, other);
             }
@@ -512,7 +552,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 if (ReferenceEquals(other, this))
                 {
@@ -565,7 +605,7 @@ namespace Microsoft.CodeAnalysis
                 return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.ByteValue;
             }
@@ -622,7 +662,7 @@ namespace Microsoft.CodeAnalysis
                 return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.Int16Value;
             }
@@ -665,7 +705,7 @@ namespace Microsoft.CodeAnalysis
                 return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.Int32Value;
             }
@@ -708,7 +748,7 @@ namespace Microsoft.CodeAnalysis
                 return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.Int64Value;
             }
@@ -721,6 +761,11 @@ namespace Microsoft.CodeAnalysis
             public ConstantValueDouble(double value)
                 : base(ConstantValueTypeDiscriminator.Double)
             {
+                if (double.IsNaN(value))
+                {
+                    value = _s_IEEE_canonical_NaN;
+                }
+
                 _value = value;
             }
 
@@ -737,7 +782,7 @@ namespace Microsoft.CodeAnalysis
                 return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value.Equals(other.DoubleValue);
             }
@@ -753,6 +798,11 @@ namespace Microsoft.CodeAnalysis
             public ConstantValueSingle(double value)
                 : base(ConstantValueTypeDiscriminator.Single)
             {
+                if (double.IsNaN(value))
+                {
+                    value = _s_IEEE_canonical_NaN;
+                }
+
                 _value = value;
             }
 
@@ -777,7 +827,7 @@ namespace Microsoft.CodeAnalysis
                 return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
-            public override bool Equals(ConstantValue other)
+            public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value.Equals(other.DoubleValue);
             }

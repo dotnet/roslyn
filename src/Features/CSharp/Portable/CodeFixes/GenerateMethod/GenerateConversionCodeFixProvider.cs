@@ -1,6 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -22,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         private const string CS0029 = nameof(CS0029); // error CS0029: Cannot implicitly convert type 'type' to 'type'
         private const string CS0030 = nameof(CS0030); // error CS0030: Cannot convert type 'type' to 'type'
 
+        [ImportingConstructor]
+        public GenerateConversionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS0029, CS0030); }
@@ -40,14 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)
         {
-            var invocation = node as InvocationExpressionSyntax;
-            if (invocation != null)
+            if (node is InvocationExpressionSyntax invocation)
             {
                 return invocation.Expression.GetRightmostName();
             }
 
-            var memberBindingExpression = node as MemberBindingExpressionSyntax;
-            if (memberBindingExpression != null)
+            if (node is MemberBindingExpressionSyntax memberBindingExpression)
             {
                 return memberBindingExpression.Name;
             }
@@ -58,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var service = document.GetLanguageService<IGenerateConversionService>();
+            var service = document.GetRequiredLanguageService<IGenerateConversionService>();
             return service.GenerateConversionAsync(document, node, cancellationToken);
         }
     }

@@ -4,6 +4,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
@@ -17,8 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText,
                 InterpolatedStringExpressionSyntax interpolatedStringExpression,
-                bool useTabs, int tabSize, CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, useTabs, tabSize, cancellationToken)
+                bool useTabs, int tabSize, IndentStyle indentStyle,
+                CancellationToken cancellationToken)
+                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
             {
                 _interpolatedStringExpression = interpolatedStringExpression;
             }
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return SyntaxFactory.BinaryExpression(
                     SyntaxKind.AddExpression,
                     leftExpression,
-                    GetPlusToken(),
+                    PlusNewLineToken,
                     rightExpression.WithAdditionalAnnotations(RightNodeAnnotation));
             }
 
@@ -80,11 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 var content = SourceText.ToString(TextSpan.FromBounds(start, end));
                 return SyntaxFactory.InterpolatedStringText(
                     SyntaxFactory.Token(
-                        leading: default(SyntaxTriviaList),
+                        leading: default,
                         kind: SyntaxKind.InterpolatedStringTextToken,
                         text: content,
                         valueText: "",
-                        trailing: default(SyntaxTriviaList)));
+                        trailing: default));
             }
 
             protected override int StringOpenQuoteLength() => "$\"".Length;

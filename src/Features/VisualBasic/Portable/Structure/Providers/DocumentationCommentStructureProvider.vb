@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Text
 Imports System.Threading
@@ -6,22 +8,19 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class DocumentationCommentStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of DocumentationCommentTriviaSyntax)
 
-        Private Shared Function GetBannerText(documentationComment As DocumentationCommentTriviaSyntax, cancellationToken As CancellationToken) As String
-            Return VisualBasicSyntaxFactsService.Instance.GetBannerText(documentationComment, cancellationToken)
-        End Function
-
         Protected Overrides Sub CollectBlockSpans(documentationComment As DocumentationCommentTriviaSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNullable()
-            Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNullable()
+            Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNull()
+            Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNull()
             If firstCommentToken Is Nothing Then
                 Return
             End If
@@ -34,8 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
+            Dim maxBannerLength = options.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.VisualBasic)
+            Dim bannerText = VisualBasicSyntaxFacts.Instance.GetBannerText(
+                documentationComment, maxBannerLength, cancellationToken)
+
             spans.AddIfNotNull(CreateBlockSpan(
-                fullSpan, fullSpan, GetBannerText(documentationComment, cancellationToken),
+                fullSpan, fullSpan, bannerText,
                 autoCollapse:=True, type:=BlockTypes.Comment,
                 isCollapsible:=True, isDefaultCollapsed:=False))
         End Sub

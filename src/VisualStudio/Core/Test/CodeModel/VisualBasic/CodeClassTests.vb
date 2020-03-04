@@ -1,9 +1,12 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop
 Imports Roslyn.Test.Utilities
@@ -230,12 +233,12 @@ End Class
         Public Sub TestComment1()
             Dim code =
 <Code>
-' Foo
+' Goo
 Class $$C
 End Class
 </Code>
 
-            Dim result = " Foo"
+            Dim result = " Goo"
 
             TestComment(code, result)
         End Sub
@@ -244,13 +247,13 @@ End Class
         Public Sub TestComment2()
             Dim code =
 <Code>
-' Foo
+' Goo
 ' Bar
 Class $$C
 End Class
 </Code>
 
-            Dim result = " Foo" & vbCrLf &
+            Dim result = " Goo" & vbCrLf &
                          " Bar"
 
             TestComment(code, result)
@@ -260,7 +263,7 @@ End Class
         Public Sub TestComment3()
             Dim code =
 <Code>
-' Foo
+' Goo
 
 ' Bar
 Class $$C
@@ -277,7 +280,7 @@ End Class
             Dim code =
 <Code>
 Class B
-End Class ' Foo
+End Class ' Goo
 
 ' Bar
 Class $$C
@@ -293,7 +296,7 @@ End Class
         Public Sub TestComment5()
             Dim code =
 <Code>
-' Foo
+' Goo
 ''' &lt;summary&gt;Bar&lt;/summary&gt;
 Class $$C
 End Class
@@ -313,7 +316,7 @@ End Class
             Dim code =
 <Code>
 ''' &lt;summary&gt;
-''' Foo
+''' Goo
 ''' &lt;/summary&gt;
 ''' &lt;remarks&gt;&lt;/remarks&gt;
 Class $$C
@@ -322,7 +325,7 @@ End Class
 
             Dim result =
 " <summary>" & vbCrLf &
-" Foo" & vbCrLf &
+" Goo" & vbCrLf &
 " </summary>" & vbCrLf &
 " <remarks></remarks>"
 
@@ -353,7 +356,7 @@ End Class
             Dim code =
 <Code>
 ''' &lt;summary&gt;
-''' Foo
+''' Goo
 ''' &lt;/summary&gt;
 ' Bar
 ''' &lt;remarks&gt;&lt;/remarks&gt;
@@ -373,7 +376,7 @@ End Class
 <Code>
 Namespace N
     ''' &lt;summary&gt;
-    ''' Foo
+    ''' Goo
     ''' &lt;/summary&gt;
     ''' &lt;remarks&gt;&lt;/remarks&gt;
     Class $$C
@@ -383,7 +386,7 @@ End Namespace
 
             Dim result =
 " <summary>" & vbCrLf &
-" Foo" & vbCrLf &
+" Goo" & vbCrLf &
 " </summary>" & vbCrLf &
 " <remarks></remarks>"
 
@@ -742,13 +745,13 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
 
     End Sub
 End Class
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Kind = EnvDTE.vsCMFunction.vsCMFunctionSub})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Kind = EnvDTE.vsCMFunction.vsCMFunctionSub})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -762,13 +765,13 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Private Function Foo() As Integer
+    Private Function Goo() As Integer
 
     End Function
 End Class
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate, .Type = "Integer"})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate, .Type = "Integer"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1153,7 +1156,7 @@ End Class
             Dim code =
 <Code>
 Class $$C
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1161,14 +1164,14 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Dim i As Integer
 End Class
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "Foo"})
+            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "Goo"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1176,20 +1179,20 @@ End Class
             Dim code =
 <Code>
 Class $$C
-    Sub Foo()
+    Sub Goo()
     End Sub
 </Code>
 
             Dim expected =
 <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Dim i As Integer
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "Foo"})
+            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "Goo"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1198,7 +1201,7 @@ Class C
 <Code>
 Class $$C
     Dim x As Integer
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1209,7 +1212,7 @@ Class C
     Dim x As Integer
     Dim i As Integer
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1223,8 +1226,8 @@ End Class
 <Code>
 Class $$C
     Dim x As Integer
-    ' Foo
-    Sub Foo()
+    ' Goo
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1234,8 +1237,8 @@ End Class
 Class C
     Dim x As Integer
     Dim i As Integer
-    ' Foo
-    Sub Foo()
+    ' Goo
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1250,7 +1253,7 @@ End Class
 Class $$C
     Dim x As Integer
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1261,7 +1264,7 @@ Class C
     Dim x As Integer
     Dim i As Integer
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1276,7 +1279,7 @@ End Class
 Class $$C
     Dim x, y As New Object
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1287,7 +1290,7 @@ Class C
     Dim x, y As New Object
     Dim i As Integer
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1302,7 +1305,7 @@ End Class
 Class $$C
     Dim x, y As New Object
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1313,7 +1316,7 @@ Class C
     Dim x, y As New Object
     Dim i As Integer
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1326,7 +1329,7 @@ End Class
             Dim code =
 <Code>
 Class $$C
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1336,7 +1339,7 @@ End Class
 Class C
     Dim i As Integer
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1349,7 +1352,7 @@ End Class
             Dim code =
 <Code>
 Class $$C
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1357,7 +1360,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Dim i As Integer
@@ -1536,14 +1539,14 @@ End Class
             Dim code =
 <Code>
 Class $$C
-    Dim i As Integer = 0 ' Foo
+    Dim i As Integer = 0 ' Goo
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Class C
-    Dim i As Integer = 0 ' Foo
+    Dim i As Integer = 0 ' Goo
     Dim j As Integer
 End Class
 </Code>
@@ -1856,7 +1859,7 @@ End Class
             Dim code =
 <Code>
 Class $$C
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </Code>
@@ -1866,7 +1869,7 @@ End Class
 Class C
 End Class
 </Code>
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1877,7 +1880,7 @@ Class $$C
     ''' <summary>
     ''' Doc comment.
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 ]]></Code>
@@ -1888,7 +1891,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1897,7 +1900,7 @@ End Class
 <Code><![CDATA[
 Class $$C
     ' Comment comment comment
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 ]]></Code>
@@ -1908,7 +1911,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1918,7 +1921,7 @@ End Class
 Class $$C
     ' Comment comment comment
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 ]]></Code>
@@ -1930,7 +1933,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1944,7 +1947,7 @@ Class $$C
     ''' <summary>
     ''' Doc comment.
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 ]]></Code>
@@ -1958,7 +1961,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1972,7 +1975,7 @@ Class $$C
     ''' <summary>
     ''' This comment is deleted.
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 ]]></Code>
@@ -1984,7 +1987,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2017,7 +2020,7 @@ Class $$C
     Sub Alpha()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Sub Beta()
@@ -2036,7 +2039,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "Foo")
+            Await TestRemoveChild(code, expected, "Goo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2361,7 +2364,7 @@ End Class
 <Code>
 Module $$M
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
 End Module
@@ -2371,7 +2374,7 @@ End Module
 <Code>
 Class M
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
 End Class
@@ -2386,7 +2389,7 @@ End Class
 <Code>
 Partial Class $$C
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
 End Class
@@ -2396,7 +2399,7 @@ End Class
 <Code>
 Module C
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
 End Module
@@ -2413,7 +2416,7 @@ End Module
         Public Async Function TestSetComment1() As Task
             Dim code =
 <Code>
-' Foo
+' Goo
 
 ' Bar
 Class $$C
@@ -2422,7 +2425,7 @@ End Class
 
             Dim expected =
 <Code>
-' Foo
+' Goo
 
 Class C
 End Class
@@ -2435,7 +2438,7 @@ End Class
         Public Async Function TestSetComment2() As Task
             Dim code =
 <Code>
-' Foo
+' Goo
 ''' &lt;summary&gt;Bar&lt;/summary&gt;
 Class $$C
 End Class
@@ -2443,7 +2446,7 @@ End Class
 
             Dim expected =
 <Code>
-' Foo
+' Goo
 ''' &lt;summary&gt;Bar&lt;/summary&gt;
 ' Bar
 Class C
@@ -2457,7 +2460,7 @@ End Class
         Public Async Function TestSetComment3() As Task
             Dim code =
 <Code>
-' Foo
+' Goo
 
 ' Bar
 Class $$C
@@ -2466,7 +2469,7 @@ End Class
 
             Dim expected =
 <Code>
-' Foo
+' Goo
 
 ' Blah
 Class C
@@ -2502,7 +2505,7 @@ End Class
             Dim code =
 <Code>
 ''' &lt;summary&gt;
-''' Foo
+''' Goo
 ''' &lt;/summary&gt;
 Class $$C
 End Class
@@ -2594,14 +2597,14 @@ End Class
         Public Async Function TestSetDocComment3() As Task
             Dim code =
 <Code>
-' Foo
+' Goo
 Class $$C
 End Class
 </Code>
 
             Dim expected =
 <Code>
-' Foo
+' Goo
 ''' &lt;summary&gt;Blah&lt;/summary&gt;
 Class C
 End Class
@@ -2615,7 +2618,7 @@ End Class
             Dim code =
 <Code>
 ''' &lt;summary&gt;FogBar&lt;/summary&gt;
-' Foo
+' Goo
 Class $$C
 End Class
 </Code>
@@ -2623,7 +2626,7 @@ End Class
             Dim expected =
 <Code>
 ''' &lt;summary&gt;Blah&lt;/summary&gt;
-' Foo
+' Goo
 Class C
 End Class
 </Code>
@@ -2906,7 +2909,7 @@ Module M : End Module
         Public Async Function TestSetName1() As Task
             Dim code =
     <Code>
-Class $$Foo
+Class $$Goo
 End Class
 </Code>
 
@@ -3022,10 +3025,10 @@ End Class
             Dim code =
 <Code>
 Class C$$
-    Implements IFoo(Of String)
+    Implements IGoo(Of String)
 End Class
 
-Interface IFoo(Of T)
+Interface IGoo(Of T)
 End Interface
 </Code>
 
@@ -3048,14 +3051,14 @@ End Class
             Dim code =
 <Code>
 Class C$$
-    Implements IFoo(Of System.String)
+    Implements IGoo(Of System.String)
 End Class
 
-Interface IFoo(Of T)
+Interface IGoo(Of T)
 End Interface
 </Code>
 
-            TestGenericNameExtender_GetImplTypeGenericName(code, 1, "IFoo(Of String)")
+            TestGenericNameExtender_GetImplTypeGenericName(code, 1, "IGoo(Of String)")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3174,7 +3177,7 @@ End Class
         Public Sub TestExternalClass_ImplementedInterfaces()
             Dim code =
 <Code>
-Class $$Foo
+Class $$Goo
     Inherits System.Collections.Generic.List(Of Integer)
 End Class
 </Code>

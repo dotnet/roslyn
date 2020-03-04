@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -182,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim constructor As MethodSymbol = Nothing
             If objCreation.Arguments.Length = 1 Then
                 ' This is a branch where XElement::.ctor(XName) lands, we need to get XElement::.ctor(XName, Object()) 
-                Debug.Assert(objCreation.ConstructorOpt.ContainingType = Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement))
+                Debug.Assert(TypeSymbol.Equals(objCreation.ConstructorOpt.ContainingType, Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement), TypeCompareKind.ConsiderEverything))
 
                 constructor = DirectCast(Me.Compilation.GetWellKnownTypeMember(If(origSideEffects.Length = 1,
                                                                                   WellKnownMember.System_Xml_Linq_XElement__ctor,
@@ -196,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' This is a branch where XDocument::.ctor(XDeclaration, Object()) lands
                 Debug.Assert(objCreation.Arguments.Length = 2)
                 constructor = objCreation.ConstructorOpt
-                Debug.Assert(constructor.ContainingType = Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XDocument))
+                Debug.Assert(TypeSymbol.Equals(constructor.ContainingType, Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XDocument), TypeCompareKind.ConsiderEverything))
             End If
 
             Dim syntax = objCreation.Syntax
@@ -270,6 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return objCreation.Update(constructor,
                                       ImmutableArray.Create(Of BoundExpression)(
                                           VisitExpression(origArgument), secondArgument),
+                                      defaultArguments:=Nothing,
                                       Nothing,
                                       objCreation.Type)
         End Function

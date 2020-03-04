@@ -1,0 +1,802 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpVSResources.resx">
+    <body>
+      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
+        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
+        <target state="translated">应用所有 C# 格式规则(缩进、换行、间隔)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp">
+        <source>C#</source>
+        <target state="translated">C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Coding_Conventions">
+        <source>C# Coding Conventions</source>
+        <target state="translated">c# 编码约定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Formatting_Rules">
+        <source>C# Formatting Rules</source>
+        <target state="translated">C# 格式规则</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="translated">放弃</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document_settings">
+        <source>Format Document Settings (Experiment) </source>
+        <target state="translated">设定文档设置的格式(试验)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">常规</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">生成事件订阅</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
+        <target state="translated">在关系运算符中: &lt;   &gt;   &lt;=   &gt;= 等同于 ==   !=</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="translated">在命名空间中</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">命名空间外</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
+        <source>Perform additional code cleanup during formatting</source>
+        <target state="translated">在格式设置期间执行其他代码清理</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">引用相等检查偏好 “is null”</target>
+        <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_switch_expression">
+        <source>Prefer switch expression</source>
+        <target state="translated">首选 switch 表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preferred_using_directive_placement">
+        <source>Preferred 'using' directive placement</source>
+        <target state="translated">首选 "using" 指令放置</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">删除不必要的 Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">显示 unimported 命名空间中的项(实验)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="translated">对 using 排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
+        <source>Suggest usings for types in .NET Framework assemblies</source>
+        <target state="translated">建议对 .NET Framework 程序集中的类型使用 using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Surround_With">
+        <source>Surround With</source>
+        <target state="translated">外侧代码</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Snippet">
+        <source>Insert Snippet</source>
+        <target state="translated">插入片段</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_block_on_close_brace">
+        <source>Automatically format _block on }</source>
+        <target state="translated">在 } 后自动格式化程序块(_B)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_on_paste">
+        <source>Automatically format on _paste</source>
+        <target state="translated">粘贴时自动设置格式(_P)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon">
+        <source>Automatically format _statement on ;</source>
+        <target state="translated">输入 ; 时自动设置语句格式(_S)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_members_in_anonymous_types_on_new_line">
+        <source>Place members in anonymous types on new line</source>
+        <target state="translated">将匿名类型中的成员置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Leave_block_on_single_line">
+        <source>Leave block on single line</source>
+        <target state="translated">将块保留在一行上</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_catch_on_new_line">
+        <source>Place "catch" on new line</source>
+        <target state="translated">将“catch”置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_else_on_new_line">
+        <source>Place "else" on new line</source>
+        <target state="translated">将“else”置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_block_contents">
+        <source>Indent block contents</source>
+        <target state="translated">缩进块内容</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_open_and_close_braces">
+        <source>Indent open and close braces</source>
+        <target state="translated">缩进左大括号和右大括号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_case_contents">
+        <source>Indent case contents</source>
+        <target state="translated">缩进 case 内容</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_case_labels">
+        <source>Indent case labels</source>
+        <target state="translated">缩进 case 标签</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_finally_on_new_line">
+        <source>Place "finally" on new line</source>
+        <target state="translated">将“finally”置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_goto_labels_in_leftmost_column">
+        <source>Place goto labels in leftmost column</source>
+        <target state="translated">将 goto 标签置于最左侧的列中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_labels_normally">
+        <source>Indent labels normally</source>
+        <target state="translated">正常缩进标签</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_goto_labels_one_indent_less_than_current">
+        <source>Place goto labels one indent less than current</source>
+        <target state="translated">将 goto 标签置于比当前位置缩进一个缩进级别的位置</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Label_Indentation">
+        <source>Label Indentation</source>
+        <target state="translated">标签缩进</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_members_in_object_initializers_on_new_line">
+        <source>Place members in object initializers on new line</source>
+        <target state="translated">将对象初始值设定项中的成员置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_anonymous_methods">
+        <source>Place open brace on new line for anonymous methods</source>
+        <target state="translated">将匿名方法的左大括号置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_anonymous_types">
+        <source>Place open brace on new line for anonymous types</source>
+        <target state="translated">将匿名类型的左大括号置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_control_blocks">
+        <source>Place open brace on new line for control blocks</source>
+        <target state="translated">将控制块的左大括号置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_lambda_expression">
+        <source>Place open brace on new line for lambda expression</source>
+        <target state="translated">将 lambda 表达式的左大括号置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
+        <source>Place open brace on new line for methods and local functions</source>
+        <target state="translated">将方法和本地函数的左大括号置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
+        <source>Place open brace on new line for object, collection and array initializers</source>
+        <target state="translated">将对象、集合和数组初始值设定项的左大括号置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_types">
+        <source>Place open brace on new line for types</source>
+        <target state="translated">将类型的左大括号置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_query_expression_clauses_on_new_line">
+        <source>Place query expression clauses on new line</source>
+        <target state="translated">将查询表达式子句置于新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Leave_statements_and_member_declarations_on_the_same_line">
+        <source>Leave statements and member declarations on the same line</source>
+        <target state="translated">将语句和成员声明保留在同一行上</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_and_after_binary_operators">
+        <source>Insert space before and after binary operators</source>
+        <target state="translated">在二元运算符前后插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore_spaces_around_binary_operators">
+        <source>Ignore spaces around binary operators</source>
+        <target state="translated">忽略二元运算符前后的空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_spaces_before_and_after_binary_operators">
+        <source>Remove spaces before and after binary operators</source>
+        <target state="translated">删除二元运算符前后的空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_colon_for_base_or_interface_in_type_declaration">
+        <source>Insert space after colon for base or interface in type declaration</source>
+        <target state="translated">在类型声明中的“base”或接口的冒号后插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_comma">
+        <source>Insert space after comma</source>
+        <target state="translated">在逗号后插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_dot">
+        <source>Insert space after dot</source>
+        <target state="translated">在点后插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_semicolon_in_for_statement">
+        <source>Insert space after semicolon in "for" statement</source>
+        <target state="translated">在“for”语句中的分号后插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_colon_for_base_or_interface_in_type_declaration">
+        <source>Insert space before colon for base or interface in type declaration</source>
+        <target state="translated">在类型声明中的“base”或接口的冒号前插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_comma">
+        <source>Insert space before comma</source>
+        <target state="translated">在逗号前插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_dot">
+        <source>Insert space before dot</source>
+        <target state="translated">在点前插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_semicolon_in_for_statement">
+        <source>Insert space before semicolon in "for" statement</source>
+        <target state="translated">在“for”语句中的分号前插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_argument_list_parentheses">
+        <source>Insert space within argument list parentheses</source>
+        <target state="translated">在参数列表的括号中插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_empty_argument_list_parentheses">
+        <source>Insert space within empty argument list parentheses</source>
+        <target state="translated">在空参数列表的括号中插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">在方法名称与其左括号之间插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
+        <source>Insert space within empty parameter list parentheses</source>
+        <target state="translated">在空参数列表的括号中插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">在方法名称与其左括号之间插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_parameter_list_parentheses">
+        <source>Insert space within parameter list parentheses</source>
+        <target state="translated">在参数列表的括号中插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_keywords_in_control_flow_statements">
+        <source>Insert space after keywords in control flow statements</source>
+        <target state="translated">在控制流语句中的关键字后面插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_parentheses_of_expressions">
+        <source>Insert space within parentheses of expressions</source>
+        <target state="translated">在表达式的括号中插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_cast">
+        <source>Insert space after cast</source>
+        <target state="translated">在强制转换后插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_spaces_within_parentheses_of_control_flow_statements">
+        <source>Insert spaces within parentheses of control flow statements</source>
+        <target state="translated">在控制流语句的括号中插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_parentheses_of_type_casts">
+        <source>Insert space within parentheses of type casts</source>
+        <target state="translated">在类型转换的括号中插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore_spaces_in_declaration_statements">
+        <source>Ignore spaces in declaration statements</source>
+        <target state="translated">忽略声明语句中的空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_other_spacing_options">
+        <source>Set other spacing options</source>
+        <target state="translated">设置其他间距选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_brackets">
+        <source>Set spacing for brackets</source>
+        <target state="translated">设置中括号的间距</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_delimiters">
+        <source>Set spacing for delimiters</source>
+        <target state="translated">设置分隔符的间距</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_method_calls">
+        <source>Set spacing for method calls</source>
+        <target state="translated">设置方法调用的间距</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_method_declarations">
+        <source>Set spacing for method declarations</source>
+        <target state="translated">设置方法声明的间距</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_operators">
+        <source>Set spacing for operators</source>
+        <target state="translated">设置运算符的间距</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_spaces_within_square_brackets">
+        <source>Insert spaces within square brackets</source>
+        <target state="translated">在方括号中插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_open_square_bracket">
+        <source>Insert space before open square bracket</source>
+        <target state="translated">在左方括号前插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_empty_square_brackets">
+        <source>Insert space within empty square brackets</source>
+        <target state="translated">在空方括号中插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_options_for_braces">
+        <source>New line options for braces</source>
+        <target state="translated">大括号的新行选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_options_for_expressions">
+        <source>New line options for expressions</source>
+        <target state="translated">表达式的新行选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_options_for_keywords">
+        <source>New line options for keywords</source>
+        <target state="translated">关键字的新行选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">未使用的本地</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_var_when_generating_locals">
+        <source>Use 'var' when generating locals</source>
+        <target state="translated">生成局部变量时，使用“var”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
+        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
+        <target state="translated">如果提取的方法未用于他处，则将局部声明移至提取的方法(_M)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_procedure_line_separators">
+        <source>_Show procedure line separators</source>
+        <target state="translated">显示过程行分隔符(_S)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
+        <source>_Don't put ref or out on custom struct</source>
+        <target state="translated">不要在自定义结构上放置 ref 或 out(_D)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Editor_Help">
+        <source>Editor Help</source>
+        <target state="translated">编辑器帮助</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_keywords_under_cursor">
+        <source>Highlight related _keywords under cursor</source>
+        <target state="translated">突出显示光标下相关的关键字(_K)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_references_to_symbol_under_cursor">
+        <source>_Highlight references to symbol under cursor</source>
+        <target state="translated">突出显示对光标下符号的引用(_H)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>Enter _outlining mode when files open</source>
+        <target state="translated">打开文件时进入大纲模式(_O)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Method">
+        <source>Extract Method</source>
+        <target state="translated">提取方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>_Generate XML documentation comments for ///</source>
+        <target state="translated">为 /// 生成 XML 文档注释(_G)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighting">
+        <source>Highlighting</source>
+        <target state="translated">突出显示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
+        <source>_Insert * at the start of new lines when writing /* */ comments</source>
+        <target state="translated">编写 /* */ 注释时，请在新行的开头插入 *(_I)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optimize_for_solution_size">
+        <source>Optimize for solution size</source>
+        <target state="translated">优化解决方案大小</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Large">
+        <source>Large</source>
+        <target state="translated">大</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular">
+        <source>Regular</source>
+        <target state="translated">常规</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Small">
+        <source>Small</source>
+        <target state="translated">小</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_Directives">
+        <source>Using Directives</source>
+        <target state="translated">Using 指令</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performance">
+        <source>Performance</source>
+        <target state="translated">性能</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_usings">
+        <source>_Place 'System' directives first when sorting usings</source>
+        <target state="translated">对 using 排序时将“System”指令排在第一位(_P)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_typed">
+        <source>_Show completion list after a character is typed</source>
+        <target state="translated">键入字符后显示完成列表(_S)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_keywords_in_completion_lists">
+        <source>Place _keywords in completion lists</source>
+        <target state="translated">将关键字放入完成列表(_K)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_code_snippets_in_completion_lists">
+        <source>Place _code snippets in completion lists</source>
+        <target state="translated">将片段放入完成列表(_C)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completion_Lists">
+        <source>Completion Lists</source>
+        <target state="translated">完成列表</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_In_Completion_List">
+        <source>Selection In Completion List</source>
+        <target state="translated">完成列表中的选定内容</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_preview_for_rename_tracking">
+        <source>Show preview for rename _tracking</source>
+        <target state="translated">显示重命名跟踪的预览(_T)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors">
+        <source>Place open brace on new line for property, indexer, and event accessors</source>
+        <target state="translated">将左大括号放置在新行中，以表示属性、索引器和事件访问器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
+        <source>Place open brace on new line for properties, indexers, and events</source>
+        <target state="translated">将左大括号放置在新行中，以表示属性、索引器和事件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
+        <source>Suggest usings for types in _NuGet packages</source>
+        <target state="translated">建议对 NuGet 包中的类型使用 using(_N)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Inference_preferences_colon">
+        <source>Type Inference preferences:</source>
+        <target state="translated">类型推理首选项:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_built_in_types">
+        <source>For built-in types</source>
+        <target state="translated">对于内置类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Elsewhere">
+        <source>Elsewhere</source>
+        <target state="translated">其他位置</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="translated">在多行上时</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_variable_type_is_apparent">
+        <source>When variable type is apparent</source>
+        <target state="translated">当变量类型明显时</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_event_access_with_this">
+        <source>Qualify event access with 'this'</source>
+        <target state="translated">使用 "this" 限定事件访问</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_field_access_with_this">
+        <source>Qualify field access with 'this'</source>
+        <target state="translated">使用 "this" 限定字段访问</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_this">
+        <source>Qualify method access with 'this'</source>
+        <target state="translated">使用 "this" 限定方法访问</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_this">
+        <source>Qualify property access with 'this'</source>
+        <target state="translated">使用 "this" 限定属性访问</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicit_type">
+        <source>Prefer explicit type</source>
+        <target state="translated">首选显式类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_this">
+        <source>Prefer 'this.'</source>
+        <target state="translated">首选 "this."</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_var">
+        <source>Prefer 'var'</source>
+        <target state="translated">首选 "var"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="this_preferences_colon">
+        <source>'this.' preferences:</source>
+        <target state="translated">'"this." 首选项:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_preferences_colon">
+        <source>'using' preferences:</source>
+        <target state="translated">"using" 首选项:</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="var_preferences_colon">
+        <source>'var' preferences:</source>
+        <target state="translated">'"var" 首选项:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_prefer_this">
+        <source>Do not prefer 'this.'</source>
+        <target state="translated">请勿首选 "this."</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="predefined_type_preferences_colon">
+        <source>predefined type preferences:</source>
+        <target state="translated">预定义类型首选项:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_string_literals_on_enter">
+        <source>Split string literals on _enter</source>
+        <target state="translated">输入时拆分字符串文本(_E)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
+        <source>_Highlight matching portions of completion list items</source>
+        <target state="translated">突出显示完成列表项的匹配部分(_H)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_item_filters">
+        <source>Show completion item _filters</source>
+        <target state="translated">显示完成项筛选器(_F)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_key_behavior_colon">
+        <source>Enter key behavior:</source>
+        <target state="translated">输入关键行为:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>_Only add new line on enter after end of fully typed word</source>
+        <target state="translated">_只有在完整键入的单词结尾后按下回车键时才添加新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>_Always add new line on enter</source>
+        <target state="translated">按下 Enter 时始终添加新行(_A)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>_Never add new line on enter</source>
+        <target state="translated">按下 Enter 时不添加新行(_N)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">始终包含片段</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">在标识符后键入 ?-Tab 时包含片段</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">从不包含片段</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Snippets_behavior">
+        <source>Snippets behavior</source>
+        <target state="translated">片段行为</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
+        <source>Show completion list after a character is _deleted</source>
+        <target state="translated">删除字符后显示完成列表(_D)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="null_checking_colon">
+        <source>'null' checking:</source>
+        <target state="translated">'"null" 检查:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_throw_expression">
+        <source>Prefer throw-expression</source>
+        <target state="translated">更喜欢 throw 表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_delegate_call">
+        <source>Prefer conditional delegate call</source>
+        <target state="translated">更喜欢有条件的委托调用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching_over_is_with_cast_check">
+        <source>Prefer pattern matching over 'is' with 'cast' check</source>
+        <target state="translated">使用 "cast" 检查时首选模式匹配而不是 "is"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
+        <source>Prefer pattern matching over 'as' with 'null' check</source>
+        <target state="translated">使用 "null" 检查时首选模式匹配而不是 "as"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_block_body">
+        <source>Prefer block body</source>
+        <target state="translated">选择程序块主体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_expression_body">
+        <source>Prefer expression body</source>
+        <target state="translated">选择表达式主体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_on_return">
+        <source>Automatically format on return</source>
+        <target state="translated">返回时自动格式化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_when_typing">
+        <source>Automatically format when typing</source>
+        <target state="translated">键入时自动格式化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">从不</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_single_line">
+        <source>When on single line</source>
+        <target state="translated">处于单行上时</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_possible">
+        <source>When possible</source>
+        <target state="translated">在可能的情况下</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_case_contents_when_block">
+        <source>Indent case contents (when block)</source>
+        <target state="translated">缩进 case 内容(阻止时)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fade_out_unused_usings">
+        <source>Fade out unused usings</source>
+        <target state="translated">淡出未使用的 using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
+        <source>Report invalid placeholders in 'string.Format' calls</source>
+        <target state="translated">报告 "String.Format" 调用中无效的占位符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separate_using_directive_groups">
+        <source>Separate using directive groups</source>
+        <target state="translated">单独的 using 指令组</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_name_suggestions">
+        <source>Show name s_uggestions</source>
+        <target state="translated">显示名称建议(_U)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
+        <target state="translated">在算术运算符中: *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
+        <target state="translated">在其他二进制运算符中: &amp;&amp;   ||   ??</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // TODO (https://github.com/dotnet/testimpact/issues/84): delete this
 
@@ -163,8 +165,7 @@ namespace Microsoft.CodeAnalysis
                 throw new BadImageFormatException();
             }
 
-            int start;
-            if (!peReader.PEHeaders.TryGetDirectoryOffset(resourcesDir, out start))
+            if (!peReader.PEHeaders.TryGetDirectoryOffset(resourcesDir, out var start))
             {
                 return null;
             }
@@ -209,8 +210,7 @@ namespace Microsoft.CodeAnalysis
             // records:
             while (reader.RemainingBytes > 0)
             {
-                int deltaLines, deltaColumns;
-                ReadDeltaLinesAndColumns(ref reader, out deltaLines, out deltaColumns);
+                ReadDeltaLinesAndColumns(ref reader, out var deltaLines, out var deltaColumns);
 
                 // document:
                 if (deltaLines == 0 && deltaColumns == 0)

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -12,36 +14,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplacePropertyWithMethodsService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicReplacePropertyWithMethods
-        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax)
+        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax, PropertyStatementSyntax)
 
-        Public Overrides Function GetPropertyDeclaration(token As SyntaxToken) As SyntaxNode
-            Dim containingProperty = token.Parent.FirstAncestorOrSelf(Of PropertyStatementSyntax)
-            If containingProperty Is Nothing Then
-                Return Nothing
-            End If
-
-            ' a parameterized property can be trivially converted to a method.
-            If containingProperty.ParameterList IsNot Nothing Then
-                Return Nothing
-            End If
-
-            Dim start = If(containingProperty.AttributeLists.Count > 0,
-                containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart,
-                 containingProperty.SpanStart)
-
-            ' Offer this refactoring anywhere in the signature of the property.
-            Dim position = token.SpanStart
-            If position < start Then
-                Return Nothing
-            End If
-
-            If containingProperty.HasReturnType() AndAlso
-                position > containingProperty.GetReturnType().Span.End Then
-                Return Nothing
-            End If
-
-            Return containingProperty
-        End Function
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Overrides Function GetReplacementMembersAsync(
                 document As Document,
@@ -166,13 +143,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 desiredName As String) As IMethodSymbol
 
             ' We have a property like:
-            '       Public ReadOnly Foo As Integer Implements I.Foo'
+            '       Public ReadOnly Goo As Integer Implements I.Goo'
             '
             ' That property has an implicit getter:
-            '       Public Function get_Foo As Integer Implements I.get_Foo'
+            '       Public Function get_Goo As Integer Implements I.get_Goo'
             '
             ' We want to generate the new explicit function:
-            '       Public Function GetFoo() As Integer Implements I.GetFoo
+            '       Public Function GetGoo() As Integer Implements I.GetGoo
             ' 
             ' To do this we make the new method using the information from the implicit getter 
             ' Function.  However, we need to update the 'explicit interface implementations' 

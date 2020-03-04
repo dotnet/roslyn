@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -20,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode oldNode, TNode newNode)
         {
-            Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) == (kind == EditKind.Insert));
-            Debug.Assert((newNode == null || newNode.Equals(default(TNode))) == (kind == EditKind.Delete));
+            Debug.Assert((oldNode == null || oldNode.Equals(default)) == (kind == EditKind.Insert));
+            Debug.Assert((newNode == null || newNode.Equals(default)) == (kind == EditKind.Delete));
 
-            Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) ||
-                         (newNode == null || newNode.Equals(default(TNode))) ||
+            Debug.Assert((oldNode == null || oldNode.Equals(default)) ||
+                         (newNode == null || newNode.Equals(default)) ||
                          !comparer.TreesEqual(oldNode, newNode));
 
             _comparer = comparer;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         public override int GetHashCode()
         {
-            int hash = (int)_kind;
+            var hash = (int)_kind;
             if (_oldNode != null)
             {
                 hash = Hash.Combine(_oldNode.GetHashCode(), hash);
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         // Has to be 'internal' for now as it's used by EnC test tool
         internal string GetDebuggerDisplay()
         {
-            string result = Kind.ToString();
+            var result = Kind.ToString();
             switch (Kind)
             {
                 case EditKind.Delete:

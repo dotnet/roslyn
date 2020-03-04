@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -133,8 +135,7 @@ namespace RunTests.Cache
                     continue;
                 }
 
-                string currentPath;
-                if (assemblyUtil.TryGetAssemblyPath(current, out currentPath))
+                if (assemblyUtil.TryGetAssemblyPath(current, out var currentPath))
                 {
                     enqueueReferences(currentPath);
                     var currentHash = GetFileChecksum(currentPath);
@@ -154,10 +155,10 @@ namespace RunTests.Cache
             {
                 var builder = new StringBuilder();
                 builder.AppendLine("References:");
-                references.Sort((x, y) => x.Item1.CompareTo(y.Item1));
+                references.Sort((x, y) => x.assemblyName.CompareTo(y.assemblyName));
                 foreach (var pair in references)
                 {
-                    builder.AppendLine($"\t{pair.Item1} {pair.Item2}");
+                    builder.AppendLine($"\t{pair.assemblyName} {pair.assemblyHash}");
                 }
 
                 return (builder.ToString(), isError: false);
@@ -216,7 +217,7 @@ namespace RunTests.Cache
         private string GetFileChecksum(string filePath)
         {
             var ext = Path.GetExtension(filePath).ToLower();
-            return (ext == ".dll" || ext == ".exe") 
+            return (ext == ".dll" || ext == ".exe")
                 ? GetAssemblyChecksum(filePath)
                 : GetFileChecksumCore(filePath);
         }

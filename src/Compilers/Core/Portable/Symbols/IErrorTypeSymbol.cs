@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// An IErrorTypeSymbol is used when the compiler cannot determine a symbol object to return because
-    /// of an error. For example, if a field is declared "Foo x;", and the type "Foo" cannot be
+    /// of an error. For example, if a field is declared "Goo x;", and the type "Goo" cannot be
     /// found, an IErrorTypeSymbol is returned when asking the field "x" what it's type is.
     /// </summary>
     /// <remarks>

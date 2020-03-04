@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable enable
+
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -23,19 +27,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         protected override bool ShouldAnalyze(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
-        protected override ISyntaxFactsService GetSyntaxFactsService()
-            => CSharpSyntaxFactsService.Instance;
+        protected override ISyntaxFacts GetSyntaxFacts()
+            => CSharpSyntaxFacts.Instance;
 
         protected override ISemanticFactsService GetSemanticFactsService()
             => CSharpSemanticFactsService.Instance;
 
-        protected override SyntaxKind GetSyntaxKindToAnalyze()
-            => SyntaxKind.ConditionalExpression;
+        protected override bool TryAnalyzePatternCondition(
+            ISyntaxFacts syntaxFacts, SyntaxNode conditionNode,
+            out SyntaxNode? conditionPartToCheck, out bool isEquals)
+        {
+            conditionPartToCheck = null;
+            isEquals = true;
 
-        protected override bool IsEquals(BinaryExpressionSyntax condition)
-            => condition.Kind() == SyntaxKind.EqualsExpression;
+            if (!(conditionNode is IsPatternExpressionSyntax patternExpression))
+            {
+                return false;
+            }
 
-        protected override bool IsNotEquals(BinaryExpressionSyntax condition)
-            => condition.Kind() == SyntaxKind.NotEqualsExpression;
+            if (!(patternExpression.Pattern is ConstantPatternSyntax constantPattern))
+            {
+                return false;
+            }
+
+            if (!syntaxFacts.IsNullLiteralExpression(constantPattern.Expression))
+            {
+                return false;
+            }
+
+            conditionPartToCheck = patternExpression.Expression;
+            return true;
+        }
     }
 }

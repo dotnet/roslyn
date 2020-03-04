@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -23,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             var comp = CreateCompilationWithMscorlib45(@"
 public partial class C
 {
-    static partial void foo() => System.Console.WriteLine(""test"");
+    static partial void goo() => System.Console.WriteLine(""test"");
 }
 
 public partial class C
 {
-    static partial void foo();
+    static partial void goo();
 }
 ");
             var tree = comp.SyntaxTrees[0];
@@ -39,20 +41,20 @@ public partial class C
                 .OfType<MethodDeclarationSyntax>()
                 .ElementAt(1);
 
-            var fooDef = model.GetDeclaredSymbol(node) as SourceMemberMethodSymbol;
-            Assert.NotNull(fooDef);
-            Assert.True(fooDef.IsPartial);
-            Assert.True(fooDef.IsPartialDefinition);
-            Assert.False(fooDef.IsPartialImplementation);
-            Assert.Null(fooDef.PartialDefinitionPart);
+            var gooDef = model.GetDeclaredSymbol(node).GetSymbol<SourceOrdinaryMethodSymbol>();
+            Assert.NotNull(gooDef);
+            Assert.True(gooDef.IsPartial);
+            Assert.True(gooDef.IsPartialDefinition);
+            Assert.False(gooDef.IsPartialImplementation);
+            Assert.Null(gooDef.PartialDefinitionPart);
 
-            var fooImpl = fooDef.PartialImplementationPart
-                as SourceMemberMethodSymbol;
-            Assert.NotNull(fooImpl);
-            Assert.True(fooImpl.IsPartial);
-            Assert.True(fooImpl.IsPartialImplementation);
-            Assert.False(fooImpl.IsPartialDefinition);
-            Assert.True(fooImpl.IsExpressionBodied);
+            var gooImpl = gooDef.PartialImplementationPart
+                as SourceOrdinaryMethodSymbol;
+            Assert.NotNull(gooImpl);
+            Assert.True(gooImpl.IsPartial);
+            Assert.True(gooImpl.IsPartialImplementation);
+            Assert.False(gooImpl.IsPartialDefinition);
+            Assert.True(gooImpl.IsExpressionBodied);
         }
 
         [Fact]
@@ -77,7 +79,7 @@ class Program
             var program = global.GetTypeMember("Program");
             var field = program.GetMember<SourceFieldSymbol>("F");
 
-            Assert.Equal(field, semanticSymbol);
+            Assert.Equal(field, semanticSymbol.GetSymbol());
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
@@ -117,7 +119,7 @@ class C
 
             var info = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
             Assert.NotNull(info);
-            var sym = Assert.IsType<SourcePropertySymbol>(info.Symbol);
+            var sym = Assert.IsType<SourcePropertySymbol>(info.Symbol.GetSymbol());
             var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.Equal(c.GetMember<SourcePropertySymbol>("P"), sym);
         }
@@ -202,7 +204,7 @@ class C
 }");
             Assert.NotNull(semanticInfo);
             var sym = semanticInfo.Symbol;
-            var accessor = Assert.IsType<SourcePropertyAccessorSymbol>(sym.ContainingSymbol);
+            var accessor = Assert.IsType<SourcePropertyAccessorSymbol>(sym.ContainingSymbol.GetSymbol());
             var prop = accessor.AssociatedSymbol;
             Assert.IsType<SourcePropertySymbol>(prop);
         }
@@ -226,10 +228,10 @@ class Program
             var semanticSymbol = semanticInfo.Symbol;
             var global = comp.GlobalNamespace;
             var program = global.GetTypeMember("Program");
-            var method = program.GetMember<SourceMemberMethodSymbol>("M");
+            var method = program.GetMember<SourceOrdinaryMethodSymbol>("M");
             var i = method.Parameters[0];
 
-            Assert.Equal(i, semanticSymbol);
+            Assert.Equal(i, semanticSymbol.GetSymbol());
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
@@ -255,11 +257,11 @@ class C
             Assert.Equal(TypeKind.TypeParameter, semanticInfo.Type.TypeKind);
             Assert.Equal("T", semanticInfo.Type.Name);
             Assert.Equal("t", semanticInfo.Symbol.Name);
-            var m = semanticInfo.Symbol.ContainingSymbol as SourceMemberMethodSymbol;
+            var m = semanticInfo.Symbol.ContainingSymbol.GetSymbol<SourceOrdinaryMethodSymbol>();
             Assert.Equal(1, m.TypeParameters.Length);
-            Assert.Equal(m.TypeParameters[0], semanticInfo.Type);
+            Assert.Equal(m.TypeParameters[0], semanticInfo.Type.GetSymbol());
             Assert.Equal(m.TypeParameters[0], m.ReturnType);
-            Assert.Equal(m, semanticInfo.Type.ContainingSymbol);
+            Assert.Equal(m, semanticInfo.Type.ContainingSymbol.GetSymbol());
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
         }
 
@@ -285,7 +287,7 @@ class Program
             var method = program.GetMember<SourceUserDefinedOperatorSymbol>("op_Increment");
             var p = method.Parameters[0];
 
-            Assert.Equal(p, semanticSymbol);
+            Assert.Equal(p, semanticSymbol.GetSymbol());
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
@@ -318,7 +320,7 @@ class C
             var method = program.GetMember<SourceUserDefinedConversionSymbol>("op_Explicit");
             var p = method.Parameters[0];
 
-            Assert.Equal(p, semanticSymbol);
+            Assert.Equal(p, semanticSymbol.GetSymbol());
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
@@ -431,14 +433,14 @@ class Program
         [Fact]
         public void Bug1112875()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class Program
 {
     private void M() => (new object());
 }
 ");
             comp.VerifyDiagnostics(
-                // (4,25): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (4,25): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //     private void M() => (new object());
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(4, 25));
         }
@@ -446,7 +448,7 @@ class Program
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_01()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -477,7 +479,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_02()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -508,7 +510,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_03()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     int P1 {get; set;}
@@ -546,7 +548,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_04()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     int P1 {get; set;}
@@ -586,7 +588,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_05()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -615,7 +617,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_06()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -651,7 +653,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_07()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -682,7 +684,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_08()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -713,7 +715,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_09()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -744,7 +746,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_10()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -779,7 +781,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_11()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -810,7 +812,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_12()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -846,7 +848,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_13()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -881,7 +883,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_14()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -920,10 +922,10 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_15()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
-    void Foo()
+    void Goo()
     {
         int Bar() { return 0; } => 0;
     }
@@ -942,7 +944,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_16()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     int this[int i] { get { return 0; } } => 0;
@@ -958,7 +960,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_17()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 public class C
 {
     int this[int i] { get { return 0; } => 0; }
@@ -974,7 +976,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_18()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 public class C
 {
@@ -991,7 +993,7 @@ public class C
         [Fact, WorkItem(971, "https://github.com/dotnet/roslyn/issues/971")]
         public void LookupSymbols()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 public class C
 {
@@ -1036,8 +1038,8 @@ public class C
     int P { set => Console.WriteLine(value); }
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics();
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (5,9): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7.0 or greater.
                 //     C() => Console.WriteLine(1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(1)").WithArguments("expression body constructor and destructor", "7.0").WithLocation(5, 9),

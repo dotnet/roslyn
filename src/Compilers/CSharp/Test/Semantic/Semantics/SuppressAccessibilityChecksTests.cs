@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Linq;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         private static SemanticModel GetSemanticModelWithIgnoreAccessibility()
         {
-            var compilationA = CreateStandardCompilation(@"
+            var compilationA = CreateCompilation(@"
 namespace N
 {
     class A
@@ -26,7 +28,7 @@ namespace N
 
             var referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream());
 
-            var compilationB = CreateStandardCompilation(@"
+            var compilationB = CreateCompilation(@"
 using A = N.A;
 
 class B 
@@ -79,7 +81,7 @@ class B
 
 
             SemanticModel speculativeSemanticModel;
-            var statement = SyntaxFactory.ParseStatement("var foo = new A().M();");
+            var statement = SyntaxFactory.ParseStatement("var goo = new A().M();");
 
             semanticModel.TryGetSpeculativeSemanticModel(position, statement, out speculativeSemanticModel);
             var creationExpression =
@@ -109,7 +111,7 @@ class C
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single().Body;
@@ -124,7 +126,7 @@ class C
         [Fact]
         public void TestExtensionMethodInInternalClass()
         {
-            var compilationA = CreateCompilationWithMscorlibAndSystemCore(@"
+            var compilationA = CreateCompilationWithMscorlib40AndSystemCore(@"
 public class A
 {
     A M() { return new A(); }
@@ -144,7 +146,7 @@ internal static class E
 
             var referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream());
 
-            var compilationB = CreateStandardCompilation(@"
+            var compilationB = CreateCompilation(@"
 class B 
 {
     void Main() 
@@ -173,7 +175,7 @@ class B
         [Fact]
         public void TestGetSpeculativeSemanticModelForPropertyAccessorBody()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class R
 {
     private int _p;

@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
@@ -321,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                containingType)
             End If
 
-            Return New DeclarationInitializerBinder(parameterSymbol, containingBinder, node)
+            Return New DeclarationInitializerBinder(parameterSymbol, ImmutableArray(Of Symbol).Empty, containingBinder, node)
         End Function
 
         ''' <summary>
@@ -334,7 +337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 containingBinder = BinderBuilder.CreateBinderForMethodDeclaration(methodSymbol, containingBinder)
             End If
 
-            Return New DeclarationInitializerBinder(parameterSymbol, containingBinder, node)
+            Return New DeclarationInitializerBinder(parameterSymbol, ImmutableArray(Of Symbol).Empty, containingBinder, node)
         End Function
 
         ''' <summary>
@@ -415,9 +418,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function CreateBinderForInitializer(containingBinder As Binder,
-                                                          fieldOrProperty As Symbol) As Binder
+                                                          fieldOrProperty As Symbol,
+                                                          additionalFieldsOrProperties As ImmutableArray(Of Symbol)) As Binder
 
             Debug.Assert((fieldOrProperty.Kind = SymbolKind.Field) OrElse (fieldOrProperty.Kind = SymbolKind.Property))
+            Debug.Assert(additionalFieldsOrProperties.All(Function(s) s.Kind = SymbolKind.Field OrElse s.Kind = SymbolKind.Property))
             Debug.Assert(containingBinder IsNot Nothing)
 
             Dim declarationSyntax As VisualBasicSyntaxNode
@@ -428,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 declarationSyntax = DirectCast(fieldOrProperty, SourcePropertySymbol).DeclarationSyntax
             End If
 
-            Return New DeclarationInitializerBinder(fieldOrProperty, containingBinder, declarationSyntax)
+            Return New DeclarationInitializerBinder(fieldOrProperty, additionalFieldsOrProperties, containingBinder, declarationSyntax)
         End Function
 
         ''' <summary>

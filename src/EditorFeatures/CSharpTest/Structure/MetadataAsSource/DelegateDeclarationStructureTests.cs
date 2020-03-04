@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
@@ -28,7 +30,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
         public async Task WithAttributes()
         {
             const string code = @"
-{|hint:{|textspan:[Foo]
+{|hint:{|textspan:[Goo]
 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,
@@ -41,7 +43,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
             const string code = @"
 {|hint:{|textspan:// Summary:
 //     This is a summary.
-[Foo]
+[Goo]
 |}delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,
@@ -54,7 +56,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
             const string code = @"
 {|hint:{|textspan:// Summary:
 //     This is a summary.
-[Foo]
+[Goo]
 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,

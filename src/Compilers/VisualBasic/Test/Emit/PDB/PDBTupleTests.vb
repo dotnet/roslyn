@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -8,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBTupleTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Local()
             Dim source = "
 Class C
@@ -17,9 +19,12 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             comp.VerifyPdb("C.F",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name="F">
             <customDebugInfo>
@@ -31,9 +36,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="19"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="163"/>
-                <entry offset="0x1c" startLine="5" startColumn="5" endLine="5" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="19" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="163" document="1"/>
+                <entry offset="0x1c" startLine="5" startColumn="5" endLine="5" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1d">
                 <currentnamespace name=""/>
@@ -44,7 +49,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")>
+        <WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub VariablesAndConstantsInUnreachableCode()
             Dim source = "
 Imports System
@@ -71,7 +77,7 @@ Class C(Of T)
     End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib(source, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40(source, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(c)
             v.VerifyIL("C(Of T).F()", "
@@ -91,6 +97,9 @@ End Class
 
             c.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C`1" name="F">
             <customDebugInfo>
@@ -107,9 +116,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="12"/>
-                <entry offset="0x1" startLine="11" startColumn="13" endLine="11" endColumn="65"/>
-                <entry offset="0x3" startLine="14" startColumn="9" endLine="14" endColumn="30"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="12" document="1"/>
+                <entry offset="0x1" startLine="11" startColumn="13" endLine="11" endColumn="65" document="1"/>
+                <entry offset="0x3" startLine="14" startColumn="9" endLine="14" endColumn="30" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <namespace name="System" importlevel="file"/>

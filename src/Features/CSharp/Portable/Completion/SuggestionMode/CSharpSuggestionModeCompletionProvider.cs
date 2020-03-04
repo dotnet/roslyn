@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
-            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
+            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
         {
             if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
@@ -48,10 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 else if (token.IsPreProcessorExpressionContext())
                 {
                     return CreateEmptySuggestionModeItem();
-                }
-                else if (IsImplicitArrayCreation(semanticModel, token, position, typeInferrer, cancellationToken))
-                {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.implicit_array_creation, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_implicit_array_creation);
                 }
                 else if (token.IsKindOrHasMatchingText(SyntaxKind.FromKeyword) || token.IsKindOrHasMatchingText(SyntaxKind.JoinKeyword))
                 {
@@ -83,17 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             }
 
             return null;
-        }
-
-        private bool IsImplicitArrayCreation(SemanticModel semanticModel, SyntaxToken token, int position, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
-        {
-            if (token.IsKind(SyntaxKind.NewKeyword) && token.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
-            {
-                var type = typeInferrer.InferType(semanticModel, token.Parent, objectAsDefault: false, cancellationToken: cancellationToken);
-                return type != null && type is IArrayTypeSymbol;
-            }
-
-            return false;
         }
 
         private bool IsAnonymousObjectCreation(SyntaxToken token)
@@ -136,8 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             // A lambda that is being typed may be parsed as a tuple without names
             // For example, "(a, b" could be the start of either a tuple or lambda
             // But "(a: b, c" cannot be a lambda
-            if (token.SyntaxTree.IsPossibleTupleContext(token, position) && token.Parent.IsKind(SyntaxKind.TupleExpression) &&
-               !((TupleExpressionSyntax)token.Parent).HasNames())
+            if (token.SyntaxTree.IsPossibleTupleContext(token, position) &&
+                token.Parent.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression) &&
+                !tupleExpression.HasNames())
             {
                 position = token.Parent.SpanStart;
             }
@@ -168,6 +156,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 return false;
             }
 
+            // async lambda: 
+            //    Goo(async($$
+            //    Goo(async(p1, $$
+            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.ArgumentList)
+                && token.Parent.Parent is InvocationExpressionSyntax invocation
+                && invocation.Expression is IdentifierNameSyntax identifier)
+            {
+                if (identifier.Identifier.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword))
+                {
+                    return true;
+                }
+            }
+
             // If we're an argument to a function with multiple overloads, 
             // open the builder if any overload takes a delegate at our argument position
             var inferredTypeInfo = typeInferrer.GetTypeInferenceInfo(semanticModel, position, cancellationToken: cancellationToken);
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
         private ITypeSymbol GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
         {
-            ITypeSymbol typeSymbol = typeInferenceInfo.InferredType;
+            var typeSymbol = typeInferenceInfo.InferredType;
             if (typeInferenceInfo.IsParams && typeInferenceInfo.InferredType.IsArrayType())
             {
                 typeSymbol = ((IArrayTypeSymbol)typeInferenceInfo.InferredType).ElementType;

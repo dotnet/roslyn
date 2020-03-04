@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -44,7 +45,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -63,14 +64,14 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterExtern()
         {
-            await VerifyAbsenceAsync(@"extern alias Foo;
+            await VerifyAbsenceAsync(@"extern alias Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterUsing()
         {
-            await VerifyAbsenceAsync(@"using Foo;
+            await VerifyAbsenceAsync(@"using Goo;
 $$");
         }
 
@@ -91,7 +92,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDelegateDeclaration()
         {
-            await VerifyAbsenceAsync(@"delegate void Foo();
+            await VerifyAbsenceAsync(@"delegate void Goo();
 $$");
         }
 
@@ -100,7 +101,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  void Foo() {}
+  void Goo() {}
   $$");
         }
 
@@ -127,20 +128,20 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAssemblyAttribute()
         {
-            await VerifyAbsenceAsync(@"[assembly: foo]
+            await VerifyAbsenceAsync(@"[assembly: goo]
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterRootAttribute()
         {
-            await VerifyAbsenceAsync(@"[foo]
+            await VerifyAbsenceAsync(@"[goo]
 $$");
         }
 
@@ -149,7 +150,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  [foo]
+  [goo]
   $$");
         }
 
@@ -161,9 +162,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInsideInterface()
+        public async Task TestInsideInterface()
         {
-            await VerifyAbsenceAsync(@"interface I {
+            await VerifyKeywordAsync(@"interface I {
    $$");
         }
 
@@ -302,7 +303,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    int Foo { $$");
+    int Goo { $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -310,7 +311,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    int Foo { get; $$");
+    int Goo { get; $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -318,7 +319,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    int Foo { get; protected $$");
+    int Goo { get; protected $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -326,7 +327,15 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    int Foo { get; internal $$");
+    int Goo { get; internal $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterPrivateProtected()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    private protected $$");
         }
     }
 }

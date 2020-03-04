@@ -1,7 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Notification;
@@ -11,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 {
     internal class NamingStyleViewModel : AbstractNotifyPropertyChanged, INamingStylesInfoDialogViewModel
     {
-        private MutableNamingStyle _style;
+        private readonly MutableNamingStyle _style;
         private readonly INotificationService _notificationService;
 
         public NamingStyleViewModel(MutableNamingStyle style, bool canBeDeleted, INotificationService notificationService)
@@ -69,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             get
             {
-                return _style.NamingStyle.CreateName(new[] { ServicesVSResources.example, ServicesVSResources.identifier });
+                return _style.NamingStyle.CreateName(ImmutableArray.Create(ServicesVSResources.example, ServicesVSResources.identifier));
             }
             set
             {
@@ -128,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 }
             }
         }
-        
+
         public bool CanBeDeleted { get; set; }
 
         internal bool TrySubmit()
@@ -147,6 +150,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             _style.Name = ItemName;
             return _style;
         }
+
+        // For screen readers
+        public override string ToString() => ItemName;
 
         public class CapitalizationDisplay
         {

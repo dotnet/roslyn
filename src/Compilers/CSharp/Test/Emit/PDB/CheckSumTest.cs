@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Text;
@@ -29,12 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs");
             var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs");
 
-            var compilation = CreateStandardCompilation(new[] { tree1, tree256 });
+            var compilation = CreateCompilation(new[] { tree1, tree256 });
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name=""sha1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""8E, 37, F3, 94, ED, 18, 24, 3F, 35, EC, 1B, 70, 25, 29, 42, 1C, B0, 84, 9B, C8, "" />
-    <file id=""2"" name=""sha256.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""8829d00f-11b8-4213-878b-770e8597ac16"" checkSum=""83, 31, 5B, 52,  8, 2D, 68, 54, 14, 88,  E, E3, 3A, 5E, B7, 83, 86, 53, 83, B4, 5A, 3F, 36, 9E, 5F, 1B, 60, 33, 27,  A, 8A, EC, "" />
+    <file id=""1"" name=""sha1.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8E-37-F3-94-ED-18-24-3F-35-EC-1B-70-25-29-42-1C-B0-84-9B-C8"" />
+    <file id=""2"" name=""sha256.cs"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""83-31-5B-52-08-2D-68-54-14-88-0E-E3-3A-5E-B7-83-86-53-83-B4-5A-3F-36-9E-5F-1B-60-33-27-0A-8A-EC"" />
   </files>
   <methods>
     <method containingType=""C1"" name="".ctor"">
@@ -191,7 +193,7 @@ class C1
         [Fact]
         public void TestPartialClassFieldInitializers()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 public partial class C
 {
     int x = 1;
@@ -201,9 +203,9 @@ public partial class C
 
 #pragma checksum ""USED1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d9""
 
-";
+");
 
-            var text2 = @"
+            var text2 = WithWindowsLineBreaks(@"
 public partial class C
 {
 #pragma checksum ""USED2.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d9""
@@ -223,15 +225,16 @@ int y = 1;
 
     }
 }
-";
-            var compilation = CreateStandardCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
+");
+            var compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
             compilation.VerifyPdb("C.Main", @"
 <symbols>
   <files>
-    <file id=""1"" name=""USED1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D9, "" />
-    <file id=""2"" name=""USED2.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D9, "" />
-    <file id=""3"" name=""b.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""C0, 51, F0, 6F, D3, ED, 44, A2, 11, 4D,  3, 70, 89, 20, A6,  5, 11, 62, 14, BE, "" />
-    <file id=""4"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""F0, C4, 23, 63, A5, 89, B9, 29, AF, 94,  7, 85, 2F, 3A, 40, D3, 70, 14, 8F, 9B, "" />
+    <file id=""1"" name=""USED1.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D9"" />
+    <file id=""2"" name=""USED2.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D9"" />
+    <file id=""3"" name=""b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""C0-51-F0-6F-D3-ED-44-A2-11-4D-03-70-89-20-A6-05-11-62-14-BE"" />
+    <file id=""4"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""F0-C4-23-63-A5-89-B9-29-AF-94-07-85-2F-3A-40-D3-70-14-8F-9B"" />
+    <file id=""5"" name=""UNUSED.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D9"" />
   </files>
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -251,7 +254,7 @@ int y = 1;
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_Tree()
         {
             var source = @"
@@ -268,7 +271,7 @@ class C
             comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name=""b:\base\b.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum="" 5, 25, 26, AE, 53, A0, 54, 46, AC, A6, 1D, 8A, 3B, 1E, 3F, C3, 43, 39, FB, 59, "" />
+    <file id=""1"" name=""b:\base\b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""05-25-26-AE-53-A0-54-46-AC-A6-1D-8A-3B-1E-3F-C3-43-39-FB-59"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -286,7 +289,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NoResolver()
         {
             var comp = CSharpCompilation.Create(
@@ -304,7 +307,8 @@ class C { void M() { } }
             comp.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name=""a\..\a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D5, "" />
+    <file id=""1"" name=""a\..\a.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D5"" />
+    <file id=""2"" name=""C:\a\..\b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""36-39-3C-83-56-97-F2-F0-60-95-A4-A0-32-C6-32-C7-B2-4B-16-92"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -323,7 +327,7 @@ class C { void M() { } }
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_LineDirective()
         {
             var source = @"
@@ -353,9 +357,9 @@ class C
             comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name=""b:\base\b.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""B6, C3, C8, D1, 2D, F4, BD, FA, F7, 25, AC, F8, 17, E1, 83, BE, CC, 9B, 40, 84, "" />
-    <file id=""2"" name=""b:\base\line.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
-    <file id=""3"" name=""q:\absolute\file.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name=""b:\base\b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""B6-C3-C8-D1-2D-F4-BD-FA-F7-25-AC-F8-17-E1-83-BE-CC-9B-40-84"" />
+    <file id=""2"" name=""b:\base\line.cs"" language=""C#"" />
+    <file id=""3"" name=""q:\absolute\file.cs"" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -380,7 +384,7 @@ class C
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_ChecksumDirective()
         {
             var source = @"
@@ -415,12 +419,12 @@ class C
             comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name=""b:\base\file.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""2B, 34, 42, 7D, 32, E5,  A, 24, 3D,  1, 43, BF, 42, FB, 38, 57, 62, 60, 8B, 14, "" />
-    <file id=""2"" name=""b:\base\a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D5, "" />
-    <file id=""3"" name=""b:\base\b.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D6, "" />
-    <file id=""4"" name=""b:\base\c.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D7, "" />
-    <file id=""5"" name=""b:\base\d.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D8, "" />
-    <file id=""6"" name=""b:\base\e.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D9, "" />
+    <file id=""1"" name=""b:\base\file.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""2B-34-42-7D-32-E5-0A-24-3D-01-43-BF-42-FB-38-57-62-60-8B-14"" />
+    <file id=""2"" name=""b:\base\a.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D5"" />
+    <file id=""3"" name=""b:\base\b.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D6"" />
+    <file id=""4"" name=""b:\base\c.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D7"" />
+    <file id=""5"" name=""b:\base\d.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D8"" />
+    <file id=""6"" name=""b:\base\e.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D9"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -445,7 +449,7 @@ class C
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_NoBaseDirectory()
         {
             var source = @"
@@ -472,10 +476,10 @@ class C
             comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name=""file.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""9B, 81, 4F, A7, E1, 1F, D2, 45, 8B,  0, F3, 82, 65, DF, E4, BF, A1, 3A, 3B, 29, "" />
-    <file id=""2"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D5, "" />
-    <file id=""3"" name=""./a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
-    <file id=""4"" name=""b.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name=""file.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""9B-81-4F-A7-E1-1F-D2-45-8B-00-F3-82-65-DF-E4-BF-A1-3A-3B-29"" />
+    <file id=""2"" name=""a.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D5"" />
+    <file id=""3"" name=""./a.cs"" language=""C#"" />
+    <file id=""4"" name=""b.cs"" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">

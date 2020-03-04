@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
@@ -17,15 +19,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Foo()
+        Goo()
     End Sub
-    Private Sub Foo()
+
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -42,8 +46,7 @@ End Class")
         End Sub
     End Module
 End Namespace",
-"
-Imports System
+"Imports System
 
 Namespace N
     Module Module1
@@ -63,15 +66,17 @@ End Namespace")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        Me.[|Foo|]()
+        Me.[|Goo|]()
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Me.Foo()
+        Me.Goo()
     End Sub
-    Private Sub Foo()
+
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -82,15 +87,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        C.[|Foo|]()
+        C.[|Goo|]()
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        C.Foo()
+        C.Goo()
     End Sub
-    Private Shared Sub Foo()
+
+    Private Shared Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -101,15 +108,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        [|Foo|](0)
+        [|Goo|](0)
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Foo(0)
+        Goo(0)
     End Sub
-    Private Sub Foo(v As Integer)
+
+    Private Sub Goo(v As Integer)
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -120,15 +129,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        [|Foo|](0, 0)
+        [|Goo|](0, 0)
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Foo(0, 0)
+        Goo(0, 0)
     End Sub
-    Private Sub Foo(v1 As Integer, v2 As Integer)
+
+    Private Sub Goo(v1 As Integer, v2 As Integer)
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -139,15 +150,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [|Foo|](i)
+        [|Goo|](i)
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
-        Foo(i)
+        Goo(i)
     End Sub
-    Private Sub Foo(i As Integer)
+
+    Private Sub Goo(i As Integer)
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -158,15 +171,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [|Foo|](bar:=i)
+        [|Goo|](bar:=i)
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
-        Foo(bar:=i)
+        Goo(bar:=i)
     End Sub
-    Private Sub Foo(bar As Integer)
+
+    Private Sub Goo(bar As Integer)
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -177,19 +192,22 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
     Sub NextMethod()
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Foo()
+        Goo()
     End Sub
-    Private Sub Foo()
+
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
+
     Sub NextMethod()
     End Sub
 End Class")
@@ -200,20 +218,23 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [|Foo|](NextMethod())
+        [|Goo|](NextMethod())
     End Sub
-    Function NextMethod() As IFoo
+    Function NextMethod() As IGoo
     End Function
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
-        Foo(NextMethod())
+        Goo(NextMethod())
     End Sub
-    Private Sub Foo(foo As IFoo)
+
+    Private Sub Goo(goo As IGoo)
         Throw New NotImplementedException()
     End Sub
-    Function NextMethod() As IFoo
+
+    Function NextMethod() As IGoo
     End Function
 End Class")
         End Function
@@ -223,19 +244,22 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [|Foo|](NextMethod)
+        [|Goo|](NextMethod)
     End Sub
     Function NextMethod() As String
     End Function
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
-        Foo(NextMethod)
+        Goo(NextMethod)
     End Sub
-    Private Sub Foo(nextMethod As String)
+
+    Private Sub Goo(nextMethod As String)
         Throw New NotImplementedException()
     End Sub
+
     Function NextMethod() As String
     End Function
 End Class")
@@ -246,19 +270,22 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [|Foo|](NextMethod)
+        [|Goo|](NextMethod)
     End Sub
     Function NextMethod(i As Integer) As String
     End Function
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
-        Foo(NextMethod)
+        Goo(NextMethod)
     End Sub
-    Private Sub Foo(nextMethod As Func(Of Integer, String))
+
+    Private Sub Goo(nextMethod As Func(Of Integer, String))
         Throw New NotImplementedException()
     End Sub
+
     Function NextMethod(i As Integer) As String
     End Function
 End Class")
@@ -269,17 +296,18 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [|Foo|](AddressOf NextMethod)
+        [|Goo|](AddressOf NextMethod)
     End Sub
     Function NextMethod(i As Integer) As String
     End Function
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
-        Foo(AddressOf NextMethod)
+        Goo(AddressOf NextMethod)
     End Sub
-    Private Sub Foo(nextMethod As Global.System.Func(Of Integer, String))
+    Private Sub Goo(nextMethod As Global.System.Func(Of Integer, String))
         Throw New NotImplementedException()
     End Sub
     Function NextMethod(i As Integer) As String
@@ -292,18 +320,19 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [|Foo|](NextMethod) End Sub 
+        [|Goo|](NextMethod) End Sub 
  Sub NextMethod()
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
-        Foo(NextMethod)
-    End Sub
-    Private Sub Foo(nextMethod As Object)
+        Goo(NextMethod) End Sub 
+Private Sub Goo(nextMethod As Object)
         Throw New NotImplementedException()
     End Sub
+
     Sub NextMethod()
     End Sub
 End Class")
@@ -314,19 +343,22 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [|Foo|](NextMethod)
+        [|Goo|](NextMethod)
     End Sub
     Sub NextMethod(i As Integer)
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
-        Foo(NextMethod)
+        Goo(NextMethod)
     End Sub
-    Private Sub Foo(nextMethod As Action(Of Integer))
+
+    Private Sub Goo(nextMethod As Action(Of Integer))
         Throw New NotImplementedException()
     End Sub
+
     Sub NextMethod(i As Integer)
     End Sub
 End Class")
@@ -337,17 +369,19 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        If [|Foo|]()
+        If [|Goo|]()
         End If
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        If Foo()
+        If Goo()
         End If
     End Sub
-    Private Function Foo() As Boolean
+
+    Private Function Goo() As Boolean
         Throw New NotImplementedException()
     End Function
 End Class")
@@ -358,18 +392,21 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        [|Foo|](Me.Bar)
+        [|Goo|](Me.Bar)
     End Sub
     Dim Bar As Integer
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Foo(Me.Bar)
+        Goo(Me.Bar)
     End Sub
-    Private Sub Foo(bar As Integer)
+
+    Private Sub Goo(bar As Integer)
         Throw New NotImplementedException()
     End Sub
+
     Dim Bar As Integer
 End Class")
         End Function
@@ -379,18 +416,21 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        [|Foo|]((Bar))
+        [|Goo|]((Bar))
     End Sub
     Dim Bar As Integer
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Foo((Bar))
+        Goo((Bar))
     End Sub
-    Private Sub Foo(bar As Integer)
+
+    Private Sub Goo(bar As Integer)
         Throw New NotImplementedException()
     End Sub
+
     Dim Bar As Integer
 End Class")
         End Function
@@ -400,17 +440,19 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        [|Foo|](DirectCast(Me.Baz, Bar))
+        [|Goo|](DirectCast(Me.Baz, Bar))
     End Sub
 End Class
 Class Bar
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Foo(DirectCast(Me.Baz, Bar))
+        Goo(DirectCast(Me.Baz, Bar))
     End Sub
-    Private Sub Foo(baz As Bar)
+
+    Private Sub Goo(baz As Bar)
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -423,20 +465,23 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        [|Foo|](DirectCast(Me.Baz, Bar), Me.Baz)
+        [|Goo|](DirectCast(Me.Baz, Bar), Me.Baz)
     End Sub
     Dim Baz As Integer
 End Class
 Class Bar
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Foo(DirectCast(Me.Baz, Bar), Me.Baz)
+        Goo(DirectCast(Me.Baz, Bar), Me.Baz)
     End Sub
-    Private Sub Foo(baz1 As Bar, baz2 As Integer)
+
+    Private Sub Goo(baz1 As Bar, baz2 As Integer)
         Throw New NotImplementedException()
     End Sub
+
     Dim Baz As Integer
 End Class
 Class Bar
@@ -448,15 +493,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        [|Foo(Of Integer)|]()
+        [|Goo(Of Integer)|]()
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Foo(Of Integer)()
+        Goo(Of Integer)()
     End Sub
-    Private Sub Foo(Of T)()
+
+    Private Sub Goo(Of T)()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -467,15 +514,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        [|Foo(Of Integer, String)|]()
+        [|Goo(Of Integer, String)|]()
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Foo(Of Integer, String)()
+        Goo(Of Integer, String)()
     End Sub
-    Private Sub Foo(Of T1, T2)()
+
+    Private Sub Goo(Of T1, T2)()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -487,15 +536,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(Of X, Y)(x As X, y As Y)
-        [|Foo|](x)
+        [|Goo|](x)
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(Of X, Y)(x As X, y As Y)
-        Foo(x)
+        Goo(x)
     End Sub
-    Private Sub Foo(Of X)(x1 As X)
+
+    Private Sub Goo(Of X)(x1 As X)
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -506,15 +557,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(Of X)(y1 As X(), x1 As System.Func(Of X))
-        [|Foo(Of X)|](y1, x1)
+        [|Goo(Of X)|](y1, x1)
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(Of X)(y1 As X(), x1 As System.Func(Of X))
-        Foo(Of X)(y1, x1)
+        Goo(Of X)(y1, x1)
     End Sub
-    Private Sub Foo(Of X)(y1() As X, x1 As Func(Of X))
+
+    Private Sub Goo(Of X)(y1() As X, x1 As Func(Of X))
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -525,15 +578,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(Of X, Y)(y1 As Y(), x1 As System.Func(Of X))
-        [|Foo(Of X, Y)|](y1, x1)
+        [|Goo(Of X, Y)|](y1, x1)
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(Of X, Y)(y1 As Y(), x1 As System.Func(Of X))
-        Foo(Of X, Y)(y1, x1)
+        Goo(Of X, Y)(y1, x1)
     End Sub
-    Private Sub Foo(Of X, Y)(y1() As Y, x1 As Func(Of X))
+
+    Private Sub Goo(Of X, Y)(y1() As Y, x1 As Func(Of X))
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -545,15 +600,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(Of X, Y)(x As X, y As Y)
-        [|Foo|](x, y)
+        [|Goo|](x, y)
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(Of X, Y)(x As X, y As Y)
-        Foo(x, y)
+        Goo(x, y)
     End Sub
-    Private Sub Foo(Of X, Y)(x1 As X, y1 As Y)
+
+    Private Sub Goo(Of X, Y)(x1 As X, y1 As Y)
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -565,15 +622,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(Of X, Y)(y As Y(), x As System.Func(Of X))
-        [|Foo|](y, x)
+        [|Goo|](y, x)
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(Of X, Y)(y As Y(), x As System.Func(Of X))
-        Foo(y, x)
+        Goo(y, x)
     End Sub
-    Private Sub Foo(Of Y, X)(y1() As Y, x1 As Func(Of X))
+
+    Private Sub Goo(Of Y, X)(y1() As Y, x1 As Func(Of X))
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -585,18 +644,20 @@ End Class")
 "Class Outer
     Class C
         Sub M(o As Outer)
-            o.[|Foo|]()
+            o.[|Goo|]()
         End Sub
     End Class
 End Class",
 "Imports System
+
 Class Outer
     Class C
         Sub M(o As Outer)
-            o.Foo()
+            o.Goo()
         End Sub
     End Class
-    Private Sub Foo()
+
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -608,18 +669,21 @@ End Class")
 "Class Outer
     Class C
         Sub M(o As Outer)
-            Outer.[|Foo|]()
+            Outer.[|Goo|]()
         End Sub
     End Class
 End Class",
 "Imports System
+
 Class Outer
     Class C
         Sub M(o As Outer)
-            Outer.Foo()
+            Outer.Goo()
         End Sub
-    End Class Private Shared Sub Foo() 
- Throw New NotImplementedException()
+    End Class
+
+    Private Shared Sub Goo()
+        Throw New NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -629,19 +693,20 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(s As Sibling)
-        s.[|Foo|]()
+        s.[|Goo|]()
     End Sub
 End Class
 Class Sibling
 End Class",
 "Imports System
+
 Class C
     Sub M(s As Sibling)
-        s.Foo()
+        s.Goo()
     End Sub
 End Class
 Class Sibling
-    Friend Sub Foo()
+    Friend Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -652,19 +717,20 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(s As Sibling)
-        [|Sibling.Foo|]()
+        [|Sibling.Goo|]()
     End Sub
 End Class
 Class Sibling
 End Class",
 "Imports System
+
 Class C
     Sub M(s As Sibling)
-        Sibling.Foo()
+        Sibling.Goo()
     End Sub
 End Class
 Class Sibling
-    Friend Shared Sub Foo()
+    Friend Shared Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -675,18 +741,18 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(s As ISibling)
-        s.[|Foo|]()
+        s.[|Goo|]()
     End Sub
 End Class
 Interface ISibling
 End Interface",
 "Class C
     Sub M(s As ISibling)
-        s.Foo()
+        s.Goo()
     End Sub
 End Class
 Interface ISibling
-    Sub Foo()
+    Sub Goo()
 End Interface")
         End Function
 
@@ -695,14 +761,15 @@ End Interface")
             Await TestInRegularAndScriptAsync(
 "MustInherit Class C
     Sub M()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Class",
 "MustInherit Class C
     Sub M()
-        Foo()
+        Goo()
     End Sub
-    Friend MustOverride Sub Foo()
+
+    Friend MustOverride Sub Goo()
 End Class",
 index:=1)
         End Function
@@ -713,17 +780,20 @@ index:=1)
             Await TestInRegularAndScriptAsync(
 "Module Class C 
  Sub M()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Module",
 "Imports System
+
 Module Class C 
  Sub M()
-        Foo()
+        Goo()
     End Sub
-    Private Sub Foo()
-        Throw New NotImplementedException() End Sub 
- End Module")
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Module")
         End Function
 
         <WorkItem(539506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539506")>
@@ -732,17 +802,19 @@ Module Class C
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
-        Do While [|Foo|]()
+        Do While [|Goo|]()
         Loop
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
-        Do While Foo()
+        Do While Goo()
         Loop
     End Sub
-    Private Function Foo() As Boolean
+
+    Private Function Goo() As Boolean
         Throw New NotImplementedException()
     End Function
 End Class")
@@ -758,10 +830,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         [Sub]()
     End Sub
+
     Private Sub [Sub]()
         Throw New NotImplementedException()
     End Sub
@@ -778,10 +852,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Call S
     End Sub
+
     Private Sub S()
         Throw New NotImplementedException()
     End Sub
@@ -798,10 +874,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S
     End Sub
+
     Private Sub S()
         Throw New NotImplementedException()
     End Sub
@@ -813,7 +891,7 @@ End Class")
         Public Async Function TestArrayAccess1() As Task
             Await TestMissingInRegularAndScriptAsync("Class C
     Sub M(x As Integer())
-        Foo([|x|](4))
+        Goo([|x|](4))
     End Sub
 End Class")
         End Function
@@ -828,10 +906,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S%()
     End Sub
+
     Private Function S() As Integer
         Throw New NotImplementedException()
     End Function
@@ -848,10 +928,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S&()
     End Sub
+
     Private Function S() As Long
         Throw New NotImplementedException()
     End Function
@@ -868,10 +950,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S@()
     End Sub
+
     Private Function S() As Decimal
         Throw New NotImplementedException()
     End Function
@@ -888,10 +972,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S!()
     End Sub
+
     Private Function S() As Single
         Throw New NotImplementedException()
     End Function
@@ -908,10 +994,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S#()
     End Sub
+
     Private Function S() As Double
         Throw New NotImplementedException()
     End Function
@@ -928,10 +1016,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S$()
     End Sub
+
     Private Function S() As String
         Throw New NotImplementedException()
     End Function
@@ -944,21 +1034,20 @@ End Class")
             Await TestInRegularAndScriptAsync(
                 <text>Public Class C
     Sub M()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Class</text>.Value.Replace(vbLf, vbCrLf),
                 <text>Imports System
 
 Public Class C
     Sub M()
-        Foo()
+        Goo()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
-End Class</text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(539283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539283")>
@@ -967,7 +1056,7 @@ ignoreTrivia:=False)
             Await TestInRegularAndScriptAsync(
                 <text>Public Class C
     Sub M()
-        D.[|Foo|]()
+        D.[|Goo|]()
     End Sub
 End Class
 
@@ -977,16 +1066,15 @@ End Class</text>.Value.Replace(vbLf, vbCrLf),
 
 Public Class C
     Sub M()
-        D.Foo()
+        D.Goo()
     End Sub
 End Class
 
 Public Class D
-    Friend Shared Sub Foo()
+    Friend Shared Sub Goo()
         Throw New NotImplementedException()
     End Sub
-End Class</text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -996,16 +1084,17 @@ ignoreTrivia:=False)
 Module Program
     Sub Main()
         Dim v As Void
-        [|Foo|](v)
+        [|Goo|](v)
     End Sub
 End Module",
 "Imports System
 Module Program
     Sub Main()
         Dim v As Void
-        Foo(v)
+        Goo(v)
     End Sub
-    Private Sub Foo(v As Object)
+
+    Private Sub Goo(v As Object)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1015,18 +1104,18 @@ End Module")
         Public Async Function TestGenerateFromImplementsClause() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
-    Implements IFoo
-    Public Function Bip(i As Integer) As String Implements [|IFoo.Snarf|]
+    Implements IGoo
+    Public Function Bip(i As Integer) As String Implements [|IGoo.Snarf|]
     End Function
 End Class
-Interface IFoo
+Interface IGoo
 End Interface",
 "Class Program
-    Implements IFoo
-    Public Function Bip(i As Integer) As String Implements IFoo.Snarf
+    Implements IGoo
+    Public Function Bip(i As Integer) As String Implements IGoo.Snarf
     End Function
 End Class
-Interface IFoo
+Interface IGoo
     Function Snarf(i As Integer) As String
 End Interface")
         End Function
@@ -1037,15 +1126,17 @@ End Interface")
             Await TestAsync(
 "Imports System
 Shared Sub Main(args As String())
-    [|Foo|]()
+    [|Goo|]()
 End Sub",
 "Imports System
 Shared Sub Main(args As String())
-    Foo()
+    Goo()
 End Sub
-Private Shared Sub Foo()
+
+Private Shared Sub Goo()
     Throw New NotImplementedException()
-End Sub",
+End Sub
+",
             parseOptions:=GetScriptOptions())
         End Function
 
@@ -1054,15 +1145,17 @@ End Sub",
             Await TestInRegularAndScriptAsync(
 "Imports System
 Shared Sub Main(args As String())
-    [|Foo|]()
+    [|Goo|]()
 End Sub",
 "Imports System
 Shared Sub Main(args As String())
-    Foo()
+    Goo()
 End Sub
-Private Shared Sub Foo()
+
+Private Shared Sub Goo()
     Throw New NotImplementedException()
-End Sub")
+End Sub
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1071,15 +1164,16 @@ End Sub")
 "Imports System
 Namespace N
     Shared Sub Main(args As String())
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Namespace",
 "Imports System
 Namespace N
     Shared Sub Main(args As String())
-        Foo()
+        Goo()
     End Sub
-    Private Shared Sub Foo()
+
+    Private Shared Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Namespace")
@@ -1090,12 +1184,13 @@ End Namespace")
             Await TestInRegularAndScriptAsync(
 "Imports System
 Namespace N
-    Dim a As Integer = [|Foo|]()
+    Dim a As Integer = [|Goo|]()
 End Namespace",
 "Imports System
 Namespace N
-    Dim a As Integer = Foo()
-    Private Function Foo() As Integer
+    Dim a As Integer = Goo()
+
+    Private Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Namespace")
@@ -1105,11 +1200,11 @@ End Namespace")
         Public Async Function TestClashesWithMethod1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Program
-    Implements IFoo
-    Public Function Blah() As String Implements [|IFoo.Blah|]
+    Implements IGoo
+    Public Function Blah() As String Implements [|IGoo.Blah|]
     End Function
 End Class
-Interface IFoo
+Interface IGoo
     Sub Blah()
 End Interface")
         End Function
@@ -1118,11 +1213,11 @@ End Interface")
         Public Async Function TestClashesWithMethod2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Program
-    Implements IFoo
-    Public Function Blah() As String Implements [|IFoo.Blah|]
+    Implements IGoo
+    Public Function Blah() As String Implements [|IGoo.Blah|]
     End Function
 End Class
-Interface IFoo
+Interface IGoo
     Sub Blah()
 End Interface")
         End Function
@@ -1131,19 +1226,19 @@ End Interface")
         Public Async Function TestClashesWithMethod3() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Implements IFoo
-    Sub Snarf() Implements [|IFoo.Blah|]
+    Implements IGoo
+    Sub Snarf() Implements [|IGoo.Blah|]
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     Sub Blah(ByRef i As Integer)
 End Interface",
 "Class C
-    Implements IFoo
-    Sub Snarf() Implements IFoo.Blah
+    Implements IGoo
+    Sub Snarf() Implements IGoo.Blah
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     Sub Blah(ByRef i As Integer)
     Sub Blah()
 End Interface")
@@ -1153,19 +1248,19 @@ End Interface")
         Public Async Function TestClashesWithMethod4() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Implements IFoo
-    Sub Snarf(i As String) Implements [|IFoo.Blah|]
+    Implements IGoo
+    Sub Snarf(i As String) Implements [|IGoo.Blah|]
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     Sub Blah(ByRef i As Integer)
 End Interface",
 "Class C
-    Implements IFoo
-    Sub Snarf(i As String) Implements IFoo.Blah
+    Implements IGoo
+    Sub Snarf(i As String) Implements IGoo.Blah
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     Sub Blah(ByRef i As Integer)
     Sub Blah(i As String)
 End Interface")
@@ -1175,19 +1270,19 @@ End Interface")
         Public Async Function TestClashesWithMethod5() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Implements IFoo
-    Sub Blah(i As Integer) Implements [|IFoo.Snarf|]
+    Implements IGoo
+    Sub Blah(i As Integer) Implements [|IGoo.Snarf|]
     End Sub
 End Class
-Friend Interface IFoo
+Friend Interface IGoo
     Sub Snarf(i As String)
 End Interface",
 "Class C
-    Implements IFoo
-    Sub Blah(i As Integer) Implements IFoo.Snarf
+    Implements IGoo
+    Sub Blah(i As Integer) Implements IGoo.Snarf
     End Sub
 End Class
-Friend Interface IFoo
+Friend Interface IGoo
     Sub Snarf(i As String)
     Sub Snarf(i As Integer)
 End Interface")
@@ -1197,19 +1292,19 @@ End Interface")
         Public Async Function TestClashesWithMethod6() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Implements IFoo
-    Sub Blah(i As Integer, s As String) Implements [|IFoo.Snarf|]
+    Implements IGoo
+    Sub Blah(i As Integer, s As String) Implements [|IGoo.Snarf|]
     End Sub
 End Class
-Friend Interface IFoo
+Friend Interface IGoo
     Sub Snarf(i As Integer, b As Boolean)
 End Interface",
 "Class C
-    Implements IFoo
-    Sub Blah(i As Integer, s As String) Implements IFoo.Snarf
+    Implements IGoo
+    Sub Blah(i As Integer, s As String) Implements IGoo.Snarf
     End Sub
 End Class
-Friend Interface IFoo
+Friend Interface IGoo
     Sub Snarf(i As Integer, b As Boolean)
     Sub Snarf(i As Integer, s As String)
 End Interface")
@@ -1219,11 +1314,11 @@ End Interface")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNoStaticGenerationIntoInterface() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Interface IFoo
+"Interface IGoo
 End Interface
 Class Program
     Sub Main
-        IFoo.[|Bar|]
+        IGoo.[|Bar|]
     End Sub
 End Class")
         End Function
@@ -1239,11 +1334,13 @@ End Class")
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
         Dim [string] As String = ""hello"" 
  [Me]([string])
     End Sub
+
     Private Sub [Me]([string] As String)
         Throw New NotImplementedException()
     End Sub
@@ -1256,15 +1353,17 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Class Test
     Sub M(Of T)(x As T)
-        [|Foo(Of Integer)|](x)
+        [|Goo(Of Integer)|](x)
     End Sub
 End Class",
 "Imports System
+
 Class Test
     Sub M(Of T)(x As T)
-        Foo(Of Integer)(x)
+        Goo(Of Integer)(x)
     End Sub
-    Private Sub Foo(Of T)(x As T)
+
+    Private Sub Goo(Of T)(x As T)
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -1280,10 +1379,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class Test(Of T)
     Sub M()
         Method(Of T)()
     End Sub
+
     Private Sub Method(Of T1)()
         Throw New NotImplementedException()
     End Sub
@@ -1296,15 +1397,16 @@ End Class")
 "Imports System
 Class C
     Sub M()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Class",
 "Imports System
 Class C
     Sub M()
-        Foo()
+        Goo()
     End Sub
-    Private Sub Foo()
+
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -1320,7 +1422,7 @@ End Class")
     Private name As String
 
     Sub M()
-        [|Foo|](id)
+        [|Goo|](id)
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
@@ -1332,15 +1434,14 @@ Class Test
     Private name As String
 
     Sub M()
-        Foo(id)
+        Goo(id)
     End Sub
 
-    Private Sub Foo(id As Integer)
+    Private Sub Goo(id As Integer)
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(540013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540013")>
@@ -1349,16 +1450,18 @@ ignoreTrivia:=False)
             Await TestInRegularAndScriptAsync(
 "Delegate Sub D(x As Integer)
 Class C
-    Public Sub Foo()
+    Public Sub Goo()
         Dim x As D = New D(AddressOf [|Method|])
     End Sub
 End Class",
 "Imports System
+
 Delegate Sub D(x As Integer)
 Class C
-    Public Sub Foo()
+    Public Sub Goo()
         Dim x As D = New D(AddressOf Method)
     End Sub
+
     Private Sub Method(x As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -1369,11 +1472,11 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNotOfferedForInferredGenericMethodArgs() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Class Foo(Of T)
-    Sub Main(Of T, X)(k As Foo(Of T))
+"Class Goo(Of T)
+    Sub Main(Of T, X)(k As Goo(Of T))
         [|Bar|](k)
     End Sub
-    Private Sub Bar(Of T)(k As Foo(Of T))
+    Private Sub Bar(Of T)(k As Goo(Of T))
     End Sub
 End Class")
         End Function
@@ -1389,11 +1492,13 @@ Class C
     End Sub
 End Class",
 "Imports System
+
 Delegate Sub D(x As Integer)
 Class C
     Private Sub M()
         Dim d As New D(AddressOf Test)
     End Sub
+
     Private Sub Test(x As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -1436,10 +1541,12 @@ End Class")
 End Module",
 "Imports System
 Imports System.Collections.Generic
+
 Module Program
     Sub Main(args As String())
         For Each v As Integer In HERE() : Next
     End Sub
+
     Private Function HERE() As IEnumerable(Of Integer)
         Throw New NotImplementedException()
     End Function
@@ -1459,6 +1566,7 @@ End Module",
     Sub Main(args As String())
         For Each v As Integer In HERE() : Next
     End Sub
+
     Private Function HERE() As IEnumerable(Of Integer)
         Throw New NotImplementedException()
     End Function
@@ -1480,6 +1588,7 @@ End Module",
     Sub Main(args As String())
         For Each v In HERE : Next
     End Sub
+
     Private Function HERE() As IEnumerable(Of Object)
         Throw New NotImplementedException()
     End Function
@@ -1505,6 +1614,7 @@ End Module",
         ElseIf HERE Then
         End If
     End Sub
+
     Private Function HERE() As Boolean
         Throw New NotImplementedException()
     End Function
@@ -1526,6 +1636,7 @@ End Module",
     Sub Main(args As String())
         For x As Integer = 1 To HERE
  End Sub
+
     Private Function HERE() As Integer
         Throw New NotImplementedException()
     End Function
@@ -1559,9 +1670,11 @@ Module Program
         Dim products = ToList(product)
         HERE(products)
     End Sub
+
     Private Sub HERE(products As IEnumerable(Of Object))
         Throw New NotImplementedException()
     End Sub
+
     Function ToList(Of T)(a As T) As IEnumerable(Of T)
         Return Nothing
     End Function
@@ -1574,7 +1687,7 @@ End Module")
 <text>
 #externalsource("file", num)
 class C
-    sub Foo()
+    sub Goo()
         D.[|Bar|]()
     end sub
 end class
@@ -1591,7 +1704,7 @@ EndClass
 <text>
 #ExternalSource ("file", num)
 Class C
-    Sub Foo()
+    Sub Goo()
         [|Bar|]()
 #End ExternalSource
     End Sub
@@ -1604,12 +1717,12 @@ Class C
         Throw New System.NotImplementedException()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Bar()
 #End ExternalSource
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1622,7 +1735,7 @@ Imports System.Threading
 
 #ExternalSource ("file", num)
 Class C
-    Sub Foo()
+    Sub Goo()
         [|Bar|]()
 #End ExternalSource
     End Sub
@@ -1640,12 +1753,12 @@ Class C
         Throw New NotImplementedException()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Bar()
 #End ExternalSource
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1654,7 +1767,7 @@ End Class
 <text>
 #ExternalSource ("file", num)
 Class C
-    Sub Foo()
+    Sub Goo()
         [|Bar|]()
 #End ExternalSource
     End Sub
@@ -1668,7 +1781,7 @@ End Class
 <text>
 #ExternalSource ("file", num)
 Class C
-    Sub Foo()
+    Sub Goo()
         Bar()
 #End ExternalSource
     End Sub
@@ -1682,7 +1795,7 @@ Class C
     End Sub
 End Class
 #End ExternalSource
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1691,7 +1804,7 @@ End Class
 <text>
 #ExternalSource ("file", num)
 Class C
-    Sub Foo()
+    Sub Goo()
         [|Bar|]()
 #End ExternalSource
     End Sub
@@ -1708,7 +1821,7 @@ End Class
 <text>
 #ExternalSource ("file", num)
 Class C
-    Sub Foo()
+    Sub Goo()
         Bar()
 #End ExternalSource
     End Sub
@@ -1725,7 +1838,7 @@ Class C
     End Sub
 End Class
 #End ExternalSource
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1744,6 +1857,7 @@ Module Program
         Dim v As Func(Of String) = Nothing
         Dim a1 = If(False, v, AddressOf TestMethod)
     End Sub
+
     Private Function TestMethod() As String
         Throw New NotImplementedException()
     End Function
@@ -1756,18 +1870,19 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Class C : End Class
 Class B
-    Sub Foo()
+    Sub Goo()
         C.[|Bar|]()
     End Sub
 End Class",
 "Imports System
+
 Class C
     Friend Shared Sub Bar()
         Throw New NotImplementedException()
     End Sub
 End Class
 Class B
-    Sub Foo()
+    Sub Goo()
         C.Bar()
     End Sub
 End Class")
@@ -1779,15 +1894,17 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        [|foo|](,,)
+        [|goo|](,,)
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
-        foo(,,)
+        goo(,,)
     End Sub
-    Private Sub foo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional p3 As Object = Nothing)
+
+    Private Sub goo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional p3 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1799,15 +1916,17 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        [|foo|](1,,)
+        [|goo|](1,,)
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
-        foo(1,,)
+        goo(1,,)
     End Sub
-    Private Sub foo(v As Integer, Optional p1 As Object = Nothing, Optional p2 As Object = Nothing)
+
+    Private Sub goo(v As Integer, Optional p1 As Object = Nothing, Optional p2 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1819,15 +1938,17 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        [|foo|](, 1,)
+        [|goo|](, 1,)
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
-        foo(, 1,)
+        goo(, 1,)
     End Sub
-    Private Sub foo(Optional p1 As Object = Nothing, Optional v As Integer = Nothing, Optional p2 As Object = Nothing)
+
+    Private Sub goo(Optional p1 As Object = Nothing, Optional v As Integer = Nothing, Optional p2 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1839,15 +1960,17 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        [|foo|](,, 1)
+        [|goo|](,, 1)
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
-        foo(,, 1)
+        goo(,, 1)
     End Sub
-    Private Sub foo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional v As Integer = Nothing)
+
+    Private Sub goo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional v As Integer = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1859,15 +1982,17 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        [|foo|](1,, 1)
+        [|goo|](1,, 1)
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
-        foo(1,, 1)
+        goo(1,, 1)
     End Sub
-    Private Sub foo(v1 As Integer, Optional p As Object = Nothing, Optional v2 As Integer = Nothing)
+
+    Private Sub goo(v1 As Integer, Optional p As Object = Nothing, Optional v2 As Integer = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1879,15 +2004,17 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        [|foo|](1, 1, )
+        [|goo|](1, 1, )
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
-        foo(1, 1, )
+        goo(1, 1, )
     End Sub
-    Private Sub foo(v1 As Integer, v2 As Integer, Optional p As Object = Nothing)
+
+    Private Sub goo(v1 As Integer, v2 As Integer, Optional p As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1917,14 +2044,17 @@ End Class")
     End Class
 End Module",
 "Imports System
+
 Module Module1
     Sub Main()
         Dim c1 As New Class1
         AddHandler c1.AnEvent, AddressOf EventHandler1
     End Sub
+
     Private Sub EventHandler1()
         Throw New NotImplementedException()
     End Sub
+
     Public Class Class1
         Public Event AnEvent()
     End Class
@@ -1938,16 +2068,17 @@ End Module")
 "Imports System
 Imports System.Collections.Generic
 Module M
-    Sub Foo(Of T, S)(x As List(Of T), y As List(Of S))
+    Sub Goo(Of T, S)(x As List(Of T), y As List(Of S))
         [|Bar|](x, Function() y) ' Generate Bar 
     End Sub
 End Module",
 "Imports System
 Imports System.Collections.Generic
 Module M
-    Sub Foo(Of T, S)(x As List(Of T), y As List(Of S))
+    Sub Goo(Of T, S)(x As List(Of T), y As List(Of S))
         Bar(x, Function() y) ' Generate Bar 
     End Sub
+
     Private Sub Bar(Of T, S)(x As List(Of T), p As Func(Of List(Of S)))
         Throw New NotImplementedException()
     End Sub
@@ -1959,7 +2090,7 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Imports System
 Class C(Of T)
-    Sub Foo(x As T)
+    Sub Goo(x As T)
         M.[|Bar|](T:=x)
     End Sub
 End Class
@@ -1968,7 +2099,7 @@ Module M
 End Module",
 "Imports System
 Class C(Of T)
-    Sub Foo(x As T)
+    Sub Goo(x As T)
         M.Bar(T:=x)
     End Sub
 End Class
@@ -1985,7 +2116,7 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Imports System
 Class C(Of T)
-    Sub Foo(x As T)
+    Sub Goo(x As T)
         M.[|Bar|](t:=x) ' Generate Bar 
     End Sub
 End Class
@@ -1994,7 +2125,7 @@ Module M
 End Module",
 "Imports System
 Class C(Of T)
-    Sub Foo(x As T)
+    Sub Goo(x As T)
         M.Bar(t:=x) ' Generate Bar 
     End Sub
 End Class
@@ -2020,6 +2151,7 @@ Module Program
     Sub Main(args As String())
         Bar(1, {1})
     End Sub
+
     Private Sub Bar(v As Integer, p() As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -2033,15 +2165,16 @@ End Module")
 "Imports System
 Module M
     Sub Main()
-        [|Foo|]({{1}})
+        [|Goo|]({{1}})
     End Sub
 End Module",
 "Imports System
 Module M
     Sub Main()
-        Foo({{1}})
+        Goo({{1}})
     End Sub
-    Private Sub Foo(p(,) As Integer)
+
+    Private Sub Goo(p(,) As Integer)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2062,6 +2195,7 @@ Module Program
     Sub Main()
         Prop(1) = 2
     End Sub
+
     Private Function Prop(v As Integer) As Integer
         Throw New NotImplementedException()
     End Function
@@ -2083,6 +2217,7 @@ Module Program
     Sub Main()
         Prop(1) = 2
     End Sub
+
     Private Property Prop(v As Integer) As Integer
         Get
             Throw New NotImplementedException()
@@ -2130,7 +2265,7 @@ Module Program
     Public Sub Baz()
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(907612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907612")>
@@ -2168,7 +2303,7 @@ Module Program
     Public Sub Baz(one As Integer)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(907612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907612")>
@@ -2206,7 +2341,7 @@ Module Program
     Public Sub Baz(one As Func(Of String), two As Integer)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
@@ -2240,7 +2375,7 @@ Class Program
         M()
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(769760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769760")>
@@ -2250,11 +2385,11 @@ End Class
 <text>
 Class Program
     Sub Main(args As String())
-        Foo()
-        [|Foo(Of Integer)|]()
+        Goo()
+        [|Goo(Of Integer)|]()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -2264,19 +2399,19 @@ Imports System
 
 Class Program
     Sub Main(args As String())
-        Foo()
-        Foo(Of Integer)()
+        Goo()
+        Goo(Of Integer)()
     End Sub
 
-    Private Sub Foo(Of T)()
+    Private Sub Goo(Of T)()
         Throw New NotImplementedException()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(769760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769760")>
@@ -2286,15 +2421,15 @@ End Class
 <text>Imports System
 Class Program
     Sub Main(args As String())
-        Foo()
-        [|Foo(Of Integer, Integer)|]()
+        Goo()
+        [|Goo(Of Integer, Integer)|]()
     End Sub
 
-    Private Sub Foo(Of T)()
+    Private Sub Goo(Of T)()
         Throw New NotImplementedException()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -2302,23 +2437,23 @@ End Class
 <text>Imports System
 Class Program
     Sub Main(args As String())
-        Foo()
-        Foo(Of Integer, Integer)()
+        Goo()
+        Goo(Of Integer, Integer)()
     End Sub
 
-    Private Sub Foo(Of T1, T2)()
+    Private Sub Goo(Of T1, T2)()
         Throw New NotImplementedException()
     End Sub
 
-    Private Sub Foo(Of T)()
+    Private Sub Goo(Of T)()
         Throw New NotImplementedException()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(935731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935731")>
@@ -2327,7 +2462,7 @@ End Class
             Await TestInRegularAndScriptAsync(
 <text>Module Module1
     Async Sub Method_ASub()
-        Dim x = [|Await Foo|]
+        Dim x = [|Await Goo|]
     End Sub
 End Module
 </text>.Value.Replace(vbLf, vbCrLf),
@@ -2336,14 +2471,14 @@ Imports System.Threading.Tasks
 
 Module Module1
     Async Sub Method_ASub()
-        Dim x = Await Foo
+        Dim x = Await Goo
     End Sub
 
-    Private Function Foo() As Task(Of Object)
+    Private Function Goo() As Task(Of Object)
         Throw New NotImplementedException()
     End Function
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2372,7 +2507,7 @@ Module M1
     Sub test(ByVal name As String, ByVal age As Integer)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2381,14 +2516,14 @@ End Module
             Await TestInRegularAndScriptAsync(
 <text>Imports System
 Module M1
-    Sub Foo()
+    Sub Goo()
         [|Text|]
     End Sub
 End Module
 </text>.Value.Replace(vbLf, vbCrLf),
 <text>Imports System
 Module M1
-    Sub Foo()
+    Sub Goo()
         Text
     End Sub
 
@@ -2396,7 +2531,7 @@ Module M1
         Throw New NotImplementedException()
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2406,19 +2541,19 @@ End Module
 <text>Module Module1
     Class C0
         Public whichOne As String
-        Sub Foo(ByVal t1 As String)
+        Sub Goo(ByVal t1 As String)
             whichOne = "T"
         End Sub
     End Class
     Class C1
         Inherits C0
-        Overloads Sub Foo(ByVal y1 As String)
+        Overloads Sub Goo(ByVal y1 As String)
             whichOne = "Y"
         End Sub
     End Class
     Sub test()
         Dim clsNarg2get As C1 = New C1()
-        [|clsNarg2get.Foo(1, y1:=2)|]
+        [|clsNarg2get.Goo(1, y1:=2)|]
     End Sub
 
 End Module
@@ -2428,27 +2563,27 @@ End Module
 Module Module1
     Class C0
         Public whichOne As String
-        Sub Foo(ByVal t1 As String)
+        Sub Goo(ByVal t1 As String)
             whichOne = "T"
         End Sub
     End Class
     Class C1
         Inherits C0
-        Overloads Sub Foo(ByVal y1 As String)
+        Overloads Sub Goo(ByVal y1 As String)
             whichOne = "Y"
         End Sub
 
-        Friend Sub Foo(v As Integer, y1 As Integer)
+        Friend Sub Goo(v As Integer, y1 As Integer)
             Throw New NotImplementedException()
         End Sub
     End Class
     Sub test()
         Dim clsNarg2get As C1 = New C1()
-        clsNarg2get.Foo(1, y1:=2)
+        clsNarg2get.Goo(1, y1:=2)
     End Sub
 
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2457,7 +2592,7 @@ End Module
             Await TestInRegularAndScriptAsync(
 <text>Imports Microsoft.VisualBasic.FileSystem
 Module M1
-    Sub foo()
+    Sub goo()
         If [|FreeFile(1)|] = 255 Then
         End If
     End Sub
@@ -2466,7 +2601,7 @@ End Module
 <text>Imports System
 Imports Microsoft.VisualBasic.FileSystem
 Module M1
-    Sub foo()
+    Sub goo()
         If FreeFile(1) = 255 Then
         End If
     End Sub
@@ -2475,7 +2610,7 @@ Module M1
         Throw New NotImplementedException()
     End Function
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2507,7 +2642,7 @@ Class M1
         Throw New NotImplementedException()
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2517,7 +2652,7 @@ End Class
 <text>Module Module1
     Class C0(Of T)
         Public whichOne As String
-        Sub Foo(ByVal t1 As T)
+        Sub Goo(ByVal t1 As T)
         End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
             Get
@@ -2528,7 +2663,7 @@ End Class
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
-        Overloads Sub Foo(ByVal y1 As Y)
+        Overloads Sub Goo(ByVal y1 As Y)
         End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
             Get
@@ -2550,7 +2685,7 @@ End Class
     End Class
     Sub GenUnif0060()
         Dim tc2 As New C1(Of S1, C1(Of Integer, Integer))
-        Call [|tc2.Foo(New Scenario11)|]
+        Call [|tc2.Goo(New Scenario11)|]
     End Sub
 End Module
 </text>.Value.Replace(vbLf, vbCrLf),
@@ -2559,7 +2694,7 @@ End Module
 Module Module1
     Class C0(Of T)
         Public whichOne As String
-        Sub Foo(ByVal t1 As T)
+        Sub Goo(ByVal t1 As T)
         End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
             Get
@@ -2570,7 +2705,7 @@ Module Module1
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
-        Overloads Sub Foo(ByVal y1 As Y)
+        Overloads Sub Goo(ByVal y1 As Y)
         End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
             Get
@@ -2579,7 +2714,7 @@ Module Module1
             End Set
         End Property
 
-        Friend Sub Foo(scenario11 As Scenario11)
+        Friend Sub Goo(scenario11 As Scenario11)
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -2596,10 +2731,10 @@ Module Module1
     End Class
     Sub GenUnif0060()
         Dim tc2 As New C1(Of S1, C1(Of Integer, Integer))
-        Call tc2.Foo(New Scenario11)
+        Call tc2.Goo(New Scenario11)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2608,14 +2743,14 @@ End Module
             Await TestInRegularAndScriptAsync(
 <text>Module Module1
     Class C0(Of T)
-        Sub Foo(ByVal t1 As T)
+        Sub Goo(ByVal t1 As T)
         End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
         End Property
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
-        Overloads Sub Foo(ByVal y1 As Y)
+        Overloads Sub Goo(ByVal y1 As Y)
         End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
         End Property
@@ -2631,7 +2766,7 @@ End Module
     Sub GenUnif0060()
         Dim tc2 As New C1(Of S1, C1(Of Integer, Integer))
         Dim sc11 As New Scenario11
-        Call [|tc2.Foo(sc11)|]
+        Call [|tc2.Goo(sc11)|]
     End Sub
 End Module
 </text>.Value.Replace(vbLf, vbCrLf),
@@ -2639,19 +2774,19 @@ End Module
 
 Module Module1
     Class C0(Of T)
-        Sub Foo(ByVal t1 As T)
+        Sub Goo(ByVal t1 As T)
         End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
         End Property
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
-        Overloads Sub Foo(ByVal y1 As Y)
+        Overloads Sub Goo(ByVal y1 As Y)
         End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
         End Property
 
-        Friend Sub Foo(sc11 As Scenario11)
+        Friend Sub Goo(sc11 As Scenario11)
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -2666,10 +2801,10 @@ Module Module1
     Sub GenUnif0060()
         Dim tc2 As New C1(Of S1, C1(Of Integer, Integer))
         Dim sc11 As New Scenario11
-        Call tc2.Foo(sc11)
+        Call tc2.Goo(sc11)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2679,14 +2814,14 @@ End Module
 <text>Module Module1
     Class C0(Of T)
         Public whichOne As String
-        Sub Foo(ByVal t1 As T)
+        Sub Goo(ByVal t1 As T)
         End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
         End Property
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
-        Overloads Sub Foo(ByVal y1 As Y)
+        Overloads Sub Goo(ByVal y1 As Y)
         End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
         End Property
@@ -2702,7 +2837,7 @@ End Module
     Sub GenUnif0060()
         Dim dTmp As Decimal = CDec(2000000)
         Dim tc3 As New C1(Of Short, Long)
-        Call [|tc3.Foo(dTmp)|]
+        Call [|tc3.Goo(dTmp)|]
     End Sub
 End Module
 </text>.Value.Replace(vbLf, vbCrLf),
@@ -2711,19 +2846,19 @@ End Module
 Module Module1
     Class C0(Of T)
         Public whichOne As String
-        Sub Foo(ByVal t1 As T)
+        Sub Goo(ByVal t1 As T)
         End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
         End Property
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
-        Overloads Sub Foo(ByVal y1 As Y)
+        Overloads Sub Goo(ByVal y1 As Y)
         End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
         End Property
 
-        Friend Sub Foo(dTmp As Decimal)
+        Friend Sub Goo(dTmp As Decimal)
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -2738,10 +2873,10 @@ Module Module1
     Sub GenUnif0060()
         Dim dTmp As Decimal = CDec(2000000)
         Dim tc3 As New C1(Of Short, Long)
-        Call tc3.Foo(dTmp)
+        Call tc3.Goo(dTmp)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2759,20 +2894,20 @@ Module Module1
     End Class
     Class sample7C2(Of T, Y)
         Public whichOne As String
-        Sub Foo(ByVal p1 As sample7C1(Of T).E)
+        Sub Goo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
         End Sub
-        Sub Foo(ByVal p1 As sample7C1(Of Y).E)
+        Sub Goo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
         End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
-            Call Me.Foo(p1)
+            Call Me.Goo(p1)
         End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
         Dim sc7 As New sample7C1(Of Byte)
-        Call [|tc7.Foo(sample7C1(Of Long).E.e1)|]
+        Call [|tc7.Goo(sample7C1(Of Long).E.e1)|]
     End Sub
 End Module
 </text>.Value.Replace(vbLf, vbCrLf),
@@ -2789,27 +2924,27 @@ Module Module1
     End Class
     Class sample7C2(Of T, Y)
         Public whichOne As String
-        Sub Foo(ByVal p1 As sample7C1(Of T).E)
+        Sub Goo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
         End Sub
-        Sub Foo(ByVal p1 As sample7C1(Of Y).E)
+        Sub Goo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
         End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
-            Call Me.Foo(p1)
+            Call Me.Goo(p1)
         End Sub
 
-        Friend Sub Foo(e1 As sample7C1(Of Long).E)
+        Friend Sub Goo(e1 As sample7C1(Of Long).E)
             Throw New NotImplementedException()
         End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
         Dim sc7 As New sample7C1(Of Byte)
-        Call tc7.Foo(sample7C1(Of Long).E.e1)
+        Call tc7.Goo(sample7C1(Of Long).E.e1)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2827,20 +2962,20 @@ Module Module1
     End Class
     Class sample7C2(Of T, Y)
         Public whichOne As String
-        Sub Foo(ByVal p1 As sample7C1(Of T).E)
+        Sub Goo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
         End Sub
-        Sub Foo(ByVal p1 As sample7C1(Of Y).E)
+        Sub Goo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
         End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
-            Call Me.Foo(p1)
+            Call Me.Goo(p1)
         End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
         Dim sc7 As New sample7C1(Of Byte)
-        Call [|tc7.Foo(sample7C1(Of Short).E.e2)|]
+        Call [|tc7.Goo(sample7C1(Of Short).E.e2)|]
     End Sub
 End Module
 </text>.Value.Replace(vbLf, vbCrLf),
@@ -2857,27 +2992,27 @@ Module Module1
     End Class
     Class sample7C2(Of T, Y)
         Public whichOne As String
-        Sub Foo(ByVal p1 As sample7C1(Of T).E)
+        Sub Goo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
         End Sub
-        Sub Foo(ByVal p1 As sample7C1(Of Y).E)
+        Sub Goo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
         End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
-            Call Me.Foo(p1)
+            Call Me.Goo(p1)
         End Sub
 
-        Friend Sub Foo(e2 As sample7C1(Of Short).E)
+        Friend Sub Goo(e2 As sample7C1(Of Short).E)
             Throw New NotImplementedException()
         End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
         Dim sc7 As New sample7C1(Of Byte)
-        Call tc7.Foo(sample7C1(Of Short).E.e2)
+        Call tc7.Goo(sample7C1(Of Short).E.e2)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2895,20 +3030,20 @@ Module Module1
     End Class
     Class sample7C2(Of T, Y)
         Public whichOne As String
-        Sub Foo(ByVal p1 As sample7C1(Of T).E)
+        Sub Goo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
         End Sub
-        Sub Foo(ByVal p1 As sample7C1(Of Y).E)
+        Sub Goo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
         End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
-            Call Me.Foo(p1)
+            Call Me.Goo(p1)
         End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
         Dim sc7 As New sample7C1(Of Byte)
-        Call [|tc7.Foo(sc7.E.e3)|]
+        Call [|tc7.Goo(sc7.E.e3)|]
     End Sub
 End Module
 </text>.Value.Replace(vbLf, vbCrLf),
@@ -2925,27 +3060,27 @@ Module Module1
     End Class
     Class sample7C2(Of T, Y)
         Public whichOne As String
-        Sub Foo(ByVal p1 As sample7C1(Of T).E)
+        Sub Goo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
         End Sub
-        Sub Foo(ByVal p1 As sample7C1(Of Y).E)
+        Sub Goo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
         End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
-            Call Me.Foo(p1)
+            Call Me.Goo(p1)
         End Sub
 
-        Friend Sub Foo(e3 As sample7C1(Of Byte).E)
+        Friend Sub Goo(e3 As sample7C1(Of Byte).E)
             Throw New NotImplementedException()
         End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
         Dim sc7 As New sample7C1(Of Byte)
-        Call tc7.Foo(sc7.E.e3)
+        Call tc7.Goo(sc7.E.e3)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2954,12 +3089,12 @@ End Module
             Await TestInRegularAndScriptAsync(
 <text>Module Module1
     Class C0(Of T)
-        Sub Foo(ByVal t1 As T)
+        Sub Goo(ByVal t1 As T)
         End Sub
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
-        Overloads Sub Foo(ByVal y1 As Y)
+        Overloads Sub Goo(ByVal y1 As Y)
         End Sub
     End Class
     Structure S1
@@ -2972,7 +3107,7 @@ End Module
     End Class
     Sub test()
         Dim C As New C1(Of S1, C1(Of Integer, Integer))
-        Call [|C.Foo(New C2)|]
+        Call [|C.Goo(New C2)|]
     End Sub
 End Module
 </text>.Value.Replace(vbLf, vbCrLf),
@@ -2980,15 +3115,15 @@ End Module
 
 Module Module1
     Class C0(Of T)
-        Sub Foo(ByVal t1 As T)
+        Sub Goo(ByVal t1 As T)
         End Sub
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
-        Overloads Sub Foo(ByVal y1 As Y)
+        Overloads Sub Goo(ByVal y1 As Y)
         End Sub
 
-        Friend Sub Foo(c2 As C2)
+        Friend Sub Goo(c2 As C2)
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -3002,10 +3137,10 @@ Module Module1
     End Class
     Sub test()
         Dim C As New C1(Of S1, C1(Of Integer, Integer))
-        Call C.Foo(New C2)
+        Call C.Goo(New C2)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
@@ -3134,10 +3269,12 @@ End Class
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C = a?.B
     End Sub
+
     Private Function B() As C
         Throw New NotImplementedException()
     End Function
@@ -3154,10 +3291,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x = a?.B
     End Sub
+
     Private Function B() As Object
         Throw New NotImplementedException()
     End Function
@@ -3174,10 +3313,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As Integer? = a?.B
     End Sub
+
     Private Function B() As Integer
         Throw New NotImplementedException()
     End Function
@@ -3194,10 +3335,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C? = a?.B
     End Sub
+
     Private Function B() As C
         Throw New NotImplementedException()
     End Function
@@ -3433,10 +3576,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C = a?.B()
     End Sub
+
     Private Function B() As C
         Throw New NotImplementedException()
     End Function
@@ -3453,10 +3598,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x = a?.B()
     End Sub
+
     Private Function B() As Object
         Throw New NotImplementedException()
     End Function
@@ -3473,10 +3620,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As Integer? = a?.B()
     End Sub
+
     Private Function B() As Integer
         Throw New NotImplementedException()
     End Function
@@ -3493,10 +3642,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C? = a?.B()
     End Sub
+
     Private Function B() As C
         Throw New NotImplementedException()
     End Function
@@ -3513,10 +3664,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C = a?.B()
     End Sub
+
     Private ReadOnly Property B As C
         Get
             Throw New NotImplementedException()
@@ -3536,10 +3689,12 @@ index:=1)
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x = a?.B()
     End Sub
+
     Private ReadOnly Property B As Object
         Get
             Throw New NotImplementedException()
@@ -3559,10 +3714,12 @@ index:=1)
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As Integer? = a?.B()
     End Sub
+
     Private ReadOnly Property B As Integer
         Get
             Throw New NotImplementedException()
@@ -3582,10 +3739,12 @@ index:=1)
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C? = a?.B()
     End Sub
+
     Private ReadOnly Property B As C
         Get
             Throw New NotImplementedException()
@@ -3639,11 +3798,13 @@ End Module")
     End Sub
 End Module",
 "Imports System
+
 Module C
     Sub Test()
         If TypeOf B Is String Then
         End If
     End Sub
+
     Private Function B() As String
         Throw New NotImplementedException()
     End Function
@@ -3660,11 +3821,13 @@ End Module")
     End Sub
 End Module",
 "Imports System
+
 Module C
     Sub Test()
         If TypeOf B() Is String Then
         End If
     End Sub
+
     Private Function B() As String
         Throw New NotImplementedException()
     End Function
@@ -3680,7 +3843,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Async Sub Main(args As String())
-        Dim x As Boolean = Await [|Foo|]().ConfigureAwait(False)
+        Dim x As Boolean = Await [|Goo|]().ConfigureAwait(False)
     End Sub
 End Module",
 "Imports System
@@ -3690,10 +3853,10 @@ Imports System.Threading.Tasks
 
 Module Program
     Async Sub Main(args As String())
-        Dim x As Boolean = Await Foo().ConfigureAwait(False)
+        Dim x As Boolean = Await Goo().ConfigureAwait(False)
     End Sub
 
-    Private Function Foo() As Task(Of Boolean)
+    Private Function Goo() As Task(Of Boolean)
         Throw New NotImplementedException()
     End Function
 End Module")
@@ -3708,7 +3871,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Async Sub Main(args As String())
-        Dim x As Boolean = Await [|Foo|]().ConfigureAwait(False)
+        Dim x As Boolean = Await [|Goo|]().ConfigureAwait(False)
     End Sub
 End Module",
 "Imports System
@@ -3718,10 +3881,10 @@ Imports System.Threading.Tasks
 
 Module Program
     Async Sub Main(args As String())
-        Dim x As Boolean = Await Foo().ConfigureAwait(False)
+        Dim x As Boolean = Await Goo().ConfigureAwait(False)
     End Sub
 
-    Private ReadOnly Property Foo As Task(Of Boolean)
+    Private ReadOnly Property Goo As Task(Of Boolean)
         Get
             Throw New NotImplementedException()
         End Get
@@ -3742,12 +3905,14 @@ Module M
     End Sub 
 End Module",
 "Imports System 
-Imports System.Linq 
+Imports System.Linq
 Imports System.Threading.Tasks
+
 Module M 
     Async Sub T() 
         Dim x As Boolean = Await F().ConfigureAwait(False)
-    End Sub 
+    End Sub
+
     Private Function F() As Task(Of Boolean)
         Throw New NotImplementedException()
     End Function
@@ -3775,6 +3940,7 @@ Module Program
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
     End Sub
+
     Private Function Prop() As TypeOfIsNotDerived
         Throw New NotImplementedException()
     End Function
@@ -3798,6 +3964,7 @@ Module Program
     Sub M()
         Dim x = New List(Of Integer) From {T()}
     End Sub
+
     Private Function T() As Integer
         Throw New NotImplementedException()
     End Function
@@ -3821,6 +3988,7 @@ Module Program
     Sub M()
         Dim x = New Dictionary(Of Integer, Boolean) From {{1, T()}}
     End Sub
+
     Private Function T() As Boolean
         Throw New NotImplementedException()
     End Function
@@ -3902,7 +4070,8 @@ Class C
     Shared Sub TestError()
         Repository.AgreementType.NewFunction("", "")
     End Sub
-End Class</text>.Value.Replace(vbLf, vbCrLf))
+End Class
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -3935,7 +4104,7 @@ Imports System
 
 Public Class Q
     Sub Main()
-        Dim x As (Integer, String) = ([|Foo|](), """")
+        Dim x As (Integer, String) = ([|Goo|](), """")
     End Sub
 End Class
 ",
@@ -3944,10 +4113,10 @@ Imports System
 
 Public Class Q
     Sub Main()
-        Dim x As (Integer, String) = (Foo(), """")
+        Dim x As (Integer, String) = (Goo(), """")
     End Sub
 
-    Private Function Foo() As Integer
+    Private Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -3963,7 +4132,7 @@ Imports System
 
 Public Class Q
     Sub Main()
-        Dim x As (Integer, String) = (0, [|Foo|]())
+        Dim x As (Integer, String) = (0, [|Goo|]())
     End Sub
 End Class
 ",
@@ -3972,10 +4141,10 @@ Imports System
 
 Public Class Q
     Sub Main()
-        Dim x As (Integer, String) = (0, Foo())
+        Dim x As (Integer, String) = (0, Goo())
     End Sub
 
-    Private Function Foo() As String
+    Private Function Goo() As String
         Throw New NotImplementedException()
     End Function
 End Class
@@ -4024,6 +4193,183 @@ Class Program
 End Class")
         End Function
 
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName1() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Enum Goo
+    One
+End Enum",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Enum Goo
+    One
+End Enum")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName2() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Delegate Sub Goo()",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Delegate Sub Goo()")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName3() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+
+End Class
+
+Class Goo
+    
+End Class",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Class Goo
+    
+End Class")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName4() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Structure Goo
+
+End Structure",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Structure Goo
+
+End Structure")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName5() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Interface Goo
+    
+End Interface",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Interface Goo
+    
+End Interface")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName6() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Namespace Goo
+
+End Namespace",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Namespace Goo
+
+End Namespace")
+        End Function
+
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -4057,7 +4403,7 @@ Class C(Of T)
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4086,7 +4432,7 @@ Class C
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4121,7 +4467,7 @@ Class C
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4167,7 +4513,7 @@ Class Digit
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4196,7 +4542,7 @@ Class C(Of T)
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4225,7 +4571,7 @@ Class C
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4260,7 +4606,7 @@ Class C
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4306,7 +4652,7 @@ Class Digit
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
         End Class
     End Class

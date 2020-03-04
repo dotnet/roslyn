@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports System.Xml.Linq
@@ -84,7 +86,7 @@ End Class</a>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestParameterDeclaration2() As Task
             Dim markup = <a>Class C
-    Public Sub Bar(Optional foo as Integer, $$
+    Public Sub Bar(Optional goo as Integer, $$
     End Sub
 End Class</a>
 
@@ -154,7 +156,7 @@ End Class</a>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestParameterDeclaration9() As Task
             Dim markup = <a>Class C
-    Sub Foo $$
+    Sub Goo $$
 End Class</a>
 
             Await VerifyNotBuilderAsync(markup)
@@ -174,7 +176,7 @@ End Class</a>
             Dim markup = <a>Class z
     Sub bar()
         Dim a = New Integer(1, 2, 3) {}
-        Dim foo = From z In a
+        Dim goo = From z In a
                   Select $$
 
     End Sub
@@ -188,7 +190,7 @@ End Class</a>
             Dim markup = <a>Class z
     Sub bar()
         Dim a = New Integer(1, 2, 3) {}
-        Dim foo = From z In a
+        Dim goo = From z In a
                   Select 1, $$
 
     End Sub
@@ -386,6 +388,8 @@ End Class</a>
                     Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
                     Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
                 End If
+
+                workspaceFixture.DisposeAfterTest()
             End Using
         End Function
 
@@ -393,8 +397,8 @@ End Class</a>
             triggerInfo = If(triggerInfo, CompletionTrigger.CreateInsertionTrigger("a"c))
 
             Dim service = GetCompletionService(document.Project.Solution.Workspace)
-            Dim context = Await service.GetContextAsync(
-                service.ExclusiveProviders?(0), document, position, triggerInfo.Value, options, CancellationToken.None)
+            Dim context = Await service.GetTestAccessor().GetContextAsync(
+                service.GetTestAccessor().ExclusiveProviders?(0), document, position, triggerInfo.Value, options, CancellationToken.None)
 
             If isBuilder Then
                 Assert.NotNull(context)

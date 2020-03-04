@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -92,23 +94,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList GenerateModifiers(
             IParameterSymbol parameter, bool isFirstParam)
         {
+            var list = CSharpSyntaxGenerator.GetParameterModifiers(parameter.RefKind);
+
             if (isFirstParam &&
-                parameter.ContainingSymbol is IMethodSymbol &&
-                ((IMethodSymbol)parameter.ContainingSymbol).IsExtensionMethod)
+                parameter.ContainingSymbol is IMethodSymbol methodSymbol &&
+                methodSymbol.IsExtensionMethod)
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
+                list = list.Add(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
             }
 
             if (parameter.IsParams)
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+                list = list.Add(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
             }
 
-            return parameter.RefKind == RefKind.None
-                ? new SyntaxTokenList()
-                : parameter.RefKind == RefKind.Out
-                    ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword))
-                    : SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword));
+            return list;
         }
 
         private static EqualsValueClauseSyntax GenerateEqualsValueClause(
@@ -146,13 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (isExplicit)
             {
-                return default(SyntaxList<AttributeListSyntax>);
+                return default;
             }
 
             var attributes = parameter.GetAttributes();
             if (attributes.Length == 0)
             {
-                return default(SyntaxList<AttributeListSyntax>);
+                return default;
             }
 
             return AttributeGenerator.GenerateAttributeLists(attributes, options);

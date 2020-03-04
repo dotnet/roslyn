@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
@@ -30,11 +32,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// For metadata symbols we encode information in the <see cref="Properties"/> so we can 
         /// retrieve the symbol later on when navigating.  This is needed so that we can go to
         /// metadata-as-source for metadata symbols.  We need to store the <see cref="SymbolKey"/>
-        /// for the symbol and the name we get back from  <see cref="AssemblyIdentity.GetDisplayName"/>
-        /// for.  With these we can effetively recover the symbol.
+        /// for the symbol and the project ID that originated the symbol.  With these we can correctly recover the symbol.
         /// </summary>
         private const string MetadataSymbolKey = nameof(MetadataSymbolKey);
-        private const string MetadataAssemblyIdentityDisplayName = nameof(MetadataAssemblyIdentityDisplayName);
+        private const string MetadataSymbolOriginatingProjectIdGuid = nameof(MetadataSymbolOriginatingProjectIdGuid);
+        private const string MetadataSymbolOriginatingProjectIdDebugName = nameof(MetadataSymbolOriginatingProjectIdDebugName);
 
         /// <summary>
         /// If this item is something that cannot be navigated to.  We store this in our
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         private const string NonNavigable = nameof(NonNavigable);
 
         /// <summary>
-        /// Descriptive tags from <see cref="CompletionTags"/>. These tags may influence how the 
+        /// Descriptive tags from <see cref="WellKnownTags"/>. These tags may influence how the 
         /// item is displayed.
         /// </summary>
         public ImmutableArray<string> Tags { get; }
@@ -53,6 +55,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// keep track of additional data.
         /// </summary>
         public ImmutableDictionary<string, string> Properties { get; }
+
+        /// <summary>
+        /// Additional diplayable properties that can be attached to the definition for clients that want to
+        /// display additional data.
+        /// </summary>
+        public ImmutableDictionary<string, string> DisplayableProperties { get; }
 
         /// <summary>
         /// The DisplayParts just for the name of this definition.  Generally used only for 
@@ -92,6 +100,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         internal abstract bool IsExternal { get; }
 
+        // F# uses this
         protected DefinitionItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -99,6 +108,27 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableDictionary<string, string> properties,
+            bool displayIfNoReferences) :
+            this(
+                tags,
+                displayParts,
+                nameDisplayParts,
+                originationParts,
+                sourceSpans,
+                properties,
+                ImmutableDictionary<string, string>.Empty,
+                displayIfNoReferences)
+        {
+        }
+
+        protected DefinitionItem(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> nameDisplayParts,
+            ImmutableArray<TaggedText> originationParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string> displayableProperties,
             bool displayIfNoReferences)
         {
             Tags = tags;
@@ -107,11 +137,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
 
             if (Properties.ContainsKey(MetadataSymbolKey))
             {
-                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataAssemblyIdentityDisplayName));
+                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdGuid));
+                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdDebugName));
             }
         }
 
@@ -122,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             DocumentSpan sourceSpan,
-            ImmutableArray<TaggedText> nameDisplayParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> nameDisplayParts = default,
             bool displayIfNoReferences = true)
         {
             return Create(
@@ -140,15 +172,27 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             return Create(
                 tags, displayParts, sourceSpans, nameDisplayParts,
-                properties: null, displayIfNoReferences: displayIfNoReferences);
+                properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences);
         }
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableArray<TaggedText> nameDisplayParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> nameDisplayParts = default,
             ImmutableDictionary<string, string> properties = null,
+            bool displayIfNoReferences = true)
+        {
+            return Create(tags, displayParts, sourceSpans, nameDisplayParts, properties, ImmutableDictionary<string, string>.Empty, displayIfNoReferences);
+        }
+
+        public static DefinitionItem Create(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableArray<TaggedText> nameDisplayParts = default,
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string> displayableProperties = default,
             bool displayIfNoReferences = true)
         {
             if (sourceSpans.Length == 0)
@@ -162,30 +206,32 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             return new DefaultDefinitionItem(
                 tags, displayParts, nameDisplayParts, originationParts,
-                sourceSpans, properties, displayIfNoReferences);
+                sourceSpans, properties, displayableProperties, displayIfNoReferences);
         }
 
         internal static DefinitionItem CreateMetadataDefinition(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
-            Solution solution, ISymbol symbol,
+            Project project,
+            ISymbol symbol,
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties ??= ImmutableDictionary<string, string>.Empty;
 
             var symbolKey = symbol.GetSymbolKey().ToString();
-            var assemblyIdentityDisplayName = symbol.ContainingAssembly?.Identity.GetDisplayName();
 
             properties = properties.Add(MetadataSymbolKey, symbolKey)
-                                   .Add(MetadataAssemblyIdentityDisplayName, assemblyIdentityDisplayName);
+                                   .Add(MetadataSymbolOriginatingProjectIdGuid, project.Id.Id.ToString())
+                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, project.Id.DebugName);
 
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(
                 tags, displayParts, nameDisplayParts, originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
+                displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
         }
 
@@ -204,20 +250,21 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public static DefinitionItem CreateNonNavigableItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> originationParts = default,
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties ??= ImmutableDictionary<string, string>.Empty;
             properties = properties.Add(NonNavigable, "");
 
             return new DefaultDefinitionItem(
-                tags: tags, 
+                tags: tags,
                 displayParts: displayParts,
                 nameDisplayParts: ImmutableArray<TaggedText>.Empty,
                 originationParts: originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
+                displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
         }
 

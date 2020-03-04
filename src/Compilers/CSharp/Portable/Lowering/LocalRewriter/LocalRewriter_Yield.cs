@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We also add sequence points for the implicit "yield break" statement at the end of the method body
             // (added by FlowAnalysisPass.AppendImplicitReturn). Implicitly added "yield break" for async method 
             // does not need sequence points added here since it would be done later (presumably during Async rewrite).
-            if (this.Instrument && 
-                (!node.WasCompilerGenerated || (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentMethod?.IsAsync == false)))
+            if (this.Instrument &&
+                (!node.WasCompilerGenerated || (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentFunction?.IsAsync == false)))
             {
                 result = _instrumenter.InstrumentYieldBreakStatement(node, result);
             }

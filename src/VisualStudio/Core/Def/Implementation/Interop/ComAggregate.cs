@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -46,8 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         {
             Contract.ThrowIfNull(value, "value");
 
-            var wrapper = value as IComWrapper;
-            if (wrapper != null)
+            if (value is IComWrapper wrapper)
             {
                 return GetManagedObject<T>(wrapper);
             }
@@ -70,8 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
         internal static T TryGetManagedObject<T>(object value) where T : class
         {
-            var wrapper = value as IComWrapper;
-            if (wrapper != null)
+            if (value is IComWrapper wrapper)
             {
                 return TryGetManagedObject<T>(wrapper);
             }

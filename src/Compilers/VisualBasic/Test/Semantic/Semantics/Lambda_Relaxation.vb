@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -27,7 +29,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -140,7 +142,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -238,7 +240,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -336,7 +338,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -433,7 +435,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -584,7 +586,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -668,7 +670,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -752,7 +754,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -837,7 +839,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -913,7 +915,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -958,7 +960,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -1011,7 +1013,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -1167,7 +1169,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -1230,7 +1232,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -1282,7 +1284,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -1315,7 +1317,7 @@ End Module
                 End If
             End If
 
-            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -1428,7 +1430,7 @@ End Module
                 End If
             End If
 
-            CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+            CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1504,7 +1506,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -1603,7 +1605,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -1680,7 +1682,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -1734,7 +1736,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -1768,7 +1770,7 @@ End Module
                     Assert.True(conv.Exists)
                 End If
 
-                Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+                Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -1894,7 +1896,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -1987,7 +1989,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -2043,7 +2045,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -2062,7 +2064,7 @@ End Module
                 Assert.True(conv.Exists)
             End If
 
-            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -2154,7 +2156,7 @@ End Module
                 Assert.True(conv.Exists)
             End If
 
-            CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+            CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2215,7 +2217,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             For Each optStrict In {OptionStrict.Off, OptionStrict.On, OptionStrict.Custom}
                 compilation = compilation.WithOptions(TestOptions.ReleaseExe.WithOptionStrict(optStrict))
@@ -2237,7 +2239,7 @@ End Module
                     Assert.True(conv.Exists)
                 End If
 
-                Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+                Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -2435,7 +2437,7 @@ End Module
 </compilation>
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
@@ -2492,7 +2494,7 @@ End Module
 </compilation>
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Func`2[System.Object,System.Int32]
@@ -2529,7 +2531,7 @@ End Module
 </compilation>
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2607,7 +2609,7 @@ End Module
 </compilation>
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2735,7 +2737,7 @@ End Module
 </compilation>
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2782,7 +2784,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -2910,7 +2912,7 @@ End Class
 <expected>
 </expected>)
 
-            CompileAndVerify(compilation, expectedOutput:="F1" & vbCrLf & "L1" & vbCrLf & "L2")
+            CompileAndVerify(compilation, expectedOutput:="F1" & Environment.NewLine & "L1" & Environment.NewLine & "L2")
         End Sub
 
         <WorkItem(543647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543647")>
@@ -2952,7 +2954,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="Base Method")
@@ -2981,7 +2983,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
             Dim verifier = CompileAndVerify(compilation)
@@ -2997,16 +2999,16 @@ End Module
 Imports System
 
 Class Thing
-    Sub Foo()
+    Sub Goo()
     End Sub
  
     Public t As New Thing
-    Public tcb As AsyncCallback = AddressOf t.Foo
+    Public tcb As AsyncCallback = AddressOf t.Goo
 End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.DebugDll)
 
             Dim verifier = CompileAndVerify(compilation).VerifyDiagnostics()
         End Sub

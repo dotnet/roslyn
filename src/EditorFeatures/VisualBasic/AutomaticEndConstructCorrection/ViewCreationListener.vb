@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
 Imports System.ComponentModel.Composition
@@ -11,11 +13,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
     ''' <summary>
     ''' Tracks user's interaction with editor
     ''' </summary>
-    <Export(GetType(IWpfTextViewConnectionListener))>
+    <Export(GetType(ITextViewConnectionListener))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <TextViewRole(PredefinedTextViewRoles.Interactive)>
     Friend Class ViewCreationListener
-        Implements IWpfTextViewConnectionListener
+        Implements ITextViewConnectionListener
 
         Private ReadOnly _waitIndicator As IWaitIndicator
 
@@ -25,9 +27,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         End Sub
 
         Public Sub SubjectBuffersConnected(
-            textView As IWpfTextView,
+            textView As ITextView,
             reason As ConnectionReason,
-            subjectBuffers As Collection(Of ITextBuffer)) Implements IWpfTextViewConnectionListener.SubjectBuffersConnected
+            subjectBuffers As IReadOnlyCollection(Of ITextBuffer)) Implements ITextViewConnectionListener.SubjectBuffersConnected
 
             If Not subjectBuffers(0).GetFeatureOnOffOption(FeatureOnOffOptions.EndConstruct) Then
                 Return
@@ -37,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             AddConstructPairTo(vbBuffers)
         End Sub
 
-        Public Sub SubjectBuffersDisconnected(textView As IWpfTextView, reason As ConnectionReason, subjectBuffers As Collection(Of ITextBuffer)) Implements IWpfTextViewConnectionListener.SubjectBuffersDisconnected
+        Public Sub SubjectBuffersDisconnected(textView As ITextView, reason As ConnectionReason, subjectBuffers As IReadOnlyCollection(Of ITextBuffer)) Implements ITextViewConnectionListener.SubjectBuffersDisconnected
             Dim vbBuffers = subjectBuffers.Where(Function(b) b.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType))
             RemoveConstructPairFrom(vbBuffers)
         End Sub

@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -36,16 +38,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // extern alias a;
             // n|
 
-            // using Foo;
+            // using Goo;
             // |
 
-            // using Foo;
+            // using Goo;
             // n|
 
-            // using Foo = Bar;
+            // using Goo = Bar;
             // |
 
-            // using Foo = Bar;
+            // using Goo = Bar;
             // n|
 
             // namespace N {}
@@ -65,15 +67,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // root: n|
 
-            // ns Foo { n|
+            // ns Goo { n|
 
             // extern alias a;
             // n|
 
-            // using Foo;
+            // using Goo;
             // n|
 
-            // using Foo = Bar;
+            // using Goo = Bar;
             // n|
 
             // a namespace can't come before usings/externs
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // extern alias a;
             // |
 
-            // using Foo;
+            // using Goo;
             // |
             if (token.Kind() == SyntaxKind.SemicolonToken)
             {
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() == SyntaxKind.CloseBraceToken)
             {
                 if (token.Parent is TypeDeclarationSyntax &&
-                    !(token.Parent.GetParent() is TypeDeclarationSyntax))
+                    !(token.Parent.Parent is TypeDeclarationSyntax))
                 {
                     return true;
                 }
@@ -137,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() == SyntaxKind.SemicolonToken)
             {
                 if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration) &&
-                    !(token.Parent.GetParent() is TypeDeclarationSyntax))
+                    !(token.Parent.Parent is TypeDeclarationSyntax))
                 {
                     return true;
                 }
             }
 
-            // [assembly: foo]
+            // [assembly: goo]
             // |
 
             if (token.Kind() == SyntaxKind.CloseBracketToken &&

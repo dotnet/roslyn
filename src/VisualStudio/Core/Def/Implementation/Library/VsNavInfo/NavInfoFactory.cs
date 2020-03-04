@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -24,8 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public IVsNavInfo CreateForReference(MetadataReference reference)
         {
-            var portableExecutableReference = reference as PortableExecutableReference;
-            if (portableExecutableReference != null)
+            if (reference is PortableExecutableReference portableExecutableReference)
             {
                 return new NavInfo(this, libraryName: portableExecutableReference.FilePath);
             }
@@ -35,28 +36,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public IVsNavInfo CreateForSymbol(ISymbol symbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
-            var assemblySymbol = symbol as IAssemblySymbol;
-            if (assemblySymbol != null)
+            switch (symbol)
             {
-                return CreateForAssembly(assemblySymbol);
-            }
-
-            var aliasSymbol = symbol as IAliasSymbol;
-            if (aliasSymbol != null)
-            {
-                symbol = aliasSymbol.Target;
-            }
-
-            var namespaceSymbol = symbol as INamespaceSymbol;
-            if (namespaceSymbol != null)
-            {
-                return CreateForNamespace(namespaceSymbol, project, compilation, useExpandedHierarchy);
-            }
-
-            var typeSymbol = symbol as ITypeSymbol;
-            if (typeSymbol != null)
-            {
-                return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
+                case IAssemblySymbol assemblySymbol:
+                    return CreateForAssembly(assemblySymbol);
+                case IAliasSymbol aliasSymbol:
+                    symbol = aliasSymbol.Target;
+                    break;
+                case INamespaceSymbol namespaceSymbol:
+                    return CreateForNamespace(namespaceSymbol, project, compilation, useExpandedHierarchy);
+                case ITypeSymbol typeSymbol:
+                    return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
             }
 
             if (symbol.Kind == SymbolKind.Event ||
@@ -166,9 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
             }
             else
             {
-                var portableExecutableReference = compilation.GetMetadataReference(containingAssembly) as PortableExecutableReference;
-
-                libraryName = portableExecutableReference != null
+                libraryName = compilation.GetMetadataReference(containingAssembly) is PortableExecutableReference portableExecutableReference
                     ? portableExecutableReference.FilePath
                     : containingAssembly.Identity.Name;
 
@@ -194,8 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         {
             var result = project.Name;
 
-            var workspace = project.Solution.Workspace as VisualStudioWorkspace;
-            if (workspace == null)
+            if (!(project.Solution.Workspace is VisualStudioWorkspace workspace))
             {
                 return result;
             }

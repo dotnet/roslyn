@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,26 +20,6 @@ namespace Roslyn.Utilities
 {
     internal class TextKeyedCache<T> where T : class
     {
-        // entry in the local cache
-        private struct LocalEntry
-        {
-            // full text of the item
-            public string Text;
-
-            // hash code of the entry
-            public int HashCode;
-
-            // item
-            public T Item;
-        }
-
-        // entry in the shared cache
-        private struct SharedEntry
-        {
-            public int HashCode;
-            public SharedEntryValue Entry;
-        }
-
         // immutable tuple - text and corresponding item
         // reference type because we want atomic assignments
         private class SharedEntryValue
@@ -71,23 +56,23 @@ namespace Roslyn.Utilities
         // local cache
         // simple fast and not threadsafe cache 
         // with limited size and "last add wins" expiration policy
-        private readonly LocalEntry[] _localTable = new LocalEntry[LocalSize];
+        private readonly (string Text, int HashCode, T Item)[] _localTable = new (string Text, int HashCode, T Item)[LocalSize];
 
         // shared threadsafe cache
         // slightly slower than local cache
         // we read this cache when having a miss in local cache
         // writes to local cache will update shared cache as well.
-        private static readonly SharedEntry[] s_sharedTable = new SharedEntry[SharedSize];
+        private static readonly (int HashCode, SharedEntryValue Entry)[] s_sharedTable = new (int HashCode, SharedEntryValue Entry)[SharedSize];
 
         // store a reference to shared cache locally
         // accessing a static field of a generic type could be nontrivial
-        private readonly SharedEntry[] _sharedTableInst = s_sharedTable;
+        private readonly (int HashCode, SharedEntryValue Entry)[] _sharedTableInst = s_sharedTable;
 
         private readonly StringTable _strings;
 
         // random - used for selecting a victim in the shared cache.
         // TODO: consider whether a counter is random enough
-        private Random _random;
+        private Random? _random;
 
         internal TextKeyedCache() :
             this(null)
@@ -97,19 +82,20 @@ namespace Roslyn.Utilities
         // implement Poolable object pattern
         #region "Poolable"
 
-        private TextKeyedCache(ObjectPool<TextKeyedCache<T>> pool)
+        private TextKeyedCache(ObjectPool<TextKeyedCache<T>>? pool)
         {
             _pool = pool;
             _strings = new StringTable();
         }
 
-        private readonly ObjectPool<TextKeyedCache<T>> _pool;
+        private readonly ObjectPool<TextKeyedCache<T>>? _pool;
         private static readonly ObjectPool<TextKeyedCache<T>> s_staticPool = CreatePool();
 
         private static ObjectPool<TextKeyedCache<T>> CreatePool()
         {
-            ObjectPool<TextKeyedCache<T>> pool = null;
-            pool = new ObjectPool<TextKeyedCache<T>>(() => new TextKeyedCache<T>(pool), Environment.ProcessorCount * 4);
+            var pool = new ObjectPool<TextKeyedCache<T>>(
+                pool => new TextKeyedCache<T>(pool),
+                Environment.ProcessorCount * 4);
             return pool;
         }
 
@@ -124,61 +110,58 @@ namespace Roslyn.Utilities
             // Array.Clear(this.localTable, 0, this.localTable.Length);
             // Array.Clear(sharedTable, 0, sharedTable.Length);
 
-            _pool.Free(this);
+            _pool?.Free(this);
         }
 
         #endregion // Poolable
 
-        internal T FindItem(char[] chars, int start, int len, int hashCode)
+        internal T? FindItem(char[] chars, int start, int len, int hashCode)
         {
-            // capture array to avoid extra range checks
-            var arr = _localTable;
-            var idx = LocalIdxFromHash(hashCode);
+            // get direct element reference to avoid extra range checks
+            ref var localSlot = ref _localTable[LocalIdxFromHash(hashCode)];
 
-            var text = arr[idx].Text;
+            var text = localSlot.Text;
 
-            if (text != null && arr[idx].HashCode == hashCode)
+            if (text != null && localSlot.HashCode == hashCode)
             {
-                if (StringTable.TextEquals(text, chars, start, len))
+                if (StringTable.TextEquals(text, chars.AsSpan(start, len)))
                 {
-                    return arr[idx].Item;
+                    return localSlot.Item;
                 }
             }
 
-            SharedEntryValue e = FindSharedEntry(chars, start, len, hashCode);
+            SharedEntryValue? e = FindSharedEntry(chars, start, len, hashCode);
             if (e != null)
             {
-                // PERF: the following code does element-wise assignment of a struct
-                //       because current JIT produces better code compared to
-                //       arr[idx] = new LocalEntry(...)
-                arr[idx].HashCode = hashCode;
-                arr[idx].Text = e.Text;
+                localSlot.HashCode = hashCode;
+                localSlot.Text = e.Text;
 
                 var tk = e.Item;
-                arr[idx].Item = tk;
+                localSlot.Item = tk;
 
                 return tk;
             }
 
-            return null;
+            return null!;
         }
 
-        private SharedEntryValue FindSharedEntry(char[] chars, int start, int len, int hashCode)
+        private SharedEntryValue? FindSharedEntry(char[] chars, int start, int len, int hashCode)
         {
             var arr = _sharedTableInst;
             int idx = SharedIdxFromHash(hashCode);
 
-            SharedEntryValue e = null;
+            SharedEntryValue? e = null;
+            int hash;
+
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
             {
-                e = arr[idx].Entry;
-                int hash = arr[idx].HashCode;
+                (hash, e) = arr[idx];
 
                 if (e != null)
                 {
-                    if (hash == hashCode && StringTable.TextEquals(e.Text, chars, start, len))
+                    if (hash == hashCode && StringTable.TextEquals(e.Text, chars.AsSpan(start, len)))
                     {
                         break;
                     }
@@ -207,11 +190,10 @@ namespace Roslyn.Utilities
             AddSharedEntry(hashCode, e);
 
             // add to the local table too
-            var arr = _localTable;
-            var idx = LocalIdxFromHash(hashCode);
-            arr[idx].HashCode = hashCode;
-            arr[idx].Text = text;
-            arr[idx].Item = item;
+            ref var localSlot = ref _localTable[LocalIdxFromHash(hashCode)];
+            localSlot.HashCode = hashCode;
+            localSlot.Text = text;
+            localSlot.Item = item;
         }
 
         private void AddSharedEntry(int hashCode, SharedEntryValue e)
@@ -239,7 +221,7 @@ namespace Roslyn.Utilities
             var i1 = NextRandom() & SharedBucketSizeMask;
             idx = (idx + ((i1 * i1 + i1) / 2)) & SharedSizeMask;
 
-        foundIdx:
+foundIdx:
             arr[idx].HashCode = hashCode;
             Volatile.Write(ref arr[idx].Entry, e);
         }

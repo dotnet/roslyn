@@ -1,13 +1,15 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class DashboardTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -25,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                                 class Program
                                 {
-                                    public void $$foo()
+                                    public void $$goo()
                                     {
                                     }
                                 }
@@ -53,11 +55,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                                 class Program
                                 {
-                                    public void $$foo()
+                                    public void $$goo()
                                     {
                                     }
 
-                                    public void foo(int i)
+                                    public void goo(int i)
                                     {
                                     }
                                 }
@@ -140,15 +142,15 @@ class AttributeAttribute : System.Attribute { }
 
                                 class Program
                                 {
-                                    public void $$foo()
+                                    public void $$goo()
                                     {
                                     }
 
-                                    /// foo
-                                    public void foo(int i)
+                                    /// goo
+                                    public void goo(int i)
                                     {
-                                        // foo
-                                        var a = "foo";
+                                        // goo
+                                        var a = "goo";
                                     }
                                 }
                             </Document>
@@ -288,11 +290,11 @@ class $$Program
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
-                                class $$Foo
+                                class $$Goo
                                 {
                                     void Blah()
                                     {
-                                        Foo f = new Foo();
+                                        Goo f = new Goo();
                                     }
                                 }
                             </Document>
@@ -313,7 +315,7 @@ class $$Program
                                 {
                                     void Blah()
                                     {
-                                        Foo f = new Foo();
+                                        Goo f = new Goo();
                                     }
                                 }
                             </Document>
@@ -330,18 +332,18 @@ class $$Program
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
-                               class Foo
+                               class Goo
                                {
-                                   int foo;
+                                   int goo;
                                    void Blah(int [|$$bar|])
                                    {
-                                       foo = [|bar|];
+                                       goo = [|bar|];
                                    }
                                }
                            </Document>
                      </Project>
                  </Workspace>),
-                newName:="foo",
+                newName:="goo",
                 searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                 resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 1),
                 severity:=DashboardSeverity.Info)
@@ -355,18 +357,18 @@ class $$Program
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
-                               class Foo
+                               class Goo
                                {
-                                   int foo;
+                                   int goo;
                                    void Blah(int [|$$bar|])
                                    {
-                                       foo = foo + [|bar|];
+                                       goo = goo + [|bar|];
                                    }
                                }
                            </Document>
                      </Project>
                  </Workspace>),
-                newName:="foo",
+                newName:="goo",
                 searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                 resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 2),
                 severity:=DashboardSeverity.Info)
@@ -379,17 +381,17 @@ class $$Program
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
-                               class Foo
+                               class Goo
                                {
                                    void Blah(int [|$$bar|])
                                    {
-                                       int foo;
+                                       int goo;
                                    }
                                }
                            </Document>
                      </Project>
                  </Workspace>),
-                newName:="foo",
+                newName:="goo",
                 searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
                 unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 1),
                 severity:=DashboardSeverity.Error)
@@ -402,19 +404,19 @@ class $$Program
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
-                               class Foo
+                               class Goo
                                {
                                    void Blah(int [|$$bar|])
                                    {
-                                       int foo;
-                                       foo = [|bar|];
-                                       foo = [|bar|];
+                                       int goo;
+                                       goo = [|bar|];
+                                       goo = [|bar|];
                                    }
                                }
                            </Document>
                      </Project>
                  </Workspace>),
-                newName:="foo",
+                newName:="goo",
                 searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 3),
                 unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 3),
                 severity:=DashboardSeverity.Error)
@@ -429,11 +431,11 @@ class $$Program
                          <Document>
                                namespace N
                                {
-                                    public class [|$$Foo|]
+                                    public class [|$$Goo|]
                                     {
                                         void Blah()
                                         {
-                                            [|Foo|] f = new [|Foo|]();
+                                            [|Goo|] f = new [|Goo|]();
                                         }
                                     }
                                }
@@ -445,7 +447,7 @@ class $$Program
                                Imports N
                                Class Bar
                                    Sub Blah()
-                                      Dim f = new {|N.Foo:Foo|}()
+                                      Dim f = new {|N.Goo:Goo|}()
                                    End Sub
                                End Class
                            </Document>
@@ -578,19 +580,16 @@ class D : B
                     Next
                 End If
 
-                workspace.Options = optionSet
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet))
 
                 Dim sessionInfo = renameService.StartInlineSession(
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
 
                 ' Perform the edit in the buffer
-                Using edit = cursorDocument.TextBuffer.CreateEdit()
+                Using edit = cursorDocument.GetTextBuffer().CreateEdit()
                     edit.Replace(token.SpanStart, token.Span.Length, newName)
                     edit.Apply()
                 End Using
-
-                Dim listeners = DirectCast(workspace.ExportProvider.GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(), IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
-                Dim renameListener = New AggregateAsynchronousOperationListener(listeners, FeatureAttribute.Rename)
 
                 Using dashboard = New Dashboard(
                     New DashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
@@ -632,5 +631,33 @@ class D : B
             End Using
         End Function
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameWithReferenceInUnchangeableDocument() As Task
+            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
+            changingOptions.Add(RenameOptions.RenameOverloads, True)
+            Await VerifyDashboard(
+                    (<Workspace>
+                         <Project Language="C#">
+                             <Document>
+                            public class $$A
+                            {
+                            }
+                        </Document>
+                             <Document CanApplyChange="false">
+                            class B
+                            {
+                                void M()
+                                {
+                                    A a;
+                                }
+                            }
+                        </Document>
+                         </Project>
+                     </Workspace>),
+                    newName:="C",
+                    searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
+                    changedOptionSet:=changingOptions)
+        End Function
     End Class
 End Namespace

@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -15,14 +20,16 @@ namespace Roslyn.Utilities
     /// Used when a collection usually contains a single item but sometimes might contain multiple.
     /// </remarks>
     internal struct OneOrMany<T>
+        where T : notnull
     {
+        [AllowNull, MaybeNull]
         private readonly T _one;
         private readonly ImmutableArray<T> _many;
 
         public OneOrMany(T one)
         {
             _one = one;
-            _many = default(ImmutableArray<T>);
+            _many = default;
         }
 
         public OneOrMany(ImmutableArray<T> many)
@@ -32,7 +39,7 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(many));
             }
 
-            _one = default(T);
+            _one = default;
             _many = many;
         }
 
@@ -81,7 +88,7 @@ namespace Roslyn.Utilities
 
         public bool Contains(T item)
         {
-            Debug.Assert(item != null);
+            RoslynDebug.Assert(item != null);
             if (Count == 1)
             {
                 return item.Equals(_one);
@@ -103,7 +110,7 @@ namespace Roslyn.Utilities
         {
             if (_many.IsDefault)
             {
-                return item.Equals(_one) ? default(OneOrMany<T>) : this;
+                return item.Equals(_one) ? default : this;
             }
 
             var builder = ArrayBuilder<T>.GetInstance();
@@ -118,7 +125,7 @@ namespace Roslyn.Utilities
 
             if (builder.Count == 0)
             {
-                return default(OneOrMany<T>);
+                return default;
             }
 
             return builder.Count == Count ? this : new OneOrMany<T>(builder.ToImmutableAndFree());
@@ -156,11 +163,13 @@ namespace Roslyn.Utilities
     internal static class OneOrMany
     {
         public static OneOrMany<T> Create<T>(T one)
+            where T : notnull
         {
             return new OneOrMany<T>(one);
         }
 
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
+            where T : notnull
         {
             return new OneOrMany<T>(many);
         }

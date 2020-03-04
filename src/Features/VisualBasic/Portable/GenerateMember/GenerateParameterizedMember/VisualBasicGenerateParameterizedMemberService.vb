@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -32,8 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                     Me.InvocationExpression.ArgumentList, reservedNames:=typeParametersNames, cancellationToken:=cancellationToken)
             End Function
 
-            Protected Overrides Function DetermineReturnsByRef(cancellationToken As CancellationToken) As Boolean
-                Return False
+            Protected Overrides Function DetermineRefKind(cancellationToken As CancellationToken) As RefKind
+                Return RefKind.None
             End Function
 
             Protected Overrides Function DetermineReturnTypeWorker(cancellationToken As CancellationToken) As ITypeSymbol
@@ -55,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Dim typeInference = Document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
                 Dim inferredType = typeInference.InferType(
                     Document.SemanticModel, Me.InvocationExpression, objectAsDefault:=True,
-                    nameOpt:=Me.State.IdentifierToken.ValueText, cancellationToken:=cancellationToken)
+                    name:=Me.State.IdentifierToken.ValueText, cancellationToken:=cancellationToken)
                 Return inferredType
             End Function
 

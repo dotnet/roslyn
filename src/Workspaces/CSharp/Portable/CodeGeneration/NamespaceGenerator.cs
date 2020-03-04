@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
             GetNameAndInnermostNamespace(@namespace, options, out var name, out var innermostNamespace);
 
             var declaration = GetDeclarationSyntaxWithoutMembers(@namespace, innermostNamespace, name, options);
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     ? service.AddMembers(declaration, innermostNamespace.GetMembers(), options, cancellationToken)
                     : declaration;
 
-            return AddCleanupAnnotationsTo(declaration);
+            return AddFormatterAndCodeGeneratorAnnotationsTo(declaration);
         }
 
         public static SyntaxNode UpdateCompilationUnitOrNamespaceDeclaration(
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             declaration = RemoveAllMembers(declaration);
             declaration = service.AddMembers(declaration, newMembers, options, cancellationToken);
-            return AddCleanupAnnotationsTo(declaration);
+            return AddFormatterAndCodeGeneratorAnnotationsTo(declaration);
         }
 
         private static SyntaxNode GenerateNamespaceDeclarationWorker(
@@ -112,19 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxNode RemoveAllMembers(SyntaxNode declaration)
-        {
-            switch (declaration.Kind())
+            => declaration.Kind() switch
             {
-                case SyntaxKind.CompilationUnit:
-                    return ((CompilationUnitSyntax)declaration).WithMembers(default(SyntaxList<MemberDeclarationSyntax>));
-
-                case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)declaration).WithMembers(default(SyntaxList<MemberDeclarationSyntax>));
-
-                default:
-                    return declaration;
-            }
-        }
+                SyntaxKind.CompilationUnit => ((CompilationUnitSyntax)declaration).WithMembers(default),
+                SyntaxKind.NamespaceDeclaration => ((NamespaceDeclarationSyntax)declaration).WithMembers(default),
+                _ => declaration,
+            };
 
         private static SyntaxList<UsingDirectiveSyntax> GenerateUsingDirectives(INamespaceSymbol innermostNamespace)
         {

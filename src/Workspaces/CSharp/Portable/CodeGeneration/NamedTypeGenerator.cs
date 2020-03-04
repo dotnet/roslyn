@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +8,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var declaration = GetDeclarationSyntaxWithoutMembers(namedType, destination, options);
 
@@ -85,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                      cancellationToken)
                 : declaration;
 
-            return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options));
+            return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options));
         }
 
         public static MemberDeclarationSyntax UpdateNamedTypeDeclaration(
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             declaration = RemoveAllMembers(declaration);
             declaration = service.AddMembers(declaration, newMembers, options, cancellationToken);
-            return AddCleanupAnnotationsTo(declaration);
+            return AddFormatterAndCodeGeneratorAnnotationsTo(declaration);
         }
 
         private static MemberDeclarationSyntax GetDeclarationSyntaxWithoutMembers(
@@ -119,12 +122,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (declaration.Kind())
             {
                 case SyntaxKind.EnumDeclaration:
-                    return ((EnumDeclarationSyntax)declaration).WithMembers(default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>));
+                    return ((EnumDeclarationSyntax)declaration).WithMembers(default);
 
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.ClassDeclaration:
-                    return ((TypeDeclarationSyntax)declaration).WithMembers(default(SyntaxList<MemberDeclarationSyntax>));
+                    return ((TypeDeclarationSyntax)declaration).WithMembers(default);
 
                 default:
                     return declaration;
@@ -193,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GenerateModifiers(namedType, destination, options),
                 namedType.Name.ToIdentifierToken(),
                 baseList: baseList,
-                members: default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>));
+                members: default);
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributeDeclarations(
@@ -207,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationDestination destination,
             CodeGenerationOptions options)
         {
-            var tokens = new List<SyntaxToken>();
+            var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             var defaultAccessibility = destination == CodeGenerationDestination.CompilationUnit || destination == CodeGenerationDestination.Namespace
                 ? Accessibility.Internal
@@ -235,7 +238,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
-            return tokens.ToSyntaxTokenList();
+            if (namedType.IsReadOnly)
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+            }
+
+            if (namedType.IsRefLikeType)
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
+            }
+
+            return tokens.ToSyntaxTokenListAndFree();
         }
 
         private static TypeParameterListSyntax GenerateTypeParameterList(

@@ -1,6 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -12,6 +15,8 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Tags;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -30,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             int index = 0)
         {
             await TestAsync(
-                initialMarkup, expected, index: index, 
+                initialMarkup, expected, index: index,
                 options: Option(GenerationOptions.PlaceSystemNamespaceFirst, systemSpecialCase));
         }
 
@@ -38,26 +43,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            bool ignoreTrivia = true,
             CodeActionPriority? priority = null,
             IDictionary<OptionKey, object> options = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, options, outOfProcess: false);
-            await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, options, outOfProcess: true);
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: false);
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: true);
         }
 
         internal async Task TestAsync(
             string initialMarkup,
             string expectedMarkup,
             int index,
-            bool ignoreTrivia,
             CodeActionPriority? priority,
             IDictionary<OptionKey, object> options,
             bool outOfProcess)
         {
             await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, ignoreTrivia, priority,
-                parameters: new TestParameters(options: options, fixProviderData: outOfProcess));
+                initialMarkup, expectedMarkup, index,
+                parameters: new TestParameters(options: options, fixProviderData: outOfProcess, priority: priority));
         }
     }
 
@@ -67,9 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             Workspace workspace, TestParameters parameters)
         {
             var outOfProcess = (bool)parameters.fixProviderData;
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
-                                                 .WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
-                                                 .WithChangedOption(RemoteFeatureOptions.AddImportEnabled, outOfProcess);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)));
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections;
@@ -91,7 +93,7 @@ class Class
 {
     IDictionary Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -133,7 +135,7 @@ class Class1 : TextBox
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections.Generic;
@@ -142,7 +144,7 @@ class Class
 {
     IDictionary Method()
     {
-        Foo();
+        Goo();
     }
 }",
 index: 1);
@@ -156,7 +158,7 @@ index: 1);
 {
     [|List|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections.Generic;
@@ -165,7 +167,7 @@ class Class
 {
     List Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -178,7 +180,7 @@ class Class
 {
     [|List<int>|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections.Generic;
@@ -187,7 +189,7 @@ class Class
 {
     List<int> Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -200,7 +202,7 @@ class Class
 {
     [|List<int, string, bool>|] Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -213,7 +215,7 @@ class Class
 {
     [|List<int, string>|] Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -224,7 +226,7 @@ class Class
             await TestAsync(
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         [|List<int>|] a = new List<int>();
     }
@@ -233,7 +235,7 @@ class Class
 
 class Class
 {
-    void Foo()
+    void Goo()
     {
         List<int> a = new List<int>();
     }
@@ -269,7 +271,7 @@ class Class
 {
     [|List<int>|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System;
@@ -279,7 +281,7 @@ class Class
 {
     List<int> Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -294,7 +296,7 @@ class Class
     {
         [|List<int>|] Method()
         {
-            Foo();
+            Goo();
         }
     }
 }",
@@ -306,7 +308,7 @@ namespace N
     {
         List<int> Method()
         {
-            Foo();
+            Goo();
         }
     }
 }");
@@ -324,7 +326,7 @@ namespace N
     {
         [|List<int>|] Method()
         {
-            Foo();
+            Goo();
         }
     }
 }",
@@ -337,7 +339,7 @@ namespace N
     {
         List<int> Method()
         {
-            Foo();
+            Goo();
         }
     }
 }");
@@ -353,7 +355,7 @@ class Class
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 count: 1);
@@ -365,7 +367,7 @@ class Class
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections;
@@ -375,7 +377,7 @@ class Class
 {
     IDictionary Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -452,7 +454,7 @@ parseOptions: Options.Regular);
             await TestAsync(
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         var a = [|Colors|].Red;
     }
@@ -471,7 +473,7 @@ namespace A
 
 class Class
 {
-    void Foo()
+    void Goo()
     {
         var a = Colors.Red;
     }
@@ -520,25 +522,25 @@ namespace A
         public async Task TestOnImplementedInterface()
         {
             await TestAsync(
-@"class Class : [|IFoo|]
+@"class Class : [|IGoo|]
 {
 }
 
 namespace A
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }",
 @"using A;
 
-class Class : IFoo
+class Class : IGoo
 {
 }
 
 namespace A
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }");
@@ -548,7 +550,7 @@ namespace A
         public async Task TestAllInBaseList()
         {
             await TestAsync(
-@"class Class : [|IFoo|], Class2
+@"class Class : [|IGoo|], Class2
 {
 }
 
@@ -561,13 +563,13 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }",
 @"using B;
 
-class Class : IFoo, Class2
+class Class : IGoo, Class2
 {
 }
 
@@ -580,7 +582,7 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }");
@@ -588,7 +590,7 @@ namespace B
             await TestAsync(
 @"using B;
 
-class Class : IFoo, [|Class2|]
+class Class : IGoo, [|Class2|]
 {
 }
 
@@ -601,14 +603,14 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }",
 @"using A;
 using B;
 
-class Class : IFoo, Class2
+class Class : IGoo, Class2
 {
 }
 
@@ -621,7 +623,7 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }");
@@ -666,7 +668,7 @@ class Class
             await TestAsync(
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         List<int> l;
         l = new [|List<int>|]();
@@ -676,7 +678,7 @@ class Class
 
 class Class
 {
-    void Foo()
+    void Goo()
     {
         List<int> l;
         l = new List<int>();
@@ -811,7 +813,7 @@ namespace C
             await TestAsync(
 @"using System.Collections.Generic;
 
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -822,7 +824,7 @@ class Foo
 @"using System.Collections.Generic;
 using System.Linq;
 
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -839,7 +841,7 @@ class Foo
             await TestAsync(
 @"using System.Collections.Generic;
 
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -852,7 +854,7 @@ class Foo
 @"using System.Collections.Generic;
 using System.Linq;
 
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -876,13 +878,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace D
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -897,13 +899,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace D
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -923,13 +925,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -944,13 +946,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -970,13 +972,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -991,13 +993,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1017,13 +1019,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace C
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1038,13 +1040,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace C
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1064,13 +1066,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace B
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1085,13 +1087,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace B
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1111,13 +1113,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace B.A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1132,13 +1134,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace B.A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1158,7 +1160,7 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
@@ -1166,7 +1168,7 @@ namespace B
 {
     namespace A
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1182,7 +1184,7 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
@@ -1190,7 +1192,7 @@ namespace B
 {
     namespace A
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1211,7 +1213,7 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
@@ -1219,7 +1221,7 @@ namespace B
 {
     namespace A
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1235,7 +1237,7 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
@@ -1243,7 +1245,7 @@ namespace B
 {
     namespace A
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1264,13 +1266,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace B
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1285,13 +1287,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace B
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1312,13 +1314,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1333,13 +1335,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1361,13 +1363,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1383,13 +1385,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1440,13 +1442,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1463,13 +1465,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1491,13 +1493,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1513,13 +1515,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1649,13 +1651,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1672,13 +1674,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1699,13 +1701,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1720,13 +1722,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1797,8 +1799,7 @@ namespace B
 @"class C { [|DateTime|] t; }",
 @"using System;
 
-class C { DateTime t; }",
-ignoreTrivia: false);
+class C { DateTime t; }");
         }
 
         [WorkItem(539657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539657")]
@@ -1807,7 +1808,9 @@ ignoreTrivia: false);
         {
             await TestAsync(
 @"class Program { static void Main ( string [ ] args ) { [|Console|] . Out . NewLine = ""\r\n\r\n"" ; } } ",
-@"using System ; class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ");
+@"using System;
+
+class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ");
         }
 
         [WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
@@ -1817,7 +1820,9 @@ ignoreTrivia: false);
             await TestAsync(
 @"using System.Console; WriteLine([|Expression|].Constant(123));",
 @"using System.Console;
-using System.Linq.Expressions; WriteLine(Expression.Constant(123));",
+using System.Linq.Expressions;
+
+WriteLine(Expression.Constant(123));",
 parseOptions: GetScriptOptions());
         }
 
@@ -1826,7 +1831,7 @@ parseOptions: GetScriptOptions());
         public async Task TestAddAfterDefineDirective1()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
 using System.Collections.Generic;
 using System.Linq;
@@ -1838,7 +1843,7 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
 using System;
 using System.Collections.Generic;
@@ -1850,8 +1855,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(540339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
@@ -1859,7 +1863,7 @@ ignoreTrivia: false);
         public async Task TestAddAfterDefineDirective2()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
 class Program
 {
@@ -1868,7 +1872,7 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
 using System;
 
@@ -1878,17 +1882,16 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterDefineDirective3()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
-/// Foo
+/// Goo
 class Program
 {
     static void Main(string[] args)
@@ -1896,27 +1899,26 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
 using System;
-/// Foo
+/// Goo
 class Program
 {
     static void Main(string[] args)
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterDefineDirective4()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
-// Foo
+// Goo
 class Program
 {
     static void Main(string[] args)
@@ -1924,9 +1926,9 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
-// Foo
+// Goo
 using System;
 
 class Program
@@ -1935,8 +1937,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1964,17 +1965,16 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterExternAlias1()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
-extern alias Foo;
+extern alias Goo;
 
 class Program
 {
@@ -1983,9 +1983,9 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
-extern alias Foo;
+extern alias Goo;
 
 using System;
 
@@ -1995,17 +1995,16 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterExternAlias2()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
-extern alias Foo;
+extern alias Goo;
 
 using System.Collections;
 
@@ -2016,9 +2015,9 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
-extern alias Foo;
+extern alias Goo;
 
 using System;
 using System.Collections;
@@ -2029,8 +2028,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -2049,8 +2047,7 @@ using System.Linq.Expressions;
 
 Expression",
 GetScriptOptions(),
-TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
-ignoreTrivia: false);
+TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
         }
 
         [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
@@ -2113,8 +2110,7 @@ class Program
 #line hidden
     }
 }
-#line default",
-ignoreTrivia: false);
+#line default");
         }
 
         [WorkItem(545248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
@@ -2124,7 +2120,7 @@ ignoreTrivia: false);
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
 #line 1 ""Default.aspx""
         using (new [|StreamReader|]())
@@ -2140,13 +2136,13 @@ ignoreTrivia: false);
         public async Task TestAttribute()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
-            await TestActionCountAsync(input, 1);
+            await TestActionCountAsync(input, 2);
 
             await TestAsync(
 input,
 @"using System.Runtime.InteropServices;
 
-[assembly: Guid(""9ed54f84-a89d-4fcd-a854-44251e925f09"")]");
+[ assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
 
         [WorkItem(546833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
@@ -2420,6 +2416,7 @@ namespace ExternAliases
             const string ExpectedDocumentText = @"extern alias P;
 
 using P::ProjectLib;
+
 namespace ExternAliases
 {
     class Program
@@ -2477,7 +2474,8 @@ namespace ExternAliases
     </Project>
 </Workspace>";
 
-            const string ExpectedDocumentText = @"extern alias P;
+            const string ExpectedDocumentText = @"
+extern alias P;
 
 using P::AnotherNS;
 using P::ProjectLib;
@@ -2531,6 +2529,7 @@ namespace ExternAliases
 </Workspace>";
 
             const string ExpectedDocumentText = @"extern alias P;
+
 using P::AnotherNS;
 namespace ExternAliases
 {
@@ -2646,7 +2645,7 @@ namespace N1
 
 public class MyClass
 {
-    public static explicit operator N1.D(MyClass f)
+    public static explicit operator N1.D (MyClass f)
     {
         return default(N1.D);
     }
@@ -3058,14 +3057,17 @@ namespace Extensions
 </Workspace> ";
 
             var expectedText =
-@"using Extensions;
+@"
+using Extensions;
+
 public class C
 {
     void Main(C a)
     {
         C x = a?.B();
     }
-}";
+}
+       ";
             await TestAsync(initialText, expectedText);
         }
 
@@ -3104,7 +3106,9 @@ namespace Extensions
 </Workspace> ";
 
             var expectedText =
-@"using Extensions;
+@"
+using Extensions;
+
 public class C
 {
     public E B { get; private set; }
@@ -3117,7 +3121,8 @@ public class C
     public class E
     {
     }
-}";
+}
+       ";
             await TestAsync(initialText, expectedText);
         }
 
@@ -3242,7 +3247,7 @@ using System.IO;
 #if DEBUG
 using System.Text;
 #endif
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -3268,7 +3273,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -3294,7 +3299,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -3844,8 +3849,8 @@ namespace X
 }",
 @"namespace Microsoft.MyApp
 {
-#if true
     using Microsoft.Win32.SafeHandles;
+#if true
     using Win32;
 #else
     using System;
@@ -4102,7 +4107,7 @@ using System.Collections.Generic;
 
 static void Main(string[] args)
 {
-    Func<int> f = () => { List<int>.}
+    Func<int> f = () => { List<int>. }
 }";
             await TestAsync(initialText, expectedText);
         }
@@ -4125,7 +4130,7 @@ using System.Collections.Generic;
 
 static void Main(string[] args)
 {
-    Func<int> f = () => { List<int>}
+    Func<int> f = () => { List<int> }
 }";
             await TestAsync(initialText, expectedText);
         }
@@ -4202,7 +4207,7 @@ static void Main(string[] args)
 
 class Test
 {
-    void Foo()
+    void Goo()
     {
         Action a = () => {
             [|IBindCtx|] };
@@ -4214,7 +4219,7 @@ using System.Runtime.InteropServices.ComTypes;
 
 class Test
 {
-    void Foo()
+    void Goo()
     {
         Action a = () => {
             IBindCtx };
@@ -4242,7 +4247,7 @@ namespace Namespace1
 
 namespace Namespace2
 {
-    class Foo
+    class Goo
     {
         void Bar()
         {
@@ -4266,7 +4271,7 @@ namespace Namespace1
 
 namespace Namespace2
 {
-    class Foo
+    class Goo
     {
         void Bar()
         {
@@ -4312,8 +4317,7 @@ namespace Namespace2
             Task<int>
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -4394,8 +4398,7 @@ using System.Collections.Generic;
 class C : IEnumerable<int>
 {
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
@@ -4425,8 +4428,7 @@ class C
 {
     DateTime d;
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
@@ -4450,8 +4452,7 @@ class C
 {
     DateTime d;
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -4469,7 +4470,7 @@ namespace N
     {
         [|List<int>|] Method()
         {
-            Foo();
+            Goo();
         }
     }
 }",
@@ -4485,7 +4486,7 @@ namespace N
     {
         List<int> Method()
         {
-            Foo();
+            Goo();
         }
     }
 }");
@@ -4645,6 +4646,7 @@ namespace Outer
     {
         void M()
         {
+            // Note: IVsStatusBar is cased incorrectly.
             IVsStatusbar b;
         }
     }
@@ -4697,13 +4699,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -4719,13 +4721,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -4750,13 +4752,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -4772,19 +4774,713 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestExactMatchNoGlyph()
+        {
+            await TestSmartTagGlyphTagsAsync(
+@"namespace VS
+{
+    interface Other
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|Other|] b;
+    }
+}
+", ImmutableArray<string>.Empty);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestFuzzyMatchGlyph()
+        {
+            await TestSmartTagGlyphTagsAsync(
+@"namespace VS
+{
+    interface Other
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|Otter|] b;
+    }
+}
+", WellKnownTagArrays.Namespace);
+        }
+
+        [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestGetAwaiterExtensionMethod1()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+
+    class C
+    {
+        async Task M() => await [|Goo|];
+
+        C Goo { get; set; }
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}",
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using B;
+
+    class C
+    {
+        async Task M() => await Goo;
+
+        C Goo { get; set; }
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}");
+        }
+
+        [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestGetAwaiterExtensionMethod2()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+
+    class C
+    {
+        async Task M() => await [|GetC|]();
+
+        C GetC() => null;
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}",
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using B;
+
+    class C
+    {
+        async Task M() => await GetC();
+
+        C GetC() => null;
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}");
+        }
+
+
+        [WorkItem(745490, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/745490")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForAwaitableReturningExtensionMethod()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    using System;
+    using System.Threading.Tasks;
+
+    class C
+    {
+        C Instance { get; } => null;
+
+        async Task M() => await Instance.[|Foo|]();
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Task Foo(this C instance) => null;
+    }
+}",
+@"
+namespace A
+{
+    using System;
+    using System.Threading.Tasks;
+    using B;
+
+    class C
+    {
+        C Instance { get; } => null;
+
+        async Task M() => await Instance.Foo();
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Task Foo(this C instance) => null;
+    }
+}");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithStaticUsingInNamespace_WhenNoExistingUsings()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using static System.Math;
+
+    class C
+    {
+        public [|List<int>|] F;
+    }
+}
+",
+@"
+namespace N
+{
+    using System.Collections.Generic;
+    using static System.Math;
+
+    class C
+    {
+        public List<int> F;
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithStaticUsingInInnerNestedNamespace_WhenNoExistingUsings()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    namespace M
+    {
+        using static System.Math;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    namespace M
+    {
+        using System.Collections.Generic;
+        using static System.Math;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithStaticUsingInOuterNestedNamespace_WhenNoExistingUsings()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using static System.Math;
+
+    namespace M
+    {
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using System.Collections.Generic;
+    using static System.Math;
+
+    namespace M
+    {
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsingInCompilationUnit_WhenStaticUsingInNamespace()
+        {
+            await TestAsync(
+@"
+using System;
+
+namespace N
+{
+    using static System.Math;
+
+    class C
+    {
+        public [|List<int>|] F;
+    }
+}
+",
+@"
+using System;
+using System.Collections.Generic;
+
+namespace N
+{
+    using static System.Math;
+
+    class C
+    {
+        public List<int> F;
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsing_WhenStaticUsingInInnerNestedNamespace()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using System;
+
+    namespace M
+    {
+        using static System.Math;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using System;
+    using System.Collections.Generic;
+
+    namespace M
+    {
+        using static System.Math;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsing_WhenStaticUsingInOuterNestedNamespace()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using static System.Math;
+
+    namespace M
+    {
+        using System;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using static System.Math;
+
+    namespace M
+    {
+        using System;
+        using System.Collections.Generic;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithUsingAliasInNamespace_WhenNoExistingUsing()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using SAction = System.Action;
+
+    class C
+    {
+        public [|List<int>|] F;
+    }
+}
+",
+@"
+namespace N
+{
+    using System.Collections.Generic;
+    using SAction = System.Action;
+
+    class C
+    {
+        public List<int> F;
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithUsingAliasInInnerNestedNamespace_WhenNoExistingUsing()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    namespace M
+    {
+        using SAction = System.Action;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    namespace M
+    {
+        using System.Collections.Generic;
+        using SAction = System.Action;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithUsingAliasInOuterNestedNamespace_WhenNoExistingUsing()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using SAction = System.Action;
+
+    namespace M
+    {
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using System.Collections.Generic;
+    using SAction = System.Action;
+
+    namespace M
+    {
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsingInCompilationUnit_WhenUsingAliasInNamespace()
+        {
+            await TestAsync(
+@"
+using System;
+
+namespace N
+{
+    using SAction = System.Action;
+
+    class C
+    {
+        public [|List<int>|] F;
+    }
+}
+",
+@"
+using System;
+using System.Collections.Generic;
+
+namespace N
+{
+    using SAction = System.Action;
+
+    class C
+    {
+        public List<int> F;
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsing_WhenUsingAliasInInnerNestedNamespace()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using System;
+
+    namespace M
+    {
+        using SAction = System.Action;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using System;
+    using System.Collections.Generic;
+
+    namespace M
+    {
+        using SAction = System.Action;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsing_WhenUsingAliasInOuterNestedNamespace()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using SAction = System.Action;
+
+    namespace M
+    {
+        using System;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using SAction = System.Action;
+
+    namespace M
+    {
+        using System;
+        using System.Collections.Generic;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+");
         }
     }
 }

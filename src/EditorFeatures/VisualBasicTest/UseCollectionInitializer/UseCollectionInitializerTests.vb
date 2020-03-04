@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -32,8 +34,7 @@ Class C
             1
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -55,8 +56,7 @@ Class C
             1
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -78,8 +78,7 @@ Class C
             1
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -103,8 +102,7 @@ Class C
             1
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -184,8 +182,7 @@ Class C
             2
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -207,8 +204,7 @@ Class C
             {1, 2}
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -260,8 +256,7 @@ Class C
             4
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -272,7 +267,7 @@ Imports System.Collections.Generic
 Class C
     Sub M()
         Dim c = [||]New List(Of Integer)()
-        c.Add(1) ' Foo
+        c.Add(1) ' Goo
         c.Add(2) ' Bar
     End Sub
 End Class",
@@ -281,12 +276,11 @@ Imports System.Collections.Generic
 Class C
     Sub M()
         Dim c = New List(Of Integer) From {
-            1, ' Foo
+            1, ' Goo
             2 ' Bar
             }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
@@ -298,7 +292,7 @@ Imports System.Collections.Generic
 Class C
     Sub M()
         Dim c = [||]New List(Of Integer)()
-        ' Foo
+        ' Goo
         c.Add(1)
         ' Bar
         c.Add(2)
@@ -308,15 +302,30 @@ End Class",
 Imports System.Collections.Generic
 Class C
     Sub M()
-        ' Foo
+        ' Goo
         ' Bar
         Dim c = New List(Of Integer) From {
             1,
             2
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
+        End Function
+
+        <WorkItem(23672, "https://github.com/dotnet/roslyn/pull/23672")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        Public Async Function TestMissingWithExplicitImplementedAddMethod() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System.Dynamic
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim obj As IDictionary(Of String, Object) = [||]New ExpandoObject()
+        obj.Add(""string"", ""v"")
+        obj.Add(""int"", 1)
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Runtime.CompilerServices
@@ -12,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Microsoft.CodeAnalysis.Collections
+Imports System.Collections.Immutable
 
 Friend Module ParserTestUtilities
     Friend ReadOnly Property PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool(64)
@@ -49,11 +52,11 @@ Friend Module ParserTestUtilities
     End Function
 
     Public Function ParseAndVerify(code As XCData, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
-        Return ParseAndVerify(code.Value, VisualBasicParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
+        Return ParseAndVerify(TestHelpers.NormalizeNewLines(code), VisualBasicParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
     Public Function ParseAndVerify(code As XCData, options As VisualBasicParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
-        Return ParseAndVerify(code.Value, options, expectedDiagnostics, errorCodesOnly:=False)
+        Return ParseAndVerify(TestHelpers.NormalizeNewLines(code), options, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
     Public Function ParseAndVerify(source As String, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
@@ -529,6 +532,12 @@ Public Module VerificationHelpers
             End Get
         End Property
 
+        Public Overrides ReadOnly Property DiagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
         Public Overrides Function WithChangedText(newText As SourceText) As SyntaxTree
             Throw New NotImplementedException()
         End Function
@@ -538,6 +547,10 @@ Public Module VerificationHelpers
         End Function
 
         Public Overrides Function WithFilePath(path As String) As SyntaxTree
+            Throw New NotImplementedException()
+        End Function
+
+        Public Overrides Function WithDiagnosticOptions(options As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
             Throw New NotImplementedException()
         End Function
     End Class

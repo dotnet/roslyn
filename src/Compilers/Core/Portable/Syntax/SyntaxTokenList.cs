@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -6,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,7 +18,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxToken"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
-    public partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
+    public readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
     {
         private readonly SyntaxNode _parent;
         private readonly int _index;
@@ -31,12 +34,63 @@ namespace Microsoft.CodeAnalysis
             _index = index;
         }
 
-        internal SyntaxTokenList(SyntaxToken token)
+        public SyntaxTokenList(SyntaxToken token)
         {
             _parent = token.Parent;
             Node = token.Node;
             Position = token.Position;
             _index = 0;
+        }
+
+        /// <summary>
+        /// Creates a list of tokens.
+        /// </summary>
+        /// <param name="tokens">An array of tokens.</param>
+        public SyntaxTokenList(params SyntaxToken[] tokens)
+            : this(null, CreateNode(tokens), 0, 0)
+        {
+        }
+
+        /// <summary>
+        /// Creates a list of tokens.
+        /// </summary>
+        public SyntaxTokenList(IEnumerable<SyntaxToken> tokens)
+            : this(null, CreateNode(tokens), 0, 0)
+        {
+        }
+
+        private static GreenNode CreateNode(SyntaxToken[] tokens)
+        {
+            if (tokens == null)
+            {
+                return null;
+            }
+
+            // TODO: we could remove the unnecessary builder allocations here and go directly
+            // from the array to the List nodes.
+            var builder = new SyntaxTokenListBuilder(tokens.Length);
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                builder.Add(tokens[i].Node);
+            }
+
+            return builder.ToList().Node;
+        }
+
+        private static GreenNode CreateNode(IEnumerable<SyntaxToken> tokens)
+        {
+            if (tokens == null)
+            {
+                return null;
+            }
+
+            var builder = SyntaxTokenListBuilder.Create();
+            foreach (var token in tokens)
+            {
+                builder.Add(token.Node);
+            }
+
+            return builder.ToList().Node;
         }
 
         internal GreenNode Node { get; }
@@ -379,7 +433,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(ref this);
+            return new Enumerator(in this);
         }
 
         IEnumerator<SyntaxToken> IEnumerable<SyntaxToken>.GetEnumerator()
@@ -389,7 +443,7 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
             }
 
-            return new EnumeratorImpl(ref this);
+            return new EnumeratorImpl(in this);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -399,7 +453,7 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
             }
 
-            return new EnumeratorImpl(ref this);
+            return new EnumeratorImpl(in this);
         }
 
         /// <summary>

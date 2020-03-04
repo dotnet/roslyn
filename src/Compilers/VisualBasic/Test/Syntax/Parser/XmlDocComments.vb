@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -203,9 +205,9 @@ Public Class ParseXmlDocComments
     <WorkItem(900384, "DevDiv/Personal")>
     <Fact>
     Public Sub InvalidCastExceptionWithEvent()
-        ParseAndVerify(<![CDATA[Class Foo
+        ParseAndVerify(<![CDATA[Class Goo
     ''' <summary>
-    ''' Foo
+    ''' Goo
     ''' </summary>
     Custom Event eventName As EventHandler
         AddHandler(ByVal value As EventHandler)
@@ -236,7 +238,7 @@ End Module
 Module M2
 '''</root>
 '''<!--* Missing start tag and no content -->
-Sub Foo()
+Sub Goo()
 End Sub
 End Module
 ]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
@@ -289,7 +291,7 @@ End Module]]>, VisualBasicParseOptions.Default.WithDocumentationMode(Documentati
 Sub Main()
 End Sub
 '''<doc></doc/>
-Sub Foo()
+Sub Goo()
 End Sub
 End Module
 ]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
@@ -308,7 +310,7 @@ Sub Main()
 End Sub
 End Module
 '''<?pi
-Sub Foo()
+Sub Goo()
 End Sub
 End Module
 ]]>,
@@ -322,7 +324,7 @@ Sub Main()
 End Sub
 End Module
 '''<?pi
-Sub Foo()
+Sub Goo()
 End Sub
 End Module
 ]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
@@ -339,7 +341,7 @@ End Module
     <Fact>
     Public Sub ParseDTDInXmlDoc()
         ParseAndVerify(<![CDATA[Module Module1
-    '''<!DOCTYPE Foo []>
+    '''<!DOCTYPE Goo []>
     '''<summary>
     '''</summary>
     Sub Main()
@@ -348,7 +350,7 @@ End Module
 ]]>)
 
         ParseAndVerify(<![CDATA[Module Module1
-    '''<!DOCTYPE Foo []>
+    '''<!DOCTYPE Goo []>
     '''<summary>
     '''</summary>
     Sub Main()
@@ -388,7 +390,7 @@ End Module
     <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
     <Fact()>
     Public Sub Bug16663()
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module M
@@ -401,7 +403,7 @@ End Module
     ]]></file>
 </compilation>)
         compilation.AssertNoErrors()
-        compilation = CreateCompilationWithMscorlibAndVBRuntime(
+        compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module M
@@ -414,7 +416,7 @@ End Module
     ]]></file>
 </compilation>)
         compilation.AssertNoErrors()
-        compilation = CreateCompilationWithMscorlibAndVBRuntime(
+        compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module M

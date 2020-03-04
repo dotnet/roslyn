@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -392,8 +394,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!docCommentNodes.IsDefaultOrEmpty);
 
-            bool haveWriter = _writer != null;
-
             bool processedDocComment = false; // Even if there are DocumentationCommentTriviaSyntax, we may not need to process any of them.
 
             ArrayBuilder<CSharpSyntaxNode> includeElementNodesBuilder = null;
@@ -412,13 +412,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 bool reportDiagnosticsForCurrentTrivia = trivia.SyntaxTree.ReportDocumentationCommentDiagnostics();
-
-                // If we're writing XML or we need to report diagnostics (either in this particular piece of trivia,
-                // or concerning undocumented [type] parameters), then we need to process this trivia node.
-                if (!(haveWriter || reportDiagnosticsForCurrentTrivia || reportParameterOrTypeParameterDiagnostics))
-                {
-                    continue;
-                }
 
                 if (!processedDocComment)
                 {

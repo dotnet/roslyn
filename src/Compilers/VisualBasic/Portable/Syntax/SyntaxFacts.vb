@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -90,6 +92,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case SyntaxKind.InheritsStatement, SyntaxKind.ImplementsStatement
                         Return True  ' all non-token children are types
                     Case SyntaxKind.TypeConstraint
+                        Return True ' all non-token children are types
+                    Case SyntaxKind.CrefSignaturePart
                         Return True ' all non-token children are types
                     Case SyntaxKind.Attribute
                         Return DirectCast(parent, AttributeSyntax).Name Is node
@@ -534,9 +538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return GetText(SyntaxKind.ProtectedKeyword)
 
                 Case Accessibility.ProtectedAndFriend
-                    ' NOTE: Following C# version of this method return Reflector's representation ('FamilyAndAssembly')
-                    ' TODO: revise
-                    Return "FamilyAndAssembly"
+                    Return GetText(SyntaxKind.PrivateKeyword) + " " + GetText(SyntaxKind.ProtectedKeyword)
 
                 Case Accessibility.ProtectedOrFriend
                     Return GetText(SyntaxKind.ProtectedKeyword) + " " + GetText(SyntaxKind.FriendKeyword)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -151,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (EqualConstness(x.Modifiers, y.Modifiers, out var result) &&
                 EqualStaticness(x.Modifiers, y.Modifiers, out result) &&
+                EqualReadOnlyness(x.Modifiers, y.Modifiers, out result) &&
                 EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
             {
                 if (_includeName)
@@ -316,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Protected,
             ProtectedInternal,
             Internal,
+            PrivateProtected,
             Private
         }
 
@@ -330,6 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (ContainsToken(modifiers, SyntaxKind.InternalKeyword))
                 {
                     return (int)Accessibility.ProtectedInternal;
+                }
+
+                if (ContainsToken(modifiers, SyntaxKind.PrivateKeyword))
+                {
+                    return (int)Accessibility.PrivateProtected;
                 }
 
                 return (int)Accessibility.Protected;
@@ -378,14 +387,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool EqualStaticness(SyntaxTokenList x, SyntaxTokenList y, out int comparisonResult)
-        {
-            return BothHaveModifier(x, y, SyntaxKind.StaticKeyword, out comparisonResult);
-        }
+            => BothHaveModifier(x, y, SyntaxKind.StaticKeyword, out comparisonResult);
 
         private static bool EqualConstness(SyntaxTokenList x, SyntaxTokenList y, out int comparisonResult)
-        {
-            return BothHaveModifier(x, y, SyntaxKind.ConstKeyword, out comparisonResult);
-        }
+            => BothHaveModifier(x, y, SyntaxKind.ConstKeyword, out comparisonResult);
+
+        private static bool EqualReadOnlyness(SyntaxTokenList x, SyntaxTokenList y, out int comparisonResult)
+            => BothHaveModifier(x, y, SyntaxKind.ReadOnlyKeyword, out comparisonResult);
 
         private static bool EqualAccessibility(SyntaxNode x, SyntaxTokenList xModifiers, SyntaxNode y, SyntaxTokenList yModifiers, out int comparisonResult)
         {

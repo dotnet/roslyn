@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// exactly once, otherwise it may be skipped.)
         /// </summary>
         private readonly GenerateMethodBody _generateMethodBody;
-        private TypeSymbol _lazyReturnType;
+        private TypeWithAnnotations _lazyReturnType;
         private ResultProperties _lazyResultProperties;
 
         // NOTE: This is only used for asserts, so it could be conditional on DEBUG.
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             GenerateMethodBody generateMethodBody)
         {
             Debug.Assert(sourceMethod.IsDefinition);
-            Debug.Assert(sourceMethod.ContainingSymbol == container.SubstitutedSourceType.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals((TypeSymbol)sourceMethod.ContainingSymbol, container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(sourceLocals.All(l => l.ContainingSymbol == sourceMethod));
 
             _container = container;
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (substitutedSourceHasThisParameter)
             {
                 _thisParameter = MakeParameterSymbol(0, GeneratedNames.ThisProxyFieldName(), substitutedSourceThisParameter);
-                Debug.Assert(_thisParameter.Type == this.SubstitutedSourceMethod.ContainingType);
+                Debug.Assert(TypeSymbol.Equals(_thisParameter.Type, this.SubstitutedSourceMethod.ContainingType, TypeCompareKind.ConsiderEverything2));
                 parameterBuilder.Add(_thisParameter);
             }
 
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return SynthesizedParameterSymbol.Create(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers, sourceParameter.RefCustomModifiers);
+            return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, sourceParameter.RefCustomModifiers);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -238,6 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { return true; }
+        }
+
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             throw ExceptionUtilities.Unreachable;
@@ -269,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return this.SubstitutedSourceMethod.IsVararg; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return this.SubstitutedSourceMethod.RefKind; }
         }
@@ -284,11 +290,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                if (_lazyReturnType == null)
+                if ((object)_lazyReturnType == null)
                 {
                     throw new InvalidOperationException();
                 }
@@ -296,9 +302,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
+            get { return GetTypeParametersAsTypeArguments(); }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -314,11 +326,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -409,6 +416,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal override bool IsDeclaredReadOnly => false;
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { throw ExceptionUtilities.Unreachable; }
@@ -425,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var body = _generateMethodBody(this, diagnostics, out declaredLocalsArray, out _lazyResultProperties);
             var compilation = compilationState.Compilation;
 
-            _lazyReturnType = CalculateReturnType(compilation, body);
+            _lazyReturnType = TypeWithAnnotations.Create(CalculateReturnType(compilation, body));
 
             // Can't do this until the return type has been computed.
             TypeParameterChecker.Check(this, _allTypeParameters);
@@ -600,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
                         var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
 
-                        body = LambdaRewriter.Rewrite(
+                        body = ClosureConversion.Rewrite(
                             loweredBody: body,
                             thisType: this.SubstitutedSourceMethod.ContainingType,
                             thisParameter: _thisParameter,
@@ -635,8 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
                 foreach (var local in block.Locals)
                 {
-                    var oldLocal = local as EELocalSymbol;
-                    if (oldLocal != null)
+                    if (local is EELocalSymbol oldLocal)
                     {
                         Debug.Assert(localBuilder[oldLocal.Ordinal] == oldLocal);
                         continue;
@@ -663,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             if ((object)_thisParameter != null)
             {
-                var typeNameKind = GeneratedNames.GetKind(_thisParameter.Type.Name);
+                var typeNameKind = GeneratedNames.GetKind(_thisParameter.TypeWithAnnotations.Type.Name);
                 if (typeNameKind != GeneratedNameKind.None && typeNameKind != GeneratedNameKind.AnonymousType)
                 {
                     Debug.Assert(typeNameKind == GeneratedNameKind.LambdaDisplayClass ||
@@ -694,24 +702,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return compilation.GetSpecialType(SpecialType.System_Void);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(bodyOpt.Kind);
-            }
-        }
-
-        internal override void AddSynthesizedReturnTypeAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedReturnTypeAttributes(ref attributes);
-
-            var compilation = this.DeclaringCompilation;
-            var returnType = this.ReturnType;
-
-            if (returnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType, ReturnTypeCustomModifiers.Length + RefCustomModifiers.Length, RefKind));
-            }
-
-            if (returnType.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(returnType));
             }
         }
 

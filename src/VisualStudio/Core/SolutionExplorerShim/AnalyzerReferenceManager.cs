@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -22,10 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private IVsReferenceManager _referenceManager;
 
         [Import]
-        private AnalyzerItemsTracker _tracker = null;
+        private readonly AnalyzerItemsTracker _tracker = null;
 
         [ImportingConstructor]
-        internal AnalyzerReferenceManager(
+        public AnalyzerReferenceManager(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
@@ -36,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// </summary>
         public void ShowDialog()
         {
-            IVsReferenceManager referenceManager = GetReferenceManager();
+            var referenceManager = GetReferenceManager();
             if (referenceManager != null &&
                 _tracker.SelectedHierarchy != null)
             {
@@ -60,9 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             Debug.Assert(_tracker.SelectedHierarchy != null);
             if (_tracker.SelectedHierarchy.TryGetProject(out var project))
             {
-                var vsproject = project.Object as VSProject3;
 
-                if (vsproject != null)
+                if (project.Object is VSProject3 vsproject)
                 {
                     foreach (IVsReference reference in changedContext.References)
                     {

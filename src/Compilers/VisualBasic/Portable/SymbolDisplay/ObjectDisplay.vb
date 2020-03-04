@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Reflection
@@ -6,12 +8,12 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
-#Disable Warning RS0010
+#Disable Warning CA1200 ' Avoid using cref tags with a prefix
     ''' <summary>
     ''' Displays a value in the VisualBasic style.
     ''' </summary>
     ''' <seealso cref="T:Microsoft.CodeAnalysis.CSharp.Symbols.ObjectDisplay"/>
-#Enable Warning RS0010
+#Enable Warning CA1200 ' Avoid using cref tags with a prefix
     Friend Module ObjectDisplay
 
         Private Const s_nullChar As Char = ChrW(0)
@@ -382,6 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Dim wellKnown As String
                 Dim shouldEscape As Boolean
                 Dim isCrLf As Boolean
+                Dim copyPair = False
 
                 If Not escapeNonPrintable Then
                     wellKnown = Nothing
@@ -392,6 +395,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                     shouldEscape = True
                     isCrLf = True
                     i += 1
+                ElseIf CharUnicodeInfo.GetUnicodeCategory(c) = UnicodeCategory.Surrogate AndAlso IsPrintable(CharUnicodeInfo.GetUnicodeCategory(str, i - 1)) Then
+                    ' copy properly paired surrogates directly into the resulting output
+                    wellKnown = Nothing
+                    shouldEscape = False
+                    isCrLf = False
+                    copyPair = True
                 Else
                     wellKnown = GetWellKnownCharacterName(c)
                     shouldEscape = wellKnown IsNot Nothing OrElse Not IsPrintable(c)
@@ -462,6 +471,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                         Yield Quotes()
                     Else
                         Yield Character(c)
+                        If copyPair Then
+                            ' copy the second character of a Unicode surrogate pair
+                            c = str(i)
+                            i += 1
+                            Yield Character(c)
+                        End If
                     End If
                 End If
             End While
@@ -472,8 +487,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         End Function
 
         Friend Function IsPrintable(c As Char) As Boolean
-            Dim category = CharUnicodeInfo.GetUnicodeCategory(c)
-            Return category <> UnicodeCategory.OtherNotAssigned AndAlso category <> UnicodeCategory.ParagraphSeparator AndAlso category <> UnicodeCategory.Control
+            Return IsPrintable(CharUnicodeInfo.GetUnicodeCategory(c))
+        End Function
+
+        Private Function IsPrintable(category As UnicodeCategory) As Boolean
+            Select Case category
+                Case UnicodeCategory.OtherNotAssigned,
+                     UnicodeCategory.ParagraphSeparator,
+                     UnicodeCategory.Control,
+                     UnicodeCategory.LineSeparator,
+                     UnicodeCategory.Surrogate
+                    Return False
+                Case Else
+                    Return True
+            End Select
         End Function
 
         Friend Function GetWellKnownCharacterName(c As Char) As String

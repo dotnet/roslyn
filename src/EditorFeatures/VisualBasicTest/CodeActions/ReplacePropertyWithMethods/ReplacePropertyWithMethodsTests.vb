@@ -28,6 +28,44 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestGetWithBodyLineContinuation() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    readonly property [||]Prop as integer
+        get 
+            return _
+                0
+        end get
+    end property
+end class",
+"class C
+    Public Function GetProp() As Integer
+        return _
+0
+    End Function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestGetWithBodyCommentsAfterLineContinuation() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    readonly property [||]Prop as integer
+        get 
+            return _ ' Test
+                0
+        end get
+    end property
+end class",
+"class C
+    Public Function GetProp() As Integer
+        return _ ' Test
+0
+    End Function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestIndentation() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -49,7 +87,7 @@ end class",
         next
         return count
     End Function
-end class", ignoreTrivia:=False)
+end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
@@ -86,8 +124,9 @@ end class",
     Public Function GetProp() As Integer
         return 0
     End Function
+
     public sub M()
-        dim v = new with { .P = me.GetProp() }
+        dim v = new with { .P = me.GetProp()}
     end sub
 end class")
         End Function
@@ -109,8 +148,10 @@ end class",
     Public Function GetProp() As Integer
         return 0
     End Function
+
     public sub M()
-        dim v = new with { .Prop = me.GetProp() }
+        dim v = new with {
+        .Prop = me.GetProp()}
     end sub
 end class")
         End Function
@@ -134,6 +175,7 @@ end class",
     Public Function GetProp() As Integer
         return 0
     End Function
+
     public sub RefM(byref i as integer)
     end sub
     public sub M()
@@ -175,7 +217,8 @@ end class
 
 <C({|Conflict:Prop|}:=1)>
 class D
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
@@ -229,9 +272,10 @@ end class",
     Public Sub SetProp(val As Integer)
         dim v = val
     End Sub
-    sub M() 
-        me.SetProp(1)
-    end sub
+
+    sub M()
+        me.SetProp(1
+) end sub
 end class")
         End Function
 
@@ -252,6 +296,7 @@ end class",
     Public Function GetProp() As Integer
         return 0
     End Function
+
     Public Sub SetProp(Value As Integer)
         dim v = value
     End Sub
@@ -287,7 +332,8 @@ end class")
 end class",
 "class C
     Public Sub SetProp(Value As Integer)
-        me.SetProp(value + 1)
+        me.SetProp(value + 1
+)
     End Sub
 end class")
         End Function
@@ -303,6 +349,7 @@ end class")
 end class",
 "class C
     Public MustOverride Function GetProp() As Integer
+
     public sub M()
         dim v = me.GetProp()
     end sub
@@ -327,6 +374,7 @@ end class",
     Public Overridable Function GetProp() As Integer
         return 0
     End Function
+
     public sub M()
         dim v = me.GetProp()
     end sub
@@ -375,6 +423,7 @@ end interface")
 end class",
 "class C
     Private _Prop As Integer
+
     Public Function GetProp() As Integer
         Return _Prop
     End Function
@@ -392,9 +441,11 @@ end class")
 end class",
 "class C
     Private _Prop As Integer
+
     Public Function GetProp() As Integer
         Return _Prop
     End Function
+
     public sub new()
         me._Prop = 1
     end sub
@@ -436,7 +487,7 @@ End Interface",
     '''     An that provides access to the language service for the active configured project.
     ''' </returns>
     Function GetActiveProjectContext() As Object
-End Interface", ignoreTrivia:=False)
+End Interface")
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
@@ -460,7 +511,7 @@ End Interface",
     '''     An that provides access to the language service for the active configured project.
     ''' </param>
     Sub SetActiveProjectContext(Value As Object)
-End Interface", ignoreTrivia:=False)
+End Interface")
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
@@ -491,7 +542,7 @@ End Interface",
     '''     An that provides access to the language service for the active configured project.
     ''' </param>
     Sub SetActiveProjectContext(Value As Object)
-End Interface", ignoreTrivia:=False)
+End Interface")
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
@@ -519,7 +570,7 @@ End Interface
 Structure AStruct
     ''' <seealso cref=""ILanguageServiceHost.SetActiveProjectContext(Object)""/>
     Private X As Integer
-End Structure", ignoreTrivia:=False)
+End Structure")
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
@@ -552,7 +603,7 @@ End Interface
 Structure AStruct
     ''' <seealso cref=""ILanguageServiceHost.GetActiveProjectContext()""/>
     Private X As Integer
-End Structure", ignoreTrivia:=False)
+End Structure")
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
@@ -574,38 +625,38 @@ End Interface
 Structure AStruct
     ''' <seealso cref=""ISomeInterface(Of T).SetContext(ISomeInterface(Of T))""/>
     Private X As Integer
-End Structure", ignoreTrivia:=False)
+End Structure")
         End Function
 
         <WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestInterfaceReplacement1() As Task
             Await TestInRegularAndScriptAsync(
-"Interface IFoo
-    Property [||]Foo As Integer
+"Interface IGoo
+    Property [||]Goo As Integer
 End Interface
 
 Class C
-    Implements IFoo
+    Implements IGoo
 
-    Public Property Foo As Integer Implements IFoo.Foo
+    Public Property Goo As Integer Implements IGoo.Goo
 End Class",
-"Interface IFoo
-    Function GetFoo() As Integer
-    Sub SetFoo(Value As Integer)
+"Interface IGoo
+    Function GetGoo() As Integer
+    Sub SetGoo(Value As Integer)
 End Interface
 
 Class C
-    Implements IFoo
+    Implements IGoo
 
-    Private _Foo As Integer
+    Private _Goo As Integer
 
-    Public Function GetFoo() As Integer Implements IFoo.GetFoo
-        Return _Foo
+    Public Function GetGoo() As Integer Implements IGoo.GetGoo
+        Return _Goo
     End Function
 
-    Public Sub SetFoo(AutoPropertyValue As Integer) Implements IFoo.SetFoo
-        _Foo = AutoPropertyValue
+    Public Sub SetGoo(AutoPropertyValue As Integer) Implements IGoo.SetGoo
+        _Goo = AutoPropertyValue
     End Sub
 End Class")
         End Function

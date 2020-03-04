@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Linq;
@@ -22,15 +24,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             private State(SemanticDocument document)
             {
-                this.SemanticDocument = document;
+                SemanticDocument = document;
             }
 
             internal static State Generate(
-                SemanticDocument document, TextSpan textSpan, 
-                TTypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
+                SemanticDocument document, TTypeDeclarationSyntax typeDeclaration,
+                CancellationToken cancellationToken)
             {
                 var state = new State(document);
-                if (!state.TryInitialize(textSpan, typeDeclaration, cancellationToken))
+                if (!state.TryInitialize(typeDeclaration, cancellationToken))
                 {
                     return null;
                 }
@@ -39,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             private bool TryInitialize(
-                TextSpan textSpan,
                 TTypeDeclarationSyntax typeDeclaration,
                 CancellationToken cancellationToken)
             {
@@ -48,33 +49,27 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     return false;
                 }
 
-                var tree = this.SemanticDocument.SyntaxTree;
-                var root = this.SemanticDocument.Root;
-                var syntaxFacts = this.SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                var tree = SemanticDocument.SyntaxTree;
+                var root = SemanticDocument.Root;
+                var syntaxFacts = SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
 
-                var typeSymbol = this.SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
 
                 // compiler declared types, anonymous types, types defined in metadata should be filtered out.
-                if (typeSymbol == null ||
+                if (!(SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is INamedTypeSymbol typeSymbol) ||
                     typeSymbol.Locations.Any(loc => loc.IsInMetadata) ||
                     typeSymbol.IsAnonymousType ||
-                    typeSymbol.IsImplicitlyDeclared)
+                    typeSymbol.IsImplicitlyDeclared ||
+                    typeSymbol.Name == string.Empty)
                 {
                     return false;
                 }
 
                 TypeNode = typeDeclaration;
                 TypeName = typeSymbol.Name;
-                DocumentNameWithoutExtension = Path.GetFileNameWithoutExtension(this.SemanticDocument.Document.Name);
+                DocumentNameWithoutExtension = Path.GetFileNameWithoutExtension(SemanticDocument.Document.Name);
                 IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentNameWithoutExtension);
 
-                // if type name matches document name, per style conventions, we have nothing to do.
-                return !TypeMatchesDocumentName(
-                    TypeNode,
-                    TypeName,
-                    DocumentNameWithoutExtension,
-                    SemanticDocument.SemanticModel,
-                    cancellationToken);
+                return true;
             }
         }
     }

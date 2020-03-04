@@ -1,7 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -13,10 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         where TTag : ITag
     {
         public AbstractDiagnosticsAdornmentTaggerProvider(
+            IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
-            : base(diagnosticService, notificationService, new AggregateAsynchronousOperationListener(listeners, FeatureAttribute.ErrorSquiggles))
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
         {
         }
 

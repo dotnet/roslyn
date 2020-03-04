@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -18,11 +20,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         [ExportWorkspaceService(typeof(ISolutionCrawlerService), ServiceLayer.Default), Shared]
         internal class SolutionCrawlerService : ISolutionCrawlerService
         {
+            [ImportingConstructor]
+            public SolutionCrawlerService()
+            {
+            }
+
             public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
             {
                 // if solution crawler doesn't exist for the given workspace. don't do anything
-                var registration = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
-                if (registration != null)
+                if (workspace.Services.GetService<ISolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)
                 {
                     registration.Reanalyze(workspace, analyzer, projectIds, documentIds, highPriority);
                 }
@@ -31,8 +37,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public ISolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace)
             {
                 // if solution crawler doesn't exist for the given workspace, return null reporter
-                var registration = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
-                if (registration != null)
+                if (workspace.Services.GetService<ISolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)
                 {
                     // currently we have only 1 global reporter that are shared by all workspaces.
                     return registration._progressReporter;

@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttributes;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -17,17 +21,25 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task<ImmutableArray<DesignerAttributeDocumentData>> ScanDesignerAttributesAsync(ProjectId projectId)
+        public Task<DesignerAttributeResult> ScanDesignerAttributesAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, projectId.DebugName, CancellationToken))
+            return RunServiceAsync(async () =>
             {
-                var solution = await GetSolutionAsync().ConfigureAwait(false);
-                var project = solution.GetProject(projectId);
-                var data = await AbstractDesignerAttributeService.TryAnalyzeProjectInCurrentProcessAsync(
-                    project, CancellationToken).ConfigureAwait(false);
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, documentId.DebugName, cancellationToken))
+                {
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                    var document = solution.GetDocument(documentId);
 
-                return data.Values.ToImmutableArray();
-            }
+                    var service = document.GetLanguageService<IDesignerAttributeService>();
+                    if (service != null)
+                    {
+                        // todo comment service supported
+                        return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, applicable: false);
+                }
+            }, cancellationToken);
         }
     }
 }

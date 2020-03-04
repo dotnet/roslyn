@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Reflection
@@ -12,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         Inherits VisualBasicCompiler
 
         Friend Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), analyzerLoader As IAnalyzerAssemblyLoader)
-            MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, buildPaths, Nothing, analyzerLoader)
+            MyBase.New(VisualBasicCommandLineParser.Script, responseFile, args, buildPaths, Nothing, analyzerLoader)
         End Sub
 
         Friend Overrides Function GetCommandLineMetadataReferenceResolver(loggerOpt As TouchedFileLogger) As MetadataReferenceResolver
@@ -25,12 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
             End Get
         End Property
 
-        Friend Overrides Function GetAssemblyFileVersion() As String
-            Return Type.GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version
-        End Function
-
         Public Overrides Sub PrintLogo(consoleOutput As TextWriter)
-            consoleOutput.WriteLine(VBScriptingResources.LogoLine1, GetAssemblyFileVersion())
+            consoleOutput.WriteLine(VBScriptingResources.LogoLine1, GetCompilerVersion())
             consoleOutput.WriteLine(VBScriptingResources.LogoLine2)
             consoleOutput.WriteLine()
         End Sub

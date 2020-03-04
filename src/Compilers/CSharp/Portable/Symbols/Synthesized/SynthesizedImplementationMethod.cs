@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
             typeMap.WithAlphaRename(interfaceMethod, this, out _typeParameters);
 
-            _interfaceMethod = interfaceMethod.ConstructIfGeneric(_typeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
+            _interfaceMethod = interfaceMethod.ConstructIfGeneric(TypeArgumentsWithAnnotations);
             _parameters = SynthesizedParameterSymbol.DeriveParameters(_interfaceMethod, this);
         }
 
@@ -68,36 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _interfaceMethod.CallingConvention; }
         }
 
-        public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return _interfaceMethod.ReturnTypeCustomModifiers; }
-        }
-
         public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _interfaceMethod.RefCustomModifiers; }
         }
 
         #endregion
-
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
-
-            var compilation = this.DeclaringCompilation;
-            if (this.ReturnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
-            }
-
-            if (ReturnType.ContainsTupleNames() &&
-                compilation.HasTupleNamesAttributes &&
-                compilation.CanEmitSpecialType(SpecialType.System_String))
-            {
-                AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(ReturnType));
-            }
-        }
 
         internal sealed override bool GenerateDebugInfo
         {
@@ -109,20 +86,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public sealed override ImmutableArray<TypeSymbol> TypeArguments
+        public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
+            get { return GetTypeParametersAsTypeArguments(); }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _interfaceMethod.RefKind; }
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return _interfaceMethod.ReturnType; }
+            get { return _interfaceMethod.ReturnTypeWithAnnotations; }
         }
+
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {

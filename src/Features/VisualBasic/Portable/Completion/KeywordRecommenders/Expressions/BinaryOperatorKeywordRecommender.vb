@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -61,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             End If
 
             ' Don't show binary operator keywords in an incomplete Using block
-            ' Using foo |
+            ' Using goo |
             Dim usingStatement = token.GetAncestor(Of UsingStatementSyntax)()
             If usingStatement IsNot Nothing AndAlso usingStatement.Expression IsNot Nothing AndAlso Not usingStatement.Expression.IsMissing Then
                 If usingStatement.Expression Is token.Parent Then

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
@@ -50,10 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal("C1_T", C1_T.Name)
             Assert.Equal("C1_T", C1_T.ToTestDisplayString())
             Assert.Equal(0, C1_T.GetMembers().Length())
-            Assert.Equal(0, C1_T.GetMembers("foo").Length())
+            Assert.Equal(0, C1_T.GetMembers("goo").Length())
             Assert.Equal(0, C1_T.GetTypeMembers().Length())
-            Assert.Equal(0, C1_T.GetTypeMembers("foo").Length())
-            Assert.Equal(0, C1_T.GetTypeMembers("foo", 1).Length())
+            Assert.Equal(0, C1_T.GetTypeMembers("goo").Length())
+            Assert.Equal(0, C1_T.GetTypeMembers("goo", 1).Length())
             Assert.False(C1_T.HasConstructorConstraint)
             Assert.False(C1_T.HasReferenceTypeConstraint)
             Assert.False(C1_T.HasValueTypeConstraint)

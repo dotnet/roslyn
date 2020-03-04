@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -39,7 +41,7 @@ class C
     System.Collections.Generic.Dictionary<long, int> g2;
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -122,7 +124,7 @@ class C<T, U>
     U tp2;
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -193,7 +195,7 @@ class C<T>
     T[,] g3;
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -235,7 +237,7 @@ class D<T>
 {
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -286,7 +288,7 @@ public class L<T>
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -323,7 +325,7 @@ class C<T>
     C<T> containing;
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -356,7 +358,7 @@ public class L<T>
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -407,9 +409,9 @@ public class L<T>
 interface IB<T, U> : IA<U, object>, IA<T, U>
 {
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var type = comp.GetMember<NamedTypeSymbol>("IB");
-            AssertCanUnify(type.Interfaces[0], type.Interfaces[1]);
+            AssertCanUnify(type.Interfaces()[0], type.Interfaces()[1]);
             DiagnosticsUtils.VerifyErrorCodes(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 4, Column = 11 });
         }

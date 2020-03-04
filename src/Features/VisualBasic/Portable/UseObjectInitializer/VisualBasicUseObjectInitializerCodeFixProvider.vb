@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -18,6 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             MemberAccessExpressionSyntax,
             AssignmentStatementSyntax,
             VariableDeclaratorSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function GetNewStatement(
                 statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,
@@ -60,14 +66,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 Dim match = matches(i)
 
                 Dim rightValue = match.Initializer
-                If i < matches.Count - 1 Then
+                If i < matches.Length - 1 Then
                     rightValue = rightValue.WithoutTrailingTrivia()
                 End If
 
                 Dim initializer = SyntaxFactory.NamedFieldInitializer(
                     keyKeyword:=Nothing,
                     dotToken:=match.MemberAccessExpression.OperatorToken,
-                    name:=DirectCast(match.MemberAccessExpression.Name, IdentifierNameSyntax),
+                    name:=SyntaxFactory.IdentifierName(match.MemberName),
                     equalsToken:=match.Statement.OperatorToken,
                     expression:=rightValue).WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
 

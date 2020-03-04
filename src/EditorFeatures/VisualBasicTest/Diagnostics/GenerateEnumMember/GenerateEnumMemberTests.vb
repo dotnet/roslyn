@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -18,14 +20,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Red|])
+        Goo([|Color.Red|])
     End Sub
 End Module
 Enum Color
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Red)
+        Goo(Color.Red)
     End Sub
 End Module
 Enum Color
@@ -38,7 +40,7 @@ End Enum")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Green|])
+        Goo([|Color.Green|])
     End Sub
 End Module
 Enum Color
@@ -46,7 +48,7 @@ Enum Color
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Green)
+        Goo(Color.Green)
     End Sub
 End Module
 Enum Color
@@ -60,7 +62,7 @@ End Enum")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Green|])
+        Goo([|Color.Green|])
     End Sub
 End Module
 Enum Color
@@ -68,7 +70,7 @@ Enum Color
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Green)
+        Goo(Color.Green)
     End Sub
 End Module
 Enum Color
@@ -82,7 +84,7 @@ End Enum")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Green|])
+        Goo([|Color.Green|])
     End Sub
 End Module
 Enum Color
@@ -90,7 +92,7 @@ Enum Color
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Green)
+        Goo(Color.Green)
     End Sub
 End Module
 Enum Color
@@ -104,7 +106,7 @@ End Enum")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Blue|])
+        Goo([|Color.Blue|])
     End Sub
 End Module
 Enum Color
@@ -113,7 +115,7 @@ Enum Color
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Blue)
+        Goo(Color.Blue)
     End Sub
 End Module
 Enum Color
@@ -128,7 +130,7 @@ End Enum")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Purple|])
+        Goo([|Color.Purple|])
     End Sub
 End Module
 Enum Color
@@ -138,7 +140,7 @@ Enum Color
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Purple)
+        Goo(Color.Purple)
     End Sub
 End Module
 Enum Color
@@ -155,7 +157,7 @@ End Enum")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Blue|])
+        Goo([|Color.Blue|])
     End Sub
 End Module
 Enum Color
@@ -164,7 +166,7 @@ Enum Color
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Blue)
+        Goo(Color.Blue)
     End Sub
 End Module
 Enum Color
@@ -202,7 +204,7 @@ End Enum")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Blue|])
+        Goo([|Color.Blue|])
     End Sub
 End Module
 Enum Color As Long
@@ -210,7 +212,7 @@ Enum Color As Long
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Blue)
+        Goo(Color.Blue)
     End Sub
 End Module
 Enum Color As Long
@@ -504,7 +506,7 @@ End Enum")
         Public Async Function TestNoExtraneousStatementTerminatorBeforeCommentedMember() As Task
             Dim code = <Text>Module Program
     Sub Main(args As String())
-        Foo([|Color.Blue|])
+        Goo([|Color.Blue|])
     End Sub
 End Module
 
@@ -515,7 +517,7 @@ End Enum</Text>.Value.Replace(vbLf, vbCrLf)
 
             Dim expected = <Text>Module Program
     Sub Main(args As String())
-        Foo(Color.Blue)
+        Goo(Color.Blue)
     End Sub
 End Module
 
@@ -526,8 +528,7 @@ Enum Color
 End Enum</Text>.Value.Replace(vbLf, vbCrLf)
 
             Await TestInRegularAndScriptAsync(code,
-                    expected,
-                    ignoreTrivia:=False)
+                    expected)
         End Function
 
         <WorkItem(540552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540552")>
@@ -536,7 +537,7 @@ End Enum</Text>.Value.Replace(vbLf, vbCrLf)
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Blue|])
+        Goo([|Color.Blue|])
     End Sub
 End Module
 Enum Color
@@ -544,7 +545,7 @@ Enum Color
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Blue)
+        Goo(Color.Blue)
     End Sub
 End Module
 Enum Color
@@ -559,7 +560,7 @@ End Enum")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Blue|])
+        Goo([|Color.Blue|])
     End Sub
 End Module
 Enum Color
@@ -567,7 +568,7 @@ Enum Color
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Blue)
+        Goo(Color.Blue)
     End Sub
 End Module
 Enum Color
@@ -582,7 +583,7 @@ End Enum")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Blue|])
+        Goo([|Color.Blue|])
     End Sub
 End Module
 Enum Color As Byte
@@ -590,7 +591,7 @@ Enum Color As Byte
 End Enum",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Blue)
+        Goo(Color.Blue)
     End Sub
 End Module
 Enum Color As Byte
@@ -695,7 +696,7 @@ End Enum")
 "Imports Color
 Module Program
     Sub Main(args As String())
-        Foo([|Blue|])
+        Goo([|Blue|])
     End Sub
 End Module
 Enum Color As Byte
@@ -709,7 +710,7 @@ End Enum")
 "Imports Color
 Module Program
     Sub Main(args As String())
-        Foo([|Color.Green|])
+        Goo([|Color.Green|])
     End Sub
 End Module
 Enum Color As Long
@@ -718,7 +719,7 @@ End Enum",
 "Imports Color
 Module Program
     Sub Main(args As String())
-        Foo(Color.Green)
+        Goo(Color.Green)
     End Sub
 End Module
 Enum Color As Long
@@ -733,7 +734,7 @@ End Enum")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Color.Blue|])
+        Goo([|Color.Blue|])
     End Sub
     Enum Color
         Red = 1 << 0
@@ -743,7 +744,7 @@ End Enum")
 End Module",
 "Module Program
     Sub Main(args As String())
-        Foo(Color.Blue)
+        Goo(Color.Blue)
     End Sub
     Enum Color
         Red = 1 << 0
@@ -761,7 +762,7 @@ End Module")
 "Imports Color
 Module Program
     Sub Main(args As String())
-        Foo([|Color.Enum|])
+        Goo([|Color.Enum|])
     End Sub
 End Module
 Enum Color As Byte
@@ -770,7 +771,7 @@ End Enum",
 "Imports Color
 Module Program
     Sub Main(args As String())
-        Foo(Color.Enum)
+        Goo(Color.Enum)
     End Sub
 End Module
 Enum Color As Byte
@@ -1163,6 +1164,7 @@ End Enum",
         Color.Blue
     End Sub
 End Class
+
 Enum Color As Long
     Red = &H8000000000000000
     Blue = &H8000000000000001
@@ -1272,7 +1274,7 @@ Enum E
 End Enum
 #ExternalSource (""Default.aspx"", 2) 
 Class C
-    Sub Foo()
+    Sub Goo()
         Console.Write([|E.x|])
     End Sub
 End Class
@@ -1292,7 +1294,7 @@ Enum E
 End Enum
 #ExternalSource (""Default.aspx"", 2) 
 Class C
-    Sub Foo()
+    Sub Goo()
         Console.Write([|E.x|])
     End Sub
 End Class

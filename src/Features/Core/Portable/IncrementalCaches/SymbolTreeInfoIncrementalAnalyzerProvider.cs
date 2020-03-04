@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -12,7 +14,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -38,7 +39,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
-        private struct MetadataInfo
+        [ImportingConstructor]
+        public SymbolTreeInfoIncrementalAnalyzerProvider()
+        {
+        }
+
+        private readonly struct MetadataInfo
         {
             /// <summary>
             /// Can't be null.  Even if we weren't able to read in metadata, we'll still create an empty
@@ -82,7 +88,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             // If we hear about low memory conditions, flush our caches.  This will degrade the 
             // experience a bit (as we will no longer offer to Add-Using for p2p refs/metadata),
             // but will be better than OOM'ing.  These caches will be regenerated in the future
-            // when the incremental analyzer reanalyzers the projects in teh workspace.
+            // when the incremental analyzer reanalyzers the projects in the workspace.
             _projectToInfo.Clear();
             _metadataPathToInfo.Clear();
         }
@@ -157,47 +163,55 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                if (!document.SupportsSyntaxTree)
+                if (!SupportAnalysis(document.Project))
                 {
-                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
+                    return;
                 }
 
                 if (bodyOpt != null)
                 {
-                    // This was a method level edit.  This can't change the symbol tree info
-                    // for this project.  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
+                    // This was a method body edit.  We can reuse the existing SymbolTreeInfo if
+                    // we have one.  We can't just bail out here as the change in the document means
+                    // we'll have a new checksum.  We need to get that new checksum so that our
+                    // cached information is valid.
+                    if (_projectToInfo.TryGetValue(document.Project.Id, out var cachedInfo))
+                    {
+                        var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
+                            document.Project, cancellationToken).ConfigureAwait(false);
+
+                        var newInfo = cachedInfo.WithChecksum(checksum);
+                        _projectToInfo[document.Project.Id] = newInfo;
+                        return;
+                    }
                 }
 
-                return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
+                await UpdateSymbolTreeInfoAsync(document.Project, cancellationToken).ConfigureAwait(false);
             }
 
             public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
+                if (!SupportAnalysis(project))
+                {
+                    return Task.CompletedTask;
+                }
+
                 return UpdateSymbolTreeInfoAsync(project, cancellationToken);
             }
 
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
-                if (!project.SupportsCompilation)
-                {
-                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return;
-                }
-
-                if (!RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace))
-                {
-                    return;
-                }
+                Debug.Assert(SupportAnalysis(project));
 
                 // Produce the indices for the source and metadata symbols in parallel.
-                var projectTask = UpdateSourceSymbolTreeInfoAsync(project, cancellationToken);
-                var referencesTask = UpdateReferencesAync(project, cancellationToken);
+                var tasks = new List<Task>
+                {
+                    InvokeAsync(project, (self, project, _, cancellationToken) => self.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), null, cancellationToken),
+                    InvokeAsync(project, (self, project, _, cancellationToken) => self.UpdateReferencesAsync(project, cancellationToken), null, cancellationToken)
+                };
 
-                await Task.WhenAll(projectTask, referencesTask).ConfigureAwait(false);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
@@ -214,16 +228,35 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
-                    _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
+                    _projectToInfo[project.Id] = projectInfo;
                 }
             }
 
-            private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36158", AllowCaptures = false, Constraint = "Avoid captures to reduce GC pressure when running in the host workspace.")]
+            private Task InvokeAsync(Project project, Func<IncrementalAnalyzer, Project, PortableExecutableReference, CancellationToken, Task> func, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
-                // Process all metadata references in parallel.
-                var tasks = project.MetadataReferences.OfType<PortableExecutableReference>()
-                                   .Select(r => UpdateReferenceAsync(project, r, cancellationToken))
-                                   .ToArray();
+                var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
+                return isRemoteWorkspace
+                    ? GetNewTask(this, func, project, reference, cancellationToken)
+                    : func(this, project, reference, cancellationToken);
+
+                static Task GetNewTask(IncrementalAnalyzer self, Func<IncrementalAnalyzer, Project, PortableExecutableReference, CancellationToken, Task> func, Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
+                {
+                    return Task.Run(() => func(self, project, reference, cancellationToken), cancellationToken);
+                }
+            }
+
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36158", AllowCaptures = false)]
+            private Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
+            {
+                // Process all metadata references. If it remote workspace, do this in parallel.
+                var tasks = new List<Task>();
+
+                foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                {
+                    tasks.Add(
+                        InvokeAsync(project, (self, project, reference, cancellationToken) => self.UpdateReferenceAsync(project, reference, cancellationToken), reference, cancellationToken));
+                }
 
                 return Task.WhenAll(tasks);
             }
@@ -251,7 +284,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     // We still want to cache that result so that don't try to continuously produce
                     // this info over and over again.
                     metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
-                    _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
+                    _metadataPathToInfo[key] = metadataInfo;
                 }
 
                 // Keep track that this dll is referenced by this project.
@@ -278,6 +311,17 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         }
                     }
                 }
+            }
+
+            private bool SupportAnalysis(Project project)
+            {
+                if (!project.SupportsCompilation)
+                {
+                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
+                    return false;
+                }
+
+                return RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace);
             }
         }
     }

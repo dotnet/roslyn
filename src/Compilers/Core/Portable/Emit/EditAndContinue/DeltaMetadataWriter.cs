@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -134,8 +137,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal EmitBaseline GetDelta(EmitBaseline baseline, Compilation compilation, Guid encId, MetadataSizes metadataSizes)
         {
-            var moduleBuilder = (CommonPEModuleBuilder)this.module;
-
             var addedOrChangedMethodsByIndex = new Dictionary<int, AddedOrChangedMethodInfo>();
             foreach (var pair in _addedOrChangedMethods)
             {
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             var previousTableSizes = _previousGeneration.TableEntriesAdded;
-            var deltaTableSizes = this.GetDeltaTableSizes(metadataSizes.RowCounts);
+            var deltaTableSizes = GetDeltaTableSizes(metadataSizes.RowCounts);
             var tableSizes = new int[MetadataTokens.TableCount];
 
             for (int i = 0; i < tableSizes.Length; i++)
@@ -153,11 +154,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // If the previous generation is 0 (metadata) get the synthesized members from the current compilation's builder,
             // otherwise members from the current compilation have already been merged into the baseline.
-            var synthesizedMembers = (baseline.Ordinal == 0) ? moduleBuilder.GetSynthesizedMembers() : baseline.SynthesizedMembers;
+            var synthesizedMembers = (baseline.Ordinal == 0) ? module.GetAllSynthesizedMembers() : baseline.SynthesizedMembers;
 
             return baseline.With(
                 compilation,
-                moduleBuilder,
+                module,
                 baseline.Ordinal + 1,
                 encId,
                 typesAdded: AddRange(_previousGeneration.TypesAdded, _typeDefs.GetAdded()),
@@ -177,10 +178,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 userStringStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.UserString) + _previousGeneration.UserStringStreamLengthAdded,
                 // Guid stream accumulates on the GUID heap unlike other heaps, so the previous generations are already included.
                 guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
-                anonymousTypeMap: ((IPEDeltaAssemblyBuilder)moduleBuilder).GetAnonymousTypeMap(),
+                anonymousTypeMap: ((IPEDeltaAssemblyBuilder)module).GetAnonymousTypeMap(),
                 synthesizedMembers: synthesizedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex, replace: true),
-                debugInformationProvider: baseline.DebugInformationProvider);
+                debugInformationProvider: baseline.DebugInformationProvider,
+                localSignatureProvider: baseline.LocalSignatureProvider);
         }
 
         private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, bool replace = false)
@@ -402,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
 
-        protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
+        protected override bool TryGetTypeReferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
             int index;
             bool result = _typeRefIndex.TryGetValue(reference, out index);
@@ -438,11 +440,6 @@ namespace Microsoft.CodeAnalysis.Emit
         protected override IReadOnlyList<BlobHandle> GetStandaloneSignatureBlobHandles()
         {
             return _standAloneSignatureIndex.Rows;
-        }
-
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module)
-        {
-            return _changes.GetTopLevelTypes(this.Context);
         }
 
         protected override void OnIndicesCreated()
@@ -511,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     foreach (var paramDef in this.GetParametersToEmit(methodDef))
                     {
                         _parameterDefs.Add(paramDef);
-                        _parameterDefList.Add(KeyValuePair.Create(methodDef, paramDef));
+                        _parameterDefList.Add(KeyValuePairUtil.Create(methodDef, paramDef));
                     }
 
                     if (methodDef.GenericParameterCount > 0)
@@ -607,18 +604,18 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var typeRef in GetTypeRefs())
             {
-                ReportReferencesToAddedSymbol(typeRef as ISymbol);
+                ReportReferencesToAddedSymbol(typeRef as ISymbolInternal);
             }
 
             foreach (var memberRef in GetMemberRefs())
             {
-                ReportReferencesToAddedSymbol(memberRef as ISymbol);
+                ReportReferencesToAddedSymbol(memberRef as ISymbolInternal);
             }
         }
 
-        private void ReportReferencesToAddedSymbol(ISymbol symbolOpt)
+        private void ReportReferencesToAddedSymbol(ISymbolInternal symbolOpt)
         {
-            if (symbolOpt != null && _changes.IsAdded(symbolOpt))
+            if (symbolOpt != null && _changes.IsAdded(symbolOpt.GetISymbol()))
             {
                 this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(
                     this.messageProvider.ERR_EncReferenceToAddedMember,
@@ -655,31 +652,27 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
-                
+
                 BlobHandle blobIndex = metadata.GetOrAddBlob(writer);
-                
+
                 localSignatureHandle = GetOrAddStandaloneSignatureHandle(blobIndex);
                 writer.Free();
             }
             else
             {
-                localSignatureHandle = default(StandaloneSignatureHandle);
+                localSignatureHandle = default;
             }
 
-            var method = body.MethodDefinition;
-            if (!method.IsImplicitlyDeclared)
-            {
-                var info = new AddedOrChangedMethodInfo(
-                    body.MethodId,
-                    encInfos.ToImmutable(),
-                    body.LambdaDebugInfo,
-                    body.ClosureDebugInfo,
-                    body.StateMachineTypeName,
-                    body.StateMachineHoistedLocalSlots,
-                    body.StateMachineAwaiterSlots);
+            var info = new AddedOrChangedMethodInfo(
+                body.MethodId,
+                encInfos.ToImmutable(),
+                body.LambdaDebugInfo,
+                body.ClosureDebugInfo,
+                body.StateMachineTypeName,
+                body.StateMachineHoistedLocalSlots,
+                body.StateMachineAwaiterSlots);
 
-                _addedOrChangedMethods.Add(method, info);
-            }
+            _addedOrChangedMethods.Add(body.MethodDefinition, info);
 
             encInfos.Free();
             return localSignatureHandle;
@@ -694,7 +687,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // local type is already translated, but not recursively
             ITypeReference translatedType = localDef.Type;
-            ITypeSymbol typeSymbol = translatedType as ITypeSymbol;
+            ITypeSymbolInternal typeSymbol = translatedType as ITypeSymbolInternal;
             if (typeSymbol != null)
             {
                 translatedType = Context.Module.EncTranslateType(typeSymbol, Context.Diagnostics);
@@ -1451,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             public override void Visit(CommonPEModuleBuilder module)
             {
-                this.Visit(((DeltaMetadataWriter)this.metadataWriter).GetTopLevelTypes(module));
+                Visit(module.GetTopLevelTypeDefinitions(metadataWriter.Context));
             }
 
             public override void Visit(IEventDefinition eventDefinition)

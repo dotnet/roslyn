@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -154,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                             visited = Me.VisitListSeparator(item.AsToken())
                         End If
                     Else
-                        Dim node = DirectCast(DirectCast(item.AsNode(), SyntaxNode), TNode)
+                        Dim node = DirectCast(item.AsNode(), TNode)
 
                         If Me.IsForRemoval(node) Then
                             If alternate Is Nothing Then
@@ -162,13 +164,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                                 alternate.Add(withSeps, 0, i)
                             End If
 
-                            If alternate.Count > 0 AndAlso alternate(alternate.Count - 1).IsToken Then
-                                ' remove preceding separator if any
+                            Dim nextTokenIsSeparator, nextSeparatorBelongsToNode As Boolean
+
+                            CommonSyntaxNodeRemover.GetSeparatorInfo(
+                                withSeps, i, SyntaxKind.EndOfLineTrivia,
+                                nextTokenIsSeparator, nextSeparatorBelongsToNode)
+
+                            If Not nextSeparatorBelongsToNode AndAlso
+                               alternate.Count > 0 AndAlso
+                               alternate(alternate.Count - 1).IsToken Then
+
                                 Dim separator = alternate(alternate.Count - 1).AsToken()
                                 Me.AddTrivia(separator, node)
                                 alternate.RemoveLast()
-                            ElseIf i + 1 < n AndAlso withSeps(i + 1).IsToken Then
-                                ' otherwise remove trailing separator if any
+                            ElseIf nextTokenIsSeparator Then
                                 Dim separator = withSeps(i + 1).AsToken()
                                 Me.AddTrivia(node, separator)
                                 removeNextSeparator = True

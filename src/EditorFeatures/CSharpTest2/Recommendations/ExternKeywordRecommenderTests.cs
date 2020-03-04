@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -44,14 +45,99 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public async Task TestInEmptyStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticInStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"static $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributesInStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr] $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributesInSwitchCase()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"switch (c)
+{
+    case 0:
+         [Foo]
+         $$
+}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributesAndStaticInStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr] static $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndReturnStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr]
+$$
+return x;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndLocalDeclarationStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr]
+$$
+x y = bar();"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndAwaitExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr]
+$$
+await bar;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndAssignmentStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Foo]
+$$
+y = bar();"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndCallStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Foo]
+$$
+bar();"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterExternInStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"$$"));
+@"extern $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -71,21 +157,21 @@ $$");
         public async Task TestAfterPreviousExternAlias()
         {
             await VerifyKeywordAsync(
-@"extern alias Foo;
+@"extern alias Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterUsing()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"using Foo;
+            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"using Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterUsing_Interactive()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"using Foo;
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"using Goo;
 $$");
         }
 
@@ -123,7 +209,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"namespace N {
-   extern alias Foo;
+   extern alias Goo;
    $$");
         }
 
@@ -131,7 +217,7 @@ $$");
         public async Task TestNotAfterUsing_InsideNamespace()
         {
             await VerifyAbsenceAsync(@"namespace N {
-    using Foo;
+    using Goo;
     $$");
         }
 
@@ -168,9 +254,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInInterface()
+        public async Task TestInInterface()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"interface I {
     $$");
         }

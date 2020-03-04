@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../Resources.resx">
+    <body>
+      <trans-unit id="RemoveAndSortNamespacesWithAccelerator">
+        <source>Remove &amp;and Sort Namespaces</source>
+        <target state="translated">Ri&amp;muovi e ordina spazi dei nomi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnnecessaryNamespaces">
+        <source>Remove Unnecessary Namespaces</source>
+        <target state="translated">Rimuovi spazi dei nomi non necessari</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Namespaces">
+        <source>&amp;Sort Namespaces</source>
+        <target state="translated">Or&amp;dina spazi dei nomi</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -139,8 +141,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return True
                 ElseIf allowGenericsWithoutOf Then
                     ' // To enable a better user experience in some common generics'
-                    ' // error scenarios, we special case foo(Integer) and
-                    ' // foo(Integer, garbage).
+                    ' // error scenarios, we special case goo(Integer) and
+                    ' // goo(Integer, garbage).
                     ' //
                     ' // "(Integer" indicates possibly type parameters with missing "of",
                     ' // but not "(Integer." and "Integer!" because they could possibly

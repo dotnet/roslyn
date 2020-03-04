@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -67,13 +70,17 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
         /// </remarks>
-        internal readonly WeakList<IAssemblySymbol> CachedSymbols = new WeakList<IAssemblySymbol>();
+        internal readonly WeakList<IAssemblySymbolInternal> CachedSymbols = new WeakList<IAssemblySymbolInternal>();
 
         // creates a copy
-        private AssemblyMetadata(AssemblyMetadata other)
+        private AssemblyMetadata(AssemblyMetadata other, bool shareCachedSymbols)
             : base(isImageOwner: false, id: other.Id)
         {
-            this.CachedSymbols = other.CachedSymbols;
+            if (shareCachedSymbols)
+            {
+                this.CachedSymbols = other.CachedSymbols;
+            }
+
             _lazyData = other._lazyData;
             _moduleFactoryOpt = other._moduleFactoryOpt;
             _initialModules = other._initialModules;
@@ -250,7 +257,12 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal new AssemblyMetadata Copy()
         {
-            return new AssemblyMetadata(this);
+            return new AssemblyMetadata(this, shareCachedSymbols: true);
+        }
+
+        internal AssemblyMetadata CopyWithoutSharingCachedSymbols()
+        {
+            return new AssemblyMetadata(this, shareCachedSymbols: false);
         }
 
         protected override Metadata CommonCopy()

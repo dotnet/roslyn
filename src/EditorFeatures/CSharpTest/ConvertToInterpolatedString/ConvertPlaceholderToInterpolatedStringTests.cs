@@ -1,9 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -595,5 +598,201 @@ class T
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestFormatWithNamedArguments1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(arg0: ""test"", arg1: ""also"", format: ""This {0} {1} works"")|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""This {""test""} {""also""} works"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestFormatWithNamedArguments2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""This {0} {1} works"", arg1: ""also"", arg0: ""test"")|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""This {""test""} {""also""} works"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestFormatWithNamedArguments3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{0} {1} {2}"", ""10"", arg1: ""11"", arg2: ""12"" )|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{""10""} {""11""} {""12""}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestFormatWithNamedArguments4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{0} {1} {2}"", ""10"", arg2: ""12"", arg1: ""11"")|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{""10""} {""11""} {""12""}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestFormatWithNamedArguments5()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{0} {1} {2} {3}"", ""10"", arg1: ""11"", arg2: ""12"")|];
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{""10""} {""11""} {""12""} {3}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestOnlyArgumentSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format([|""{0}""|], 1);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestOnlyArgumentSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format(""{0}"", [|1|]);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgumentsSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format([|""{0}"", 1|]);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
+    }
+}");
+        }
+
     }
 }

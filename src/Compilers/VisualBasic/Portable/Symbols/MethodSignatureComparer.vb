@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -785,8 +787,8 @@ Done:
         ' If this method is generic, get a TypeSubstitution that substitutes IndexedTypeParameterSymbols
         ' for each method type parameter. This allows correctly comparing parameter and return types
         ' between two signatures:
-        '    Function foo(Of T)(p As T) As IEnumerable(Of T)
-        '    Function foo(Of U)(p As U) As IEnumerable(Of U)
+        '    Function goo(Of T)(p As T) As IEnumerable(Of T)
+        '    Function goo(Of U)(p As U) As IEnumerable(Of U)
         '
         ' The substitution returned is to be applied to the ORIGINAL definition of the method.
         Private Shared Function GetTypeSubstitution(method As MethodSymbol) As TypeSubstitution
@@ -904,6 +906,11 @@ Done:
         ''' </summary>
         Private Shared Function AreConstraintTypesSubset(constraintTypes1 As ArrayBuilder(Of TypeSymbol), constraintTypes2 As ArrayBuilder(Of TypeSymbol)) As Boolean
             For Each constraintType In constraintTypes1
+                ' Skip object type.
+                If constraintType.IsObjectType() Then
+                    Continue For
+                End If
+
                 If Not ContainsIgnoringCustomModifiers(constraintTypes2, constraintType) Then
                     Return False
                 End If

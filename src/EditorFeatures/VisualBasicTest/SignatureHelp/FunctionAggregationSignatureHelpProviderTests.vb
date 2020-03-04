@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -58,7 +60,7 @@ End Class
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer
@@ -97,7 +99,7 @@ End Class
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer
@@ -136,7 +138,7 @@ End Class
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer
@@ -185,7 +187,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 Imports System
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer

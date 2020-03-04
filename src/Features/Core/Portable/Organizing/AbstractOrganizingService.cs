@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -35,14 +37,13 @@ namespace Microsoft.CodeAnalysis.Organizing
         protected Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> GetNodeToOrganizers(IEnumerable<ISyntaxOrganizer> organizers)
         {
             var map = new ConcurrentDictionary<Type, IEnumerable<ISyntaxOrganizer>>();
-            Func<Type, IEnumerable<ISyntaxOrganizer>> getter =
-                t1 =>
-                {
-                    return (from o in organizers
-                            where !o.SyntaxNodeTypes.Any() ||
-                                  o.SyntaxNodeTypes.Any(t2 => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2))
-                            select o).Distinct();
-                };
+            IEnumerable<ISyntaxOrganizer> getter(Type t1)
+            {
+                return (from o in organizers
+                        where !o.SyntaxNodeTypes.Any() ||
+                              o.SyntaxNodeTypes.Any(t2 => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2))
+                        select o).Distinct();
+            }
 
             return n => map.GetOrAdd(n.GetType(), getter);
         }

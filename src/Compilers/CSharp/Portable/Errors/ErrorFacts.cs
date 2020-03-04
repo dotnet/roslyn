@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,69 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string s_descriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
+        public static readonly ImmutableHashSet<string> NullableWarnings;
+
+        static ErrorFacts()
+        {
+            ImmutableHashSet<string>.Builder nullableWarnings = ImmutableHashSet.CreateBuilder<string>();
+
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceAssignment));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceReturn));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceArgument));
+            nullableWarnings.Add(getId(ErrorCode.WRN_UninitializedNonNullableField));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInAssignment));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgument));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullAsNonNullable));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullableValueTypeMayBeNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ThrowPossibleNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_UnboxPossibleNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
+
+            nullableWarnings.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
+            nullableWarnings.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ShouldNotReturn));
+
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase));
+            nullableWarnings.Add(getId(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceInitializer));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ShouldNotReturn));
+            nullableWarnings.Add(getId(ErrorCode.WRN_DoesNotReturnMismatch));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes));
+
+            NullableWarnings = nullableWarnings.ToImmutable();
+
+            static string getId(ErrorCode errorCode)
+            {
+                return MessageProvider.Instance.GetIdForErrorCode((int)errorCode);
+            }
+        }
 
         private static ImmutableDictionary<ErrorCode, string> CreateHelpLinks()
         {
@@ -68,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(MessageID code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(!string.IsNullOrEmpty(message));
+            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
             return message;
         }
 
@@ -76,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(ErrorCode code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(message != null);
+            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
             return message;
         }
 
@@ -130,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (s_resourceManager == null)
                 {
-                    s_resourceManager = new System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpResources", typeof(ErrorCode).GetTypeInfo().Assembly);
+                    s_resourceManager = new System.Resources.ResourceManager(typeof(CSharpResources).FullName, typeof(ErrorCode).GetTypeInfo().Assembly);
                 }
 
                 return s_resourceManager;
@@ -312,18 +377,78 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BadUILang:
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
-                case ErrorCode.WRN_FilterIsConstant:
+                case ErrorCode.WRN_FilterIsConstantTrue:
+                case ErrorCode.WRN_FilterIsConstantFalse:
+                case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                 case ErrorCode.WRN_IdentifierOrNumericLiteralExpected:
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
                 case ErrorCode.WRN_Experimental:
-                case ErrorCode.WRN_DefaultInSwitch:
+                case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
+                case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
+                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
+                case ErrorCode.WRN_ConvertingNullableToNonNullable:
+                case ErrorCode.WRN_NullReferenceAssignment:
+                case ErrorCode.WRN_NullReferenceReceiver:
+                case ErrorCode.WRN_NullReferenceReturn:
+                case ErrorCode.WRN_NullReferenceArgument:
+                case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
+                case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
+                case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
+                case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
+                case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
+                case ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation:
+                case ErrorCode.WRN_UninitializedNonNullableField:
+                case ErrorCode.WRN_NullabilityMismatchInAssignment:
+                case ErrorCode.WRN_NullabilityMismatchInArgument:
+                case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+                case ErrorCode.WRN_NullAsNonNullable:
+                case ErrorCode.WRN_NullableValueTypeMayBeNull:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
+                case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
+                case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
+                case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustive:
+                case ErrorCode.WRN_IsTypeNamedUnderscore:
+                case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
+                case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                case ErrorCode.WRN_CaseConstantNamedUnderscore:
+                case ErrorCode.WRN_ThrowPossibleNull:
+                case ErrorCode.WRN_UnboxPossibleNull:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
+                case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
+                case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
+                case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
+                case ErrorCode.WRN_NullReferenceInitializer:
+                case ErrorCode.WRN_ShouldNotReturn:
+                case ErrorCode.WRN_DoesNotReturnMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
                     return 1;
                 default:
                     return 0;
             }
+            // Note: when adding a warning here, consider whether it should be registered as a nullability warning too
         }
 
         /// <summary>

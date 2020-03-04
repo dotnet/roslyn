@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -50,20 +53,20 @@ class Program
 {
     public void M()
     {
-        Foo d = $$
+        Goo d = $$
     }
 }
 ";
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
-public enum Foo
+public enum Goo
 {
     Member
 }";
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Foo",
+                item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
@@ -80,20 +83,20 @@ class Program
 {
     public void M()
     {
-        Foo d = $$
+        Goo d = $$
     }
 }
 ";
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-public enum Foo
+public enum Goo
 {
     Member
 }";
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Foo",
+                item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
@@ -110,20 +113,20 @@ class Program
 {
     public void M()
     {
-        Foo d = $$
+        Goo d = $$
     }
 }
 ";
             var referencedCode = @"
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
-public enum Foo
+public enum Goo
 {
     Member
 }";
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Foo",
+                item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
@@ -133,7 +136,7 @@ public enum Foo
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Foo",
+                item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
@@ -165,7 +168,7 @@ enum Colors
 
         [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InYieldReturn()
+        public async Task InYieldReturnInMethod()
         {
             var markup =
 @"using System;
@@ -176,6 +179,27 @@ class Program
     IEnumerable<DayOfWeek> M()
     {
         yield return $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InYieldReturnInLocalFunction()
+        {
+            var markup =
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    void M()
+    {
+        IEnumerable<DayOfWeek> F()
+        {
+            yield return $$
+        }
     }
 }";
             await VerifyItemExistsAsync(markup, "DayOfWeek");
@@ -201,6 +225,184 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InSimpleLambdaAfterArrow()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<bool, DayOfWeek> M()
+    {
+        return _ => $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InParenthesizedLambdaAfterArrow()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return () => $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInAnonymousMethodAfterParameterList()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return delegate () $$
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInSimpleLambdaAfterAsync()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<bool, DayOfWeek> M()
+    {
+        return async $$ _ =>
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInParenthesizedLambdaAfterAsync()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return async $$ () =>
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInAnonymousMethodAfterAsync()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return async $$ delegate ()
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInSimpleLambdaBlock()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<bool, DayOfWeek> M()
+    {
+        return _ => { $$ }
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInParenthesizedLambdaBlock()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return () => { $$ }
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInAnonymousMethodBlock()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return delegate () { $$ }
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InExpressionTreeSimpleLambdaAfterArrow()
+        {
+            var markup =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    Expression<Func<bool, DayOfWeek>> M()
+    {
+        return _ => $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InExpressionTreeParenthesizedLambdaAfterArrow()
+        {
+            var markup =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    Expression<Func<DayOfWeek>> M()
+    {
+        return () => $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoCompletionListTag()
         {
             var markup =
@@ -214,7 +416,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -237,7 +439,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -260,7 +462,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -283,7 +485,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -308,7 +510,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -333,7 +535,7 @@ class C
 
 class Program
 {
-    void Foo()
+    void Goo()
     {
         C c = $$
     }
@@ -389,13 +591,13 @@ using D = System.Globalization.DigitShapes;
 
 class Program
 {
-    private void Foo(System.Globalization.DigitShapes shape)
+    private void Goo(System.Globalization.DigitShapes shape)
     {
     }
 
     static void Main(string[] args)
     {
-        Foo($$
+        Goo($$
     }
 }
 }
@@ -415,9 +617,9 @@ enum E
 
 class C
 {
-    void foo(E first, E second) 
+    void goo(E first, E second) 
     {
-        foo(first: E.a, $$
+        goo(first: E.a, $$
     }
 }
 ";

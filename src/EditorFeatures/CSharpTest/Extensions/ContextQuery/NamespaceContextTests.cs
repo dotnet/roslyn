@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources
@@ -669,25 +671,25 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGeneric1()
         {
-            VerifyFalse(@"class C { void IFoo<$$");
+            VerifyFalse(@"class C { void IGoo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGenericList1()
         {
-            VerifyFalse(@"class C { void IFoo<T,$$");
+            VerifyFalse(@"class C { void IGoo<T,$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGeneric2()
         {
-            VerifyTrue(@"class C { void IFoo<$$>.Method(");
+            VerifyTrue(@"class C { void IGoo<$$>.Method(");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGenericList2()
         {
-            VerifyTrue(@"class C { void IFoo<T,$$>.Method(");
+            VerifyTrue(@"class C { void IGoo<T,$$>.Method(");
         }
     }
 }

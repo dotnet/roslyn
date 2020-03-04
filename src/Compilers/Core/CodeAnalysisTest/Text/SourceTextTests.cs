@@ -1,5 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -86,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         public void ChecksumAndBOM()
         {
             const string source = "Hello, World!";
-            var checksumAlgorigthm = SourceHashAlgorithm.Sha1;
+            var checksumAlgorithm = SourceHashAlgorithm.Sha1;
             var encodingNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
             var encodingBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
@@ -94,8 +98,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             var checksumBOM = ImmutableArray.Create<byte>(0xb2, 0x19, 0x0, 0x9b, 0x61, 0xce, 0xcd, 0x50, 0x7b, 0x2e, 0x56, 0x3c, 0xc0, 0xeb, 0x96, 0xe2, 0xa1, 0xd9, 0x3f, 0xfc);
 
             // SourceText from string. Checksum should include BOM from explicit encoding.
-            VerifyChecksum(SourceText.From(source, encodingNoBOM, checksumAlgorigthm), checksumNoBOM);
-            VerifyChecksum(SourceText.From(source, encodingBOM, checksumAlgorigthm), checksumBOM);
+            VerifyChecksum(SourceText.From(source, encodingNoBOM, checksumAlgorithm), checksumNoBOM);
+            VerifyChecksum(SourceText.From(source, encodingBOM, checksumAlgorithm), checksumBOM);
 
             var bytesNoBOM = new byte[] { 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21 };
             var bytesBOM = new byte[] { 0xef, 0xbb, 0xbf, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21 };
@@ -104,53 +108,53 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             var streamBOM = new MemoryStream(bytesBOM);
 
             // SourceText from bytes no BOM. Checksum should ignore explicit encoding.
-            VerifyChecksum(SourceText.From(bytesNoBOM, bytesNoBOM.Length, null, checksumAlgorigthm), checksumNoBOM);
-            VerifyChecksum(SourceText.From(bytesNoBOM, bytesNoBOM.Length, encodingNoBOM, checksumAlgorigthm), checksumNoBOM);
-            VerifyChecksum(SourceText.From(bytesNoBOM, bytesNoBOM.Length, encodingBOM, checksumAlgorigthm), checksumNoBOM);
+            VerifyChecksum(SourceText.From(bytesNoBOM, bytesNoBOM.Length, null, checksumAlgorithm), checksumNoBOM);
+            VerifyChecksum(SourceText.From(bytesNoBOM, bytesNoBOM.Length, encodingNoBOM, checksumAlgorithm), checksumNoBOM);
+            VerifyChecksum(SourceText.From(bytesNoBOM, bytesNoBOM.Length, encodingBOM, checksumAlgorithm), checksumNoBOM);
 
             // SourceText from bytes with BOM. Checksum should include BOM.
-            VerifyChecksum(SourceText.From(bytesBOM, bytesBOM.Length, null, checksumAlgorigthm), checksumBOM);
-            VerifyChecksum(SourceText.From(bytesBOM, bytesBOM.Length, encodingNoBOM, checksumAlgorigthm), checksumBOM);
-            VerifyChecksum(SourceText.From(bytesBOM, bytesBOM.Length, encodingBOM, checksumAlgorigthm), checksumBOM);
+            VerifyChecksum(SourceText.From(bytesBOM, bytesBOM.Length, null, checksumAlgorithm), checksumBOM);
+            VerifyChecksum(SourceText.From(bytesBOM, bytesBOM.Length, encodingNoBOM, checksumAlgorithm), checksumBOM);
+            VerifyChecksum(SourceText.From(bytesBOM, bytesBOM.Length, encodingBOM, checksumAlgorithm), checksumBOM);
 
             // SourceText from stream no BOM. Checksum should ignore explicit encoding.
-            VerifyChecksum(SourceText.From(streamNoBOM, null, checksumAlgorigthm), checksumNoBOM);
-            VerifyChecksum(SourceText.From(streamNoBOM, encodingNoBOM, checksumAlgorigthm), checksumNoBOM);
-            VerifyChecksum(SourceText.From(streamNoBOM, encodingBOM, checksumAlgorigthm), checksumNoBOM);
+            VerifyChecksum(SourceText.From(streamNoBOM, null, checksumAlgorithm), checksumNoBOM);
+            VerifyChecksum(SourceText.From(streamNoBOM, encodingNoBOM, checksumAlgorithm), checksumNoBOM);
+            VerifyChecksum(SourceText.From(streamNoBOM, encodingBOM, checksumAlgorithm), checksumNoBOM);
 
             // SourceText from stream with BOM. Checksum should include BOM.
-            VerifyChecksum(SourceText.From(streamBOM, null, checksumAlgorigthm), checksumBOM);
-            VerifyChecksum(SourceText.From(streamBOM, encodingNoBOM, checksumAlgorigthm), checksumBOM);
-            VerifyChecksum(SourceText.From(streamBOM, encodingBOM, checksumAlgorigthm), checksumBOM);
+            VerifyChecksum(SourceText.From(streamBOM, null, checksumAlgorithm), checksumBOM);
+            VerifyChecksum(SourceText.From(streamBOM, encodingNoBOM, checksumAlgorithm), checksumBOM);
+            VerifyChecksum(SourceText.From(streamBOM, encodingBOM, checksumAlgorithm), checksumBOM);
 
             // LargeText from stream no BOM. Checksum should ignore explicit encoding.
-            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingNoBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumNoBOM);
-            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumNoBOM);
+            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingNoBOM, checksumAlgorithm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumNoBOM);
+            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingBOM, checksumAlgorithm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumNoBOM);
 
             // LargeText from stream with BOM. Checksum should include BOM.
-            VerifyChecksum(LargeText.Decode(streamBOM, encodingNoBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumBOM);
-            VerifyChecksum(LargeText.Decode(streamBOM, encodingBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumBOM);
+            VerifyChecksum(LargeText.Decode(streamBOM, encodingNoBOM, checksumAlgorithm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumBOM);
+            VerifyChecksum(LargeText.Decode(streamBOM, encodingBOM, checksumAlgorithm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumBOM);
 
             // LargeText from writer no BOM. Checksum includes BOM
             // from explicit encoding. This is inconsistent with the
             // LargeText cases above but LargeTextWriter is only used
             // for unsaved edits where the checksum is ignored.
-            VerifyChecksum(FromLargeTextWriter(source, encodingNoBOM, checksumAlgorigthm), checksumNoBOM);
-            VerifyChecksum(FromLargeTextWriter(source, encodingBOM, checksumAlgorigthm), checksumBOM);
+            VerifyChecksum(FromLargeTextWriter(source, encodingNoBOM, checksumAlgorithm), checksumNoBOM);
+            VerifyChecksum(FromLargeTextWriter(source, encodingBOM, checksumAlgorithm), checksumBOM);
 
             // SourceText from string with changes. Checksum includes BOM from explicit encoding.
-            VerifyChecksum(FromChanges(SourceText.From(source, encodingNoBOM, checksumAlgorigthm)), checksumNoBOM);
-            VerifyChecksum(FromChanges(SourceText.From(source, encodingBOM, checksumAlgorigthm)), checksumBOM);
+            VerifyChecksum(FromChanges(SourceText.From(source, encodingNoBOM, checksumAlgorithm)), checksumNoBOM);
+            VerifyChecksum(FromChanges(SourceText.From(source, encodingBOM, checksumAlgorithm)), checksumBOM);
 
             // SourceText from stream with changes, no BOM. Checksum includes BOM
             // from explicit encoding. This is inconsistent with the SourceText cases but
             // "with changes" is only used for unsaved edits where the checksum is ignored.
-            VerifyChecksum(FromChanges(SourceText.From(streamNoBOM, encodingNoBOM, checksumAlgorigthm)), checksumNoBOM);
-            VerifyChecksum(FromChanges(SourceText.From(streamNoBOM, encodingBOM, checksumAlgorigthm)), checksumBOM);
+            VerifyChecksum(FromChanges(SourceText.From(streamNoBOM, encodingNoBOM, checksumAlgorithm)), checksumNoBOM);
+            VerifyChecksum(FromChanges(SourceText.From(streamNoBOM, encodingBOM, checksumAlgorithm)), checksumBOM);
 
             // SourceText from stream with changes, with BOM. Checksum includes BOM.
-            VerifyChecksum(FromChanges(SourceText.From(streamBOM, encodingNoBOM, checksumAlgorigthm)), checksumBOM);
-            VerifyChecksum(FromChanges(SourceText.From(streamBOM, encodingBOM, checksumAlgorigthm)), checksumBOM);
+            VerifyChecksum(FromChanges(SourceText.From(streamBOM, encodingNoBOM, checksumAlgorithm)), checksumBOM);
+            VerifyChecksum(FromChanges(SourceText.From(streamBOM, encodingBOM, checksumAlgorithm)), checksumBOM);
         }
 
         private static SourceText FromLargeTextWriter(string source, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
@@ -212,7 +216,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.True(SourceText.IsBinary("a\0\0bc"));
             Assert.True(SourceText.IsBinary("abc\0\0"));
 
-            var encoding = Encoding.GetEncoding(1252);
+            var encoding = Encoding.UTF8;
             Assert.False(SourceText.IsBinary(encoding.GetString(new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D })));
             // Unicode string: äëïöüû
             Assert.False(SourceText.IsBinary("abc def baz aeiouy \u00E4\u00EB\u00EF\u00F6\u00FC\u00FB"));
@@ -299,6 +303,55 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xfe });
             TestTryReadByteOrderMark(expectedEncoding: Encoding.BigEndianUnicode, expectedPreambleLength: 2, data: new byte[] { 0xfe, 0xff });
+        }
+
+        [Fact]
+        [WorkItem(41903, "https://github.com/dotnet/roslyn/issues/41903")]
+        public void WriteWithRangeStartingLaterThanZero()
+        {
+            var sourceText = SourceText.From("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+            var writer = new StringWriter();
+            sourceText.Write(writer, TextSpan.FromBounds(1, sourceText.Length));
+
+            Assert.Equal("BCDEFGHIJKLMNOPQRSTUVWXYZ", writer.ToString());
+        }
+
+        public static IEnumerable<object[]> AllRanges(int totalLength) =>
+            from start in Enumerable.Range(0, totalLength)
+            from length in Enumerable.Range(0, totalLength - start)
+            select new object[] { new TextSpan(start, length) };
+
+        [Theory]
+        [MemberData(nameof(AllRanges), 10)]
+        [WorkItem(41903, "https://github.com/dotnet/roslyn/issues/41903")]
+        public void WriteWithAllRanges(TextSpan span)
+        {
+            const string Text = "0123456789";
+            var sourceText = SourceText.From(Text);
+
+            var writer = new StringWriter();
+            sourceText.Write(writer, span);
+
+            Assert.Equal(Text.Substring(span.Start, span.Length), writer.ToString());
+        }
+
+        [Fact]
+        public void WriteWithSpanStartingAfterEndThrowsOutOfRange()
+        {
+            var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(() =>
+                SourceText.From("ABC").Write(TextWriter.Null, TextSpan.FromBounds(4, 4)));
+
+            Assert.Equal("span", ex.ParamName);
+        }
+
+        [Fact]
+        public void WriteWithSpanEndingAfterEndThrowsOutOfRange()
+        {
+            var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(() =>
+                SourceText.From("ABC").Write(TextWriter.Null, TextSpan.FromBounds(2, 4)));
+
+            Assert.Equal("span", ex.ParamName);
         }
     }
 }

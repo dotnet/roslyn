@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -63,14 +65,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract string Name { get; }
             protected abstract Cci.IParameterTypeInformation UnderlyingParameterTypeInformation { get; }
             protected abstract ushort Index { get; }
-            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TModuleCompilationState compilationState);
+            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TPEModuleBuilder moduleBuilder);
 
             private bool IsTargetAttribute(TAttributeData attrData, AttributeDescription description)
             {
                 return TypeManager.IsTargetAttribute(UnderlyingParameter, attrData, description);
             }
 
-            private ImmutableArray<TAttributeData> GetAttributes(TModuleCompilationState compilationState, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+            private ImmutableArray<TAttributeData> GetAttributes(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
             {
                 var builder = ArrayBuilder<TAttributeData>.GetInstance();
 
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // The constructors might be missing (for example, in metadata case) and doing lookup
                 // will ensure that we report appropriate errors.
 
-                foreach (var attrData in GetCustomAttributesToEmit(compilationState))
+                foreach (var attrData in GetCustomAttributesToEmit(moduleBuilder))
                 {
                     if (IsTargetAttribute(attrData, AttributeDescription.ParamArrayAttribute))
                     {
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TModuleCompilationState)context.Module.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {

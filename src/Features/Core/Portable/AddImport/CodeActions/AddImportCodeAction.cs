@@ -1,14 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         /// <summary>
         /// Code action we use when just adding a using, possibly with a project or
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             public sealed override ImmutableArray<string> Tags { get; }
             internal sealed override CodeActionPriority Priority { get; }
 
-            public sealed override string EquivalenceKey => this.Title;
+            public sealed override string EquivalenceKey => Title;
 
             /// <summary>
             /// The <see cref="Document"/> we started the add-import analysis in.
@@ -44,9 +47,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                 FixData = fixData;
 
                 Title = fixData.Title;
-                Tags = fixData.Tags;
+                Tags = fixData.Tags.ToImmutableArrayOrEmpty();
                 Priority = fixData.Priority;
-                _textChanges = fixData.TextChanges;
+                _textChanges = fixData.TextChanges.ToImmutableArrayOrEmpty();
             }
 
             protected async Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)

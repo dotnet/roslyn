@@ -1,14 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
+
+#If CODE_STYLE Then
+Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+#Else
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicStructuredTriviaFormatEngine
@@ -21,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                       cancellationToken As CancellationToken) As IFormattingResult
             Dim root = trivia.GetStructure()
             Dim formatter = New VisualBasicStructuredTriviaFormatEngine(trivia, initialColumn, optionSet, formattingRules, root.GetFirstToken(includeZeroWidth:=True), root.GetLastToken(includeZeroWidth:=True))
-            Return formatter.FormatAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken)
+            Return formatter.Format(cancellationToken)
         End Function
 
         Private Sub New(trivia As SyntaxTrivia,
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                        token1 As SyntaxToken,
                        token2 As SyntaxToken)
             MyBase.New(TreeData.Create(trivia, initialColumn),
-                       optionSet, formattingRules, token1, token2, TaskExecutor.Synchronous)
+                       optionSet, formattingRules, token1, token2)
         End Sub
 
         Protected Overrides Function CreateTriviaFactory() As AbstractTriviaDataFactory
@@ -42,13 +43,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return New FormattingContext(Me, tokenStream, LanguageNames.VisualBasic)
         End Function
 
-        Protected Overrides Function CreateNodeOperationTasks(cancellationToken As CancellationToken) As NodeOperations
+        Protected Overrides Function CreateNodeOperations(cancellationToken As CancellationToken) As NodeOperations
             ' ignore all node operations for structured trivia since it is not possible for this to have any impact currently.
             Return NodeOperations.Empty
         End Function
 
         Protected Overrides Function CreateFormattingResult(tokenStream As TokenStream) As AbstractFormattingResult
-            Return New FormattingResult(Me.TreeData, tokenStream, Me.SpanToFormat, Me.TaskExecutor)
+            Return New FormattingResult(Me.TreeData, tokenStream, Me.SpanToFormat)
         End Function
     End Class
 End Namespace

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Describes a single change when a particular span is replaced with a new text.
     /// </summary>
-    public struct TextChange : IEquatable<TextChange>
+    public readonly struct TextChange : IEquatable<TextChange>
     {
         /// <summary>
         /// The original span of the changed text. 
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Text
             return string.Format("{0}: {{ {1}, \"{2}\" }}", this.GetType().Name, Span, NewText);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TextChange && this.Equals((TextChange)obj);
         }

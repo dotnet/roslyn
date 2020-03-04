@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -40,9 +42,8 @@ namespace RunTests.Cache
 
         public Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
         {
-            CachedTestResult testResult;
             CachedTestResult? value = null;
-            if (TryGetCachedTestResult(checksum, out testResult))
+            if (TryGetCachedTestResult(checksum, out var testResult))
             {
                 value = testResult;
             }
@@ -51,7 +52,7 @@ namespace RunTests.Cache
         }
 
         public bool TryGetCachedTestResult(string checksum, out CachedTestResult testResult)
-        { 
+        {
             testResult = default(CachedTestResult);
 
             var storageFolder = GetStorageFolder(checksum);
@@ -140,6 +141,13 @@ namespace RunTests.Cache
         {
             try
             {
+                // This is a spot check to avoid dumping entries into the log file if the 
+                // directory doesn't exist
+                if (!Directory.Exists(_storagePath))
+                {
+                    return;
+                }
+
                 var files = Directory.GetFiles(_storagePath);
                 if (files.Length < MaxStorageCount)
                 {

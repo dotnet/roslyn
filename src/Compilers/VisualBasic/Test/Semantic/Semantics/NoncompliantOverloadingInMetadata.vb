@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
 
@@ -25,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -35,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 
 } // end of class extensions.C
 
@@ -44,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -54,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 
 } // end of class Extensions.C
 
@@ -63,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -73,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method D::Foo
+  } // end of method D::Goo
 
 } // end of class Extensions.D
 ]]>
@@ -87,33 +89,33 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo
-        Foo(x)
-        Extensions.C.Foo(x)
+        x.Goo
+        Goo(x)
+        Extensions.C.Goo(x)
     End Sub
 End Module
     </file>
 </compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False)
 
-            ' x.Foo               - !!! Breaking change, Dev10 calls Extensions.D.Foo
-            ' Foo(x)              - Same error in Dev10.
-            ' Extensions.C.Foo(x) - Dev10 reports two errors:
+            ' x.Goo               - !!! Breaking change, Dev10 calls Extensions.D.Goo
+            ' Goo(x)              - Same error in Dev10.
+            ' Extensions.C.Goo(x) - Dev10 reports two errors:
             '                           error BC31429: 'C' is ambiguous because multiple kinds of members with this name exist in namespace 'Extensions'.
             '                           error BC30560: 'C' is ambiguous in the namespace 'Extensions'.
             '                       BC31429 looks redundant and inaccurate.
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'C': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'C': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'D': Not most specific.
-        x.Foo
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    Extension method 'Public Sub Goo()' defined in 'C': Not most specific.
+    Extension method 'Public Sub Goo()' defined in 'C': Not most specific.
+    Extension method 'Public Sub Goo()' defined in 'D': Not most specific.
+        x.Goo
           ~~~
-BC30562: 'Foo' is ambiguous between declarations in Modules 'extensions.C, Extensions.C, Extensions.D'.
-        Foo(x)
+BC30562: 'Goo' is ambiguous between declarations in Modules 'extensions.C, Extensions.C, Extensions.D'.
+        Goo(x)
         ~~~
 BC30560: 'C' is ambiguous in the namespace 'extensions'.
-        Extensions.C.Foo(x)
+        Extensions.C.Goo(x)
         ~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -136,7 +138,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -146,7 +148,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 
 } // end of class extensions.C
 
@@ -155,7 +157,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -165,7 +167,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 
 } // end of class Extensions.C
 
@@ -174,7 +176,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -184,7 +186,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method D::Foo
+  } // end of method D::Goo
 
 } // end of class Extensions.D
 ]]>
@@ -198,9 +200,9 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo
-        Foo(x)
-        Extensions.C.Foo(x)
+        x.Goo
+        Goo(x)
+        Extensions.C.Goo(x)
     End Sub
 End Module
     </file>
@@ -208,13 +210,13 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'C': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'D': Not most specific.
-        x.Foo
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    Extension method 'Public Sub Goo()' defined in 'C': Not most specific.
+    Extension method 'Public Sub Goo()' defined in 'D': Not most specific.
+        x.Goo
           ~~~
-BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.C, Extensions.D'.
-        Foo(x)
+BC30562: 'Goo' is ambiguous between declarations in Modules 'Extensions.C, Extensions.D'.
+        Goo(x)
         ~~~
 </expected>)
         End Sub
@@ -237,7 +239,7 @@ BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.C, Exten
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -247,7 +249,7 @@ BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.C, Exten
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 
 } // end of class extensions.C
 
@@ -267,16 +269,16 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo
-        Foo(x)
+        x.Goo
+        Goo(x)
     End Sub
 End Module
     </file>
 </compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
-            ' x.Foo      - Dev10 reports error BC30456: 'Foo' is not a member of 'Integer'.
-            ' Foo(x)     - no change, works
-            CompileAndVerify(compilation1, expectedOutput:="3" & vbCrLf & "3")
+            ' x.Goo      - Dev10 reports error BC30456: 'Goo' is not a member of 'Integer'.
+            ' Goo(x)     - no change, works
+            CompileAndVerify(compilation1, expectedOutput:="3" & Environment.NewLine & "3")
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
@@ -286,7 +288,7 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        Extensions.C.Foo(x)
+        Extensions.C.Goo(x)
     End Sub
 End Module
     </file>
@@ -299,7 +301,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected>
 BC30560: 'C' is ambiguous in the namespace 'extensions'.
-        Extensions.C.Foo(x)
+        Extensions.C.Goo(x)
         ~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -322,7 +324,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -332,7 +334,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 
 } // end of class extensions.C
 
@@ -341,7 +343,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -351,7 +353,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 
 } // end of class Extensions.C
 
@@ -360,7 +362,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -370,7 +372,7 @@ BC30560: 'C' is ambiguous in the namespace 'extensions'.
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method D::Foo
+  } // end of method D::Goo
 
 } // end of class Extensions.D
 ]]>
@@ -384,33 +386,33 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo
-        Foo(x)
-        Extensions.C.Foo(x)
+        x.Goo
+        Goo(x)
+        Extensions.C.Goo(x)
     End Sub
 End Module
     </file>
 </compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False)
 
-            ' x.Foo               - !!! Breaking change, Dev10 calls Extensions.D.Foo
-            ' Foo(x)              - Same error in Dev10.
-            ' Extensions.C.Foo(x) - Dev10 reports two errors:
+            ' x.Goo               - !!! Breaking change, Dev10 calls Extensions.D.Goo
+            ' Goo(x)              - Same error in Dev10.
+            ' Extensions.C.Goo(x) - Dev10 reports two errors:
             '                           error BC31429: 'C' is ambiguous because multiple kinds of members with this name exist in namespace 'Extensions'.
             '                           error BC30560: 'C' is ambiguous in the namespace 'Extensions'.
             '                       BC31429 looks redundant and inaccurate.
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'c': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'C': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'D': Not most specific.
-        x.Foo
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    Extension method 'Public Sub Goo()' defined in 'c': Not most specific.
+    Extension method 'Public Sub Goo()' defined in 'C': Not most specific.
+    Extension method 'Public Sub Goo()' defined in 'D': Not most specific.
+        x.Goo
           ~~~
-BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.c, Extensions.C, Extensions.D'.
-        Foo(x)
+BC30562: 'Goo' is ambiguous between declarations in Modules 'Extensions.c, Extensions.C, Extensions.D'.
+        Goo(x)
         ~~~
 BC30560: 'c' is ambiguous in the namespace 'Extensions'.
-        Extensions.C.Foo(x)
+        Extensions.C.Goo(x)
         ~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -433,7 +435,7 @@ BC30560: 'c' is ambiguous in the namespace 'Extensions'.
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -443,7 +445,7 @@ BC30560: 'c' is ambiguous in the namespace 'Extensions'.
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 
 } // end of class extensions.C
 
@@ -452,7 +454,7 @@ BC30560: 'c' is ambiguous in the namespace 'Extensions'.
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -462,7 +464,7 @@ BC30560: 'c' is ambiguous in the namespace 'Extensions'.
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 
 } // end of class Extensions.C
 
@@ -471,7 +473,7 @@ BC30560: 'c' is ambiguous in the namespace 'Extensions'.
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -481,7 +483,7 @@ BC30560: 'c' is ambiguous in the namespace 'Extensions'.
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method D::Foo
+  } // end of method D::Goo
 
 } // end of class Extensions.D
 ]]>
@@ -495,9 +497,9 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo
-        Foo(x)
-        Extensions.C.Foo(x)
+        x.Goo
+        Goo(x)
+        Extensions.C.Goo(x)
     End Sub
 End Module
     </file>
@@ -505,13 +507,13 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'C': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'D': Not most specific.
-        x.Foo
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    Extension method 'Public Sub Goo()' defined in 'C': Not most specific.
+    Extension method 'Public Sub Goo()' defined in 'D': Not most specific.
+        x.Goo
           ~~~
-BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.C, Extensions.D'.
-        Foo(x)
+BC30562: 'Goo' is ambiguous between declarations in Modules 'Extensions.C, Extensions.D'.
+        Goo(x)
         ~~~
 </expected>)
         End Sub
@@ -534,7 +536,7 @@ BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.C, Exten
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -544,7 +546,7 @@ BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.C, Exten
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method C::Foo
+  } // end of method C::Goo
 
 } // end of class extensions.C
 
@@ -564,16 +566,16 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo
-        Foo(x)
+        x.Goo
+        Goo(x)
     End Sub
 End Module
     </file>
 </compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
-            ' x.Foo      - Dev10 reports error BC30456: 'Foo' is not a member of 'Integer'.
-            ' Foo(x)     - no change, works
-            CompileAndVerify(compilation1, expectedOutput:="3" & vbCrLf & "3")
+            ' x.Goo      - Dev10 reports error BC30456: 'Goo' is not a member of 'Integer'.
+            ' Goo(x)     - no change, works
+            CompileAndVerify(compilation1, expectedOutput:="3" & Environment.NewLine & "3")
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
@@ -583,7 +585,7 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        Extensions.C.Foo(x)
+        Extensions.C.Goo(x)
     End Sub
 End Module
     </file>
@@ -596,7 +598,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected>
 BC30560: 'c' is ambiguous in the namespace 'Extensions'.
-        Extensions.C.Foo(x)
+        Extensions.C.Goo(x)
         ~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -674,28 +676,28 @@ BC30560: 'c' is ambiguous in the namespace 'Extensions'.
   .field public string Baz
   .field family string baz
   .method public hidebysig instance void 
-          foo(int32 x) cil managed
+          goo(int32 x) cil managed
   {
     // Code size       13 (0xd)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ldstr      "Container1.foo"
+    IL_0001:  ldstr      "Container1.goo"
     IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
     IL_000b:  nop
     IL_000c:  ret
-  } // end of method Container1::foo
+  } // end of method Container1::goo
 
   .method family hidebysig instance void 
-          fOO(int32 x) cil managed
+          gOO(int32 x) cil managed
   {
     // Code size       13 (0xd)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ldstr      "Container1.fOO"
+    IL_0001:  ldstr      "Container1.gOO"
     IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
     IL_000b:  nop
     IL_000c:  ret
-  } // end of method Container1::fOO
+  } // end of method Container1::gOO
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -727,7 +729,7 @@ Module Program
         Inherits Container1
 
         Sub Test()
-            foo(1)
+            goo(1)
             System.Console.WriteLine(Baz)
 
             Dim bar As New Bar()
@@ -737,7 +739,7 @@ Module Program
 
     Sub Main
         Dim c1 As New Container1()
-        c1.foo(1)
+        c1.goo(1)
         System.Console.WriteLine(c1.baz)
 
         Dim bar As New Container1.Bar()
@@ -752,11 +754,11 @@ End Module
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
-Container1.foo
+Container1.goo
 Baz
 Container1.Bar
 Container1.Bar.bar1
-Container1.foo
+Container1.goo
 Baz
 Container1.Bar
 Container1.Bar.bar1
@@ -824,19 +826,19 @@ Container1.Bar.bar1
   } // end of class baz
 
   .field family string bar
-  .field family string fOO
+  .field family string gOO
   .field public string Baz
   .method public hidebysig instance void 
-          foo() cil managed
+          goo() cil managed
   {
     // Code size       13 (0xd)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ldstr      "Container1.foo"
+    IL_0001:  ldstr      "Container1.goo"
     IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
     IL_000b:  nop
     IL_000c:  ret
-  } // end of method Container1::foo
+  } // end of method Container1::goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -847,8 +849,8 @@ Container1.Bar.bar1
     IL_0001:  ldstr      "bar"
     IL_0006:  stfld      string Container1::bar
     IL_000b:  ldarg.0
-    IL_000c:  ldstr      "fOO"
-    IL_0011:  stfld      string Container1::fOO
+    IL_000c:  ldstr      "gOO"
+    IL_0011:  stfld      string Container1::gOO
     IL_0016:  ldarg.0
     IL_0017:  ldstr      "Baz"
     IL_001c:  stfld      string Container1::Baz
@@ -871,7 +873,7 @@ Module Program
         Inherits Container1
 
         Sub Test()
-            foo
+            goo
             System.Console.WriteLine(Baz)
 
             Dim bar As New Bar()
@@ -881,7 +883,7 @@ Module Program
 
     Sub Main
         Dim c1 As New Container1()
-        c1.foo
+        c1.goo
         System.Console.WriteLine(c1.baz)
 
         Dim bar As New Container1.Bar()
@@ -896,11 +898,11 @@ End Module
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
-Container1.foo
+Container1.goo
 Baz
 Container1.Bar
 Container1.Bar.bar1
-Container1.foo
+Container1.goo
 Baz
 Container1.Bar
 Container1.Bar.bar1
@@ -2710,7 +2712,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication">
     <file name="a.vb">
 Module Program
@@ -2723,7 +2725,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -2732,7 +2734,7 @@ End Module
 1 bBxyy
 ]]>)
 
-            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -2751,7 +2753,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3,
 <expected>
@@ -2784,7 +2786,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -2798,7 +2800,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation4, expectedOutput:=
             <![CDATA[
@@ -2808,7 +2810,7 @@ End Module
 1 bBxyy
 ]]>)
 
-            Dim vbCompilationToRef = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim vbCompilationToRef = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="VBLibrary">
     <file name="a.vb">
 Namespace BBxxx
@@ -2930,7 +2932,7 @@ End Namespace
             Dim vbCompilationRef = New VisualBasicCompilationReference(vbCompilationToRef)
 
             If True Then
-                Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication">
         <file name="a.vb">
 Module Program
@@ -2952,7 +2954,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation5,
     <expected>
@@ -2994,7 +2996,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-                Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication">
         <file name="a.vb">
 Module Program
@@ -3007,7 +3009,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation6, expectedOutput:=
                 <![CDATA[
@@ -3016,7 +3018,7 @@ End Module
 2 BBxyy.Test1
     ]]>)
 
-                Dim compilation7 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation7 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication1">
         <file name="a.vb">
 Module Program
@@ -3039,7 +3041,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation7,
     <expected>
@@ -3084,7 +3086,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-                Dim compilation8 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation8 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication1">
         <file name="a.vb">
 Module Program
@@ -3096,7 +3098,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={ilAssemblyRef1, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation8, expectedOutput:=
                 <![CDATA[
@@ -3106,7 +3108,7 @@ End Module
             End If
 
             If True Then
-                Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication">
         <file name="a.vb">
 Module Program
@@ -3128,7 +3130,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation5,
     <expected>
@@ -3170,7 +3172,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-                Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication">
         <file name="a.vb">
 Module Program
@@ -3183,7 +3185,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation6, expectedOutput:=
                 <![CDATA[
@@ -3192,7 +3194,7 @@ End Module
 2 BBxyy.Test1
     ]]>)
 
-                Dim compilation7 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation7 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication1">
         <file name="a.vb">
 Module Program
@@ -3215,7 +3217,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation7,
     <expected>
@@ -3260,7 +3262,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-                Dim compilation8 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation8 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="ConsoleApplication1">
         <file name="a.vb">
 Module Program
@@ -3272,7 +3274,7 @@ Module Program
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+    </compilation>, references:={vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
                 CompileAndVerify(compilation8, expectedOutput:=
                 <![CDATA[
@@ -3354,7 +3356,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-            Dim compilation10 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation10 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3377,7 +3379,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef2, vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef2, vbCompilationRef, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation10,
 <expected>
@@ -3422,7 +3424,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-            Dim compilation11 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation11 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3445,7 +3447,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef2, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={vbCompilationRef, ilAssemblyRef2, ilAssemblyRef1}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation11,
 <expected>
@@ -3490,7 +3492,7 @@ BC30554: 'bbyyx' is ambiguous.
                 ~~~~~
 </expected>)
 
-            Dim compilation12 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation12 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3502,7 +3504,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={vbCompilationRef, ilAssemblyRef1, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={vbCompilationRef, ilAssemblyRef1, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation12, expectedOutput:=
             <![CDATA[
@@ -3510,7 +3512,7 @@ End Module
 2 BBxyy.Test1
     ]]>)
 
-            Dim compilation13 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation13 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3522,7 +3524,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation13, expectedOutput:=
             <![CDATA[
@@ -3530,7 +3532,7 @@ End Module
 2 BBxyy.Test1
     ]]>)
 
-            Dim compilation14 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation14 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3542,7 +3544,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, ilAssemblyRef2, vbCompilationRef}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1, ilAssemblyRef2, vbCompilationRef}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation14, expectedOutput:=
             <![CDATA[
@@ -3550,7 +3552,7 @@ End Module
 2 BBxyy.Test1
     ]]>)
 
-            Dim compilation15 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation15 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3678,7 +3680,7 @@ Namespace BByyx
 End Namespace
 
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation15, expectedOutput:=
             <![CDATA[
@@ -3697,7 +3699,7 @@ End Namespace
 3 BByyx.Test
     ]]>)
 
-            Dim compilation16 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation16 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="ConsoleApplication1">
     <file name="a.vb">
 Module Program
@@ -3825,7 +3827,7 @@ Class BByyx
 End Class
 
     </file>
-</compilation>, additionalRefs:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
+</compilation>, references:={ilAssemblyRef1, vbCompilationRef, ilAssemblyRef2}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation16, expectedOutput:=
             <![CDATA[
@@ -6161,15 +6163,15 @@ Container1.aAxxz
 .class public auto ansi beforefieldinit Container1
        extends [mscorlib]System.Object
 {
-  .field family string foO
+  .field family string goO
   .method family hidebysig instance void 
-          FoO(int32 x) cil managed
+          GoO(int32 x) cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ret
-  } // end of method Container1::FoO
+  } // end of method Container1::GoO
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6186,18 +6188,18 @@ Container1.aAxxz
 .class public auto ansi beforefieldinit Container2
        extends Container1
 {
-  .field family string foo
+  .field family string goo
   .method public hidebysig instance void 
-          Foo() cil managed
+          Goo() cil managed
   {
     // Code size       13 (0xd)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ldstr      "Container2.Foo"
+    IL_0001:  ldstr      "Container2.Goo"
     IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
     IL_000b:  nop
     IL_000c:  ret
-  } // end of method Container2::Foo
+  } // end of method Container2::Goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6220,13 +6222,13 @@ Module Program
         Inherits Container2
 
         Sub Test()
-            Foo(1)
+            Goo(1)
         End Sub
     End Class
 
     Sub Main
         Dim c As New Container2()
-        c.Foo(1)
+        c.Goo(1)
     End Sub
 End Module
     </file>
@@ -6234,11 +6236,11 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
-BC30057: Too many arguments to 'Public Overloads Sub Foo()'.
-            Foo(1)
+BC30057: Too many arguments to 'Public Overloads Sub Goo()'.
+            Goo(1)
                 ~
-BC30057: Too many arguments to 'Public Overloads Sub Foo()'.
-        c.Foo(1)
+BC30057: Too many arguments to 'Public Overloads Sub Goo()'.
+        c.Goo(1)
               ~
 </expected>)
 
@@ -6250,13 +6252,13 @@ Module Program
         Inherits Container2
 
         Sub Test()
-            Foo()
+            Goo()
         End Sub
     End Class
 
     Sub Main
         Dim c As New Container2()
-        c.Foo()
+        c.Goo()
         Dim tt As New Test()
         tt.Test()
     End Sub
@@ -6266,8 +6268,8 @@ End Module
 
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
-Container2.Foo
-Container2.Foo
+Container2.Goo
+Container2.Goo
 ]]>)
         End Sub
 
@@ -6277,15 +6279,15 @@ Container2.Foo
 .class public auto ansi beforefieldinit Container1
        extends [mscorlib]System.Object
 {
-  .field public string foO
+  .field public string goO
   .method family hidebysig instance void 
-          FoO(int32 x) cil managed
+          GoO(int32 x) cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ret
-  } // end of method Container1::FoO
+  } // end of method Container1::GoO
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6302,15 +6304,15 @@ Container2.Foo
 .class public auto ansi beforefieldinit Container2
        extends Container1
 {
-  .field family string foo
+  .field family string goo
   .method public hidebysig instance void 
-          Foo() cil managed
+          Goo() cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ret
-  } // end of method Container2::Foo
+  } // end of method Container2::Goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6333,13 +6335,13 @@ Module Program
         Inherits Container2
 
         Sub Test()
-            Foo(1)
+            Goo(1)
         End Sub
     End Class
 
     Sub Main
         Dim c As New Container2()
-        c.Foo(1)
+        c.Goo(1)
     End Sub
 End Module
     </file>
@@ -6347,11 +6349,11 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
-BC30057: Too many arguments to 'Public Overloads Sub Foo()'.
-            Foo(1)
+BC30057: Too many arguments to 'Public Overloads Sub Goo()'.
+            Goo(1)
                 ~
-BC30057: Too many arguments to 'Public Overloads Sub Foo()'.
-        c.Foo(1)
+BC30057: Too many arguments to 'Public Overloads Sub Goo()'.
+        c.Goo(1)
               ~
 </expected>)
         End Sub
@@ -6362,18 +6364,18 @@ BC30057: Too many arguments to 'Public Overloads Sub Foo()'.
 .class public auto ansi beforefieldinit Container1
        extends [mscorlib]System.Object
 {
-  .field family string foO
+  .field family string goO
   .method public hidebysig instance void 
-          FoO(int32 x) cil managed
+          GoO(int32 x) cil managed
   {
     // Code size       13 (0xd)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ldstr      "Container1.FoO"
+    IL_0001:  ldstr      "Container1.GoO"
     IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
     IL_000b:  nop
     IL_000c:  ret
-  } // end of method Container1::FoO
+  } // end of method Container1::GoO
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6390,15 +6392,15 @@ BC30057: Too many arguments to 'Public Overloads Sub Foo()'.
 .class public auto ansi beforefieldinit Container2
        extends Container1
 {
-  .field family string foo
+  .field family string goo
   .method public hidebysig instance void 
-          Foo() cil managed
+          Goo() cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ret
-  } // end of method Container2::Foo
+  } // end of method Container2::Goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6421,13 +6423,13 @@ Module Program
         Inherits Container2
 
         Sub Test()
-            Foo(1)
+            Goo(1)
         End Sub
     End Class
 
     Sub Main
         Dim c As New Container2()
-        c.Foo(1)
+        c.Goo(1)
         Dim t As New Test()
         t.Test()
     End Sub
@@ -6437,8 +6439,8 @@ End Module
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
-Container1.FoO
-Container1.FoO
+Container1.GoO
+Container1.GoO
 ]]>)
         End Sub
 
@@ -6449,16 +6451,16 @@ Container1.FoO
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance void 
-          FoO(int32 x) cil managed
+          GoO(int32 x) cil managed
   {
     // Code size       13 (0xd)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ldstr      "Container1.FoO"
+    IL_0001:  ldstr      "Container1.GoO"
     IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
     IL_000b:  nop
     IL_000c:  ret
-  } // end of method Container1::FoO
+  } // end of method Container1::GoO
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6476,31 +6478,31 @@ Container1.FoO
        extends Container1
 {
   .method public hidebysig instance void 
-          FOO(int64 x) cil managed
+          GOO(int64 x) cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ret
-  } // end of method Container2::FOO
+  } // end of method Container2::GOO
 
   .method public hidebysig instance void 
-          foo(int64 x) cil managed
+          goo(int64 x) cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ret
-  } // end of method Container2::foo
+  } // end of method Container2::goo
 
   .method public hidebysig instance void 
-          fOo(int64 x) cil managed
+          gOo(int64 x) cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ret
-  } // end of method Container2::fOo
+  } // end of method Container2::gOo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6521,20 +6523,20 @@ Container1.FoO
 Module Program
     Sub Main
         Dim c As New Container2()
-        c.Foo(Integer.MaxValue)
+        c.Goo(Integer.MaxValue)
         Dim m As Long = Integer.MaxValue
-        c.Foo(m)
+        c.Goo(m)
     End Sub
 End Module
     </file>
 </compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
-            ' !!! c.Foo(Integer.MaxValue) - Dev10 reports an error BC31429: 'FOO' is ambiguous because multiple kinds of members with this name exist in class 'Container2'.
-            ' !!! c.Foo(m)                - Dev10 reports an error BC31429: 'FOO' is ambiguous because multiple kinds of members with this name exist in class 'Container2'.
+            ' !!! c.Goo(Integer.MaxValue) - Dev10 reports an error BC31429: 'GOO' is ambiguous because multiple kinds of members with this name exist in class 'Container2'.
+            ' !!! c.Goo(m)                - Dev10 reports an error BC31429: 'GOO' is ambiguous because multiple kinds of members with this name exist in class 'Container2'.
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
-Container1.FoO
-Container1.FoO
+Container1.GoO
+Container1.GoO
 ]]>)
         End Sub
 
@@ -6545,16 +6547,16 @@ Container1.FoO
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance void 
-          FoO(int32 x) cil managed
+          GoO(int32 x) cil managed
   {
     // Code size       13 (0xd)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ldstr      "Container1.FoO"
+    IL_0001:  ldstr      "Container1.GoO"
     IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
     IL_000b:  nop
     IL_000c:  ret
-  } // end of method Container1::FoO
+  } // end of method Container1::GoO
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6572,25 +6574,25 @@ Container1.FoO
        extends Container1
 {
   .method public hidebysig instance void 
-          FOO(int64 x) cil managed
+          GOO(int64 x) cil managed
   {
     // Code size       13 (0xd)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ldstr      "Container2.FOO"
+    IL_0001:  ldstr      "Container2.GOO"
     IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
     IL_000b:  nop
     IL_000c:  ret
-  } // end of method Container2::FOO
+  } // end of method Container2::GOO
 
   .method family hidebysig instance void 
-          foo(int64 x) cil managed
+          goo(int64 x) cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ret
-  } // end of method Container2::foo
+  } // end of method Container2::goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6613,15 +6615,15 @@ Module Program
         Inherits Container2
 
         Sub Test()
-            Foo(Long.MaxValue)
-            Foo(Integer.MaxValue)
+            Goo(Long.MaxValue)
+            Goo(Integer.MaxValue)
         End Sub
     End Class
 
     Sub Main
         Dim c As New Container2()
-        c.Foo(Long.MaxValue)
-        c.Foo(Integer.MaxValue)
+        c.Goo(Long.MaxValue)
+        c.Goo(Integer.MaxValue)
 
         Dim t As New Test()
         t.Test()
@@ -6632,10 +6634,10 @@ End Module
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
-Container2.FOO
-Container1.FoO
-Container2.FOO
-Container1.FoO
+Container2.GOO
+Container1.GoO
+Container2.GOO
+Container1.GoO
 ]]>)
         End Sub
 
@@ -6645,15 +6647,15 @@ Container1.FoO
 .class public auto ansi beforefieldinit Container1
        extends [mscorlib]System.Object
 {
-  .field public string FoO
+  .field public string GoO
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
   {
     // Code size       19 (0x13)
     .maxstack  8
     IL_0000:  ldarg.0
-    IL_0001:  ldstr      "Container1.FoO"
-    IL_0006:  stfld      string Container1::FoO
+    IL_0001:  ldstr      "Container1.GoO"
+    IL_0006:  stfld      string Container1::GoO
     IL_000b:  ldarg.0
     IL_000c:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0011:  nop
@@ -6666,34 +6668,34 @@ Container1.FoO
        extends Container1
 {
   .method family hidebysig instance string 
-          FOO() cil managed
+          GOO() cil managed
   {
     // Code size       11 (0xb)
     .maxstack  1
     .locals init ([0] string CS$1$0000)
     IL_0000:  nop
-    IL_0001:  ldstr      "Container2.FOO"
+    IL_0001:  ldstr      "Container2.GOO"
     IL_0006:  stloc.0
     IL_0007:  br.s       IL_0009
 
     IL_0009:  ldloc.0
     IL_000a:  ret
-  } // end of method Container2::FOO
+  } // end of method Container2::GOO
 
   .method family hidebysig instance string 
-          foo() cil managed
+          goo() cil managed
   {
     // Code size       11 (0xb)
     .maxstack  1
     .locals init ([0] string CS$1$0000)
     IL_0000:  nop
-    IL_0001:  ldstr      "Container2.foo"
+    IL_0001:  ldstr      "Container2.goo"
     IL_0006:  stloc.0
     IL_0007:  br.s       IL_0009
 
     IL_0009:  ldloc.0
     IL_000a:  ret
-  } // end of method Container2::foo
+  } // end of method Container2::goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6714,7 +6716,7 @@ Container1.FoO
 Module Program
     Sub Main
         Dim c As New Container2()
-        System.Console.WriteLine(c.FoO)
+        System.Console.WriteLine(c.GoO)
     End Sub
 End Module
     </file>
@@ -6722,7 +6724,7 @@ End Module
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
-Container1.FoO
+Container1.GoO
 ]]>)
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithCustomILSource(
@@ -6733,7 +6735,7 @@ Module Program
         Inherits Container2
 
         Sub Test()
-            System.Console.WriteLine(Foo)
+            System.Console.WriteLine(Goo)
         End Sub
     End Class
 
@@ -6745,8 +6747,8 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected>
-BC31429: 'FOO' is ambiguous because multiple kinds of members with this name exist in class 'Container2'.
-            System.Console.WriteLine(Foo)
+BC31429: 'GOO' is ambiguous because multiple kinds of members with this name exist in class 'Container2'.
+            System.Console.WriteLine(Goo)
                                      ~~~
 </expected>)
         End Sub
@@ -6758,19 +6760,19 @@ BC31429: 'FOO' is ambiguous because multiple kinds of members with this name exi
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance string 
-          FoO(int32 x) cil managed
+          GoO(int32 x) cil managed
   {
     // Code size       11 (0xb)
     .maxstack  1
     .locals init ([0] string CS$1$0000)
     IL_0000:  nop
-    IL_0001:  ldstr      "Container1.FoO"
+    IL_0001:  ldstr      "Container1.GoO"
     IL_0006:  stloc.0
     IL_0007:  br.s       IL_0009
 
     IL_0009:  ldloc.0
     IL_000a:  ret
-  } // end of method Container1::FoO
+  } // end of method Container1::GoO
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6788,34 +6790,34 @@ BC31429: 'FOO' is ambiguous because multiple kinds of members with this name exi
        extends Container1
 {
   .method family hidebysig instance string 
-          FOO() cil managed
+          GOO() cil managed
   {
     // Code size       11 (0xb)
     .maxstack  1
     .locals init ([0] string CS$1$0000)
     IL_0000:  nop
-    IL_0001:  ldstr      "Container2.FOO"
+    IL_0001:  ldstr      "Container2.GOO"
     IL_0006:  stloc.0
     IL_0007:  br.s       IL_0009
 
     IL_0009:  ldloc.0
     IL_000a:  ret
-  } // end of method Container2::FOO
+  } // end of method Container2::GOO
 
   .method family hidebysig instance string 
-          foo() cil managed
+          goo() cil managed
   {
     // Code size       11 (0xb)
     .maxstack  1
     .locals init ([0] string CS$1$0000)
     IL_0000:  nop
-    IL_0001:  ldstr      "Container2.foo"
+    IL_0001:  ldstr      "Container2.goo"
     IL_0006:  stloc.0
     IL_0007:  br.s       IL_0009
 
     IL_0009:  ldloc.0
     IL_000a:  ret
-  } // end of method Container2::foo
+  } // end of method Container2::goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6833,19 +6835,19 @@ BC31429: 'FOO' is ambiguous because multiple kinds of members with this name exi
        extends Container2
 {
   .method public hidebysig instance string 
-          fOO(int64 x) cil managed
+          gOO(int64 x) cil managed
   {
     // Code size       11 (0xb)
     .maxstack  1
     .locals init ([0] string CS$1$0000)
     IL_0000:  nop
-    IL_0001:  ldstr      "Container3.fOO"
+    IL_0001:  ldstr      "Container3.gOO"
     IL_0006:  stloc.0
     IL_0007:  br.s       IL_0009
 
     IL_0009:  ldloc.0
     IL_000a:  ret
-  } // end of method Container3::fOO
+  } // end of method Container3::gOO
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6868,15 +6870,15 @@ Module Program
         Inherits Container3
 
         Sub Test()
-            System.Console.WriteLine(fOO(Long.MaxValue))
-            System.Console.WriteLine(fOO(Integer.MaxValue))
+            System.Console.WriteLine(gOO(Long.MaxValue))
+            System.Console.WriteLine(gOO(Integer.MaxValue))
         End Sub
     End Class
 
     Sub Main()
         Dim c As New Container3()
-        System.Console.WriteLine(c.fOO(Long.MaxValue))
-        System.Console.WriteLine(c.fOO(Integer.MaxValue))
+        System.Console.WriteLine(c.gOO(Long.MaxValue))
+        System.Console.WriteLine(c.gOO(Integer.MaxValue))
 
         Dim t As New Test()
         t.Test()
@@ -6887,10 +6889,10 @@ End Module
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
-Container3.fOO
-Container1.FoO
-Container3.fOO
-Container1.FoO
+Container3.gOO
+Container1.GoO
+Container3.gOO
+Container1.GoO
 ]]>)
         End Sub
 
@@ -6901,19 +6903,19 @@ Container1.FoO
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance string 
-          FoO(int32 x) cil managed
+          GoO(int32 x) cil managed
   {
     // Code size       11 (0xb)
     .maxstack  1
     .locals init ([0] string CS$1$0000)
     IL_0000:  nop
-    IL_0001:  ldstr      "Container1.FoO"
+    IL_0001:  ldstr      "Container1.GoO"
     IL_0006:  stloc.0
     IL_0007:  br.s       IL_0009
 
     IL_0009:  ldloc.0
     IL_000a:  ret
-  } // end of method Container1::FoO
+  } // end of method Container1::GoO
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6931,34 +6933,34 @@ Container1.FoO
        extends Container1
 {
   .method family hidebysig instance string 
-          FOO(int32 x) cil managed
+          GOO(int32 x) cil managed
   {
     // Code size       11 (0xb)
     .maxstack  1
     .locals init ([0] string CS$1$0000)
     IL_0000:  nop
-    IL_0001:  ldstr      "Container2.FOO"
+    IL_0001:  ldstr      "Container2.GOO"
     IL_0006:  stloc.0
     IL_0007:  br.s       IL_0009
 
     IL_0009:  ldloc.0
     IL_000a:  ret
-  } // end of method Container2::FOO
+  } // end of method Container2::GOO
 
   .method family hidebysig instance string 
-          foo(int32 x) cil managed
+          goo(int32 x) cil managed
   {
     // Code size       11 (0xb)
     .maxstack  1
     .locals init ([0] string CS$1$0000)
     IL_0000:  nop
-    IL_0001:  ldstr      "Container2.foo"
+    IL_0001:  ldstr      "Container2.goo"
     IL_0006:  stloc.0
     IL_0007:  br.s       IL_0009
 
     IL_0009:  ldloc.0
     IL_000a:  ret
-  } // end of method Container2::foo
+  } // end of method Container2::goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -6976,19 +6978,19 @@ Container1.FoO
        extends Container2
 {
   .method public hidebysig instance string 
-          fOO(int64 x) cil managed
+          gOO(int64 x) cil managed
   {
     // Code size       11 (0xb)
     .maxstack  1
     .locals init ([0] string CS$1$0000)
     IL_0000:  nop
-    IL_0001:  ldstr      "Container3.fOO"
+    IL_0001:  ldstr      "Container3.gOO"
     IL_0006:  stloc.0
     IL_0007:  br.s       IL_0009
 
     IL_0009:  ldloc.0
     IL_000a:  ret
-  } // end of method Container3::fOO
+  } // end of method Container3::gOO
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -7011,15 +7013,15 @@ Module Program
         Inherits Container3
 
         Sub Test()
-            System.Console.WriteLine(fOO(Long.MaxValue))
-            System.Console.WriteLine(fOO(Integer.MaxValue))
+            System.Console.WriteLine(gOO(Long.MaxValue))
+            System.Console.WriteLine(gOO(Integer.MaxValue))
         End Sub
     End Class
 
     Sub Main()
         Dim c As New Container3()
-        System.Console.WriteLine(c.fOO(Long.MaxValue))
-        System.Console.WriteLine(c.fOO(Integer.MaxValue))
+        System.Console.WriteLine(c.gOO(Long.MaxValue))
+        System.Console.WriteLine(c.gOO(Integer.MaxValue))
 
         Dim t As New Test()
         t.Test()
@@ -7030,10 +7032,10 @@ End Module
 
             CompileAndVerify(compilation1, expectedOutput:=
             <![CDATA[
-Container3.fOO
-Container1.FoO
-Container3.fOO
-Container1.FoO
+Container3.gOO
+Container1.GoO
+Container3.gOO
+Container1.GoO
 ]]>)
         End Sub
 
@@ -7055,7 +7057,7 @@ Container1.FoO
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7065,9 +7067,9 @@ Container1.FoO
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method c::Foo
+  } // end of method c::Goo
 
-  .method public hidebysig static void  FoO(int32 x) cil managed
+  .method public hidebysig static void  GoO(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7077,7 +7079,7 @@ Container1.FoO
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method c::FoO
+  } // end of method c::GoO
 
 } // end of class Extensions.c
 
@@ -7086,7 +7088,7 @@ Container1.FoO
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7096,7 +7098,7 @@ Container1.FoO
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method D::Foo
+  } // end of method D::Goo
 
 } // end of class Extensions.D
 
@@ -7111,7 +7113,7 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        Foo(x)
+        Goo(x)
     End Sub
 End Module
     </file>
@@ -7119,8 +7121,8 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
-BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.c, Extensions.c, Extensions.D'.
-        Foo(x)
+BC30562: 'Goo' is ambiguous between declarations in Modules 'Extensions.c, Extensions.c, Extensions.D'.
+        Goo(x)
         ~~~
 </expected>)
 
@@ -7132,20 +7134,20 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo()
+        x.Goo()
     End Sub
 End Module
     </file>
 </compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
-            ' Dev10 reports error BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
+            ' Dev10 reports error BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected>
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'c': Not most specific.
-    Extension method 'Public Sub FoO()' defined in 'c': Not most specific.
-    Extension method 'Public Sub Foo()' defined in 'D': Not most specific.
-        x.Foo()
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    Extension method 'Public Sub Goo()' defined in 'c': Not most specific.
+    Extension method 'Public Sub GoO()' defined in 'c': Not most specific.
+    Extension method 'Public Sub Goo()' defined in 'D': Not most specific.
+        x.Goo()
           ~~~
 </expected>)
         End Sub
@@ -7168,7 +7170,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7178,9 +7180,9 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method c::Foo
+  } // end of method c::Goo
 
-  .method public hidebysig static void  FoO(int32 x) cil managed
+  .method public hidebysig static void  GoO(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7190,7 +7192,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method c::FoO
+  } // end of method c::GoO
 
 } // end of class Extensions.c
 ]]>
@@ -7204,8 +7206,8 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo()
-        Foo(x)
+        x.Goo()
+        Goo(x)
     End Sub
 End Module
     </file>
@@ -7213,13 +7215,13 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'c': Not most specific.
-    Extension method 'Public Sub FoO()' defined in 'c': Not most specific.
-        x.Foo()
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    Extension method 'Public Sub Goo()' defined in 'c': Not most specific.
+    Extension method 'Public Sub GoO()' defined in 'c': Not most specific.
+        x.Goo()
           ~~~
-BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exist in module 'c'.
-        Foo(x)
+BC31429: 'Goo' is ambiguous because multiple kinds of members with this name exist in module 'c'.
+        Goo(x)
         ~~~
 </expected>)
         End Sub
@@ -7242,7 +7244,7 @@ BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exi
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(class [mscorlib]System.ValueType x) cil managed
+  .method public hidebysig static void  Goo(class [mscorlib]System.ValueType x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7252,9 +7254,9 @@ BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exi
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method c::Foo
+  } // end of method c::Goo
 
-  .method public hidebysig static void  FoO(class [mscorlib]System.ValueType x) cil managed
+  .method public hidebysig static void  GoO(class [mscorlib]System.ValueType x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7264,7 +7266,7 @@ BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exi
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method c::FoO
+  } // end of method c::GoO
 
 } // end of class Extensions.c
 
@@ -7273,7 +7275,7 @@ BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exi
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(object x) cil managed
+  .method public hidebysig static void  Goo(object x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7283,7 +7285,7 @@ BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exi
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method D::Foo
+  } // end of method D::Goo
 
 } // end of class Extensions.D
 ]]>
@@ -7297,7 +7299,7 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        Foo(x)
+        Goo(x)
     End Sub
 End Module
     </file>
@@ -7305,8 +7307,8 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <expected>
-BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.c, Extensions.c, Extensions.D'.
-        Foo(x)
+BC30562: 'Goo' is ambiguous between declarations in Modules 'Extensions.c, Extensions.c, Extensions.D'.
+        Goo(x)
         ~~~
 </expected>)
 
@@ -7318,19 +7320,19 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo()
+        x.Goo()
     End Sub
 End Module
     </file>
 </compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
-            ' Dev10 reports error BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
+            ' Dev10 reports error BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected>
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    Extension method 'Public Sub Foo()' defined in 'c': Not most specific.
-    Extension method 'Public Sub FoO()' defined in 'c': Not most specific.
-        x.Foo()
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    Extension method 'Public Sub Goo()' defined in 'c': Not most specific.
+    Extension method 'Public Sub GoO()' defined in 'c': Not most specific.
+        x.Goo()
           ~~~
 </expected>)
         End Sub
@@ -7354,7 +7356,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(object x) cil managed
+  .method public hidebysig static void  Goo(object x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7364,9 +7366,9 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method c::Foo
+  } // end of method c::Goo
 
-  .method public hidebysig static void  FoO(object x) cil managed
+  .method public hidebysig static void  GoO(object x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7376,7 +7378,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method c::FoO
+  } // end of method c::GoO
 
 } // end of class Extensions.c
 
@@ -7385,7 +7387,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
 {
   .custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = ( 01 00 00 00 ) 
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(class [mscorlib]System.ValueType x) cil managed
+  .method public hidebysig static void  Goo(class [mscorlib]System.ValueType x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       9 (0x9)
@@ -7395,7 +7397,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     IL_0002:  call       void [mscorlib]System.Console::WriteLine(int32)
     IL_0007:  nop
     IL_0008:  ret
-  } // end of method D::Foo
+  } // end of method D::Goo
 
 } // end of class Extensions.D
 ]]>
@@ -7409,8 +7411,8 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo()
-        Foo(x)
+        x.Goo()
+        Goo(x)
     End Sub
 End Module
     </file>
@@ -7418,8 +7420,8 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.c, Extensions.c, Extensions.D'.
-        Foo(x)
+BC30562: 'Goo' is ambiguous between declarations in Modules 'Extensions.c, Extensions.c, Extensions.D'.
+        Goo(x)
         ~~~
 </expected>)
 
@@ -7431,7 +7433,7 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo()
+        x.Goo()
     End Sub
 End Module
     </file>

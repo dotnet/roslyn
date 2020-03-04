@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
@@ -41,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Case TypeKind.Module
                             Return "module"
                         Case TypeKind.Delegate
-                            ' Dev10 error message format "... delegate Class foo ..." instead of "... delegate foo ..."               
+                            ' Dev10 error message format "... delegate Class goo ..." instead of "... delegate goo ..."               
                             Return "delegate Class"
                         Case Else
                             'TODO: do we need string s for ByRef, Array, TypeParameter etc?
@@ -208,8 +210,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Note that in metadata, you can encounter methods that are static (shared) or non-virtual 
                     ' (for example TLBIMP VtblGap members), even though you can't define those in source.
                     Return sym.ContainingType.IsInterfaceType() AndAlso
-                           Not sym.IsShared AndAlso
-                           sym.IsMustOverride
+                           Not sym.IsShared AndAlso Not sym.IsNotOverridable AndAlso
+                           (sym.IsMustOverride OrElse sym.IsOverridable)
                 Case Else
                     Return False
             End Select
@@ -360,21 +362,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
+        ''' Does symbol or its containing type have Microsoft.CodeAnalysis.Embedded() attribute
+        ''' </summary>
+        <Extension()>
+        Friend Function IsHiddenByCodeAnalysisEmbeddedAttribute(symbol As Symbol) As Boolean
+            ' Only upper-level types should be checked 
+            Dim upperLevelType = GetUpperLevelNamedTypeSymbol(symbol)
+            Return upperLevelType IsNot Nothing AndAlso upperLevelType.HasCodeAnalysisEmbeddedAttribute
+        End Function
+
+        ''' <summary>
         ''' Does symbol or its containing type have Microsoft.VisualBasic.Embedded() attribute
         ''' </summary>
         <Extension()>
-        Friend Function IsHiddenByEmbeddedAttribute(symbol As Symbol) As Boolean
+        Friend Function IsHiddenByVisualBasicEmbeddedAttribute(symbol As Symbol) As Boolean
             ' Only upper-level types should be checked 
+            Dim upperLevelType = GetUpperLevelNamedTypeSymbol(symbol)
+            Return upperLevelType IsNot Nothing AndAlso upperLevelType.HasVisualBasicEmbeddedAttribute
+        End Function
+
+        ''' <summary>
+        ''' Gets the upper-level named type symbol, or returns Nothing if it does not exist.
+        ''' </summary>
+        <Extension()>
+        Friend Function GetUpperLevelNamedTypeSymbol(symbol As Symbol) As NamedTypeSymbol
             Dim upperLevelType = If(symbol.Kind = SymbolKind.NamedType, DirectCast(symbol, NamedTypeSymbol), symbol.ContainingType)
             If upperLevelType Is Nothing Then
-                Return False
+                Return Nothing
             End If
 
             While upperLevelType.ContainingType IsNot Nothing
                 upperLevelType = upperLevelType.ContainingType
             End While
 
-            Return upperLevelType.HasEmbeddedAttribute
+            Return upperLevelType
         End Function
 
         <Extension>
@@ -417,11 +438,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension>
         Friend Function ContainingNonLambdaMember(member As Symbol) As Symbol
-            While member?.Kind = SymbolKind.Method AndAlso DirectCast(member, MethodSymbol).MethodKind = MethodKind.AnonymousFunction
+            While (member?.Kind = SymbolKind.Method).GetValueOrDefault() AndAlso DirectCast(member, MethodSymbol).MethodKind = MethodKind.AnonymousFunction
                 member = member.ContainingSymbol
             End While
 
             Return member
+        End Function
+
+        <Extension>
+        Friend Function ContainsTupleNames(member As Symbol) As Boolean
+            Select Case member.Kind
+                Case SymbolKind.Method
+                    Dim method = DirectCast(member, MethodSymbol)
+                    Return method.ReturnType.ContainsTupleNames() OrElse ContainsTupleNames(method.Parameters)
+                Case SymbolKind.Property
+                    Dim [property] = DirectCast(member, PropertySymbol)
+                    Return [property].Type.ContainsTupleNames() OrElse ContainsTupleNames([property].Parameters)
+                Case SymbolKind.Event
+                    ' We don't check the event Type directly because materializing it requires checking the tuple names in the type (to validate interface implementations)
+                    Return ContainsTupleNames(DirectCast(member, EventSymbol).DelegateParameters)
+                Case Else
+                    '  We currently don't need to use this method for other kinds of symbols
+                    Throw ExceptionUtilities.UnexpectedValue(member.Kind)
+            End Select
+        End Function
+
+        Private Function ContainsTupleNames(parameters As ImmutableArray(Of ParameterSymbol)) As Boolean
+            Return parameters.Any(Function(p) p.Type.ContainsTupleNames())
         End Function
     End Module
 End Namespace

@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pt-BR" original="../Resources.resx">
+    <body>
+      <trans-unit id="DynamicView">
+        <source>Dynamic View</source>
+        <target state="translated">Modo de Exibição Dinâmico</target>
+        <note>IDynamicMetaObjectProvider and System.__ComObject expansion</note>
+      </trans-unit>
+      <trans-unit id="DynamicViewNotDynamic">
+        <source>Only COM or Dynamic objects can have Dynamic View</source>
+        <target state="translated">Somente objetos COM ou Dinâmicos podem ter um Modo de Exibição Dinâmico</target>
+        <note>Cannot use "dynamic" format specifier on a non-dynamic type</note>
+      </trans-unit>
+      <trans-unit id="DynamicViewValueWarning">
+        <source>Expanding the Dynamic View will get the dynamic members for the object</source>
+        <target state="translated">Ao expandir o Modo de Exibição Dinâmico, você receberá os membros dinâmicos do objeto</target>
+        <note>Warning reported in Dynamic View value</note>
+      </trans-unit>
+      <trans-unit id="ErrorName">
+        <source>Error</source>
+        <target state="translated">Erro</target>
+        <note>Error result name</note>
+      </trans-unit>
+      <trans-unit id="ExceptionThrown">
+        <source>'{0}' threw an exception of type '{1}'</source>
+        <target state="translated">'{0}' gerou uma exceção do tipo '{1}'</target>
+        <note>Threw an exception while evaluating a value.</note>
+      </trans-unit>
+      <trans-unit id="HostValueNotFound">
+        <source>Cannot provide the value: host value not found</source>
+        <target state="translated">Não é possível fornecer o valor: valor do host não encontrado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidPointerDereference">
+        <source>Cannot dereference '{0}'. The pointer is not valid.</source>
+        <target state="translated">Não é possível cancelar a referência '{0}'. O ponteiro não é válido.</target>
+        <note>Invalid pointer dereference</note>
+      </trans-unit>
+      <trans-unit id="NativeView">
+        <source>Native View</source>
+        <target state="translated">Exibição Nativa</target>
+        <note>Native COM object expansion</note>
+      </trans-unit>
+      <trans-unit id="NativeViewNotNativeDebugging">
+        <source>To inspect the native object, enable native code debugging.</source>
+        <target state="translated">Para inspecionar o objeto nativo, habilite a depuração de código nativo.</target>
+        <note>Display value of Native View node when native debugging is not enabled</note>
+      </trans-unit>
+      <trans-unit id="NonPublicMembers">
+        <source>Non-Public members</source>
+        <target state="translated">Membros não públicos</target>
+        <note>Non-public type members</note>
+      </trans-unit>
+      <trans-unit id="RawView">
+        <source>Raw View</source>
+        <target state="translated">Modo de Exibição Bruto</target>
+        <note>DebuggerTypeProxy "Raw View"</note>
+      </trans-unit>
+      <trans-unit id="ResultsView">
+        <source>Results View</source>
+        <target state="translated">Visualização dos Resultados</target>
+        <note>IEnumerable results expansion</note>
+      </trans-unit>
+      <trans-unit id="ResultsViewNoSystemCore">
+        <source>Results View requires System.Core.dll to be referenced</source>
+        <target state="translated">A Visualização dos Resultados exige que o System.Core.dll seja referenciado</target>
+        <note>"results" format specifier requires System.Core.dll</note>
+      </trans-unit>
+      <trans-unit id="ResultsViewNotEnumerable">
+        <source>Only Enumerable types can have Results View</source>
+        <target state="translated">Somente tipos Enumeráveis podem ter Visualização dos Resultados</target>
+        <note>Cannot use "results" format specifier on non-enumerable type</note>
+      </trans-unit>
+      <trans-unit id="ResultsViewValueWarning">
+        <source>Expanding the Results View will enumerate the IEnumerable</source>
+        <target state="translated">Expandir a Visualização dos Resultados vai enumerar o IEnumerable</target>
+        <note>Warning reported in Results View value</note>
+      </trans-unit>
+      <trans-unit id="SharedMembers">
+        <source>Shared members</source>
+        <target state="translated">Membros compartilhados</target>
+        <note>Shared type members (VB only)</note>
+      </trans-unit>
+      <trans-unit id="StaticMembers">
+        <source>Static members</source>
+        <target state="translated">Membros estáticos</target>
+        <note>Static type members (C# only)</note>
+      </trans-unit>
+      <trans-unit id="TypeVariablesName">
+        <source>Type variables</source>
+        <target state="translated">Variáveis de tipo</target>
+        <note>Type variables result name</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

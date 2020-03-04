@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,10 +42,46 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 GetMethodDebugInfo(runtime, "C.M").ImportRecordGroups.Verify(@"
+                {
+                    Namespace: string='System'
+                }");
+            });
+        }
+
+        [Fact, WorkItem(21386, "https://github.com/dotnet/roslyn/issues/21386")]
+        public void Gaps()
+        {
+            var source = @"
+using System;
+
+namespace N1
+{
+  namespace N2 
+  {
+    using System.Collections;
+
+    namespace N3 
+    {
+      class C { void M() { } }
+    }
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                GetMethodDebugInfo(runtime, "N1.N2.N3.C.M").ImportRecordGroups.Verify(@"
+                {
+                }
+                {
+                    Namespace: string='System.Collections'
+                }
+                {
+                }
                 {
                     Namespace: string='System'
                 }");
@@ -67,7 +105,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             CompileAndVerify(comp).VerifyIL("C.M", @"
 {
@@ -114,7 +152,7 @@ namespace A
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 GetMethodDebugInfo(runtime, "A.C.M").ImportRecordGroups.Verify(@"
@@ -147,7 +185,7 @@ namespace A
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 GetMethodDebugInfo(runtime, "A.C.M1").ImportRecordGroups.Verify(@"
@@ -171,6 +209,7 @@ namespace A
         }
 
         [Fact]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ImportKinds()
         {
             var source = @"
@@ -190,8 +229,8 @@ namespace B
     }
 }
 ";
-            var aliasedRef = CreateCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
-            var comp = CreateStandardCompilation(source, new[] { aliasedRef });
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var comp = CreateCompilation(source, new[] { aliasedRef });
             WithRuntimeInstance(comp, runtime =>
             {
                 var info = GetMethodDebugInfo(runtime, "B.C.M");
@@ -240,8 +279,8 @@ namespace B
     }
 }
 ";
-            var aliasedRef = CreateStandardCompilation(libSource, assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
-            var comp = CreateStandardCompilation(source, new[] { aliasedRef });
+            var aliasedRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var comp = CreateCompilation(source, new[] { aliasedRef });
 
             WithRuntimeInstance(comp, runtime =>
             {
@@ -262,6 +301,7 @@ namespace B
         }
 
         [Fact]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ForwardToModule()
         {
             var source = @"
@@ -291,8 +331,8 @@ namespace D
     }
 }
 ";
-            var aliasedRef = CreateCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
-            var comp = CreateStandardCompilation(source, new[] { aliasedRef });
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var comp = CreateCompilation(source, new[] { aliasedRef });
 
             WithRuntimeInstance(comp, runtime =>
             {
@@ -356,7 +396,7 @@ namespace D
                 }
             });
 
-            ImmutableArray < string> externAliasStrings;
+            ImmutableArray<string> externAliasStrings;
             var importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken1, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.True(importStrings.IsDefault);
             Assert.True(externAliasStrings.IsDefault);
@@ -407,7 +447,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var peImage = comp.EmitToArray();
 
             var symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
@@ -439,7 +479,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var peImage = comp.EmitToArray();
 
             var symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
@@ -471,7 +511,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
@@ -512,7 +552,7 @@ namespace N
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
@@ -553,7 +593,7 @@ namespace N
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
@@ -597,7 +637,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -632,7 +672,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -677,7 +717,7 @@ namespace A
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -715,7 +755,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -757,7 +797,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -789,7 +829,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -845,7 +885,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -896,7 +936,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -937,7 +977,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
+            var comp = CreateCompilation(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             comp.VerifyDiagnostics();
 
             WithRuntimeInstance(comp, runtime =>
@@ -981,7 +1021,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
+            var comp = CreateCompilation(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -1029,7 +1069,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("global", "X")) });
+            var comp = CreateCompilation(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("global", "X")) });
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -1103,7 +1143,7 @@ namespace N
                 resultProperties: out resultProperties,
                 error: out error,
                 includeSymbols: false);
-            Assert.Equal(error, "error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)");
+            Assert.Equal("error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)", error);
 
             // With symbols, type reference inside namespace.
             testData = Evaluate(
@@ -1148,10 +1188,10 @@ public class C2 : C1
 {
 }
 ";
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll);
+            var comp1 = CreateEmptyCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll);
             var module1 = comp1.ToModuleInstance();
 
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, module1.GetReference() }, TestOptions.DebugDll);
+            var comp2 = CreateEmptyCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, module1.GetReference() }, TestOptions.DebugDll);
             var module2 = comp2.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[]

@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -17,19 +20,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
     internal class PreviewSolutionCrawlerRegistrationServiceFactory : IWorkspaceServiceFactory
     {
         private readonly DiagnosticAnalyzerService _analyzerService;
+        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
-        public PreviewSolutionCrawlerRegistrationServiceFactory(IDiagnosticAnalyzerService analyzerService)
+        public PreviewSolutionCrawlerRegistrationServiceFactory(IDiagnosticAnalyzerService analyzerService, IAsynchronousOperationListenerProvider listenerProvider)
         {
             // this service is directly tied to DiagnosticAnalyzerService and
             // depends on its implementation.
             _analyzerService = analyzerService as DiagnosticAnalyzerService;
             Contract.ThrowIfNull(_analyzerService);
+
+            _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            // to make life time management easier, just create new sevice per new workspace
+            // to make life time management easier, just create new service per new workspace
             return new Service(this, workspaceServices.Workspace);
         }
 
@@ -44,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             // we can have states for this specific workspace.
             private Task _analyzeTask;
 
-            [ImportingConstructor]
             public Service(PreviewSolutionCrawlerRegistrationServiceFactory owner, Workspace workspace)
             {
                 _owner = owner;
@@ -60,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 // this can't be called twice
                 Contract.ThrowIfFalse(_analyzeTask == null);
 
-                _analyzeTask = AnalyzeAsync();
+                var asyncToken = _owner._listener.BeginAsyncOperation(nameof(PreviewSolutionCrawlerRegistrationServiceFactory) + "." + nameof(Service) + "." + nameof(Register));
+                _analyzeTask = AnalyzeAsync().CompletesAsyncOperation(asyncToken);
             }
 
             private async Task AnalyzeAsync()
@@ -97,7 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 }
             }
 
-            public async void Unregister(Workspace workspace, bool blockingShutdown = false)
+            public void Unregister(Workspace workspace, bool blockingShutdown = false)
+            {
+                _ = UnregisterAsync(workspace, blockingShutdown);
+            }
+
+            private async Task UnregisterAsync(Workspace workspace, bool blockingShutdown)
             {
                 Contract.ThrowIfFalse(workspace == _workspace);
                 _source.Cancel();

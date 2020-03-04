@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -80,7 +82,7 @@ namespace System.Threading.Tasks {
             }
 
 
-            var taskCompilation = CreateCompilation(taskAssembly, references: new[] { MscorlibRef_v20 });
+            var taskCompilation = CreateEmptyCompilation(taskAssembly, references: new[] { MscorlibRef_v20 });
             taskCompilation.VerifyDiagnostics();
             return taskCompilation.ToMetadataReference();
         }
@@ -90,7 +92,7 @@ namespace System.Threading.Tasks {
         public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing()
         {
 
-            var script = CreateCompilation(
+            var script = CreateEmptyCompilation(
                 source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe,
@@ -107,7 +109,7 @@ namespace System.Threading.Tasks {
         public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing_NoNamespace()
         {
 
-            var script = CreateCompilation(
+            var script = CreateEmptyCompilation(
                 source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe,
@@ -132,11 +134,11 @@ namespace System.Threading.Tasks {
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing_VoidHidden()
         {
-            var script = CreateCompilation(
+            var script = CreateEmptyCompilation(
                 source: @"interface I {}",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
-                references: new MetadataReference[] { TaskFacadeAssembly()});
+                references: new MetadataReference[] { TaskFacadeAssembly() });
             script.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -152,7 +154,7 @@ namespace System.Threading.Tasks {
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing()
         {
-            var script = CreateCompilation(
+            var script = CreateEmptyCompilation(
                 source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
@@ -178,7 +180,7 @@ namespace System.Threading.Tasks {
         [Fact]
         public void NonStandardTaskImplementation_NoGlobalUsing_ScriptUsing()
         {
-            var script = CreateCompilation(
+            var script = CreateEmptyCompilation(
                 source: @"
 using Hidden;
 new System.Threading.Tasks.Task<int>().GetAwaiter();
@@ -197,7 +199,7 @@ System.Console.Write(""complete"");",
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_ScriptUsing()
         {
-            var script = CreateCompilation(
+            var script = CreateEmptyCompilation(
                 source: @"
 using Hidden;
 new System.Threading.Tasks.Task<int>().GetAwaiter();
@@ -268,7 +270,7 @@ this[1]
         [Fact]
         public void Submission_TypeDisambiguationBasedUponAssemblyName()
         {
-            var compilation = CreateStandardCompilation("namespace System { public struct Int32 { } }");
+            var compilation = CreateCompilation("namespace System { public struct Int32 { } }");
 
             compilation.VerifyDiagnostics();
         }
@@ -288,7 +290,7 @@ this[1]
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void NoReferences()
         {
             var submission = CSharpCompilation.CreateScriptCompilation("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Script), returnType: typeof(int));
@@ -318,7 +320,7 @@ this[1]
             var c = CreateSubmission(@"
 namespace N1
 {
-   class A { public int Foo() { return 2; }}
+   class A { public int Goo() { return 2; }}
 }
 ");
             c.VerifyDiagnostics(
@@ -337,23 +339,23 @@ namespace N1
             // be declared within the Script class.
             //
             // Consider the following code parsed with ParseOptions(kind: SourceCodeKind.Script) and added
-            // to a compilation with CompilationOptions(scriptClassName: "Foo.Script").
+            // to a compilation with CompilationOptions(scriptClassName: "Goo.Script").
             //
             // public class A { }
-            // namespace Foo
+            // namespace Goo
             // {
             //     public class B : Script.A { }
             // }
             //
             // The resulting compilation will contain the following types in the global namespace.
             //
-            //   * Foo.Script
-            //   * Foo.Script.A
-            //   * Foo.B : Foo.Script.A
+            //   * Goo.Script
+            //   * Goo.Script.A
+            //   * Goo.B : Goo.Script.A
 
             string test = @"
 public class A { }
-namespace Foo
+namespace Goo
 {
     public class B : Script.A { }
 }
@@ -362,30 +364,30 @@ namespace Foo
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: "Test",
-                options: TestOptions.ReleaseExe.WithScriptClassName("Foo.Script"),
+                options: TestOptions.ReleaseExe.WithScriptClassName("Goo.Script"),
                 syntaxTrees: new[] { tree });
 
             var global = compilation.GlobalNamespace;
 
-            var foo = global.GetMembers().Single() as NamespaceSymbol;
-            Assert.Equal("Foo", foo.Name);
+            var goo = global.GetMembers("Goo").Single() as NamespaceSymbol;
+            Assert.Equal("Goo", goo.Name);
 
-            var script = foo.GetTypeMembers("Script").Single();
-            Assert.Equal("Foo.Script", script.ToTestDisplayString());
+            var script = goo.GetTypeMembers("Script").Single();
+            Assert.Equal("Goo.Script", script.ToTestDisplayString());
 
             var a = script.GetTypeMembers("A").Single();
-            Assert.Equal("Foo.Script.A", a.ToTestDisplayString());
+            Assert.Equal("Goo.Script.A", a.ToTestDisplayString());
 
-            var b = foo.GetTypeMembers("B").Single();
-            Assert.Equal("Foo.B", b.ToTestDisplayString());
-            Assert.Same(a, b.BaseType);
+            var b = goo.GetTypeMembers("B").Single();
+            Assert.Equal("Goo.B", b.ToTestDisplayString());
+            Assert.Same(a, b.BaseType());
         }
 
         [Fact]
         public void NamespaceWithBothInteractiveAndNoninteractiveImplicitTypes()
         {
             string test = @"
-namespace Foo { void F() { } }
+namespace Goo { void F() { } }
 void G() { }
 G();
 ";
@@ -393,15 +395,15 @@ G();
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: "Test",
-                options: TestOptions.ReleaseExe.WithScriptClassName("Foo.Script"),
+                options: TestOptions.ReleaseExe.WithScriptClassName("Goo.Script"),
                 syntaxTrees: new[] { tree });
 
             var global = compilation.GlobalNamespace;
-            var members = global.GetMembers();
+            var members = global.GetMembers().Where(m => !m.IsImplicitlyDeclared).AsImmutable();
 
             Assert.Equal(1, members.Length);
-            Assert.Equal("Foo", members[0].Name);
-            Assert.IsAssignableFrom(typeof(NamespaceSymbol), members[0]);
+            Assert.Equal("Goo", members[0].Name);
+            Assert.IsAssignableFrom<NamespaceSymbol>(members[0]);
             var ns = (NamespaceSymbol)members[0];
             members = ns.GetMembers();
 
@@ -595,7 +597,7 @@ this[1]
                     var type = (NamedTypeSymbol)symbol;
                     Assert.False(type.IsScriptClass);
                     Assert.False(type.IsSubmissionClass);
-                    Assert.NotEqual(type.TypeKind, TypeKind.Submission);
+                    Assert.NotEqual(TypeKind.Submission, type.TypeKind);
                 }
             }
 
@@ -705,12 +707,12 @@ class Y : M
         [Fact]
         public void PrivateNested()
         {
-            var c0 = CreateSubmission(@"public class C { private static int foo() { return 1; } }");
-            var c1 = CreateSubmission(@"C.foo()", previous: c0);
+            var c0 = CreateSubmission(@"public class C { private static int goo() { return 1; } }");
+            var c1 = CreateSubmission(@"C.goo()", previous: c0);
 
             c1.VerifyDiagnostics(
                 // error CS0122: '{0}' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "foo").WithArguments("C.foo()"));
+                Diagnostic(ErrorCode.ERR_BadAccess, "goo").WithArguments("C.goo()"));
         }
 
         [Fact]
@@ -785,7 +787,7 @@ public E e4;
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "B"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CompilationChain_Fields()
         {
             var c0 = CreateSubmission(@"
@@ -809,7 +811,7 @@ int z() { return 3; }
 int w = 4;
 ");
             var c1 = CreateSubmission(@"
-static int Foo() { return x; }
+static int Goo() { return x; }
 static int Bar { get { return y; } set { return z(); } }
 static int Baz = w;
 ", previous: c0);
@@ -826,35 +828,35 @@ static int Baz = w;
         public void AccessToGlobalMemberFromNestedClass1()
         {
             var c0 = CreateSubmission(@"
-int foo() { return 1; }
+int goo() { return 1; }
 
 class D 
 {
-    int bar() { return foo(); }
+    int bar() { return goo(); }
 }
 ");
 
             c0.VerifyDiagnostics(
-                // (6,24): error CS0120: An object reference is required for the non-static field, method, or property 'foo()'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "foo").WithArguments("foo()"));
+                // (6,24): error CS0120: An object reference is required for the non-static field, method, or property 'goo()'
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "goo").WithArguments("goo()"));
         }
 
         [Fact]
         public void AccessToGlobalMemberFromNestedClass2()
         {
             var c0 = CreateSubmission(@"
-int foo() { return 1; }
+int goo() { return 1; }
 ");
             var c1 = CreateSubmission(@"
 class D 
 {
-    int bar() { return foo(); }
+    int bar() { return goo(); }
 }
 ", previous: c0);
 
             c1.VerifyDiagnostics(
-                // (4,24): error CS0120: An object reference is required for the non-static field, method, or property 'foo()'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "foo").WithArguments("foo()"));
+                // (4,24): error CS0120: An object reference is required for the non-static field, method, or property 'goo()'
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "goo").WithArguments("goo()"));
         }
 
         /// <summary>
@@ -897,11 +899,11 @@ class D
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Z").WithArguments("Z"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void HostObjectBinding_InStaticContext()
         {
             var source = @"
-static int Foo() { return x; }
+static int Goo() { return x; }
 static int Bar { get { return Y; } set { return Z(); } }
 static int Baz = w;
 ";
@@ -1070,7 +1072,7 @@ System.TypedReference c;
             s1.VerifyEmitDiagnostics();
 
             s2.VerifyDiagnostics(
-                // (1,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i* i"));
         }
 
@@ -1207,7 +1209,7 @@ goto Label;");
             Assert.Equal("WriteLine", node5.Name.ToString());
             Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString());
 
-            CompileAndVerify(compilation, expectedOutput:"1").VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics();
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
             compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
@@ -1355,6 +1357,26 @@ goto Label;");
                 // (1,34): error CS7019: Type of 'x' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // System.Console.WriteLine(out var x, x);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x").WithArguments("x").WithLocation(1, 34)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17779, "https://github.com/dotnet/roslyn/issues/17779")]
+        public void TestScriptWithConstVar()
+        {
+            var script = CreateEmptyCompilation(
+                source: @"string F() => null; const var x = F();",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe,
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
+
+            script.VerifyDiagnostics(
+                // (1,27): error CS0822: Implicitly-typed variables cannot be constant
+                // string F() => null; const var x = F();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var").WithLocation(1, 27),
+                // (1,35): error CS0236: A field initializer cannot reference the non-static field, method, or property 'F()'
+                // string F() => null; const var x = F();
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "F").WithArguments("F()").WithLocation(1, 35)
                 );
         }
 

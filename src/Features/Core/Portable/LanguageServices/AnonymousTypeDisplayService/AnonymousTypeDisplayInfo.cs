@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal struct AnonymousTypeDisplayInfo
+    internal readonly struct AnonymousTypeDisplayInfo
     {
         public IDictionary<INamedTypeSymbol, string> AnonymousTypeToName { get; }
         public IList<SymbolDisplayPart> AnonymousTypesParts { get; }
@@ -14,13 +16,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IList<SymbolDisplayPart> anonymousTypesParts)
             : this()
         {
-            this.AnonymousTypeToName = anonymousTypeToName;
-            this.AnonymousTypesParts = anonymousTypesParts;
+            AnonymousTypeToName = anonymousTypeToName;
+            AnonymousTypesParts = anonymousTypesParts;
         }
 
         public IList<SymbolDisplayPart> ReplaceAnonymousTypes(IList<SymbolDisplayPart> parts)
         {
-            return ReplaceAnonymousTypes(parts, this.AnonymousTypeToName);
+            return ReplaceAnonymousTypes(parts, AnonymousTypeToName);
         }
 
         public static IList<SymbolDisplayPart> ReplaceAnonymousTypes(
@@ -28,11 +30,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IDictionary<INamedTypeSymbol, string> anonymousTypeToName)
         {
             var result = parts;
-            for (int i = 0; i < result.Count; i++)
+            for (var i = 0; i < result.Count; i++)
             {
                 var part = result[i];
-                var type = part.Symbol as INamedTypeSymbol;
-                if (type != null && anonymousTypeToName.TryGetValue(type, out var name) && part.ToString() != name)
+                if (part.Symbol is INamedTypeSymbol type && anonymousTypeToName.TryGetValue(type, out var name) && part.ToString() != name)
                 {
                     result = result == parts ? new List<SymbolDisplayPart>(parts) : result;
                     result[i] = new SymbolDisplayPart(part.Kind, part.Symbol, name);

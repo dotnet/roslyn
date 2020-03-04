@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -6,10 +8,12 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
 {
+    [UseExportProvider]
     public abstract class AbstractCodeLensTest
     {
         protected static async Task RunCountTest(XElement input, int cap = 0)
@@ -28,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var result = await new CodeLensReferencesService().GetReferenceCountAsync(workspace.CurrentSolution, annotatedDocument.Id, 
+                            var result = await new CodeLensReferencesService().GetReferenceCountAsync(workspace.CurrentSolution, annotatedDocument.Id,
                                 declarationSyntaxNode, cap, CancellationToken.None);
                             Assert.NotNull(result);
                             Assert.Equal(expected, result.Count);
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var result = await new CodeLensReferencesService().FindReferenceLocationsAsync(workspace.CurrentSolution, 
+                            var result = await new CodeLensReferencesService().FindReferenceLocationsAsync(workspace.CurrentSolution,
                                 annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                             var count = result.Count();
                             Assert.Equal(expected, count);
@@ -119,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var actual = await new CodeLensReferencesService().GetFullyQualifiedName(workspace.CurrentSolution,
+                            var actual = await new CodeLensReferencesService().GetFullyQualifiedNameAsync(workspace.CurrentSolution,
                                 annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                             Assert.Equal(expected, actual);
                         }

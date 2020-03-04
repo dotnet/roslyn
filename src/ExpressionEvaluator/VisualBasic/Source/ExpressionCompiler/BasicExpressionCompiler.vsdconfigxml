@@ -1,7 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
-     Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+     Licensed to the .NET Foundation under one or more agreements.
+     The .NET Foundation licenses this file to you under the MIT license.
+     See the LICENSE file in the project root for more information.
 
 -->
 <Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
@@ -26,10 +28,6 @@
           <Interface Name="IDkmModuleModifiedNotification"/>
           <Interface Name="IDkmModuleInstanceUnloadNotification"/>
         </InterfaceGroup>
-      </Implements>
-    </Class>
-    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicFrameDecoder">
-      <Implements>
         <InterfaceGroup>
           <Filter>
             <LanguageId RequiredValue="DkmLanguageId.VB"/>
@@ -37,17 +35,6 @@
             <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
           </Filter>
           <Interface Name="IDkmLanguageFrameDecoder"/>
-        </InterfaceGroup>
-      </Implements>
-    </Class>
-    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicLanguageInstructionDecoder">
-      <Implements>
-        <InterfaceGroup>
-          <Filter>
-            <LanguageId RequiredValue="DkmLanguageId.VB"/>
-            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
-            <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
-          </Filter>
           <Interface Name="IDkmLanguageInstructionDecoder"/>
         </InterfaceGroup>
       </Implements>

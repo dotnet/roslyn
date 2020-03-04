@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     {
         public static bool IsValidId(Document document, string identifier)
         {
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return syntaxFacts.IsValidIdentifier(identifier);
         }
 
@@ -60,12 +62,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
-            var codeModel = document.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
+            var codeModel = document.GetLanguageService<ICodeModelNavigationPointService>();
             var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var point = codeModel.GetStartPoint(typeNode, options, EnvDTE.vsCMPart.vsCMPartBody);
             var reservedNames = semanticModel.LookupSymbols(point.Value.Position, type).Select(m => m.Name);
 
-            return NameGenerator.EnsureUniqueness(name, reservedNames, document.Project.LanguageServices.GetService<ISyntaxFactsService>().IsCaseSensitive);
+            return NameGenerator.EnsureUniqueness(name, reservedNames, document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive);
         }
 
         /// <summary>
@@ -146,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             string eventHandlerName,
             uint itemidInsertionPoint,
             bool useHandlesClause,
-            IFormattingRule additionalFormattingRule,
+            AbstractFormattingRule additionalFormattingRule,
             CancellationToken cancellationToken)
         {
             var thisCompilation = thisDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
@@ -178,20 +180,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 ? ImmutableArray.Create(syntaxFactory.MemberAccessExpression(
                         objectName != null ? syntaxFactory.IdentifierName(objectName) : syntaxFactory.ThisExpression(),
                         syntaxFactory.IdentifierName(nameOfEvent)))
-                : default(ImmutableArray<SyntaxNode>);
+                : default;
 
             var invokeMethod = ((INamedTypeSymbol)eventType).DelegateInvokeMethod;
             var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: Accessibility.Protected,
                 modifiers: new DeclarationModifiers(),
                 returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
-                returnsByRef: false,
+                refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: eventHandlerName,
-                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                typeParameters: default,
                 parameters: invokeMethod.Parameters,
-                statements: default(ImmutableArray<SyntaxNode>),
+                statements: default,
                 handlesExpressions: handlesExpressions);
 
             var annotation = new SyntaxAnnotation();
@@ -219,13 +221,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
 
-            newRoot = Formatter.FormatAsync(
+            newRoot = Formatter.Format(
                 newRoot,
                 Formatter.Annotation,
                 targetDocument.Project.Solution.Workspace,
                 targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken),
                 formattingRules,
-                cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+                cancellationToken);
 
             var newMember = newRoot.GetAnnotatedNodesAndTokens(annotation).Single();
             var newMemberText = newMember.ToFullString();
@@ -249,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             CancellationToken cancellationToken)
         {
             targetDocument = null;
-            textSpan = default(VsTextSpan);
+            textSpan = default;
 
             var type = thisDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetTypeByMetadataName(className);
             var member = LookupMemberId(type, uniqueMemberID);
@@ -316,7 +318,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return false;
             }
 
-            if (Workspace.TryGetWorkspace(document.GetTextAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).Container, out var workspace))
+            if (CodeAnalysis.Workspace.TryGetWorkspace(document.GetTextSynchronously(cancellationToken).Container, out var workspace))
             {
                 var newName = newFullyQualifiedName.Substring(newFullyQualifiedName.LastIndexOf('.') + 1);
                 var optionSet = document.Project.Solution.Workspace.Options;
@@ -421,7 +423,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 case ContainedLanguageRenameType.CLRT_NAMESPACE:
                     var ns = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GlobalNamespace;
                     var parts = fullyQualifiedName.Split('.');
-                    for (int i = 0; i < parts.Length && ns != null; i++)
+                    for (var i = 0; i < parts.Length && ns != null; i++)
                     {
                         ns = ns.GetNamespaceMembers().SingleOrDefault(n => n.Name == parts[i]);
                     }

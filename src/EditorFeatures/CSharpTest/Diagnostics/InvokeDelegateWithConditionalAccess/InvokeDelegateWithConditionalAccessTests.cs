@@ -1,10 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         [||]if (v != null)
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v != null)
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -108,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (null != v)
@@ -140,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (null != v)
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -181,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         bool b = true;
         [||]var v = b ? a : null;
@@ -195,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         bool b = true;
         (b ? a : null)?.Invoke();
@@ -211,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
@@ -233,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a, x = a;
         if (v != null)
@@ -256,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a, x = a;
         [||]if (v != null)
@@ -269,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a, x = a;
         v?.Invoke();
@@ -289,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
@@ -315,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         [||]if (v != null)
@@ -330,10 +333,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         v?.Invoke();
+
         v = null;
     }
 }");
@@ -471,8 +475,7 @@ class C
         if (true != true)
         {
         }
-        else
-            this.E?.Invoke(this, EventArgs.Empty);
+        else this.E?.Invoke(this, EventArgs.Empty);
     }
 }");
         }
@@ -484,7 +487,7 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         [||]var v = a;
@@ -497,12 +500,12 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         a?.Invoke();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
@@ -512,7 +515,7 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         [||]if (a != null)
@@ -524,12 +527,12 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         a?.Invoke();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         /// <remarks>
@@ -543,7 +546,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         [||]if (v != null)
@@ -556,7 +559,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -574,7 +577,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v != null)
@@ -587,7 +590,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -602,7 +605,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         v?.Invoke();
@@ -618,7 +621,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         [||]v?.Invoke();
@@ -634,7 +637,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]a?.Invoke();
     }
@@ -649,7 +652,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v == a)
@@ -668,7 +671,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v == null)
@@ -691,7 +694,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         int x;
@@ -715,7 +718,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         int x;
@@ -729,7 +732,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         int x;
@@ -746,13 +749,143 @@ class C
 {
     System.Func<int> a;
 
-    int Foo()
+    int Goo()
     {
         var v = a;
         [||]if (v != null)
         {
             return v();
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        public async Task TestWithLambdaInitializer()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = () => {};
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = () => {};
+        v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        public async Task TestWithLambdaInitializer2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = (() => {});
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = (() => {});
+        v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        public async Task TestForWithAnonymousMethod()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = delegate {};
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = delegate {};
+        v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        public async Task TestWithMethodReference()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = Console.WriteLine;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = Console.WriteLine;
+        v?.Invoke();
     }
 }");
         }

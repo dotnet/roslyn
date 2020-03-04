@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -23,24 +25,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the symbols for declarations made in source with a matching name.
         /// </summary>
-        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, Func<string, bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, Func<string, bool> predicate, CancellationToken cancellationToken = default)
             => FindSourceDeclarationsAsync(solution, predicate, SymbolFilter.All, cancellationToken);
 
         /// <summary>
         /// Find the symbols for declarations made in source with a matching name.
         /// </summary>
-        public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken = default)
         {
-            using (var query = SearchQuery.CreateCustom(predicate))
-            {
-                var declarations = await FindSourceDeclarationsWithCustomQueryAsync(
-                    solution, query, filter, cancellationToken).ConfigureAwait(false);
+            using var query = SearchQuery.CreateCustom(predicate);
+            var declarations = await FindSourceDeclarationsWithCustomQueryAsync(
+                solution, query, filter, cancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(d => d.Symbol);
-            }
+            return declarations.SelectAsArray(d => d.Symbol);
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
             Solution solution, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (solution == null)
@@ -70,21 +70,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the symbols for declarations made in source with a matching name.
         /// </summary>
-        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, Func<string, bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, Func<string, bool> predicate, CancellationToken cancellationToken = default)
             => FindSourceDeclarationsAsync(project, predicate, SymbolFilter.All, cancellationToken);
 
         /// <summary>
         /// Find the symbols for declarations made in source with a matching name.
         /// </summary>
-        public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken = default)
         {
-            using (var query = SearchQuery.CreateCustom(predicate))
-            {
-                var declarations = await FindSourceDeclarationsWithCustomQueryAsync(
-                    project, query, filter, cancellationToken).ConfigureAwait(false);
+            using var query = SearchQuery.CreateCustom(predicate);
+            var declarations = await FindSourceDeclarationsWithCustomQueryAsync(
+                project, query, filter, cancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(d => d.Symbol);
-            }
+            return declarations.SelectAsArray(d => d.Symbol);
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
@@ -102,19 +100,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))
             {
-                if (!await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
+                if (await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
                 {
-                    return ImmutableArray<SymbolAndProjectId>.Empty;
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                    var unfiltered = compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
+                                                .Select(s => new SymbolAndProjectId(s, project.Id))
+                                                .ToImmutableArray();
+
+                    return DeclarationFinder.FilterByCriteria(unfiltered, filter);
                 }
-
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                var unfiltered = compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
-                                            .Select(s => new SymbolAndProjectId(s, project.Id))
-                                            .ToImmutableArray();
-                    
-                return DeclarationFinder.FilterByCriteria(unfiltered, filter);
             }
+
+            return ImmutableArray<SymbolAndProjectId>.Empty;
         }
     }
 }

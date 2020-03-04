@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,11 +11,12 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -23,16 +26,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
     /// <summary>
     /// csharp automatic line ender command handler
     /// </summary>
-    [ExportCommandHandler(PredefinedCommandHandlerNames.AutomaticLineEnder, ContentTypeNames.CSharpContentType)]
-    [Order(After = PredefinedCommandHandlerNames.Completion)]
+    [Export(typeof(ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(PredefinedCommandHandlerNames.AutomaticLineEnder)]
+    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class AutomaticLineEnderCommandHandler : AbstractAutomaticLineEnderCommandHandler
     {
         [ImportingConstructor]
         public AutomaticLineEnderCommandHandler(
-            IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations)
-            : base(waitIndicator, undoRegistry, editorOperations)
+            : base(undoRegistry, editorOperations)
         {
         }
 
@@ -148,18 +152,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         }
 
         private SyntaxNode ParseNode(SyntaxTree tree, SyntaxNode owningNode, string textToParse)
-        {
-            switch (owningNode)
+            => owningNode switch
             {
-                case BaseFieldDeclarationSyntax n: return SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options);
-                case BaseMethodDeclarationSyntax n: return SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options);
-                case BasePropertyDeclarationSyntax n: return SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options);
-                case StatementSyntax n: return SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options);
-                case UsingDirectiveSyntax n: return SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options);
-            }
+                BaseFieldDeclarationSyntax n => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                BaseMethodDeclarationSyntax n => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                BasePropertyDeclarationSyntax n => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                StatementSyntax n => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options),
+                UsingDirectiveSyntax n => SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options),
 
-            return null;
-        }
+                _ => (SyntaxNode)null,
+            };
 
         /// <summary>
         /// wrap field in type

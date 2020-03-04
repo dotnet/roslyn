@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -132,7 +134,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim firstFieldOrProperty = initializer.FieldsOrProperties.First
-                    Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty)
+                    Dim additionalSymbols = If(initializer.FieldsOrProperties.Length > 1, initializer.FieldsOrProperties.RemoveAt(0), ImmutableArray(Of Symbol).Empty)
+                    Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty, additionalSymbols)
                     If initializerNode.Kind = SyntaxKind.ModifiedIdentifier Then
                         ' Array field with no explicit initializer.
                         Debug.Assert(initializer.FieldsOrProperties.Length = 1)
@@ -339,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If propertySymbol.IsReadOnly AndAlso propertySymbol.AssociatedField IsNot Nothing Then
                 ' For ReadOnly auto-implemented properties we have to write directly to the backing field.
-                Debug.Assert(propertySymbol.Type = propertySymbol.AssociatedField.Type)
+                Debug.Assert(TypeSymbol.Equals(propertySymbol.Type, propertySymbol.AssociatedField.Type, TypeCompareKind.ConsiderEverything))
                 Debug.Assert(propertySymbols.Length = 1)
                 boundPropertyOrFieldAccess = New BoundFieldAccess(syntaxNode,
                                                                   boundReceiver,
@@ -390,6 +393,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim asNew = DirectCast(equalsValueOrAsNewSyntax, AsNewClauseSyntax)
                 Select Case asNew.NewExpression.Kind
                     Case SyntaxKind.ObjectCreationExpression
+                        DisallowNewOnTupleType(asNew.Type, diagnostics)
+
                         Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, ObjectCreationExpressionSyntax)
                         boundInitExpression = BindObjectCreationExpression(asNew.NewExpression.Type,
                                                                            objectCreationExpressionSyntax.ArgumentList,
@@ -543,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: a constant expression") and ERR_RequiredConstExpr ("Constant expression is required") in case
                 ' NOTE: the type (if declared) is a valid type for const fields. This is different from Dev10 that sometimes
                 ' NOTE: reported issues and sometimes not
-                ' NOTE: e.g. reports in "const foo as DelegateType = AddressOf methodName" (ERR_ConstAsNonConstant + ERR_RequiredConstExpr)
+                ' NOTE: e.g. reports in "const goo as DelegateType = AddressOf methodName" (ERR_ConstAsNonConstant + ERR_RequiredConstExpr)
                 ' NOTE: only type diagnostics for "const s as StructureType = nothing"
 
                 If boundInitValueHasErrorsOrConstTypeIsWrong Then
@@ -554,7 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     constValue = Me.GetExpressionConstantValueIfAny(boundInitValue, initValueDiagnostics, ConstantContext.Default)
                 End If
 
-                ' e.g. the init value of "Public foo as Byte = 2.2" is still considered as constant and therefore a CByte(2)
+                ' e.g. the init value of "Public goo as Byte = 2.2" is still considered as constant and therefore a CByte(2)
                 ' is being assigned as the constant value of this field/enum. However in case of Option Strict On there has 
                 ' been a diagnostics in the call to ApplyImplicitConversion.
                 If constValue Is Nothing Then
@@ -615,12 +620,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     ' The result is not a constant and is not marked with hasErrors so return a BadExpression.
-                    Return BadExpression(valueSyntax, valueExpression, ErrorTypeSymbol.UnknownResultType)
+                    Return BadExpression(valueSyntax, valueExpression, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
 
                 End If
 
             Else
-                valueExpression = BadExpression(name, ErrorTypeSymbol.UnknownResultType)
+                valueExpression = BadExpression(name, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 ReportDiagnostic(diagnostics, name, ERRID.ERR_ConstantWithNoValue)
             End If
 

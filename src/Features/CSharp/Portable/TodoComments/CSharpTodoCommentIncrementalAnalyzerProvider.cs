@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host;
@@ -15,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
     [ExportLanguageServiceFactory(typeof(ITodoCommentService), LanguageNames.CSharp), Shared]
     internal class CSharpTodoCommentServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpTodoCommentServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             => new CSharpTodoCommentService(languageServices.WorkspaceServices.Workspace);
     }
@@ -28,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
         {
         }
 
-        protected override void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList)
+        protected override void AppendTodoComments(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList)
         {
             if (PreprocessorHasComment(trivia))
             {

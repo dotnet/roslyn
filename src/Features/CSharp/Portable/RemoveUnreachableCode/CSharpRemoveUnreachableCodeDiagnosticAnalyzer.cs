@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -13,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Unreachable_code_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    configurable: false)
         {
@@ -30,30 +33,19 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeBlock, ImmutableArray.Create(SyntaxKind.Block));
+            => context.RegisterSemanticModelAction(AnalyzeSemanticModel);
 
-        private void AnalyzeBlock(SyntaxNodeAnalysisContext context)
+        private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var block = context.Node;
-            if (!IsOutermostBlock(block))
-            {
-                // Don't bother processing inner blocks.  We'll have already checked them when
-                // we processed the outer block
-                return;
-            }
-
-            var options = context.Options as WorkspaceAnalyzerOptions;
-            if (options == null)
+            if (!(context.Options is WorkspaceAnalyzerOptions options))
             {
                 return;
             }
 
             var fadeCode = options.Services.Workspace.Options.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
 
+            var tree = context.SemanticModel.SyntaxTree;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
@@ -69,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // binding diagnostics directly on the SourceMethodSymbol containing this block, and
             // so it can retrieve the diagnostics at practically no cost.
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var diagnostics = semanticModel.GetDiagnostics(block.Span, cancellationToken);
+            var diagnostics = semanticModel.GetDiagnostics(cancellationToken: cancellationToken);
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -81,22 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             }
         }
 
-        private bool IsOutermostBlock(SyntaxNode block)
-        {
-            // Avoid linq/allocations as we will be calling this on every block in the solution.
-            for (var current = block.Parent; current != null; current = current.Parent)
-            {
-                if (current.Kind() == SyntaxKind.Block)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private void ProcessUnreachableDiagnostic(
-            SyntaxNodeAnalysisContext context, SyntaxNode root, TextSpan sourceSpan, bool fadeOutCode)
+            SemanticModelAnalysisContext context, SyntaxNode root, TextSpan sourceSpan, bool fadeOutCode)
         {
             var node = root.FindNode(sourceSpan);
 
@@ -154,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // statement in this group.
             var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
 
-            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : HiddenDescriptor;
+            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : Descriptor;
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, firstStatementLocation, additionalLocations));

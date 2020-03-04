@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Navigation
@@ -6,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class RenameNonRenameableSymbols
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -213,7 +216,7 @@ class Program
                         </Project>
                     </Workspace>)
 
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Using readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit()
                     readOnlyEdit.CreateReadOnlyRegion(New Span(0, textBuffer.CurrentSnapshot.Length))
@@ -353,11 +356,11 @@ class Program
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                extern alias foo; // foo is unresolved
+                                extern alias goo; // goo is unresolved
  
                                 class A
                                 {
-                                    object x = new $$foo::X();
+                                    object x = new $$goo::X();
                                 }
                             </Document>
                         </Project>
@@ -374,10 +377,10 @@ class Program
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Submission Language="C#" CommonReferences="true">
-                            int foo;
+                            int goo;
                         </Submission>
                         <Submission Language="C#" CommonReferences="true">
-                            $$foo = 42;
+                            $$goo = 42;
                         </Submission>
                     </Workspace>)
 

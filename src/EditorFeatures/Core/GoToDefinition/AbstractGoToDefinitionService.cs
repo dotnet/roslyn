@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -14,46 +15,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
+    // GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        /// <summary>
+        /// Used to present go to definition results in <see cref="TryGoToDefinition(Document, int, CancellationToken)"/>
+        /// This is lazily created as the LSP server only calls <see cref="FindDefinitionsAsync(Document, int, CancellationToken)"/>
+        /// and therefore never needs to construct the presenter.
+        /// </summary>
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
-        protected abstract ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation);
-
-        protected AbstractGoToDefinitionService(
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+        protected AbstractGoToDefinitionService(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
-            _streamingPresenters = streamingPresenters;
-        }
-
-        private async Task<ISymbol> FindSymbolAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            if (!document.SupportsSemanticModel)
-            {
-                return null;
-            }
-
-            var workspace = document.Project.Solution.Workspace;
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, workspace, cancellationToken).ConfigureAwait(false);
-
-            // prefer references to declarations.  It's more likely that the user is attempting to 
-            // go to a definition at some other location, rather than the definition they're on.  
-            // This can happen when a token is at a location that is both a reference and a definition.
-            // For example, on an anonymous type member declaration.
-            var symbol = semanticInfo.AliasSymbol ??
-                         semanticInfo.ReferencedSymbols.FirstOrDefault() ??
-                         semanticInfo.DeclaredSymbol ??
-                         semanticInfo.Type;
-
-            return FindRelatedExplicitlyDeclaredSymbol(symbol, semanticModel.Compilation);
+            _streamingPresenter = streamingPresenter;
         }
 
         public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var symbol = await FindSymbolAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
+            var (symbol, _) = await symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).ConfigureAwait(false);
 
             // Try to compute source definitions from symbol.
             var items = symbol != null
@@ -67,9 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
         {
-            // First try to compute the referenced symbol and attempt to go to definition for the symbol.
-            var symbol = FindSymbolAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (symbol == null)
+            // Try to compute the referenced symbol and attempt to go to definition for the symbol.
+            var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
+            var (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (symbol is null)
             {
                 return false;
             }
@@ -78,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return GoToDefinitionHelpers.TryGoToDefinition(symbol,
                 document.Project,
-                _streamingPresenters,
+                _streamingPresenter.Value,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                 throwOnHiddenDefinition: true,
                 cancellationToken: cancellationToken);
@@ -93,19 +75,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (containingTypeDeclaration != null)
             {
                 var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                var containingTypeSymbol = semanticModel.GetDeclaredSymbol(containingTypeDeclaration, cancellationToken) as ITypeSymbol;
 
                 // Allow third parties to navigate to all symbols except types/constructors
                 // if we are navigating from the corresponding type.
 
-                if (containingTypeSymbol != null &&
+                if (semanticModel.GetDeclaredSymbol(containingTypeDeclaration, cancellationToken) is ITypeSymbol containingTypeSymbol &&
                     (symbolToNavigateTo is ITypeSymbol || symbolToNavigateTo.IsConstructor()))
                 {
                     var candidateTypeSymbol = symbolToNavigateTo is ITypeSymbol
                         ? symbolToNavigateTo
                         : symbolToNavigateTo.ContainingType;
 
-                    if (containingTypeSymbol == candidateTypeSymbol)
+                    if (Equals(containingTypeSymbol, candidateTypeSymbol))
                     {
                         // We are navigating from the same type, so don't allow third parties to perform the navigation.
                         // This ensures that if we navigate to a class from within that class, we'll stay in the same file

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             var line = source.Lines.GetLineFromPosition(position);
             if (IsBlank(line))
             {
-                breakpointSpan = default(TextSpan);
+                breakpointSpan = default;
                 return false;
             }
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // breakpoint there.
             if (tree.IsInInactiveRegion(position, cancellationToken))
             {
-                breakpointSpan = default(TextSpan);
+                breakpointSpan = default;
                 return true;
             }
 
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var text = line.ToString();
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!SyntaxFacts.IsWhitespace(text[i]))
                 {
@@ -59,32 +60,28 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </remarks>
         public static bool TryGetClosestBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
         {
-            SyntaxNode node = root.FindToken(position).Parent;
+            var node = root.FindToken(position).Parent;
             while (node != null)
             {
-                TextSpan? breakpointSpan = TryCreateSpanForNode(node, position);
+                var breakpointSpan = TryCreateSpanForNode(node, position);
                 if (breakpointSpan.HasValue)
                 {
                     span = breakpointSpan.Value;
-                    return span != default(TextSpan);
+                    return span != default;
                 }
 
                 node = node.Parent;
             }
 
-            span = default(TextSpan);
+            span = default;
             return false;
         }
 
         private static TextSpan CreateSpan(SyntaxToken startToken, SyntaxToken endToken)
-        {
-            return TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
-        }
+            => TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
 
         private static TextSpan CreateSpan(SyntaxNode node)
-        {
-            return TextSpan.FromBounds(node.SpanStart, node.Span.End);
-        }
+            => CreateSpan(node.GetFirstToken(), node.GetLastToken());
 
         private static TextSpan CreateSpan(SyntaxNode node, SyntaxToken token)
         {
@@ -98,14 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static TextSpan CreateSpan(SyntaxTokenList startOpt, SyntaxNodeOrToken startFallbackOpt, SyntaxNodeOrToken endOpt)
         {
-            Debug.Assert(startFallbackOpt != default(SyntaxNodeOrToken) || endOpt != default(SyntaxNodeOrToken));
+            Debug.Assert(startFallbackOpt != default || endOpt != default);
 
             int startPos;
             if (startOpt.Count > 0)
             {
                 startPos = startOpt.First().SpanStart;
             }
-            else if (startFallbackOpt != default(SyntaxNodeOrToken))
+            else if (startFallbackOpt != default)
             {
                 startPos = startFallbackOpt.SpanStart;
             }
@@ -115,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             int endPos;
-            if (endOpt != default(SyntaxNodeOrToken))
+            if (endOpt != default)
             {
                 endPos = GetEndPosition(endOpt);
             }
@@ -249,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // event Action P { add [|{|] ... } remove { ... } }
                     // event Action P { [|add;|] [|remove;|] }
                     var @event = (EventDeclarationSyntax)node;
-                    return CreateSpanForAccessors(@event.AccessorList.Accessors, position);
+                    return @event.AccessorList != null ? CreateSpanForAccessors(@event.AccessorList.Accessors, position) : null;
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
@@ -298,14 +295,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         TryCreateSpanForNode(localFunction.ExpressionBody.Expression, position);
 
                 default:
-                    var expression = node as ExpressionSyntax;
-                    if (expression != null)
+                    if (node is ExpressionSyntax expression)
                     {
                         return IsBreakableExpression(expression) ? CreateSpan(expression) : default(TextSpan?);
                     }
 
-                    var statement = node as StatementSyntax;
-                    if (statement != null)
+                    if (node is StatementSyntax statement)
                     {
                         return TryCreateSpanForStatement(statement, position);
                     }
@@ -348,8 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static TextSpan? TryCreateSpanForSwitchLabel(SwitchLabelSyntax switchLabel, int position)
         {
-            var switchSection = switchLabel.Parent as SwitchSectionSyntax;
-            if (switchSection == null || switchSection.Statements.Count == 0)
+            if (!(switchLabel.Parent is SwitchSectionSyntax switchSection) || switchSection.Statements.Count == 0)
             {
                 return null;
             }
@@ -430,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         // for (int i = 0; ...
                         var firstVariable = forStatement.Declaration.Variables.FirstOrDefault();
-                        return CreateSpan(default(SyntaxTokenList), forStatement.Declaration.Type, firstVariable);
+                        return CreateSpan(default, forStatement.Declaration.Type, firstVariable);
                     }
                     else if (forStatement.Initializers.Count > 0)
                     {
@@ -531,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // way up.  Similarly, hitting a 'case' label will already have been taken care
                     // of.  So in this case, we just set the bp on the "switch(expr)" itself.
                     var switchStatement = (SwitchStatementSyntax)statement;
-                    return CreateSpan(switchStatement, switchStatement.CloseParenToken);
+                    return CreateSpan(switchStatement, (switchStatement.CloseParenToken != default) ? switchStatement.CloseParenToken : switchStatement.Expression.GetLastToken());
 
                 case SyntaxKind.TryStatement:
                     // Note: if the user was in the body of the 'try', then we would have hit its nested
@@ -579,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return null;
             }
 
-            return TryCreateSpanForVariableDeclaration(declaration, default(SyntaxTokenList), default(SyntaxToken), position);
+            return TryCreateSpanForVariableDeclaration(declaration, default, default, position);
         }
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(
@@ -609,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return CreateSpan(modifiersOpt, variableDeclaration, semicolonOpt);
             }
 
-            if (semicolonOpt != default(SyntaxToken) && position > semicolonOpt.SpanStart)
+            if (semicolonOpt != default && position > semicolonOpt.SpanStart)
             {
                 position = variableDeclaration.SpanStart;
             }
@@ -671,19 +665,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static SyntaxTokenList GetModifiers(VariableDeclarationSyntax declaration)
         {
-            BaseFieldDeclarationSyntax fieldDeclaration;
-            LocalDeclarationStatementSyntax localDeclaration;
-            if ((fieldDeclaration = declaration.Parent as BaseFieldDeclarationSyntax) != null)
+            if (declaration.Parent is BaseFieldDeclarationSyntax fieldDeclaration)
             {
                 return fieldDeclaration.Modifiers;
             }
 
-            if ((localDeclaration = declaration.Parent as LocalDeclarationStatementSyntax) != null)
+            if (declaration.Parent is LocalDeclarationStatementSyntax localDeclaration)
             {
                 return localDeclaration.Modifiers;
             }
 
-            return default(SyntaxTokenList);
+            return default;
         }
 
         private static TextSpan CreateSpanForCatchClause(CatchClauseSyntax catchClause, int position)

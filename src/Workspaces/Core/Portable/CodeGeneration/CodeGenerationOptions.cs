@@ -1,7 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -47,9 +52,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public Location BeforeThisLocation { get; }
 
         /// <summary>
-        /// True if the code generation service should try to automatically add imports to the file
-        /// for any generated code.  Defaults to true.  Not used when generating directly into a
-        /// declaration.
+        /// True if the code generation service should add <see cref="Simplifier.AddImportsAnnotation"/>,
+        /// and when not generating directly into a declaration, should try to automatically add imports to the file
+        /// for any generated code.
+        /// Defaults to true.
         /// </summary>
         public bool AddImports { get; }
 
@@ -85,8 +91,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// True if the code generation should put multiple attributes in a single attribute
         /// declaration, or if should have a separate attribute declaration for each attribute.  For
-        /// example, in C# setting this to True this would produce "[Foo, Bar]" while setting it to
-        /// False would produce "[Foo][Bar]"
+        /// example, in C# setting this to True this would produce "[Goo, Bar]" while setting it to
+        /// False would produce "[Goo][Bar]"
         /// </summary>
         public bool MergeAttributes { get; }
 
@@ -117,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool AutoInsertionLocation { get; }
 
         /// <summary>
-        /// If <see cref="AutoInsertionLocation"/> is <code>false</code>, determines if members will be
+        /// If <see cref="AutoInsertionLocation"/> is <see langword="false"/>, determines if members will be
         /// sorted before being added to the end of the list of members.
         /// </summary>
         public bool SortMembers { get; }
@@ -128,6 +134,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// If false, then the code generator will always synthesize a new syntax node and ignore the declaring syntax references.
         /// </summary>
         public bool ReuseSyntax { get; }
+
+        public OptionSet Options { get; }
 
         public ParseOptions ParseOptions { get; }
 
@@ -147,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool autoInsertionLocation = true,
             bool sortMembers = true,
             bool reuseSyntax = false,
+            OptionSet options = null,
             ParseOptions parseOptions = null)
         {
             CheckLocation(contextLocation, nameof(contextLocation));
@@ -169,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.SortMembers = sortMembers;
             this.ReuseSyntax = reuseSyntax;
 
+            this.Options = options;
             this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree.Options;
         }
 
@@ -193,22 +203,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public CodeGenerationOptions With(
-            Optional<Location> contextLocation = default(Optional<Location>),
-            Optional<Location> afterThisLocation = default(Optional<Location>),
-            Optional<Location> beforeThisLocation = default(Optional<Location>),
-            Optional<bool> addImports = default(Optional<bool>),
-            Optional<bool> placeSystemNamespaceFirst = default(Optional<bool>),
-            Optional<IEnumerable<INamespaceSymbol>> additionalImports = default(Optional<IEnumerable<INamespaceSymbol>>),
-            Optional<bool> generateMembers = default(Optional<bool>),
-            Optional<bool> mergeNestedNamespaces = default(Optional<bool>),
-            Optional<bool> mergeAttributes = default(Optional<bool>),
-            Optional<bool> generateDefaultAccessibility = default(Optional<bool>),
-            Optional<bool> generateMethodBodies = default(Optional<bool>),
-            Optional<bool> generateDocumentationComments = default(Optional<bool>),
-            Optional<bool> autoInsertionLocation = default(Optional<bool>),
-            Optional<bool> sortMembers = default(Optional<bool>),
-            Optional<bool> reuseSyntax = default(Optional<bool>),
-            Optional<ParseOptions> parseOptions = default(Optional<ParseOptions>))
+            Optional<Location> contextLocation = default,
+            Optional<Location> afterThisLocation = default,
+            Optional<Location> beforeThisLocation = default,
+            Optional<bool> addImports = default,
+            Optional<bool> placeSystemNamespaceFirst = default,
+            Optional<IEnumerable<INamespaceSymbol>> additionalImports = default,
+            Optional<bool> generateMembers = default,
+            Optional<bool> mergeNestedNamespaces = default,
+            Optional<bool> mergeAttributes = default,
+            Optional<bool> generateDefaultAccessibility = default,
+            Optional<bool> generateMethodBodies = default,
+            Optional<bool> generateDocumentationComments = default,
+            Optional<bool> autoInsertionLocation = default,
+            Optional<bool> sortMembers = default,
+            Optional<bool> reuseSyntax = default,
+            Optional<OptionSet> options = default,
+            Optional<ParseOptions> parseOptions = default)
         {
             var newContextLocation = contextLocation.HasValue ? contextLocation.Value : this.ContextLocation;
             var newAfterThisLocation = afterThisLocation.HasValue ? afterThisLocation.Value : this.AfterThisLocation;
@@ -225,6 +236,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var newAutoInsertionLocation = autoInsertionLocation.HasValue ? autoInsertionLocation.Value : this.AutoInsertionLocation;
             var newSortMembers = sortMembers.HasValue ? sortMembers.Value : this.SortMembers;
             var newReuseSyntax = reuseSyntax.HasValue ? reuseSyntax.Value : this.ReuseSyntax;
+            var newOptions = options.HasValue ? options.Value : this.Options;
             var newParseOptions = parseOptions.HasValue ? parseOptions.Value : this.ParseOptions;
 
             return new CodeGenerationOptions(
@@ -243,6 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 newAutoInsertionLocation,
                 newSortMembers,
                 newReuseSyntax,
+                newOptions,
                 newParseOptions);
         }
     }

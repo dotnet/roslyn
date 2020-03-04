@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
@@ -98,9 +102,9 @@ namespace Microsoft.CodeAnalysis
         ForEachArrayIndex = 8,
 
         /// <summary>
-        /// Local variable that holds a pinned handle of a string passed to a fixed statement (C#).
+        /// Local variable that holds a pinned handle of a managed reference passed to a fixed statement (C#).
         /// </summary>
-        FixedString = 9,
+        FixedReference = 9,
 
         /// <summary>
         /// Local variable that holds the object passed to With statement (VB). 
@@ -160,10 +164,11 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Local that stores an expression value which needs to be spilled.
-        /// This local should either be hoisted or its lifespan ends before 
-        /// the end of the containing await expression.
+        /// Such a local arises from the translation of an await or switch expression,
+        /// and might be hoisted to an async state machine if it remains alive
+        /// after an await expression.
         /// </summary>
-        AwaitSpill = 28,
+        Spill = 28,
 
         AwaitByRefSpill = 29,
 
@@ -199,7 +204,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Stores a dynamic analysis instrumentation payload array. The value is initialized in
-        /// synthesized mehtod prologue code and referred to throughout the method body.
+        /// synthesized method prologue code and referred to throughout the method body.
         /// </summary>
         InstrumentationPayload = 34,
 

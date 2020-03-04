@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -54,24 +55,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// to skip over any nodes that could have associated binders, especially
         /// if changes are made later.
         /// 
-        /// "Local binder" is a vague term that refers to binders that represent
-        /// scopes for names (e.g. BlockBinders) rather than binders that tweak
-        /// default behaviors (e.g. FieldInitializerBinders).  Local binders are
+        /// "Local binder" is a term that refers to binders that are
         /// created by LocalBinderFactory.
         /// </summary>
         internal static bool CanHaveAssociatedLocalBinder(this SyntaxNode syntax)
         {
-            SyntaxKind kind;
-            return syntax.IsAnonymousFunction() ||
-                syntax is StatementSyntax ||
-                (kind = syntax.Kind()) == SyntaxKind.CatchClause ||
-                kind == SyntaxKind.CatchFilterClause ||
-                kind == SyntaxKind.SwitchSection ||
-                kind == SyntaxKind.EqualsValueClause ||
-                kind == SyntaxKind.Attribute ||
-                kind == SyntaxKind.ArgumentList ||
-                kind == SyntaxKind.ArrowExpressionClause ||
-                IsValidScopeDesignator(syntax as ExpressionSyntax);
+            SyntaxKind kind = syntax.Kind();
+            switch (kind)
+            {
+                case SyntaxKind.CatchClause:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.CatchFilterClause:
+                case SyntaxKind.SwitchSection:
+                case SyntaxKind.EqualsValueClause:
+                case SyntaxKind.Attribute:
+                case SyntaxKind.ArgumentList:
+                case SyntaxKind.ArrowExpressionClause:
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.SwitchExpressionArm:
+                case SyntaxKind.BaseConstructorInitializer:
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.ConstructorDeclaration:
+                    return true;
+                default:
+                    return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
+
+            }
         }
 
         internal static bool IsValidScopeDesignator(this ExpressionSyntax expression)
@@ -100,21 +111,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
+        /// <summary>
+        /// Because the instruction cannot have any values on the stack before CLR execution
+        /// we limited it to assignments and conditional expressions in C# 7.
+        /// See https://github.com/dotnet/roslyn/issues/22046.
+        /// In C# 8 we relaxed
+        /// that by rewriting the code to move it to the statement level where the stack is empty.
+        /// </summary>
+        internal static bool IsLegalCSharp73SpanStackAllocPosition(this SyntaxNode node)
         {
-            switch (lambda.Kind())
-            {
-                case SyntaxKind.SimpleLambdaExpression:
-                    return ((SimpleLambdaExpressionSyntax)lambda).Body;
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                    return ((ParenthesizedLambdaExpressionSyntax)lambda).Body;
-                case SyntaxKind.AnonymousMethodExpression:
-                    return ((AnonymousMethodExpressionSyntax)lambda).Block;
+            Debug.Assert(node != null);
 
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(lambda.Kind());
+            if (node.Parent.IsKind(SyntaxKind.CastExpression))
+            {
+                node = node.Parent;
             }
+
+            while (node.Parent.IsKind(SyntaxKind.ConditionalExpression))
+            {
+                node = node.Parent;
+            }
+
+            SyntaxNode parentNode = node.Parent;
+
+            if (parentNode is null)
+            {
+                return false;
+            }
+
+            switch (parentNode.Kind())
+            {
+                // In case of a declaration of a Span<T> variable
+                case SyntaxKind.EqualsValueClause:
+                    {
+                        SyntaxNode variableDeclarator = parentNode.Parent;
+
+                        return variableDeclarator.IsKind(SyntaxKind.VariableDeclarator) &&
+                            variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
+                    }
+                // In case of reassignment to a Span<T> variable
+                case SyntaxKind.SimpleAssignmentExpression:
+                    {
+                        return parentNode.Parent.IsKind(SyntaxKind.ExpressionStatement);
+                    }
+            }
+
+            return false;
         }
+
+        internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
+            => ((AnonymousFunctionExpressionSyntax)lambda).Body;
 
         /// <summary>
         /// Given an initializer expression infer the name of anonymous property or tuple element.
@@ -148,13 +194,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static RefKind GetRefKind(this TypeSyntax syntax)
+        {
+            syntax.SkipRef(out var refKind);
+            return refKind;
+        }
+
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax)
+        {
+            if (syntax.Kind() == SyntaxKind.RefType)
+            {
+                syntax = ((RefTypeSyntax)syntax).Type;
+            }
+
+            return syntax;
+        }
+
         internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
         {
             refKind = RefKind.None;
             if (syntax.Kind() == SyntaxKind.RefType)
             {
-                refKind = RefKind.Ref;
-                syntax = ((RefTypeSyntax)syntax).Type;
+                var refType = (RefTypeSyntax)syntax;
+                refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
+                    RefKind.RefReadOnly :
+                    RefKind.Ref;
+
+                syntax = refType.Type;
             }
 
             return syntax;

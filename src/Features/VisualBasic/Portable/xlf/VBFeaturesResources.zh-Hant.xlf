@@ -1,0 +1,1862 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VBFeaturesResources.resx">
+    <body>
+      <trans-unit id="Add_Await">
+        <source>Add Await</source>
+        <target state="translated">新增 Await</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add Await and 'ConfigureAwait(false)'</source>
+        <target state="translated">新增 Await 及 'ConfigureAwait(false)'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="translated">新增 &lt;已淘汰&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_Imports">
+        <source>Add missing Imports</source>
+        <target state="translated">新增缺少的 Import</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_Shadows">
+        <source>Add 'Shadows'</source>
+        <target state="translated">新增 'Shadows'</target>
+        <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="If_statement_can_be_simplified">
+        <source>'If' statement can be simplified</source>
+        <target state="translated">'If' 陳述式可簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_0">
+        <source>Insert '{0}'.</source>
+        <target state="translated">插入 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delete_the_0_statement1">
+        <source>Delete the '{0}' statement.</source>
+        <target state="translated">刪除 '{0}' 陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_event_0_in_1">
+        <source>Create event {0} in {1}</source>
+        <target state="translated">在 {1} 中建立事件 {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_the_missing_End_Property_statement">
+        <source>Insert the missing 'End Property' statement.</source>
+        <target state="translated">插入遺漏的 'End Property' 陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_the_missing_0">
+        <source>Insert the missing '{0}'.</source>
+        <target state="translated">插入遺漏的 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="translated">內嵌暫存變數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conflict_s_detected">
+        <source>Conflict(s) detected.</source>
+        <target state="translated">偵測到衝突。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="translated">引入 'Using' 陳述式</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="translated">將 '{0}' 設為可繼承</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_the_0_statement_to_line_1">
+        <source>Move the '{0}' statement to line {1}.</source>
+        <target state="translated">將 '{0}' 陳述式移至行 {1}。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delete_the_0_statement2">
+        <source>Delete the '{0}' statement.</source>
+        <target state="translated">刪除 '{0}' 陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="translated">&lt;多項類型&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Imports">
+        <source>Remove Unnecessary Imports</source>
+        <target state="translated">移除不必要的匯入</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_new_field">
+        <source>Type a name here to declare a new field.</source>
+        <target state="translated">於此輸入名稱以宣告新的欄位。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
+        <source>Note: Space completion is disabled to avoid potential interference. To insert a name from the list, use tab.</source>
+        <target state="translated">注意: 空格完成的功能已停用，以免造成可能的干擾。若要插入清單中的名稱，請使用 Tab 鍵。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_field">
+        <source>&lt;new field&gt;</source>
+        <target state="translated">&lt;新欄位&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_parameter_If_no_preceding_keyword_is_used_ByVal_will_be_assumed_and_the_argument_will_be_passed_by_value">
+        <source>Type a name here to declare a parameter. If no preceding keyword is used; 'ByVal' will be assumed and the argument will be passed by value.</source>
+        <target state="translated">於此輸入名稱以宣告參數。若之前未出現任何關鍵字，將假設使用 'ByVal'，且引數將依值傳遞。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="parameter_name">
+        <source>&lt;parameter name&gt;</source>
+        <target state="translated">&lt;參數名稱&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_new_name_for_the_column_followed_by_Otherwise_the_original_column_name_with_be_used">
+        <source>Type a new name for the column, followed by '='. Otherwise, the original column name with be used.</source>
+        <target state="translated">輸入資料行的新名稱，其後接著 '='。否則將會使用原始的資料行名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Note_colon_Use_tab_for_automatic_completion_space_completion_is_disabled_to_avoid_interfering_with_a_new_name">
+        <source>Note: Use tab for automatic completion; space completion is disabled to avoid interfering with a new name.</source>
+        <target state="translated">注意: 若要自動完成可使用 Tab 鍵; 而空格完成功能已停用，以免干擾新名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="result_alias">
+        <source>&lt;result alias&gt;</source>
+        <target state="translated">&lt;結果別名&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_new_variable_name">
+        <source>Type a new variable name</source>
+        <target state="translated">輸入新的變數名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Note_colon_Space_and_completion_are_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
+        <source>Note: Space and '=' completion are disabled to avoid potential interference. To insert a name from the list, use tab.</source>
+        <target state="translated">注意: 空格和 '=' 完成的功能已停用，以免造成可能的干擾。若要插入清單中的名稱，請使用 Tab 鍵。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_resource">
+        <source>&lt;new resource&gt;</source>
+        <target state="translated">&lt;新資源&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddHandler_statement">
+        <source>AddHandler statement</source>
+        <target state="translated">AddHandler 陳述式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveHandler_statement">
+        <source>RemoveHandler statement</source>
+        <target state="translated">RemoveHandler 陳述式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_function">
+        <source>{0} function</source>
+        <target state="translated">{0} 函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CType_function">
+        <source>CType function</source>
+        <target state="translated">CType 函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DirectCast_function">
+        <source>DirectCast function</source>
+        <target state="translated">DirectCast 函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TryCast_function">
+        <source>TryCast function</source>
+        <target state="translated">TryCast 函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetType_function">
+        <source>GetType function</source>
+        <target state="translated">GetType 函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetXmlNamespace_function">
+        <source>GetXmlNamespace function</source>
+        <target state="translated">GetXmlNamespace 函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Mid_statement">
+        <source>Mid statement</source>
+        <target state="translated">Mid 陳述式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_Incorrect_Function_Return_Type">
+        <source>Fix Incorrect Function Return Type</source>
+        <target state="translated">修正不正確的函式傳回類型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_name_0">
+        <source>Simplify name '{0}'</source>
+        <target state="translated">簡化名稱 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_member_access_0">
+        <source>Simplify member access '{0}'</source>
+        <target state="translated">簡化成員存取 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Me_qualification">
+        <source>Remove 'Me' qualification</source>
+        <target state="translated">移除 'Me' 限定性條件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">可以簡化名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
+        <source>can't determine valid range of statements to extract out</source>
+        <target state="translated">無法決定要擷取的有效陳述式範圍</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_all_code_paths_return">
+        <source>Not all code paths return</source>
+        <target state="translated">未傳回所有程式碼路徑</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="contains_invalid_selection">
+        <source>contains invalid selection</source>
+        <target state="translated">包含無效的選取範圍</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_selection_contains_syntactic_errors">
+        <source>the selection contains syntactic errors</source>
+        <target state="translated">選取範圍包含語法錯誤</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_t_be_crossed_over_preprocessors">
+        <source>Selection can't be crossed over preprocessors</source>
+        <target state="translated">選取範圍不可跨多部前置處理器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_t_contain_throw_without_enclosing_catch_block">
+        <source>Selection can't contain throw without enclosing catch block</source>
+        <target state="translated">選取範圍不可包含未納入 catch 區塊的 Throw</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_t_be_parts_of_constant_initializer_expression">
+        <source>Selection can't be parts of constant initializer expression</source>
+        <target state="translated">選取範圍不可為常數初始設定式運算式的任何部分</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_used_for_ByRef_parameter_can_t_be_extracted_out">
+        <source>Argument used for ByRef parameter can't be extracted out</source>
+        <target state="translated">無法擷取用於 ByRef 參數的引數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selection">
+        <source>all static local usages defined in the selection must be included in the selection</source>
+        <target state="translated">選取範圍中必須包含選取範圍中所定義的所有靜態區域使用方式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement">
+        <source>Implicit member access can't be included in the selection without containing statement</source>
+        <target state="translated">沒有包含陳述式的選取範圍中，不可包含隱含成員存取。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_must_be_part_of_executable_statements">
+        <source>Selection must be part of executable statements</source>
+        <target state="translated">選取範圍必須是可執行之陳述式的一部分</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="next_statement_control_variable_doesn_t_have_matching_declaration_statement">
+        <source>next statement control variable doesn't have matching declaration statement</source>
+        <target state="translated">下一個陳述式控制變數沒有相符的宣告陳述式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_doesn_t_contain_any_valid_node">
+        <source>Selection doesn't contain any valid node</source>
+        <target state="translated">選取範圍不包含任何有效的節點</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="no_valid_statement_range_to_extract_out">
+        <source>no valid statement range to extract out</source>
+        <target state="translated">沒有可擷取內容的有效陳述式範圍</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection</source>
+        <target state="translated">選取範圍無效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_doesn_t_contain_any_valid_token">
+        <source>Selection doesn't contain any valid token</source>
+        <target state="translated">選取範圍不包含任何有效的語彙基元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_selection_to_perform_extraction">
+        <source>No valid selection to perform extraction</source>
+        <target state="translated">無任何有效的選取範圍可執行擷取</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_common_root_node_for_extraction">
+        <source>No common root node for extraction</source>
+        <target state="translated">沒有一般根節點可供擷取</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deprecated">
+        <source>Deprecated</source>
+        <target state="translated">取代</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extension">
+        <source>Extension</source>
+        <target state="translated">擴充功能</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaitable">
+        <source>Awaitable</source>
+        <target state="translated">可等候</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaitable_Extension">
+        <source>Awaitable, Extension</source>
+        <target state="translated">可等候的擴充功能</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_variable">
+        <source>&lt;new variable&gt;</source>
+        <target state="translated">&lt;新變數&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
+        <source>Creates a delegate procedure instance that references the specified procedure.
+AddressOf &lt;procedureName&gt;</source>
+        <target state="translated">建立會參考指定程序的委派程序執行個體。
+AddressOf &lt;procedureName&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_that_an_external_procedure_has_another_name_in_its_DLL">
+        <source>Indicates that an external procedure has another name in its DLL.</source>
+        <target state="translated">表示外部程序在其 DLL 中有另一個名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_a_short_circuit_logical_conjunction_on_two_expressions_Returns_True_if_both_operands_evaluate_to_True_If_the_first_expression_evaluates_to_False_the_second_is_not_evaluated_result_expression1_AndAlso_expression2">
+        <source>Performs a short-circuit logical conjunction on two expressions. Returns True if both operands evaluate to True. If the first expression evaluates to False, the second is not evaluated.
+&lt;result&gt; = &lt;expression1&gt; AndAlso &lt;expression2&gt;</source>
+        <target state="translated">在兩個運算式上執行最少運算邏輯結合。若兩個運算元都評估為 True，即傳回 True。若第一個運算式評估為 False，則不會評估第二個運算式。
+&lt;result&gt; = &lt;expression1&gt; AndAlso &lt;expression2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_a_logical_conjunction_on_two_Boolean_expressions_or_a_bitwise_conjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_both_operands_evaluate_to_True_Both_expressions_are_always_evaluated_result_expression1_And_expression2">
+        <source>Performs a logical conjunction on two Boolean expressions, or a bitwise conjunction on two numeric expressions. For Boolean expressions, returns True if both operands evaluate to True. Both expressions are always evaluated.
+&lt;result&gt; = &lt;expression1&gt; And &lt;expression2&gt;</source>
+        <target state="translated">在兩布林運算式上執行邏輯結合，或在兩個數值運算式上執行位元結合。對於布林運算式而言，若兩個運算元都評估為 True，即傳回 True。兩個運算式都會進行評估。
+&lt;result&gt; = &lt;expression1&gt; And &lt;expression2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Used_in_a_Declare_statement_The_Ansi_modifier_specifies_that_Visual_Basic_should_marshal_all_strings_to_ANSI_values_and_should_look_up_the_procedure_without_modifying_its_name_during_the_search_If_no_character_set_is_specified_ANSI_is_the_default">
+        <source>Used in a Declare statement. The Ansi modifier specifies that Visual Basic should marshal all strings to ANSI values, and should look up the procedure without modifying its name during the search. If no character set is specified, ANSI is the default.</source>
+        <target state="translated">用在 Declare 陳述式中。Ansi 修飾元會指定 Visual Basic 應將所有字串封送處理成 ANSI 值，且在搜尋期間，應查詢程序但不要修改其名稱。若未指定字元集，預設值就是 ANSI。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_a_data_type_in_a_declaration_statement">
+        <source>Specifies a data type in a declaration statement.</source>
+        <target state="translated">在宣告陳述式中指定資料類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_an_attribute_at_the_beginning_of_a_source_file_applies_to_the_entire_assembly_Otherwise_the_attribute_will_apply_only_to_an_individual_programming_element_such_as_a_class_or_property">
+        <source>Specifies that an attribute at the beginning of a source file applies to the entire assembly. Otherwise the attribute will apply only to an individual programming element, such as a class or property.</source>
+        <target state="translated">指定在原始程式檔開頭的屬性，會套用到整個組件。否則，屬性將只會套用到個別的程式設計元素，例如類別或屬性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_an_asynchronous_method_that_can_use_the_Await_operator">
+        <source>Indicates an asynchronous method that can use the Await operator.</source>
+        <target state="translated">指出可以使用 Await 運算子的非同步方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Used_in_a_Declare_statement_The_Auto_modifier_specifies_that_Visual_Basic_should_marshal_strings_according_to_NET_Framework_rules_and_should_determine_the_base_character_set_of_the_run_time_platform_and_possibly_modify_the_external_procedure_name_if_the_initial_search_fails">
+        <source>Used in a Declare statement. The Auto modifier specifies that Visual Basic should marshal strings according to .NET Framework rules, and should determine the base character set of the run-time platform and possibly modify the external procedure name if the initial search fails.</source>
+        <target state="translated">用在 Declare 陳述式中。Auto 修飾元可指定 Visual Basic 應該根據 .NET Framework 規則封送處理字串，且應判斷執行階段平台的基礎字元集，若初始搜尋失敗，還可能修改外部程序名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_can_change_the_underlying_value_of_the_argument_in_the_calling_code">
+        <source>Specifies that an argument is passed in such a way that the called procedure can change the underlying value of the argument in the calling code.</source>
+        <target state="translated">將引數的傳遞方式，指定為可讓呼叫的程序能變更呼叫程式碼中引數的基礎值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_or_property_cannot_change_the_underlying_value_of_the_argument_in_the_calling_code">
+        <source>Specifies that an argument is passed in such a way that the called procedure or property cannot change the underlying value of the argument in the calling code.</source>
+        <target state="translated">將引數的傳遞方式，指定為可讓呼叫的程序或屬性無法變更呼叫程式碼中引數的基礎值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_of_a_class_and_introduces_the_definitions_of_the_variables_properties_and_methods_that_make_up_the_class">
+        <source>Declares the name of a class and introduces the definitions of the variables, properties, and methods that make up the class.</source>
+        <target state="translated">宣告類別的名稱，並引進組成類別之變數、屬性與方法的定義。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generates_a_string_concatenation_of_two_expressions">
+        <source>Generates a string concatenation of two expressions.</source>
+        <target state="translated">產生兩個運算式的字串串連。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_and_defines_one_or_more_constants">
+        <source>Declares and defines one or more constants.</source>
+        <target state="translated">宣告並定義一或多個常數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_In_for_a_type_that_will_only_be_used_for_ByVal_arguments_to_functions">
+        <source>Use 'In' for a type that will only be used for ByVal arguments to functions.</source>
+        <target state="translated">針對只用於函式中 ByVal 引數的類型，使用 'In'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Out_for_a_type_that_will_only_be_used_as_a_return_from_functions">
+        <source>Use 'Out' for a type that will only be used as a return from functions.</source>
+        <target state="translated">針對只用做為函式傳回值的類型，使用 'Out'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_As_Type">
+        <source>Returns the result of explicitly converting an expression to a specified data type, object, structure, class, or interface.
+CType(Object As Expression, Object As Type) As Type</source>
+        <target state="translated">傳回運算式明確轉換成指定之資料類型、物件、結構、類別或介面的結果。
+CType(Object As Expression, Object As Type) As Type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_an_event_has_additional_specialized_code_for_adding_handlers_removing_handlers_and_raising_events">
+        <source>Specifies that an event has additional, specialized code for adding handlers, removing handlers, and raising events.</source>
+        <target state="translated">指定事件有額外的特定程式碼，可加入處理常式、移除處理常式，以及引發事件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_a_reference_to_a_procedure_implemented_in_an_external_file">
+        <source>Declares a reference to a procedure implemented in an external file.</source>
+        <target state="translated">宣告實作在外部檔案中之程序的參考。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Identifies_a_property_as_the_default_property_of_its_class_structure_or_interface">
+        <source>Identifies a property as the default property of its class, structure, or interface.</source>
+        <target state="translated">找出為其類別、結構或介面之預設屬性的屬性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Used_to_declare_a_delegate_A_delegate_is_a_reference_type_that_refers_to_a_shared_method_of_a_type_or_to_an_instance_method_of_an_object_Any_procedure_that_is_convertible_or_that_has_matching_parameter_types_and_return_type_may_be_used_to_create_an_instance_of_this_delegate_class">
+        <source>Used to declare a delegate. A delegate is a reference type that refers to a shared method of a type or to an instance method of an object. Any procedure that is convertible, or that has matching parameter types and return type may be used to create an instance of this delegate class.</source>
+        <target state="translated">用於宣告委派。委派是一種參考類型，其會參考類型的共用方法，或物件的執行個體方法。任何可轉換的程序，或是參數類型與傳回類型相符的程序，都可用以建立此委派類別的執行個體。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_and_allocates_storage_space_for_one_or_more_variables_Dim_var_bracket_As_bracket_New_bracket_dataType_bracket_boundList_bracket_bracket_bracket_initializer_bracket_bracket_var2_bracket">
+        <source>Declares and allocates storage space for one or more variables.
+Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</source>
+        <target state="translated">宣告一或多個變數，並為其配置儲存空間。
+Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Divides_two_numbers_and_returns_a_floating_point_result">
+        <source>Divides two numbers and returns a floating-point result.</source>
+        <target state="translated">將兩個數值相除，傳回浮點結果。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_a_0_block">
+        <source>Terminates a {0} block.</source>
+        <target state="translated">結束 {0} 區塊。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_an_0_block">
+        <source>Terminates an {0} block.</source>
+        <target state="translated">結束 {0} 區塊。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_the_definition_of_a_0_statement">
+        <source>Terminates the definition of a {0} statement.</source>
+        <target state="translated">結束 {0} 陳述式的定義。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_the_definition_of_an_0_statement">
+        <source>Terminates the definition of an {0} statement.</source>
+        <target state="translated">結束 {0} 陳述式的定義。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_an_enumeration_and_defines_the_values_of_its_members">
+        <source>Declares an enumeration and defines the values of its members.</source>
+        <target state="translated">宣告列舉，並定義其成員的值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_they_are_equal_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if they are equal. Otherwise, returns False.</source>
+        <target state="translated">比較兩個運算式，若兩者相等，即傳回 True; 否則傳回 False。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Used_to_release_array_variables_and_deallocate_the_memory_used_for_their_elements">
+        <source>Used to release array variables and deallocate the memory used for their elements.</source>
+        <target state="translated">用以釋放陣列變數，並取消配置其元素所使用的記憶體。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_a_user_defined_event">
+        <source>Declares a user-defined event.</source>
+        <target state="translated">宣告使用者定義的事件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_Sub_procedure_and_transfers_execution_immediately_to_the_statement_following_the_call_to_the_Sub_procedure">
+        <source>Exits a Sub procedure and transfers execution immediately to the statement following the call to the Sub procedure.</source>
+        <target state="translated">結束 Sub 程序，並將執行立即轉移到接在 Sub 程序呼叫之後的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Raises_a_number_to_the_power_of_another_number">
+        <source>Raises a number to the power of another number.</source>
+        <target state="translated">將數字的次方指定為另一個數字。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_the_external_procedure_being_referenced_in_the_Declare_statement_is_a_Function">
+        <source>Specifies that the external procedure being referenced in the Declare statement is a Function.</source>
+        <target state="translated">指定 Declare 陳述式中所參考的外部程序是 Function。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_the_external_procedure_being_referenced_in_the_Declare_statement_is_a_Sub">
+        <source>Specifies that the external procedure being referenced in the Declare statement is a Sub.</source>
+        <target state="translated">指定 Declare 陳述式中所參考的外部程序是 Sub。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_the_assembly_that_contains_their_declaration">
+        <source>Specifies that one or more declared programming elements are accessible only from within the assembly that contains their declaration.</source>
+        <target state="translated">指定一或多個宣告的程式設計元素，只能從包含其宣告的組件加以存取。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_a_collection_and_a_range_variable_to_use_in_a_query">
+        <source>Specifies a collection and a range variable to use in a query.</source>
+        <target state="translated">指定查詢中所使用的集合與範圍變數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_parameters_and_code_that_define_a_Function_procedure_that_is_a_procedure_that_returns_a_value_to_the_calling_code">
+        <source>Declares the name, parameters, and code that define a Function procedure, that is, a procedure that returns a value to the calling code.</source>
+        <target state="translated">宣告定義 Function 程序的名稱、參數與程式碼; 也就是説，這種程序會對呼叫的程式碼傳回值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constrains_a_generic_type_parameter_to_require_that_any_type_argument_passed_to_it_be_a_reference_type">
+        <source>Constrains a generic type parameter to require that any type argument passed to it be a reference type.</source>
+        <target state="translated">將泛型類型參數限制為傳遞給它的所有類型引數，都必須要是參考類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_a_constructor_constraint_on_a_generic_type_parameter">
+        <source>Specifies a constructor constraint on a generic type parameter.</source>
+        <target state="translated">指定泛型類型參數的建構函式條件約束。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constrains_a_generic_type_parameter_to_require_that_any_type_argument_passed_to_it_be_a_value_type">
+        <source>Constrains a generic type parameter to require that any type argument passed to it be a value type.</source>
+        <target state="translated">將泛型類型參數限制為傳遞給它的所有類型引數，都必須要是實值類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_a_Get_property_procedure_that_is_used_to_return_the_current_value_of_a_property">
+        <source>Declares a Get property procedure that is used to return the current value of a property.</source>
+        <target state="translated">宣告用以傳回屬性目前值的 Get 屬性程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_the_first_is_greater_than_the_second_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if the first is greater than the second. Otherwise, returns False.</source>
+        <target state="translated">比較兩個運算式，若第一個運算式大於第二個運算式，即傳回 True; 否則傳回 False。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_the_first_is_greater_than_or_equal_to_the_second_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if the first is greater than or equal to the second. Otherwise, returns False.</source>
+        <target state="translated">比較兩個運算式，若第一個運算式大於或等於第二個運算式，即傳回 True; 否則傳回 False。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_that_a_procedure_handles_a_specified_event">
+        <source>Declares that a procedure handles a specified event.</source>
+        <target state="translated">宣告程序會處理指定的事件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_that_a_class_or_structure_member_is_providing_the_implementation_for_a_member_defined_in_an_interface">
+        <source>Indicates that a class or structure member is providing the implementation for a member defined in an interface.</source>
+        <target state="translated">表示類別或結構成員將提供介面中定義之成員的實作。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_one_or_more_interfaces_or_interface_members_that_must_be_implemented_in_the_class_or_structure_definition_in_which_the_Implements_statement_appears">
+        <source>Specifies one or more interfaces, or interface members, that must be implemented in the class or structure definition in which the Implements statement appears.</source>
+        <target state="translated">指定必須在出現 Implements 陳述式的類別或結構定義中實作的一或多個介面或介面成員。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Imports_all_or_specified_elements_of_a_namespace_into_a_file">
+        <source>Imports all or specified elements of a namespace into a file.</source>
+        <target state="translated">將命名空間的所有元素或指定元素，匯入至檔案。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_group_that_the_loop_variable_in_a_For_Each_statement_is_to_traverse">
+        <source>Specifies the group that the loop variable in a For Each statement is to traverse.</source>
+        <target state="translated">指定 For Each 陳述式中迴圈變數要周遊的群組。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_group_that_the_loop_variable_is_to_traverse_in_a_For_Each_statement_or_specifies_the_range_variable_in_a_query">
+        <source>Specifies the group that the loop variable is to traverse in a For Each statement, or specifies the range variable in a query.</source>
+        <target state="translated">指定 For Each 陳述式中迴圈變數要周遊的群組，或指定查詢中的範圍變數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_properties_procedures_and_events_from_another_class_or_set_of_interfaces">
+        <source>Causes the current class or interface to inherit the attributes, variables, properties, procedures, and events from another class or set of interfaces.</source>
+        <target state="translated">讓目前的類別或介面，從另一個類別或介面集合繼承屬性 (Attribute)、變數、屬性 (Property)、程序及事件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_group_that_the_range_variable_is_to_traverse_in_a_query">
+        <source>Specifies the group that the range variable is to traverse in a query.</source>
+        <target state="translated">指定查詢中範圍變數要周遊的群組。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Divides_two_numbers_and_returns_an_integer_result">
+        <source>Divides two numbers and returns an integer result.</source>
+        <target state="translated">將兩個數值相除，傳回整數結果。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_of_an_interface_and_the_definitions_of_the_members_of_the_interface">
+        <source>Declares the name of an interface and the definitions of the members of the interface.</source>
+        <target state="translated">宣告介面的名稱與介面成員的定義。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determines_whether_an_expression_is_false_If_instances_of_any_class_or_structure_will_be_used_in_an_OrElse_clause_you_must_define_IsFalse_on_that_class_or_structure">
+        <source>Determines whether an expression is false. If instances of any class or structure will be used in an OrElse clause, you must define IsFalse on that class or structure.</source>
+        <target state="translated">判斷運算式是否為 False。若在 OrElse 子句中會出現任何類別或結構，您必須在該類別或結構上定義 IsFalse。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_object_reference_variables_and_returns_True_if_the_objects_are_equal_result_object1_Is_object2">
+        <source>Compares two object reference variables and returns True if the objects are equal.
+&lt;result&gt; = &lt;object1&gt; Is &lt;object2&gt;</source>
+        <target state="translated">比較兩個物件參考變數，若物件相等，即傳回 True。
+&lt;result&gt; = &lt;object1&gt; Is &lt;object2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_object_reference_variables_and_returns_True_if_the_objects_are_not_equal_result_object1_IsNot_object2">
+        <source>Compares two object reference variables and returns True if the objects are not equal.
+&lt;result&gt; = &lt;object1&gt; IsNot &lt;object2&gt;</source>
+        <target state="translated">比較兩個物件參考變數，若物件不相等，即傳回 True。
+&lt;result&gt; = &lt;object1&gt; IsNot &lt;object2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determines_whether_an_expression_is_true_If_instances_of_any_class_or_structure_will_be_used_in_an_OrElse_clause_you_must_define_IsTrue_on_that_class_or_structure">
+        <source>Determines whether an expression is true. If instances of any class or structure will be used in an OrElse clause, you must define IsTrue on that class or structure.</source>
+        <target state="translated">判斷運算式是否為 True。若在 OrElse 子句會出現任何類別或結構，則必須在該類別或結構上定義 IsTrue。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_an_iterator_method_that_can_use_the_Yield_statement">
+        <source>Indicates an iterator method that can use the Yield statement.</source>
+        <target state="translated">指出可以使用 Yield 陳述式的 Iterator 方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Defines_an_iterator_lambda_expression_that_can_use_the_Yield_statement_Iterator_Function_parameterList_As_IEnumerable_Of_T">
+        <source>Defines an iterator lambda expression that can use the Yield statement.
+Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</source>
+        <target state="translated">定義可以使用 Yield 陳述式的 Iterator Lambda 運算式。
+Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_an_arithmetic_left_shift_on_a_bit_pattern">
+        <source>Performs an arithmetic left shift on a bit pattern.</source>
+        <target state="translated">在位元模式上執行算術左位移。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_the_first_is_less_than_the_second_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if the first is less than the second. Otherwise, returns False.</source>
+        <target state="translated">比較兩個運算式，若第一個運算式小於第二個運算式，即傳回 True; 否則傳回 False。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_the_first_is_less_than_or_equal_to_the_second_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if the first is less than or equal to the second. Otherwise, returns False.</source>
+        <target state="translated">比較兩個運算式，若第一個運算式小於或等於第二個運算式，即傳回 True; 否則傳回 False。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_clause_that_identifies_the_external_file_DLL_or_code_resource_containing_an_external_procedure">
+        <source>Introduces a clause that identifies the external file (DLL or code resource) containing an external procedure.</source>
+        <target state="translated">引進能找出包含外部程序之外部檔案 (DLL 或程式碼資源) 的子句。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_a_string_against_a_pattern_Wildcards_available_include_to_match_1_character_and_to_match_0_or_more_characters_result_string_Like_pattern">
+        <source>Compares a string against a pattern. Wildcards available include ? to match 1 character and * to match 0 or more characters.
+&lt;result&gt; = &lt;string&gt; Like &lt;pattern&gt;</source>
+        <target state="translated">將字串與模式相比。可用的萬用字元包括 ? (與 1 個字元相符) 以及 * (與 0 或多個字元相符)。
+&lt;result&gt; = &lt;string&gt; Like &lt;pattern&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_difference_between_two_numeric_expressions_or_the_negative_value_of_a_numeric_expression">
+        <source>Returns the difference between two numeric expressions, or the negative value of a numeric expression.</source>
+        <target state="translated">傳回兩個數值運算式的差，或一個數值運算式的負值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Divides_two_numbers_and_returns_only_the_remainder_number1_Mod_number2">
+        <source>Divides two numbers and returns only the remainder.
+&lt;number1&gt; Mod &lt;number2&gt;</source>
+        <target state="translated">將兩個數字相除，然後只傳回餘數。
+&lt;數字 1&gt; Mod &lt;數字 2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_an_attribute_at_the_beginning_of_a_source_file_applies_to_the_entire_module_Otherwise_the_attribute_will_apply_only_to_an_individual_programming_element_such_as_a_class_or_property">
+        <source>Specifies that an attribute at the beginning of a source file applies to the entire module. Otherwise the attribute will apply only to an individual programming element, such as a class or property.</source>
+        <target state="translated">指定在原始程式檔開頭的屬性，會套用到整個模組。否則，屬性將只會套用到個別的程式設計元素，例如類別或屬性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiplies_two_numbers_and_returns_the_product">
+        <source>Multiplies two numbers and returns the product.</source>
+        <target state="translated">將兩個數值相乘，然後傳回乘積。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_class_can_be_used_only_as_a_base_class_and_that_you_cannot_create_an_object_directly_from_it">
+        <source>Specifies that a class can be used only as a base class, and that you cannot create an object directly from it.</source>
+        <target state="translated">指定類別只可用做為基底類別，且您無法直接從它建立物件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_or_procedure_is_not_implemented_in_the_class_and_must_be_overridden_in_a_derived_class_before_it_can_be_used">
+        <source>Specifies that a property or procedure is not implemented in the class and must be overridden in a derived class before it can be used.</source>
+        <target state="translated">指定未在類別中實作的屬性或程序，在使用之前必須於衍生的類別中加以覆寫。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_of_a_namespace_and_causes_the_source_code_following_the_declaration_to_be_compiled_within_that_namespace">
+        <source>Declares the name of a namespace, and causes the source code following the declaration to be compiled within that namespace.</source>
+        <target state="translated">宣告命名空間的名稱，並讓接在宣告後的原始程式碼，會於該命名空間中編譯。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_that_a_conversion_operator_CType_converts_a_class_or_structure_to_a_type_that_might_not_be_able_to_hold_some_of_the_possible_values_of_the_original_class_or_structure">
+        <source>Indicates that a conversion operator (CType) converts a class or structure to a type that might not be able to hold some of the possible values of the original class or structure.</source>
+        <target state="translated">表示轉換運算子 (CType) 會將類別或結構轉換成可能無法容納原始類別或結構之某些可能值的類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_they_are_not_equal_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if they are not equal. Otherwise, returns False.</source>
+        <target state="translated">比較兩個運算式，若兩者不相等，即傳回 True; 否則傳回 False。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_class_cannot_be_used_as_a_base_class">
+        <source>Specifies that a class cannot be used as a base class.</source>
+        <target state="translated">指定類別不能用做為基底類別。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_logical_negation_on_a_Boolean_expression_or_bitwise_negation_on_a_numeric_expression_result_Not_expression">
+        <source>Performs logical negation on a Boolean expression, or bitwise negation on a numeric expression.
+&lt;result&gt; = Not &lt;expression&gt;</source>
+        <target state="translated">在布林運算式上執行邏輯否定運算，或是在數值運算式上執行位元否定運算。
+&lt;result&gt; = Not &lt;expression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_or_procedure_cannot_be_overridden_in_a_derived_class">
+        <source>Specifies that a property or procedure cannot be overridden in a derived class.</source>
+        <target state="translated">指定在衍生類別中不可覆寫屬性或程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure">
+        <source>Identifies a type parameter on a generic class, structure, interface, delegate, or procedure.</source>
+        <target state="translated">識別泛型類別、結構、介面、委派或程序的類型參數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_operator_symbol_operands_and_code_that_define_an_operator_procedure_on_a_class_or_structure">
+        <source>Declares the operator symbol, operands, and code that define an operator procedure on a class or structure.</source>
+        <target state="translated">宣告運算子符號、運算元與程式碼，以定義類別或結構的運算子程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_procedure_argument_can_be_omitted_when_the_procedure_is_called">
+        <source>Specifies that a procedure argument can be omitted when the procedure is called.</source>
+        <target state="translated">指定呼叫程序時，可以省略程序引數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_statement_that_specifies_a_compiler_option_that_applies_to_the_entire_source_file">
+        <source>Introduces a statement that specifies a compiler option that applies to the entire source file.</source>
+        <target state="translated">引進指定套用到整個原始程式檔之編譯器選項的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_short_circuit_inclusive_logical_disjunction_on_two_expressions_Returns_True_if_either_operand_evaluates_to_True_If_the_first_expression_evaluates_to_True_the_second_expression_is_not_evaluated_result_expression1_OrElse_expression2">
+        <source>Performs short-circuit inclusive logical disjunction on two expressions. Returns True if either operand evaluates to True. If the first expression evaluates to True, the second expression is not evaluated.
+&lt;result&gt; = &lt;expression1&gt; OrElse &lt;expression2&gt;</source>
+        <target state="translated">在兩個運算式上執行最少運算的內含邏輯分離。若任一運算元評估為 True，即傳回 True。若第一個運算式評估為 True，則不會評估第二個運算式。
+&lt;result&gt; = &lt;expression1&gt; OrElse &lt;expression2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_an_inclusive_logical_disjunction_on_two_Boolean_expressions_or_a_bitwise_disjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_at_least_one_operand_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Or_expression2">
+        <source>Performs an inclusive logical disjunction on two Boolean expressions, or a bitwise disjunction on two numeric expressions. For Boolean expressions, returns True if at least one operand evaluates to True. Both expressions are always evaluated.
+&lt;result&gt; = &lt;expression1&gt; Or &lt;expression2&gt;</source>
+        <target state="translated">在兩個布林運算式上執行內含邏輯分離，或在兩個數值運算式上執行位元分離。對於布林運算式而言，若至少有一個運算元評估為 True，即傳回 True。兩個運算式都會進行評估。
+&lt;result&gt; = &lt;expression1&gt; Or &lt;expression2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_or_procedure_re_declares_one_or_more_existing_properties_or_procedures_with_the_same_name">
+        <source>Specifies that a property or procedure re-declares one or more existing properties or procedures with the same name.</source>
+        <target state="translated">指定屬性或程序會重新宣告一或多個同名的現有屬性或程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_or_procedure_can_be_overridden_by_an_identically_named_property_or_procedure_in_a_derived_class">
+        <source>Specifies that a property or procedure can be overridden by an identically named property or procedure in a derived class.</source>
+        <target state="translated">指定屬性或程序可由衍生類別中的同名屬性或程序覆寫。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_or_procedure_overrides_an_identically_named_property_or_procedure_inherited_from_a_base_class">
+        <source>Specifies that a property or procedure overrides an identically named property or procedure inherited from a base class.</source>
+        <target state="translated">指定屬性或程序會覆寫繼承自基底類別的同名屬性或程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_procedure_parameter_takes_an_optional_array_of_elements_of_the_specified_type">
+        <source>Specifies that a procedure parameter takes an optional array of elements of the specified type.</source>
+        <target state="translated">指定程序參數可會接受指定類型的選擇性元素陣列。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_that_a_method_class_or_structure_declaration_is_a_partial_definition_of_the_method_class_or_structure">
+        <source>Indicates that a method, class, or structure declaration is a partial definition of the method, class, or structure.</source>
+        <target state="translated">表示方法、類別或結構宣告，為方法、類別或結構的部分定義。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_sum_of_two_numbers_or_the_positive_value_of_a_numeric_expression">
+        <source>Returns the sum of two numbers, or the positive value of a numeric expression.</source>
+        <target state="translated">傳回兩個數值的和，或數值運算式的正值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prevents_the_contents_of_an_array_from_being_cleared_when_the_dimensions_of_the_array_are_changed">
+        <source>Prevents the contents of an array from being cleared when the dimensions of the array are changed.</source>
+        <target state="translated">避免在變更陣列維度時，清除陣列內容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_their_module_class_or_structure">
+        <source>Specifies that one or more declared programming elements are accessible only from within their module, class, or structure.</source>
+        <target state="translated">指定一或多個宣告的程式設計元素，只能從其模組、類別或結構加以存取。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_of_a_property_and_the_property_procedures_used_to_store_and_retrieve_the_value_of_the_property">
+        <source>Declares the name of a property, and the property procedures used to store and retrieve the value of the property.</source>
+        <target state="translated">宣告屬性的名稱，以及用以儲存及擷取屬性值的屬性程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_members_of_a_class_are_accessible_from_anywhere_in_the_same_assembly_their_own_classes_and_derived_classes">
+        <source>Specifies that one or more declared members of a class are accessible from anywhere in the same assembly, their own classes, and derived classes.</source>
+        <target state="translated">指定類別的一或多個宣告成員，可從相同的組件、其本身的類別以及衍生類別中的任何位置加以存取。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_their_own_class_or_from_a_derived_class">
+        <source>Specifies that one or more declared programming elements are accessible only from within their own class or from a derived class.</source>
+        <target state="translated">指定一或多個宣告的程式設計元素，只能從其本身的類別或從衍生的類別加以存取。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_have_no_access_restrictions">
+        <source>Specifies that one or more declared programming elements have no access restrictions.</source>
+        <target state="translated">指定一或多個宣告的程式設計元素，沒有存取限制。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_variable_or_property_can_be_read_but_not_written_to">
+        <source>Specifies that a variable or property can be read but not written to.</source>
+        <target state="translated">指定可讀取但無法寫入的變數或屬性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reallocates_storage_space_for_an_array_variable">
+        <source>Reallocates storage space for an array variable.</source>
+        <target state="translated">重新配置陣列變數的儲存空間。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_an_arithmetic_right_shift_on_a_bit_pattern">
+        <source>Performs an arithmetic right shift on a bit pattern</source>
+        <target state="translated">在位元模式上執行算術右位移</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_a_Set_property_procedure_that_is_used_to_assign_a_value_to_a_property">
+        <source>Declares a Set property procedure that is used to assign a value to a property.</source>
+        <target state="translated">宣告用以為屬性指派值的 Set 屬性程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_declared_programming_element_redeclares_and_hides_an_identically_named_element_in_a_base_class">
+        <source>Specifies that a declared programming element redeclares and hides an identically named element in a base class.</source>
+        <target state="translated">指定宣告的程式設計項目會重新宣告並隱藏基底類別中的同名項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_associated_with_all_instances_of_a_class_or_structure">
+        <source>Specifies that one or more declared programming elements are associated with all instances of a class or structure.</source>
+        <target state="translated">指定一或多個宣告的程式設計元素，其會與類別或結構的所有執行個體相關聯。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_local_variables_are_to_remain_in_existence_and_retain_their_latest_values_after_the_procedure_in_which_they_are_declared_terminates">
+        <source>Specifies that one or more declared local variables are to remain in existence and retain their latest values after the procedure in which they are declared terminates.</source>
+        <target state="translated">指定一或多個宣告的區域變數在宣告該變數的程序結束後，仍會持續存在且保留最後的值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_of_a_structure_and_introduces_the_definition_of_the_variables_properties_events_and_procedures_that_make_up_the_structure">
+        <source>Declares the name of a structure and introduces the definition of the variables, properties, events, and procedures that make up the structure.</source>
+        <target state="translated">宣告結構的名稱，並引進組成結構之變數、屬性、事件與程序的定義。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_parameters_and_code_that_define_a_Sub_procedure_that_is_a_procedure_that_does_not_return_a_value_to_the_calling_code">
+        <source>Declares the name, parameters, and code that define a Sub procedure, that is, a procedure that does not return a value to the calling code.</source>
+        <target state="translated">宣告定義 Sub 程序的名稱、參數與程式碼; 也就是說，這種程序不會對呼叫的程式碼傳回值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range">
+        <source>Separates the beginning and ending values of a loop counter or array bounds or that of a value match range.</source>
+        <target state="translated">分隔迴圈計數器或陣列界限的起始值與結束值，或值比對範圍的起始值與結束值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determines_the_run_time_type_of_an_object_reference_variable_and_compares_it_to_a_data_type_Returns_True_or_False_depending_on_whether_the_two_types_are_compatible_result_TypeOf_objectExpression_Is_typeName">
+        <source>Determines the run-time type of an object reference variable and compares it to a data type. Returns True or False depending, on whether the two types are compatible.
+&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</source>
+        <target state="translated">判斷物件參考變數的執行階段類型，並與資料類型進行比較。依兩種類型是否相容，而傳回 True 或 False。
+&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Used_in_a_Declare_statement_Specifies_that_Visual_Basic_should_marshal_all_strings_to_Unicode_values_in_a_call_into_an_external_procedure_and_should_look_up_the_procedure_without_modifying_its_name">
+        <source>Used in a Declare statement. Specifies that Visual Basic should marshal all strings to Unicode values in a call into an external procedure, and should look up the procedure without modifying its name.</source>
+        <target state="translated">用於 Declare 陳述式中。指定 Visual Basic 應在呼叫外部程序中，將所有字串封送處理成 Unicode 值，且應在不修改程序名稱的情況下，查詢該程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_that_a_conversion_operator_CType_converts_a_class_or_structure_to_a_type_that_can_hold_all_possible_values_of_the_original_class_or_structure">
+        <source>Indicates that a conversion operator (CType) converts a class or structure to a type that can hold all possible values of the original class or structure.</source>
+        <target state="translated">表示轉換運算子 (CType) 會將類別或結構，轉換成可容納原始類別或結構之所有可能值的類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_member_variables_refer_to_an_instance_of_a_class_that_can_raise_events">
+        <source>Specifies that one or more declared member variables refer to an instance of a class that can raise events</source>
+        <target state="translated">指定一或多個宣告的成員變數會參考可能引發事件的類別執行個體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_can_be_written_to_but_not_read">
+        <source>Specifies that a property can be written to but not read.</source>
+        <target state="translated">指定可寫入但無法讀取的屬性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_a_logical_exclusion_on_two_Boolean_expressions_or_a_bitwise_exclusion_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_exactly_one_of_the_expressions_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Xor_expression2">
+        <source>Performs a logical exclusion on two Boolean expressions, or a bitwise exclusion on two numeric expressions. For Boolean expressions, returns True if exactly one of the expressions evaluates to True. Both expressions are always evaluated.
+&lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;</source>
+        <target state="translated">在兩個布林運算式上執行邏輯排除，或在兩個數值運算式上執行位元排除。對於布林運算式而言，若剛好有一個運算元評估為 True，即傳回 True。兩個運算式都會進行評估。
+&lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applies_an_aggregation_function_such_as_Sum_Average_or_Count_to_a_sequence">
+        <source>Applies an aggregation function, such as Sum, Average, or Count to a sequence.</source>
+        <target state="translated">套用彙總函式 (如 Sum、Average 或 Count) 到序列。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first">
+        <source>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</source>
+        <target state="translated">指定查詢中 Order By 子句的排序順序。最小的元素最先出現。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="translated">以非同步方式等候工作完成。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">
+        <source>Sets the string comparison method specified in Option Compare to a strict binary sort order.</source>
+        <target state="translated">將 Option Compare 中指定的字串比較方法，設定為嚴格的二進位排序順序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_element_keys_used_for_grouping_in_Group_By_or_sort_order_in_Order_By">
+        <source>Specifies the element keys used for grouping (in Group By) or sort order (in Order By).</source>
+        <target state="translated">指定用於分組 (Group By 中) 或排序順序 (Order By 中) 的元素索引鍵。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Transfers_execution_to_a_Function_Sub_or_dynamic_link_library_DLL_procedure_bracket_Call_bracket_procedureName_bracket_argumentList_bracket">
+        <source>Transfers execution to a Function, Sub, or dynamic-link library (DLL) procedure.
+[Call] &lt;procedureName&gt; [(&lt;argumentList&gt;)]</source>
+        <target state="translated">將執行轉移到 Function、Sub 或動態連結程式庫 (DLL) 程序。
+[Call] &lt;procedureName&gt; [(&lt;argumentList&gt;)]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_the_statements_to_run_if_none_of_the_previous_cases_in_the_Select_Case_statement_returns_True">
+        <source>Introduces the statements to run if none of the previous cases in the Select Case statement returns True.</source>
+        <target state="translated">引進在 Select Case 陳述式中先前的案例都未傳回 True 時，會執行的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Followed_by_a_comparison_operator_and_then_an_expression_Case_Is_introduces_the_statements_to_run_if_the_Select_Case_expression_combined_with_the_Case_Is_expression_evaluates_to_True">
+        <source>Followed by a comparison operator and then an expression, Case Is introduces the statements to run if the Select Case expression combined with the Case Is expression evaluates to True.</source>
+        <target state="translated">其後接著比較運算子，再接著運算式，Case Is 會引進當 Select Case 運算式與 Case Is 運算式組合在一起若評估為 True 時，所要執行的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_value_or_set_of_values_against_which_the_value_of_an_expression_in_a_Select_Case_statement_is_to_be_tested_Case_expression_expression1_To_expression2_bracket_Is_bracket_comparisonOperator_expression">
+        <source>Introduces a value, or set of values, against which the value of an expression in a Select Case statement is to be tested.
+Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;comparisonOperator&gt; &lt;expression&gt;}</source>
+        <target state="translated">引進一個值或一組值，並利用該值或該組值來測試 Select Case 陳述式中運算式的值。
+Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;comparisonOperator&gt; &lt;expression&gt;}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_statement_block_to_be_run_if_the_specified_exception_occurs_inside_a_Try_block">
+        <source>Introduces a statement block to be run if the specified exception occurs inside a Try block.</source>
+        <target state="translated">引進在 Try 區塊內發生指定的例外狀況時，所要執行的陳述式區塊。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sets_the_default_comparison_method_to_use_when_comparing_string_data_When_set_to_Text_uses_a_text_sort_order_that_is_not_case_sensitive_When_set_to_Binary_uses_a_strict_binary_sort_order_Option_Compare_Binary_Text">
+        <source>Sets the default comparison method to use when comparing string data. When set to Text, uses a text sort order that is not case sensitive. When set to Binary, uses a strict binary sort order.
+Option Compare {Binary | Text}</source>
+        <target state="translated">設定比較字串資料時所用的預設比較方法。若設定為 Text，請使用不區分大小寫的文字排序順序。若設定為 Binary，請使用嚴格的二進位排序順序。
+Option Compare {Binary | Text}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Defines_a_conditional_compiler_constant_Conditional_compiler_constants_are_always_private_to_the_file_in_which_they_appear_The_expressions_used_to_initialize_them_can_contain_only_conditional_compiler_constants_and_literals">
+        <source>Defines a conditional compiler constant. Conditional compiler constants are always private to the file in which they appear. The expressions used to initialize them can contain only conditional compiler constants and literals.</source>
+        <target state="translated">定義條件式編譯器常數。條件式編譯器常數在其所在之檔案中，一定會是私用常數。用於初始設定這類常數的運算式，只能包含條件式編譯器常數與常值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Transfers_execution_immediately_to_the_next_iteration_of_the_Do_loop">
+        <source>Transfers execution immediately to the next iteration of the Do loop.</source>
+        <target state="translated">將執行立即轉移到 Do 迴圈的下一個反覆運算。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Transfers_execution_immediately_to_the_next_iteration_of_the_For_loop">
+        <source>Transfers execution immediately to the next iteration of the For loop.</source>
+        <target state="translated">將執行立即轉移到 For 迴圈的下一個反覆運算。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Transfers_execution_immediately_to_the_next_iteration_of_the_loop_Can_be_used_in_a_Do_loop_a_For_loop_or_a_While_loop">
+        <source>Transfers execution immediately to the next iteration of the loop. Can be used in a Do loop, a For loop, or a While loop.</source>
+        <target state="translated">將執行立即轉移到迴圈的下一個反覆運算。可用在 Do 迴圈、For 迴圈或 While 迴圈中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Transfers_execution_immediately_to_the_next_iteration_of_the_While_loop">
+        <source>Transfers execution immediately to the next iteration of the While loop.</source>
+        <target state="translated">將執行立即轉移到 While 迴圈的下一個反覆運算。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_largest_element_will_appear_first">
+        <source>Specifies the sort order for an Order By clause in a query. The largest element will appear first.</source>
+        <target state="translated">指定查詢中 Order By 子句的排序順序。最大的元素最先出現。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restricts_the_values_of_a_query_result_to_eliminate_duplicate_values">
+        <source>Restricts the values of a query result to eliminate duplicate values.</source>
+        <target state="translated">限制查詢結果的值，以去除重複的值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_or_until_the_condition_becomes_true_Do_Loop_While_Until_condition">
+        <source>Repeats a block of statements while a Boolean condition is true, or until the condition becomes true.
+Do...Loop {While | Until} &lt;condition&gt;</source>
+        <target state="translated">在布林條件為 True 的情況下，或是在條件變成 True 之前，持續重複陳述式區塊。
+Do...Loop {While | Until} &lt;condition&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Until_condition_Loop">
+        <source>Repeats a block of statements until a Boolean condition becomes true.
+Do Until &lt;condition&gt;...Loop</source>
+        <target state="translated">持續重複陳述式區塊，直到布林條件變成 True 為止。
+Do Until &lt;condition&gt;...Loop</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_While_condition_Loop">
+        <source>Repeats a block of statements while a Boolean condition is true.
+Do While &lt;condition&gt;...Loop</source>
+        <target state="translated">在布林條件為 True 的情況下，持續重複陳述式區塊。
+Do While &lt;condition&gt;...Loop</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_group_of_statements_in_an_SharpIf_statement_that_is_compiled_if_no_previous_condition_evaluates_to_True">
+        <source>Introduces a group of statements in an #If statement that is compiled if no previous condition evaluates to True.</source>
+        <target state="translated">在 #If 陳述式中引進引進若之前沒有條件評估為 True 時，就會編譯的一組陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_condition_in_an_SharpIf_statement_that_is_tested_if_the_previous_conditional_test_evaluates_to_False">
+        <source>Introduces a condition in an #If statement that is tested if the previous conditional test evaluates to False.</source>
+        <target state="translated">在 #If 陳述式中引進若之前的條件測試評估為 False 時，就會測試的條件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_condition_in_an_If_statement_that_is_to_be_tested_if_the_previous_conditional_test_fails">
+        <source>Introduces a condition in an If statement that is to be tested if the previous conditional test fails.</source>
+        <target state="translated">在 If 陳述式中引進若之前的條件測試失敗，就會測試的條件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previous_condition_evaluates_to_True">
+        <source>Introduces a group of statements in an If statement that is executed if no previous condition evaluates to True.</source>
+        <target state="translated">在 If 陳述式中引進若之前沒有條件評估為 True 時，就會執行的一組陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_the_definition_of_an_SharpIf_block">
+        <source>Terminates the definition of an #If block.</source>
+        <target state="translated">結束 #If 區塊的定義。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stops_execution_immediately">
+        <source>Stops execution immediately.</source>
+        <target state="translated">立即停止執行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_a_SharpRegion_block">
+        <source>Terminates a #Region block.</source>
+        <target state="translated">結束 #Region 區塊。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_relationship_between_element_keys_to_use_as_the_basis_of_a_join_operation">
+        <source>Specifies the relationship between element keys to use as the basis of a join operation.</source>
+        <target state="translated">指定元素索引鍵之間的關聯性，以用做為聯結作業的基礎。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simulates_the_occurrence_of_an_error">
+        <source>Simulates the occurrence of an error.</source>
+        <target state="translated">模擬錯誤的發生。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_Do_loop_and_transfers_execution_immediately_to_the_statement_following_the_Loop_statement">
+        <source>Exits a Do loop and transfers execution immediately to the statement following the Loop statement.</source>
+        <target state="translated">結束 Do 迴圈，將執行立即轉移到接在 Loop 陳述式之後的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_For_loop_and_transfers_execution_immediately_to_the_statement_following_the_Next_statement">
+        <source>Exits a For loop and transfers execution immediately to the statement following the Next statement.</source>
+        <target state="translated">結束 For 迴圈，並將執行立即轉移到接在 Next 陳述式之後的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_procedure_or_block_and_transfers_execution_immediately_to_the_statement_following_the_procedure_call_or_block_definition_Exit_Do_For_Function_Property_Select_Sub_Try_While">
+        <source>Exits a procedure or block and transfers execution immediately to the statement following the procedure call or block definition.
+Exit {Do | For | Function | Property | Select | Sub | Try | While}</source>
+        <target state="translated">結束程序或區塊，並將執行立即轉移到接在程序呼叫或區塊定義之後的陳述式。
+Exit {Do | For | Function | Property | Select | Sub | Try | While}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_Select_block_and_transfers_execution_immediately_to_the_statement_following_the_End_Select_statement">
+        <source>Exits a Select block and transfers execution immediately to the statement following the End Select statement.</source>
+        <target state="translated">結束 Select 區塊，並將執行立即轉移到接在 End Select 陳述式之後的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_Try_block_and_transfers_execution_immediately_to_the_statement_following_the_End_Try_statement">
+        <source>Exits a Try block and transfers execution immediately to the statement following the End Try statement.</source>
+        <target state="translated">結束 Try 區塊，將執行立即轉移到接在 End Try 陳述式之後的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_While_loop_and_transfers_execution_immediately_to_the_statement_following_the_End_While_statement">
+        <source>Exits a While loop and transfers execution immediately to the statement following the End While statement.</source>
+        <target state="translated">結束 While 迴圈，將執行立即轉移到接在 End While 陳述式之後的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_set_to_On_requires_explicit_declaration_of_all_variables_using_a_Dim_Private_Public_or_ReDim_statement_Option_Explicit_On_Off">
+        <source>When set to On, requires explicit declaration of all variables, using a Dim, Private, Public, or ReDim statement.
+Option Explicit {On | Off}</source>
+        <target state="translated">若設定為 On，則必須使用 Dim、Private、Public 或 ReDim 陳述式，明確地宣告所有變數。
+Option Explicit {On | Off}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_a_Boolean_value_that_fails_a_conditional_test">
+        <source>Represents a Boolean value that fails a conditional test.</source>
+        <target state="translated">代表條件測試失敗的布林值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure">
+        <source>Introduces a statement block to be run before exiting a Try structure.</source>
+        <target state="translated">引進結束 Try 結構之前，所要執行的陳述式區塊。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection">
+        <source>Introduces a loop that is repeated for each element in a collection.</source>
+        <target state="translated">引進為集合中每個元素重複運算的迴圈。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_loop_that_is_iterated_a_specified_number_of_times">
+        <source>Introduces a loop that is iterated a specified number of times.</source>
+        <target state="translated">引進會重複指定次數的迴圈。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Identifies_a_list_of_values_as_a_collection_initializer">
+        <source>Identifies a list of values as a collection initializer</source>
+        <target state="translated">將值的清單指定為集合初始設定式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Branches_unconditionally_to_a_specified_line_in_a_procedure">
+        <source>Branches unconditionally to a specified line in a procedure.</source>
+        <target state="translated">無條件分支到程序中的指定行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Groups_elements_that_have_a_common_key">
+        <source>Groups elements that have a common key.</source>
+        <target state="translated">將具有共同索引鍵的元素分在一組。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Combines_the_elements_of_two_sequences_and_groups_the_results_The_join_operation_is_based_on_matching_keys">
+        <source>Combines the elements of two sequences and groups the results. The join operation is based on matching keys.</source>
+        <target state="translated">結合兩個序列的元素，並將結果分組。聯結作業會以相符的索引鍵為依據。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Group_to_specify_that_a_group_named_0_should_be_created">
+        <source>Use 'Group' to specify that a group named '{0}' should be created.</source>
+        <target state="translated">Group' 可用以指定應建立名為 '{0}' 的群組。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Group_to_specify_that_a_group_named_Group_should_be_created">
+        <source>Use 'Group' to specify that a group named 'Group' should be created.</source>
+        <target state="translated">Group' 可用以指定應建立名為 'Group' 的群組。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conditionally_compiles_selected_blocks_of_code_depending_on_the_value_of_an_expression">
+        <source>Conditionally compiles selected blocks of code, depending on the value of an expression.</source>
+        <target state="translated">根據運算式的值，有條件地編譯選取的程式碼區塊。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conditionally_executes_a_group_of_statements_depending_on_the_value_of_an_expression">
+        <source>Conditionally executes a group of statements, depending on the value of an expression.</source>
+        <target state="translated">根據運算式的值，有條件地執行陳述式群組。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_set_to_On_allows_the_use_of_local_type_inference_in_declaring_variables_Option_Infer_On_Off">
+        <source>When set to On, allows the use of local type inference in declaring variables.
+Option Infer {On | Off}</source>
+        <target state="translated">若設定為 On，則可以在宣告變數中使用區域類型推斷。
+Option Infer {On | Off}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_an_identifier_that_can_serve_as_a_reference_to_the_results_of_a_join_or_grouping_subexpression">
+        <source>Specifies an identifier that can serve as a reference to the results of a join or grouping subexpression.</source>
+        <target state="translated">指定可做為聯結或分組子運算式結果參考的識別項。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Combines_the_elements_of_two_sequences_The_join_operation_is_based_on_matching_keys">
+        <source>Combines the elements of two sequences. The join operation is based on matching keys.</source>
+        <target state="translated">結合兩個序列的元素。聯結作業會以相符的索引鍵為依據。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Identifies_a_key_field_in_an_anonymous_type_definition">
+        <source>Identifies a key field in an anonymous type definition.</source>
+        <target state="translated">指出匿名類型定義中的索引鍵欄位。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computes_a_value_for_each_item_in_the_query_and_assigns_the_value_to_a_new_range_variable">
+        <source>Computes a value for each item in the query, and assigns the value to a new range variable.</source>
+        <target state="translated">計算查詢中每個項目的值，並將值指派給新的範圍變數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_a_loop_that_is_introduced_with_a_Do_statement">
+        <source>Terminates a loop that is introduced with a Do statement.</source>
+        <target state="translated">結束利用 Do 陳述式所引進的迴圈。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Loop_Until_condition">
+        <source>Repeats a block of statements until a Boolean condition becomes true.
+Do...Loop Until &lt;condition&gt;</source>
+        <target state="translated">持續重複陳述式區塊，直到布林條件變成 True 為止。
+Do...Loop Until &lt;condition&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_Loop_While_condition">
+        <source>Repeats a block of statements while a Boolean condition is true.
+Do...Loop While &lt;condition&gt;</source>
+        <target state="translated">在布林條件為 True 的情況下，持續重複陳述式區塊。
+Do...Loop While &lt;condition&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running">
+        <source>Provides a way to refer to the current instance of a class or structure, that is, the instance in which the code is running.</source>
+        <target state="translated">提供一種方法，來參考類別或結構目前的執行個體，也就是執行此程式碼的執行個體。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Provides_a_way_to_refer_to_the_base_class_of_the_current_class_instance_You_cannot_use_MyBase_to_call_MustOverride_base_methods">
+        <source>Provides a way to refer to the base class of the current class instance. You cannot use MyBase to call MustOverride base methods.</source>
+        <target state="translated">提供一種方法，來參考目前類別執行個體的基底類別。您無法使用 MyBase 呼叫 MustOverride 基底方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides">
+        <source>Provides a way to refer to the class instance members as originally implemented, ignoring any derived class overrides.</source>
+        <target state="translated">提供一種方法，在忽略任何衍生之類別覆寫的情況下，以原始實作方式參考類別執行個體成員。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Creates_a_new_object_instance">
+        <source>Creates a new object instance.</source>
+        <target state="translated">建立新的物件執行個體。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_a_loop_that_iterates_through_the_values_of_a_loop_variable">
+        <source>Terminates a loop that iterates through the values of a loop variable.</source>
+        <target state="translated">反覆執行迴圈變數所指定的次數後，結束迴圈。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_the_default_value_of_any_data_type">
+        <source>Represents the default value of any data type.</source>
+        <target state="translated">代表任何資料類型的預設值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Turns_a_compiler_option_off">
+        <source>Turns a compiler option off.</source>
+        <target state="translated">關閉編譯器選項。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enables_the_error_handling_routine_that_starts_at_the_line_specified_in_the_line_argument_The_specified_line_must_be_in_the_same_procedure_as_the_On_Error_statement_On_Error_GoTo_bracket_label_0_1_bracket">
+        <source>Enables the error-handling routine that starts at the line specified in the line argument.
+The specified line must be in the same procedure as the On Error statement.
+On Error GoTo [&lt;label&gt; | 0 | -1]</source>
+        <target state="translated">啟用錯誤處理常式，於行引數中所指定的行開始。
+指定的行與 On Error 陳述式必須在同一個程序中。
+On Error GoTo [&lt;label&gt; | 0 | -1]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_a_run_time_error_occurs_execution_transfers_to_the_statement_following_the_statement_or_procedure_call_that_resulted_in_the_error">
+        <source>When a run-time error occurs, execution transfers to the statement following the statement or procedure call that resulted in the error.</source>
+        <target state="translated">發生執行階段錯誤時，執行會轉移到接著造成錯誤之陳述式或程序呼叫後的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Turns_a_compiler_option_on">
+        <source>Turns a compiler option on.</source>
+        <target state="translated">開啟編譯器選項。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_element_keys_used_to_correlate_sequences_for_a_join_operation">
+        <source>Specifies the element keys used to correlate sequences for a join operation.</source>
+        <target state="translated">指定用以將聯結作業的序列相互關聯的元素索引鍵。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_sort_order_for_columns_in_a_query_Can_be_followed_by_either_the_Ascending_or_the_Descending_keyword_If_neither_is_specified_Ascending_is_used">
+        <source>Specifies the sort order for columns in a query. Can be followed by either the Ascending or the Descending keyword. If neither is specified, Ascending is used.</source>
+        <target state="translated">指定查詢中資料行的排序順序。其後可接著 Ascending 或 Descending 關鍵字，若都未指定，則會使用 Ascending。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_statements_to_run_when_the_event_is_raised_by_the_RaiseEvent_statement_RaiseEvent_delegateSignature_End_RaiseEvent">
+        <source>Specifies the statements to run when the event is raised by the RaiseEvent statement.
+RaiseEvent(&lt;delegateSignature&gt;)...End RaiseEvent</source>
+        <target state="translated">指定當 RaiseEvent 陳述式引發事件時，所要執行的陳述式。
+RaiseEvent(&lt;delegateSignature&gt;)...End RaiseEvent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Triggers_an_event_declared_at_module_level_within_a_class_form_or_document_RaiseEvent_eventName_bracket_argumentList_bracket">
+        <source>Triggers an event declared at module level within a class, form, or document.
+RaiseEvent &lt;eventName&gt; [(&lt;argumentList&gt;)]</source>
+        <target state="translated">觸發於類別、表單或文件內的模組層級，所宣告的事件。
+RaiseEvent &lt;eventName&gt; [(&lt;argumentList&gt;)]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapses_and_hides_sections_of_code_in_Visual_Basic_files">
+        <source>Collapses and hides sections of code in Visual Basic files.</source>
+        <target state="translated">摺疊並隱藏 Visual Basic 檔案中的程式碼區段。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_execution_to_the_code_that_called_the_Function_Sub_Get_Set_or_Operator_procedure_Return_or_Return_expression">
+        <source>Returns execution to the code that called the Function, Sub, Get, Set, or Operator procedure.
+Return -or- Return &lt;expression&gt;</source>
+        <target state="translated">將執行傳回呼叫 Function、Sub、Get、Set 或 Operator 程序的程式碼。
+Return -或- Return &lt;expression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Runs_one_of_several_groups_of_statements_depending_on_the_value_of_an_expression">
+        <source>Runs one of several groups of statements, depending on the value of an expression.</source>
+        <target state="translated">根據運算式的值，執行幾組陳述式中的一組。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_which_columns_to_include_in_the_result_of_a_query">
+        <source>Specifies which columns to include in the result of a query.</source>
+        <target state="translated">指定查詢結果中要包含的資料行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skips_elements_up_to_a_specified_position_in_the_collection">
+        <source>Skips elements up to a specified position in the collection.</source>
+        <target state="translated">略過集合中最多到指定位置為止的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_how_much_to_increment_between_each_loop_iteration">
+        <source>Specifies how much to increment between each loop iteration.</source>
+        <target state="translated">指定每個迴圈反覆運算之間的增量。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suspends_program_execution">
+        <source>Suspends program execution.</source>
+        <target state="translated">暫停程式的執行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
+        <source>When set to On, restricts implicit data type conversions to only widening conversions.
+Option Strict {On | Off}</source>
+        <target state="translated">若設定為 On，則隱含資料類型轉換將會限制為只有擴展轉換。
+Option Strict {On | Off}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ensures_that_multiple_threads_do_not_execute_the_statement_block_at_the_same_time_SyncLock_object_End_Synclock">
+        <source>Ensures that multiple threads do not execute the statement block at the same time.
+SyncLock &lt;object&gt;...End Synclock</source>
+        <target state="translated">確定不會有多個執行緒同時執行此陳述式區塊。
+SyncLock &lt;object&gt;...End Synclock</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
+        <source>Includes elements up to a specified position in the collection.</source>
+        <target state="translated">包含集合中最多到指定位置為止的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_text_sort_order_that_is_not_case_sensitive">
+        <source>Sets the string comparison method specified in Option Compare to a text sort order that is not case sensitive.</source>
+        <target state="translated">將 Option Compare 中指定的字串比較方法，設定為不區分大小寫的文字排序順序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_statement_block_to_be_compiled_or_executed_if_a_tested_condition_is_true">
+        <source>Introduces a statement block to be compiled or executed if a tested condition is true.</source>
+        <target state="translated">引進在測試的條件為 True 時，所要編譯或執行的陳述式區塊。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Throws_an_exception_within_a_procedure_so_that_you_can_handle_it_with_structured_or_unstructured_exception_handling_code">
+        <source>Throws an exception within a procedure so that you can handle it with structured or unstructured exception-handling code.</source>
+        <target state="translated">在程序中擲回例外狀況，使您能夠以結構化或無結構的例外狀況處理程式碼，來處理該例外狀況。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_a_Boolean_value_that_passes_a_conditional_test">
+        <source>Represents a Boolean value that passes a conditional test.</source>
+        <target state="translated">代表通過條件測試的布林值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Provides_a_way_to_handle_some_or_all_possible_errors_that_might_occur_in_a_given_block_of_code_while_still_running_the_code_Try_bracket_Catch_bracket_Catch_Finally_End_Try">
+        <source>Provides a way to handle some or all possible errors that might occur in a given block of code, while still running the code.
+Try...[Catch]...{Catch | Finally}...End Try</source>
+        <target state="translated">提供一種方法，在仍然繼續執行程式碼的情況下，處理指定程式碼區塊中可能發生的一些或所有錯誤。
+Try...[Catch]...{Catch | Finally}...End Try</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_Using_block_does_three_things_colon_it_creates_and_initializes_variables_in_the_resource_list_it_runs_the_code_in_the_block_and_it_disposes_of_the_variables_before_exiting_Resources_used_in_the_Using_block_must_implement_System_IDisposable_Using_resource1_bracket_resource2_bracket_End_Using">
+        <source>A Using block does three things: it creates and initializes variables in the resource list, it runs the code in the block, and it disposes of the variables before exiting. Resources used in the Using block must implement System.IDisposable.
+Using &lt;resource1&gt;[, &lt;resource2&gt;]...End Using</source>
+        <target state="translated">Using 區塊有以下三個作用: 建立及初始設定資源清單中的變數、執行區塊中的程式碼，以及在結束前處置變數。Using 區塊中使用的資源，必須實作 System.IDisposable。
+Using &lt;resource1&gt;[, &lt;resource2&gt;]...End Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_a_conditional_test_to_a_Catch_statement_Exceptions_are_caught_by_that_Catch_statement_only_when_the_conditional_test_that_follows_the_When_keyword_evaluates_to_True">
+        <source>Adds a conditional test to a Catch statement. Exceptions are caught by that Catch statement only when the conditional test that follows the When keyword evaluates to True.</source>
+        <target state="translated">在 Catch 陳述式中加入條件測試。只有接在 When 關鍵字之後的條件測試，評估為 True 時，Catch 陳述式才會捕捉到例外狀況。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_filtering_condition_for_a_range_variable_in_a_query">
+        <source>Specifies the filtering condition for a range variable in a query.</source>
+        <target state="translated">指定查詢中範圍變數的篩選條件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Runs_a_series_of_statements_as_long_as_a_given_condition_is_true">
+        <source>Runs a series of statements as long as a given condition is true.</source>
+        <target state="translated">在指定的條件為 True 的情況下，執行一系列的陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_a_condition_for_Skip_and_Take_operations_Elements_will_be_bypassed_or_included_as_long_as_the_condition_is_true">
+        <source>Specifies a condition for Skip and Take operations. Elements will be bypassed or included as long as the condition is true.</source>
+        <target state="translated">指定 Skip 和 Take 作業的條件。只要條件為 True，就會略過或包含這些項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_declaration_of_property_initializations_in_an_object_initializer_New_typeName_With_bracket_property_expression_bracket_bracket_bracket">
+        <source>Specifies the declaration of property initializations in an object initializer.
+New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</source>
+        <target state="translated">指定物件初始設定式中屬性初始設定的宣告。
+New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With">
+        <source>Runs a series of statements that refer to a single object or structure.
+With &lt;object&gt;...End With</source>
+        <target state="translated">執行一系列參考單一物件或結構的陳述式。
+With &lt;object&gt;...End With</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
+        <source>Produces an element of an IEnumerable or IEnumerator.</source>
+        <target state="translated">產生 IEnumerable 或 IEnumerator 的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Defines_an_asynchronous_lambda_expression_that_can_use_the_Await_operator_Can_be_used_wherever_a_delegate_type_is_expected_Async_Sub_Function_parameterList_expression">
+        <source>Defines an asynchronous lambda expression that can use the Await operator. Can be used wherever a delegate type is expected.
+Async Sub/Function(&lt;parameterList&gt;) &lt;expression&gt;</source>
+        <target state="translated">定義可以使用 Await 運算子的非同步 Lambda 運算式。可用於必須是委派類型時。
+Async Sub/Function(&lt;parameterList&gt;) &lt;expression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Defines_a_lambda_expression_that_calculates_and_returns_a_single_value_Can_be_used_wherever_a_delegate_type_is_expected_Function_parameterList_expression">
+        <source>Defines a lambda expression that calculates and returns a single value. Can be used wherever a delegate type is expected.
+Function(&lt;parameterList&gt;) &lt;expression&gt;</source>
+        <target state="translated">定義計算並傳回單一值的 Lambda 運算式。可用於必須是委派類型時。
+Function(&lt;parameterList&gt;) &lt;expression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Defines_a_lambda_expression_that_can_execute_statements_and_does_not_return_a_value_Can_be_used_wherever_a_delegate_type_is_expected_Sub_parameterList_statement">
+        <source>Defines a lambda expression that can execute statements and does not return a value. Can be used wherever a delegate type is expected.
+Sub(&lt;parameterList&gt;) &lt;statement&gt;</source>
+        <target state="translated">定義可執行陳述式但不傳回值的 Lambda 運算式。可用於必須是委派類型時。
+Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line">
+        <source>Disables reporting of specified warnings in the portion of the source file below the current line.</source>
+        <target state="translated">停用目前這一行下方原始程式檔部分中，指定之警告的回報功能。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line">
+        <source>Enables reporting of specified warnings in the portion of the source file below the current line.</source>
+        <target state="translated">啟用目前這一行下方原始程式檔部分中，指定之警告的回報功能。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Await">
+        <source>Insert 'Await'.</source>
+        <target state="translated">插入 'Await'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_an_Async_Function">
+        <source>Make {0} an Async Function.</source>
+        <target state="translated">讓 {0} 成為非同步函式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Missing_Cast">
+        <source>Insert Missing Cast</source>
+        <target state="translated">插入遺漏的 Cast</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_0_to_Iterator">
+        <source>Convert {0} to Iterator</source>
+        <target state="translated">將 {0} 轉換為 Iterator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_Return_with_Yield">
+        <source>Replace 'Return' with 'Yield</source>
+        <target state="translated">以 'Yield' 取代 'Return'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_the_correct_control_variable">
+        <source>Use the correct control variable</source>
+        <target state="translated">使用正確的控制變數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameOf_function">
+        <source>NameOf function</source>
+        <target state="translated">NameOf 函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_narrowing_conversion_in_0">
+        <source>Generate narrowing conversion in '{0}'</source>
+        <target state="translated">在 '{0}' 中產生縮小轉換</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_widening_conversion_in_0">
+        <source>Generate widening conversion in '{0}'</source>
+        <target state="translated">在 '{0}' 中產生放大轉換</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
+        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
+        <target state="translated">請勿變更這個程式碼。請將清除程式碼放在上方的 Dispose(disposing As Boolean) 中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
+        <target state="translated">TODO: 釋放 Unmanaged 資源 (Unmanaged 物件) 並覆寫下方的 Finalize()。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
+        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
+        <target state="translated">TODO: 只有當上方的 Dispose(disposing As Boolean) 具有要釋放 Unmanaged 資源的程式碼時，才覆寫 Finalize()。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
+        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
+        <target state="translated">Visual Basic 加入這個程式碼的目的，在於能正確地實作可處置的模式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
+        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
+        <target state="translated">TODO: 覆寫上列 Finalize() 時，取消下行的註解狀態。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Imports_statement_is_unnecessary">
+        <source>Imports statement is unnecessary.</source>
+        <target state="translated">無須 Imports 陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Try_block">
+        <source>Try block</source>
+        <target state="translated">Try 區塊</target>
+        <note>{Locked="Try"} "Try" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Catch_clause">
+        <source>Catch clause</source>
+        <target state="translated">Catch 子句</target>
+        <note>{Locked="Catch"} "Catch" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Finally_clause">
+        <source>Finally clause</source>
+        <target state="translated">Finally 子句</target>
+        <note>{Locked="Finally"} "Finally" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Using_statement">
+        <source>Using statement</source>
+        <target state="translated">Using 陳述式</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Using_block">
+        <source>Using block</source>
+        <target state="translated">Using 區塊</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="With_statement">
+        <source>With statement</source>
+        <target state="translated">With 陳述式</target>
+        <note>{Locked="With"} "With" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="With_block">
+        <source>With block</source>
+        <target state="translated">With 區塊</target>
+        <note>{Locked="With"} "With" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="SyncLock_statement">
+        <source>SyncLock statement</source>
+        <target state="translated">SyncLock 陳述式</target>
+        <note>{Locked="SyncLock"} "SyncLock" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="SyncLock_block">
+        <source>SyncLock block</source>
+        <target state="translated">SyncLock 區塊</target>
+        <note>{Locked="SyncLock"} "SyncLock" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="For_Each_statement">
+        <source>For Each statement</source>
+        <target state="translated">For Each 陳述式</target>
+        <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="For_Each_block">
+        <source>For Each block</source>
+        <target state="translated">For Each 區塊</target>
+        <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="On_Error_statement">
+        <source>On Error statement</source>
+        <target state="translated">On Error 陳述式</target>
+        <note>{Locked="On Error"} "On Error" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Resume_statement">
+        <source>Resume statement</source>
+        <target state="translated">Resume 陳述式</target>
+        <note>{Locked="Resume"} "Resume" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Yield_statement">
+        <source>Yield statement</source>
+        <target state="translated">Yield 陳述式</target>
+        <note>{Locked="Yield"} "Yield" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Await_expression">
+        <source>Await expression</source>
+        <target state="translated">Await 運算式</target>
+        <note>{Locked="Await"} "Await" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Lambda">
+        <source>Lambda</source>
+        <target state="translated">Lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Where_clause">
+        <source>Where clause</source>
+        <target state="translated">Where 子句</target>
+        <note>{Locked="Where"} "Where" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Select_clause">
+        <source>Select clause</source>
+        <target state="translated">Select 子句</target>
+        <note>{Locked="Select"} "Select" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="From_clause">
+        <source>From clause</source>
+        <target state="translated">From 子句</target>
+        <note>{Locked="From"} "From" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Aggregate_clause">
+        <source>Aggregate clause</source>
+        <target state="translated">Aggregate 子句</target>
+        <note>{Locked="Aggregate"} "Aggregate" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Let_clause">
+        <source>Let clause</source>
+        <target state="translated">Let 子句</target>
+        <note>{Locked="Let"} "Let" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Join_clause">
+        <source>Join clause</source>
+        <target state="translated">Join 子句</target>
+        <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Group_Join_clause">
+        <source>Group Join clause</source>
+        <target state="translated">Group Join 子句</target>
+        <note>{Locked="Group Join"} "Group Join" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Group_By_clause">
+        <source>Group By clause</source>
+        <target state="translated">Group By 子句</target>
+        <note>{Locked="Group By"} "Group By" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Function_aggregation">
+        <source>Function aggregation</source>
+        <target state="translated">函式彙總</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_While_clause">
+        <source>Take While clause</source>
+        <target state="translated">Take While 子句</target>
+        <note>{Locked="Take While"} "Take While" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Skip_While_clause">
+        <source>Skip While clause</source>
+        <target state="translated">Skip While 子句</target>
+        <note>{Locked="Skip While"} "Skip While" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Ordering_clause">
+        <source>Ordering clause</source>
+        <target state="translated">Ordering 子句</target>
+        <note>{Locked="Ordering"} "Ordering" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Join_condition">
+        <source>Join condition</source>
+        <target state="translated">Join 條件</target>
+        <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="WithEvents_field">
+        <source>WithEvents field</source>
+        <target state="translated">WithEvents 欄位</target>
+        <note>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="translated">屬性存取子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="as_clause">
+        <source>as clause</source>
+        <target state="translated">as 子句</target>
+        <note>{Locked="as"} "as" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="type_parameters">
+        <source>type parameters</source>
+        <target state="translated">類型參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="parameters">
+        <source>parameters</source>
+        <target state="translated">參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="attributes">
+        <source>attributes</source>
+        <target state="translated">屬性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Too_many_arguments_to_0">
+        <source>Too many arguments to '{0}'.</source>
+        <target state="translated">{0}' 的引數太多。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_is_not_defined">
+        <source>Type '{0}' is not defined.</source>
+        <target state="translated">類型 '{0}' 未定義。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Overloads">
+        <source>Add 'Overloads'</source>
+        <target state="translated">新增 'Overloads'</target>
+        <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
+        <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>
+        <target state="translated">將中繼資料參考加入指定的組件及其所有相依性中，例如 #r "myLib.dll"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Properties">
+        <source>Properties</source>
+        <target state="translated">屬性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="namespace_name">
+        <source>&lt;namespace name&gt;</source>
+        <target state="translated">&lt;命名空間名稱&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_namespace">
+        <source>Type a name here to declare a namespace.</source>
+        <target state="translated">在此輸入名稱以宣告命名空間。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_partial_class">
+        <source>Type a name here to declare a partial class.</source>
+        <target state="translated">在這裡鍵入名稱以宣告部分類別。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="class_name">
+        <source>&lt;class name&gt;</source>
+        <target state="translated">&lt;類別名稱&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="interface_name">
+        <source>&lt;interface name&gt;</source>
+        <target state="translated">&lt;介面名稱&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="module_name">
+        <source>&lt;module name&gt;</source>
+        <target state="translated">&lt;模組名稱&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="structure_name">
+        <source>&lt;structure name&gt;</source>
+        <target state="translated">&lt;結構名稱&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_partial_interface">
+        <source>Type a name here to declare a partial interface.</source>
+        <target state="translated">在這裡鍵入名稱以宣告部分類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_partial_module">
+        <source>Type a name here to declare a partial module.</source>
+        <target state="translated">在這裡鍵入名稱以宣告部分類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_partial_structure">
+        <source>Type a name here to declare a partial structure.</source>
+        <target state="translated">在這裡鍵入名稱以宣告部分類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Event_add_handler_name">
+        <source>{0}.add</source>
+        <target state="translated">{0}.add</target>
+        <note>The name of an event add handler where "{0}" is the event name.</note>
+      </trans-unit>
+      <trans-unit id="Event_remove_handler_name">
+        <source>{0}.remove</source>
+        <target state="translated">{0}.remove</target>
+        <note>The name of an event remove handler where "{0}" is the event name.</note>
+      </trans-unit>
+      <trans-unit id="Property_getter_name">
+        <source>{0}.get</source>
+        <target state="translated">{0}.get</target>
+        <note>The name of a property getter like "public int MyProperty { get; }" where "{0}" is the property name</note>
+      </trans-unit>
+      <trans-unit id="Property_setter_name">
+        <source>{0}.set</source>
+        <target state="translated">{0}.set</target>
+        <note>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</note>
+      </trans-unit>
+      <trans-unit id="Make_Async_Function">
+        <source>Make Async Function</source>
+        <target state="translated">讓非同步函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_Async_Sub">
+        <source>Make Async Sub</source>
+        <target state="translated">轉換為非同步 Sub</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Me">
+        <source>Add 'Me.'</source>
+        <target state="translated">新增 'Me.'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Is_Nothing_check">
+        <source>Use 'Is Nothing' check</source>
+        <target state="translated">使用 'Is Nothing' 檢查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_IsNot_Nothing_check">
+        <source>Use 'IsNot Nothing' check</source>
+        <target state="translated">使用 'IsNot Nothing' 檢查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="translated">轉換為 'Select Case'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="translated">轉換為 'For Each'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="translated">轉換為 'For'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="translated">反轉 IF</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

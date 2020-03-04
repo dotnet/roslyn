@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -25,7 +27,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TInvocationExpression,
         TMemberAccessExpression,
         TConditionalAccessExpression,
-        TElementAccessExpression> : SyntaxEditorBasedCodeFixProvider
+        TElementAccessExpression,
+        TElementBindingExpression,
+        TElementBindingArgumentList> : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
@@ -34,9 +38,15 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TMemberAccessExpression : TExpressionSyntax
         where TConditionalAccessExpression : TExpressionSyntax
         where TElementAccessExpression : TExpressionSyntax
+        where TElementBindingExpression : TExpressionSyntax
+        where TElementBindingArgumentList : SyntaxNode
     {
+        protected abstract TElementBindingExpression ElementBindingExpression(TElementBindingArgumentList argumentList);
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
@@ -46,28 +56,31 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var root = editor.OriginalRoot;
 
             foreach (var diagnostic in diagnostics)
             {
                 var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
-                var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
+                var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
+                var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
                 syntaxFacts.GetPartsOfConditionalExpression(
                     conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
                 var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
                 editor.ReplaceNode(conditionalExpression,
-                    (c, g) => {
+                    (c, g) =>
+                    {
                         syntaxFacts.GetPartsOfConditionalExpression(
                             c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
 
@@ -76,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                             TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
                             TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, conditionalPart, currentWhenPartToCheck);
+                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel!, conditionalPart, currentWhenPartToCheck);
                         if (match == null)
                         {
                             return c;
@@ -89,8 +102,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         return newNode;
                     });
             }
-
-            return SpecializedTasks.EmptyTask;
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
@@ -110,25 +121,24 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         // They're calling ".Value" off of a nullable.  Because we're moving to ?.
                         // we want to remove the .Value as well.  i.e. we should generate:
                         //
-                        //      foo?.Bar()  not   foo?.Value.Bar();
+                        //      goo?.Bar()  not   goo?.Value.Bar();
                         return CreateConditionalAccessExpression(
                             syntaxFacts, generator, whenPart, match,
-                            memberAccess.Parent, currentConditional);
+                            memberAccess.Parent!, currentConditional);
                     }
                 }
             }
 
             return CreateConditionalAccessExpression(
                 syntaxFacts, generator, whenPart, match,
-                match.Parent, currentConditional);
+                match.Parent!, currentConditional);
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
-            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
+            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator,
             SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
         {
-            var memberAccess = matchParent as TMemberAccessExpression;
-            if (memberAccess != null)
+            if (matchParent is TMemberAccessExpression memberAccess)
             {
                 return whenPart.ReplaceNode(memberAccess,
                     generator.ConditionalAccessExpression(
@@ -137,14 +147,12 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                             syntaxFacts.GetNameOfMemberAccessExpression(memberAccess))));
             }
 
-            var elementAccess = matchParent as TElementAccessExpression;
-            if (elementAccess != null)
+            if (matchParent is TElementAccessExpression elementAccess)
             {
+                var argumentList = (TElementBindingArgumentList)syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess);
                 return whenPart.ReplaceNode(elementAccess,
                     generator.ConditionalAccessExpression(
-                        match,
-                        generator.ElementBindingExpression(
-                            syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess))));
+                        match, ElementBindingExpression(argumentList)));
             }
 
             return currentConditional;

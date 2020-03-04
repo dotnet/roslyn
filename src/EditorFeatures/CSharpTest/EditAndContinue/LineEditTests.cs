@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -15,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void Method_Reorder1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         Console.ReadLine(1);
     }
@@ -29,7 +31,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Bar()
@@ -37,7 +39,7 @@ class C
         Console.ReadLine(2);
     }
 
-    static void Foo()
+    static void Goo()
     {
         Console.ReadLine(1);
     }
@@ -51,16 +53,16 @@ class C
         [Fact]
         public void Method_Reorder2()
         {
-            string src1 = @"
+            var src1 = @"
 class Program
 {
     static void Main()
     {
-        Foo();
+        Goo();
         Bar();
     }
 
-    static int Foo()
+    static int Goo()
     {
         return 1;
     }
@@ -70,17 +72,17 @@ class Program
         return 2;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Program
 {
-    static int Foo()
+    static int Goo()
     {
         return 1;
     }
 
     static void Main()
     {
-        Foo();
+        Goo();
         Bar();
     }
 
@@ -98,7 +100,7 @@ class Program
         [Fact]
         public void Method_Update()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Bar()
@@ -107,7 +109,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Bar()
@@ -126,7 +128,7 @@ class C
         [Fact]
         public void Method_LineChange1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Bar()
@@ -135,7 +137,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 
@@ -154,7 +156,7 @@ class C
         [Fact]
         public void Method_LineChange2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Bar()
@@ -163,7 +165,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Bar()
@@ -181,7 +183,7 @@ class C
         [Fact]
         public void Method_Recompile1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Bar()
@@ -190,7 +192,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Bar()
@@ -207,7 +209,7 @@ class C
         [Fact]
         public void Method_Recompile2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Bar()
@@ -217,7 +219,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Bar()
@@ -234,7 +236,7 @@ class C
         [Fact]
         public void Method_Recompile3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Bar()
@@ -244,7 +246,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Bar()
@@ -262,7 +264,7 @@ class C
         [Fact]
         public void Method_Recompile4()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Bar()
@@ -273,7 +275,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Bar()
@@ -299,10 +301,10 @@ class C
         [Fact]
         public void Method_Recompile5()
         {
-            string src1 = @"
+            var src1 = @"
 class C { static void Bar() { } }
 ";
-            string src2 = @"
+            var src2 = @"
 class C { /*--*/static void Bar() { } }";
 
             var edits = GetTopEdits(src1, src2);
@@ -314,7 +316,7 @@ class C { /*--*/static void Bar() { } }";
         [Fact]
         public void Method_RudeRecompile1()
         {
-            string src1 = @"
+            var src1 = @"
 class C<T>
 {
     static void Bar()
@@ -324,7 +326,7 @@ class C<T>
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C<T>
 {
     static void Bar()
@@ -343,7 +345,7 @@ class C<T>
         [Fact]
         public void Method_RudeRecompile2()
         {
-            string src1 = @"
+            var src1 = @"
 class C<T>
 {
     static void Bar()
@@ -352,7 +354,7 @@ class C<T>
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C<T>
 {
     static void Bar()
@@ -371,7 +373,7 @@ class C<T>
         [Fact]
         public void Method_RudeRecompile3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Bar<T>()
@@ -380,7 +382,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Bar<T>()
@@ -399,7 +401,7 @@ class C
         [Fact]
         public void Method_RudeRecompile4()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static async Task<int> Bar()
@@ -408,7 +410,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static async Task<int> Bar()
@@ -432,7 +434,7 @@ class C
         [Fact]
         public void Constructor_Reorder()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public C(int a)
@@ -444,7 +446,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public C(bool a)
@@ -464,7 +466,7 @@ class C
         [Fact]
         public void Constructor_LineChange1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public C(int a)
@@ -473,7 +475,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public C(int a) 
@@ -491,7 +493,7 @@ class C
         [Fact]
         public void Constructor_ExpressionBodied_LineChange1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int _a;
@@ -499,7 +501,7 @@ class C
       _a = a;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int _a;
@@ -516,7 +518,7 @@ class C
         [Fact]
         public void Constructor_ExpressionBodied_LineChange2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int _a;
@@ -524,7 +526,7 @@ class C
       => _a = a;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int _a;
@@ -541,7 +543,7 @@ class C
         [Fact]
         public void Constructor_ExpressionBodied_LineChange3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int _a;
@@ -549,7 +551,7 @@ class C
       _a = a;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int _a;
@@ -566,7 +568,7 @@ class C
         [Fact]
         public void Constructor_ExpressionBodied_LineChange4()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int _a;
@@ -575,7 +577,7 @@ class C
       _a = a;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int _a;
@@ -594,7 +596,7 @@ class C
         [Fact]
         public void Constructor_ExpressionBodiedWithBase_LineChange1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int _a;
@@ -602,7 +604,7 @@ class C
       : base() => _a = a;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int _a;
@@ -619,7 +621,7 @@ class C
         [Fact]
         public void Constructor_ExpressionBodiedWithBase_Recompile1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int _a;
@@ -628,7 +630,7 @@ class C
                   _a = a;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int _a;
@@ -645,7 +647,7 @@ class C
         [Fact]
         public void Constructor_Recompile1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public C(int a)
@@ -654,7 +656,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public C(int a)
@@ -672,7 +674,7 @@ class C
         [Fact]
         public void Constructor_Recompile2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public C(int a)
@@ -681,7 +683,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public C(int a)
@@ -698,7 +700,7 @@ class C
         [Fact]
         public void Constructor_RudeRecompile1()
         {
-            string src1 = @"
+            var src1 = @"
 class C<T>
 {
     public C(int a)
@@ -707,7 +709,7 @@ class C<T>
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C<T>
 {
     public C(int a)
@@ -729,7 +731,7 @@ class C<T>
         [Fact]
         public void Destructor_LineChange1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     ~C()
@@ -738,7 +740,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     ~C()
@@ -754,13 +756,13 @@ class C
         [Fact]
         public void Destructor_ExpressionBodied_LineChange1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     ~C() => F();
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     ~C() => 
@@ -775,13 +777,13 @@ class C
         [Fact]
         public void Destructor_ExpressionBodied_LineChange2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     ~C() => F();
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     ~C() 
@@ -800,16 +802,16 @@ class C
         [Fact]
         public void ConstantField()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    const int Foo = 1;
+    const int Goo = 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
-    const int Foo = 
+    const int Goo = 
                     1;
 }";
             var edits = GetTopEdits(src1, src2);
@@ -821,17 +823,17 @@ class C
         [Fact]
         public void NoInitializer()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    int Foo;
+    int Goo;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int 
-        Foo;
+        Goo;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -842,18 +844,18 @@ class C
         [Fact]
         public void Field_Reorder()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
     static int Bar = 2;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static int Bar = 2;
-    static int Foo = 1;
+    static int Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -864,19 +866,19 @@ class C
         [Fact]
         public void Field_LineChange1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 
 
 
-    static int Foo = 1;
+    static int Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -887,16 +889,16 @@ class C
         [Fact]
         public void Field_LineChange2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    int Foo = 1, Bar = 2;
+    int Goo = 1, Bar = 2;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
-    int Foo = 1,
+    int Goo = 1,
                  Bar = 2;
 }";
             var edits = GetTopEdits(src1, src2);
@@ -908,17 +910,17 @@ class C
         [Fact]
         public void Field_LineChange3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    [A]static int Foo = 1, Bar = 2;
+    [A]static int Goo = 1, Bar = 2;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     [A]
-       static int Foo = 1, Bar = 2;
+       static int Goo = 1, Bar = 2;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -929,146 +931,146 @@ class C
         [Fact]
         public void Field_Recompile1a()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
-    static int Foo = 
+    static int Goo = 
                      1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = " });
+                new string[] { "Goo = " });
         }
 
         [Fact]
         public void Field_Recompile1b()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
-    static int Foo 
+    static int Goo 
                    = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo " });
+                new string[] { "Goo " });
         }
 
         [Fact]
         public void Field_Recompile1c()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static int 
-               Foo = 1;
+               Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1" });
+                new string[] { "Goo = 1" });
         }
 
         [Fact]
         public void Field_Recompile1d()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static 
-           int Foo = 1;
+           int Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1" });
+                new string[] { "Goo = 1" });
         }
 
         [Fact]
         public void Field_Recompile1e()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
-    static int Foo = 1
+    static int Goo = 1
                       ;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1" });
+                new string[] { "Goo = 1" });
         }
 
         [Fact]
         public void Field_Recompile2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
-    static int Foo = 1 + 1;
+    static int Goo = 1 + 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
-    static int Foo = 1 +  1;
+    static int Goo = 1 +  1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1 +  1" });
+                new string[] { "Goo = 1 +  1" });
         }
 
         [Fact]
         public void Field_RudeRecompile2()
         {
-            string src1 = @"
+            var src1 = @"
 class C<T>
 {
-    static int Foo = 1 + 1;
+    static int Goo = 1 + 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C<T>
 {
-    static int Foo = 1 +  1;
+    static int Goo = 1 +  1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1 +  1" },
+                new string[] { "Goo = 1 +  1" },
                 Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.field));
         }
 
@@ -1079,13 +1081,13 @@ class C<T>
         [Fact]
         public void Property1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int P { get { return 1; } }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int P { get { return 
@@ -1100,13 +1102,13 @@ class C
         [Fact]
         public void Property2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int P { get { return 1; } }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int P { get 
@@ -1121,13 +1123,13 @@ class C
         [Fact]
         public void Property3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int P { get { return 1; } set { } }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     
@@ -1142,13 +1144,13 @@ class C
         [Fact]
         public void Property_ExpressionBody1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int P => 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int P => 
@@ -1163,13 +1165,13 @@ class C
         [Fact]
         public void Property_GetterExpressionBody1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int P { get => 1; }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int P { get => 
@@ -1184,13 +1186,13 @@ class C
         [Fact]
         public void Property_SetterExpressionBody1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int P { set => F(); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int P { set => 
@@ -1205,13 +1207,13 @@ class C
         [Fact]
         public void Property_Initializer1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int P { get; } = 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int P { 
@@ -1226,13 +1228,13 @@ class C
         [Fact]
         public void Property_Initializer2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int P { get; } = 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int P { get; } = 
@@ -1247,13 +1249,13 @@ class C
         [Fact]
         public void Property_Initializer3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int P { get; } = 1;
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int P { get; } =  1;
@@ -1271,13 +1273,13 @@ class C
         [Fact]
         public void Event_LineChange1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     event Action E { add { } remove { } }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 
@@ -1292,14 +1294,14 @@ class C
         [Fact]
         public void EventAdder_LineChangeAndRecompile1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     event Action E { add {
                            } remove { } }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     event Action E { add { } remove { } }
@@ -1313,14 +1315,14 @@ class C
         [Fact]
         public void EventRemover_Recompile1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     event Action E { add { } remove {
                                       } }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     event Action E { add { } remove { } }
@@ -1334,14 +1336,14 @@ class C
         [Fact]
         public void EventAdder_LineChange1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     event Action E { add 
                          { } remove { } }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     event Action E { add { } remove { } }
@@ -1355,13 +1357,13 @@ class C
         [Fact]
         public void EventRemover_LineChange1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     event Action E { add { } remove { } }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     event Action E { add { } remove 
@@ -1376,13 +1378,13 @@ class C
         [Fact]
         public void Event_ExpressionBody1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     event Action E { add => F(); remove => F(); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     event Action E { add => 
@@ -1398,7 +1400,7 @@ class C
         [Fact]
         public void Event_ExpressionBody2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     event Action E { add 
@@ -1406,7 +1408,7 @@ class C
                                         => F(); }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     event Action E { add => F(); remove => F(); }

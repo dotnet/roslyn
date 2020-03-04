@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.ObjectModel;
@@ -37,20 +39,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         private readonly NotificationOptionViewModel[] _notifications = new[]
         {
-            new NotificationOptionViewModel(NotificationOption.None, KnownMonikers.None),
+            new NotificationOptionViewModel(NotificationOption.Silent, KnownMonikers.None),
             new NotificationOptionViewModel(NotificationOption.Suggestion, KnownMonikers.StatusInformation),
             new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
             new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
         };
 
-        internal NamingStyleOptionPageControl(IServiceProvider serviceProvider, INotificationService notificationService, string languageName)
-            : base(serviceProvider)
+        internal NamingStyleOptionPageControl(OptionStore optionStore, INotificationService notificationService, string languageName)
+            : base(optionStore)
         {
             _languageName = languageName;
             _notificationService = notificationService;
 
             InitializeComponent();
-            LoadSettings();
+            OnLoad();
         }
 
         private NamingStyleOptionPageViewModel.NamingRuleViewModel CreateItemWithNoSelections()
@@ -121,8 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             if (CodeStyleMembers.SelectedIndex >= 0)
             {
-                var row = CodeStyleMembers.ItemContainerGenerator.ContainerFromIndex(CodeStyleMembers.SelectedIndex) as DataGridRow;
-                if (row == null)
+                if (!(CodeStyleMembers.ItemContainerGenerator.ContainerFromIndex(CodeStyleMembers.SelectedIndex) is DataGridRow row))
                 {
                     CodeStyleMembers.ScrollIntoView(CodeStyleMembers.SelectedItem);
                     row = CodeStyleMembers.ItemContainerGenerator.ContainerFromIndex(CodeStyleMembers.SelectedIndex) as DataGridRow;
@@ -139,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             }
         }
 
-        internal override void SaveSettings()
+        internal override void OnSave()
         {
             var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
             var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
@@ -154,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
                 var rule = new SerializableNamingRule()
                 {
-                    EnforcementLevel = item.SelectedNotificationPreference.Notification.Value,
+                    EnforcementLevel = item.SelectedNotificationPreference.Notification.Severity,
                     NamingStyleID = item.SelectedStyle.ID,
                     SymbolSpecificationID = item.SelectedSpecification.ID
                 };
@@ -177,17 +178,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 namingStyles.ToImmutableAndFree(),
                 namingRules.ToImmutableAndFree());
 
-            var oldOptions = OptionService.GetOptions();
-            var newOptions = oldOptions.WithChangedOption(SimplificationOptions.NamingPreferences, _languageName, info);
-            OptionService.SetOptions(newOptions);
-            OptionLogger.Log(oldOptions, newOptions);
+            OptionStore.SetOption(SimplificationOptions.NamingPreferences, _languageName, info);
         }
 
-        internal override void LoadSettings()
+        internal override void OnLoad()
         {
-            base.LoadSettings();
+            base.OnLoad();
 
-            var preferences = OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
+            var preferences = OptionStore.GetOption(SimplificationOptions.NamingPreferences, _languageName);
             if (preferences == null)
             {
                 return;

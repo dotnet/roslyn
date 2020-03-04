@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.NamingStyles;
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// </summary>
     internal class NamingStylePreferences : IEquatable<NamingStylePreferences>
     {
-        private const int s_serializationVersion = 4;
+        private const int s_serializationVersion = 5;
 
         public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
         public readonly ImmutableArray<NamingStyle> NamingStyles;
@@ -62,11 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal static NamingStylePreferences FromXElement(XElement element)
         {
-            var serializationVersion = int.Parse(element.Attribute("SerializationVersion").Value);
-            if (serializationVersion != s_serializationVersion)
-            {
-                element = XElement.Parse(DefaultNamingPreferencesString);
-            }
+            element = GetUpgradedSerializationIfNecessary(element);
 
             return new NamingStylePreferences(
                 element.Element(nameof(SymbolSpecifications)).Elements(nameof(SymbolSpecification))
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             => CreateXElement().ToString().GetHashCode();
 
         private static readonly string _defaultNamingPreferencesString = $@"
-<NamingPreferencesInfo SerializationVersion=""4"">
+<NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">
   <SymbolSpecifications>
     <SymbolSpecification ID=""5c545a62-b14d-460a-88d8-e936c0a39316"" Name=""{WorkspacesResources.Class}"">
       <ApplicableSymbolKindList>
@@ -120,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -133,6 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -146,6 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -159,6 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -172,6 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -185,12 +189,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
     <SymbolSpecification ID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" Name=""{WorkspacesResources.Method}"">
       <ApplicableSymbolKindList>
-        <SymbolKind>Method</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>
         <AccessibilityKind>Public</AccessibilityKind>
@@ -199,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     </SymbolSpecification>
     <SymbolSpecification ID=""af410767-f189-47c6-b140-aeccf1ff242e"" Name=""{WorkspacesResources.Private_Method}"">
       <ApplicableSymbolKindList>
-        <SymbolKind>Method</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>
         <AccessibilityKind>Private</AccessibilityKind>
@@ -208,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     </SymbolSpecification>
     <SymbolSpecification ID=""8076757e-6a4a-47f1-9b4b-ae8a3284e987"" Name=""{WorkspacesResources.Abstract_Method}"">
       <ApplicableSymbolKindList>
-        <SymbolKind>Method</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>
         <AccessibilityKind>Public</AccessibilityKind>
@@ -216,6 +221,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList>
         <ModifierKind>IsAbstract</ModifierKind>
@@ -223,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     </SymbolSpecification>
     <SymbolSpecification ID=""16133061-a8e7-4392-92c3-1d93cd54c218"" Name=""{WorkspacesResources.Static_Method}"">
       <ApplicableSymbolKindList>
-        <SymbolKind>Method</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>
         <AccessibilityKind>Public</AccessibilityKind>
@@ -231,6 +237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList>
         <ModifierKind>IsStatic</ModifierKind>
@@ -246,6 +253,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -269,6 +277,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList>
         <ModifierKind>IsStatic</ModifierKind>
@@ -281,6 +290,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       <ApplicableAccessibilityList>
         <AccessibilityKind>Internal</AccessibilityKind>
         <AccessibilityKind>Private</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -291,6 +301,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       <ApplicableAccessibilityList>
         <AccessibilityKind>Internal</AccessibilityKind>
         <AccessibilityKind>Private</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList>
         <ModifierKind>IsStatic</ModifierKind>
@@ -309,14 +320,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
     <SymbolSpecification ID=""5f3ddba1-279f-486c-801e-5c097c36dd85"" Name=""{WorkspacesResources.Non_Field_Members}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Property</SymbolKind>
-        <SymbolKind>Method</SymbolKind>
         <SymbolKind>Event</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>
         <AccessibilityKind>Public</AccessibilityKind>
@@ -324,6 +336,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -339,5 +352,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
   </NamingRules>
 </NamingPreferencesInfo>
 ";
+
+        private static XElement GetUpgradedSerializationIfNecessary(XElement rootElement)
+        {
+            var serializationVersion = int.Parse(rootElement.Attribute("SerializationVersion").Value);
+
+            if (serializationVersion == 4)
+            {
+                UpgradeSerialization_4To5(rootElement = new XElement(rootElement));
+                serializationVersion = 5;
+            }
+
+            // Add future version checks here. If the version is off by more than 1, these upgrades will run in sequence.
+            // The next one should check serializationVersion == 5 and update it to 6.
+            // It is also important to create a new roaming location in SimplificationOptions.NamingPreferences
+            // so that we never store the new format in an older version.
+            Debug.Assert(s_serializationVersion == 5, "After increasing the serialization version, add an upgrade path here.");
+
+            return serializationVersion == s_serializationVersion
+                ? rootElement
+                : XElement.Parse(DefaultNamingPreferencesString);
+        }
+
+        private static void UpgradeSerialization_4To5(XElement rootElement)
+        {
+            var methodElements = rootElement
+                .Descendants()
+                .Where(e => e.Name.LocalName == "SymbolKind" && e.Value == "Method").ToList();
+
+            foreach (var element in methodElements)
+            {
+                element.ReplaceWith(XElement.Parse("<MethodKind>Ordinary</MethodKind>"));
+            }
+        }
     }
 }

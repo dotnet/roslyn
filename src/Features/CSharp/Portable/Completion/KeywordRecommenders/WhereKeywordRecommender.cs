@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -28,12 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             // cases:
             //   class C<T> |
-            //   class C<T> : IFoo |
-            //   class C<T> where T : IFoo |
+            //   class C<T> : IGoo |
+            //   class C<T> where T : IGoo |
             //   delegate void D<T> |
-            //   delegate void D<T> where T : IFoo |
-            //   void Foo<T>() |
-            //   void Foo<T>() where T : IFoo |
+            //   delegate void D<T> where T : IGoo |
+            //   void Goo<T>() |
+            //   void Goo<T>() where T : IGoo |
 
             var token = context.TargetToken;
 
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 }
             }
 
-            // void Foo<T>() |
+            // void Goo<T>() |
 
             if (token.Kind() == SyntaxKind.CloseParenToken &&
                 token.Parent.IsKind(SyntaxKind.ParameterList) &&
@@ -77,11 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 }
             }
 
-            // class C<T> : IFoo |
+            // class C<T> : IGoo |
             var baseList = token.GetAncestor<BaseListSyntax>();
-            if (baseList.GetParent() is TypeDeclarationSyntax)
+            if (baseList?.Parent is TypeDeclarationSyntax typeDecl)
             {
-                var typeDecl = baseList.GetParent() as TypeDeclarationSyntax;
                 if (typeDecl.TypeParameterList != null &&
                     typeDecl.BaseList.Types.Any(t => token == t.GetLastToken(includeSkipped: true)))
                 {
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     if (token.Parent is IdentifierNameSyntax && token.HasMatchingText(SyntaxKind.WhereKeyword))
                     {
                         // Check for zero-width tokens in case there is a missing comma in the base list.
-                        // For example: class C<T> : Foo where where |
+                        // For example: class C<T> : Goo where where |
                         return token
                             .GetPreviousToken(includeZeroWidth: true)
                             .IsKindOrHasMatchingText(SyntaxKind.WhereKeyword);
@@ -107,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 }
             }
 
-            // class C<T> where T : IFoo |
-            // delegate void D<T> where T : IFoo |
+            // class C<T> where T : IGoo |
+            // delegate void D<T> where T : IGoo |
             var constraintClause = token.GetAncestor<TypeParameterConstraintClauseSyntax>();
 
             if (constraintClause != null)

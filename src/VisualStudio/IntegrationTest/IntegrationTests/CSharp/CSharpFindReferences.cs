@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -16,13 +20,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpFindReferences))
+        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpFindReferences))
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17634"),
-         Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToCtor()
         {
             SetUpEditor(@"
@@ -71,9 +74,10 @@ class SomeOtherClass
                 });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
+            using var telemetry = VisualStudio.EnableTestTelemetryChannel();
             SetUpEditor(@"
 class Program
 {
@@ -110,9 +114,11 @@ class Program
                         Assert.Equal(expected: 26, actual: reference.Column);
                     }
                 });
+
+            telemetry.VerifyFired("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToString()
         {
             SetUpEditor(@"
@@ -144,6 +150,21 @@ class Program
                         Assert.Equal(expected: 24, actual: reference.Column);
                     }
                 });
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        public void VerifyWorkingFolder()
+        {
+            SetUpEditor(@"class EmptyContent {$$}");
+
+            // verify working folder has set
+            Assert.NotNull(VisualStudio.Workspace.GetWorkingFolder());
+
+            VisualStudio.SolutionExplorer.CloseSolution();
+
+            // because the solution cache directory is stored in the user temp folder, 
+            // closing the solution has no effect on what is returned.
+            Assert.NotNull(VisualStudio.Workspace.GetWorkingFolder());
         }
     }
 }

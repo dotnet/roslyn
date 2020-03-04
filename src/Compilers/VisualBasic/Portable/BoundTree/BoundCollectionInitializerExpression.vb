@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -12,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub Validate()
             If Not Me.HasErrors Then
                 For Each initializer In Me.Initializers
-                    Debug.Assert(initializer.Kind = BoundKind.Call)
+                    Debug.Assert(initializer.Kind = BoundKind.Call OrElse initializer.Kind = BoundKind.LateInvocation)
                 Next
             End If
         End Sub

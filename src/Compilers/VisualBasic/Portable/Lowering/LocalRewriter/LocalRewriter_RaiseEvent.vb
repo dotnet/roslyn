@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -62,6 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         raiseCallExpression.MethodGroupOpt,
                                                         tempAccess,
                                                         raiseCallExpression.Arguments,
+                                                        raiseCallExpression.DefaultArguments,
                                                         raiseCallExpression.ConstantValueOpt,
                                                         isLValue:=raiseCallExpression.IsLValue,
                                                         suppressObjectClone:=raiseCallExpression.SuppressObjectClone,
@@ -117,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable), MethodSymbol)
 
             Debug.Assert(getOrCreateMethod IsNot Nothing, "Checked during initial binding")
-            Debug.Assert(getOrCreateMethod.ReturnType = fieldType.OriginalDefinition, "Shape of well-known member")
+            Debug.Assert(TypeSymbol.Equals(getOrCreateMethod.ReturnType, fieldType.OriginalDefinition, TypeCompareKind.ConsiderEverything), "Shape of well-known member")
 
             getOrCreateMethod = getOrCreateMethod.AsMember(fieldType)
 

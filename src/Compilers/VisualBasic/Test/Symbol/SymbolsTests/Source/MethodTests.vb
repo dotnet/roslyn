@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub Methods1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -166,7 +168,7 @@ BC30284: sub 'm5' cannot be declared 'Overrides' because it does not override a 
 
         <Fact>
         Public Sub Methods2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -207,7 +209,7 @@ End Module
 
         <Fact>
         Public Sub Constructors1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -280,7 +282,7 @@ End Class
 
         <Fact>
         Public Sub SharedConstructors1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -350,7 +352,7 @@ End Module
 
         <Fact>
         Public Sub DefaultConstructors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -440,7 +442,7 @@ End Interface
 
         <Fact>
         Public Sub MethodParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -549,7 +551,7 @@ End Class
 
         <Fact>
         Public Sub MethodByRefParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -591,7 +593,7 @@ End Structure
 
         <Fact>
         Public Sub MethodTypeParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -651,7 +653,7 @@ End Class
 
         <Fact>
         Public Sub ConstructGenericMethod()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -802,7 +804,7 @@ End Class
 
         <Fact>
         Public Sub InterfaceImplements01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -812,7 +814,7 @@ Namespace NS
     Public Class Abc
     End Class
 
-    Public Interface IFoo(Of T)
+    Public Interface IGoo(Of T)
         Sub I1Sub1(ByRef p As T)
     End Interface
 
@@ -833,9 +835,9 @@ Imports System.Collections.Generic
 
 Namespace NS.NS1
   Class Impl
-        Implements I2, IFoo(Of String)
+        Implements I2, IGoo(Of String)
 
-        Public Sub Sub1(ByRef p As String) Implements I1.I1Sub1, IFoo(Of String).I1Sub1
+        Public Sub Sub1(ByRef p As String) Implements I1.I1Sub1, IGoo(Of String).I1Sub1
 
         End Sub
 
@@ -853,9 +855,9 @@ Namespace NS.NS1
     End Class
 
     Structure StructImpl(Of T)
-        Implements IFoo(Of T)
+        Implements IGoo(Of T)
 
-        Public Sub Sub1(ByRef p As T) Implements IFoo(Of T).I1Sub1
+        Public Sub Sub1(ByRef p As T) Implements IGoo(Of T).I1Sub1
 
         End Sub
     End Structure
@@ -894,7 +896,7 @@ End Namespace
         <WorkItem(537444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537444")>
         <Fact>
         Public Sub DeclareFunction01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Explicit
@@ -913,8 +915,8 @@ Namespace NS
     End Module
 
     Class cls1
-        Overloads Declare Sub Foo Lib "someLib" ()
-        Overloads Sub foo(ByRef arg As Integer)
+        Overloads Declare Sub Goo Lib "someLib" ()
+        Overloads Sub goo(ByRef arg As Integer)
             '   ...
         End Sub
     End Class
@@ -933,7 +935,7 @@ End Namespace
 
         <Fact>
         Public Sub CodepageOptionUnicodeMembers01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Imports System
@@ -996,19 +998,19 @@ End Structure
         <WorkItem(537466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537466")>
         <Fact>
         Public Sub DefaultAccessibility01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Imports System
 
 Interface GI(Of T)
-    Sub Foo(ByVal t As T)
+    Sub Goo(ByVal t As T)
     Function Bar() As T
 End Interface
 
 Class GC
     Dim X As Integer
-    Sub Foo()
+    Sub Goo()
     End Sub
     Function Bar() As String
         Return String.Empty
@@ -1024,7 +1026,7 @@ End Class
 
 Structure GS
     Dim X As Integer
-    Sub Foo()
+    Sub Goo()
     End Sub
     Function Bar() As String
         Return String.Empty
@@ -1040,13 +1042,13 @@ End Structure
 
 Namespace NS
     Interface NI(Of T)
-        Sub Foo(ByVal t As T)
+        Sub Goo(ByVal t As T)
         Function Bar() As T
     End Interface
 
     Class NC
         Dim X As Integer
-        Sub Foo()
+        Sub Goo()
         End Sub
         Function Bar() As String
             Return String.Empty
@@ -1055,7 +1057,7 @@ Namespace NS
 
     Structure NS
         Dim X As Integer
-        Sub Foo()
+        Sub Goo()
         End Sub
         Function Bar() As String
             Return String.Empty
@@ -1069,7 +1071,7 @@ End Namespace
             ' interface - public
             Dim typemem = DirectCast(globalNS.GetTypeMembers("GI").Single(), NamedTypeSymbol)
             Assert.Equal(Accessibility.Friend, typemem.DeclaredAccessibility)
-            Dim mem = typemem.GetMembers("Foo").Single()
+            Dim mem = typemem.GetMembers("Goo").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
             mem = typemem.GetMembers("Bar").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
@@ -1079,7 +1081,7 @@ End Namespace
             Assert.Equal(Accessibility.Friend, typemem.DeclaredAccessibility)
             mem = typemem.GetMembers("X").Single()
             Assert.Equal(Accessibility.Private, mem.DeclaredAccessibility)
-            mem = typemem.GetMembers("Foo").Single()
+            mem = typemem.GetMembers("Goo").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
             mem = typemem.GetMembers("Bar").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
@@ -1099,7 +1101,7 @@ End Namespace
             Assert.Equal(Accessibility.Friend, typemem.DeclaredAccessibility)
             mem = typemem.GetMembers("X").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility) ' private is better but Dev10 is public
-            mem = typemem.GetMembers("Foo").Single()
+            mem = typemem.GetMembers("Goo").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
             mem = typemem.GetMembers("Bar").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
@@ -1117,7 +1119,7 @@ End Namespace
             Dim nsNS = DirectCast(globalNS.GetMembers("NS").Single(), NamespaceSymbol)
             typemem = DirectCast(nsNS.GetTypeMembers("NI").Single(), NamedTypeSymbol)
             Assert.Equal(Accessibility.Friend, typemem.DeclaredAccessibility)
-            mem = typemem.GetMembers("Foo").Single()
+            mem = typemem.GetMembers("Goo").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
             mem = typemem.GetMembers("Bar").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
@@ -1126,7 +1128,7 @@ End Namespace
             Assert.Equal(Accessibility.Friend, typemem.DeclaredAccessibility)
             mem = typemem.GetMembers("X").Single()
             Assert.Equal(Accessibility.Private, mem.DeclaredAccessibility)
-            mem = typemem.GetMembers("Foo").Single()
+            mem = typemem.GetMembers("Goo").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
             mem = typemem.GetMembers("Bar").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
@@ -1135,7 +1137,7 @@ End Namespace
             Assert.Equal(Accessibility.Friend, typemem.DeclaredAccessibility)
             mem = typemem.GetMembers("X").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility) ' private is better but Dev10 is public
-            mem = typemem.GetMembers("Foo").Single()
+            mem = typemem.GetMembers("Goo").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
             mem = typemem.GetMembers("Bar").Single()
             Assert.Equal(Accessibility.Public, mem.DeclaredAccessibility)
@@ -1144,7 +1146,7 @@ End Namespace
 
         <Fact>
         Public Sub OverloadsAndOverrides01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Imports System
@@ -1152,18 +1154,18 @@ Imports System
 Module Module1
     Sub Main()
         Dim derive = New NS.C2()
-        derive.Foo(1) ' call derived Foo
+        derive.Goo(1) ' call derived Goo
         derive.Bar(1) ' call derived Bar
         derive.Boo(1) ' call derived Boo
-        derive.VFoo(1) ' call derived VFoo
+        derive.VGoo(1) ' call derived VGoo
         derive.VBar(1) ' call derived VBar
         derive.VBoo(1) ' call derived VBoo
         Console.WriteLine("-------------")
         Dim base As NS.C1 = New NS.C2()
-        base.Foo(1) ' call base Foo
+        base.Goo(1) ' call base Goo
         base.Bar(1) ' call base Bar
         base.Boo(1) ' call base Boo
-        base.VFoo(1) ' call base Foo
+        base.VGoo(1) ' call base Goo
         base.VBar(1) ' call D
         base.VBoo(1) ' call D
     End Sub
@@ -1171,8 +1173,8 @@ End Module
 
 Namespace NS
     Public Class C1
-        Public Sub Foo(ByVal p As Integer)
-            Console.WriteLine("Base - Foo")
+        Public Sub Goo(ByVal p As Integer)
+            Console.WriteLine("Base - Goo")
         End Sub
         Public Sub Bar(ByVal p As Integer)
             Console.WriteLine("Base - Bar")
@@ -1180,8 +1182,8 @@ Namespace NS
         Public Sub Boo(ByVal p As Integer)
             Console.WriteLine("Base - Boo")
         End Sub
-        Public Overridable Sub VFoo(ByVal p As Integer)
-            Console.WriteLine("Base - VFoo")
+        Public Overridable Sub VGoo(ByVal p As Integer)
+            Console.WriteLine("Base - VGoo")
         End Sub
         Public Overridable Sub VBar(ByVal p As Integer)
             Console.WriteLine("Base - VBar")
@@ -1193,8 +1195,8 @@ Namespace NS
 
     Public Class C2
         Inherits C1
-        Public Shadows Sub Foo(Optional ByVal p As Integer = 0)
-            Console.WriteLine("Derived - Shadows Foo")
+        Public Shadows Sub Goo(Optional ByVal p As Integer = 0)
+            Console.WriteLine("Derived - Shadows Goo")
         End Sub
         Public Overloads Sub Bar(Optional ByVal p As Integer = 1)
             Console.WriteLine("Derived - Overloads Bar")
@@ -1204,8 +1206,8 @@ Namespace NS
             Console.WriteLine("Derived - Boo")
         End Sub
         ' not virtual
-        Public Shadows Sub VFoo(Optional ByVal p As Integer = 0)
-            Console.WriteLine("Derived - Shadows VFoo")
+        Public Shadows Sub VGoo(Optional ByVal p As Integer = 0)
+            Console.WriteLine("Derived - Shadows VGoo")
         End Sub
         ' hidebysig and virtual
         Public Overloads Overrides Sub VBar(ByVal p As Integer)
@@ -1222,20 +1224,20 @@ End Namespace
 
             Dim ns = DirectCast(compilation.SourceModule.GlobalNamespace.GetMembers("NS").Single(), NamespaceSymbol)
             Dim type1 = DirectCast(ns.GetTypeMembers("C1").Single(), NamedTypeSymbol)
-            Dim mem = DirectCast(type1.GetMembers("Foo").Single(), MethodSymbol)
+            Dim mem = DirectCast(type1.GetMembers("Goo").Single(), MethodSymbol)
             Assert.False(mem.IsOverridable)
-            mem = DirectCast(type1.GetMembers("VFoo").Single(), MethodSymbol)
+            mem = DirectCast(type1.GetMembers("VGoo").Single(), MethodSymbol)
             Assert.True(mem.IsOverridable)
 
             Dim type2 = DirectCast(ns.GetTypeMembers("C2").Single(), NamedTypeSymbol)
-            mem = DirectCast(type2.GetMembers("Foo").Single(), MethodSymbol)
+            mem = DirectCast(type2.GetMembers("Goo").Single(), MethodSymbol)
             Assert.False(mem.IsOverloads)
             mem = DirectCast(type2.GetMembers("Bar").Single(), MethodSymbol)
             Assert.True(mem.IsOverloads)
             mem = DirectCast(type2.GetMembers("Boo").Single(), MethodSymbol)
             Assert.False(mem.IsOverloads)
             ' overridable
-            mem = DirectCast(type2.GetMembers("VFoo").Single(), MethodSymbol)
+            mem = DirectCast(type2.GetMembers("VGoo").Single(), MethodSymbol)
             Assert.False(mem.IsOverloads)
             Assert.False(mem.IsOverrides)
             Assert.False(mem.IsOverridable)
@@ -1249,7 +1251,7 @@ End Namespace
 
         <Fact>
         Public Sub Bug2820()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Class Class1
@@ -1268,7 +1270,7 @@ End Class
 
         <Fact>
         Public Sub MultipleOverloadsMetadataName1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Class Base
@@ -1313,7 +1315,7 @@ End Class
 
         <Fact>
         Public Sub MultipleOverloadsMetadataName2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Class Base
@@ -1355,7 +1357,7 @@ End Class
 
         <Fact>
         Public Sub MultipleOverloadsMetadataName3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Class Base
@@ -1397,7 +1399,7 @@ End Class
 
         <Fact>
         Public Sub MultipleOverloadsMetadataName4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Interface Base1
@@ -1439,7 +1441,7 @@ End Interface
 
         <Fact>
         Public Sub MultipleOverloadsMetadataName5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Interface Base1
@@ -1481,7 +1483,7 @@ End Interface
 
         <Fact>
         Public Sub ProbableExtensionMethod()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -1553,7 +1555,7 @@ Module M1
     End Sub
 
     <AnExt>
-    Declare Sub goodext9 Lib "foo" (this As C1)
+    Declare Sub goodext9 Lib "goo" (this As C1)
 
     <Blah.Extension>
     Public Sub badext1(this As C1)
@@ -1585,11 +1587,11 @@ Module M2
     End Sub
 
     <Extension>
-    Declare Sub badext6 Lib "foo" (this As C1)
+    Declare Sub badext6 Lib "goo" (this As C1)
 
 End Module
 ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef, SystemRef}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("AnExt=System.Runtime.CompilerServices.ExtensionAttribute")))
+</compilation>, references:={SystemCoreRef, SystemRef}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("AnExt=System.Runtime.CompilerServices.ExtensionAttribute")))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             Dim sourceMod = DirectCast(compilation.SourceModule, SourceModuleSymbol)
@@ -1671,7 +1673,7 @@ BC30455: Argument not specified for parameter 'this' of 'Public Sub badext4(this
 BC30455: Argument not specified for parameter 'this' of 'Public Sub badext5(this As C1)'.
         badext5()
         ~~~~~~~
-BC30455: Argument not specified for parameter 'this' of 'Public Declare Ansi Sub badext6 Lib "foo" (this As C1)'.
+BC30455: Argument not specified for parameter 'this' of 'Public Declare Ansi Sub badext6 Lib "goo" (this As C1)'.
         badext6()
         ~~~~~~~
 BC36552: Extension methods must declare at least one parameter. The first parameter specifies which type to extend.
@@ -1694,7 +1696,7 @@ End Class
             Dim operatorPos = source.IndexOf("+"c)
             Dim parenPos = source.IndexOf("("c)
 
-            Dim comp = CreateCompilationWithMscorlib({Parse(source)})
+            Dim comp = CreateCompilationWithMscorlib40({Parse(source)})
             Dim Symbol = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMembers(WellKnownMemberNames.UnaryPlusOperatorName).Single()
             Dim span = Symbol.Locations.Single().SourceSpan
             Assert.Equal(operatorPos, span.Start)
@@ -1713,7 +1715,7 @@ End Class
 ]]>.Value
 
             ' Used to raise an exception.
-            Dim comp = CreateCompilationWithMscorlib({Parse(source)}, options:=TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40({Parse(source)}, options:=TestOptions.ReleaseDll)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC33016: Operator '+' must have either one or two parameters.
     Public Shared Operator +(Of T)

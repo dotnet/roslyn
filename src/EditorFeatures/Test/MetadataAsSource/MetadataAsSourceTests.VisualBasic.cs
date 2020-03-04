@@ -1,7 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public partial class MetadataAsSourceTests
     {
+        [UseExportProvider]
         public class VisualBasic
         {
             [Fact, WorkItem(530123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123"), Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -19,8 +23,7 @@ Module M
     Public Class D
     End Class
 End Module";
-                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -41,6 +44,7 @@ End Module");
 ' mscorlib.v4_6_1038_0.dll
 #End Region
 
+Imports System
 Imports System.Runtime.InteropServices
 
 Namespace System
@@ -62,10 +66,8 @@ Namespace System
     End Class
 End Namespace";
 
-                using (var context = TestContext.Create(LanguageNames.VisualBasic))
-                {
-                    await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
-                }
+                using var context = TestContext.Create(LanguageNames.VisualBasic);
+                await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -79,7 +81,7 @@ End Namespace";
  I am the very model of a modern major general.
  </summary>";
 
-                var extractedXMLFragment = DocumentationCommentUtilities.ExtractXMLFragment(docCommentText);
+                var extractedXMLFragment = DocumentationCommentUtilities.ExtractXMLFragment(docCommentText, "'''");
 
                 Assert.Equal(expectedXMLFragment, extractedXMLFragment);
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis
     {
         public override void Fail(string message, string detailMessage)
         {
-            throw new DebugAssertFailureException(message + Environment.NewLine + detailMessage);
+            throw new InvalidOperationException(message + Environment.NewLine + detailMessage);
         }
 
         public override void Write(object o)
@@ -54,13 +56,6 @@ namespace Microsoft.CodeAnalysis
 
         public override void WriteLine(string message, string category)
         {
-        }
-
-        public class DebugAssertFailureException : Exception
-        {
-            public DebugAssertFailureException() { }
-            public DebugAssertFailureException(string message) : base(message) { }
-            public DebugAssertFailureException(string message, Exception inner) : base(message, inner) { }
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -98,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "SymbolDeclaredCompilationEvent(F int C<T1>.F @ : (6,8)-(6,14))",
                 "SymbolDeclaredCompilationEvent(C C<T1> @ : (2,2)-(8,3), : (9,2)-(12,3))",
                 "SymbolDeclaredCompilationEvent(M void C<T1>.M(int x1) @ : (4,4)-(4,27))",
+                "SymbolDeclaredCompilationEvent(M void C<T1>.M(int x2) @ : (11,4)-(11,29))",
                 "SymbolDeclaredCompilationEvent(N N @ : (0,0)-(13,1))",
                 "SymbolDeclaredCompilationEvent(<empty>  @ : (0,0)-(13,1))",
                 "SymbolDeclaredCompilationEvent(get_P int C<T1>.P.get @ : (5,21)-(5,25))",

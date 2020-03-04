@@ -1,0 +1,1862 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../VBFeaturesResources.resx">
+    <body>
+      <trans-unit id="Add_Await">
+        <source>Add Await</source>
+        <target state="translated">Přidat Await</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add Await and 'ConfigureAwait(false)'</source>
+        <target state="translated">Přidat Await a ConfigureAwait(false)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="translated">Přidat &lt;Obsolete&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_Imports">
+        <source>Add missing Imports</source>
+        <target state="translated">Přidat chybějící Importy</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_Shadows">
+        <source>Add 'Shadows'</source>
+        <target state="translated">Přidat Shadows</target>
+        <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="If_statement_can_be_simplified">
+        <source>'If' statement can be simplified</source>
+        <target state="translated">Příkaz if lze zjednodušit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_0">
+        <source>Insert '{0}'.</source>
+        <target state="translated">Vložit {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delete_the_0_statement1">
+        <source>Delete the '{0}' statement.</source>
+        <target state="translated">Odstraní příkaz {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_event_0_in_1">
+        <source>Create event {0} in {1}</source>
+        <target state="translated">Vytvořit událost {0} v: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_the_missing_End_Property_statement">
+        <source>Insert the missing 'End Property' statement.</source>
+        <target state="translated">Vložte chybějící příkaz End Property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_the_missing_0">
+        <source>Insert the missing '{0}'.</source>
+        <target state="translated">Vložte chybějící {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="translated">Dočasná vložená proměnná</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conflict_s_detected">
+        <source>Conflict(s) detected.</source>
+        <target state="translated">Zjistily se konflikty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="translated">Zavést příkaz Using</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="translated">Nastavit dědičnost pro {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_the_0_statement_to_line_1">
+        <source>Move the '{0}' statement to line {1}.</source>
+        <target state="translated">Přesuňte příkaz {0} na řádek {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delete_the_0_statement2">
+        <source>Delete the '{0}' statement.</source>
+        <target state="translated">Odstraní příkaz {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="translated">&lt;Víc typů&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Imports">
+        <source>Remove Unnecessary Imports</source>
+        <target state="translated">Odebrat nepotřebné importy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_new_field">
+        <source>Type a name here to declare a new field.</source>
+        <target state="translated">Sem vložte název, kterým deklarujete novou položku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
+        <source>Note: Space completion is disabled to avoid potential interference. To insert a name from the list, use tab.</source>
+        <target state="translated">Poznámka: Dokončení mezerou je zakázané, aby se předešlo možné kolizi. Pro vložení názvu ze seznamu použijte tabulátor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_field">
+        <source>&lt;new field&gt;</source>
+        <target state="translated">&lt;nová položka&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_parameter_If_no_preceding_keyword_is_used_ByVal_will_be_assumed_and_the_argument_will_be_passed_by_value">
+        <source>Type a name here to declare a parameter. If no preceding keyword is used; 'ByVal' will be assumed and the argument will be passed by value.</source>
+        <target state="translated">Sem vložte název, kterým deklarujete parametr. Pokud není použité žádné předcházející klíčové slovo, vloží se podle výchozího chování klíčové slovo ByVal a argument se předá podle hodnoty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="parameter_name">
+        <source>&lt;parameter name&gt;</source>
+        <target state="translated">&lt;název parametru&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_new_name_for_the_column_followed_by_Otherwise_the_original_column_name_with_be_used">
+        <source>Type a new name for the column, followed by '='. Otherwise, the original column name with be used.</source>
+        <target state="translated">Vložte nový název sloupce následovaný znakem =. Jinak se použije původní název sloupce.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Note_colon_Use_tab_for_automatic_completion_space_completion_is_disabled_to_avoid_interfering_with_a_new_name">
+        <source>Note: Use tab for automatic completion; space completion is disabled to avoid interfering with a new name.</source>
+        <target state="translated">Poznámka: Pro automatické dokončení použijte tabulátor; dokončení mezerou je zakázané, aby se předešlo kolizi s novým názvem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="result_alias">
+        <source>&lt;result alias&gt;</source>
+        <target state="translated">&lt;alias výsledku&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_new_variable_name">
+        <source>Type a new variable name</source>
+        <target state="translated">Vložte nový název proměnné.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Note_colon_Space_and_completion_are_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
+        <source>Note: Space and '=' completion are disabled to avoid potential interference. To insert a name from the list, use tab.</source>
+        <target state="translated">Poznámka: Dokončení mezerou a znakem = je zakázané, aby se předešlo možné kolizi. Pro vložení názvu ze seznamu použijte tabulátor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_resource">
+        <source>&lt;new resource&gt;</source>
+        <target state="translated">&lt;nový zdroj&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddHandler_statement">
+        <source>AddHandler statement</source>
+        <target state="translated">Příkaz AddHandler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveHandler_statement">
+        <source>RemoveHandler statement</source>
+        <target state="translated">Příkaz RemoveHandler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_function">
+        <source>{0} function</source>
+        <target state="translated">Funkce {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CType_function">
+        <source>CType function</source>
+        <target state="translated">Funkce CType</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DirectCast_function">
+        <source>DirectCast function</source>
+        <target state="translated">Funkce DirectCast</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TryCast_function">
+        <source>TryCast function</source>
+        <target state="translated">Funkce TryCast</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetType_function">
+        <source>GetType function</source>
+        <target state="translated">Funkce GetType</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetXmlNamespace_function">
+        <source>GetXmlNamespace function</source>
+        <target state="translated">Funkce GetXmlNamespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Mid_statement">
+        <source>Mid statement</source>
+        <target state="translated">Příkaz Mid</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_Incorrect_Function_Return_Type">
+        <source>Fix Incorrect Function Return Type</source>
+        <target state="translated">Opravit nesprávný návratový typ funkce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_name_0">
+        <source>Simplify name '{0}'</source>
+        <target state="translated">Zjednodušit název {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_member_access_0">
+        <source>Simplify member access '{0}'</source>
+        <target state="translated">Zjednodušit přístup ke členu {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Me_qualification">
+        <source>Remove 'Me' qualification</source>
+        <target state="translated">Odebrat kvalifikaci Me</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">Název se dá zjednodušit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
+        <source>can't determine valid range of statements to extract out</source>
+        <target state="translated">nemůže určit platný rozsah příkazů k extrakci ven</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_all_code_paths_return">
+        <source>Not all code paths return</source>
+        <target state="translated">Ne všechny cesty kódu vracejí</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="contains_invalid_selection">
+        <source>contains invalid selection</source>
+        <target state="translated">obsahuje neplatný výběr</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_selection_contains_syntactic_errors">
+        <source>the selection contains syntactic errors</source>
+        <target state="translated">výběr obsahuje syntaktické chyby</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_t_be_crossed_over_preprocessors">
+        <source>Selection can't be crossed over preprocessors</source>
+        <target state="translated">Výběr nejde křížit přes preprocesory.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_t_contain_throw_without_enclosing_catch_block">
+        <source>Selection can't contain throw without enclosing catch block</source>
+        <target state="translated">Výběr nemůže obsahovat throw bez koncového bloku catch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_t_be_parts_of_constant_initializer_expression">
+        <source>Selection can't be parts of constant initializer expression</source>
+        <target state="translated">Výběr nemůže být součástí konstantního výrazu inicializátoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_used_for_ByRef_parameter_can_t_be_extracted_out">
+        <source>Argument used for ByRef parameter can't be extracted out</source>
+        <target state="translated">Argument použitý pro parametr ByRef se nedá extrahovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selection">
+        <source>all static local usages defined in the selection must be included in the selection</source>
+        <target state="translated">Do výběru musí být zahrnutá všechna statická místní použití definovaná ve výběru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement">
+        <source>Implicit member access can't be included in the selection without containing statement</source>
+        <target state="translated">Implicitní přístup pro člen nejde do výběru zahrnout bez nadřazeného příkazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_must_be_part_of_executable_statements">
+        <source>Selection must be part of executable statements</source>
+        <target state="translated">Výběr musí být součástí spustitelných příkazů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="next_statement_control_variable_doesn_t_have_matching_declaration_statement">
+        <source>next statement control variable doesn't have matching declaration statement</source>
+        <target state="translated">další řídicí proměnná příkazu nemá odpovídající příkaz deklarace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_doesn_t_contain_any_valid_node">
+        <source>Selection doesn't contain any valid node</source>
+        <target state="translated">Výběr nemůže obsahovat žádný platný uzel.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="no_valid_statement_range_to_extract_out">
+        <source>no valid statement range to extract out</source>
+        <target state="translated">žádný platný rozsah příkazů pro extrakci ven</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection</source>
+        <target state="translated">Neplatný výběr</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_doesn_t_contain_any_valid_token">
+        <source>Selection doesn't contain any valid token</source>
+        <target state="translated">Výběr nemůže obsahovat žádný platný token.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_selection_to_perform_extraction">
+        <source>No valid selection to perform extraction</source>
+        <target state="translated">Žádný platný výběr k provedení extrakce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_common_root_node_for_extraction">
+        <source>No common root node for extraction</source>
+        <target state="translated">Žádný společný kořenový uzel pro extrakci</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deprecated">
+        <source>Deprecated</source>
+        <target state="translated">Zastaralé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extension">
+        <source>Extension</source>
+        <target state="translated">Rozšíření</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaitable">
+        <source>Awaitable</source>
+        <target state="translated">Očekávatelný</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaitable_Extension">
+        <source>Awaitable, Extension</source>
+        <target state="translated">Očekávatelný, rozšíření</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_variable">
+        <source>&lt;new variable&gt;</source>
+        <target state="translated">&lt;nová proměnná&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
+        <source>Creates a delegate procedure instance that references the specified procedure.
+AddressOf &lt;procedureName&gt;</source>
+        <target state="translated">Vytvoří instanci procedury delegáta, která odkazuje na určenou proceduru.
+AddressOf &lt;procedureName&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_that_an_external_procedure_has_another_name_in_its_DLL">
+        <source>Indicates that an external procedure has another name in its DLL.</source>
+        <target state="translated">Indikuje, že externí procedura má jiný název ve své DLL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_a_short_circuit_logical_conjunction_on_two_expressions_Returns_True_if_both_operands_evaluate_to_True_If_the_first_expression_evaluates_to_False_the_second_is_not_evaluated_result_expression1_AndAlso_expression2">
+        <source>Performs a short-circuit logical conjunction on two expressions. Returns True if both operands evaluate to True. If the first expression evaluates to False, the second is not evaluated.
+&lt;result&gt; = &lt;expression1&gt; AndAlso &lt;expression2&gt;</source>
+        <target state="translated">Vykoná zkrácenou logickou operaci konjunkce dvou výrazů. Vrací hodnotu True, pokud mají oba operandy hodnotu True. Pokud je první výraz nepravdivý, druhý se už nevyhodnocuje.
+&lt; výsledek&gt; = &lt;výraz1&gt; AndAlso &lt;výraz2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_a_logical_conjunction_on_two_Boolean_expressions_or_a_bitwise_conjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_both_operands_evaluate_to_True_Both_expressions_are_always_evaluated_result_expression1_And_expression2">
+        <source>Performs a logical conjunction on two Boolean expressions, or a bitwise conjunction on two numeric expressions. For Boolean expressions, returns True if both operands evaluate to True. Both expressions are always evaluated.
+&lt;result&gt; = &lt;expression1&gt; And &lt;expression2&gt;</source>
+        <target state="translated">Vykoná logickou operaci konjunkce dvou logických výrazů nebo bitovou operaci konjunkce dvou číselných výrazů. Pro logické výrazy platí, že vrací hodnotu True, pokud mají oba operandy hodnotu True. Vždycky se vyhodnocují oba výrazy.
+&lt;výsledek&gt; = &lt;výraz1&gt; And &lt;výraz2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Used_in_a_Declare_statement_The_Ansi_modifier_specifies_that_Visual_Basic_should_marshal_all_strings_to_ANSI_values_and_should_look_up_the_procedure_without_modifying_its_name_during_the_search_If_no_character_set_is_specified_ANSI_is_the_default">
+        <source>Used in a Declare statement. The Ansi modifier specifies that Visual Basic should marshal all strings to ANSI values, and should look up the procedure without modifying its name during the search. If no character set is specified, ANSI is the default.</source>
+        <target state="translated">Používá se v příkazu Declare. Modifikátor Ansi určuje, že by měl Visual Basic zařazovat všechny řetězce na hodnoty ANSI a vyhledávat proceduru bez úpravy jejího názvu během vyhledávání. Pokud není zadaná žádná znaková sada, použije se jako výchozí nastavení ANSI.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_a_data_type_in_a_declaration_statement">
+        <source>Specifies a data type in a declaration statement.</source>
+        <target state="translated">Určuje datový typ v příkazu deklarace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_an_attribute_at_the_beginning_of_a_source_file_applies_to_the_entire_assembly_Otherwise_the_attribute_will_apply_only_to_an_individual_programming_element_such_as_a_class_or_property">
+        <source>Specifies that an attribute at the beginning of a source file applies to the entire assembly. Otherwise the attribute will apply only to an individual programming element, such as a class or property.</source>
+        <target state="translated">Určuje, že atribut na začátku zdrojového souboru se vztahuje na celé sestavení. Jinak se bude atribut vztahovat jenom na jednotlivý programový element, jako je třída nebo vlastnost.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_an_asynchronous_method_that_can_use_the_Await_operator">
+        <source>Indicates an asynchronous method that can use the Await operator.</source>
+        <target state="translated">Označuje asynchronní metodu, která může použít operátor Await.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Used_in_a_Declare_statement_The_Auto_modifier_specifies_that_Visual_Basic_should_marshal_strings_according_to_NET_Framework_rules_and_should_determine_the_base_character_set_of_the_run_time_platform_and_possibly_modify_the_external_procedure_name_if_the_initial_search_fails">
+        <source>Used in a Declare statement. The Auto modifier specifies that Visual Basic should marshal strings according to .NET Framework rules, and should determine the base character set of the run-time platform and possibly modify the external procedure name if the initial search fails.</source>
+        <target state="translated">Používá v příkazu Declare. Modifikátor Auto určuje, že by měl Visual Basic zařazovat řetězce podle pravidel rozhraní .NET Framework a stanovit základní znakovou sadu pro běhovou platformu a případně upravit název externí procedury, pokud selže počáteční vyhledávání.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_can_change_the_underlying_value_of_the_argument_in_the_calling_code">
+        <source>Specifies that an argument is passed in such a way that the called procedure can change the underlying value of the argument in the calling code.</source>
+        <target state="translated">Určuje, že argument se předává takovým způsobem, že volaná procedura může změnit nadřazenou hodnotu argumentu ve volajícím kódu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_or_property_cannot_change_the_underlying_value_of_the_argument_in_the_calling_code">
+        <source>Specifies that an argument is passed in such a way that the called procedure or property cannot change the underlying value of the argument in the calling code.</source>
+        <target state="translated">Určuje, že argument se předává takovým způsobem, že volaná procedura nebo vlastnost nemůže změnit nadřazenou hodnotu argumentu ve volajícím kódu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_of_a_class_and_introduces_the_definitions_of_the_variables_properties_and_methods_that_make_up_the_class">
+        <source>Declares the name of a class and introduces the definitions of the variables, properties, and methods that make up the class.</source>
+        <target state="translated">Deklaruje název třídy a zavádí definici proměnných, vlastností a metod, které tvoří třídu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generates_a_string_concatenation_of_two_expressions">
+        <source>Generates a string concatenation of two expressions.</source>
+        <target state="translated">Generuje řetězec vzniklý zřetězením dvou výrazů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_and_defines_one_or_more_constants">
+        <source>Declares and defines one or more constants.</source>
+        <target state="translated">Deklaruje a definuje nejmíň jednu konstantu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_In_for_a_type_that_will_only_be_used_for_ByVal_arguments_to_functions">
+        <source>Use 'In' for a type that will only be used for ByVal arguments to functions.</source>
+        <target state="translated">Klíčové slovo In použijte pro typ, který se bude používat jenom jako argument ByVal do funkcí.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Out_for_a_type_that_will_only_be_used_as_a_return_from_functions">
+        <source>Use 'Out' for a type that will only be used as a return from functions.</source>
+        <target state="translated">Klíčové slovo Out použijte pro typ, který se bude používat jenom jako návratový typ z funkcí.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_As_Type">
+        <source>Returns the result of explicitly converting an expression to a specified data type, object, structure, class, or interface.
+CType(Object As Expression, Object As Type) As Type</source>
+        <target state="translated">Vrací výsledek explicitně převedeného výrazu na zadaný datový typ, objekt, strukturu, třídu nebo rozhraní.
+CType(Object As Expression, Object As Type) As Type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_an_event_has_additional_specialized_code_for_adding_handlers_removing_handlers_and_raising_events">
+        <source>Specifies that an event has additional, specialized code for adding handlers, removing handlers, and raising events.</source>
+        <target state="translated">Určuje, že událost má další, speciální kód pro přidávání a odebírání obslužných rutin a vyvolávání událostí.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_a_reference_to_a_procedure_implemented_in_an_external_file">
+        <source>Declares a reference to a procedure implemented in an external file.</source>
+        <target state="translated">Deklaruje odkaz na proceduru implementovanou v externím souboru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Identifies_a_property_as_the_default_property_of_its_class_structure_or_interface">
+        <source>Identifies a property as the default property of its class, structure, or interface.</source>
+        <target state="translated">Identifikuje vlastnost jako výchozí vlastnost své třídy, struktury nebo rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Used_to_declare_a_delegate_A_delegate_is_a_reference_type_that_refers_to_a_shared_method_of_a_type_or_to_an_instance_method_of_an_object_Any_procedure_that_is_convertible_or_that_has_matching_parameter_types_and_return_type_may_be_used_to_create_an_instance_of_this_delegate_class">
+        <source>Used to declare a delegate. A delegate is a reference type that refers to a shared method of a type or to an instance method of an object. Any procedure that is convertible, or that has matching parameter types and return type may be used to create an instance of this delegate class.</source>
+        <target state="translated">Používá se pro deklaraci delegáta. Delegát je odkazový typ, který odkazuje na sdílenou metodu typu nebo na instanční metodu objektu. Každá procedura, která je převoditelná nebo která má shodné typy parametrů a návratový typ, se může použít pro vytvoření instance této třídy delegáta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_and_allocates_storage_space_for_one_or_more_variables_Dim_var_bracket_As_bracket_New_bracket_dataType_bracket_boundList_bracket_bracket_bracket_initializer_bracket_bracket_var2_bracket">
+        <source>Declares and allocates storage space for one or more variables.
+Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</source>
+        <target state="translated">Deklaruje a přiděluje místo pro uložení nejmíň jedné proměnné.
+Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Divides_two_numbers_and_returns_a_floating_point_result">
+        <source>Divides two numbers and returns a floating-point result.</source>
+        <target state="translated">Vydělí dvě čísla a vrátí výsledek s plovoucí desetinnou čárkou.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_a_0_block">
+        <source>Terminates a {0} block.</source>
+        <target state="translated">Ukončí blok {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_an_0_block">
+        <source>Terminates an {0} block.</source>
+        <target state="translated">Ukončí blok {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_the_definition_of_a_0_statement">
+        <source>Terminates the definition of a {0} statement.</source>
+        <target state="translated">Ukončí definici příkazu {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_the_definition_of_an_0_statement">
+        <source>Terminates the definition of an {0} statement.</source>
+        <target state="translated">Ukončí definici příkazu {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_an_enumeration_and_defines_the_values_of_its_members">
+        <source>Declares an enumeration and defines the values of its members.</source>
+        <target state="translated">Deklaruje výčet a definuje hodnoty jeho členů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_they_are_equal_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if they are equal. Otherwise, returns False.</source>
+        <target state="translated">Porovná dva výrazy a vrátí True, pokud jsou stejné. Jinak vrátí False.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Used_to_release_array_variables_and_deallocate_the_memory_used_for_their_elements">
+        <source>Used to release array variables and deallocate the memory used for their elements.</source>
+        <target state="translated">Používá se pro uvolnění proměnných pole a navrácení paměti používané pro jejich elementy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_a_user_defined_event">
+        <source>Declares a user-defined event.</source>
+        <target state="translated">Deklaruje uživatelem definovanou událost.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_Sub_procedure_and_transfers_execution_immediately_to_the_statement_following_the_call_to_the_Sub_procedure">
+        <source>Exits a Sub procedure and transfers execution immediately to the statement following the call to the Sub procedure.</source>
+        <target state="translated">Ukončí proceduru Sub a okamžitě přenese provádění do příkazu za voláním procedury Sub.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Raises_a_number_to_the_power_of_another_number">
+        <source>Raises a number to the power of another number.</source>
+        <target state="translated">Umocní číslo na mocninu určenou jiným číslem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_the_external_procedure_being_referenced_in_the_Declare_statement_is_a_Function">
+        <source>Specifies that the external procedure being referenced in the Declare statement is a Function.</source>
+        <target state="translated">Určuje, že externí procedura, na kterou se odkazuje v příkazu Declare, je Function.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_the_external_procedure_being_referenced_in_the_Declare_statement_is_a_Sub">
+        <source>Specifies that the external procedure being referenced in the Declare statement is a Sub.</source>
+        <target state="translated">Určuje, že externí procedura, na kterou se odkazuje v příkazu Declare, je Sub.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_the_assembly_that_contains_their_declaration">
+        <source>Specifies that one or more declared programming elements are accessible only from within the assembly that contains their declaration.</source>
+        <target state="translated">Určuje, že nejmíň jeden deklarovaný programovací element je přístupný jen ze sestavení, které obsahuje jeho deklaraci.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_a_collection_and_a_range_variable_to_use_in_a_query">
+        <source>Specifies a collection and a range variable to use in a query.</source>
+        <target state="translated">Určuje kolekci a proměnnou rozsahu, která se má použít v dotazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_parameters_and_code_that_define_a_Function_procedure_that_is_a_procedure_that_returns_a_value_to_the_calling_code">
+        <source>Declares the name, parameters, and code that define a Function procedure, that is, a procedure that returns a value to the calling code.</source>
+        <target state="translated">Deklaruje název, parametry a kód, které definují proceduru Function, tzn. proceduru, která vrací hodnotu volajícímu kódu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constrains_a_generic_type_parameter_to_require_that_any_type_argument_passed_to_it_be_a_reference_type">
+        <source>Constrains a generic type parameter to require that any type argument passed to it be a reference type.</source>
+        <target state="translated">Omezuje obecný parametr typu tím, že vyžaduje, aby libovolný do něho předaný argument typu představoval typ Odkaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_a_constructor_constraint_on_a_generic_type_parameter">
+        <source>Specifies a constructor constraint on a generic type parameter.</source>
+        <target state="translated">Určuje omezení konstruktoru u obecného parametru typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constrains_a_generic_type_parameter_to_require_that_any_type_argument_passed_to_it_be_a_value_type">
+        <source>Constrains a generic type parameter to require that any type argument passed to it be a value type.</source>
+        <target state="translated">Omezuje obecný parametr typu tím, že vyžaduje, aby libovolný do něho předaný argument typu představoval typ Hodnota.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_a_Get_property_procedure_that_is_used_to_return_the_current_value_of_a_property">
+        <source>Declares a Get property procedure that is used to return the current value of a property.</source>
+        <target state="translated">Deklaruje proceduru vlastnosti Get, která se používá k vrácení aktuální hodnoty vlastnosti.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_the_first_is_greater_than_the_second_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if the first is greater than the second. Otherwise, returns False.</source>
+        <target state="translated">Porovná dva výrazy a vrátí True, pokud je první větší než druhý. Jinak vrátí False.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_the_first_is_greater_than_or_equal_to_the_second_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if the first is greater than or equal to the second. Otherwise, returns False.</source>
+        <target state="translated">Porovná dva výrazy a vrátí True, pokud je první větší než nebo rovný druhému. Jinak vrátí False.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_that_a_procedure_handles_a_specified_event">
+        <source>Declares that a procedure handles a specified event.</source>
+        <target state="translated">Deklaruje, že procedura zpracovává určenou událost.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_that_a_class_or_structure_member_is_providing_the_implementation_for_a_member_defined_in_an_interface">
+        <source>Indicates that a class or structure member is providing the implementation for a member defined in an interface.</source>
+        <target state="translated">Indikuje, že člen třídy nebo struktury poskytuje implementaci pro člena definovaného v rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_one_or_more_interfaces_or_interface_members_that_must_be_implemented_in_the_class_or_structure_definition_in_which_the_Implements_statement_appears">
+        <source>Specifies one or more interfaces, or interface members, that must be implemented in the class or structure definition in which the Implements statement appears.</source>
+        <target state="translated">Určuje nejmíň jedno rozhraní nebo člen rozhraní, které je třeba implementovat v definici třídy nebo struktury, v níž se objevuje příkaz Implements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Imports_all_or_specified_elements_of_a_namespace_into_a_file">
+        <source>Imports all or specified elements of a namespace into a file.</source>
+        <target state="translated">Importuje všechny nebo určené elementy oboru názvů do souboru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_group_that_the_loop_variable_in_a_For_Each_statement_is_to_traverse">
+        <source>Specifies the group that the loop variable in a For Each statement is to traverse.</source>
+        <target state="translated">Určuje skupinu, kterou má projít proměnná smyčky v příkazu For Each.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_group_that_the_loop_variable_is_to_traverse_in_a_For_Each_statement_or_specifies_the_range_variable_in_a_query">
+        <source>Specifies the group that the loop variable is to traverse in a For Each statement, or specifies the range variable in a query.</source>
+        <target state="translated">Určuje skupinu, kterou má proměnná smyčky projít v příkazu For Each, nebo určuje proměnnou rozsahu v příkazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_properties_procedures_and_events_from_another_class_or_set_of_interfaces">
+        <source>Causes the current class or interface to inherit the attributes, variables, properties, procedures, and events from another class or set of interfaces.</source>
+        <target state="translated">Způsobí, že aktuální třída nebo rozhraní zdědí atributy, proměnné, vlastnosti, procedury a události z jiné třídy nebo sady rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_group_that_the_range_variable_is_to_traverse_in_a_query">
+        <source>Specifies the group that the range variable is to traverse in a query.</source>
+        <target state="translated">Určuje skupinu, kterou má procházet proměnná rozsahu v dotazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Divides_two_numbers_and_returns_an_integer_result">
+        <source>Divides two numbers and returns an integer result.</source>
+        <target state="translated">Vydělí dvě čísla a vrátí celočíselný výsledek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_of_an_interface_and_the_definitions_of_the_members_of_the_interface">
+        <source>Declares the name of an interface and the definitions of the members of the interface.</source>
+        <target state="translated">Deklaruje název rozhraní a definice členů rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determines_whether_an_expression_is_false_If_instances_of_any_class_or_structure_will_be_used_in_an_OrElse_clause_you_must_define_IsFalse_on_that_class_or_structure">
+        <source>Determines whether an expression is false. If instances of any class or structure will be used in an OrElse clause, you must define IsFalse on that class or structure.</source>
+        <target state="translated">Vyhodnotí, jestli je výraz nepravdivý. Pokud se instance libovolné třídy nebo struktury použijí v klauzuli OrElse, musíte definovat v této třídě nebo struktuře operátor IsFalse.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_object_reference_variables_and_returns_True_if_the_objects_are_equal_result_object1_Is_object2">
+        <source>Compares two object reference variables and returns True if the objects are equal.
+&lt;result&gt; = &lt;object1&gt; Is &lt;object2&gt;</source>
+        <target state="translated">Porovná dvě proměnné odkazu na objekt a vrátí True, pokud se objekty rovnají.
+&lt;výsledek&gt; = &lt;objekt1&gt; Is &lt;objekt2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_object_reference_variables_and_returns_True_if_the_objects_are_not_equal_result_object1_IsNot_object2">
+        <source>Compares two object reference variables and returns True if the objects are not equal.
+&lt;result&gt; = &lt;object1&gt; IsNot &lt;object2&gt;</source>
+        <target state="translated">Porovná dvě proměnné odkazu na objekt a vrátí True, pokud se objekty nerovnají.
+&lt;výsledek&gt; = &lt;objekt1&gt; IsNot &lt;objekt2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determines_whether_an_expression_is_true_If_instances_of_any_class_or_structure_will_be_used_in_an_OrElse_clause_you_must_define_IsTrue_on_that_class_or_structure">
+        <source>Determines whether an expression is true. If instances of any class or structure will be used in an OrElse clause, you must define IsTrue on that class or structure.</source>
+        <target state="translated">Vyhodnotí, jestli je výraz pravdivý. Pokud se instance libovolné třídy nebo struktury použijí v klauzuli OrElse, musíte definovat v této třídě nebo struktuře operátor IsTrue.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_an_iterator_method_that_can_use_the_Yield_statement">
+        <source>Indicates an iterator method that can use the Yield statement.</source>
+        <target state="translated">Označuje iterační metodu, která může použít operátor Yield.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Defines_an_iterator_lambda_expression_that_can_use_the_Yield_statement_Iterator_Function_parameterList_As_IEnumerable_Of_T">
+        <source>Defines an iterator lambda expression that can use the Yield statement.
+Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</source>
+        <target state="translated">Definuje asynchronní iterační lambda výraz, který může používat operátor Await.
+Iterator Function(&lt;seznam_parametrů&gt;) As IEnumerable(Of &lt;T&gt;)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_an_arithmetic_left_shift_on_a_bit_pattern">
+        <source>Performs an arithmetic left shift on a bit pattern.</source>
+        <target state="translated">Provede aritmetický bitový posun vlevo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_the_first_is_less_than_the_second_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if the first is less than the second. Otherwise, returns False.</source>
+        <target state="translated">Porovná dva výrazy a vrátí True, pokud je první menší než druhý. Jinak vrátí False.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_the_first_is_less_than_or_equal_to_the_second_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if the first is less than or equal to the second. Otherwise, returns False.</source>
+        <target state="translated">Porovná dva výrazy a vrátí True, pokud je první menší než nebo rovný druhému. Jinak vrátí False.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_clause_that_identifies_the_external_file_DLL_or_code_resource_containing_an_external_procedure">
+        <source>Introduces a clause that identifies the external file (DLL or code resource) containing an external procedure.</source>
+        <target state="translated">Zavádí klauzuli, která identifikuje externí soubor (knihovna DLL nebo prostředek kódu) obsahující externí proceduru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_a_string_against_a_pattern_Wildcards_available_include_to_match_1_character_and_to_match_0_or_more_characters_result_string_Like_pattern">
+        <source>Compares a string against a pattern. Wildcards available include ? to match 1 character and * to match 0 or more characters.
+&lt;result&gt; = &lt;string&gt; Like &lt;pattern&gt;</source>
+        <target state="translated">Porovná řetězec oproti vzoru. Dostupné zástupné znaky zahrnují znak ? pro porovnání 1 znaku a znak * pro porovnání 0 a více znaků.
+&lt;výsledek&gt; = &lt;řetězec&gt; Like &lt;vzor&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_difference_between_two_numeric_expressions_or_the_negative_value_of_a_numeric_expression">
+        <source>Returns the difference between two numeric expressions, or the negative value of a numeric expression.</source>
+        <target state="translated">Vrací rozdíl mezi dvěma číselnými hodnotami nebo zápornou hodnotu číselného výrazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Divides_two_numbers_and_returns_only_the_remainder_number1_Mod_number2">
+        <source>Divides two numbers and returns only the remainder.
+&lt;number1&gt; Mod &lt;number2&gt;</source>
+        <target state="translated">Vydělí dvě čísla a vrátí jenom zbytek.
+&lt;číslo1&gt; Mod &lt;číslo2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_an_attribute_at_the_beginning_of_a_source_file_applies_to_the_entire_module_Otherwise_the_attribute_will_apply_only_to_an_individual_programming_element_such_as_a_class_or_property">
+        <source>Specifies that an attribute at the beginning of a source file applies to the entire module. Otherwise the attribute will apply only to an individual programming element, such as a class or property.</source>
+        <target state="translated">Určuje, že atribut na začátku zdrojového souboru se vztahuje na celý modul. Jinak se bude atribut vztahovat jenom na jednotlivý programový element, jako je třída nebo vlastnost.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiplies_two_numbers_and_returns_the_product">
+        <source>Multiplies two numbers and returns the product.</source>
+        <target state="translated">Vrací součin dvou čísel.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_class_can_be_used_only_as_a_base_class_and_that_you_cannot_create_an_object_directly_from_it">
+        <source>Specifies that a class can be used only as a base class, and that you cannot create an object directly from it.</source>
+        <target state="translated">Určuje, že třídu jde použít jenom jako základní třídu a že přímo z ní nejde vytvořit objekt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_or_procedure_is_not_implemented_in_the_class_and_must_be_overridden_in_a_derived_class_before_it_can_be_used">
+        <source>Specifies that a property or procedure is not implemented in the class and must be overridden in a derived class before it can be used.</source>
+        <target state="translated">Určuje, že se vlastnost nebo procedura neimplementuje ve třídě a musí se přepsat v odvozené třídě dřív, než se použije.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_of_a_namespace_and_causes_the_source_code_following_the_declaration_to_be_compiled_within_that_namespace">
+        <source>Declares the name of a namespace, and causes the source code following the declaration to be compiled within that namespace.</source>
+        <target state="translated">Deklaruje název oboru názvů a způsobí, že se zdrojový kód následující za deklarací zkompiluje uvnitř tohoto oboru názvů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_that_a_conversion_operator_CType_converts_a_class_or_structure_to_a_type_that_might_not_be_able_to_hold_some_of_the_possible_values_of_the_original_class_or_structure">
+        <source>Indicates that a conversion operator (CType) converts a class or structure to a type that might not be able to hold some of the possible values of the original class or structure.</source>
+        <target state="translated">Označuje, že operátor převodu (CType) převede třídu nebo strukturu na typ, který nemusí být schopný uchovat některou z možných hodnot původní třídy nebo struktury.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compares_two_expressions_and_returns_True_if_they_are_not_equal_Otherwise_returns_False">
+        <source>Compares two expressions and returns True if they are not equal. Otherwise, returns False.</source>
+        <target state="translated">Porovná dva výrazy a vrátí True, pokud nejsou stejné. Jinak vrátí False.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_class_cannot_be_used_as_a_base_class">
+        <source>Specifies that a class cannot be used as a base class.</source>
+        <target state="translated">Určuje, že třída se nedá použít jako základní třída.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_logical_negation_on_a_Boolean_expression_or_bitwise_negation_on_a_numeric_expression_result_Not_expression">
+        <source>Performs logical negation on a Boolean expression, or bitwise negation on a numeric expression.
+&lt;result&gt; = Not &lt;expression&gt;</source>
+        <target state="translated">Vykoná logickou negaci logického výrazu nebo bitovou negaci číselného výrazu.
+&lt;výsledek&gt; = Not &lt;výraz&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_or_procedure_cannot_be_overridden_in_a_derived_class">
+        <source>Specifies that a property or procedure cannot be overridden in a derived class.</source>
+        <target state="translated">Určuje, že se vlastnost nebo procedura nedá přepsat v odvozené třídě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure">
+        <source>Identifies a type parameter on a generic class, structure, interface, delegate, or procedure.</source>
+        <target state="translated">Identifikuje parametr typu pro obecnou třídu, strukturu, rozhraní, delegáta nebo proceduru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_operator_symbol_operands_and_code_that_define_an_operator_procedure_on_a_class_or_structure">
+        <source>Declares the operator symbol, operands, and code that define an operator procedure on a class or structure.</source>
+        <target state="translated">Deklaruje symbol operátoru, operandy a kód, který definuje proceduru operátoru pro třídu nebo strukturu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_procedure_argument_can_be_omitted_when_the_procedure_is_called">
+        <source>Specifies that a procedure argument can be omitted when the procedure is called.</source>
+        <target state="translated">Určuje, že se argument procedury může při volání procedury vynechat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_statement_that_specifies_a_compiler_option_that_applies_to_the_entire_source_file">
+        <source>Introduces a statement that specifies a compiler option that applies to the entire source file.</source>
+        <target state="translated">Zavádí příkaz, který určuje možnost kompilátoru, která se vztahuje k celému zdrojovému souboru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_short_circuit_inclusive_logical_disjunction_on_two_expressions_Returns_True_if_either_operand_evaluates_to_True_If_the_first_expression_evaluates_to_True_the_second_expression_is_not_evaluated_result_expression1_OrElse_expression2">
+        <source>Performs short-circuit inclusive logical disjunction on two expressions. Returns True if either operand evaluates to True. If the first expression evaluates to True, the second expression is not evaluated.
+&lt;result&gt; = &lt;expression1&gt; OrElse &lt;expression2&gt;</source>
+        <target state="translated">Vykonává zkrácenou inkluzivní logickou disjunkci dvou výrazů. Vrací True, pokud se jeden z operandů vyhodnotí jako True. Pokud se první výraz vyhodnotí jako True, druhý výraz se už nevyhodnocuje.
+&lt;výsledek&gt; = &lt;výraz1&gt; OrElse &lt;výraz2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_an_inclusive_logical_disjunction_on_two_Boolean_expressions_or_a_bitwise_disjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_at_least_one_operand_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Or_expression2">
+        <source>Performs an inclusive logical disjunction on two Boolean expressions, or a bitwise disjunction on two numeric expressions. For Boolean expressions, returns True if at least one operand evaluates to True. Both expressions are always evaluated.
+&lt;result&gt; = &lt;expression1&gt; Or &lt;expression2&gt;</source>
+        <target state="translated">Vykonává inkluzivní logickou disjunkci dvou logických výrazů nebo bitovou disjunkci dvou číselných výrazů. Pro logické výrazy vrací True, pokud se aspoň jeden operand vyhodnotí jako True. Vždycky se vyhodnocují oba výrazy.
+&lt;výsledek&gt; = &lt;výraz1&gt; Or &lt;výraz2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_or_procedure_re_declares_one_or_more_existing_properties_or_procedures_with_the_same_name">
+        <source>Specifies that a property or procedure re-declares one or more existing properties or procedures with the same name.</source>
+        <target state="translated">Určuje, že vlastnost nebo procedura znovu deklaruje nejmíň jednu z existujících vlastností nebo procedur se stejným názvem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_or_procedure_can_be_overridden_by_an_identically_named_property_or_procedure_in_a_derived_class">
+        <source>Specifies that a property or procedure can be overridden by an identically named property or procedure in a derived class.</source>
+        <target state="translated">Určuje, že se může vlastnost nebo procedura přepsat identicky pojmenovanou vlastností nebo procedurou v odvozené třídě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_or_procedure_overrides_an_identically_named_property_or_procedure_inherited_from_a_base_class">
+        <source>Specifies that a property or procedure overrides an identically named property or procedure inherited from a base class.</source>
+        <target state="translated">Určuje, že vlastnost nebo procedura přepisuje identicky pojmenovanou vlastnost nebo proceduru zděděnou ze základní třídy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_procedure_parameter_takes_an_optional_array_of_elements_of_the_specified_type">
+        <source>Specifies that a procedure parameter takes an optional array of elements of the specified type.</source>
+        <target state="translated">Určuje, že parametr procedury přijímá volitelné pole prvků zadaného typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_that_a_method_class_or_structure_declaration_is_a_partial_definition_of_the_method_class_or_structure">
+        <source>Indicates that a method, class, or structure declaration is a partial definition of the method, class, or structure.</source>
+        <target state="translated">Označuje, že deklarace metody, třídy nebo struktury je částečnou definicí metody, třídy nebo struktury.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_sum_of_two_numbers_or_the_positive_value_of_a_numeric_expression">
+        <source>Returns the sum of two numbers, or the positive value of a numeric expression.</source>
+        <target state="translated">Vrací součet dvou čísel nebo kladnou hodnotu číselného výrazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prevents_the_contents_of_an_array_from_being_cleared_when_the_dimensions_of_the_array_are_changed">
+        <source>Prevents the contents of an array from being cleared when the dimensions of the array are changed.</source>
+        <target state="translated">Zabraňuje vymazání obsahu pole, když se změní rozměry pole.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_their_module_class_or_structure">
+        <source>Specifies that one or more declared programming elements are accessible only from within their module, class, or structure.</source>
+        <target state="translated">Určuje, že nejmíň jeden deklarovaný programový prvek je přístupný jenom zevnitř svého vlastního modulu, třídy nebo struktury.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_of_a_property_and_the_property_procedures_used_to_store_and_retrieve_the_value_of_the_property">
+        <source>Declares the name of a property, and the property procedures used to store and retrieve the value of the property.</source>
+        <target state="translated">Deklaruje název vlastnosti a procedury vlastnosti používané k ukládání a načítání hodnoty vlastnosti.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_members_of_a_class_are_accessible_from_anywhere_in_the_same_assembly_their_own_classes_and_derived_classes">
+        <source>Specifies that one or more declared members of a class are accessible from anywhere in the same assembly, their own classes, and derived classes.</source>
+        <target state="translated">Určuje, že nejmíň jeden deklarovaný člen třídy je přístupný odkudkoli ve stejném sestavení, z jeho vlastní třídy a z odvozených tříd.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_their_own_class_or_from_a_derived_class">
+        <source>Specifies that one or more declared programming elements are accessible only from within their own class or from a derived class.</source>
+        <target state="translated">Určuje, že nejmíň jeden deklarovaný programový prvek je přístupný jenom ze své vlastní třídy nebo z odvozené třídy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_have_no_access_restrictions">
+        <source>Specifies that one or more declared programming elements have no access restrictions.</source>
+        <target state="translated">Určuje, že nejmíň jeden deklarovaný programový prvek nemá žádné omezení přístupu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_variable_or_property_can_be_read_but_not_written_to">
+        <source>Specifies that a variable or property can be read but not written to.</source>
+        <target state="translated">Určuje, že se proměnná nebo vlastnost může číst, ale nemůže se do ní zapisovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reallocates_storage_space_for_an_array_variable">
+        <source>Reallocates storage space for an array variable.</source>
+        <target state="translated">Opětovně přiděluje místo pro uložení proměnné typu pole.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_an_arithmetic_right_shift_on_a_bit_pattern">
+        <source>Performs an arithmetic right shift on a bit pattern</source>
+        <target state="translated">Provede aritmetický bitový posun vpravo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_a_Set_property_procedure_that_is_used_to_assign_a_value_to_a_property">
+        <source>Declares a Set property procedure that is used to assign a value to a property.</source>
+        <target state="translated">Deklaruje proceduru vlastnosti Set, která se používá pro přiřazení hodnoty k vlastnosti.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_declared_programming_element_redeclares_and_hides_an_identically_named_element_in_a_base_class">
+        <source>Specifies that a declared programming element redeclares and hides an identically named element in a base class.</source>
+        <target state="translated">Určuje, že deklarovaný programový prvek znovu deklaruje a skryje identicky pojmenovaný prvek základní třídy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_associated_with_all_instances_of_a_class_or_structure">
+        <source>Specifies that one or more declared programming elements are associated with all instances of a class or structure.</source>
+        <target state="translated">Určuje, že nejmíň jeden deklarovaný programový prvek je spojený se všemi instancemi třídy nebo struktury.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_local_variables_are_to_remain_in_existence_and_retain_their_latest_values_after_the_procedure_in_which_they_are_declared_terminates">
+        <source>Specifies that one or more declared local variables are to remain in existence and retain their latest values after the procedure in which they are declared terminates.</source>
+        <target state="translated">Určuje, že nejmíň jedna z deklarovaných lokálních proměnných si zachová existenci a svou poslední hodnotu potom, co se ukončí procedura, ve které jsou deklarované.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_of_a_structure_and_introduces_the_definition_of_the_variables_properties_events_and_procedures_that_make_up_the_structure">
+        <source>Declares the name of a structure and introduces the definition of the variables, properties, events, and procedures that make up the structure.</source>
+        <target state="translated">Deklaruje název struktury a zavádí definice proměnných, vlastností, událostí a procedur, které tvoří strukturu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declares_the_name_parameters_and_code_that_define_a_Sub_procedure_that_is_a_procedure_that_does_not_return_a_value_to_the_calling_code">
+        <source>Declares the name, parameters, and code that define a Sub procedure, that is, a procedure that does not return a value to the calling code.</source>
+        <target state="translated">Deklaruje název, parametry a kód, které definují proceduru Sub, která je procedurou nevracející hodnotu volajícímu kódu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range">
+        <source>Separates the beginning and ending values of a loop counter or array bounds or that of a value match range.</source>
+        <target state="translated">Odděluje počáteční a koncové hodnoty čítače cyklů, hranic pole nebo rozsahu shodných hodnot.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determines_the_run_time_type_of_an_object_reference_variable_and_compares_it_to_a_data_type_Returns_True_or_False_depending_on_whether_the_two_types_are_compatible_result_TypeOf_objectExpression_Is_typeName">
+        <source>Determines the run-time type of an object reference variable and compares it to a data type. Returns True or False depending, on whether the two types are compatible.
+&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</source>
+        <target state="translated">Určuje za běhu typ proměnné odkazu na objekt a porovná ho s datovým typem. Vrací True nebo False podle toho, jestli jsou tyto dva typy kompatibilní.
+&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Used_in_a_Declare_statement_Specifies_that_Visual_Basic_should_marshal_all_strings_to_Unicode_values_in_a_call_into_an_external_procedure_and_should_look_up_the_procedure_without_modifying_its_name">
+        <source>Used in a Declare statement. Specifies that Visual Basic should marshal all strings to Unicode values in a call into an external procedure, and should look up the procedure without modifying its name.</source>
+        <target state="translated">Používá se v příkazu Declare. Určuje, jestli by měl Visual Basic zařazovat všechny řetězce k hodnotám Unicode ve volání do externí procedury a jestli by měl vyhledávat proceduru bez úpravy jejího názvu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indicates_that_a_conversion_operator_CType_converts_a_class_or_structure_to_a_type_that_can_hold_all_possible_values_of_the_original_class_or_structure">
+        <source>Indicates that a conversion operator (CType) converts a class or structure to a type that can hold all possible values of the original class or structure.</source>
+        <target state="translated">Označuje, že operátor převodu (CType) převede třídu nebo strukturu na typ, který může uchovat všechny možné hodnoty původní třídy nebo struktury.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_one_or_more_declared_member_variables_refer_to_an_instance_of_a_class_that_can_raise_events">
+        <source>Specifies that one or more declared member variables refer to an instance of a class that can raise events</source>
+        <target state="translated">Určuje, že nejmíň jedna deklarovaná členská proměnná odkazuje na instanci třídy, která může vyvolat události.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_that_a_property_can_be_written_to_but_not_read">
+        <source>Specifies that a property can be written to but not read.</source>
+        <target state="translated">Určuje, že se do vlastnosti dá zapisovat, ale nedá se číst.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performs_a_logical_exclusion_on_two_Boolean_expressions_or_a_bitwise_exclusion_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_exactly_one_of_the_expressions_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Xor_expression2">
+        <source>Performs a logical exclusion on two Boolean expressions, or a bitwise exclusion on two numeric expressions. For Boolean expressions, returns True if exactly one of the expressions evaluates to True. Both expressions are always evaluated.
+&lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;</source>
+        <target state="translated">Vykoná logickou operaci nonekvivalence dvou logických výrazů nebo bitovou operaci nonekvivalence dvou číselných výrazů. Pro logické výrazy vrací True, pokud se přesně jeden z nich vyhodnotí jako True. Vždycky se vyhodnotí oba výrazy.
+&lt;výsledek&gt; = &lt;výraz1&gt; XOr &lt;výraz2&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applies_an_aggregation_function_such_as_Sum_Average_or_Count_to_a_sequence">
+        <source>Applies an aggregation function, such as Sum, Average, or Count to a sequence.</source>
+        <target state="translated">Použije u sekvence agregační funkci, jako je Součet, Průměr nebo Počet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first">
+        <source>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</source>
+        <target state="translated">Určuje pořadí řazení pro klauzuli Order By v dotazu. Jako první se objeví nejmenší element.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="translated">Asynchronně čeká na dokončení úlohy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">
+        <source>Sets the string comparison method specified in Option Compare to a strict binary sort order.</source>
+        <target state="translated">Nastaví metodu porovnání řetězce, určenou v příkazu Option Compare, na striktní binární řazení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_element_keys_used_for_grouping_in_Group_By_or_sort_order_in_Order_By">
+        <source>Specifies the element keys used for grouping (in Group By) or sort order (in Order By).</source>
+        <target state="translated">Určuje klíče prvků použité pro seskupování (v Group By) nebo třízení (v Order By).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Transfers_execution_to_a_Function_Sub_or_dynamic_link_library_DLL_procedure_bracket_Call_bracket_procedureName_bracket_argumentList_bracket">
+        <source>Transfers execution to a Function, Sub, or dynamic-link library (DLL) procedure.
+[Call] &lt;procedureName&gt; [(&lt;argumentList&gt;)]</source>
+        <target state="translated">Přenese vykonávání na Function, Sub nebo proceduru knihovny DLL.
+[Call] &lt;název_procedury&gt; [(&lt;seznam_argumentů&gt;)]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_the_statements_to_run_if_none_of_the_previous_cases_in_the_Select_Case_statement_returns_True">
+        <source>Introduces the statements to run if none of the previous cases in the Select Case statement returns True.</source>
+        <target state="translated">Zavádí příkazy ke spuštění, pokud žádný z předchozích případů příkazu Select Case nevrací hodnotu True.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Followed_by_a_comparison_operator_and_then_an_expression_Case_Is_introduces_the_statements_to_run_if_the_Select_Case_expression_combined_with_the_Case_Is_expression_evaluates_to_True">
+        <source>Followed by a comparison operator and then an expression, Case Is introduces the statements to run if the Select Case expression combined with the Case Is expression evaluates to True.</source>
+        <target state="translated">Příkaz Case Is, za kterým následuje operátor porovnání a pak výraz, zavádí příkazy, které se spustí, pokud se výraz příkazu Select Case v kombinaci s výrazem příkazu Case Is vyhodnotí jako True.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_value_or_set_of_values_against_which_the_value_of_an_expression_in_a_Select_Case_statement_is_to_be_tested_Case_expression_expression1_To_expression2_bracket_Is_bracket_comparisonOperator_expression">
+        <source>Introduces a value, or set of values, against which the value of an expression in a Select Case statement is to be tested.
+Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;comparisonOperator&gt; &lt;expression&gt;}</source>
+        <target state="translated">Zavádí hodnotu nebo množinu hodnot, oproti kterým se má testovat hodnota výrazu příkazu Select Case.
+Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;comparisonOperator&gt; &lt;expression&gt;}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_statement_block_to_be_run_if_the_specified_exception_occurs_inside_a_Try_block">
+        <source>Introduces a statement block to be run if the specified exception occurs inside a Try block.</source>
+        <target state="translated">Zavádí blok příkazů ke spuštění, pokud nastane uvnitř bloku Try zadaná výjimka.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sets_the_default_comparison_method_to_use_when_comparing_string_data_When_set_to_Text_uses_a_text_sort_order_that_is_not_case_sensitive_When_set_to_Binary_uses_a_strict_binary_sort_order_Option_Compare_Binary_Text">
+        <source>Sets the default comparison method to use when comparing string data. When set to Text, uses a text sort order that is not case sensitive. When set to Binary, uses a strict binary sort order.
+Option Compare {Binary | Text}</source>
+        <target state="translated">Nastaví výchozí metodu porovnání pro použití při porovnávání řetězcových dat. Při nastavení na Text použije textové řazení, které nerozlišuje malá a velká písmena. Při nastavení na Binary použije striktní binární řazení.
+Option Compare {Binary | Text}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Defines_a_conditional_compiler_constant_Conditional_compiler_constants_are_always_private_to_the_file_in_which_they_appear_The_expressions_used_to_initialize_them_can_contain_only_conditional_compiler_constants_and_literals">
+        <source>Defines a conditional compiler constant. Conditional compiler constants are always private to the file in which they appear. The expressions used to initialize them can contain only conditional compiler constants and literals.</source>
+        <target state="translated">Definuje podmíněnou konstantu kompilátoru. Podmíněné konstanty kompilátoru jsou vždycky soukromé vzhledem k souboru, ve kterém se objeví. Výraz použitý k jejich inicializaci může obsahovat jenom podmíněné konstanty kompilátoru a literály.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Transfers_execution_immediately_to_the_next_iteration_of_the_Do_loop">
+        <source>Transfers execution immediately to the next iteration of the Do loop.</source>
+        <target state="translated">Okamžitě přenese vykonávání na další iteraci smyčky Do.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Transfers_execution_immediately_to_the_next_iteration_of_the_For_loop">
+        <source>Transfers execution immediately to the next iteration of the For loop.</source>
+        <target state="translated">Okamžitě přenese vykonávání na další iteraci smyčky For.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Transfers_execution_immediately_to_the_next_iteration_of_the_loop_Can_be_used_in_a_Do_loop_a_For_loop_or_a_While_loop">
+        <source>Transfers execution immediately to the next iteration of the loop. Can be used in a Do loop, a For loop, or a While loop.</source>
+        <target state="translated">Okamžitě přenese vykonávání na další iteraci smyčky. Může se použít ve smyčce Do, For nebo While.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Transfers_execution_immediately_to_the_next_iteration_of_the_While_loop">
+        <source>Transfers execution immediately to the next iteration of the While loop.</source>
+        <target state="translated">Okamžitě přenese vykonávání na další iteraci smyčky While.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_largest_element_will_appear_first">
+        <source>Specifies the sort order for an Order By clause in a query. The largest element will appear first.</source>
+        <target state="translated">Určuje pořadí řazení pro klauzuli Order By v dotazu. Jako první se objeví největší element.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restricts_the_values_of_a_query_result_to_eliminate_duplicate_values">
+        <source>Restricts the values of a query result to eliminate duplicate values.</source>
+        <target state="translated">Omezí hodnoty výsledku dotazu, aby se eliminovaly duplicitní hodnoty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_or_until_the_condition_becomes_true_Do_Loop_While_Until_condition">
+        <source>Repeats a block of statements while a Boolean condition is true, or until the condition becomes true.
+Do...Loop {While | Until} &lt;condition&gt;</source>
+        <target state="translated">Opakuje blok příkazů, dokud je logická podmínka pravdivá nebo dokud se podmínka nestane pravdivou.
+Do...Loop {While | Until} &lt;podmínka&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Until_condition_Loop">
+        <source>Repeats a block of statements until a Boolean condition becomes true.
+Do Until &lt;condition&gt;...Loop</source>
+        <target state="translated">Opakuje blok příkazů, dokud se logická podmínka nestane pravdivou.
+Do Until &lt;podmínka&gt;...Loop</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_While_condition_Loop">
+        <source>Repeats a block of statements while a Boolean condition is true.
+Do While &lt;condition&gt;...Loop</source>
+        <target state="translated">Opakuje blok příkazů, dokud je logická podmínka pravdivá.
+Do While &lt;podmínka&gt;...Loop</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_group_of_statements_in_an_SharpIf_statement_that_is_compiled_if_no_previous_condition_evaluates_to_True">
+        <source>Introduces a group of statements in an #If statement that is compiled if no previous condition evaluates to True.</source>
+        <target state="translated">Zavede skupinu příkazů v příkazu #If, který se zkompiluje, pokud se žádná z předchozích podmínek nevyhodnotí jako True.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_condition_in_an_SharpIf_statement_that_is_tested_if_the_previous_conditional_test_evaluates_to_False">
+        <source>Introduces a condition in an #If statement that is tested if the previous conditional test evaluates to False.</source>
+        <target state="translated">Zavede podmínku v příkazu #If, který se testuje, pokud se předchozí podmíněný test vyhodnotí jako False.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_condition_in_an_If_statement_that_is_to_be_tested_if_the_previous_conditional_test_fails">
+        <source>Introduces a condition in an If statement that is to be tested if the previous conditional test fails.</source>
+        <target state="translated">Zavede podmínku v příkazu If, který se má testovat, pokud je předchozí podmíněný test neúspěšný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previous_condition_evaluates_to_True">
+        <source>Introduces a group of statements in an If statement that is executed if no previous condition evaluates to True.</source>
+        <target state="translated">Zavede skupinu příkazů v příkazu If, který se provede, pokud se žádná z předchozích podmínek nevyhodnotí jako True.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_the_definition_of_an_SharpIf_block">
+        <source>Terminates the definition of an #If block.</source>
+        <target state="translated">Ukončí definici bloku #If.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stops_execution_immediately">
+        <source>Stops execution immediately.</source>
+        <target state="translated">Okamžitě zastaví provádění.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_a_SharpRegion_block">
+        <source>Terminates a #Region block.</source>
+        <target state="translated">Ukončí blok #Region.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_relationship_between_element_keys_to_use_as_the_basis_of_a_join_operation">
+        <source>Specifies the relationship between element keys to use as the basis of a join operation.</source>
+        <target state="translated">Určuje vztah mezi klíči elementů, který se má použít jako základ operace spojení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simulates_the_occurrence_of_an_error">
+        <source>Simulates the occurrence of an error.</source>
+        <target state="translated">Simuluje výskyt chyby.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_Do_loop_and_transfers_execution_immediately_to_the_statement_following_the_Loop_statement">
+        <source>Exits a Do loop and transfers execution immediately to the statement following the Loop statement.</source>
+        <target state="translated">Ukončí smyčku Do a okamžitě přenese provádění do příkazu za příkazem Loop.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_For_loop_and_transfers_execution_immediately_to_the_statement_following_the_Next_statement">
+        <source>Exits a For loop and transfers execution immediately to the statement following the Next statement.</source>
+        <target state="translated">Ukončí smyčku For a okamžitě přenese provádění do příkazu za příkazem Next.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_procedure_or_block_and_transfers_execution_immediately_to_the_statement_following_the_procedure_call_or_block_definition_Exit_Do_For_Function_Property_Select_Sub_Try_While">
+        <source>Exits a procedure or block and transfers execution immediately to the statement following the procedure call or block definition.
+Exit {Do | For | Function | Property | Select | Sub | Try | While}</source>
+        <target state="translated">Ukončí proceduru nebo blok a okamžitě přenese provádění do příkazu za voláním procedury nebo definicí bloku.
+Exit {Do | For | Function | Property | Select | Sub | Try | While}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_Select_block_and_transfers_execution_immediately_to_the_statement_following_the_End_Select_statement">
+        <source>Exits a Select block and transfers execution immediately to the statement following the End Select statement.</source>
+        <target state="translated">Ukončí blok Select a okamžitě přenese provádění do příkazu za příkazem End Select.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_Try_block_and_transfers_execution_immediately_to_the_statement_following_the_End_Try_statement">
+        <source>Exits a Try block and transfers execution immediately to the statement following the End Try statement.</source>
+        <target state="translated">Ukončí blok Try a okamžitě přenese provádění do příkazu za příkazem End Try.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exits_a_While_loop_and_transfers_execution_immediately_to_the_statement_following_the_End_While_statement">
+        <source>Exits a While loop and transfers execution immediately to the statement following the End While statement.</source>
+        <target state="translated">Ukončí smyčku While a okamžitě přenese provádění do příkazu za příkazem End While.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_set_to_On_requires_explicit_declaration_of_all_variables_using_a_Dim_Private_Public_or_ReDim_statement_Option_Explicit_On_Off">
+        <source>When set to On, requires explicit declaration of all variables, using a Dim, Private, Public, or ReDim statement.
+Option Explicit {On | Off}</source>
+        <target state="translated">Pokud je tato možnost zapnutá (On), vyžaduje explicitní deklaraci všech proměnných, pomocí příkazu Dim, Private, Public nebo ReDim.
+Option Explicit {On | Off}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_a_Boolean_value_that_fails_a_conditional_test">
+        <source>Represents a Boolean value that fails a conditional test.</source>
+        <target state="translated">Představuje logickou hodnotu, která neprojde podmíněným testem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure">
+        <source>Introduces a statement block to be run before exiting a Try structure.</source>
+        <target state="translated">Zavede blok příkazů, který se má spustit před ukončením struktury Try.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection">
+        <source>Introduces a loop that is repeated for each element in a collection.</source>
+        <target state="translated">Zavede smyčku, která se opakuje pro každý element v kolekci.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_loop_that_is_iterated_a_specified_number_of_times">
+        <source>Introduces a loop that is iterated a specified number of times.</source>
+        <target state="translated">Zavede smyčku, která se iteruje podle určeného počtu opakování.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Identifies_a_list_of_values_as_a_collection_initializer">
+        <source>Identifies a list of values as a collection initializer</source>
+        <target state="translated">Určuje seznam hodnot jako inicializátor kolekce.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Branches_unconditionally_to_a_specified_line_in_a_procedure">
+        <source>Branches unconditionally to a specified line in a procedure.</source>
+        <target state="translated">Rozvětví se nepodmíněně na určený řádek v proceduře.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Groups_elements_that_have_a_common_key">
+        <source>Groups elements that have a common key.</source>
+        <target state="translated">Seskupí elementy, které mají společný klíč.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Combines_the_elements_of_two_sequences_and_groups_the_results_The_join_operation_is_based_on_matching_keys">
+        <source>Combines the elements of two sequences and groups the results. The join operation is based on matching keys.</source>
+        <target state="translated">Sloučí elementy dvou sekvencí a seskupí výsledky. Operace spojení je založená na shodujících se klíčích.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Group_to_specify_that_a_group_named_0_should_be_created">
+        <source>Use 'Group' to specify that a group named '{0}' should be created.</source>
+        <target state="translated">Příkazem Group určíte, že se má vytvořit skupina s názvem {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Group_to_specify_that_a_group_named_Group_should_be_created">
+        <source>Use 'Group' to specify that a group named 'Group' should be created.</source>
+        <target state="translated">Příkazem Group určíte, že se má vytvořit skupina s názvem Group.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conditionally_compiles_selected_blocks_of_code_depending_on_the_value_of_an_expression">
+        <source>Conditionally compiles selected blocks of code, depending on the value of an expression.</source>
+        <target state="translated">Podmíněně zkompiluje vybrané bloky kódu, a to v závislosti na hodnotě výrazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conditionally_executes_a_group_of_statements_depending_on_the_value_of_an_expression">
+        <source>Conditionally executes a group of statements, depending on the value of an expression.</source>
+        <target state="translated">Podmíněně provede skupinu příkazů, a to v závislosti na hodnotě výrazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_set_to_On_allows_the_use_of_local_type_inference_in_declaring_variables_Option_Infer_On_Off">
+        <source>When set to On, allows the use of local type inference in declaring variables.
+Option Infer {On | Off}</source>
+        <target state="translated">Pokud je tato možnost zapnutá (On), umožňuje použití odvození místního typu v deklarujících proměnných.
+Option Infer {On | Off}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_an_identifier_that_can_serve_as_a_reference_to_the_results_of_a_join_or_grouping_subexpression">
+        <source>Specifies an identifier that can serve as a reference to the results of a join or grouping subexpression.</source>
+        <target state="translated">Určuje identifikátor, který může sloužit jako odkaz na výsledky sjednocení nebo podvýrazu seskupování.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Combines_the_elements_of_two_sequences_The_join_operation_is_based_on_matching_keys">
+        <source>Combines the elements of two sequences. The join operation is based on matching keys.</source>
+        <target state="translated">Kombinuje prvky dvou sekvencí. Operace sjednocení je založená na přiřazování shodných klíčů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Identifies_a_key_field_in_an_anonymous_type_definition">
+        <source>Identifies a key field in an anonymous type definition.</source>
+        <target state="translated">Identifikuje pole klíče v definici anonymního typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computes_a_value_for_each_item_in_the_query_and_assigns_the_value_to_a_new_range_variable">
+        <source>Computes a value for each item in the query, and assigns the value to a new range variable.</source>
+        <target state="translated">Vypočítá hodnotu pro každou položku v dotazu a přiřadí hodnotu nové proměnné rozsahu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_a_loop_that_is_introduced_with_a_Do_statement">
+        <source>Terminates a loop that is introduced with a Do statement.</source>
+        <target state="translated">Ukončuje smyčku, která je zavedená příkazem Do.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Loop_Until_condition">
+        <source>Repeats a block of statements until a Boolean condition becomes true.
+Do...Loop Until &lt;condition&gt;</source>
+        <target state="translated">Opakuje blok příkazů, dokud se logická podmínka nestane pravdivou.
+Do...Loop Until &lt;podmínka&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_Loop_While_condition">
+        <source>Repeats a block of statements while a Boolean condition is true.
+Do...Loop While &lt;condition&gt;</source>
+        <target state="translated">Opakuje blok příkazů, dokud je logická podmínka pravdivá.
+Do...Loop While &lt;podmínka&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running">
+        <source>Provides a way to refer to the current instance of a class or structure, that is, the instance in which the code is running.</source>
+        <target state="translated">Poskytuje způsob, jak odkazovat na aktuální instanci třídy nebo struktury, to je instanci, ve které kód běží.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Provides_a_way_to_refer_to_the_base_class_of_the_current_class_instance_You_cannot_use_MyBase_to_call_MustOverride_base_methods">
+        <source>Provides a way to refer to the base class of the current class instance. You cannot use MyBase to call MustOverride base methods.</source>
+        <target state="translated">Poskytuje způsob, jak odkazovat na základní třídu aktuální instance třídy. Pro volání základních metod MustOverride nemůžete použít MyBase.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides">
+        <source>Provides a way to refer to the class instance members as originally implemented, ignoring any derived class overrides.</source>
+        <target state="translated">Poskytuje způsob, jak odkazovat na členy instance třídy, jak byly původně implementované, bez ohledu na přepsání v odvozené třídě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Creates_a_new_object_instance">
+        <source>Creates a new object instance.</source>
+        <target state="translated">Vytvoří novou instanci objektu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Terminates_a_loop_that_iterates_through_the_values_of_a_loop_variable">
+        <source>Terminates a loop that iterates through the values of a loop variable.</source>
+        <target state="translated">Ukončuje smyčku, která iteruje skrz hodnoty proměnné smyčky.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_the_default_value_of_any_data_type">
+        <source>Represents the default value of any data type.</source>
+        <target state="translated">Představuje výchozí hodnotu libovolného datového typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Turns_a_compiler_option_off">
+        <source>Turns a compiler option off.</source>
+        <target state="translated">Vypne možnost kompilátoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enables_the_error_handling_routine_that_starts_at_the_line_specified_in_the_line_argument_The_specified_line_must_be_in_the_same_procedure_as_the_On_Error_statement_On_Error_GoTo_bracket_label_0_1_bracket">
+        <source>Enables the error-handling routine that starts at the line specified in the line argument.
+The specified line must be in the same procedure as the On Error statement.
+On Error GoTo [&lt;label&gt; | 0 | -1]</source>
+        <target state="translated">Povoluje rutinu pro ošetření chyb, která začíná na řádku zadaném v argumentu řádku.
+Zadaný řádek musí být ve stejné proceduře jako příkaz On Error.
+On Error GoTo [&lt;návěští&gt; | 0 | -1]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_a_run_time_error_occurs_execution_transfers_to_the_statement_following_the_statement_or_procedure_call_that_resulted_in_the_error">
+        <source>When a run-time error occurs, execution transfers to the statement following the statement or procedure call that resulted in the error.</source>
+        <target state="translated">Pokud nastane chyba za běhu, vykonávání se přenese na příkaz následující po příkazu nebo volání procedury, které vedlo k chybě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Turns_a_compiler_option_on">
+        <source>Turns a compiler option on.</source>
+        <target state="translated">Zapne možnost kompilátoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_element_keys_used_to_correlate_sequences_for_a_join_operation">
+        <source>Specifies the element keys used to correlate sequences for a join operation.</source>
+        <target state="translated">Určuje klíče prvků použité pro sladění sekvencí pro operaci sjednocení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_sort_order_for_columns_in_a_query_Can_be_followed_by_either_the_Ascending_or_the_Descending_keyword_If_neither_is_specified_Ascending_is_used">
+        <source>Specifies the sort order for columns in a query. Can be followed by either the Ascending or the Descending keyword. If neither is specified, Ascending is used.</source>
+        <target state="translated">Určuje pořadí řazení pro sloupce v dotazu. Může po ní následovat buď klíčové slovo Ascending, nebo Descending. Pokud není určené žádné z nich, použije se Ascending.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_statements_to_run_when_the_event_is_raised_by_the_RaiseEvent_statement_RaiseEvent_delegateSignature_End_RaiseEvent">
+        <source>Specifies the statements to run when the event is raised by the RaiseEvent statement.
+RaiseEvent(&lt;delegateSignature&gt;)...End RaiseEvent</source>
+        <target state="translated">Určuje příkazy ke spuštění, když se vyvolá událost příkaz RaiseEvent.
+RaiseEvent(&lt;signatura_delegáta&gt;)...End RaiseEvent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Triggers_an_event_declared_at_module_level_within_a_class_form_or_document_RaiseEvent_eventName_bracket_argumentList_bracket">
+        <source>Triggers an event declared at module level within a class, form, or document.
+RaiseEvent &lt;eventName&gt; [(&lt;argumentList&gt;)]</source>
+        <target state="translated">Spustí událost deklarovanou na úrovni modulu uvnitř třídy, formuláře nebo dokumentu.
+RaiseEvent &lt;název_události&gt; [(&lt;seznam_argumentů&gt;)]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapses_and_hides_sections_of_code_in_Visual_Basic_files">
+        <source>Collapses and hides sections of code in Visual Basic files.</source>
+        <target state="translated">Sbalí a skryje části kódu v souborech Visual Basicu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_execution_to_the_code_that_called_the_Function_Sub_Get_Set_or_Operator_procedure_Return_or_Return_expression">
+        <source>Returns execution to the code that called the Function, Sub, Get, Set, or Operator procedure.
+Return -or- Return &lt;expression&gt;</source>
+        <target state="translated">Vrátí vykonávání do kódu, který volal proceduru Function, Sub, Get, Set nebo Operator.
+Return -or- Return &lt;výraz&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Runs_one_of_several_groups_of_statements_depending_on_the_value_of_an_expression">
+        <source>Runs one of several groups of statements, depending on the value of an expression.</source>
+        <target state="translated">Spustí jednu z několika skupin příkazů, závisí na hodnotě výrazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_which_columns_to_include_in_the_result_of_a_query">
+        <source>Specifies which columns to include in the result of a query.</source>
+        <target state="translated">Určuje, které sloupce se zahrnou do výsledku dotazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skips_elements_up_to_a_specified_position_in_the_collection">
+        <source>Skips elements up to a specified position in the collection.</source>
+        <target state="translated">Přeskočí elementy v kolekci až do zadané pozice.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_how_much_to_increment_between_each_loop_iteration">
+        <source>Specifies how much to increment between each loop iteration.</source>
+        <target state="translated">Určuje, jak velký bude přírůstek mezi každou iterací smyčky.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suspends_program_execution">
+        <source>Suspends program execution.</source>
+        <target state="translated">Pozastaví vykonávání programu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
+        <source>When set to On, restricts implicit data type conversions to only widening conversions.
+Option Strict {On | Off}</source>
+        <target state="translated">Pokud je tato možnost zapnutá (On), omezí implicitní převody typů dat jenom na rozšiřující konverze.
+Option Strict {On | Off}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ensures_that_multiple_threads_do_not_execute_the_statement_block_at_the_same_time_SyncLock_object_End_Synclock">
+        <source>Ensures that multiple threads do not execute the statement block at the same time.
+SyncLock &lt;object&gt;...End Synclock</source>
+        <target state="translated">Zajistí, že víc vláken nebude vykonávat blok příkazů ve stejném čase.
+SyncLock &lt;object&gt;...End Synclock</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
+        <source>Includes elements up to a specified position in the collection.</source>
+        <target state="translated">Zahrne elementy v kolekci až do zadané pozice.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_text_sort_order_that_is_not_case_sensitive">
+        <source>Sets the string comparison method specified in Option Compare to a text sort order that is not case sensitive.</source>
+        <target state="translated">Nastaví metodu porovnání řetězce určenou v příkazu Option Compare na textové řazení, které nerozlišuje malá a velká písmena.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_statement_block_to_be_compiled_or_executed_if_a_tested_condition_is_true">
+        <source>Introduces a statement block to be compiled or executed if a tested condition is true.</source>
+        <target state="translated">Zavádí blok příkazů, který se má zkompilovat nebo provést, pokud je testovaná podmínka pravdivá.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Throws_an_exception_within_a_procedure_so_that_you_can_handle_it_with_structured_or_unstructured_exception_handling_code">
+        <source>Throws an exception within a procedure so that you can handle it with structured or unstructured exception-handling code.</source>
+        <target state="translated">Generuje výjimku uvnitř procedury tak, že ji můžete zpracovat strukturovaným nebo nestrukturovaným kódem pro ošetření výjimky.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_a_Boolean_value_that_passes_a_conditional_test">
+        <source>Represents a Boolean value that passes a conditional test.</source>
+        <target state="translated">Představuje logickou hodnotu, která projde podmíněným testem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Provides_a_way_to_handle_some_or_all_possible_errors_that_might_occur_in_a_given_block_of_code_while_still_running_the_code_Try_bracket_Catch_bracket_Catch_Finally_End_Try">
+        <source>Provides a way to handle some or all possible errors that might occur in a given block of code, while still running the code.
+Try...[Catch]...{Catch | Finally}...End Try</source>
+        <target state="translated">Poskytuje způsob, jak ošetřit některé nebo všechny možné chyby, které můžou v daném bloku kódu nastat, zatímco kód dál běží.
+Try...[Catch]...{Catch | Finally}...End Try</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_Using_block_does_three_things_colon_it_creates_and_initializes_variables_in_the_resource_list_it_runs_the_code_in_the_block_and_it_disposes_of_the_variables_before_exiting_Resources_used_in_the_Using_block_must_implement_System_IDisposable_Using_resource1_bracket_resource2_bracket_End_Using">
+        <source>A Using block does three things: it creates and initializes variables in the resource list, it runs the code in the block, and it disposes of the variables before exiting. Resources used in the Using block must implement System.IDisposable.
+Using &lt;resource1&gt;[, &lt;resource2&gt;]...End Using</source>
+        <target state="translated">Blok Using dělá tři věci: vytvoří a inicializuje proměnné v seznamu zdrojů, spustí kód v bloku a před ukončením uvolní proměnné. Zdroje použité v bloku Using musí implementovat System.IDisposable.
+Using &lt;zdroj1&gt;[, &lt;zdroj2&gt;]...End Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_a_conditional_test_to_a_Catch_statement_Exceptions_are_caught_by_that_Catch_statement_only_when_the_conditional_test_that_follows_the_When_keyword_evaluates_to_True">
+        <source>Adds a conditional test to a Catch statement. Exceptions are caught by that Catch statement only when the conditional test that follows the When keyword evaluates to True.</source>
+        <target state="translated">Přidá podmíněný test k příkazu Catch. Výjimky se tímto příkazem Catch zachycují, jenom když se podmíněný test, který následuje po klíčovém slově When, vyhodnotí jako True.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_filtering_condition_for_a_range_variable_in_a_query">
+        <source>Specifies the filtering condition for a range variable in a query.</source>
+        <target state="translated">Určuje podmínku filtrování pro proměnnou rozsahu v dotazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Runs_a_series_of_statements_as_long_as_a_given_condition_is_true">
+        <source>Runs a series of statements as long as a given condition is true.</source>
+        <target state="translated">Spouští sérii příkazů, dokud bude podmínka pravdivá.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_a_condition_for_Skip_and_Take_operations_Elements_will_be_bypassed_or_included_as_long_as_the_condition_is_true">
+        <source>Specifies a condition for Skip and Take operations. Elements will be bypassed or included as long as the condition is true.</source>
+        <target state="translated">Určuje podmínku pro operace Skip a Take. Prvky se bude vynechávat nebo zahrnovat, dokud bude podmínka pravdivá.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specifies_the_declaration_of_property_initializations_in_an_object_initializer_New_typeName_With_bracket_property_expression_bracket_bracket_bracket">
+        <source>Specifies the declaration of property initializations in an object initializer.
+New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</source>
+        <target state="translated">Určuje deklaraci inicializací vlastností v inicializátoru objektu.
+New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With">
+        <source>Runs a series of statements that refer to a single object or structure.
+With &lt;object&gt;...End With</source>
+        <target state="translated">Spustí řadu příkazů, které odkazují na jeden objekt nebo strukturu.
+With &lt;object&gt;...End With</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
+        <source>Produces an element of an IEnumerable or IEnumerator.</source>
+        <target state="translated">Vytvoří element rozhraní IEnumerable nebo IEnumerator.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Defines_an_asynchronous_lambda_expression_that_can_use_the_Await_operator_Can_be_used_wherever_a_delegate_type_is_expected_Async_Sub_Function_parameterList_expression">
+        <source>Defines an asynchronous lambda expression that can use the Await operator. Can be used wherever a delegate type is expected.
+Async Sub/Function(&lt;parameterList&gt;) &lt;expression&gt;</source>
+        <target state="translated">Definuje asynchronní lambda výraz, který může používat operátor Await. Může se použít pokaždé, kdy se očekává typ delegáta.
+Async Sub/Function(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Defines_a_lambda_expression_that_calculates_and_returns_a_single_value_Can_be_used_wherever_a_delegate_type_is_expected_Function_parameterList_expression">
+        <source>Defines a lambda expression that calculates and returns a single value. Can be used wherever a delegate type is expected.
+Function(&lt;parameterList&gt;) &lt;expression&gt;</source>
+        <target state="translated">Definuje lambda výraz, který vypočítává a vrací jednu hodnotu. Dá se použít, kdykoli se očekává typ delegáta.
+Function(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Defines_a_lambda_expression_that_can_execute_statements_and_does_not_return_a_value_Can_be_used_wherever_a_delegate_type_is_expected_Sub_parameterList_statement">
+        <source>Defines a lambda expression that can execute statements and does not return a value. Can be used wherever a delegate type is expected.
+Sub(&lt;parameterList&gt;) &lt;statement&gt;</source>
+        <target state="translated">Definuje výraz lambda, který může provádět příkazy a nevrací hodnotu. Dá se použít, kdykoli se očekává typ delegáta.
+Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line">
+        <source>Disables reporting of specified warnings in the portion of the source file below the current line.</source>
+        <target state="translated">Zakáže hlášení určených upozornění v části zdrojového souboru pod aktuálním řádkem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line">
+        <source>Enables reporting of specified warnings in the portion of the source file below the current line.</source>
+        <target state="translated">Povolí hlášení určených upozornění v části zdrojového souboru pod aktuálním řádkem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Await">
+        <source>Insert 'Await'.</source>
+        <target state="translated">Vlož "Await".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_an_Async_Function">
+        <source>Make {0} an Async Function.</source>
+        <target state="translated">Převeď {0} na asynchronní funkci Async.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Missing_Cast">
+        <source>Insert Missing Cast</source>
+        <target state="translated">Vložit chybějící přetypování</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_0_to_Iterator">
+        <source>Convert {0} to Iterator</source>
+        <target state="translated">Převést {0} na iterátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_Return_with_Yield">
+        <source>Replace 'Return' with 'Yield</source>
+        <target state="translated">Nahradit příkaz Return příkazem Yield</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_the_correct_control_variable">
+        <source>Use the correct control variable</source>
+        <target state="translated">Použít správnou řídicí proměnnou</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameOf_function">
+        <source>NameOf function</source>
+        <target state="translated">Funkce NameOf</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_narrowing_conversion_in_0">
+        <source>Generate narrowing conversion in '{0}'</source>
+        <target state="translated">Generovat zužující převod v {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_widening_conversion_in_0">
+        <source>Generate widening conversion in '{0}'</source>
+        <target state="translated">Generovat rozšiřující konverzi v {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
+        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
+        <target state="translated">Neměňte tento kód. Kód pro vyčištění vložte do výše uvedené metody Dispose(disposing As Boolean).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
+        <target state="translated">TODO: Uvolněte nespravované prostředky (nespravované objekty) a přepište metodu Finalize() níže.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
+        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
+        <target state="translated">TODO: Přepište metodu Finalize(), jenom pokud metoda Dispose(disposing As Boolean) výše obsahuje kód pro uvolnění nespravovaných prostředků.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
+        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
+        <target state="translated">Visual Basic přidal tento kód pro správnou implementaci odstranitelného vzoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
+        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
+        <target state="translated">TODO: Zrušte komentář následujícího řádku, pokud se výše přepisuje metoda Finalize().</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Imports_statement_is_unnecessary">
+        <source>Imports statement is unnecessary.</source>
+        <target state="translated">Příkaz Imports není potřebný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Try_block">
+        <source>Try block</source>
+        <target state="translated">Blok Try</target>
+        <note>{Locked="Try"} "Try" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Catch_clause">
+        <source>Catch clause</source>
+        <target state="translated">Klauzule Catch</target>
+        <note>{Locked="Catch"} "Catch" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Finally_clause">
+        <source>Finally clause</source>
+        <target state="translated">Klauzule Finally</target>
+        <note>{Locked="Finally"} "Finally" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Using_statement">
+        <source>Using statement</source>
+        <target state="translated">Příkaz Using</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Using_block">
+        <source>Using block</source>
+        <target state="translated">Blok Using</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="With_statement">
+        <source>With statement</source>
+        <target state="translated">Příkaz With</target>
+        <note>{Locked="With"} "With" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="With_block">
+        <source>With block</source>
+        <target state="translated">Blok With</target>
+        <note>{Locked="With"} "With" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="SyncLock_statement">
+        <source>SyncLock statement</source>
+        <target state="translated">Příkaz SyncLock</target>
+        <note>{Locked="SyncLock"} "SyncLock" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="SyncLock_block">
+        <source>SyncLock block</source>
+        <target state="translated">Blok SyncLock</target>
+        <note>{Locked="SyncLock"} "SyncLock" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="For_Each_statement">
+        <source>For Each statement</source>
+        <target state="translated">Příkaz For Each</target>
+        <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="For_Each_block">
+        <source>For Each block</source>
+        <target state="translated">Blok For Each</target>
+        <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="On_Error_statement">
+        <source>On Error statement</source>
+        <target state="translated">Příkaz On Error</target>
+        <note>{Locked="On Error"} "On Error" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Resume_statement">
+        <source>Resume statement</source>
+        <target state="translated">Příkaz Resume</target>
+        <note>{Locked="Resume"} "Resume" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Yield_statement">
+        <source>Yield statement</source>
+        <target state="translated">Příkaz Yield</target>
+        <note>{Locked="Yield"} "Yield" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Await_expression">
+        <source>Await expression</source>
+        <target state="translated">Výraz Await</target>
+        <note>{Locked="Await"} "Await" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Lambda">
+        <source>Lambda</source>
+        <target state="translated">Lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Where_clause">
+        <source>Where clause</source>
+        <target state="translated">Klauzule Where</target>
+        <note>{Locked="Where"} "Where" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Select_clause">
+        <source>Select clause</source>
+        <target state="translated">Klauzule Select</target>
+        <note>{Locked="Select"} "Select" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="From_clause">
+        <source>From clause</source>
+        <target state="translated">Klauzule From</target>
+        <note>{Locked="From"} "From" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Aggregate_clause">
+        <source>Aggregate clause</source>
+        <target state="translated">Klauzule Aggregate</target>
+        <note>{Locked="Aggregate"} "Aggregate" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Let_clause">
+        <source>Let clause</source>
+        <target state="translated">Klauzule Let</target>
+        <note>{Locked="Let"} "Let" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Join_clause">
+        <source>Join clause</source>
+        <target state="translated">Klauzuje Join</target>
+        <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Group_Join_clause">
+        <source>Group Join clause</source>
+        <target state="translated">Klauzule Group Join</target>
+        <note>{Locked="Group Join"} "Group Join" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Group_By_clause">
+        <source>Group By clause</source>
+        <target state="translated">Klauzule Group By</target>
+        <note>{Locked="Group By"} "Group By" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Function_aggregation">
+        <source>Function aggregation</source>
+        <target state="translated">Agregace funkce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_While_clause">
+        <source>Take While clause</source>
+        <target state="translated">Klauzule Take While</target>
+        <note>{Locked="Take While"} "Take While" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Skip_While_clause">
+        <source>Skip While clause</source>
+        <target state="translated">Klauzule Skip While</target>
+        <note>{Locked="Skip While"} "Skip While" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Ordering_clause">
+        <source>Ordering clause</source>
+        <target state="translated">Klauzule Ordering</target>
+        <note>{Locked="Ordering"} "Ordering" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Join_condition">
+        <source>Join condition</source>
+        <target state="translated">Podmínka Join</target>
+        <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="WithEvents_field">
+        <source>WithEvents field</source>
+        <target state="translated">Pole WithEvents</target>
+        <note>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="translated">Přistupující objekt vlastnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="as_clause">
+        <source>as clause</source>
+        <target state="translated">Klauzule as</target>
+        <note>{Locked="as"} "as" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="type_parameters">
+        <source>type parameters</source>
+        <target state="translated">parametry typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="parameters">
+        <source>parameters</source>
+        <target state="translated">parametry</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="attributes">
+        <source>attributes</source>
+        <target state="translated">atributy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Too_many_arguments_to_0">
+        <source>Too many arguments to '{0}'.</source>
+        <target state="translated">{0} má moc argumentů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_is_not_defined">
+        <source>Type '{0}' is not defined.</source>
+        <target state="translated">Typ {0} není definovaný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Overloads">
+        <source>Add 'Overloads'</source>
+        <target state="translated">Přidat Overloads</target>
+        <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
+        <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>
+        <target state="translated">Přidá odkaz na metadata k určenému sestavení a všem jeho závislostem, třeba #r "myLib.dll".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Properties">
+        <source>Properties</source>
+        <target state="translated">Vlastnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="namespace_name">
+        <source>&lt;namespace name&gt;</source>
+        <target state="translated">&lt;název oboru názvů&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_namespace">
+        <source>Type a name here to declare a namespace.</source>
+        <target state="translated">Sem zadejte název k deklarování oboru názvů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_partial_class">
+        <source>Type a name here to declare a partial class.</source>
+        <target state="translated">Zadáním názvu na toto místo deklarujte částečnou třídu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="class_name">
+        <source>&lt;class name&gt;</source>
+        <target state="translated">&lt;název třídy&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="interface_name">
+        <source>&lt;interface name&gt;</source>
+        <target state="translated">&lt;název rozhraní&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="module_name">
+        <source>&lt;module name&gt;</source>
+        <target state="translated">&lt;název modulu&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="structure_name">
+        <source>&lt;structure name&gt;</source>
+        <target state="translated">&lt;název struktury&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_partial_interface">
+        <source>Type a name here to declare a partial interface.</source>
+        <target state="translated">Zadáním názvu na toto místo deklarujte částečné rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_partial_module">
+        <source>Type a name here to declare a partial module.</source>
+        <target state="translated">Zadáním názvu na toto místo deklarujte částečný modul.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_a_name_here_to_declare_a_partial_structure">
+        <source>Type a name here to declare a partial structure.</source>
+        <target state="translated">Zadáním názvu na toto místo deklarujte částečnou strukturu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Event_add_handler_name">
+        <source>{0}.add</source>
+        <target state="translated">{0}.add</target>
+        <note>The name of an event add handler where "{0}" is the event name.</note>
+      </trans-unit>
+      <trans-unit id="Event_remove_handler_name">
+        <source>{0}.remove</source>
+        <target state="translated">{0}.remove</target>
+        <note>The name of an event remove handler where "{0}" is the event name.</note>
+      </trans-unit>
+      <trans-unit id="Property_getter_name">
+        <source>{0}.get</source>
+        <target state="translated">{0}.get</target>
+        <note>The name of a property getter like "public int MyProperty { get; }" where "{0}" is the property name</note>
+      </trans-unit>
+      <trans-unit id="Property_setter_name">
+        <source>{0}.set</source>
+        <target state="translated">{0}.set</target>
+        <note>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</note>
+      </trans-unit>
+      <trans-unit id="Make_Async_Function">
+        <source>Make Async Function</source>
+        <target state="translated">Převést na asynchronní funkci</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_Async_Sub">
+        <source>Make Async Sub</source>
+        <target state="translated">Převést na asynchronní proceduru Sub</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Me">
+        <source>Add 'Me.'</source>
+        <target state="translated">Přidejte položku Me.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Is_Nothing_check">
+        <source>Use 'Is Nothing' check</source>
+        <target state="translated">Použít kontrolu „Is Nothing“</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_IsNot_Nothing_check">
+        <source>Use 'IsNot Nothing' check</source>
+        <target state="translated">Použít kontrolu „IsNot Nothing“</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="translated">Převést na Select Case</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="translated">Převést na For Each</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="translated">Převést na For</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="translated">Invertovat If</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

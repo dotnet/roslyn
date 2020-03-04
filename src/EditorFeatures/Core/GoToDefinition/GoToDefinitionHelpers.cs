@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
@@ -16,21 +18,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal static class GoToDefinitionHelpers
     {
-        public static bool TryGoToDefinition(
+        public static ImmutableArray<DefinitionItem> GetDefinitions(
             ISymbol symbol,
             Project project,
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            CancellationToken cancellationToken,
-            bool thirdPartyNavigationAllowed = true,
-            bool throwOnHiddenDefinition = false)
+            bool thirdPartyNavigationAllowed,
+            CancellationToken cancellationToken)
         {
             var alias = symbol as IAliasSymbol;
             if (alias != null)
             {
-                var ns = alias.Target as INamespaceSymbol;
-                if (ns != null && ns.IsGlobalNamespace)
+                if (alias.Target is INamespaceSymbol ns && ns.IsGlobalNamespace)
                 {
-                    return false;
+                    return ImmutableArray.Create<DefinitionItem>();
                 }
             }
 
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 symbol = method.PartialImplementationPart ?? symbol;
             }
 
-            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
+            using var definitionsDisposer = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
 
             // Going to a symbol may end up actually showing the symbol in the Find-Usages window.
             // This happens when there is more than one location for the symbol (i.e. for partial
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // So, if we only have a single location to go to, this does no unnecessary work.  And,
             // if we do have multiple locations to show, it will just be done in the BG, unblocking
             // this command thread so it can return the user faster.
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
 
             if (thirdPartyNavigationAllowed)
             {
@@ -92,13 +91,40 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             definitions.Add(definitionItem);
+            return definitions.ToImmutable();
+        }
 
-            var presenter = streamingPresenters.FirstOrDefault()?.Value;
+        public static bool TryGoToDefinition(
+            ISymbol symbol,
+            Project project,
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken,
+            bool thirdPartyNavigationAllowed = true,
+            bool throwOnHiddenDefinition = false)
+        {
+            var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
+
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return presenter.TryNavigateToOrPresentItemsAsync(
-                project.Solution.Workspace, title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
+            return streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
+        }
+
+        public static bool TryGoToDefinition(
+            ImmutableArray<DefinitionItem> definitions,
+            Project project,
+            string title,
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken)
+        {
+            if (definitions.IsDefaultOrEmpty)
+            {
+                return false;
+            }
+
+            return streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
     }
 }

@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.Analyzers</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" GenerateSource="true" Link="AnalyzersResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeQualityDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalyzerCategory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCustomTags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DeserializationConstructorCheck.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DiagnosticHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IBuiltInAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIdToOptionMappingHelper.cs" />
+  </ItemGroup>
+</Project>

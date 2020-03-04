@@ -1,7 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -93,7 +96,7 @@ public enum $$E { }
 <Code>
 enum $$E
 {
-    Foo = 1,
+    Goo = 1,
     Bar
 }</Code>
 
@@ -110,7 +113,7 @@ enum $$E
 <Code>
 enum $$C
 {
-    Foo = 1
+    Goo = 1
 }
 </Code>
 
@@ -126,7 +129,7 @@ using System;
 [Flags]
 enum $$C
 {
-    Foo = 1
+    Goo = 1
 }
 </Code>
 
@@ -142,7 +145,7 @@ enum $$C
 [Flags]
 enum $$C
 {
-    Foo = 1
+    Goo = 1
 }
 </Code>
 
@@ -157,7 +160,7 @@ enum $$C
 [Serializable, Flags]
 enum $$C
 {
-    Foo = 1
+    Goo = 1
 }
 </Code>
 
@@ -173,7 +176,7 @@ enum $$C
 <Code>
 enum $$E
 {
-    Foo = 1,
+    Goo = 1,
     Bar
 }</Code>
 
@@ -190,7 +193,7 @@ enum $$E
 <Code>
 enum $$E
 {
-    Foo = 1,
+    Goo = 1,
     Bar
 }
 </Code>
@@ -209,7 +212,7 @@ using System;
 
 enum $$E
 {
-    Foo = 1,
+    Goo = 1,
     Bar
 }
 </Code>
@@ -221,7 +224,7 @@ using System;
 [Flags()]
 enum E
 {
-    Foo = 1,
+    Goo = 1,
     Bar
 }
 </Code>
@@ -237,7 +240,7 @@ using System;
 [Flags]
 enum $$E
 {
-    Foo = 1,
+    Goo = 1,
     Bar
 }
 </Code>
@@ -250,7 +253,7 @@ using System;
 [CLSCompliant(true)]
 enum E
 {
-    Foo = 1,
+    Goo = 1,
     Bar
 }
 </Code>
@@ -267,7 +270,7 @@ using System;
 /// &lt;summary&gt;&lt;/summary&gt;
 enum $$E
 {
-    Foo = 1,
+    Goo = 1,
     Bar
 }
 </Code>
@@ -280,7 +283,7 @@ using System;
 [Flags()]
 enum E
 {
-    Foo = 1,
+    Goo = 1,
     Bar
 }
 </Code>
@@ -552,7 +555,7 @@ enum E
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
-enum $$Foo
+enum $$Goo
 {
 }
 </Code>

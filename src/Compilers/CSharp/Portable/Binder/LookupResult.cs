@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     ///    
     ///    var result = LookupResult.GetInstance();
     ///  
-    ///    scope.Lookup(result, "foo");
+    ///    scope.Lookup(result, "goo");
     ///    ... use result ...
     ///         
     ///    result.Clear();
@@ -156,6 +158,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static SingleLookupResult WrongArity(Symbol symbol, DiagnosticInfo error)
         {
             return new SingleLookupResult(LookupResultKind.WrongArity, symbol, error);
+        }
+
+        internal static SingleLookupResult Empty()
+        {
+            return new SingleLookupResult(LookupResultKind.Empty, null, null);
         }
 
         internal static SingleLookupResult NotReferencable(Symbol symbol, DiagnosticInfo error)

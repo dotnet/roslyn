@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Xunit;
 using Xunit.Abstractions;
@@ -27,7 +29,7 @@ class C
 {
     async void f()
     {
-        await foo();
+        await goo();
     }
 }
 ");
@@ -92,7 +94,7 @@ class C
 {
     void f()
     {
-        await foo();
+        await goo();
     }
 }
 ");
@@ -441,10 +443,25 @@ async () => await base.g();
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
+                            N(SyntaxKind.BaseExpression);
+                            {
+                                N(SyntaxKind.BaseKeyword);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "g");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
                         }
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -468,9 +485,27 @@ async () => await this.g();
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.InvocationExpression);
                     {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.ThisExpression);
+                            {
+                                N(SyntaxKind.ThisKeyword);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "g");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -494,16 +529,24 @@ async () => await default(Task);
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.DefaultExpression);
                     {
+                        N(SyntaxKind.DefaultKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Task");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
         public void AwaitIdentifierName()
         {
             UsingNode(@"
-async () => await foo;
+async () => await goo;
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -520,9 +563,11 @@ async () => await foo;
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
+                        N(SyntaxKind.IdentifierToken, "goo");
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -546,9 +591,17 @@ async () => await checked { };
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.CheckedExpression);
                     {
+                        N(SyntaxKind.CheckedKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -572,16 +625,24 @@ async () => await unchecked { };
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.UncheckedExpression);
                     {
+                        N(SyntaxKind.UncheckedKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
         public void AwaitParenthesizedExpression()
         {
             UsingNode(@"
-async () => await (foo());
+async () => await (goo());
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -599,16 +660,30 @@ async () => await (foo());
                     N(SyntaxKind.ParenthesizedExpression);
                     {
                         N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "goo");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
         public void AwaitObjectCreationExpression()
         {
             UsingNode(@"
-async () => await new Foo();
+async () => await new Goo();
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -625,16 +700,27 @@ async () => await new Foo();
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.ObjectCreationExpression);
                     {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Goo");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
         public void AwaitAwaitExpression()
         {
             UsingNode(@"
-async () => await await foo;
+async () => await await goo;
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1003,11 +1089,11 @@ async () => {
         }
 
         [Fact]
-        public void UsingAwaitTest()
+        public void AwaitUsingTest()
         {
             UsingNode(@"
 async () => {
-    using (await foo())
+    using (await goo())
     {
     }
 };
@@ -1062,7 +1148,7 @@ async () => {
         public void AwaitIdentifierExpressionInSyncContext()
         {
             UsingNode(@"
-() => await foo;
+() => await goo;
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1088,7 +1174,7 @@ async () => {
         public void AwaitAwaitExpressionInSyncContext()
         {
             UsingNode(@"
-() => await await foo;
+() => await await goo;
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1160,7 +1246,7 @@ async () => {
         public void AwaitThisExpressionInSyncContext()
         {
             UsingNode(@"
-() => await this.foo();
+() => await this.goo();
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1202,7 +1288,7 @@ async () => {
         public void AwaitBaseExpressionInSyncContext()
         {
             UsingNode(@"
-() => await base.foo();
+() => await base.goo();
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1339,7 +1425,7 @@ async () => {
         public void AwaitDefaultExpressionInSyncContext()
         {
             UsingNode(@"
-() => await default(Foo);
+() => await default(Goo);
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1423,7 +1509,7 @@ async () => {
         public void AwaitStringLiteralExpressionInSyncContext()
         {
             UsingNode(@"
-() => await ""foo"";
+() => await ""goo"";
 ");
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -1550,11 +1636,11 @@ async () => {
         }
 
         [Fact]
-        public void UsingAwaitExpressionInSyncContext()
+        public void AwaitUsingExpressionInSyncContext()
         {
             UsingNode(@"
 () => {
-    using (await foo())
+    using (await goo())
     {
     }
 };
@@ -1611,7 +1697,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    await foo;
+    await goo;
 }
 ");
 
@@ -1651,7 +1737,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    await foo();
+    await goo();
 }
 ");
 
@@ -1696,7 +1782,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    const await foo();
+    const await goo();
 }
 ");
 
@@ -1722,7 +1808,7 @@ async () => {
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "foo");
+                                N(SyntaxKind.IdentifierToken, "goo");
                                 M(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);
@@ -1743,7 +1829,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    static await foo();
+    static await goo();
 }
 ");
 
@@ -1770,7 +1856,7 @@ async () => {
                             N(SyntaxKind.VariableDeclarator);
                             {
                                 N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.BracketedArgumentList);
+                                M(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);
                                     M(SyntaxKind.CloseBracketToken);
@@ -1789,7 +1875,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    await foo(];
+    await goo(];
 }
 ");
 
@@ -1804,28 +1890,21 @@ async () => {
                 N(SyntaxKind.Block);
                 {
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.AwaitExpression);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.AwaitKeyword);
+                            N(SyntaxKind.InvocationExpression);
                             {
-                                N(SyntaxKind.IdentifierToken, "await");
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "foo");
-                                N(SyntaxKind.BracketedArgumentList);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    M(SyntaxKind.OpenBracketToken);
-                                    M(SyntaxKind.Argument);
-                                    {
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
+                                    N(SyntaxKind.IdentifierToken, "goo");
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
                         }
@@ -1842,7 +1921,7 @@ async () => {
         {
             UsingNode(@"
 () => {
-    await foo(];
+    await goo(];
     int x = 2;
 }
 ");
@@ -1857,28 +1936,21 @@ async () => {
                 N(SyntaxKind.Block);
                 {
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.AwaitExpression);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.AwaitKeyword);
+                            N(SyntaxKind.InvocationExpression);
                             {
-                                N(SyntaxKind.IdentifierToken, "await");
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "foo");
-                                N(SyntaxKind.BracketedArgumentList);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    M(SyntaxKind.OpenBracketToken);
-                                    M(SyntaxKind.Argument);
-                                    {
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
+                                    N(SyntaxKind.IdentifierToken, "goo");
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
                         }

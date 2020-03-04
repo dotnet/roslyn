@@ -1,13 +1,18 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
+        <[UseExportProvider]>
         Public Class LanguageInteraction
 
 #Region "Generics"
@@ -511,15 +516,15 @@ End Class</text>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestTypeCharacter1() As Task
                 Dim code = <text>Class A
-    Public Function Foo(ByVal params&amp;)
-        Foo = [|params&amp;|]
+    Public Function Goo(ByVal params&amp;)
+        Goo = [|params&amp;|]
     End Function
 End Class
 </text>
 
                 Dim expected = <text>Class A
-    Public Function Foo(ByVal params&amp;)
-        Foo = GetParams(params)
+    Public Function Goo(ByVal params&amp;)
+        Goo = GetParams(params)
     End Function
 
     Private Shared Function GetParams(params As Long) As Long
@@ -668,7 +673,7 @@ End Class</text>
                 Dim code = <text>Public Class Class1
     Sub MySub()
         Dim TestString As String = "Test"
-        [|Dim FirstWord As String = Foo(TestString, 1)|]
+        [|Dim FirstWord As String = Goo(TestString, 1)|]
     End Sub
 End Class</text>
 
@@ -679,7 +684,7 @@ End Class</text>
     End Sub
 
     Private Shared Sub NewMethod(TestString As String)
-        Dim FirstWord As String = Foo(TestString, 1)
+        Dim FirstWord As String = Goo(TestString, 1)
     End Sub
 End Class</text>
 
@@ -2034,7 +2039,7 @@ End Class</text>
     End Sub
 
     &lt;Obsolete&gt;
-    Sub Foo
+    Sub Goo
     End Sub
 End Module</text>
                 Dim expected = <text>Module Program
@@ -2047,7 +2052,7 @@ End Module</text>
     End Function
 
     &lt;Obsolete&gt;
-    Sub Foo
+    Sub Goo
     End Sub
 End Module</text>
 
@@ -2507,11 +2512,11 @@ End Module</text>
                 Dim code = <code>Module M
     Sub Main()
         Dim i = 0
-        Foo([|i|])
+        Goo([|i|])
         System.Console.WriteLine(i)
     End Sub
 
-    Sub Foo(ByRef i As Integer)
+    Sub Goo(ByRef i As Integer)
         i = 42
     End Sub
 End Module</code>
@@ -2524,10 +2529,10 @@ End Module</code>
     End Sub
 
     Sub NewMethod(ByRef i As Integer)
-        Foo(i)
+        Goo(i)
     End Sub
 
-    Sub Foo(ByRef i As Integer)
+    Sub Goo(ByRef i As Integer)
         i = 42
     End Sub
 End Module</code>
@@ -2539,11 +2544,11 @@ End Module</code>
                 Dim code = <code>Module M
     Sub Main()
         Dim i = 0
-        Foo(([|i|]))
+        Goo(([|i|]))
         System.Console.WriteLine(i)
     End Sub
 
-    Sub Foo(ByRef i As Integer)
+    Sub Goo(ByRef i As Integer)
         i = 42
     End Sub
 End Module</code>
@@ -2551,7 +2556,7 @@ End Module</code>
                 Dim expected = <code>Module M
     Sub Main()
         Dim i = 0
-        Foo((GetI(i)))
+        Goo((GetI(i)))
         System.Console.WriteLine(i)
     End Sub
 
@@ -2559,7 +2564,7 @@ End Module</code>
         Return i
     End Function
 
-    Sub Foo(ByRef i As Integer)
+    Sub Goo(ByRef i As Integer)
         i = 42
     End Sub
 End Module</code>
@@ -2815,7 +2820,7 @@ End Module</text>
             Public Async Function TestMadePropertyWithParameterNotValidLValue() As Task
                 Dim code = <text>Friend Module Module1
     Class c1
-        Sub foo(ByRef x1 As Integer, ByRef x2 As Integer)
+        Sub goo(ByRef x1 As Integer, ByRef x2 As Integer)
         End Sub
     End Class
     Public Property prop(ByVal x As Integer) As Integer
@@ -2827,13 +2832,13 @@ End Module</text>
     End Property
     Sub Main()
         Dim c As New c1
-        c.foo(prop(1), [|prop(2)|])
+        c.goo(prop(1), [|prop(2)|])
     End Sub
 End Module</text>
 
                 Dim expected = <text>Friend Module Module1
     Class c1
-        Sub foo(ByRef x1 As Integer, ByRef x2 As Integer)
+        Sub goo(ByRef x1 As Integer, ByRef x2 As Integer)
         End Sub
     End Class
     Public Property prop(ByVal x As Integer) As Integer
@@ -2849,7 +2854,7 @@ End Module</text>
     End Sub
 
     Private Sub NewMethod(c As c1)
-        c.foo(prop(1), prop(2))
+        c.goo(prop(1), prop(2))
     End Sub
 End Module</text>
                 Await TestExtractMethodAsync(code, expected)
@@ -3201,12 +3206,12 @@ Imports System
 
 Module M
     Sub Main()
-        Foo(Sub(comment) [|Console.WriteLine(comment$)|], Nothing) ' Extract method
+        Goo(Sub(comment) [|Console.WriteLine(comment$)|], Nothing) ' Extract method
     End Sub
-    Sub Foo(a As Action(Of String), b As Object)
+    Sub Goo(a As Action(Of String), b As Object)
         Console.WriteLine(1)
     End Sub
-    Sub Foo(a As Action(Of Integer), b As String)
+    Sub Goo(a As Action(Of Integer), b As String)
         Console.WriteLine(2)
     End Sub
 End Module
@@ -3218,17 +3223,17 @@ Imports System
 
 Module M
     Sub Main()
-        Foo(Sub(comment) NewMethod(comment), CObj(Nothing)) ' Extract method
+        Goo(Sub(comment) NewMethod(comment), CObj(Nothing)) ' Extract method
     End Sub
 
     Private Sub NewMethod(comment As String)
         Console.WriteLine(comment$)
     End Sub
 
-    Sub Foo(a As Action(Of String), b As Object)
+    Sub Goo(a As Action(Of String), b As Object)
         Console.WriteLine(1)
     End Sub
-    Sub Foo(a As Action(Of Integer), b As String)
+    Sub Goo(a As Action(Of Integer), b As String)
         Console.WriteLine(2)
     End Sub
 End Module
@@ -3364,8 +3369,9 @@ End Namespace"
             <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <Trait(Traits.Feature, Traits.Features.Interactive)>
             Public Sub TestExtractMethodCommandDisabledInSubmission()
-                Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+                Dim exportProvider = ExportProviderCache _
+                    .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
+                    .CreateExportProvider()
 
                 Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -3382,20 +3388,12 @@ End Namespace"
                     Dim textView = workspace.Documents.Single().GetTextView()
 
                     Dim handler = New ExtractMethodCommandHandler(
+                        workspace.GetService(Of IThreadingContext)(),
                         workspace.GetService(Of ITextBufferUndoManagerProvider)(),
-                        workspace.GetService(Of IEditorOperationsFactoryService)(),
-                        workspace.GetService(Of IInlineRenameService)(),
-                        workspace.GetService(Of Host.IWaitIndicator)())
-                    Dim delegatedToNext = False
-                    Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
+                        workspace.GetService(Of IInlineRenameService)())
 
-                    Dim state = handler.GetCommandState(New Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler)
-                    Assert.True(delegatedToNext)
-                    Assert.False(state.IsAvailable)
+                    Dim state = handler.GetCommandState(New ExtractMethodCommandArgs(textView, textView.TextBuffer))
+                    Assert.True(state.IsUnspecified)
                 End Using
             End Sub
         End Class

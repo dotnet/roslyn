@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -32,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal override RefKind RefKind
+            public override RefKind RefKind
             {
                 get { return RefKind.None; }
             }
 
-            public override TypeSymbol ReturnType
+            public override TypeWithAnnotations ReturnTypeWithAnnotations
             {
-                get { return _property.Type; }
+                get { return _property.TypeWithAnnotations; }
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
                 // Do not call base.AddSynthesizedAttributes.
                 // Dev11 does not emit DebuggerHiddenAttribute in property accessors

@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function BrokenRegion() As Task
             Const code = "
-$$#Region ""Foo""
+$$#Region ""Goo""
 "
 
             Await VerifyNoBlockSpansAsync(code)
@@ -24,12 +26,12 @@ $$#Region ""Foo""
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function SimpleRegion() As Task
             Const code = "
-{|span:$$#Region ""Foo""
+{|span:$$#Region ""Goo""
 #End Region|}
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Foo", autoCollapse:=False, isDefaultCollapsed:=True))
+                Region("span", "Goo", autoCollapse:=False, isDefaultCollapsed:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>

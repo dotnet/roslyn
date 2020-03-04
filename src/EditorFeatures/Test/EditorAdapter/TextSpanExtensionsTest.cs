@@ -1,29 +1,29 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Roslyn.Test.EditorUtilities;
-using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
 {
+    [UseExportProvider]
     public class TextSpanExtensionsTest
     {
         [Fact]
         public void ConvertToSpan()
         {
-            Action<int, int> del = (start, length) =>
+            static void del(int start, int length)
             {
                 var textSpan = new TextSpan(start, length);
                 var span = textSpan.ToSpan();
                 Assert.Equal(start, span.Start);
                 Assert.Equal(length, span.Length);
-            };
+            }
 
             del(0, 5);
             del(15, 20);

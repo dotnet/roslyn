@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -70,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             modifiers = new DeclarationModifiers();
             seenAccessibility = Accessibility.NotApplicable;
             var overrideToken = default(SyntaxToken);
-            bool isUnsafe = false;
-            bool isSealed = false;
-            bool isAbstract = false;
+            var isUnsafe = false;
+            var isSealed = false;
+            var isAbstract = false;
 
             while (IsOnStartLine(token.SpanStart, text, startLine) && !token.IsKind(SyntaxKind.None))
             {
@@ -102,6 +104,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         }
 
                         break;
+                    case SyntaxKind.PrivateKeyword:
+                        if (seenAccessibility == Accessibility.NotApplicable)
+                        {
+                            seenAccessibility = Accessibility.Private;
+                        }
+
+                        // If we see private AND protected, filter for private protected
+                        else if (seenAccessibility == Accessibility.Protected)
+                        {
+                            seenAccessibility = Accessibility.ProtectedAndInternal;
+                        }
+
+                        break;
                     case SyntaxKind.InternalKeyword:
                         if (seenAccessibility == Accessibility.NotApplicable)
                         {
@@ -109,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         }
 
                         // If we see internal AND protected, filter for protected internal
-                        if (seenAccessibility == Accessibility.Protected)
+                        else if (seenAccessibility == Accessibility.Protected)
                         {
                             seenAccessibility = Accessibility.ProtectedOrInternal;
                         }
@@ -122,9 +137,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         }
 
                         // If we see protected AND internal, filter for protected internal
-                        if (seenAccessibility == Accessibility.Internal)
+                        else if (seenAccessibility == Accessibility.Internal)
                         {
                             seenAccessibility = Accessibility.ProtectedOrInternal;
+                        }
+
+                        // If we see private AND protected, filter for private protected
+                        else if (seenAccessibility == Accessibility.Private)
+                        {
+                            seenAccessibility = Accessibility.ProtectedAndInternal;
                         }
 
                         break;
@@ -174,17 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else if (caretTarget is MethodDeclarationSyntax methodDeclaration)
             {
-                // abstract override blah(); : move to the end of the line
-                if (methodDeclaration.Body == null)
-                {
-                    return methodDeclaration.GetLocation().SourceSpan.End;
-                }
-                else
-                {
-                    // move to the end of the last statement in the method
-                    var lastStatement = methodDeclaration.Body.Statements.Last();
-                    return lastStatement.GetLocation().SourceSpan.End;
-                }
+                return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration);
             }
             else if (caretTarget is BasePropertyDeclarationSyntax propertyDeclaration)
             {

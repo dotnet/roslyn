@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -8,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -21,15 +25,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
+        [ImportingConstructor]
         public UseExpressionBodyCodeFixProvider()
         {
             FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
         }
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => diagnostic.Severity != DiagnosticSeverity.Hidden;
+            => !diagnostic.IsSuppressed ||
+               diagnostic.Properties.ContainsKey(UseExpressionBodyDiagnosticAnalyzer.FixesError);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -49,28 +57,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+            var accessorLists = new HashSet<AccessorListSyntax>();
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(editor, diagnostic, options, cancellationToken);
+                AddEdits(semanticModel, editor, diagnostic, accessorLists, cancellationToken);
+            }
+
+            // Ensure that if we changed any accessors that the accessor lists they're contained
+            // in are formatted properly as well.  Do this as a last pass so that we see all
+            // individual changes made to the child accessors if we're doing a fix-all.
+            foreach (var accessorList in accessorLists)
+            {
+                editor.ReplaceNode(accessorList, (current, _) => current.WithAdditionalAnnotations(Formatter.Annotation));
             }
         }
 
         private void AddEdits(
-            SyntaxEditor editor, Diagnostic diagnostic, 
-            OptionSet options, CancellationToken cancellationToken)
+            SemanticModel semanticModel, SyntaxEditor editor, Diagnostic diagnostic,
+            HashSet<AccessorListSyntax> accessorLists,
+            CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
             var declaration = declarationLocation.FindNode(cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 
-            var updatedDeclaration = helper.Update(declaration, options, useExpressionBody)
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody)
                                            .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);
+
+            if (declaration.Parent is AccessorListSyntax accessorList)
+            {
+                accessorLists.Add(accessorList);
+            }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

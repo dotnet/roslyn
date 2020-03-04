@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -23,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Class C
-    Event $$foo(x As Integer)
+    Event $$goo(x As Integer)
 End Class
 "
 
@@ -34,8 +36,8 @@ End Class
         Public Async Function WithAttributes() As Task
             Dim code = "
 Class C
-    {|hint:{|textspan:<Foo>
-    |}Event $$foo(x As Integer)|}
+    {|hint:{|textspan:<Goo>
+    |}Event $$goo(x As Integer)|}
 End Class
 "
 
@@ -49,8 +51,8 @@ End Class
 Class C
     {|hint:{|textspan:' Summary:
     '     This is a summary.
-    <Foo>
-    |}Event $$foo(x As Integer)|}
+    <Goo>
+    |}Event $$goo(x As Integer)|}
 End Class
 "
 
@@ -64,8 +66,8 @@ End Class
 Class C
     {|hint:{|textspan:' Summary:
     '     This is a summary.
-    <Foo>
-    |}Private Event $$foo(x As Integer)|}
+    <Goo>
+    |}Private Event $$goo(x As Integer)|}
 End Class
 "
 

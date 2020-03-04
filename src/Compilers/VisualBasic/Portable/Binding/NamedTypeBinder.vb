@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -113,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' UNDONE: filter using options.
             If _typeSymbol.Arity > 0 Then
                 For Each tp In _typeSymbol.TypeParameters
-                    If originalBinder.CanAddLookupSymbolInfo(tp, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(tp, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(tp, tp.Name, 0)
                     End If
                 Next
@@ -148,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function CheckAccessibility(sym As Symbol,
                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                                                      Optional accessThroughType As TypeSymbol = Nothing,
-                                                     Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
+                                                     Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             Return If(IgnoresAccessibility,
                 AccessCheckResult.Accessible,
                 AccessCheck.CheckSymbolAccessibility(sym, _typeSymbol, accessThroughType, useSiteDiagnostics, basesBeingResolved))
@@ -163,6 +166,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
                 Return _typeSymbol
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
             End Get
         End Property
 

@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -16,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
     {
         public static async Task<IEnumerable<SyntaxNode>> GetContainedSyntaxNodesAsync(Document document, CancellationToken cancellationToken)
         {
-            var progressionLanguageService = document.Project.LanguageServices.GetService<IProgressionLanguageService>();
+            var progressionLanguageService = document.GetLanguageService<IProgressionLanguageService>();
             if (progressionLanguageService == null)
             {
                 return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
@@ -67,9 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public static IEnumerable<ISymbol> GetContainedSymbols(ISymbol symbol)
         {
-            INamedTypeSymbol namedType = symbol as INamedTypeSymbol;
 
-            if (namedType != null)
+            if (symbol is INamedTypeSymbol namedType)
             {
                 foreach (var member in namedType.GetMembers())
                 {
@@ -78,9 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         continue;
                     }
 
-                    var method = member as IMethodSymbol;
 
-                    if (method != null && method.AssociatedSymbol != null)
+                    if (member is IMethodSymbol method && method.AssociatedSymbol != null)
                     {
                         continue;
                     }

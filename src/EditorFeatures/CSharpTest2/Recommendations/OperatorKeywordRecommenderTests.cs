@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,7 +46,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -58,7 +60,7 @@ $$");
         public async Task TestAfterImplicit()
         {
             await VerifyKeywordAsync(
-@"class Foo {
+@"class Goo {
     public static implicit $$");
         }
 
@@ -66,7 +68,7 @@ $$");
         public async Task TestAfterExplicit()
         {
             await VerifyKeywordAsync(
-@"class Foo {
+@"class Goo {
     public static explicit $$");
         }
 
@@ -74,7 +76,7 @@ $$");
         public async Task TestNotAfterType()
         {
             await VerifyAbsenceAsync(
-@"class Foo {
+@"class Goo {
     int $$");
         }
 
@@ -83,7 +85,7 @@ $$");
         public async Task TestAfterPublicStaticType()
         {
             await VerifyAbsenceAsync(
-@"class Foo {
+@"class Goo {
     public static int $$");
         }
 
@@ -92,7 +94,7 @@ $$");
         public async Task TestAfterPublicStaticExternType()
         {
             await VerifyAbsenceAsync(
-@"class Foo {
+@"class Goo {
     public static extern int $$");
         }
 
@@ -101,7 +103,7 @@ $$");
         public async Task TestAfterGenericType()
         {
             await VerifyAbsenceAsync(
-@"class Foo {
+@"class Goo {
     public static IList<int> $$");
         }
 
@@ -109,7 +111,7 @@ $$");
         public async Task TestNotInInterface()
         {
             await VerifyAbsenceAsync(
-@"interface Foo {
+@"interface Goo {
     public static int $$");
         }
     }

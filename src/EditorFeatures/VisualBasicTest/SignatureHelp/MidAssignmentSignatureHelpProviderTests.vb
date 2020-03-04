@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -21,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         Public Async Function TestInvocationForMidAssignmentFirstArgument() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Mid($$
     End Sub
 End Class
@@ -41,7 +43,7 @@ End Class
         Public Async Function TestInvocationForMidAssignmentSecondArgument() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Mid(s, $$
     End Sub
 End Class
@@ -61,7 +63,7 @@ End Class
         Public Async Function TestInvocationForMidAssignmentThirdArgument() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Mid(s, 1, $$
     End Sub
 End Class

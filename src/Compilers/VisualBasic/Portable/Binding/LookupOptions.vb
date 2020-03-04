@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Text
@@ -117,18 +119,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' the same name.  This is not possible in the .NET world, but for backwards compatibility, especially with Office,
         ''' the compiler will ignore ambiguities when performing a lookup in a CoClass interface.  Example:
         '''
-        '''     Interface _Foo
+        '''     Interface _Goo
         '''        Sub Quit
         '''
-        '''     Interface FooSource
+        '''     Interface GooSource
         '''        Event Quit
         '''
-        '''     &lt; System.Runtime.InteropServices.CoClass(GetType(FooClass)) &gt;
-        '''     Interface Foo : Inherits _Foo, FooSource
+        '''     &lt; System.Runtime.InteropServices.CoClass(GetType(GooClass)) &gt;
+        '''     Interface Goo : Inherits _Goo, GooSource
         '''
-        '''     Class FooClass : Implements Foo
-        '''         Event Quit Implements Foo.Quit
-        '''         Sub Quit Implements Foo.Quit
+        '''     Class GooClass : Implements Goo
+        '''         Event Quit Implements Goo.Quit
+        '''         Sub Quit Implements Goo.Quit
         '''
         ''' </summary>
         EventsOnly = 1 << 15

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,49 +16,56 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 {
     internal abstract partial class AbstractUpgradeProjectCodeFixProvider : CodeFixProvider
     {
-        public abstract ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics);
+        public abstract string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics);
         public abstract Solution UpgradeProject(Project project, string version);
-        public abstract bool IsUpgrade(ParseOptions projectOptions, string newVersion);
+        public abstract bool IsUpgrade(Project project, string newVersion);
         public abstract string UpgradeThisProjectResource { get; }
         public abstract string UpgradeAllProjectsResource { get; }
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // This code fix uses a dedicated action for fixing all instances in a solution
+            return null;
+        }
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostics = context.Diagnostics;
 
-            context.RegisterFixes(GetUpgradeProjectCodeActionsAsync(context), diagnostics);
+            context.RegisterFixes(GetUpgradeProjectCodeActions(context), diagnostics);
             return Task.CompletedTask;
         }
 
-        protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActionsAsync(CodeFixContext context)
+        protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActions(CodeFixContext context)
         {
             var project = context.Document.Project;
             var solution = project.Solution;
-            var newVersions = SuggestedVersions(context.Diagnostics);
+            var newVersion = SuggestedVersion(context.Diagnostics);
+
             var result = new List<CodeAction>();
             var language = project.Language;
 
-            foreach (var newVersion in newVersions)
+            var upgradeableProjects = solution.Projects.Where(p => CanUpgrade(p, language, newVersion)).AsImmutable();
+
+            if (upgradeableProjects.Length == 0)
             {
-                var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
-
-                var fixOneProject = new ParseOptionsChangeAction(fixOneProjectTitle,
-                    _ => Task.FromResult(UpgradeProject(project, newVersion)));
-
-                result.Add(fixOneProject);
+                return ImmutableArray<CodeAction>.Empty;
             }
 
-            foreach (var newVersion in newVersions)
+            var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
+            var fixOneProject = new ProjectOptionsChangeAction(fixOneProjectTitle,
+                _ => Task.FromResult(UpgradeProject(project, newVersion)));
+
+            result.Add(fixOneProject);
+
+            if (upgradeableProjects.Length > 1)
             {
-                if (solution.Projects.Count(p => CanUpgrade(p, language, newVersion)) > 1)
-                {
-                    var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
+                var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
 
-                    var fixAllProjects = new ParseOptionsChangeAction(fixAllProjectsTitle,
-                        ct => Task.FromResult(UpgradeAllProjects(solution, language, newVersion, ct)));
+                var fixAllProjects = new ProjectOptionsChangeAction(fixAllProjectsTitle,
+                    ct => Task.FromResult(UpgradeAllProjects(solution, language, newVersion, ct)));
 
-                    result.Add(fixAllProjects);
-                }
+                result.Add(fixAllProjects);
             }
 
             return result.AsImmutable();
@@ -81,13 +90,13 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
         private bool CanUpgrade(Project project, string language, string version)
         {
-            return project.Language == language && IsUpgrade(project.ParseOptions, version);
+            return project.Language == language && IsUpgrade(project, version);
         }
     }
 
-    internal class ParseOptionsChangeAction : SolutionChangeAction
+    internal class ProjectOptionsChangeAction : SolutionChangeAction
     {
-        public ParseOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+        public ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
             : base(title, createChangedSolution, equivalenceKey: null)
         {
         }

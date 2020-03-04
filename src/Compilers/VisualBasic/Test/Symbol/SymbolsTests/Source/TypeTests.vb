@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -13,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub AlphaRenaming()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Public Class A(Of T)
@@ -44,7 +47,7 @@ End Class
 
         <Fact>
         Public Sub SourceTypeSymbols1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb">
 Friend Interface A
@@ -192,7 +195,7 @@ Namespace n
 
         <Fact>
         Public Sub NestedSourceTypeSymbols()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Public Partial Class Outer(Of K)
@@ -317,7 +320,7 @@ End Class
         <Fact>
         Public Sub ArrayTypes()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
   <compilation name="ArrayTypes">
       <file name="a.vb">
     Public Class A
@@ -381,7 +384,7 @@ End Class
         <WorkItem(932303, "DevDiv/Personal")>
         <Fact>
         Public Sub ArrayTypeInterfaces()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="ArrayTypes">
     <file name="a.vb">
     Public Class A
@@ -423,7 +426,7 @@ End Class
         <WorkItem(537515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537515")>
         <Fact>
         Public Sub ArrayTypeGetFullNameAndHashCode()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="ArrayTypes">
     <file name="a.vb">
     Public Class A
@@ -527,7 +530,7 @@ End Class
 
         <Fact(), WorkItem(537187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537187"), WorkItem(529941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529941")>
         Public Sub EnumFields()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="EnumFields">
     <file name="a.vb">
     Public Enum E
@@ -573,11 +576,11 @@ End Class
 
         <Fact>
         Public Sub SimpleGenericType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Generic">
     <file name="g.vb">
 Namespace NS
-    Public Interface IFoo(Of T)
+    Public Interface IGoo(Of T)
     End Interface
 
     Friend Class A(Of V)
@@ -606,15 +609,15 @@ End Namespace
             Assert.Equal("V", classA.TypeParameters(0).Name)
             Assert.Equal(1, classA.TypeArguments.Length)
 
-            Dim ifoo = DirectCast(membersOfNS(1), NamedTypeSymbol)
-            Assert.Equal(nsNS.GetTypeMembers("IFoo").First(), ifoo)
-            Assert.Equal(nsNS, ifoo.ContainingSymbol)
-            Assert.Equal(SymbolKind.NamedType, ifoo.Kind)
-            Assert.Equal(TypeKind.Interface, ifoo.TypeKind)
-            Assert.Equal(Accessibility.Public, ifoo.DeclaredAccessibility)
-            Assert.Equal(1, ifoo.TypeParameters.Length)
-            Assert.Equal("T", ifoo.TypeParameters(0).Name)
-            Assert.Equal(1, ifoo.TypeArguments.Length)
+            Dim igoo = DirectCast(membersOfNS(1), NamedTypeSymbol)
+            Assert.Equal(nsNS.GetTypeMembers("IGoo").First(), igoo)
+            Assert.Equal(nsNS, igoo.ContainingSymbol)
+            Assert.Equal(SymbolKind.NamedType, igoo.Kind)
+            Assert.Equal(TypeKind.Interface, igoo.TypeKind)
+            Assert.Equal(Accessibility.Public, igoo.DeclaredAccessibility)
+            Assert.Equal(1, igoo.TypeParameters.Length)
+            Assert.Equal("T", igoo.TypeParameters(0).Name)
+            Assert.Equal(1, igoo.TypeArguments.Length)
 
             Dim structS = DirectCast(membersOfNS(2), NamedTypeSymbol)
             Assert.Equal(nsNS.GetTypeMembers("S").First(), structS)
@@ -632,7 +635,7 @@ End Namespace
         ' Check that type parameters work correctly.
         <Fact>
         Public Sub TypeParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="C">
         <file name="a.vb">
             Interface Z(Of T, In U, Out V)
@@ -695,7 +698,7 @@ End Class
         ' Date: IEEE 64bits (8 bytes) values
         <Fact>
         Public Sub PredefinedType01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Generic">
     <file name="pd.vb">
 Namespace NS
@@ -760,22 +763,22 @@ End Namespace
         <WorkItem(537461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537461")>
         <Fact>
         Public Sub SourceTypeUndefinedBaseType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="SourceTypeUndefinedBaseType">
     <file name="undefinedbasetype.vb">
-Class Class1 : Inherits Foo
+Class Class1 : Inherits Goo
 End Class
     </file>
 </compilation>)
             Dim baseType = compilation.GlobalNamespace.GetTypeMembers("Class1").Single().BaseType
-            Assert.Equal("Foo", baseType.ToTestDisplayString())
+            Assert.Equal("Goo", baseType.ToTestDisplayString())
             Assert.Equal(SymbolKind.ErrorType, baseType.Kind)
         End Sub
 
         <WorkItem(537467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537467")>
         <Fact>
         Public Sub TopLevelPrivateTypes()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation name="C">
                     <file name="a.vb">
 Option Strict Off 
@@ -790,7 +793,7 @@ Namespace InterfaceErr005
 
     'COMPILEERROR: BC31089, "PrivateIntf"
     Private Interface PrivateIntf
-        Function foo()
+        Function goo()
     End Interface
    'COMPILEERROR: BC31047
     Protected Class ProtectedClass
@@ -829,13 +832,13 @@ BC31047: Protected types can only be declared inside of a class.
         <Fact>
         Public Sub InheritTypeFromMetadata01()
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Test2">
     <file name="b.vb">
 Public Module m1
 
     Public Class C1_1
-        Public Class foo
+        Public Class goo
         End Class
     End Class
 
@@ -844,7 +847,7 @@ End Module
 </compilation>)
 
             Dim compRef1 = New VisualBasicCompilationReference(comp1)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="Test1">
     <file name="a.vb">
 Imports System
@@ -860,7 +863,7 @@ Namespace ShadowsGen203
     Public Module M1
         Public Class C1_3
             Inherits C1_1
-            Private Shadows Class foo
+            Private Shadows Class goo
             End Class
         End Class
 
@@ -884,13 +887,13 @@ End Namespace
         <Fact>
         Public Sub ImplementTypeCrossComps()
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Test2">
         <file name="comp.vb">
 Imports System.Collections.Generic
 
 Namespace MT
-    Public Interface IFoo(Of T)
+    Public Interface IGoo(Of T)
         Sub M(ByVal t As T)
     End Interface
 End Namespace
@@ -899,16 +902,16 @@ End Namespace
 
             Dim compRef1 = New VisualBasicCompilationReference(comp1)
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="Test2">
     <file name="comp2.vb">
     Imports System.Collections.Generic
     Imports MT
 
     Namespace SS
-        Public Class Foo
-            Implements IFoo(Of String)
-            Sub N(ByVal s As String) Implements IFoo(Of String).M
+        Public Class Goo
+            Implements IGoo(Of String)
+            Sub N(ByVal s As String) Implements IGoo(Of String).M
             End Sub
         End Class
     End Namespace
@@ -917,21 +920,21 @@ End Namespace
 
 
             Dim ns = DirectCast(comp.SourceModule.GlobalNamespace.GetMembers("SS").Single(), NamespaceSymbol)
-            Dim type1 = DirectCast(ns.GetTypeMembers("Foo", 0).Single(), NamedTypeSymbol)
+            Dim type1 = DirectCast(ns.GetTypeMembers("Goo", 0).Single(), NamedTypeSymbol)
             ' Not impl ex
             Assert.Equal(1, type1.Interfaces.Length)
             Dim type2 = DirectCast(type1.Interfaces(0), NamedTypeSymbol)
             Assert.Equal(TypeKind.Interface, type2.TypeKind)
             Assert.Equal(1, type2.Arity)
             Assert.Equal(1, type2.TypeParameters.Length)
-            Assert.Equal("MT.IFoo(Of System.String)", type2.ToTestDisplayString())
+            Assert.Equal("MT.IGoo(Of System.String)", type2.ToTestDisplayString())
 
         End Sub
 
         <WorkItem(537492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537492")>
         <Fact>
         Public Sub PartialClassImplInterface()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="C">
                     <file name="a.vb">
 Option Strict Off 
@@ -976,7 +979,7 @@ End Module
 
         <Fact>
         Public Sub CyclesInStructureDeclarations()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
         <compilation name="C">
             <file name="a.vb">
 Module Module1
@@ -1002,7 +1005,7 @@ BC42024: Unused local variable: 'x2var'.
             ~~~~~
 </errors>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="C">
         <file name="a.vb">
 Module Module1
@@ -1035,7 +1038,7 @@ BC42024: Unused local variable: 'three'.
 
         <Fact>
         Public Sub CyclesInStructureDeclarations2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="CyclesInStructureDeclarations2">
         <file name="a.vb">
 Structure st1(Of T)
@@ -1060,7 +1063,7 @@ BC30294: Structure 'st2' cannot contain an instance of itself:
 
         <Fact>
         Public Sub CyclesInStructureDeclarations2_()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="CyclesInStructureDeclarations2_">
         <file name="a.vb">
 Structure st2
@@ -1086,7 +1089,7 @@ BC30294: Structure 'st2' cannot contain an instance of itself:
         <Fact>
         Public Sub CyclesInStructureDeclarations3()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="CyclesInStructureDeclarations3">
             <file name="a.vb">
 Structure st1(Of T)
@@ -1112,7 +1115,7 @@ BC30294: Structure 'st1' cannot contain an instance of itself:
         <Fact>
         Public Sub CyclesInStructureDeclarations3_()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="CyclesInStructureDeclarations3_">
             <file name="a.vb">
 Structure st2
@@ -1138,7 +1141,7 @@ BC30294: Structure 'st2' cannot contain an instance of itself:
         <Fact>
         Public Sub CyclesInStructureDeclarations4()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="CyclesInStructureDeclarations4">
             <file name="a.vb">
 Structure E
@@ -1173,7 +1176,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
 
         <Fact>
         Public Sub PortedFromCSharp_StructLayoutCycle01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
         <compilation name="PortedFromCSharp_StructLayoutCycle01">
             <file name="a.vb">
 Module Module1
@@ -1241,7 +1244,7 @@ BC30294: Structure 'G' cannot contain an instance of itself:
 
         <Fact>
         Public Sub PortedFromCSharp_StructLayoutCycle02()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
         <compilation name="PortedFromCSharp_StructLayoutCycle01">
             <file name="a.vb">
 Module Module1
@@ -1340,7 +1343,7 @@ BC30294: Structure 'G' cannot contain an instance of itself:
 
         <Fact>
         Public Sub MultiplyCyclesInStructure01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="PortedFromCSharp_StructLayoutCycle01">
             <file name="a.vb">
 Structure S1
@@ -1376,7 +1379,7 @@ BC30294: Structure 'S1' cannot contain an instance of itself:
 
         <Fact>
         Public Sub MultiplyCyclesInStructure02()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="PortedFromCSharp_StructLayoutCycle01">
             <file name="a.vb">
 Structure S1
@@ -1407,7 +1410,7 @@ BC30294: Structure 'S1' cannot contain an instance of itself:
 
         <Fact>
         Public Sub MultiplyCyclesInStructure03()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="PortedFromCSharp_StructLayoutCycle01">
             <file name="a.vb">
 Structure S1
@@ -1444,7 +1447,7 @@ BC30294: Structure 'S1' cannot contain an instance of itself:
 
         <Fact>
         Public Sub MultiplyCyclesInStructure04()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="PortedFromCSharp_StructLayoutCycle01">
             <file name="a.vb">
 Structure S1
@@ -1483,7 +1486,7 @@ BC30294: Structure 'S1' cannot contain an instance of itself:
         <Fact>
         Public Sub MultiplyCyclesInStructure05()
 
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="MultiplyCyclesInStructure05_I">
             <file name="a.vb">
 Public Structure SI_1
@@ -1497,7 +1500,7 @@ End Structure
 
             CompilationUtils.AssertNoErrors(compilation1)
 
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="MultiplyCyclesInStructure05_II">
             <file name="a.vb">
 Public Structure SII_3
@@ -1512,7 +1515,7 @@ End Structure
             CompilationUtils.AssertNoErrors(compilation2)
 
 
-            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="MultiplyCyclesInStructure05_I">
             <file name="a.vb">
 Public Structure SI_1
@@ -1538,26 +1541,26 @@ BC30294: Structure 'SI_1' cannot contain an instance of itself:
 
         <Fact>
         Public Sub SynthesizedConstructorLocation()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                <compilation name="C">
                    <file name="a.vb">
-Class Foo
+Class Goo
 End Class
                     </file>
                </compilation>)
 
-            Dim typeFoo = compilation.SourceModule.GlobalNamespace.GetTypeMembers("Foo").Single()
-            Dim instanceConstructor = typeFoo.InstanceConstructors.Single()
+            Dim typeGoo = compilation.SourceModule.GlobalNamespace.GetTypeMembers("Goo").Single()
+            Dim instanceConstructor = typeGoo.InstanceConstructors.Single()
 
-            AssertEx.Equal(typeFoo.Locations, instanceConstructor.Locations)
+            AssertEx.Equal(typeGoo.Locations, instanceConstructor.Locations)
         End Sub
 
         <Fact>
         Public Sub UsingProtectedInStructureMethods()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                <compilation name="UsingProtectedInStructureMethods">
                    <file name="a.vb">
-Structure Foo
+Structure Goo
     Protected Overrides Sub Finalize()
     End Sub
     Protected Sub OtherMethod()
@@ -1568,7 +1571,7 @@ End Structure
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
     Protected Sub OtherMethod()
     ~~~~~~~~~
 </errors>)
@@ -1576,7 +1579,7 @@ BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Frie
 
         <Fact>
         Public Sub UsingMustOverrideInStructureMethods()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                <compilation name="UsingProtectedInStructureMethods">
                    <file name="a.vb">
 Module Module1
@@ -1585,7 +1588,7 @@ End Sub
 End Module
  
 Structure S2
-Public MustOverride Function Foo() As String
+Public MustOverride Function Goo() As String
 End Function
 End Structure
 
@@ -1595,7 +1598,7 @@ End Structure
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC30435: Members in a Structure cannot be declared 'MustOverride'.
-Public MustOverride Function Foo() As String
+Public MustOverride Function Goo() As String
        ~~~~~~~~~~~~
 BC30430: 'End Function' must be preceded by a matching 'Function'.
 End Function
@@ -1605,7 +1608,7 @@ End Function
 
         <Fact>
         Public Sub Bug4135()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                <compilation name="Bug4135">
                    <file name="a.vb">
 Interface I1
@@ -1864,10 +1867,10 @@ BC30435: Members in a Structure cannot be declared 'Protected'.
 BC30435: Members in a Structure cannot be declared 'Protected Friend'.
     Protected Friend F4 As Integer
     ~~~~~~~~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
     Protected Sub Sub3()
     ~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
     Protected Friend Sub Sub4()
     ~~~~~~~~~~~~~~~~
 BC30735: Type in a Module cannot be declared 'Protected'.
@@ -1953,7 +1956,7 @@ Protected Friend delegate Sub D12()
 
         <Fact>
         Public Sub Bug4136()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                <compilation name="Bug4136">
                    <file name="a.vb">
 Interface I1
@@ -2106,7 +2109,7 @@ Private delegate Sub D11()
 </expected>)
 
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                <compilation name="Bug4136">
                    <file name="a.vb">
 Interface I1
@@ -2237,7 +2240,7 @@ BC30270: 'Friend' is not valid on an interface method declaration.
     ~~~~~~
 </expected>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                <compilation name="Bug4136">
                    <file name="a.vb">
 Interface I1
@@ -2375,7 +2378,7 @@ BC30270: 'Public' is not valid on an interface method declaration.
         <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
         <Fact>
         Public Sub StructDefaultConstructorInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="StructDefaultConstructorInitializer">
     <file name="StructDefaultConstructorInitializer.vb">
 Structure S
@@ -2404,7 +2407,7 @@ End Structure
 
         <Fact>
         Public Sub MetadataNameOfGenericTypes()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MetadataName">
     <file name="a.vb">
 Class Gen1(Of T, U, V)
@@ -2432,7 +2435,7 @@ End Class
 
         <Fact()>
         Public Sub TypeNameSpelling1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Public Class Aa
@@ -2454,7 +2457,7 @@ End Class
 
         <Fact()>
         Public Sub TypeNameSpelling2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Public Partial Class aa
@@ -2476,7 +2479,7 @@ End Class
 
         <Fact()>
         Public Sub StructureInstanceConstructors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="C">
         <file name="b.vb">
 Structure S1
@@ -2505,7 +2508,7 @@ End Structure
 
         <Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")>
         Public Sub ErrorTypeTest01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation name="Err">
         <file name="b.vb">
     Sub TopLevelMethod()
@@ -2543,7 +2546,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim modComp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
+            Dim modComp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim modRef = modComp.EmitToImageReference(expectedWarnings:=
             {
                 Diagnostic(ERRID.WRN_NamespaceCaseMismatch3, "ns1").WithArguments("ns1", "NS1", "a.vb")
@@ -2570,7 +2573,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2606,7 +2609,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim modComp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
+            Dim modComp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim modRef = modComp.EmitToImageReference(expectedWarnings:=
             {
                 Diagnostic(ERRID.WRN_NamespaceCaseMismatch3, "ns1").WithArguments("ns1", "NS1", "a.vb")
@@ -2633,7 +2636,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2677,7 +2680,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim modComp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
+            Dim modComp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim modRef = modComp.EmitToImageReference()
 
             Dim source2 =
@@ -2701,7 +2704,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             CompileAndVerify(compilation)
         End Sub
@@ -2730,7 +2733,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim modComp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
+            Dim modComp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim modRef = modComp.EmitToImageReference(expectedWarnings:=
             {
                 Diagnostic(ERRID.WRN_NamespaceCaseMismatch3, "ns1").WithArguments("ns1", "NS1", "a.vb")
@@ -2757,7 +2760,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2792,7 +2795,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim modComp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
+            Dim modComp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim modRef = modComp.EmitToImageReference()
 
             Dim source2 =
@@ -2814,7 +2817,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2855,7 +2858,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim modComp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
+            Dim modComp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim modRef = modComp.EmitToImageReference()
 
             Dim source2 =
@@ -2877,7 +2880,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source2, {modRef}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source2, {modRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2932,7 +2935,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {moduleRef}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source, {moduleRef}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
@@ -3020,9 +3023,9 @@ end namespace
     </file>
 </compilation>
 
-            Dim moduleRef2 = CreateCompilationWithMscorlib(mod2, TestOptions.ReleaseModule).EmitToImageReference()
+            Dim moduleRef2 = CreateCompilationWithMscorlib40(mod2, options:=TestOptions.ReleaseModule).EmitToImageReference()
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {moduleRef1, moduleRef2}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source, {moduleRef1, moduleRef2}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation.Emit(New System.IO.MemoryStream()).Diagnostics,
 <expected>
@@ -3050,15 +3053,15 @@ End Class
 </compilation>
 
             forwardedTypesSource.@name = "ForwardedTypes1"
-            Dim forwardedTypes1 = CreateCompilationWithMscorlib(forwardedTypesSource, TestOptions.ReleaseDll)
+            Dim forwardedTypes1 = CreateCompilationWithMscorlib40(forwardedTypesSource, options:=TestOptions.ReleaseDll)
             Dim forwardedTypes1Ref = New VisualBasicCompilationReference(forwardedTypes1)
 
             forwardedTypesSource.@name = "ForwardedTypes2"
-            Dim forwardedTypes2 = CreateCompilationWithMscorlib(forwardedTypesSource, TestOptions.ReleaseDll)
+            Dim forwardedTypes2 = CreateCompilationWithMscorlib40(forwardedTypesSource, options:=TestOptions.ReleaseDll)
             Dim forwardedTypes2Ref = New VisualBasicCompilationReference(forwardedTypes2)
 
             forwardedTypesSource.@name = "forwardedTypesMod"
-            Dim forwardedTypesModRef = CreateCompilationWithMscorlib(forwardedTypesSource, TestOptions.ReleaseModule).EmitToImageReference()
+            Dim forwardedTypesModRef = CreateCompilationWithMscorlib40(forwardedTypesSource, options:=TestOptions.ReleaseModule).EmitToImageReference()
 
             Dim modSource =
             <![CDATA[
@@ -3144,7 +3147,7 @@ End Class
 
             forwardedTypesSource.@name = "consumer"
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(forwardedTypesSource,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(forwardedTypesSource,
                 {
                     module1_FT1_Ref,
                     forwardedTypes1Ref
@@ -3162,7 +3165,7 @@ BC37217: Forwarded type 'ns.CF2' conflicts with type declared in primary module 
     </file>
 </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndReferences(emptySource,
+            compilation = CreateCompilationWithMscorlib40AndReferences(emptySource,
                 {
                     forwardedTypesModRef,
                     module1_FT1_Ref,
@@ -3175,7 +3178,7 @@ BC37218: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Cul
 BC37218: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
 </expected>)
 
-            compilation = CreateCompilationWithMscorlibAndReferences(emptySource,
+            compilation = CreateCompilationWithMscorlib40AndReferences(emptySource,
                 {
                     module1_FT1_Ref,
                     forwardedTypesModRef,
@@ -3188,17 +3191,17 @@ BC37218: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Cul
 BC37218: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
 </expected>)
 
-            compilation = CreateCompilationWithMscorlibAndReferences(emptySource,
+            compilation = CreateCompilationWithMscorlib40AndReferences(emptySource,
                 {
                     module1_FT1_Ref,
                     module2_FT1_Ref,
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll)
 
-            ' Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, verify:=False).VerifyDiagnostics()
+            ' Exported types in .NET modules cause PEVerify to fail.
+            CompileAndVerify(compilation, verify:=Verification.Fails).VerifyDiagnostics()
 
-            compilation = CreateCompilationWithMscorlibAndReferences(emptySource,
+            compilation = CreateCompilationWithMscorlib40AndReferences(emptySource,
                 {
                     module1_FT1_Ref,
                     module3_FT2_Ref,
@@ -3349,7 +3352,7 @@ expectedOutput:="FalseTrue112")
 
         <Fact, WorkItem(8400, "https://github.com/dotnet/roslyn/issues/8400")>
         Public Sub WrongModifier()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
     public class AAA : IBBB
@@ -3396,6 +3399,554 @@ BC30625: 'Module' statement must end with a matching 'End Module'.
             // Note: create custom module catalog
                             ~~~~~~~~~~~~~~~~~~~~~
 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_01()
+            Dim sources =
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<typeidentifier>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(sources)
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40(sources)
+            i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+            i1.GetAttributes()
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_02()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<TypeIdentifierAttribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_03()
+            Dim sources =
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifier
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(sources)
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
+
+            compilation.AssertTheseDeclarationDiagnostics(
+<expected><![CDATA[
+BC40056: Namespace or type specified in the Imports 'System.Runtime.InteropServices.TypeIdentifier' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifier
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30182: Type expected.
+<alias1>
+ ~~~~~~
+]]></expected>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40(sources)
+            i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+            i1.GetAttributes()
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_04()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifier
+
+<alias1Attribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
+
+            compilation.AssertTheseDeclarationDiagnostics(
+<expected><![CDATA[
+BC40056: Namespace or type specified in the Imports 'System.Runtime.InteropServices.TypeIdentifier' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifier
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'alias1Attribute' is not defined.
+<alias1Attribute>
+ ~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_05()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.typeIdentifierattribute
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_06()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias1attribute = System.Runtime.InteropServices.typeIdentifierattribute
+
+<Alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_07()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias1attribute = System.Runtime.InteropServices.typeIdentifierattribute
+
+<Alias1Attribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_08()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias1attributeAttribute = System.Runtime.InteropServices.typeIdentifierattribute
+
+<Alias1Attribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_09()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias2 = alias1
+
+<alias2>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("alias1=System.Runtime.InteropServices.typeIdentifierattribute")))
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
+
+            compilation.AssertTheseDeclarationDiagnostics(
+<expected><![CDATA[
+BC40056: Namespace or type specified in the Imports 'alias1' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports alias2 = alias1
+                 ~~~~~~
+BC30182: Type expected.
+<alias2>
+ ~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_10()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("alias1=System.Runtime.InteropServices.typeIdentifierattribute")))
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_11()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias2 = I1
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("alias1=System.Runtime.InteropServices.typeIdentifierattribute")))
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_12()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifierAttribute
+Imports System.Runtime.CompilerServices
+
+<alias1>
+Public Partial Interface I1
+End Interface
+
+<CompilerGenerated>
+Public Partial Interface I2
+End Interface
+    ]]></file>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.ComImportAttribute
+
+<alias1>
+Public Partial Interface I1
+End Interface
+
+<alias1>
+Public Partial Interface I2
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+            Dim i2 = compilation.SourceAssembly.GetTypeByMetadataName("I2")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+            Assert.False(i2.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_13()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.ComImportAttribute
+
+<alias1>
+Public Partial Interface I1
+End Interface
+
+<alias1>
+Public Partial Interface I2
+End Interface
+    ]]></file>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifierAttribute
+Imports System.Runtime.CompilerServices
+
+<alias1>
+Public Partial Interface I1
+End Interface
+
+<CompilerGenerated>
+Public Partial Interface I2
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+            Dim i2 = compilation.SourceAssembly.GetTypeByMetadataName("I2")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+            Assert.False(i2.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_14()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
+
+            compilation.AssertTheseDeclarationDiagnostics(
+<expected><![CDATA[
+BC30182: Type expected.
+<alias1>
+ ~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_15()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+<System.Runtime.InteropServices.TypeIdentifier>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_16()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+<System.Runtime.InteropServices.TypeIdentifierAttribute>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <Fact>
+        Public Sub IsExplicitDefinitionOfNoPiaLocalType_17()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file><![CDATA[
+Imports alias1 = System.Runtime.InteropServices.TypeIdentifierAttribute
+
+<alias1>
+Public Interface I1
+End Interface
+    ]]></file>
+</compilation>)
+
+            Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+        End Sub
+
+        <WorkItem(30673, "https://github.com/dotnet/roslyn/issues/30673")>
+        <Fact>
+        Public Sub TypeSymbolGetHashCode_ContainingType_GenericNestedType()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="TypeSymbolGetHashCode_ContainingType_GenericNestedType">
+    <file name="a.vb">
+Public Class C(Of T)
+    Public Interface I(Of U)
+    End Interface
+End Class
+    </file>
+</compilation>)
+
+            AssertNoDeclarationDiagnostics(compilation)
+            Dim modifiers = ImmutableArray.Create(VisualBasicCustomModifier.CreateOptional(compilation.GetSpecialType(SpecialType.System_Object)))
+
+            Dim iDefinition = compilation.GetMember(Of NamedTypeSymbol)("C.I")
+            Assert.Equal("C(Of T).I(Of U)", iDefinition.ToTestDisplayString())
+            Assert.True(iDefinition.IsDefinition)
+
+            ' Construct from iDefinition with modified U from iDefinition
+            Dim modifiedU = ImmutableArray.Create(New TypeWithModifiers(iDefinition.TypeParameters.Single(), modifiers))
+            Dim i1 = iDefinition.Construct(TypeSubstitution.Create(iDefinition, iDefinition.TypeParameters, modifiedU))
+            Assert.Equal("C(Of T).I(Of U modopt(System.Object))", i1.ToTestDisplayString())
+            AssertHashCodesMatch(iDefinition, i1)
+
+            Dim cDefinition = iDefinition.ContainingType
+            Assert.Equal("C(Of T)", cDefinition.ToTestDisplayString())
+            Assert.True(cDefinition.IsDefinition)
+
+            ' Construct from cDefinition with modified T from cDefinition
+            Dim modifiedT = ImmutableArray.Create(New TypeWithModifiers(cDefinition.TypeParameters.Single(), modifiers))
+            Dim c2 = cDefinition.Construct(TypeSubstitution.Create(cDefinition, cDefinition.TypeParameters, modifiedT))
+            Dim i2 = c2.GetTypeMember("I")
+            Assert.Equal("C(Of T modopt(System.Object)).I(Of U)", i2.ToTestDisplayString())
+            Assert.Same(i2.OriginalDefinition, iDefinition)
+            AssertHashCodesMatch(iDefinition, i2)
+
+            ' Construct from i2 with U from iDefinition
+            Dim i2a = i2.Construct(iDefinition.TypeParameters.Single())
+            Assert.Equal("C(Of T modopt(System.Object)).I(Of U)", i2a.ToTestDisplayString())
+            AssertHashCodesMatch(iDefinition, i2a)
+
+            ' Construct from i2 (reconstructed) with modified U from iDefinition
+            Dim i2b = iDefinition.Construct(TypeSubstitution.Create(iDefinition,
+                                                                    ImmutableArray.Create(cDefinition.TypeParameters.Single(), iDefinition.TypeParameters.Single()),
+                                                                    ImmutableArray.Create(modifiedT.Single(), modifiedU.Single())))
+            Assert.Equal("C(Of T modopt(System.Object)).I(Of U modopt(System.Object))", i2b.ToTestDisplayString())
+            AssertHashCodesMatch(iDefinition, i2b)
+
+            ' Construct from cDefinition with modified T from cDefinition
+            Dim c4 = cDefinition.Construct(TypeSubstitution.Create(cDefinition, cDefinition.TypeParameters, modifiedT))
+            Assert.Equal("C(Of T modopt(System.Object))", c4.ToTestDisplayString())
+            Assert.False(c4.IsDefinition)
+            AssertHashCodesMatch(cDefinition, c4)
+
+            Dim i4 = c4.GetTypeMember("I")
+            Assert.Equal("C(Of T modopt(System.Object)).I(Of U)", i4.ToTestDisplayString())
+            Assert.Same(i4.OriginalDefinition, iDefinition)
+            AssertHashCodesMatch(iDefinition, i4)
+        End Sub
+
+        <WorkItem(30673, "https://github.com/dotnet/roslyn/issues/30673")>
+        <Fact>
+        Public Sub TypeSymbolGetHashCode_ContainingType_GenericNestedType_Nested()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="TypeSymbolGetHashCode_ContainingType_GenericNestedType">
+    <file name="a.vb">
+Public Class C(Of T)
+    Public Class C2(Of U)
+        Public Interface I(Of V)
+        End Interface
+    End Class
+End Class
+    </file>
+</compilation>)
+
+            AssertNoDeclarationDiagnostics(compilation)
+            Dim modifiers = ImmutableArray.Create(VisualBasicCustomModifier.CreateOptional(compilation.GetSpecialType(SpecialType.System_Object)))
+
+            Dim iDefinition = compilation.GetMember(Of NamedTypeSymbol)("C.C2.I")
+            Assert.Equal("C(Of T).C2(Of U).I(Of V)", iDefinition.ToTestDisplayString())
+            Assert.True(iDefinition.IsDefinition)
+
+            Dim c2Definition = iDefinition.ContainingType
+            Dim cDefinition = c2Definition.ContainingType
+            Dim modifiedT = New TypeWithModifiers(cDefinition.TypeParameters.Single(), modifiers)
+            Dim modifiedU = New TypeWithModifiers(c2Definition.TypeParameters.Single(), modifiers)
+            Dim modifiedV = New TypeWithModifiers(iDefinition.TypeParameters.Single(), modifiers)
+
+            Dim i = iDefinition.Construct(TypeSubstitution.Create(iDefinition,
+                                                                    ImmutableArray.Create(cDefinition.TypeParameters.Single(), c2Definition.TypeParameters.Single(), iDefinition.TypeParameters.Single()),
+                                                                    ImmutableArray.Create(modifiedT, modifiedU, modifiedV)))
+            Assert.Equal("C(Of T modopt(System.Object)).C2(Of U modopt(System.Object)).I(Of V modopt(System.Object))", i.ToTestDisplayString())
+            AssertHashCodesMatch(iDefinition, i)
+        End Sub
+
+        <WorkItem(30673, "https://github.com/dotnet/roslyn/issues/30673")>
+        <Fact>
+        Public Sub TypeSymbolGetHashCode_SubstitutedErrorType()
+            Dim missing = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="TypeSymbolGetHashCode_SubstitutedErrorType">
+    <file name="a.vb">
+Public Class C(Of T)
+    Public Class D(Of U)
+    End Class
+End Class
+    </file>
+</compilation>)
+            AssertNoDeclarationDiagnostics(missing)
+
+            Dim reference = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="TypeSymbolGetHashCode_SubstitutedErrorType">
+    <file name="a.vb">
+Public Class Reference(Of T, U)
+    Inherits C(Of T).D(Of U)
+End Class
+    </file>
+</compilation>, references:={missing.EmitToImageReference()})
+            AssertNoDeclarationDiagnostics(reference)
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="TypeSymbolGetHashCode_SubstitutedErrorType">
+    <file name="a.vb">
+Public Class Program(Of V, W)
+    Inherits Reference(Of V, W)
+End Class
+    </file>
+</compilation>, references:={reference.EmitToImageReference()})
+
+            compilation.AssertTheseDiagnostics(<errors><![CDATA[
+BC31091: Import of type 'C(Of ).D(Of )' from assembly or module 'TypeSymbolGetHashCode_SubstitutedErrorType.dll' failed.
+Public Class Program(Of V, W)
+             ~~~~~~~
+BC31091: Import of type 'C(Of ).D(Of )' from assembly or module 'TypeSymbolGetHashCode_SubstitutedErrorType.dll' failed.
+    Inherits Reference(Of V, W)
+             ~~~~~~~~~~~~~~~~~~
+            ]]></errors>)
+
+            Dim modifiers = ImmutableArray.Create(VisualBasicCustomModifier.CreateOptional(compilation.GetSpecialType(SpecialType.System_Object)))
+
+            Dim programType = compilation.GlobalNamespace.GetTypeMember("Program")
+            Dim errorType = programType.BaseType.BaseType
+
+            Dim definition = errorType.OriginalDefinition
+            Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Symbols.SubstitutedErrorType", errorType.GetType().ToString())
+            Assert.Equal("C(Of )[missing].D(Of )[missing]", definition.ToTestDisplayString())
+            Assert.True(definition.IsDefinition)
+
+            ' Construct from definition with modified U from definition
+            Dim modifiedU = ImmutableArray.Create(New TypeWithModifiers(definition.TypeParameters.Single(), modifiers))
+            Dim t1 = definition.Construct(TypeSubstitution.Create(definition, definition.TypeParameters, modifiedU))
+            Assert.Equal("C(Of )[missing].D(Of  modopt(System.Object))[missing]", t1.ToTestDisplayString())
+            AssertHashCodesMatch(definition, t1)
+        End Sub
+
+        Private Shared Sub AssertHashCodesMatch(c As TypeSymbol, c2 As TypeSymbol)
+            Assert.False(c.IsSameType(c2, TypeCompareKind.ConsiderEverything))
+            Assert.True(c.IsSameType(c2, (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)))
+
+            Assert.Equal(c2.GetHashCode(), c.GetHashCode())
         End Sub
     End Class
 

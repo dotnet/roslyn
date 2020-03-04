@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -6,94 +10,93 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    /// <summary>
-    /// This will tie <see cref="Solution"/> and <see cref="RemoteHostClient.Connection"/>'s lifetime together
-    /// so that one can handle those more easily
-    /// </summary>
+    [Obsolete("Only used by Razor and LUT", error: false)]
     internal sealed class SessionWithSolution : IDisposable
     {
-        private readonly RemoteHostClient.Connection _connection;
+        public readonly RemoteHostClient.Connection Connection;
         private readonly PinnedRemotableDataScope _scope;
-        private readonly CancellationToken _cancellationToken;
 
-        public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+        public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Connection connection, Solution solution, CancellationToken cancellationToken)
         {
-            var sessionWithSolution = new SessionWithSolution(connection, scope, cancellationToken);
+            Contract.ThrowIfNull(connection);
+            Contract.ThrowIfNull(solution);
 
+            var service = solution.Workspace.Services.GetRequiredService<IRemotableDataService>();
+            var scope = await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+
+            SessionWithSolution? session = null;
             try
             {
-                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                return sessionWithSolution;
-            }
-            catch
-            {
-                sessionWithSolution.Dispose();
+                // set connection state for this session.
+                // we might remove this in future. see https://github.com/dotnet/roslyn/issues/24836
+                await connection.InvokeAsync(
+                    WellKnownServiceHubServices.ServiceHubServiceBase_Initialize,
+                    new object[] { scope.SolutionInfo },
+                    cancellationToken).ConfigureAwait(false);
 
-                // we only expect this to happen on cancellation. otherwise, rethrow
-                cancellationToken.ThrowIfCancellationRequested();
-                throw;
+                // transfer ownership of connection and scope to the session object:
+                session = new SessionWithSolution(connection, scope);
             }
+            finally
+            {
+                if (session == null)
+                {
+                    scope.Dispose();
+                }
+            }
+
+            return session;
         }
 
-        private SessionWithSolution(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+        private SessionWithSolution(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope)
         {
-            _connection = connection;
+            Connection = connection;
             _scope = scope;
-            _cancellationToken = cancellationToken;
         }
 
         public void AddAdditionalAssets(CustomAsset asset)
         {
-            _scope.AddAdditionalAsset(asset, _cancellationToken);
+            _scope.AddAdditionalAsset(asset);
         }
 
         public void Dispose()
         {
             _scope.Dispose();
-            _connection.Dispose();
+            Connection.Dispose();
         }
-
-        public Task InvokeAsync(string targetName, params object[] arguments)
-            => _connection.InvokeAsync(targetName, arguments);
-        public Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
-            => _connection.InvokeAsync<T>(targetName, arguments);
-        public Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
-            => _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync);
-        public Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
-            => _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
     }
 
     /// <summary>
     /// This will let one to hold onto <see cref="RemoteHostClient.Connection"/> for a while.
     /// this helper will let you not care about remote host being gone while you hold onto the connection if that ever happen
     /// 
-    /// and also make sure state is correct even if multiple threads call TryInvokeAsync at the same time. but this 
-    /// is not optimized to handle highly concurrent usage. if highly concurrent usage is required, either using
-    /// <see cref="RemoteHostClient.Connection"/> direclty or using <see cref="SessionWithSolution"/> would be better choice
+    /// when this is used, solution must be explicitly passed around between client (VS) and remote host (OOP)
     /// </summary>
     internal sealed class KeepAliveSession
     {
-        private readonly SemaphoreSlim _gate;
+        private readonly object _gate;
         private readonly IRemoteHostClientService _remoteHostClientService;
-        private readonly CancellationToken _cancellationToken;
+        private readonly IRemotableDataService _remotableDataService;
 
         private readonly string _serviceName;
-        private readonly object _callbackTarget;
+        private readonly object? _callbackTarget;
 
-        private RemoteHostClient _client;
-        private RemoteHostClient.Connection _connection;
+        private RemoteHostClient? _client;
+        private ReferenceCountedDisposable<RemoteHostClient.Connection>? _lazyConnection;
 
-        public KeepAliveSession(RemoteHostClient client, RemoteHostClient.Connection connection, string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public KeepAliveSession(RemoteHostClient client, RemoteHostClient.Connection connection, string serviceName, object? callbackTarget)
         {
-            Initialize_NoLock(client, connection);
+            _gate = new object();
 
-            _gate = new SemaphoreSlim(initialCount: 1);
-            _remoteHostClientService = client.Workspace.Services.GetService<IRemoteHostClientService>();
-            _cancellationToken = cancellationToken;
+            Initialize(client, connection);
+
+            _remoteHostClientService = client.Workspace.Services.GetRequiredService<IRemoteHostClientService>();
+            _remotableDataService = client.Workspace.Services.GetRequiredService<IRemotableDataService>();
 
             _serviceName = serviceName;
             _callbackTarget = callbackTarget;
@@ -101,172 +104,77 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void Shutdown()
         {
-            using (_gate.DisposableWait(_cancellationToken))
+            ReferenceCountedDisposable<RemoteHostClient.Connection>? connection;
+
+            lock (_gate)
             {
                 if (_client != null)
                 {
                     _client.StatusChanged -= OnStatusChanged;
                 }
 
-                _connection?.Dispose();
+                connection = _lazyConnection;
 
                 _client = null;
-                _connection = null;
+                _lazyConnection = null;
             }
+
+            connection?.Dispose();
         }
 
-        public async Task<bool> TryInvokeAsync(string targetName, params object[] arguments)
+        public async Task<bool> TryInvokeAsync(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
+            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
-                if (connection == null)
+                return false;
+            }
+
+            await RemoteHostClient.RunRemoteAsync(connection.Target, _remotableDataService, targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+
+        public async Task<Optional<T>> TryInvokeAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
+        {
+            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
+            if (connection == null)
+            {
+                return default;
+            }
+
+            return await RemoteHostClient.RunRemoteAsync<T>(connection.Target, _remotableDataService, targetName, solution, arguments, dataReader: null, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<ReferenceCountedDisposable<RemoteHostClient.Connection>?> TryGetConnectionAsync(CancellationToken cancellationToken)
+        {
+            lock (_gate)
+            {
+                if (_lazyConnection != null)
                 {
-                    return false;
+                    return _lazyConnection.TryAddReference();
                 }
-
-                await connection.InvokeAsync(targetName, arguments).ConfigureAwait(false);
-                return true;
-            }
-        }
-
-        public async Task<T> TryInvokeAsync<T>(string targetName, params object[] arguments)
-        {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
-                if (connection == null)
-                {
-                    return default;
-                }
-
-                return await connection.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
-            }
-        }
-
-        public async Task<bool> TryInvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
-        {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
-                if (connection == null)
-                {
-                    return false;
-                }
-
-                await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
-                return true;
-            }
-        }
-
-        public async Task<T> TryInvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
-        {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
-                if (connection == null)
-                {
-                    return default;
-                }
-
-                return await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
-            }
-        }
-
-        public async Task<bool> TryInvokeAsync(string targetName, Solution solution, params object[] arguments)
-        {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
-            {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
-                if (connection == null)
-                {
-                    return false;
-                }
-
-                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                await connection.InvokeAsync(targetName, arguments).ConfigureAwait(false);
-                return true;
-            }
-        }
-
-        public async Task<T> TryInvokeAsync<T>(string targetName, Solution solution, params object[] arguments)
-        {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
-            {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
-                if (connection == null)
-                {
-                    return default;
-                }
-
-                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                return await connection.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
-            }
-        }
-
-        public async Task<bool> TryInvokeAsync(
-            string targetName, Solution solution, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
-        {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
-            {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
-                if (connection == null)
-                {
-                    return false;
-                }
-
-                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
-                return true;
-            }
-        }
-
-        public async Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
-        {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
-            {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
-                if (connection == null)
-                {
-                    return default;
-                }
-
-                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                return await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
-            }
-        }
-
-        private async Task<RemoteHostClient.Connection> TryGetConnection_NoLockAsync()
-        {
-            if (_connection != null)
-            {
-                return _connection;
             }
 
-            var client = await _remoteHostClientService.TryGetRemoteHostClientAsync(_cancellationToken).ConfigureAwait(false);
+            var client = await _remoteHostClientService.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return null;
             }
 
-            var session = await client.TryCreateConnectionAsync(_serviceName, _callbackTarget, _cancellationToken).ConfigureAwait(false);
-            if (session == null)
+            var connection = await client.TryCreateConnectionAsync(_serviceName, _callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
                 return null;
             }
 
-            Initialize_NoLock(client, session);
+            Initialize(client, connection);
 
-            return _connection;
+            return await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private void OnStatusChanged(object sender, bool connection)
+        private void OnStatusChanged(object sender, bool started)
         {
-            if (connection)
+            if (started)
             {
                 return;
             }
@@ -274,15 +182,28 @@ namespace Microsoft.CodeAnalysis.Remote
             Shutdown();
         }
 
-        private void Initialize_NoLock(RemoteHostClient client, RemoteHostClient.Connection connection)
+        private void Initialize(RemoteHostClient client, RemoteHostClient.Connection connection)
         {
             Contract.ThrowIfNull(client);
             Contract.ThrowIfNull(connection);
 
-            _client = client;
-            _client.StatusChanged += OnStatusChanged;
+            lock (_gate)
+            {
+                if (_client != null)
+                {
+                    Contract.ThrowIfNull(_lazyConnection);
 
-            _connection = connection;
+                    // someone else beat us and set the connection. 
+                    // let this connection closed.
+                    connection.Dispose();
+                    return;
+                }
+
+                _client = client;
+                _client.StatusChanged += OnStatusChanged;
+
+                _lazyConnection = new ReferenceCountedDisposable<RemoteHostClient.Connection>(connection);
+            }
         }
     }
 }

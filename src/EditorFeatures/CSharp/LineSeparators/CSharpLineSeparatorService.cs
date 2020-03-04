@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -17,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
     [ExportLanguageService(typeof(ILineSeparatorService), LanguageNames.CSharp), Shared]
     internal class CSharpLineSeparatorService : ILineSeparatorService
     {
+        [ImportingConstructor]
+        public CSharpLineSeparatorService()
+        {
+        }
+
         /// <summary>
         /// Given a tree returns line separator spans.
         /// The operation may take fairly long time on a big tree so it is cancellable.
@@ -39,26 +46,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
                     return SpecializedCollections.EmptyEnumerable<TextSpan>();
                 }
 
-                var typeBlock = block as TypeDeclarationSyntax;
-                if (typeBlock != null)
+                switch (block)
                 {
-                    ProcessNodeList(typeBlock.Members, spans, cancellationToken);
-                    continue;
-                }
-
-                var namespaceBlock = block as NamespaceDeclarationSyntax;
-                if (namespaceBlock != null)
-                {
-                    ProcessUsings(namespaceBlock.Usings, spans, cancellationToken);
-                    ProcessNodeList(namespaceBlock.Members, spans, cancellationToken);
-                    continue;
-                }
-
-                var progBlock = block as CompilationUnitSyntax;
-                if (progBlock != null)
-                {
-                    ProcessUsings(progBlock.Usings, spans, cancellationToken);
-                    ProcessNodeList(progBlock.Members, spans, cancellationToken);
+                    case TypeDeclarationSyntax typeBlock:
+                        ProcessNodeList(typeBlock.Members, spans, cancellationToken);
+                        continue;
+                    case NamespaceDeclarationSyntax namespaceBlock:
+                        ProcessUsings(namespaceBlock.Usings, spans, cancellationToken);
+                        ProcessNodeList(namespaceBlock.Members, spans, cancellationToken);
+                        continue;
+                    case CompilationUnitSyntax progBlock:
+                        ProcessUsings(progBlock.Usings, spans, cancellationToken);
+                        ProcessNodeList(progBlock.Members, spans, cancellationToken);
+                        break;
                 }
             }
 
@@ -101,8 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
         private static bool IsBadType(SyntaxNode node)
         {
-            var typeDecl = node as TypeDeclarationSyntax;
-            if (typeDecl != null)
+            if (node is TypeDeclarationSyntax typeDecl)
             {
                 if (typeDecl.OpenBraceToken.IsMissing ||
                     typeDecl.CloseBraceToken.IsMissing)
@@ -116,8 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
         private static bool IsBadEnum(SyntaxNode node)
         {
-            var enumDecl = node as EnumDeclarationSyntax;
-            if (enumDecl != null)
+            if (node is EnumDeclarationSyntax enumDecl)
             {
                 if (enumDecl.OpenBraceToken.IsMissing ||
                     enumDecl.CloseBraceToken.IsMissing)
@@ -131,8 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
         private static bool IsBadMethod(SyntaxNode node)
         {
-            var methodDecl = node as MethodDeclarationSyntax;
-            if (methodDecl != null)
+            if (node is MethodDeclarationSyntax methodDecl)
             {
                 if (methodDecl.Body != null &&
                    (methodDecl.Body.OpenBraceToken.IsMissing ||
@@ -173,8 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
         private static bool IsBadConstructor(SyntaxNode node)
         {
-            var constructorDecl = node as ConstructorDeclarationSyntax;
-            if (constructorDecl != null)
+            if (node is ConstructorDeclarationSyntax constructorDecl)
             {
                 if (constructorDecl.Body != null &&
                    (constructorDecl.Body.OpenBraceToken.IsMissing ||
@@ -189,8 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
         private static bool IsBadDestructor(SyntaxNode node)
         {
-            var destructorDecl = node as DestructorDeclarationSyntax;
-            if (destructorDecl != null)
+            if (node is DestructorDeclarationSyntax destructorDecl)
             {
                 if (destructorDecl.Body != null &&
                    (destructorDecl.Body.OpenBraceToken.IsMissing ||
@@ -205,8 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
         private static bool IsBadOperator(SyntaxNode node)
         {
-            var operatorDecl = node as OperatorDeclarationSyntax;
-            if (operatorDecl != null)
+            if (node is OperatorDeclarationSyntax operatorDecl)
             {
                 if (operatorDecl.Body != null &&
                    (operatorDecl.Body.OpenBraceToken.IsMissing ||
@@ -221,8 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
         private static bool IsBadConversionOperator(SyntaxNode node)
         {
-            var conversionDecl = node as ConversionOperatorDeclarationSyntax;
-            if (conversionDecl != null)
+            if (node is ConversionOperatorDeclarationSyntax conversionDecl)
             {
                 if (conversionDecl.Body != null &&
                    (conversionDecl.Body.OpenBraceToken.IsMissing ||
@@ -286,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
             // first child needs no separator
             var seenSeparator = true;
-            for (int i = 0; i < children.Count - 1; i++)
+            for (var i = 0; i < children.Count - 1; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

@@ -1,75 +1,53 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
-using System.Windows.Automation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
     public class GenerateTypeDialog_OutOfProc : OutOfProcComponent
     {
-        private const string GenerateTypeDialogID = "GenerateTypeDialog";
+        private readonly GenerateTypeDialog_InProc _inProc;
 
         public GenerateTypeDialog_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            _inProc = CreateInProcComponent<GenerateTypeDialog_InProc>(visualStudioInstance);
         }
 
         public void VerifyOpen()
-        {
-            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: true);
-
-            if (dialog == null)
-            {
-                throw new InvalidOperationException($"Expected the '{GenerateTypeDialogID}' dialog to be open but it is not.");
-            }
-        }
+            => _inProc.VerifyOpen();
 
         public void VerifyClosed()
-        {
-            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: false);
+            => _inProc.VerifyClosed();
 
-            if (dialog != null)
-            {
-                throw new InvalidOperationException($"Expected the '{GenerateTypeDialogID}' dialog to be closed but it is not.");
-            }
-        }
+        public bool CloseWindow()
+            => _inProc.CloseWindow();
 
         public void SetAccessibility(string accessibility)
-        {
-            DialogHelpers.SelectComboBoxItem(GetMainWindowHWnd(), GenerateTypeDialogID, "AccessList", accessibility);
-        }
+            => _inProc.SetAccessibility(accessibility);
 
         public void SetKind(string kind)
-        {
-            DialogHelpers.SelectComboBoxItem(GetMainWindowHWnd(), GenerateTypeDialogID, "KindList", kind);
-        }
+            => _inProc.SetKind(kind);
 
         public void SetTargetProject(string projectName)
-        {
-            DialogHelpers.SelectComboBoxItem(GetMainWindowHWnd(), GenerateTypeDialogID, "ProjectList", projectName);
-        }
+            => _inProc.SetTargetProject(projectName);
 
         public void SetTargetFileToNewName(string newFileName)
-        {
-            DialogHelpers.SelectRadioButton(GetMainWindowHWnd(), GenerateTypeDialogID, "CreateNewFileRadioButton");
-            DialogHelpers.SetElementValue(GetMainWindowHWnd(), GenerateTypeDialogID, "CreateNewFileComboBox", newFileName);
-        }
+            => _inProc.SetTargetFileToNewName(newFileName);
 
         public void SetTargetFileToExisting(string existingFileName)
-        {
-            DialogHelpers.SelectRadioButton(GetMainWindowHWnd(), GenerateTypeDialogID, "AddToExistingFileRadioButton");
-            DialogHelpers.SetElementValue(GetMainWindowHWnd(), GenerateTypeDialogID, "AddToExistingFileComboBox", existingFileName);
-        }
+            => _inProc.SetTargetFileToExisting(existingFileName);
 
         /// <summary>
         /// Clicks the "OK" button and waits for the related Code Action to complete.
         /// </summary>
         public void ClickOK()
         {
-            DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "OK");
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            _inProc.ClickOK();
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
 
         /// <summary>
@@ -77,26 +55,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public void ClickCancel()
         {
-            DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "Cancel");
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            _inProc.ClickCancel();
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
 
         public string[] GetNewFileComboBoxItems()
-        {
-            var dialog = DialogHelpers.GetOpenDialogById(GetMainWindowHWnd(), GenerateTypeDialogID);
-            var createNewFileComboBox = dialog.FindDescendantByAutomationId("CreateNewFileComboBox");
-            createNewFileComboBox.Expand();
-
-            var children = createNewFileComboBox.FindDescendantsByClass("ListBoxItem");
-
-            createNewFileComboBox.Collapse();
-
-            return children.Cast<AutomationElement>().Select(element => element.Current.Name).ToArray();
-        }
-
-        private int GetMainWindowHWnd()
-        {
-            return VisualStudioInstance.Shell.GetHWnd();
-        }
+            => _inProc.GetNewFileComboBoxItems();
     }
 }

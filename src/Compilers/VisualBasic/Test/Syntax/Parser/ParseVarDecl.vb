@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -133,7 +135,7 @@ Public Class ParseVarDecl
 
     <WorkItem(898582, "DevDiv/Personal")>
     <Fact>
-    Public Sub ParseIncorrectShorArr()
+    Public Sub ParseIncorrectShortArr()
         ParseAndVerify(<![CDATA[
             Sub ArExtNewErr001()
 FixedRankArray_19 = New Short() (1,
@@ -250,7 +252,7 @@ End Class
         ParseAndVerify(<![CDATA[
 Module Program
     Sub Main()
-        Dim [foo as integer = 23 
+        Dim [goo as integer = 23 
         Dim [goo As Char = "d"c
 
         Dim [ as integer = 23 
@@ -266,7 +268,7 @@ Module Program
     End Sub
 End Module
             ]]>, Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
-                 Diagnostic(ERRID.ERR_MissingEndBrack, "[foo"),
+                 Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
                  Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
                  Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
                  Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),

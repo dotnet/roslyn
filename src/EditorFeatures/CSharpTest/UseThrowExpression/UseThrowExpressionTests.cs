@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseThrowExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UseThrowExpression;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -44,9 +47,10 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
-        public async Task TestOnIf()
+        [WorkItem(38136, "https://github.com/dotnet/roslyn/pull/38136")]
+        public async Task TestMissingOnIf()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -56,15 +60,6 @@ class C
         [|if|] (s == null)
             throw new ArgumentNullException(nameof(s));
         _s = s;
-    }
-}",
-@"using System;
-
-class C
-{
-    void M(string s)
-    {
-        _s = s ?? throw new ArgumentNullException(nameof(s));
     }
 }");
         }
@@ -314,7 +309,7 @@ class C
 {
     private string _s;
 
-    void Foo()
+    void Goo()
     {
         Expression<Action<string>> e = s =>
         {
@@ -427,6 +422,122 @@ class C
             Console.WriteLine();
         }
         _s = s;
+    }
+}");
+        }
+
+        [WorkItem(21612, "https://github.com/dotnet/roslyn/issues/21612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWhenAccessedOnLeftOfAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class A
+{
+    public string Id;
+}
+
+class B
+{
+    private Dictionary<string, A> map = new Dictionary<string, A>();
+    public B(A a)
+    {
+        if (a == null) [|throw|] new ArgumentNullException();
+        map[a.Id] = a;
+    }
+}");
+        }
+
+        [WorkItem(24628, "https://github.com/dotnet/roslyn/issues/24628")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWhenAccessedOnLineBefore()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class B
+{
+    public B(object arg)
+    {
+        Dictionary<object, object> map = null;
+
+        if (arg == null) [|throw|] new ArgumentNullException();
+        var key = MakeKey(arg);
+        map[key] = arg;
+    }
+
+    object MakeKey(object x) => null;
+}");
+        }
+
+        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWhenUnconstrainedTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class A<T>
+{
+    T x;
+    public A(T t)
+    {
+        if (t == null) [|throw|] new ArgumentNullException();
+        x = t;
+    }
+}");
+        }
+
+        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestWhenClassConstrainedTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class A<T> where T: class
+{
+    T x;
+    public A(T t)
+    {
+        if (t == null) [|throw|] new ArgumentNullException();
+        x = t;
+    }
+}",
+@"using System;
+class A<T> where T: class
+{
+    T x;
+    public A(T t)
+    {
+        x = t ?? throw new ArgumentNullException();
+    }
+}");
+        }
+
+        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestWhenStructConstrainedTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class A<T> where T: struct
+{
+    T? x;
+    public A(T? t)
+    {
+        if (t == null) [|throw|] new ArgumentNullException();
+        x = t;
+    }
+}",
+@"using System;
+class A<T> where T: struct
+{
+    T? x;
+    public A(T? t)
+    {
+        x = t ?? throw new ArgumentNullException();
     }
 }");
         }

@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -56,11 +58,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 accessibility:=Accessibility.Private,
                 modifiers:=New DeclarationModifiers(),
                 returnType:=delegateInvokeMethod.ReturnType,
-                returnsByRef:=delegateInvokeMethod.ReturnsByRef,
+                refKind:=delegateInvokeMethod.RefKind,
                 explicitInterfaceImplementations:=Nothing,
                 name:=methodName,
                 typeParameters:=Nothing,
-                parameters:=delegateInvokeMethod.Parameters,
+                parameters:=delegateInvokeMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(destinationType).Parameters,
                 handlesExpressions:=ImmutableArray.Create(Of SyntaxNode)(handlesSyntax))
             methodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(methodSymbol)
 

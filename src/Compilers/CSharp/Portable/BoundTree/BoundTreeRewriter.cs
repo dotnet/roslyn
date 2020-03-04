@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -35,15 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 System.Diagnostics.Debug.Assert(item != null);
 
                 var visited = this.Visit(item);
-                if (item != visited)
+                if (newList == null && item != visited)
                 {
-                    if (newList == null)
+                    newList = ArrayBuilder<T>.GetInstance();
+                    if (i > 0)
                     {
-                        newList = ArrayBuilder<T>.GetInstance();
-                        if (i > 0)
-                        {
-                            newList.AddRange(list, i);
-                        }
+                        newList.AddRange(list, i);
                     }
                 }
 
@@ -141,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binary = stack.Pop();
                 var right = (BoundExpression)this.Visit(binary.Right);
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, left, right, type);
             }
             while (stack.Count > 0);
 

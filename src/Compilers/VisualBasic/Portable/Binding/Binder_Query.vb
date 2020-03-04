@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -2736,6 +2738,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+                Get
+                    Return ImmutableArray(Of Symbol).Empty
+                End Get
+            End Property
+
             Public ReadOnly Property LambdaSymbol As LambdaSymbol
                 Get
                     Return _lambdaSymbol
@@ -3430,13 +3438,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       True)
 
                         outerKey = outerKeyBinder.BindAnonymousObjectCreationExpression(join, descriptor, outerKeys.AsImmutableOrNull(),
-                                                                                        diagnostics).MakeCompilerGenerated()
+                                                                                        diagnostics)
                         innerKey = innerKeyBinder.BindAnonymousObjectCreationExpression(join, descriptor, innerKeys.AsImmutableOrNull(),
-                                                                                        diagnostics).MakeCompilerGenerated()
+                                                                                        diagnostics)
                     Else
                         outerKey = BadExpression(join, outerKeys.AsImmutableOrNull(), ErrorTypeSymbol.UnknownResultType)
                         innerKey = BadExpression(join, innerKeys.AsImmutableOrNull(), ErrorTypeSymbol.UnknownResultType)
                     End If
+
+                    outerKey.MakeCompilerGenerated()
+                    innerKey.MakeCompilerGenerated()
                 End If
 
                 If suppressDiagnostics IsNot Nothing Then

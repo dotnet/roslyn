@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -175,10 +177,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
             End If
 
-            If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
-                retVal._lazyUseSiteErrorInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
-            End If
-
+            '
+            ' Do not set _lazyUseSiteErrorInfo !!!!
+            '
+            ' "null" Indicates "no errors" or "unknown state",
+            ' and we know which one of the states we have from IsUseSiteDiagnosticPopulated
+            '
+            ' Setting _lazyUseSiteErrorInfo to a sentinel value here would introduce
+            ' a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
+            ' Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
+            '
             If _packedFlags.IsCustomAttributesPopulated Then
                 retVal._lazyCustomAttributes = ImmutableArray(Of VisualBasicAttributeData).Empty
             End If
@@ -746,7 +754,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                              MethodAttributes.Final Or
                              MethodAttributes.Abstract Or
                              MethodAttributes.NewSlot)) =
-                        (MethodAttributes.Virtual Or MethodAttributes.Final)
+                        If(_containingType.IsInterface,
+                           MethodAttributes.Virtual Or MethodAttributes.Final Or MethodAttributes.Abstract,
+                           MethodAttributes.Virtual Or MethodAttributes.Final)
             End Get
         End Property
 
@@ -776,7 +786,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                      MethodAttributes.NewSlot))
 
                 Return flagsToCheck = (MethodAttributes.Virtual Or MethodAttributes.NewSlot) OrElse
-                       (flagsToCheck = MethodAttributes.Virtual AndAlso _containingType.BaseTypeNoUseSiteDiagnostics Is Nothing)
+                       (Not _containingType.IsInterface AndAlso
+                        flagsToCheck = MethodAttributes.Virtual AndAlso _containingType.BaseTypeNoUseSiteDiagnostics Is Nothing)
             End Get
         End Property
 
@@ -789,7 +800,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 '
                 ' This means that a virtual method without NewSlot flag in a type that doesn't have a base
                 ' is a new virtual method and doesn't override anything.
-                Return (_flags And MethodAttributes.Virtual) <> 0 AndAlso
+                Return Not _containingType.IsInterface AndAlso
+                       (_flags And MethodAttributes.Virtual) <> 0 AndAlso
                        (_flags And MethodAttributes.NewSlot) = 0 AndAlso
                        _containingType.BaseTypeNoUseSiteDiagnostics IsNot Nothing
             End Get
@@ -908,7 +920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function SetAssociatedPropertyOrEvent(propertyOrEventSymbol As Symbol, methodKind As MethodKind) As Boolean
             If Me._associatedPropertyOrEventOpt Is Nothing Then
-                Debug.Assert(propertyOrEventSymbol.ContainingType = Me.ContainingType)
+                Debug.Assert(TypeSymbol.Equals(propertyOrEventSymbol.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything))
                 Me._associatedPropertyOrEventOpt = propertyOrEventSymbol
                 _packedFlags.MethodKind = methodKind
                 Return True
@@ -921,8 +933,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Dim moduleSymbol = _containingType.ContainingPEModule
 
-                Dim signatureHeader As SignatureHeader
-                Dim mrEx As BadImageFormatException = Nothing
+            Dim signatureHeader As SignatureHeader
+            Dim mrEx As BadImageFormatException = Nothing
             Dim paramInfo() As ParamInfo(Of TypeSymbol) =
                     (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx)
 
@@ -1090,21 +1102,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return InitializeUseSiteErrorInfo(errorInfo)
             End If
 
-            Dim uncommonFields = _uncommonFields
-            If uncommonFields Is Nothing Then
-                Return Nothing
-            Else
-                Dim result = uncommonFields._lazyUseSiteErrorInfo
-                Return If(result Is ErrorFactory.EmptyErrorInfo,
-                    InterlockedOperations.Initialize(uncommonFields._lazyUseSiteErrorInfo, Nothing, ErrorFactory.EmptyErrorInfo),
-                    result)
-            End If
+            Return _uncommonFields?._lazyUseSiteErrorInfo
         End Function
 
         Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
-            Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
+            If _packedFlags.IsUseSiteDiagnosticPopulated Then
+                Return _uncommonFields?._lazyUseSiteErrorInfo
+            End If
+
             If errorInfo IsNot Nothing Then
-                errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo, ErrorFactory.EmptyErrorInfo)
+                Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
+                errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo)
             End If
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated()

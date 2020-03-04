@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -19,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerProxy_FrameworkTypes_ArrayList()
         {
-            var obj = new ArrayList { 1, 2, true, "foo" };
+            var obj = new ArrayList { 1, 2, true, "goo" };
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
 
-            Assert.Equal("ArrayList(4) { 1, 2, true, \"foo\" }", str);
+            Assert.Equal("ArrayList(4) { 1, 2, true, \"goo\" }", str);
         }
 
         [Fact]
@@ -96,7 +98,7 @@ Class C
 End Class
 ";
             var compilation = VB.VisualBasicCompilation.Create(
-                "foo",
+                "goo",
                 new[] { VB.VisualBasicSyntaxTree.ParseText(source) },
                 new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly) },
                 new VB.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug));

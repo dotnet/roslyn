@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -22,11 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Initialize the ObsoleteAttributeData by fetching attributes and decoding ObsoleteAttributeData. This can be 
         /// done for Metadata symbol easily whereas trying to do this for source symbols could result in cycles.
         /// </summary>
-        internal static void InitializeObsoleteDataFromMetadata(ref ObsoleteAttributeData data, EntityHandle token, PEModuleSymbol containingModule)
+        internal static void InitializeObsoleteDataFromMetadata(ref ObsoleteAttributeData data, EntityHandle token, PEModuleSymbol containingModule, bool ignoreByRefLikeMarker)
         {
             if (ReferenceEquals(data, ObsoleteAttributeData.Uninitialized))
             {
-                ObsoleteAttributeData obsoleteAttributeData = GetObsoleteDataFromMetadata(token, containingModule);
+                ObsoleteAttributeData obsoleteAttributeData = GetObsoleteDataFromMetadata(token, containingModule, ignoreByRefLikeMarker);
                 Interlocked.CompareExchange(ref data, obsoleteAttributeData, ObsoleteAttributeData.Uninitialized);
             }
         }
@@ -35,11 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Get the ObsoleteAttributeData by fetching attributes and decoding ObsoleteAttributeData. This can be 
         /// done for Metadata symbol easily whereas trying to do this for source symbols could result in cycles.
         /// </summary>
-        internal static ObsoleteAttributeData GetObsoleteDataFromMetadata(EntityHandle token, PEModuleSymbol containingModule)
+        internal static ObsoleteAttributeData GetObsoleteDataFromMetadata(EntityHandle token, PEModuleSymbol containingModule, bool ignoreByRefLikeMarker)
         {
             ObsoleteAttributeData obsoleteAttributeData;
-            bool isObsolete = containingModule.Module.HasDeprecatedOrExperimentalOrObsoleteAttribute(token, out obsoleteAttributeData);
-            Debug.Assert(isObsolete == (obsoleteAttributeData != null));
+            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, ignoreByRefLikeMarker);
             Debug.Assert(obsoleteAttributeData == null || !obsoleteAttributeData.IsUninitialized);
             return obsoleteAttributeData;
         }
@@ -56,12 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             while ((object)symbol != null)
             {
-                // For property or event accessors, check the associated property or event instead.
-                if (symbol.IsAccessor())
-                {
-                    symbol = ((MethodSymbol)symbol).AssociatedSymbol;
-                }
-                else if (symbol.Kind == SymbolKind.Field)
+                if (symbol.Kind == SymbolKind.Field)
                 {
                     // If this is the backing field of an event, look at the event instead.
                     var associatedSymbol = ((FieldSymbol)symbol).AssociatedSymbol;
@@ -82,7 +78,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return state;
                 }
 
-                symbol = symbol.ContainingSymbol;
+                // For property or event accessors, check the associated property or event next.
+                if (symbol.IsAccessor())
+                {
+                    symbol = ((MethodSymbol)symbol).AssociatedSymbol;
+                }
+                else
+                {
+                    symbol = symbol.ContainingSymbol;
+                }
             }
 
             return ThreeState.False;

@@ -1,6 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -8,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal abstract partial class MemberSemanticModel : CSharpSemanticModel
     {
-        private readonly CSharpCompilation _compilation;
         private readonly Symbol _memberSymbol;
         private readonly CSharpSyntaxNode _root;
         private readonly DiagnosticBag _ignoredDiagnostics = new DiagnosticBag();
@@ -27,34 +29,62 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The bound nodes associated with a syntax node, from highest in the tree to lowest.
         private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
         private Dictionary<SyntaxNode, BoundStatement> _lazyGuardedSynthesizedStatementsMap;
+        private NullableWalker.SnapshotManager _lazySnapshotManager;
+        private ImmutableDictionary<Symbol, Symbol> _lazyRemappedSymbols;
+        private readonly ImmutableDictionary<Symbol, Symbol> _parentRemappedSymbolsOpt;
+        /// <summary>
+        /// Only used when this is a speculative semantic model.
+        /// </summary>
+        private readonly NullableWalker.SnapshotManager _parentSnapshotManagerOpt;
 
         internal readonly Binder RootBinder;
+
+        /// <summary>
+        /// Field specific to a non-speculative MemberSemanticModel that must have a containing semantic model.
+        /// </summary>
+        private readonly SyntaxTreeSemanticModel _containingSemanticModelOpt;
 
         // Fields specific to a speculative MemberSemanticModel.
         private readonly SyntaxTreeSemanticModel _parentSemanticModelOpt;
         private readonly int _speculatedPosition;
 
-        protected MemberSemanticModel(CSharpCompilation compilation, CSharpSyntaxNode root, Symbol memberSymbol, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt, int speculatedPosition)
+        private readonly Lazy<CSharpOperationFactory> _operationFactory;
+
+        protected MemberSemanticModel(
+            CSharpSyntaxNode root,
+            Symbol memberSymbol,
+            Binder rootBinder,
+            SyntaxTreeSemanticModel containingSemanticModelOpt,
+            SyntaxTreeSemanticModel parentSemanticModelOpt,
+            NullableWalker.SnapshotManager snapshotManagerOpt,
+            ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt,
+            int speculatedPosition)
         {
-            Debug.Assert(compilation != null);
             Debug.Assert(root != null);
             Debug.Assert((object)memberSymbol != null);
+            Debug.Assert(parentSemanticModelOpt == null ^ containingSemanticModelOpt == null);
+            Debug.Assert(containingSemanticModelOpt == null || !containingSemanticModelOpt.IsSpeculativeSemanticModel);
             Debug.Assert(parentSemanticModelOpt == null || !parentSemanticModelOpt.IsSpeculativeSemanticModel, CSharpResources.ChainingSpeculativeModelIsNotSupported);
+            Debug.Assert(snapshotManagerOpt == null || parentSemanticModelOpt != null);
 
-            _compilation = compilation;
             _root = root;
             _memberSymbol = memberSymbol;
 
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
+            _containingSemanticModelOpt = containingSemanticModelOpt;
             _parentSemanticModelOpt = parentSemanticModelOpt;
+            _parentSnapshotManagerOpt = snapshotManagerOpt;
+            _parentRemappedSymbolsOpt = parentRemappedSymbolsOpt;
             _speculatedPosition = speculatedPosition;
+
+            _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
         }
 
         public override CSharpCompilation Compilation
         {
             get
             {
-                return _compilation;
+                return (_containingSemanticModelOpt ?? _parentSemanticModelOpt).Compilation;
             }
         }
 
@@ -77,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override bool IsSpeculativeSemanticModel
+        public sealed override bool IsSpeculativeSemanticModel
         {
             get
             {
@@ -85,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override int OriginalPositionForSpeculation
+        public sealed override int OriginalPositionForSpeculation
         {
             get
             {
@@ -93,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override CSharpSemanticModel ParentModel
+        public sealed override CSharpSemanticModel ParentModel
         {
             get
             {
@@ -101,11 +131,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal sealed override SemanticModel ContainingModelOrSelf
+        {
+            get
+            {
+                return _containingSemanticModelOpt ?? (SemanticModel)this;
+            }
+        }
+
         internal override MemberSemanticModel GetMemberModel(SyntaxNode node)
         {
             // We do have to override this method, but should never call it because it might not do the right thing. 
-            Debug.Assert(false); 
+            Debug.Assert(false);
             return IsInTree(node) ? this : null;
+        }
+
+        /// <remarks>
+        /// This will cause the bound node cache to be populated if nullable semantic analysis is enabled.
+        /// </remarks>
+        protected virtual NullableWalker.SnapshotManager GetSnapshotManager()
+        {
+            EnsureNullabilityAnalysisPerformedIfNecessary();
+            Debug.Assert(_lazySnapshotManager is object || !Compilation.NullableSemanticAnalysisEnabled);
+            return _lazySnapshotManager;
+        }
+
+        internal ImmutableDictionary<Symbol, Symbol> GetRemappedSymbols()
+        {
+            EnsureNullabilityAnalysisPerformedIfNecessary();
+            Debug.Assert(_lazyRemappedSymbols is object || this is AttributeSemanticModel || !Compilation.NullableSemanticAnalysisEnabled);
+            return _lazyRemappedSymbols;
         }
 
         internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel)
@@ -115,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = this.GetSpeculativeBinder(position, expression, bindingOption);
             if (binder != null)
             {
-                speculativeModel = new SpeculativeMemberSemanticModel(parentModel, _memberSymbol, type, binder, position);
+                speculativeModel = new SpeculativeMemberSemanticModel(parentModel, _memberSymbol, type, binder, GetSnapshotManager(), GetRemappedSymbols(), position);
                 return true;
             }
 
@@ -128,6 +183,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             // crefs can never legally appear within members.
             speculativeModel = null;
             return false;
+        }
+
+        internal override BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            if (!Compilation.NullableSemanticAnalysisEnabled || bindingOption != SpeculativeBindingOption.BindAsExpression)
+            {
+                return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
+            }
+
+            crefSymbols = default;
+            position = CheckAndAdjustPosition(position);
+            expression = SyntaxFactory.GetStandaloneExpression(expression);
+            binder = GetSpeculativeBinder(position, expression, bindingOption);
+            var boundRoot = binder.BindExpression(expression, _ignoredDiagnostics);
+            ImmutableDictionary<Symbol, Symbol> ignored = null;
+            return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, GetSnapshotManager(), newSnapshots: out _, remappedSymbols: ref ignored);
         }
 
         private Binder GetEnclosingBinderInternalWithinRoot(SyntaxNode node, int position)
@@ -238,6 +314,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if (kind == SyntaxKind.ThisConstructorInitializer || kind == SyntaxKind.BaseConstructorInitializer)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
+                else if (kind == SyntaxKind.ConstructorDeclaration)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
+                else if (kind == SyntaxKind.SwitchExpression)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
+                else if (kind == SyntaxKind.SwitchExpressionArm)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
                 else if ((current as ExpressionSyntax).IsValidScopeDesignator())
                 {
                     binder = rootBinder.GetBinder(current);
@@ -281,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.SwitchStatement:
                     var switchStmt = (SwitchStatementSyntax)stmt;
-                    if (LookupPosition.IsBetweenTokens(position, switchStmt.OpenParenToken, switchStmt.OpenBraceToken))
+                    if (LookupPosition.IsBetweenTokens(position, switchStmt.SwitchKeyword, switchStmt.OpenBraceToken))
                     {
                         binder = binder.GetBinder(switchStmt.Expression);
                         Debug.Assert(binder != null);
@@ -329,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
+            TypeSymbol csdestination = destination.EnsureCSharpSymbolOrNull(nameof(destination));
 
             if (expression.Kind() == SyntaxKind.DeclarationExpression)
             {
@@ -506,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
-            return GetDeclaredLocalFunction(declarationSyntax, declarationSyntax.Identifier);
+            return GetDeclaredLocalFunction(declarationSyntax).GetPublicSymbol();
         }
 
         public override ISymbol GetDeclaredSymbol(MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -560,13 +652,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ISymbol GetDeclaredSymbol(VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
-            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier).GetPublicSymbol();
         }
 
         public override ISymbol GetDeclaredSymbol(SingleVariableDesignationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
-            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier).GetPublicSymbol();
         }
 
         private LocalSymbol GetDeclaredLocal(CSharpSyntaxNode declarationSyntax, SyntaxToken declaredIdentifier)
@@ -577,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (local.IdentifierToken == declaredIdentifier)
                     {
-                        return local;
+                        return GetAdjustedLocalSymbol((SourceLocalSymbol)local);
                     }
                 }
             }
@@ -585,14 +677,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private LocalFunctionSymbol GetDeclaredLocalFunction(LocalFunctionStatementSyntax declarationSyntax, SyntaxToken declaredIdentifier)
+#nullable enable
+        internal override LocalSymbol GetAdjustedLocalSymbol(SourceLocalSymbol local)
         {
-            return GetDeclaredLocalFunction(this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)), declaredIdentifier);
+            return GetRemappedSymbol<LocalSymbol>(local);
         }
+
+        private LocalFunctionSymbol GetDeclaredLocalFunction(LocalFunctionStatementSyntax declarationSyntax)
+        {
+            var originalSymbol = GetDeclaredLocalFunction(this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)), declarationSyntax.Identifier);
+            return GetRemappedSymbol(originalSymbol);
+        }
+
+        private T GetRemappedSymbol<T>(T originalSymbol) where T : Symbol
+        {
+            if (!Compilation.NullableSemanticAnalysisEnabled) return originalSymbol;
+
+            EnsureNullabilityAnalysisPerformedIfNecessary();
+            if (_lazyRemappedSymbols is null) return originalSymbol;
+
+            if (_lazyRemappedSymbols.TryGetValue(originalSymbol, out Symbol remappedSymbol))
+            {
+                RoslynDebug.Assert(remappedSymbol is object);
+                return (T)remappedSymbol;
+            }
+
+            return originalSymbol;
+        }
+#nullable restore
 
         private static LocalFunctionSymbol GetDeclaredLocalFunction(Binder enclosingBinder, SyntaxToken declaredIdentifier)
         {
-            for (var binder = enclosingBinder ; binder != null; binder = binder.Next)
+            for (var binder = enclosingBinder; binder != null; binder = binder.Next)
             {
                 foreach (var localFunction in binder.LocalFunctions)
                 {
@@ -624,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (label.IdentifierNodeOrToken.IsToken &&
                         label.IdentifierNodeOrToken.AsToken() == declarationSyntax.Identifier)
                     {
-                        return label;
+                        return label.GetPublicSymbol();
                     }
                 }
             }
@@ -649,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (label.IdentifierNodeOrToken.IsNode &&
                         label.IdentifierNodeOrToken.AsNode() == declarationSyntax)
                     {
-                        return label;
+                        return label.GetPublicSymbol();
                     }
                 }
             }
@@ -674,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Could be parameter of a lambda or a local function.
             CheckSyntaxNode(declarationSyntax);
 
-            return GetLambdaOrLocalFunctionParameterSymbol(declarationSyntax, cancellationToken);
+            return GetLambdaOrLocalFunctionParameterSymbol(declarationSyntax, cancellationToken).GetPublicSymbol();
         }
 
         internal override ImmutableArray<ISymbol> GetDeclaredSymbols(BaseFieldDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -707,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (paramList.Parent.Kind() == SyntaxKind.LocalFunctionStatement)
             {
-                var localFunction = (MethodSymbol)GetDeclaredSymbol((LocalFunctionStatementSyntax)paramList.Parent, cancellationToken);
+                var localFunction = GetDeclaredSymbol((LocalFunctionStatementSyntax)paramList.Parent, cancellationToken).GetSymbol<MethodSymbol>();
                 if ((object)localFunction != null)
                 {
                     return GetParameterSymbol(localFunction.Parameters, parameter, cancellationToken);
@@ -732,11 +848,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             LambdaSymbol lambdaSymbol;
             if ((object)symbolInfo.Symbol != null)
             {
-                lambdaSymbol = (LambdaSymbol)symbolInfo.Symbol;
+                lambdaSymbol = symbolInfo.Symbol.GetSymbol<LambdaSymbol>();
             }
             else if (symbolInfo.CandidateSymbols.Length == 1)
             {
-                lambdaSymbol = (LambdaSymbol)symbolInfo.CandidateSymbols.Single();
+                lambdaSymbol = symbolInfo.CandidateSymbols.Single().GetSymbol<LambdaSymbol>();
             }
             else
             {
@@ -755,19 +871,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override IRangeVariableSymbol GetDeclaredSymbol(JoinIntoClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var bound = GetBoundQueryClause(node);
-            return bound == null ? null : bound.DefinedSymbol;
+            return bound == null ? null : bound.DefinedSymbol.GetPublicSymbol();
         }
 
         public override IRangeVariableSymbol GetDeclaredSymbol(QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken))
         {
             var bound = GetBoundQueryClause(queryClause);
-            return bound == null ? null : bound.DefinedSymbol;
+            return bound == null ? null : bound.DefinedSymbol.GetPublicSymbol();
         }
 
         public override IRangeVariableSymbol GetDeclaredSymbol(QueryContinuationSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var bound = GetBoundQueryClause(node);
-            return bound == null ? null : bound.DefinedSymbol;
+            return bound == null ? null : bound.DefinedSymbol.GetPublicSymbol();
         }
 
         public override AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node)
@@ -778,13 +894,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var bound = GetUpperBoundNode(node);
-            BoundAwaitExpression boundAwait = ((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression;
-            if (boundAwait == null)
+            BoundAwaitableInfo awaitableInfo = (((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression)?.AwaitableInfo;
+            if (awaitableInfo == null)
             {
                 return default(AwaitExpressionInfo);
             }
 
-            return new AwaitExpressionInfo(boundAwait.GetAwaiter, boundAwait.IsCompleted, boundAwait.GetResult, boundAwait.IsDynamic);
+            return new AwaitExpressionInfo(
+                getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter?.ExpressionSymbol.GetPublicSymbol(),
+                isCompleted: awaitableInfo.IsCompleted.GetPublicSymbol(),
+                getResult: awaitableInfo.GetResult.GetPublicSymbol(),
+                isDynamic: awaitableInfo.IsDynamic);
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
@@ -823,14 +943,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: we're going to list GetEnumerator, etc for array and string
             // collections, even though we know that's not how the implementation
             // actually enumerates them.
+            MethodSymbol disposeMethod = null;
+            if (enumeratorInfoOpt.NeedsDisposal)
+            {
+                if (enumeratorInfoOpt.DisposeMethod is object)
+                {
+                    disposeMethod = enumeratorInfoOpt.DisposeMethod;
+                }
+                else
+                {
+                    disposeMethod = enumeratorInfoOpt.IsAsync
+                    ? (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
+                    : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
+                }
+            }
+
             return new ForEachStatementInfo(
-                enumeratorInfoOpt.GetEnumeratorMethod,
-                enumeratorInfoOpt.MoveNextMethod,
-                (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
-                enumeratorInfoOpt.NeedsDisposeMethod ? (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose) : null,
-                enumeratorInfoOpt.ElementType,
+                enumeratorInfoOpt.IsAsync,
+                enumeratorInfoOpt.GetEnumeratorMethod.GetPublicSymbol(),
+                enumeratorInfoOpt.MoveNextMethod.GetPublicSymbol(),
+                currentProperty: ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol).GetPublicSymbol(),
+                disposeMethod.GetPublicSymbol(),
+                enumeratorInfoOpt.ElementType.GetPublicSymbol(),
                 boundForEach.ElementConversion,
                 enumeratorInfoOpt.CurrentConversion);
+        }
+
+        public override DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node)
+        {
+            var boundDeconstruction = GetUpperBoundNode(node) as BoundDeconstructionAssignmentOperator;
+            if (boundDeconstruction is null)
+            {
+                return default;
+            }
+
+            var boundConversion = boundDeconstruction.Right;
+            Debug.Assert(boundConversion != null);
+            if (boundConversion is null)
+            {
+                return default;
+            }
+
+            return new DeconstructionInfo(boundConversion.Conversion);
+        }
+
+        public override DeconstructionInfo GetDeconstructionInfo(ForEachVariableStatementSyntax node)
+        {
+            var boundForEach = (BoundForEachStatement)GetUpperBoundNode(node);
+            if (boundForEach is null)
+            {
+                return default;
+            }
+
+            var boundDeconstruction = boundForEach.DeconstructionOpt;
+            Debug.Assert(boundDeconstruction != null || boundForEach.HasAnyErrors);
+            if (boundDeconstruction is null)
+            {
+                return default;
+            }
+
+            return new DeconstructionInfo(boundDeconstruction.DeconstructionAssignment.Right.Conversion);
         }
 
         private BoundQueryClause GetBoundQueryClause(CSharpSyntaxNode node)
@@ -896,20 +1068,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             int index = anonymousObjectCreation.Initializers.IndexOf(declaratorSyntax);
             Debug.Assert(index >= 0);
             Debug.Assert(index < anonymousObjectCreation.Initializers.Count);
-            return AnonymousTypeManager.GetAnonymousTypeProperty(anonymousType, index);
+            return AnonymousTypeManager.GetAnonymousTypeProperty(anonymousType, index).GetPublicSymbol();
         }
 
         public override INamedTypeSymbol GetDeclaredSymbol(AnonymousObjectCreationExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declaratorSyntax);
             var bound = this.GetLowerBoundNode(declaratorSyntax) as BoundAnonymousObjectCreationExpression;
-            return (bound == null) ? null : bound.Type as NamedTypeSymbol;
+            return (bound == null) ? null : (bound.Type as NamedTypeSymbol).GetPublicSymbol();
         }
 
         public override INamedTypeSymbol GetDeclaredSymbol(TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declaratorSyntax);
-            return GetTypeOfTupleLiteral(declaratorSyntax);
+            return GetTypeOfTupleLiteral(declaratorSyntax).GetPublicSymbol();
         }
 
         public override ISymbol GetDeclaredSymbol(ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -930,10 +1102,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var elements = tupleLiteralType.TupleElements;
 
-                if(!elements.IsDefault)
+                if (!elements.IsDefault)
                 {
                     var idx = tupleLiteral.Arguments.IndexOf(declaratorSyntax);
-                    return elements[idx];
+                    return elements[idx].GetPublicSymbol();
                 }
             }
 
@@ -955,31 +1127,76 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
-            CSharpSyntaxNode bindableNode;
+            CSharpSyntaxNode bindingRoot = GetBindingRootOrInitializer(node);
 
-            BoundNode lowestBoundNode;
-            BoundNode highestBoundNode;
-            BoundNode boundParent;
-
-            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
-            BoundNode result;
-            switch (options)
+            IOperation statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, cancellationToken);
+            if (statementOrRootOperation == null)
             {
-                case GetOperationOptions.Parent:
-                    result = boundParent;
-                    break;
-                case GetOperationOptions.Highest:
-                    result = highestBoundNode;
-                    break;
-                case GetOperationOptions.Lowest:
-                default:
-                    result = lowestBoundNode;
-                    break;
+                return null;
             }
 
-            return result as IOperation;
+            // we might optimize it later
+            // https://github.com/dotnet/roslyn/issues/22180
+            return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(o => !o.IsImplicit && o.Syntax == node);
+        }
+
+        private CSharpSyntaxNode GetBindingRootOrInitializer(CSharpSyntaxNode node)
+        {
+            CSharpSyntaxNode bindingRoot = GetBindingRoot(node);
+
+            // if binding root is parameter, make it equal value
+            // we need to do this since node map doesn't contain bound node for parameter
+            if (bindingRoot is ParameterSyntax parameter && parameter.Default?.FullSpan.Contains(node.Span) == true)
+            {
+                return parameter.Default;
+            }
+
+            // if binding root is field variable declarator, make it initializer
+            // we need to do this since node map doesn't contain bound node for field/event variable declarator
+            if (bindingRoot is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Initializer?.FullSpan.Contains(node.Span) == true)
+            {
+                if (variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.FieldDeclaration) == true ||
+                    variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.EventFieldDeclaration) == true)
+                {
+                    return variableDeclarator.Initializer;
+                }
+            }
+
+            // if binding root is enum member declaration, make it equal value
+            // we need to do this since node map doesn't contain bound node for enum member decl
+            if (bindingRoot is EnumMemberDeclarationSyntax enumMember && enumMember.EqualsValue?.FullSpan.Contains(node.Span) == true)
+            {
+                return enumMember.EqualsValue;
+            }
+
+            // if binding root is property member declaration, make it equal value
+            // we need to do this since node map doesn't contain bound node for property initializer
+            if (bindingRoot is PropertyDeclarationSyntax propertyMember && propertyMember.Initializer?.FullSpan.Contains(node.Span) == true)
+            {
+                return propertyMember.Initializer;
+            }
+
+            return bindingRoot;
+        }
+
+        private IOperation GetStatementOrRootOperation(CSharpSyntaxNode node, CancellationToken cancellationToken)
+        {
+            Debug.Assert(node == GetBindingRootOrInitializer(node));
+
+            BoundNode highestBoundNode;
+            GetBoundNodes(node, out _, out _, out highestBoundNode, out _);
+
+            // decide whether we should use highest or lowest bound node here 
+            // https://github.com/dotnet/roslyn/issues/22179
+            BoundNode result = highestBoundNode;
+
+            // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
+            // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
+            // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
+            Debug.Assert(result?.Kind != BoundKind.UnboundLambda);
+            return _operationFactory.Value.Create(result);
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
@@ -1019,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetMemberGroupForNode(options, lowestBoundNode, boundParent, binderOpt: null);
         }
 
-        internal override ImmutableArray<PropertySymbol> GetIndexerGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        internal override ImmutableArray<IPropertySymbol> GetIndexerGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
             CSharpSyntaxNode bindableNode;
             BoundNode lowestBoundNode;
@@ -1079,6 +1296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetBoundNodes(CSharpSyntaxNode node, out CSharpSyntaxNode bindableNode, out BoundNode lowestBoundNode, out BoundNode highestBoundNode, out BoundNode boundParent)
         {
             bindableNode = this.GetBindableSyntaxNode(node);
+
             CSharpSyntaxNode bindableParent = this.GetBindableParentNode(bindableNode);
 
             // Special handling for the Color Color case.
@@ -1213,6 +1431,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _guardedNodeMap.TryGetValue(node, out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
+        /// <summary>
+        /// Internal for test purposes only
+        /// </summary>
+        internal ImmutableArray<BoundNode> TestOnlyTryGetBoundNodesFromMap(CSharpSyntaxNode node)
+        {
+            ImmutableArray<BoundNode> result;
+            return _guardedNodeMap.TryGetValue(node, out result) ? result : default(ImmutableArray<BoundNode>);
+        }
+
         // Adds every syntax/bound pair in a tree rooted at the given bound node to the map, and the
         // performs a lookup of the given syntax node in the map. 
         private ImmutableArray<BoundNode> GuardedAddBoundTreeAndGetBoundNodeFromMap(CSharpSyntaxNode syntax, BoundNode bound)
@@ -1237,15 +1464,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _guardedNodeMap.TryGetValue(syntax, out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
-        internal void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
+        protected void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound, NullableWalker.SnapshotManager manager = null, ImmutableDictionary<Symbol, Symbol> remappedSymbols = null)
         {
             using (_nodeMapLock.DisposableWrite())
             {
-                GuardedAddBoundTreeForStandaloneSyntax(syntax, bound);
+                GuardedAddBoundTreeForStandaloneSyntax(syntax, bound, manager, remappedSymbols);
             }
         }
 
-        protected void GuardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
+        protected void GuardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound, NullableWalker.SnapshotManager manager = null, ImmutableDictionary<Symbol, Symbol> remappedSymbols = null)
         {
             Debug.Assert(_nodeMapLock.IsWriteLockHeld);
             bool alreadyInTree = false;
@@ -1272,6 +1499,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // expressions can be added individually.
                     NodeMapBuilder.AddToMap(bound, _guardedNodeMap, syntax);
                 }
+
+                Debug.Assert((manager is null && (!Compilation.NullableSemanticAnalysisEnabled || syntax != Root || syntax is TypeSyntax ||
+                                                  // Supporting attributes is tracked by
+                                                  // https://github.com/dotnet/roslyn/issues/36066
+                                                  this is AttributeSemanticModel)) ||
+                             (manager is object && remappedSymbols is object && syntax == Root && Compilation.NullableSemanticAnalysisEnabled && _lazySnapshotManager is null));
+                if (manager is object)
+                {
+                    _lazySnapshotManager = manager;
+                    _lazyRemappedSymbols = remappedSymbols;
+                }
             }
         }
 
@@ -1282,19 +1520,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            StatementSyntax enclosingStatement = null;
+#if DEBUG
+            for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
+            {
+                // make sure we never go out of Root
+                Debug.Assert(current != null, "How did we get outside the root?");
+            }
+#endif
 
             for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
             {
-                Debug.Assert(current != null, "How did we get outside the root?");
-
-                if (enclosingStatement == null)
+                if (current is StatementSyntax)
                 {
-                    enclosingStatement = current as StatementSyntax;
+                    return current;
+                }
+
+                switch (current.Kind())
+                {
+                    case SyntaxKind.ThisConstructorInitializer:
+                    case SyntaxKind.BaseConstructorInitializer:
+                        return current;
+                    case SyntaxKind.ArrowExpressionClause:
+                        // If this is an arrow expression on a local function statement, then our bindable root is actually our parent syntax as it's
+                        // a statement in a function. If this is returned directly in IOperation, we'll end up with a separate tree.
+                        if (current.Parent == null || current.Parent.Kind() != SyntaxKind.LocalFunctionStatement)
+                        {
+                            return current;
+                        }
+                        break;
                 }
             }
 
-            return enclosingStatement ?? this.Root;
+            return this.Root;
         }
 
         // We want the binder in which this syntax node is going to be bound, NOT the binder which
@@ -1366,6 +1623,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If not, bind the outermost expression containing the lambda and then fill in the map.
             ImmutableArray<BoundNode> nodes;
 
+            EnsureNullabilityAnalysisPerformedIfNecessary();
+
             using (_nodeMapLock.DisposableRead())
             {
                 nodes = GuardedGetBoundNodesFromMap(lambdaOrQuery);
@@ -1387,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (enclosingLambdaOrQuery == null)
             {
                 nodeToBind = bindingRoot;
-                lambdaRecoveryBinder = GetEnclosingBinderInternalWithinRoot(nodeToBind, nodeToBind.SpanStart);
+                lambdaRecoveryBinder = GetEnclosingBinderInternalWithinRoot(nodeToBind, GetAdjustedNodePosition(nodeToBind));
             }
             else
             {
@@ -1415,7 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetLowerBoundNode(nodes);
                 }
 
-                lambdaRecoveryBinder = GetEnclosingBinderInLambdaOrQuery(nodeToBind.SpanStart, nodeToBind, enclosingLambdaOrQuery, ref boundEnclosingLambdaOrQuery);
+                lambdaRecoveryBinder = GetEnclosingBinderInLambdaOrQuery(GetAdjustedNodePosition(nodeToBind), nodeToBind, enclosingLambdaOrQuery, ref boundEnclosingLambdaOrQuery);
             }
 
             Binder incrementalBinder = new IncrementalBinder(this, lambdaRecoveryBinder);
@@ -1423,6 +1682,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (_nodeMapLock.DisposableWrite())
             {
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
+
+                // https://github.com/dotnet/roslyn/issues/35038: Rewrite the above node and add a test that hits this path with nullable
+                // enabled
+
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
             }
 
@@ -1439,11 +1702,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // situations. Let's bind the node directly.
             if (enclosingLambdaOrQuery == null)
             {
-                lambdaRecoveryBinder = GetEnclosingBinderInternalWithinRoot(lambdaOrQuery, lambdaOrQuery.SpanStart);
+                lambdaRecoveryBinder = GetEnclosingBinderInternalWithinRoot(lambdaOrQuery, GetAdjustedNodePosition(lambdaOrQuery));
             }
             else
             {
-                lambdaRecoveryBinder = GetEnclosingBinderInLambdaOrQuery(lambdaOrQuery.SpanStart, lambdaOrQuery, enclosingLambdaOrQuery, ref boundEnclosingLambdaOrQuery);
+                lambdaRecoveryBinder = GetEnclosingBinderInLambdaOrQuery(GetAdjustedNodePosition(lambdaOrQuery), lambdaOrQuery, enclosingLambdaOrQuery, ref boundEnclosingLambdaOrQuery);
             }
 
             incrementalBinder = new IncrementalBinder(this, lambdaRecoveryBinder);
@@ -1451,6 +1714,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (_nodeMapLock.DisposableWrite())
             {
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
+
+                // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
+#if DEBUG
+                var diagnostics = new DiagnosticBag();
+                ImmutableDictionary<Symbol, Symbol> ignored = null;
+                _ = RewriteNullableBoundNodesWithSnapshots(boundOuterExpression, incrementalBinder, diagnostics, takeSnapshots: false, snapshotManager: out _, remappedSymbols: ref ignored);
+#endif
+
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
             }
 
@@ -1625,6 +1896,107 @@ done:
         }
 
         /// <summary>
+        /// If we're doing nullable analysis, we need to fully bind this member, and then run
+        /// nullable analysis on the resulting nodes before putting them in the map. Nullable
+        /// analysis does not run a subset of code, so we need to fully bind the entire member
+        /// first
+        /// </summary>
+        protected void EnsureNullabilityAnalysisPerformedIfNecessary()
+        {
+            // In DEBUG without nullable analysis enabled, we want to use a temp diagnosticbag
+            // that can't produce any observable side effects
+            DiagnosticBag diagnostics = _ignoredDiagnostics;
+
+            // If we're in DEBUG mode, always enable the analysis, but throw away the results
+            if (!Compilation.NullableSemanticAnalysisEnabled)
+            {
+#if DEBUG
+                diagnostics = new DiagnosticBag();
+#else
+                return;
+#endif
+            }
+
+            // If we have a snapshot manager, then we've already done
+            // all the work necessary and we should avoid taking an
+            // unnecessary read lock.
+            if (_lazySnapshotManager is object)
+            {
+                return;
+            }
+
+            var bindableRoot = GetBindableSyntaxNode(Root);
+            using var upgradeableLock = _nodeMapLock.DisposableUpgradeableRead();
+
+            if (_guardedNodeMap.ContainsKey(bindableRoot)
+#if DEBUG
+                // In DEBUG mode, we don't want to increase test run times, so if
+                // nullable analysis isn't enabled and some node has already been bound
+                // we assume we've already done this test binding and just return
+                || (!Compilation.NullableSemanticAnalysisEnabled && _guardedNodeMap.Count > 0)
+#endif
+                )
+            {
+                return;
+            }
+
+            upgradeableLock.EnterWrite();
+
+            Debug.Assert(Root == GetBindableSyntaxNode(Root));
+
+            var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
+            var boundRoot = Bind(binder, bindableRoot, diagnostics);
+            if (IsSpeculativeSemanticModel)
+            {
+                ensureSpeculativeNodeBound();
+            }
+            else
+            {
+                bindAndRewrite();
+            }
+
+            void ensureSpeculativeNodeBound()
+            {
+                // Not all speculative models are created with existing snapshots. Attributes,
+                // TypeSyntaxes, and MethodBodies do not depend on existing state in a member,
+                // and so the SnapshotManager can be null in these cases.
+                if (_parentSnapshotManagerOpt is null)
+                {
+                    bindAndRewrite();
+                    return;
+                }
+
+                var remappedSymbols = _parentRemappedSymbolsOpt;
+                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _parentSnapshotManagerOpt, out var newSnapshots, ref remappedSymbols);
+                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, newSnapshots, remappedSymbols);
+            }
+
+            void bindAndRewrite()
+            {
+                var remappedSymbols = _parentRemappedSymbolsOpt;
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots: true, out var snapshotManager, ref remappedSymbols);
+#if DEBUG
+                // Don't actually cache the results if the nullable analysis is not enabled in debug mode.
+                if (!Compilation.NullableSemanticAnalysisEnabled) return;
+#endif
+                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
+            }
+        }
+
+#nullable enable
+        /// <summary>
+        /// Rewrites the given bound node with nullability information, and returns snapshots for later speculative analysis at positions inside this member.
+        /// </summary>
+        protected abstract BoundNode RewriteNullableBoundNodesWithSnapshots(
+            BoundNode boundRoot,
+            Binder binder,
+            DiagnosticBag diagnostics,
+            bool takeSnapshots,
+            out NullableWalker.SnapshotManager snapshotManager,
+            ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols);
+#nullable restore
+
+        /// <summary>
         /// Get all bounds nodes associated with a node, ordered from highest to lowest in the bound tree.
         /// Strictly speaking, the order is that of a pre-order traversal of the bound tree.
         /// </summary>
@@ -1637,6 +2009,8 @@ done:
                 node = GetBindableSyntaxNode(Root);
             }
             Debug.Assert(node == GetBindableSyntaxNode(node));
+
+            EnsureNullabilityAnalysisPerformedIfNecessary();
 
             // We have one SemanticModel for each method.
             //
@@ -1696,6 +2070,7 @@ done:
 
             if (results.IsDefaultOrEmpty)
             {
+                // https://github.com/dotnet/roslyn/issues/35038: We have to run analysis on this node in some manner
                 using (_nodeMapLock.DisposableWrite())
                 {
                     var boundNode = this.Bind(binder, node, _ignoredDiagnostics);
@@ -1725,15 +2100,16 @@ done:
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)node).Body;
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    return ((BaseMethodDeclarationSyntax)node).Body;
                 case SyntaxKind.GlobalStatement:
+                case SyntaxKind.Subpattern:
                     return node;
+                case SyntaxKind.PositionalPatternClause:
+                    return node.Parent;
             }
 
             while (true)
@@ -1748,13 +2124,18 @@ done:
                     case SyntaxKind.UncheckedExpression:
                         node = ((CheckedExpressionSyntax)node).Expression;
                         continue;
+
+                    // Simple mitigation to give a result for suppressions. Public API tracked by https://github.com/dotnet/roslyn/issues/26198
+                    case SyntaxKind.SuppressNullableWarningExpression:
+                        node = ((PostfixUnaryExpressionSyntax)node).Operand;
+                        continue;
                 }
 
                 break;
             }
 
             var parent = node.Parent;
-            if (parent != null)
+            if (parent != null && node != this.Root)
             {
                 switch (node.Kind())
                 {
@@ -1795,7 +2176,9 @@ done:
                             !(node is OrderingSyntax) &&
                             !(node is JoinIntoClauseSyntax) &&
                             !(node is QueryContinuationSyntax) &&
-                            !(node is ArrowExpressionClauseSyntax))
+                            !(node is ConstructorInitializerSyntax) &&
+                            !(node is ArrowExpressionClauseSyntax) &&
+                            !(node is PatternSyntax))
                         {
                             return GetBindableSyntaxNode(parent);
                         }
@@ -1827,7 +2210,7 @@ done:
                 {
                     return null;
                 }
-                
+
                 throw new ArgumentException($"The parent of {nameof(node)} must not be null unless this is a speculative semantic model.", nameof(node));
             }
 
@@ -1847,7 +2230,7 @@ done:
                         goto foundParent;
                 }
             }
-            foundParent:;
+foundParent:;
 
             var bindableParent = this.GetBindableSyntaxNode(parent);
             Debug.Assert(bindableParent != null);
@@ -1868,13 +2251,36 @@ done:
             return bindableParent;
         }
 
+        internal override Symbol RemapSymbolIfNecessaryCore(Symbol symbol)
+        {
+            Debug.Assert(symbol is LocalSymbol ||
+                         symbol is ParameterSymbol ||
+                         symbol is MethodSymbol { MethodKind: MethodKind.LambdaMethod });
+            Debug.Assert(Compilation.NullableSemanticAnalysisEnabled);
+            EnsureNullabilityAnalysisPerformedIfNecessary();
+
+            if (_lazyRemappedSymbols is null)
+            {
+                return symbol;
+            }
+
+            if (_lazyRemappedSymbols.TryGetValue(symbol, out var remappedSymbol))
+            {
+                return remappedSymbol;
+            }
+            else
+            {
+                return symbol;
+            }
+        }
+
         /// <summary>
         /// The incremental binder is used when binding statements. Whenever a statement
         /// is bound, it checks the bound node cache to see if that statement was bound, 
         /// and returns it instead of rebinding it. 
         /// 
         /// For example, we might have:
-        ///    while (x > foo())
+        ///    while (x > goo())
         ///    {
         ///      y = y * x;
         ///      z = z + y;
@@ -1925,9 +2331,9 @@ done:
                     return synthesizedStatement;
                 }
 
-                ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
+                BoundNode boundNode = TryGetBoundNodeFromMap(node);
 
-                if (boundNodes.IsDefaultOrEmpty)
+                if (boundNode == null)
                 {
                     // Not bound already. Bind it. It will get added to the cache later by a MemberSemanticModel.NodeMapBuilder.
                     var statement = base.BindStatement(node, diagnostics);
@@ -1936,16 +2342,48 @@ done:
                     // _lazyGuardedSynthesizedStatementsMap
                     if (statement.WasCompilerGenerated)
                     {
-                        _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement); 
+                        _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement);
                     }
 
                     return statement;
                 }
-                else
+
+                return (BoundStatement)boundNode;
+            }
+
+            internal override BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
+            {
+                BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node) ?? base.BindEmbeddedBlock(node, diagnostics);
+                Debug.Assert(!block.WasCompilerGenerated);
+                return block;
+            }
+
+            private BoundNode TryGetBoundNodeFromMap(CSharpSyntaxNode node)
+            {
+                ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
+
+                if (!boundNodes.IsDefaultOrEmpty)
                 {
                     // Already bound. Return the top-most bound node associated with the statement. 
-                    return (BoundStatement)boundNodes[0];
+                    return boundNodes[0];
                 }
+
+                return null;
+            }
+
+            public override BoundNode BindMethodBody(CSharpSyntaxNode node, DiagnosticBag diagnostics)
+            {
+                return TryGetBoundNodeFromMap(node) ?? base.BindMethodBody(node, diagnostics);
+            }
+
+            internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, DiagnosticBag diagnostics)
+            {
+                return (BoundExpressionStatement)TryGetBoundNodeFromMap(node) ?? base.BindConstructorInitializer(node, diagnostics);
+            }
+
+            internal override BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax node, DiagnosticBag diagnostics)
+            {
+                return (BoundBlock)TryGetBoundNodeFromMap(node) ?? base.BindExpressionBodyAsBlock(node, diagnostics);
             }
         }
     }

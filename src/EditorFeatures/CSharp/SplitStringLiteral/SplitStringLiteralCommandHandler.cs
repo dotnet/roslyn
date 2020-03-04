@@ -1,30 +1,54 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
-    [ExportCommandHandler(nameof(SplitStringLiteralCommandHandler), ContentTypeNames.CSharpContentType)]
+    [Export(typeof(ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(nameof(SplitStringLiteralCommandHandler))]
+    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal partial class SplitStringLiteralCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
     {
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+
+        [ImportingConstructor]
+        public SplitStringLiteralCommandHandler(
+            ITextUndoHistoryRegistry undoHistoryRegistry,
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            return nextHandler();
+            _undoHistoryRegistry = undoHistoryRegistry;
+            _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        public string DisplayName => CSharpEditorResources.Split_string;
+
+        public CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
-            if (!ExecuteCommandWorker(args))
-            {
-                nextHandler();
-            }
+            return CommandState.Unspecified;
+        }
+
+        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
+        {
+            return ExecuteCommandWorker(args);
         }
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
@@ -34,22 +58,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
 
             // Don't split strings if there is any actual selection.
-            if (spans.Count == 1 && spans[0].IsEmpty)
+            // We must check all spans to account for multi-carets.
+            if (spans.IsEmpty() || !spans.All(s => s.IsEmpty))
             {
-                var caret = textView.GetCaretPoint(subjectBuffer);
-                if (caret != null)
+                return false;
+            }
+
+            var caret = textView.GetCaretPoint(subjectBuffer);
+            if (caret == null)
+            {
+                return false;
+            }
+
+            // First, we need to verify that we are only working with string literals.
+            // Otherwise, let the editor handle all carets.
+            foreach (var span in spans)
+            {
+                var spanStart = span.Start;
+                var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(span.Start);
+                if (!LineContainsQuote(line, span.Start))
                 {
-                    // Quick check.  If the line doesn't contain a quote in it before the caret,
-                    // then no point in doing any more expensive synchronous work.
-                    var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(caret.Value);
-                    if (LineContainsQuote(line, caret.Value))
-                    {
-                        return SplitString(textView, subjectBuffer, caret.Value);
-                    }
+                    return false;
                 }
             }
 
-            return false;
+            // We now go through the verified string literals and split each of them.
+            // The list of spans is traversed in reverse order so we do not have to
+            // deal with updating later caret positions to account for the added space
+            // from splitting at earlier caret positions.
+            foreach (var span in spans.Reverse())
+            {
+                if (!SplitString(textView, subjectBuffer, span.Start))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private bool SplitString(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint caret)
@@ -59,14 +104,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             if (document != null)
             {
                 var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                var enabled = options.GetOption(
-                    SplitStringLiteralOptions.Enabled);
+                var enabled = options.GetOption(SplitStringLiteralOptions.Enabled);
 
                 if (enabled)
                 {
-                    var cursorPosition = SplitStringLiteral(
-                        subjectBuffer, document, options, caret, CancellationToken.None);
+                    using var transaction = CaretPreservingEditTransaction.TryCreate(
+                        CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
+                    var cursorPosition = SplitStringLiteral(document, options, caret, CancellationToken.None);
                     if (cursorPosition != null)
                     {
                         var snapshotPoint = new SnapshotPoint(
@@ -80,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                             textView.Caret.MoveTo(newCaretPoint.Value);
                         }
 
+                        transaction.Complete();
                         return true;
                     }
                 }
@@ -103,15 +149,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         }
 
         private int? SplitStringLiteral(
-            ITextBuffer subjectBuffer, Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken)
+            Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken)
         {
             var useTabs = options.GetOption(FormattingOptions.UseTabs);
             var tabSize = options.GetOption(FormattingOptions.TabSize);
+            var indentStyle = options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
 
-            var splitter = StringSplitter.Create(document, position, root, sourceText, useTabs, tabSize, cancellationToken);
+            var splitter = StringSplitter.Create(
+                document, position, root, sourceText,
+                useTabs, tabSize, indentStyle, cancellationToken);
             if (splitter == null)
             {
                 return null;

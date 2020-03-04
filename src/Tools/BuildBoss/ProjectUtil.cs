@@ -12,100 +12,61 @@ namespace BuildBoss
 {
     internal class ProjectUtil
     {
-        private readonly ProjectKey _key;
-        private readonly XDocument _document;
-        private readonly XmlNamespaceManager _manager;
-        private readonly XNamespace _namespace;
+        internal ProjectKey Key { get; }
+        internal XDocument Document { get; }
+        internal XmlNamespaceManager Manager { get; }
+        internal XNamespace Namespace { get; }
+        internal string OutputType { get; }
 
-        internal ProjectUtil(string filePath) : this(new ProjectKey(filePath), XDocument.Load(filePath))
+        public bool IsNewSdk => GetTargetFramework() != null || GetTargetFrameworks() != null;
+
+        internal bool IsTestProject => IsUnitTestProject || IsIntegrationTestProject;
+        internal bool IsUnitTestProject => Path.GetFileNameWithoutExtension(Key.FilePath).EndsWith(".UnitTests");
+        internal bool IsIntegrationTestProject => Path.GetFileNameWithoutExtension(Key.FilePath).EndsWith(".IntegrationTests");
+
+        internal ProjectUtil(string filePath)
+            : this(new ProjectKey(filePath), XDocument.Load(filePath))
         {
         }
 
         internal ProjectUtil(ProjectKey key, XDocument document)
         {
-            _key = key;
-            _document = document;
-            _manager = new XmlNamespaceManager(new NameTable());
-            _manager.AddNamespace("mb", SharedUtil.MSBuildNamespaceUriRaw);
-            _namespace = SharedUtil.MSBuildNamespace;
+            Key = key;
+            Document = document;
+            Namespace = document.Root.Name.Namespace;
+            Manager = new XmlNamespaceManager(new NameTable());
+            Manager.AddNamespace("mb", Namespace == XNamespace.None ? "" : SharedUtil.MSBuildNamespaceUriRaw);
+
+            OutputType = FindSingleProperty("OutputType")?.Value.Trim().ToLowerInvariant();
         }
 
-        internal RoslynProjectData GetRoslynProjectData()
+        internal bool IsDeploymentProject => IsTestProject || OutputType switch { "exe" => true, "winexe" => true, _ => false };
+
+        internal XElement GetTargetFramework() => Document.XPathSelectElements("//mb:TargetFramework", Manager).FirstOrDefault();
+
+        internal XElement GetTargetFrameworks() => Document.XPathSelectElements("//mb:TargetFrameworks", Manager).FirstOrDefault();
+
+        internal IEnumerable<string> GetAllTargetFrameworks()
         {
-            RoslynProjectData data;
-            string error;
-            if (!TryGetRoslynProjectData(out data, out error))
+            var targetFramework = GetTargetFramework();
+            if (targetFramework != null)
             {
-                throw new Exception(error);
+                return new[] { targetFramework.Value.ToString() };
             }
 
-            return data;
-        }
-
-        internal bool TryGetRoslynProjectData(out RoslynProjectData data, out string error)
-        {
-            data = default(RoslynProjectData);
-            error = null;
-
-            var typeElement = FindSingleProperty("RoslynProjectType");
-            if (typeElement != null)
+            var targetFrameworks = GetTargetFrameworks();
+            if (targetFrameworks != null)
             {
-                var value = typeElement.Value.Trim();
-                var kind = RoslynProjectKindUtil.GetRoslynProjectKind(value);
-                if (kind == null)
-                {
-                    error = $"The value {value} is illegal for element <RoslynProjectType>";
-                    return false;
-                }
-
-                data = new RoslynProjectData(kind.Value, kind.Value, value);
-                return true;
-            }
-            else
-            {
-                var outputType = FindSingleProperty("OutputType");
-                switch (outputType?.Value.Trim())
-                {
-                    case "Exe":
-                    case "WinExe":
-                        data = new RoslynProjectData(RoslynProjectKind.Exe);
-                        return true;
-                    case "Library":
-                        data = new RoslynProjectData(RoslynProjectKind.Dll);
-                        return true;
-                    default:
-                        error = $"The value {outputType?.Value.Trim()} is not a recognized value of OutputType";
-                        return false;
-                }
-            }
-        }
-
-        internal Guid? GetProjectGuid()
-        {
-            var elem = _document.XPathSelectElements("//mb:ProjectGuid", _manager).FirstOrDefault();
-            if (elem == null)
-            {
-                return null;
+                var all = targetFrameworks.Value.ToString().Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                return all;
             }
 
-            return Guid.Parse(elem.Value);
-        }
-
-        internal RoslynProjectData? TryGetRoslynProjectData()
-        {
-            try
-            {
-                return GetRoslynProjectData();
-            }
-            catch
-            {
-                return null;
-            }
+            throw new InvalidOperationException();
         }
 
         internal IEnumerable<XElement> GetAllPropertyGroupElements()
         {
-            var groups = _document.XPathSelectElements("//mb:PropertyGroup", _manager);
+            var groups = Document.XPathSelectElements("//mb:PropertyGroup", Manager);
             foreach (var group in groups)
             {
                 foreach (var element in group.Elements())
@@ -117,12 +78,12 @@ namespace BuildBoss
 
         internal IEnumerable<XElement> GetTargets()
         {
-            return _document.XPathSelectElements("//mb:Target", _manager);
+            return Document.XPathSelectElements("//mb:Target", Manager);
         }
 
         internal IEnumerable<XElement> GetImports()
         {
-            return _document.XPathSelectElements("//mb:Import", _manager);
+            return Document.XPathSelectElements("//mb:Import", Manager);
         }
 
         internal IEnumerable<string> GetImportProjects()
@@ -134,30 +95,29 @@ namespace BuildBoss
 
         internal IEnumerable<XElement> GetItemGroup()
         {
-            return _document.XPathSelectElements("//mb:ItemGroup", _manager);
+            return Document.XPathSelectElements("//mb:ItemGroup", Manager);
         }
 
         internal List<ProjectReferenceEntry> GetDeclaredProjectReferences()
         {
-            var references = _document.XPathSelectElements("//mb:ProjectReference", _manager);
+            var references = Document.XPathSelectElements("//mb:ProjectReference", Manager);
             var list = new List<ProjectReferenceEntry>();
-            var directory = Path.GetDirectoryName(_key.FilePath);
+            var directory = Path.GetDirectoryName(Key.FilePath);
             foreach (var r in references)
             {
                 // Make sure to check for references that exist only for ordering purposes.  They don't count as 
                 // actual references.
-                var refOutputAssembly = r.Element(_namespace.GetName("ReferenceOutputAssembly"));
-                if (refOutputAssembly != null)
+                var referenceOutputAssemblyValue = r.Element(Namespace.GetName("ReferenceOutputAssembly"))?.Value ?? r.Attribute(XName.Get("ReferenceOutputAssembly"))?.Value;
+                if (referenceOutputAssemblyValue != null)
                 {
-                    bool isRealReference;
-                    if (bool.TryParse(refOutputAssembly.Value.Trim().ToLower(), out isRealReference) && !isRealReference)
+                    if (bool.TryParse(referenceOutputAssemblyValue.Trim().ToLower(), out var isRealReference) && !isRealReference)
                     {
                         continue;
                     }
                 }
 
                 Guid? project = null;
-                var projectElement = r.Element(_namespace.GetName("Project"));
+                var projectElement = r.Element(Namespace.GetName("Project"));
                 if (projectElement != null)
                 {
                     project = Guid.Parse(projectElement.Value.Trim());
@@ -175,7 +135,7 @@ namespace BuildBoss
         internal List<PackageReference> GetPackageReferences()
         {
             var list = new List<PackageReference>();
-            foreach (var packageRef in _document.XPathSelectElements("//mb:PackageReference", _manager))
+            foreach (var packageRef in Document.XPathSelectElements("//mb:PackageReference", Manager))
             {
                 list.Add(GetPackageReference(packageRef));
             }
@@ -192,13 +152,33 @@ namespace BuildBoss
                 return new PackageReference(name, version.Value);
             }
 
-            var elem = element.Element(_namespace.GetName("Version"));
+            var elem = element.Element(Namespace.GetName("Version"));
             if (element == null)
             {
                 throw new Exception($"Could not find a Version for package reference {name}");
             }
 
             return new PackageReference(name, elem.Value.Trim());
+        }
+
+        internal List<InternalsVisibleTo> GetInternalsVisibleTo()
+        {
+            var list = new List<InternalsVisibleTo>();
+            foreach (var ivt in Document.XPathSelectElements("//mb:InternalsVisibleTo", Manager))
+            {
+                list.Add(GetInternalsVisibleTo(ivt));
+            }
+
+            return list;
+        }
+
+        internal InternalsVisibleTo GetInternalsVisibleTo(XElement element)
+        {
+            var targetAssembly = element.Attribute("Include")?.Value.Trim();
+            var key = element.Attribute("Key")?.Value.Trim();
+            var loadsWithinVisualStudio = element.Attribute("LoadsWithinVisualStudio")?.Value.Trim();
+            var workItem = element.Attribute("WorkItem")?.Value.Trim();
+            return new InternalsVisibleTo(targetAssembly, key, loadsWithinVisualStudio, workItem);
         }
 
         internal XElement FindSingleProperty(string localName) => GetAllPropertyGroupElements().SingleOrDefault(x => x.Name.LocalName == localName);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10,25 +12,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact, WorkItem(846042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
         public void MovedOutsideOfMethod1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
     {
-        <AS:0>Foo(1);</AS:0>
+        <AS:0>Goo(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
     {
     <AS:0>}</AS:0>
 
-    static void Foo()
+    static void Goo()
     {
         // tracking span moves to another method as the user types around it
-        <TS:0>Foo(1);</TS:0>
+        <TS:0>Goo(1);</TS:0>
     }
 }
 ";
@@ -41,25 +43,25 @@ class C
         [Fact]
         public void MovedOutsideOfMethod2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
     {
-        <AS:0>Foo(1);</AS:0>
+        <AS:0>Goo(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
     {
-        <AS:0>Foo(1);</AS:0>
+        <AS:0>Goo(1);</AS:0>
     }
 
-    static void Foo()
+    static void Goo()
     {
-        <TS:0>Foo(2);</TS:0>
+        <TS:0>Goo(2);</TS:0>
     }
 }
 ";
@@ -72,21 +74,21 @@ class C
         [Fact]
         public void MovedOutsideOfLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
     {
-        Action a = () => { <AS:0>Foo(1);</AS:0> };
+        Action a = () => { <AS:0>Goo(1);</AS:0> };
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
     {
         Action a = () => { <AS:0>}</AS:0>;
-        <TS:0>Foo(1);</TS:0>
+        <TS:0>Goo(1);</TS:0>
     }
 }
 ";
@@ -99,22 +101,22 @@ class C
         [Fact]
         public void MovedOutsideOfLambda2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
     {
-        Action a = () => { <AS:0>Foo(1);</AS:0> };
-        Action b = () => { Foo(2); };
+        Action a = () => { <AS:0>Goo(1);</AS:0> };
+        Action b = () => { Goo(2); };
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
     {
-        Action a = () => { <AS:0>Foo(1);</AS:0> };
-        Action b = () => { <TS:0>Foo(2);</TS:0> };
+        Action a = () => { <AS:0>Goo(1);</AS:0> };
+        Action b = () => { <TS:0>Goo(2);</TS:0> };
     }
 }
 ";

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -43,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertIncompleteSubmission("using X; /*");
 
             AssertIncompleteSubmission(@"
-void foo() 
+void goo() 
 {
 #if F
 }
 ");
 
             AssertIncompleteSubmission(@"
-void foo() 
+void goo() 
 {
 #region R
 }
@@ -81,28 +83,28 @@ void foo()
             // invalid escape sequence in a string
             AssertCompleteSubmission("\"\\q\"");
 
-            AssertIncompleteSubmission("void foo(");
-            AssertIncompleteSubmission("void foo()");
-            AssertIncompleteSubmission("void foo() {");
-            AssertCompleteSubmission("void foo() {}");
-            AssertCompleteSubmission("void foo() { int a = 1 }");
+            AssertIncompleteSubmission("void goo(");
+            AssertIncompleteSubmission("void goo()");
+            AssertIncompleteSubmission("void goo() {");
+            AssertCompleteSubmission("void goo() {}");
+            AssertCompleteSubmission("void goo() { int a = 1 }");
 
-            AssertIncompleteSubmission("int foo {");
-            AssertCompleteSubmission("int foo { }");
-            AssertCompleteSubmission("int foo { get }");
+            AssertIncompleteSubmission("int goo {");
+            AssertCompleteSubmission("int goo { }");
+            AssertCompleteSubmission("int goo { get }");
 
-            AssertIncompleteSubmission("enum foo {");
-            AssertCompleteSubmission("enum foo {}");
-            AssertCompleteSubmission("enum foo { a = }");
-            AssertIncompleteSubmission("class foo {");
-            AssertCompleteSubmission("class foo {}");
-            AssertCompleteSubmission("class foo { void }");
-            AssertIncompleteSubmission("struct foo {");
-            AssertCompleteSubmission("struct foo {}");
-            AssertCompleteSubmission("[A struct foo {}");
-            AssertIncompleteSubmission("interface foo {");
-            AssertCompleteSubmission("interface foo {}");
-            AssertCompleteSubmission("interface foo : {}");
+            AssertIncompleteSubmission("enum goo {");
+            AssertCompleteSubmission("enum goo {}");
+            AssertCompleteSubmission("enum goo { a = }");
+            AssertIncompleteSubmission("class goo {");
+            AssertCompleteSubmission("class goo {}");
+            AssertCompleteSubmission("class goo { void }");
+            AssertIncompleteSubmission("struct goo {");
+            AssertCompleteSubmission("struct goo {}");
+            AssertCompleteSubmission("[A struct goo {}");
+            AssertIncompleteSubmission("interface goo {");
+            AssertCompleteSubmission("interface goo {}");
+            AssertCompleteSubmission("interface goo : {}");
 
             AssertCompleteSubmission("partial");
             AssertIncompleteSubmission("partial class");

@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ExitCo
             Dim code =
 <File>
 Class C
-    Sub foo()
+    Sub goo()
         [|Exit|]
     End Sub
 End Class
@@ -27,13 +29,13 @@ End Class
             Dim expected =
 <File>
 Class C
-    Sub foo()
+    Sub goo()
         Exit Sub
     End Sub
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -41,7 +43,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         While True
             [|Exit|]
         End While
@@ -52,7 +54,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         While True
             Exit While
         End While
@@ -60,7 +62,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -68,7 +70,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         For x as Integer = 1 to 10
             [|Exit|]
         Next
@@ -79,7 +81,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         For x as Integer = 1 to 10
             Exit For
         Next
@@ -87,7 +89,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -95,7 +97,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         Do While True
             [|Exit|]
         Loop
@@ -106,7 +108,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub foo()
+    Sub goo()
         Do While True
             Exit Do
         Loop
@@ -114,7 +116,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -145,7 +147,7 @@ Class C
 Exit Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -153,7 +155,7 @@ Exit Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Try
             [|Exit|]
         Catch ex As Exception
@@ -166,7 +168,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Try
             Exit Try
         Catch ex As Exception
@@ -176,7 +178,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -199,7 +201,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -222,7 +224,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -230,7 +232,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         [|Exit Function|]
     End Sub
 End Class
@@ -239,13 +241,13 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Exit Sub
     End Sub
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -253,7 +255,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         While True
             [|Exit Do|]
         End While
@@ -264,7 +266,7 @@ End Class
             Dim expected =
      <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         While True
             Exit While
         End While
@@ -272,7 +274,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -280,7 +282,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         For x as Integer = 1 to 10
             [|Exit Do|]
         Next
@@ -291,7 +293,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         For x as Integer = 1 to 10
             Exit For
         Next
@@ -299,7 +301,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False, index:=0)
+            Await TestAsync(code, expected, index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -307,7 +309,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Do While True
             [|Exit While|]
         Loop
@@ -318,7 +320,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Do While True
             Exit Do
         Loop
@@ -326,7 +328,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -335,7 +337,7 @@ End Class
     <File>
 Imports System
 Class C
-    Sub Foo()
+    Sub Goo()
         Try
             [|Exit Do|]
         Catch ex As Exception
@@ -349,7 +351,7 @@ End Class
     <File>
 Imports System
 Class C
-    Sub Foo()
+    Sub Goo()
         Try
             Exit Try
         Catch ex As Exception
@@ -359,7 +361,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -367,7 +369,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         [|Exit Try|]
     End Sub
 End Class
@@ -376,13 +378,13 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Exit Sub
     End Sub
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -390,7 +392,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -403,7 +405,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -413,7 +415,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -421,7 +423,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -434,7 +436,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -443,7 +445,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -451,7 +453,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -464,7 +466,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -473,7 +475,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -481,7 +483,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -494,7 +496,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i as Integer = 0
         Select Case i
             Case 0
@@ -503,7 +505,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -511,7 +513,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         While True
             [|Continue|]
         End While
@@ -522,7 +524,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         While True
             Continue While
         End While
@@ -530,7 +532,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -538,7 +540,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         For x as integer = 1 to 10
             [|Continue|]
         Next
@@ -549,7 +551,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         For x as integer = 1 to 10
             Continue For
         Next
@@ -557,7 +559,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -565,7 +567,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         For Each x in {1}
             [|Continue|]
         Next
@@ -576,7 +578,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         For Each x in {1}
             Continue For
         Next
@@ -584,7 +586,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -592,7 +594,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             [|Continue|]
         Loop
@@ -603,7 +605,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             Continue Do
         Loop
@@ -611,7 +613,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -619,7 +621,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             [|Continue For|]
         Loop
@@ -630,7 +632,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             Continue Do
         Loop
@@ -638,7 +640,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -646,7 +648,7 @@ End Class
             Dim code =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             [|Exit|]
         Loop
@@ -657,7 +659,7 @@ End Class
             Dim expected =
     <File>
 Class C
-    Sub Foo
+    Sub Goo
         Do While True
             Exit Sub
         Loop
@@ -665,7 +667,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, ignoreTrivia:=False, index:=1)
+            Await TestAsync(code, expected, index:=1)
         End Function
 
         <WorkItem(547094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547094")>
@@ -675,7 +677,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
 
         Catch ex As Exception
@@ -691,7 +693,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
 
         Catch ex As Exception
@@ -701,7 +703,7 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <WorkItem(547110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547110")>
@@ -711,7 +713,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
             If True Then
                 [|Exit|]
@@ -728,7 +730,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
             If True Then
                 Exit Try
@@ -740,7 +742,7 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <WorkItem(547100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547100")>
@@ -788,7 +790,7 @@ End Module",
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
             If True Then
                 [|Exit |]blah
@@ -805,7 +807,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Try
             If True Then
                 Exit Try
@@ -817,7 +819,7 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
@@ -827,7 +829,7 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Do
             [|Continue |]blah
         Loop
@@ -839,14 +841,14 @@ End Class
     <File>
 Imports System
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Do
             Continue Do
         Loop
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, ignoreTrivia:=False)
+            Await TestAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -854,7 +856,7 @@ End Class
             Dim code =
 <File>
 Class C
-    Sub foo()
+    Sub goo()
         [|Exit Function|]
     End Sub
 End Class
@@ -869,7 +871,7 @@ End Class
             Dim code =
 <File>
 Class C
-    Sub foo()
+    Sub goo()
         [|Exit    |]
     End Sub
 End Class

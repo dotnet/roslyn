@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
@@ -13,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class TypeSubstitutionTests
         <Fact>
         Public Sub Substitution1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Imports System
@@ -63,10 +65,10 @@ End Class
 
         <Fact>
         Public Sub Substitution2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
-Namespace Foo
+Namespace Goo
     Class B(Of R, S)
         Function Func(ByVal p1 As R) As S
         End Function
@@ -96,18 +98,18 @@ End Class
 </compilation>)
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
-            Dim fooNS = DirectCast(globalNS.GetMembers("Foo").First, NamespaceSymbol)
+            Dim gooNS = DirectCast(globalNS.GetMembers("Goo").First, NamespaceSymbol)
 
-            Dim classDSymbol As TypeSymbol = DirectCast(DirectCast(FooNS.GetMembers("J").First(), NamedTypeSymbol).BaseType.GetMembers("D").First(), NamedTypeSymbol)
-            Assert.Equal("Foo.C(Of System.Int32).D", classDSymbol.ToTestDisplayString())
+            Dim classDSymbol As TypeSymbol = DirectCast(DirectCast(GooNS.GetMembers("J").First(), NamedTypeSymbol).BaseType.GetMembers("D").First(), NamedTypeSymbol)
+            Assert.Equal("Goo.C(Of System.Int32).D", classDSymbol.ToTestDisplayString())
             Dim classFSymbol = DirectCast(classDSymbol.GetMembers("F").First(), TypeSymbol)
-            Assert.Equal("Foo.C(Of System.Int32).D.F", classFSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.C(Of System.Int32).D.F", classFSymbol.ToTestDisplayString())
             Dim classFBaseType = classFSymbol.BaseType
             Dim classFBaseTypeSquared = classFBaseType.BaseType
-            Assert.Equal("Foo.B(Of System.String, K(Of System.Int32))", classFBaseTypeSquared.ToTestDisplayString())
+            Assert.Equal("Goo.B(Of System.String, K(Of System.Int32))", classFBaseTypeSquared.ToTestDisplayString())
 
             Dim method = classFSymbol.BaseType.BaseType.GetMembers("Func").First()
-            Assert.Equal("Function Foo.B(Of System.String, K(Of System.Int32)).Func(p1 As System.String) As K(Of System.Int32)", method.ToTestDisplayString())
+            Assert.Equal("Function Goo.B(Of System.String, K(Of System.Int32)).Func(p1 As System.String) As K(Of System.Int32)", method.ToTestDisplayString())
 
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub

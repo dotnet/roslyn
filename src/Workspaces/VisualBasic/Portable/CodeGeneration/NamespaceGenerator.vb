@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -52,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 service.AddMembers(declaration, innermostNamespace.GetMembers().AsEnumerable(), options, cancellationToken),
                 declaration)
 
-            Return AddCleanupAnnotationsTo(declaration)
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(declaration)
         End Function
 
         Public Function UpdateCompilationUnitOrNamespaceDeclaration(service As ICodeGenerationService,
@@ -62,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                                            cancellationToken As CancellationToken) As SyntaxNode
             declaration = RemoveAllMembers(declaration)
             declaration = service.AddMembers(declaration, newMembers, options, cancellationToken)
-            Return AddCleanupAnnotationsTo(declaration)
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(declaration)
         End Function
 
         Private Function GetDeclarationSyntaxWithoutMembers([namespace] As INamespaceSymbol, innermostNamespace As INamespaceSymbol, name As String, options As CodeGenerationOptions) As SyntaxNode

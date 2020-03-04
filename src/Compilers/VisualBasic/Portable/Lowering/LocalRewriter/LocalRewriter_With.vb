@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -98,38 +100,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 initStatements.Add(RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(syntax))
             End If
 
-            'TODO: what is the purpose of this? 
-            '      Is this code adding dead-stores that optimizer will most likely remove?
-            '      Also, what happens if the temps are lifted into a closure and are still alive?
-            '      
             ' Cleanup code for locals which need it
-            For Each _local In locals
-                Dim localType As TypeSymbol = _local.Type
+            If Not node.Binder.ExpressionIsAccessedFromNestedLambda Then
+                For Each _local In locals
+                    Dim localType As TypeSymbol = _local.Type
 
-                ' Only for locals of reference type or type parameter type or non-primitive structs 
-                If Not _local.IsByRef AndAlso LocalOrFieldNeedsToBeCleanedUp(localType) Then
-                    initStatements.Add(
-                        New BoundExpressionStatement(
-                            syntax,
-                            VisitExpression(
-                                New BoundAssignmentOperator(
-                                    syntax,
-                                    New BoundLocal(syntax, _local, isLValue:=True, type:=localType).MakeCompilerGenerated(),
-                                    New BoundConversion(
+                    ' Only for locals of reference type or type parameter type or non-primitive structs 
+                    If Not _local.IsByRef AndAlso LocalOrFieldNeedsToBeCleanedUp(localType) Then
+                        initStatements.Add(
+                            New BoundExpressionStatement(
+                                syntax,
+                                VisitExpression(
+                                    New BoundAssignmentOperator(
                                         syntax,
-                                        New BoundLiteral(syntax, ConstantValue.Nothing, Nothing).MakeCompilerGenerated(),
-                                        ConversionKind.WideningNothingLiteral,
-                                        checked:=False,
-                                        explicitCastInCode:=False,
-                                        type:=localType).MakeCompilerGenerated(),
-                                    suppressObjectClone:=True,
-                                    type:=localType
-                                ).MakeCompilerGenerated()
-                            )
-                        ).MakeCompilerGenerated()
-                    )
-                End If
-            Next
+                                        New BoundLocal(syntax, _local, isLValue:=True, type:=localType).MakeCompilerGenerated(),
+                                        New BoundConversion(
+                                            syntax,
+                                            New BoundLiteral(syntax, ConstantValue.Nothing, Nothing).MakeCompilerGenerated(),
+                                            ConversionKind.WideningNothingLiteral,
+                                            checked:=False,
+                                            explicitCastInCode:=False,
+                                            type:=localType).MakeCompilerGenerated(),
+                                        suppressObjectClone:=True,
+                                        type:=localType
+                                    ).MakeCompilerGenerated()
+                                )
+                            ).MakeCompilerGenerated()
+                        )
+                    End If
+                Next
+            End If
 
             ' Create a new block
             Dim newBlock As New BoundBlock(syntax, Nothing, locals, initStatements.ToImmutableAndFree())

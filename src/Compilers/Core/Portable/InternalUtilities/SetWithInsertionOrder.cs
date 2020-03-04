@@ -1,12 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -16,46 +22,82 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class SetWithInsertionOrder<T> : IEnumerable<T>, IReadOnlySet<T>
     {
-        private HashSet<T> _set = new HashSet<T>();
-        private uint _nextElementValue = 0;
-        private T[] _elements = null;
+        private HashSet<T>? _set = null;
+        private ArrayBuilder<T>? _elements = null;
 
         public bool Add(T value)
         {
-            if (!_set.Add(value)) return false;
-            var thisValue = _nextElementValue++;
-            if (_elements == null)
+            if (_set == null)
             {
-                _elements = new T[10];
-            }
-            else if (_elements.Length <= thisValue)
-            {
-                Array.Resize(ref _elements, _elements.Length * 2);
+                _set = new HashSet<T>();
+                _elements = new ArrayBuilder<T>();
             }
 
-            _elements[thisValue] = value;
+            if (!_set.Add(value))
+            {
+                return false;
+            }
+
+            _elements!.Add(value);
             return true;
         }
 
-        public int Count => (int)_nextElementValue;
+        public bool Insert(int index, T value)
+        {
+            if (_set == null)
+            {
+                if (index > 0)
+                {
+                    throw new IndexOutOfRangeException();
+                }
+                Add(value);
+            }
+            else
+            {
+                if (!_set.Add(value))
+                {
+                    return false;
+                }
 
-        public bool Contains(T value) => _set.Contains(value);
+                try
+                {
+                    _elements!.Insert(index, value);
+                }
+                catch
+                {
+                    _set.Remove(value);
+                    throw;
+                }
+            }
+            return true;
+        }
+
+        public bool Remove(T value)
+        {
+            if (_set is null)
+            {
+                return false;
+            }
+
+            if (!_set.Remove(value))
+            {
+                return false;
+            }
+            _elements!.RemoveAt(_elements.IndexOf(value));
+            return true;
+        }
+
+        public int Count => _elements?.Count ?? 0;
+
+        public bool Contains(T value) => _set?.Contains(value) ?? false;
 
         public IEnumerator<T> GetEnumerator()
-        {
-            for (int i = 0; i < _nextElementValue; i++) yield return _elements[i];
-        }
+            => _elements?.GetEnumerator() ?? SpecializedCollections.EmptyEnumerator<T>();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        /// <summary>
-        /// An enumerable that yields the set's elements in insertion order.
-        /// </summary>
-        public SetWithInsertionOrder<T> InInsertionOrder => this;
+        public ImmutableArray<T> AsImmutable() => _elements.ToImmutableArrayOrEmpty();
 
-        public ImmutableArray<T> AsImmutable()
-        {
-            return (_elements == null) ? ImmutableArray<T>.Empty : ImmutableArray.Create(_elements, 0, (int)_nextElementValue);
-        }
+        public T this[int i] => _elements![i];
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Linq;
@@ -12,18 +14,21 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         protected readonly ArrayBuilder<SymbolDisplayPart> builder;
         protected readonly SymbolDisplayFormat format;
         protected readonly bool isFirstSymbolVisited;
+        protected readonly bool inNamespaceOrType;
 
         protected readonly SemanticModel semanticModelOpt;
         protected readonly int positionOpt;
 
         private AbstractSymbolDisplayVisitor _lazyNotFirstVisitor;
+        private AbstractSymbolDisplayVisitor _lazyNotFirstVisitorNamespaceOrType;
 
         protected AbstractSymbolDisplayVisitor(
             ArrayBuilder<SymbolDisplayPart> builder,
             SymbolDisplayFormat format,
             bool isFirstSymbolVisited,
             SemanticModel semanticModelOpt,
-            int positionOpt)
+            int positionOpt,
+            bool inNamespaceOrType = false)
         {
             Debug.Assert(format != null);
 
@@ -33,6 +38,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
             this.semanticModelOpt = semanticModelOpt;
             this.positionOpt = positionOpt;
+            this.inNamespaceOrType = inNamespaceOrType;
 
             // If we're not the first symbol visitor, then we will just recurse into ourselves.
             if (!isFirstSymbolVisited)
@@ -54,7 +60,20 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
-        protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor();
+        protected AbstractSymbolDisplayVisitor NotFirstVisitorNamespaceOrType
+        {
+            get
+            {
+                if (_lazyNotFirstVisitorNamespaceOrType == null)
+                {
+                    _lazyNotFirstVisitorNamespaceOrType = MakeNotFirstVisitor(inNamespaceOrType: true);
+                }
+
+                return _lazyNotFirstVisitorNamespaceOrType;
+            }
+        }
+
+        protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false);
 
         protected abstract void AddLiteralValue(SpecialType type, object value);
         protected abstract void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, SpecialType type, object value);

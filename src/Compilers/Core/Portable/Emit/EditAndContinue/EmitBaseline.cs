@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -89,26 +92,10 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <param name="module">The metadata of the module before editing.</param>
         /// <param name="debugInformationProvider">
         /// A function that for a method handle returns Edit and Continue debug information emitted by the compiler into the PDB.
-        /// The function shall throw <see cref="System.IO.InvalidDataException"/> if the debug information can't be read for the specified method.
-        /// This exception is caught and converted to an emit diagnostic. Other exceptions are passed through.
+        /// The function shall throw <see cref="InvalidDataException"/> if the debug information can't be read for the specified method.
+        /// This exception and <see cref="IOException"/> are caught and converted to an emit diagnostic. Other exceptions are passed through.
         /// </param>
         /// <returns>An <see cref="EmitBaseline"/> for the module.</returns>
-        /// <remarks>
-        /// Only the initial baseline is created using this method; subsequent baselines are created
-        /// automatically when emitting the differences in subsequent compilations.
-        /// 
-        /// When an active method (one for which a frame is allocated on a stack) is updated the values of its local variables need to be preserved.
-        /// The mapping of local variable names to their slots in the frame is not included in the metadata and thus needs to be provided by 
-        /// <paramref name="debugInformationProvider"/>.
-        /// 
-        /// The <paramref name="debugInformationProvider"/> is only needed for the initial generation. The mapping for the subsequent generations
-        /// is carried over through <see cref="EmitBaseline"/>. The compiler assigns slots to named local variables (including named temporary variables)
-        /// it the order in which they appear in the source code. This property allows the compiler to reconstruct the local variable mapping 
-        /// for the initial generation. A subsequent generation may add a new variable in between two variables of the previous generation. 
-        /// Since the slots of the previous generation variables need to be preserved the only option is to add these new variables to the end.
-        /// The slot ordering thus no longer matches the syntax ordering. It is therefore necessary to pass <see cref="EmitDifferenceResult.Baseline"/>
-        /// to the next generation (rather than e.g. create new <see cref="EmitBaseline"/>s from scratch based on metadata produced by subsequent compilations).
-        /// </remarks>
         /// <exception cref="ArgumentException"><paramref name="module"/> is not a PE image.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="module"/> is null.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="debugInformationProvider"/> is null.</exception>
@@ -127,27 +114,96 @@ namespace Microsoft.CodeAnalysis.Emit
                 throw new ArgumentException(CodeAnalysisResources.PEImageNotAvailable, nameof(module));
             }
 
+            var hasPortablePdb = module.Module.PEReaderOpt.ReadDebugDirectory().Any(entry => entry.IsPortableCodeView);
+
+            var localSigProvider = new Func<MethodDefinitionHandle, StandaloneSignatureHandle>(methodHandle =>
+            {
+                try
+                {
+                    return module.Module.GetMethodBodyOrThrow(methodHandle)?.LocalSignature ?? default;
+                }
+                catch (Exception e) when (e is BadImageFormatException || e is IOException)
+                {
+                    throw new InvalidDataException(e.Message, e);
+                }
+            });
+
+            return CreateInitialBaseline(module, debugInformationProvider, localSigProvider, hasPortablePdb);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="EmitBaseline"/> from the metadata of the module before editing
+        /// and from a function that maps from a method to an array of local names. 
+        /// </summary>
+        /// <param name="module">The metadata of the module before editing.</param>
+        /// <param name="debugInformationProvider">
+        /// A function that for a method handle returns Edit and Continue debug information emitted by the compiler into the PDB.
+        /// The function shall throw <see cref="InvalidDataException"/> if the debug information can't be read for the specified method.
+        /// This exception and <see cref="IOException"/> are caught and converted to an emit diagnostic. Other exceptions are passed through.
+        /// </param>
+        /// <param name="localSignatureProvider">
+        /// A function that for a method handle returns the signature of its local variables.
+        /// The function shall throw <see cref="InvalidDataException"/> if the information can't be read for the specified method.
+        /// This exception and <see cref="IOException"/> are caught and converted to an emit diagnostic. Other exceptions are passed through.
+        /// </param>
+        /// <param name="hasPortableDebugInformation">
+        /// True if the baseline PDB is portable.
+        /// </param>
+        /// <returns>An <see cref="EmitBaseline"/> for the module.</returns>
+        /// <remarks>
+        /// Only the initial baseline is created using this method; subsequent baselines are created
+        /// automatically when emitting the differences in subsequent compilations.
+        /// 
+        /// When an active method (one for which a frame is allocated on a stack) is updated the values of its local variables need to be preserved.
+        /// The mapping of local variable names to their slots in the frame is not included in the metadata and thus needs to be provided by 
+        /// <paramref name="debugInformationProvider"/>.
+        /// 
+        /// The <paramref name="debugInformationProvider"/> is only needed for the initial generation. The mapping for the subsequent generations
+        /// is carried over through <see cref="EmitBaseline"/>. The compiler assigns slots to named local variables (including named temporary variables)
+        /// it the order in which they appear in the source code. This property allows the compiler to reconstruct the local variable mapping 
+        /// for the initial generation. A subsequent generation may add a new variable in between two variables of the previous generation. 
+        /// Since the slots of the previous generation variables need to be preserved the only option is to add these new variables to the end.
+        /// The slot ordering thus no longer matches the syntax ordering. It is therefore necessary to pass <see cref="EmitDifferenceResult.Baseline"/>
+        /// to the next generation (rather than e.g. create new <see cref="EmitBaseline"/>s from scratch based on metadata produced by subsequent compilations).
+        /// </remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="module"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="debugInformationProvider"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="localSignatureProvider"/> is null.</exception>
+        /// <exception cref="IOException">Error reading module metadata.</exception>
+        /// <exception cref="BadImageFormatException">Module metadata is invalid.</exception>
+        /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
+        public static EmitBaseline CreateInitialBaseline(
+            ModuleMetadata module,
+            Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
+            Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
+            bool hasPortableDebugInformation)
+        {
+            if (module == null)
+            {
+                throw new ArgumentNullException(nameof(module));
+            }
+
             if (debugInformationProvider == null)
             {
                 throw new ArgumentNullException(nameof(debugInformationProvider));
             }
 
-            // module has IL as checked above and hence a PE reader:
-            Debug.Assert(module.Module.PEReaderOpt != null);
+            if (localSignatureProvider == null)
+            {
+                throw new ArgumentNullException(nameof(localSignatureProvider));
+            }
 
             var reader = module.MetadataReader;
-            var moduleVersionId = module.GetModuleVersionId();
-            var hasPortablePdb = module.Module.PEReaderOpt.ReadDebugDirectory().Any(entry => entry.IsPortableCodeView);
 
             return new EmitBaseline(
                 null,
                 module,
                 compilation: null,
                 moduleBuilder: null,
-                moduleVersionId: moduleVersionId,
+                moduleVersionId: module.GetModuleVersionId(),
                 ordinal: 0,
-                encId: default(Guid),
-                hasPortablePdb: hasPortablePdb,
+                encId: default,
+                hasPortablePdb: hasPortableDebugInformation,
                 typesAdded: new Dictionary<Cci.ITypeDefinition, int>(),
                 eventsAdded: new Dictionary<Cci.IEventDefinition, int>(),
                 fieldsAdded: new Dictionary<Cci.IFieldDefinition, int>(),
@@ -162,9 +218,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 userStringStreamLengthAdded: 0,
                 guidStreamLengthAdded: 0,
                 anonymousTypeMap: null, // Unset for initial metadata
-                synthesizedMembers: ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>.Empty,
+                synthesizedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
                 methodsAddedOrChanged: new Dictionary<int, AddedOrChangedMethodInfo>(),
                 debugInformationProvider: debugInformationProvider,
+                localSignatureProvider: localSignatureProvider,
                 typeToEventMap: CalculateTypeEventMap(reader),
                 typeToPropertyMap: CalculateTypePropertyMap(reader),
                 methodImpls: CalculateMethodImpls(reader));
@@ -220,17 +277,28 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// Reads EnC debug information of a method from the initial baseline PDB.
-        /// The function shall throw <see cref="System.IO.InvalidDataException"/> if the debug information can't be read for the specified method.
-        /// This exception is caught and converted to an emit diagnostic. Other exceptions are passed through.
+        /// The function shall throw <see cref="InvalidDataException"/> if the debug information can't be read for the specified method.
+        /// This exception and <see cref="IOException"/> are caught and converted to an emit diagnostic. Other exceptions are passed through.
+        /// The function shall return an empty <see cref="EditAndContinueMethodDebugInformation"/> if the method that corresponds to the specified handle
+        /// has no debug information.
         /// </summary>
         internal readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> DebugInformationProvider;
+
+        /// <summary>
+        /// A function that for a method handle returns the signature of its local variables.
+        /// The function shall throw <see cref="InvalidDataException"/> if the information can't be read for the specified method.
+        /// This exception and <see cref="IOException"/> are caught and converted to an emit diagnostic. Other exceptions are passed through.
+        /// The function shall return a nil <see cref="StandaloneSignatureHandle"/> if the method that corresponds to the specified handle
+        /// has no local variables.
+        /// </summary>
+        internal readonly Func<MethodDefinitionHandle, StandaloneSignatureHandle> LocalSignatureProvider;
 
         internal readonly ImmutableArray<int> TableSizes;
         internal readonly IReadOnlyDictionary<int, int> TypeToEventMap;
         internal readonly IReadOnlyDictionary<int, int> TypeToPropertyMap;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImpls;
         private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> _anonymousTypeMap;
-        internal readonly ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> SynthesizedMembers;
+        internal readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> SynthesizedMembers;
 
         private EmitBaseline(
             EmitBaseline initialBaseline,
@@ -255,21 +323,23 @@ namespace Microsoft.CodeAnalysis.Emit
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> synthesizedMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> methodsAddedOrChanged,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
+            Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
             IReadOnlyDictionary<int, int> typeToEventMap,
             IReadOnlyDictionary<int, int> typeToPropertyMap,
             IReadOnlyDictionary<MethodImplKey, int> methodImpls)
         {
             Debug.Assert(module != null);
-            Debug.Assert((ordinal == 0) == (encId == default(Guid)));
+            Debug.Assert((ordinal == 0) == (encId == default));
             Debug.Assert((ordinal == 0) == (initialBaseline == null));
             Debug.Assert(encId != module.GetModuleVersionId());
             Debug.Assert(debugInformationProvider != null);
+            Debug.Assert(localSignatureProvider != null);
             Debug.Assert(typeToEventMap != null);
             Debug.Assert(typeToPropertyMap != null);
-            Debug.Assert(moduleVersionId != default(Guid));
+            Debug.Assert(moduleVersionId != default);
             Debug.Assert(moduleVersionId == module.GetModuleVersionId());
             Debug.Assert(synthesizedMembers != null);
 
@@ -289,37 +359,38 @@ namespace Microsoft.CodeAnalysis.Emit
 
             var reader = module.Module.MetadataReader;
 
-            this.InitialBaseline = initialBaseline ?? this;
-            this.OriginalMetadata = module;
-            this.Compilation = compilation;
-            this.PEModuleBuilder = moduleBuilder;
-            this.ModuleVersionId = moduleVersionId;
-            this.Ordinal = ordinal;
-            this.EncId = encId;
-            this.HasPortablePdb = hasPortablePdb;
+            InitialBaseline = initialBaseline ?? this;
+            OriginalMetadata = module;
+            Compilation = compilation;
+            PEModuleBuilder = moduleBuilder;
+            ModuleVersionId = moduleVersionId;
+            Ordinal = ordinal;
+            EncId = encId;
+            HasPortablePdb = hasPortablePdb;
 
-            this.TypesAdded = typesAdded;
-            this.EventsAdded = eventsAdded;
-            this.FieldsAdded = fieldsAdded;
-            this.MethodsAdded = methodsAdded;
-            this.PropertiesAdded = propertiesAdded;
-            this.EventMapAdded = eventMapAdded;
-            this.PropertyMapAdded = propertyMapAdded;
-            this.MethodImplsAdded = methodImplsAdded;
-            this.TableEntriesAdded = tableEntriesAdded;
-            this.BlobStreamLengthAdded = blobStreamLengthAdded;
-            this.StringStreamLengthAdded = stringStreamLengthAdded;
-            this.UserStringStreamLengthAdded = userStringStreamLengthAdded;
-            this.GuidStreamLengthAdded = guidStreamLengthAdded;
+            TypesAdded = typesAdded;
+            EventsAdded = eventsAdded;
+            FieldsAdded = fieldsAdded;
+            MethodsAdded = methodsAdded;
+            PropertiesAdded = propertiesAdded;
+            EventMapAdded = eventMapAdded;
+            PropertyMapAdded = propertyMapAdded;
+            MethodImplsAdded = methodImplsAdded;
+            TableEntriesAdded = tableEntriesAdded;
+            BlobStreamLengthAdded = blobStreamLengthAdded;
+            StringStreamLengthAdded = stringStreamLengthAdded;
+            UserStringStreamLengthAdded = userStringStreamLengthAdded;
+            GuidStreamLengthAdded = guidStreamLengthAdded;
             _anonymousTypeMap = anonymousTypeMap;
-            this.SynthesizedMembers = synthesizedMembers;
-            this.AddedOrChangedMethods = methodsAddedOrChanged;
+            SynthesizedMembers = synthesizedMembers;
+            AddedOrChangedMethods = methodsAddedOrChanged;
 
-            this.DebugInformationProvider = debugInformationProvider;
-            this.TableSizes = CalculateTableSizes(reader, this.TableEntriesAdded);
-            this.TypeToEventMap = typeToEventMap;
-            this.TypeToPropertyMap = typeToPropertyMap;
-            this.MethodImpls = methodImpls;
+            DebugInformationProvider = debugInformationProvider;
+            LocalSignatureProvider = localSignatureProvider;
+            TableSizes = CalculateTableSizes(reader, TableEntriesAdded);
+            TypeToEventMap = typeToEventMap;
+            TypeToPropertyMap = typeToPropertyMap;
+            MethodImpls = methodImpls;
         }
 
         internal EmitBaseline With(
@@ -341,9 +412,10 @@ namespace Microsoft.CodeAnalysis.Emit
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> synthesizedMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> addedOrChangedMethods,
-            Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
+            Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
+            Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider)
         {
             Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap != null);
             Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap.Count >= _anonymousTypeMap.Count);
@@ -374,6 +446,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 synthesizedMembers: synthesizedMembers,
                 methodsAddedOrChanged: addedOrChangedMethods,
                 debugInformationProvider: debugInformationProvider,
+                localSignatureProvider: localSignatureProvider,
                 typeToEventMap: TypeToEventMap,
                 typeToPropertyMap: TypeToPropertyMap,
                 methodImpls: MethodImpls);

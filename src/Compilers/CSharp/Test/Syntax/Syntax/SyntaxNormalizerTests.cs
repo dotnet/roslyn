@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -62,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             TestNormalizeExpression("(IList<int>)args", "(IList<int>)args");
             TestNormalizeExpression("(IList<IList<int>>)args", "(IList<IList<int>>)args");
+
+            TestNormalizeExpression("(IList<string?>)args", "(IList<string?>)args");
         }
 
         private void TestNormalizeExpression(string text, string expected)
@@ -128,8 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("{;;}", "{\r\n  ;\r\n  ;\r\n}");
 
             // labelled statements
-            TestNormalizeStatement("foo:;", "foo:\r\n  ;");
-            TestNormalizeStatement("foo:a;", "foo:\r\n  a;");
+            TestNormalizeStatement("goo:;", "goo:\r\n  ;");
+            TestNormalizeStatement("goo:a;", "goo:\r\n  a;");
 
             // return/goto
             TestNormalizeStatement("return;", "return;");
@@ -153,11 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("switch(a){case b:{c();}}", "switch (a)\r\n{\r\n  case b:\r\n  {\r\n    c();\r\n  }\r\n}");
 
             // curlies
-            TestNormalizeStatement("{if(foo){}if(bar){}}", "{\r\n  if (foo)\r\n  {\r\n  }\r\n\r\n  if (bar)\r\n  {\r\n  }\r\n}");
+            TestNormalizeStatement("{if(goo){}if(bar){}}", "{\r\n  if (goo)\r\n  {\r\n  }\r\n\r\n  if (bar)\r\n  {\r\n  }\r\n}");
 
             // Queries
             TestNormalizeStatement("int i=from v in vals select v;", "int i =\r\n  from v in vals\r\n  select v;");
-            TestNormalizeStatement("Foo(from v in vals select v);", "Foo(\r\n  from v in vals\r\n  select v);");
+            TestNormalizeStatement("Goo(from v in vals select v);", "Goo(\r\n  from v in vals\r\n  select v);");
             TestNormalizeStatement("int i=from v in vals select from x in xxx where x > 10 select x;", "int i =\r\n  from v in vals\r\n  select\r\n    from x in xxx\r\n    where x > 10\r\n    select x;");
             TestNormalizeStatement("int i=from v in vals group v by x into g where g > 10 select g;", "int i =\r\n  from v in vals\r\n  group v by x into g\r\n    where g > 10\r\n    select g;");
 
@@ -235,6 +239,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class c{void M([a]int x,[b] [c,d]int y){}}", "class c\r\n{\r\n  void M([a] int x, [b][c, d] int y)\r\n  {\r\n  }\r\n}");
         }
 
+        [Fact]
+        [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
+        public void TestSpacingOnInvocationLikeKeywords()
+        {
+            // no space between typeof and (
+            TestNormalizeExpression("typeof (T)", "typeof(T)");
+
+            // no space between sizeof and (
+            TestNormalizeExpression("sizeof (T)", "sizeof(T)");
+
+            // no space between default and (
+            TestNormalizeExpression("default (T)", "default(T)");
+
+            // no space between new and (
+            // newline between > and where
+            TestNormalizeDeclaration(
+                "class C<T> where T : new() { }",
+                "class C<T>\r\n  where T : new()\r\n{\r\n}");
+
+            // no space between this and (
+            TestNormalizeDeclaration(
+                "class C { C() : this () { } }",
+                "class C\r\n{\r\n  C(): this()\r\n  {\r\n  }\r\n}");
+
+            // no space between base and (
+            TestNormalizeDeclaration(
+                "class C { C() : base () { } }",
+                "class C\r\n{\r\n  C(): base()\r\n  {\r\n  }\r\n}");
+
+            // no space between checked and (
+            TestNormalizeExpression("checked (a)", "checked(a)");
+
+            // no space between unchecked and (
+            TestNormalizeExpression("unchecked (a)", "unchecked(a)");
+
+            // no space between __arglist and (
+            TestNormalizeExpression("__arglist (a)", "__arglist(a)");
+        }
+
+        [Fact]
+        [WorkItem(24454, "https://github.com/dotnet/roslyn/issues/24454")]
+        public void TestSpacingOnInterpolatedString()
+        {
+            TestNormalizeExpression("$\"{3:C}\"", "$\"{3:C}\"");
+            TestNormalizeExpression("$\"{3: C}\"", "$\"{3: C}\"");
+        }
+
+        [Fact]
+        [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
+        public void TestSpacingOnMethodConstraint()
+        {
+            // newline between ) and where
+            TestNormalizeDeclaration(
+                "class C { void M<T>() where T : struct { } }",
+                "class C\r\n{\r\n  void M<T>()\r\n    where T : struct\r\n  {\r\n  }\r\n}");
+        }
+
         [WorkItem(541684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541684")]
         [Fact]
         public void TestNormalizeRegion1()
@@ -303,12 +364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("{\r\n//a\r\n}", "{\r\n//a\r\n}");
             TestNormalizeStatement("{\r\n//a\r\nb}", "{\r\n  //a\r\n  b\r\n}");
             TestNormalizeStatement("{\r\n/*a*/b}", "{\r\n  /*a*/\r\n  b\r\n}");
-            TestNormalizeStatement("{\r\n/// <foo/>\r\na}", "{\r\n  /// <foo/>\r\n  a\r\n}");
-            TestNormalizeStatement("{\r\n///<foo/>\r\na}", "{\r\n  ///<foo/>\r\n  a\r\n}");
-            TestNormalizeStatement("{\r\n/// <foo>\r\n/// </foo>\r\na}", "{\r\n  /// <foo>\r\n  /// </foo>\r\n  a\r\n}");
-            TestNormalizeToken("/// <foo>\r\n/// </foo>\r\na", "/// <foo>\r\n/// </foo>\r\na");
-            TestNormalizeStatement("{\r\n/*** <foo/> ***/\r\na}", "{\r\n  /*** <foo/> ***/\r\n  a\r\n}");
-            TestNormalizeStatement("{\r\n/*** <foo/>\r\n ***/\r\na}", "{\r\n  /*** <foo/>\r\n ***/\r\n  a\r\n}");
+            TestNormalizeStatement("{\r\n/// <goo/>\r\na}", "{\r\n  /// <goo/>\r\n  a\r\n}");
+            TestNormalizeStatement("{\r\n///<goo/>\r\na}", "{\r\n  ///<goo/>\r\n  a\r\n}");
+            TestNormalizeStatement("{\r\n/// <goo>\r\n/// </goo>\r\na}", "{\r\n  /// <goo>\r\n  /// </goo>\r\n  a\r\n}");
+            TestNormalizeToken("/// <goo>\r\n/// </goo>\r\na", "/// <goo>\r\n/// </goo>\r\na");
+            TestNormalizeStatement("{\r\n/*** <goo/> ***/\r\na}", "{\r\n  /*** <goo/> ***/\r\n  a\r\n}");
+            TestNormalizeStatement("{\r\n/*** <goo/>\r\n ***/\r\na}", "{\r\n  /*** <goo/>\r\n ***/\r\n  a\r\n}");
         }
 
         private void TestNormalizeToken(string text, string expected)
@@ -339,17 +400,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         SyntaxFactory.EndIfDirectiveTrivia(false))),
                 "#if a\r\n#endif\r\n");
 
-            TestNormalizeTrivia("#endregion foo", "#endregion foo\r\n");
+            TestNormalizeTrivia("#endregion goo", "#endregion goo\r\n");
 
             TestNormalizeDeclaration(
 @"#pragma warning disable 123
 
-namespace foo {
+namespace goo {
 }
 
 #pragma warning restore 123",
 @"#pragma warning disable 123
-namespace foo
+namespace goo
 {
 }
 #pragma warning restore 123
@@ -387,8 +448,8 @@ namespace foo
         public void TestNormalizeWithinDirectives()
         {
             TestNormalizeDeclaration(
-"class C\r\n{\r\n#if true\r\nvoid Foo(A x) { }\r\n#else\r\n#endif\r\n}\r\n",
-"class C\r\n{\r\n#if true\r\n  void Foo(A x)\r\n  {\r\n  }\r\n#else\r\n#endif\r\n}");
+"class C\r\n{\r\n#if true\r\nvoid Goo(A x) { }\r\n#else\r\n#endif\r\n}\r\n",
+"class C\r\n{\r\n#if true\r\n  void Goo(A x)\r\n  {\r\n  }\r\n#else\r\n#endif\r\n}");
         }
 
         [WorkItem(542887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542887")]
@@ -398,7 +459,7 @@ namespace foo
             var code =
 @"class c1
 {
-void foo()
+void goo()
 {
 {
 int i = 1;
@@ -409,7 +470,7 @@ int i = 1;
             TestNormalize(tree.GetCompilationUnitRoot(),
 @"class c1
 {
-  void foo()
+  void goo()
   {
     {
       int i = 1;
@@ -428,7 +489,7 @@ int i = 1;
     ///<summary>
     /// A documentation comment
     ///</summary>
-    void foo()
+    void goo()
     {
     }
 }";
@@ -441,7 +502,7 @@ int i = 1;
 $"  ///<summary>{Environment.NewLine}" +
 $"  /// A documentation comment{Environment.NewLine}" +
 $"  ///</summary>{Environment.NewLine}" +
-"  void foo()\r\n" +
+"  void goo()\r\n" +
 "  {\r\n" +
 "  }\r\n" +
 "}");
@@ -456,7 +517,7 @@ $"  ///</summary>{Environment.NewLine}" +
   ///  <summary>
   ///  A documentation comment
   ///  </summary>
-  void foo()
+  void goo()
   {
   }
 }";
@@ -468,7 +529,7 @@ $"  ///</summary>{Environment.NewLine}" +
 $"  ///  <summary>{Environment.NewLine}" +
 $"  ///  A documentation comment{Environment.NewLine}" +
 $"  ///  </summary>{Environment.NewLine}" +
-"  void foo()\r\n" +
+"  void goo()\r\n" +
 "  {\r\n" +
 "  }\r\n" +
 "}");
@@ -490,6 +551,18 @@ $"  ///  </summary>{Environment.NewLine}" +
             var expected = "class c\r\n{\r\n\tvoid m()\r\n\t{\r\n\t}\r\n}";
             var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "\t").ToFullString();
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(29390, "https://github.com/dotnet/roslyn/issues/29390")]
+        public void TestNormalizeTuples()
+        {
+            TestNormalizeDeclaration("new(string prefix,string uri)[10]", "new (string prefix, string uri)[10]");
+            TestNormalizeDeclaration("(string prefix,string uri)[]ns", "(string prefix, string uri)[] ns");
+            TestNormalizeDeclaration("(string prefix,(string uri,string help))ns", "(string prefix, (string uri, string help)) ns");
+            TestNormalizeDeclaration("(string prefix,string uri)ns", "(string prefix, string uri) ns");
+            TestNormalizeDeclaration("public void Foo((string prefix,string uri)ns)", "public void Foo((string prefix, string uri) ns)");
+            TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
         }
 
         private void TestNormalize(CSharpSyntaxNode node, string expected)

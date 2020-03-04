@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -67,13 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ShadowInvariants()
         {
             TestHiddenProperty((old, value) => old.WithOutputKind(value), opt => opt.OutputKind, OutputKind.DynamicallyLinkedLibrary);
-            TestHiddenProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "foo.dll");
-            TestHiddenProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Foo.Bar");
+            TestHiddenProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "goo.dll");
+            TestHiddenProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Goo.Bar");
             TestHiddenProperty((old, value) => old.WithScriptClassName(value), opt => opt.ScriptClassName, "<Script>");
             TestHiddenProperty((old, value) => old.WithOptimizationLevel(value), opt => opt.OptimizationLevel, OptimizationLevel.Release);
             TestHiddenProperty((old, value) => old.WithOverflowChecks(value), opt => opt.CheckOverflow, true);
-            TestHiddenProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
-            TestHiddenProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "foo");
+            TestHiddenProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "goo");
+            TestHiddenProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "goo");
             TestHiddenProperty((old, value) => old.WithCryptoPublicKey(value), opt => opt.CryptoPublicKey, ImmutableArray.Create<byte>(0, 1, 2, 3));
             TestHiddenProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
             TestHiddenProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
@@ -103,15 +105,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Invariants()
         {
             TestProperty((old, value) => old.WithOutputKind(value), opt => opt.OutputKind, OutputKind.DynamicallyLinkedLibrary);
-            TestProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "foo.dll");
-            TestProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Foo.Bar");
+            TestProperty((old, value) => old.WithModuleName(value), opt => opt.ModuleName, "goo.dll");
+            TestProperty((old, value) => old.WithMainTypeName(value), opt => opt.MainTypeName, "Goo.Bar");
             TestProperty((old, value) => old.WithScriptClassName(value), opt => opt.ScriptClassName, "<Script>");
             TestProperty((old, value) => old.WithUsings(value), opt => opt.Usings, ImmutableArray.Create("A", "B"));
             TestProperty((old, value) => old.WithOptimizationLevel(value), opt => opt.OptimizationLevel, OptimizationLevel.Release);
             TestProperty((old, value) => old.WithOverflowChecks(value), opt => opt.CheckOverflow, true);
             TestProperty((old, value) => old.WithAllowUnsafe(value), opt => opt.AllowUnsafe, true);
-            TestProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
-            TestProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "foo");
+            TestProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "goo");
+            TestProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "goo");
             TestProperty((old, value) => old.WithCryptoPublicKey(value), opt => opt.CryptoPublicKey, ImmutableArray.Create<byte>(0, 1, 2, 3));
             TestProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
             TestProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
@@ -134,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithTopLevelBinderFlags(value), opt => opt.TopLevelBinderFlags, BinderFlags.IgnoreCorLibraryDuplicatedTypes);
             TestProperty((old, value) => old.WithMetadataImportOptions(value), opt => opt.MetadataImportOptions, MetadataImportOptions.Internal);
             TestProperty((old, value) => old.WithReferencesSupersedeLowerVersions(value), opt => opt.ReferencesSupersedeLowerVersions, true);
+            TestProperty((old, value) => old.WithNullableContextOptions(value), opt => opt.NullableContextOptions, NullableContextOptions.Enable);
         }
 
         [Fact]
@@ -143,18 +146,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'ScriptClassName' value: 'null'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "null"));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("blah\0foo").VerifyErrors(
-                // error CS7088: Invalid 'ScriptClassName' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("blah\0goo").VerifyErrors(
+                // error CS7088: Invalid 'ScriptClassName' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0goo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("").VerifyErrors(
                 // error CS7088: Invalid 'ScriptClassName' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", ""));
 
             Assert.Equal(0, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName(null).Errors.Length);
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("blah\0foo").VerifyErrors(
-                // error CS7088: Invalid 'MainTypeName' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("blah\0goo").VerifyErrors(
+                // error CS7088: Invalid 'MainTypeName' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0goo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("").VerifyErrors(
                 // error CS7088: Invalid 'MainTypeName' value: ''.
@@ -212,9 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'Usings' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ""));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(new string[] { "blah\0foo" }).VerifyErrors(
-                // error CS7088: Invalid 'Usings' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(new string[] { "blah\0goo" }).VerifyErrors(
+                // error CS7088: Invalid 'Usings' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0goo"));
         }
 
         [Fact]
@@ -245,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WithModuleName()
         {
             // ModuleName
-            Assert.Equal(null, TestOptions.ReleaseDll.WithModuleName(null).ModuleName);
+            Assert.Null(TestOptions.ReleaseDll.WithModuleName(null).ModuleName);
             TestOptions.ReleaseDll.WithModuleName("").VerifyErrors(
                 // error CS7087: Invalid module name: Name cannot be empty.
                 Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name cannot be empty.").WithLocation(1, 1)
@@ -288,24 +291,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'Usings' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ""));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, usings: new string[] { "blah\0foo" }).VerifyErrors(
-                // error CS7088: Invalid 'Usings' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, usings: new string[] { "blah\0goo" }).VerifyErrors(
+                // error CS7088: Invalid 'Usings' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0goo"));
 
             Assert.Equal("Script", new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: null).ScriptClassName);
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "blah\0foo").VerifyErrors(
-                // error CS7088: Invalid 'ScriptClassName' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "blah\0goo").VerifyErrors(
+                // error CS7088: Invalid 'ScriptClassName' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "blah\0goo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, scriptClassName: "").VerifyErrors(
                 // error CS7088: Invalid 'ScriptClassName' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", ""));
 
             Assert.Equal(0, new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: null).Errors.Length);
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "blah\0foo").VerifyErrors(
-                // error CS7088: Invalid 'MainTypeName' value: 'blah\0foo'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0foo"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "blah\0goo").VerifyErrors(
+                // error CS7088: Invalid 'MainTypeName' value: 'blah\0goo'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "blah\0goo"));
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "").VerifyErrors(
                 // error CS7088: Invalid 'MainTypeName' value: ''.
@@ -364,13 +367,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "Language",
                 "AllowUnsafe",
                 "Usings",
-                "TopLevelBinderFlags");
+                "TopLevelBinderFlags",
+                "NullableContextOptions");
         }
 
         [Fact]
         public void TestEqualitySemantics()
         {
-            Assert.Equal(CreateCSharpCompilationOptions(), CreateCSharpCompilationOptions());
+            CSharpCompilationOptions first = CreateCSharpCompilationOptions();
+            CSharpCompilationOptions second = CreateCSharpCompilationOptions();
+            Assert.Equal(first, second);
+            Assert.Equal(first.GetHashCode(), second.GetHashCode());
         }
 
         private static CSharpCompilationOptions CreateCSharpCompilationOptions()
@@ -404,12 +411,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool reportSuppressedDiagnostics = false;
             var topLevelBinderFlags = BinderFlags.None;
             var publicSign = false;
+            NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
 
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags);
+                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags, nullableContextOptions);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver
@@ -433,6 +441,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Same(options, options.WithCryptoPublicKey(default(ImmutableArray<byte>)));
             Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray<byte>.Empty));
+        }
+
+        [Fact]
+        public void WithNullable()
+        {
+            Assert.Equal(NullableContextOptions.Disable, new CSharpCompilationOptions(OutputKind.ConsoleApplication).NullableContextOptions);
+
+            var values = (NullableContextOptions[])System.Enum.GetValues(typeof(NullableContextOptions));
+            var options = new CSharpCompilationOptions[values.Length];
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                options[i] = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullableContextOptions: values[i]);
+                Assert.Equal(values[i], options[i].NullableContextOptions);
+            }
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                var oldOptions = options[i];
+
+                for (int j = 0; j < values.Length; j++)
+                {
+                    var newOptions = oldOptions.WithNullableContextOptions(values[j]);
+                    Assert.Equal(values[j], newOptions.NullableContextOptions);
+                    Assert.Equal(options[j], newOptions);
+                    Assert.Equal(options[j].GetHashCode(), newOptions.GetHashCode());
+
+                    if (i == j)
+                    {
+                        Assert.Same(oldOptions, newOptions);
+                    }
+                    else
+                    {
+                        Assert.NotSame(oldOptions, newOptions);
+                        Assert.NotEqual(oldOptions, newOptions);
+                    }
+                }
+            }
         }
     }
 }

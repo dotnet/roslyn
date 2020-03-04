@@ -1,7 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 using System;
 class MyClass$$
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
     }
 }";
@@ -33,7 +36,7 @@ class MyClass
 {
     int t$$ = 2;
 
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
     }
 }";

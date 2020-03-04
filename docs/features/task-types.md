@@ -1,7 +1,7 @@
 Async Task Types in C#
 ======================
 Extend `async` to support _task types_ that match a specific pattern, in addition to the well known types
-`Sytem.Threading.Tasks.Task` and `Sytem.Threading.Tasks.Task<T>`.
+`System.Threading.Tasks.Task` and `System.Threading.Tasks.Task<T>`.
 
 ## Task Type
 A _task type_ is a `class` or `struct` with an associated _builder type_ identified
@@ -21,7 +21,7 @@ class Awaiter<T> : INotifyCompletion
 {
     public bool IsCompleted { get; }
     public T GetResult();
-    public void OnCompletion(Action completion);
+    public void OnCompleted(Action completion);
 }
 ```
 ## Builder Type

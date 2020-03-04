@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -30,7 +32,7 @@ End Module
   IL_0001:  ldc.i4.3
   IL_0002:  newobj     "Integer(*,*)..ctor"
   IL_0007:  dup
-  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.D64E555B758C5B66DFAC42F18587BB1B3C9BCFA8"
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.618A09BD4B017EFD77C1C5CEA9D47D21EC52DDDEE4892C2A026D588E54AE8F19"
   IL_000d:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0012:  ldc.i4.1
   IL_0013:  ldc.i4.1
@@ -64,7 +66,7 @@ End Module
   IL_0001:  ldc.i4.3
   IL_0002:  newobj     "Integer(*,*)..ctor"
   IL_0007:  dup
-  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.A4B74E064E285570B3499538C5B205C3D0972FDF"
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.70DE168CE7BA89AB94AD130FD8CB2C588B408E6B5C7FA55F4B322158684A1362"
   IL_000d:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0012:  dup
   IL_0013:  ldc.i4.1
@@ -242,18 +244,18 @@ End Module
                 <file name="a.vb">
 public Module A
     Public Sub Main()
-        foo(Of String)()
-        c1(Of Long).foo()
+        goo(Of String)()
+        c1(Of Long).goo()
     End Sub
 
     Class c1(Of T)
-        Public Shared Sub foo()
+        Public Shared Sub goo()
             Dim arr As T(,) = New T(1, 2) {}
             System.Console.Write(arr.Length)
         End Sub
     End Class
 
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
         Dim arr As T(,) = New T(1, 2) {}
         System.Console.Write(arr.Length)
     End Sub
@@ -261,7 +263,7 @@ End Module
     </file>
             </compilation>,
             expectedOutput:="66").
-                        VerifyIL("A.foo(Of T)()",
+                        VerifyIL("A.goo(Of T)()",
             <![CDATA[
 {
   // Code size       18 (0x12)
@@ -283,12 +285,12 @@ End Module
                 <file name="a.vb">
 public Module A
     Public Sub Main()
-        foo(Of String)("hello")
-        c1(Of Long).foo(123)
+        goo(Of String)("hello")
+        c1(Of Long).goo(123)
     End Sub
 
     Class c1(Of T)
-        Public Shared Sub foo(e as T)
+        Public Shared Sub goo(e as T)
             Dim arr As T(,) = New T(2, 3) {}
             arr(1, 2) = e
 
@@ -299,7 +301,7 @@ public Module A
         End Sub
     End Class
 
-    Public Sub foo(Of T)(e as T)
+    Public Sub goo(Of T)(e as T)
         Dim arr As T(,) = New T(2, 3) {}
             arr(1, 2) = e
 
@@ -312,7 +314,7 @@ End Module
     </file>
             </compilation>,
             expectedOutput:="hellohello123123").
-                        VerifyIL("A.foo(Of T)(T)",
+                        VerifyIL("A.goo(Of T)(T)",
             <![CDATA[
 {
   // Code size       69 (0x45)
@@ -574,7 +576,7 @@ End Module
         End Sub
 
         ' Initialize multi- dimensional array
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub InitializemultiDimensionalArray()
             CompileAndVerify(
 <compilation>
@@ -662,7 +664,7 @@ Module Module1
     Function fun() As Integer
         Return 3
     End Function
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
         Dim arr1(3, x) As Integer
     End Sub
 End Module
@@ -735,7 +737,7 @@ End Module
         End Sub
 
         ' Array creation expression can be part of an anonymous object creation expression
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ArrayCreateAsAnonymous()
             CompileAndVerify(
 <compilation>
@@ -1227,7 +1229,7 @@ End Module
         End Sub
 
         ' Assigning a smaller array to a bigger array or vice versa should work
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub AssignArrayToArray()
             CompileAndVerify(
 <compilation>
@@ -1381,11 +1383,11 @@ End Module
 Module Program
     Sub Main(args As String())
     End Sub
-    Sub foo(ByRef arg(,,) As Integer)
+    Sub goo(ByRef arg(,,) As Integer)
     End Sub
-    Sub foo(ByRef arg(,) As Integer)
+    Sub goo(ByRef arg(,) As Integer)
     End Sub
-    Sub foo(ByRef arg() As Integer)
+    Sub goo(ByRef arg() As Integer)
     End Sub
 End Module
     </file>
@@ -1413,7 +1415,7 @@ End Class
         End Sub
 
         ' Declare multi-dimensional and Jagged array
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub MixedArray()
             CompileAndVerify(
 <compilation>
@@ -1440,7 +1442,7 @@ End Class
     <file name="a.vb">
 Imports System
 &lt;TypeAttribute(GetType(Program(Of [String])(,)))&gt; _
-Public Class Foo
+Public Class Goo
 End Class
 Class Program(Of T)
 End Class

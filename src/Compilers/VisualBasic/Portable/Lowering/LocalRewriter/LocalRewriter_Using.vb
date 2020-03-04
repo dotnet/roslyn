@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -75,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' rewrite the original using body only once here.
             Dim currentBody = DirectCast(Visit(node.Body), BoundBlock)
-            Dim locals As ImmutableArray(Of LocalSymbol)
+            Dim locals As ImmutableArray(Of LocalSymbol) = node.Locals
             Dim placeholderInfo As ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)
 
             ' the initialization expressions (variable declaration & expression case) will be rewritten in 
@@ -83,8 +85,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not node.ResourceList.IsDefault Then
                 ' Case "Using <variable declarations>"  
-
-                Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance
 
                 ' the try statements will be nested. To avoid re-rewriting we're iterating through the resource list in reverse
                 For declarationIndex = node.ResourceList.Length - 1 To 0 Step -1
@@ -100,8 +100,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      localVariableDeclaration.InitializerOpt,
                                                                      placeholderInfo,
                                                                      currentBody)
-
-                        localsBuilder.Add(localVariableDeclaration.LocalSymbol)
                     Else
                         Dim localAsNewDeclaration = DirectCast(localDeclaration, BoundAsNewLocalDeclarations)
 
@@ -116,15 +114,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                          localAsNewDeclaration.Initializer,
                                                                          placeholderInfo,
                                                                          currentBody)
-                            localsBuilder.Add(localAsNewDeclaration.LocalDeclarations(initializedVariableIndex).LocalSymbol)
                         Next
                     End If
                 Next
-
-                ' we are adding the locals to the builder in reverse order. Therefore we need to reverse the array to have
-                ' the same forward declaration order in IL as Dev10 did.
-                localsBuilder.ReverseContents()
-                locals = localsBuilder.ToImmutableAndFree()
             Else
                 ' Case "Using <expression>"
                 Debug.Assert(node.ResourceExpressionOpt IsNot Nothing)
@@ -144,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              placeholderInfo,
                                                              currentBody)
 
-                locals = ImmutableArray.Create(tempResourceSymbol)
+                locals = locals.Add(tempResourceSymbol)
             End If
 
             RestoreUnstructuredExceptionHandlingContext(node, saveState)

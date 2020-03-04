@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections;
 using System.Collections.Generic;
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 // The set of AnalyzerItems hasn't been realized yet. Just signal that HasItems
                 // may have changed.
 
-                NotifyPropertyChanged("HasItems");
+                NotifyPropertyChanged(nameof(HasItems));
                 return;
             }
 
@@ -108,14 +110,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
 
                 var sorted = _analyzerItems.OrderBy(item => item.AnalyzerReference.Display).ToArray();
-                for (int i = 0; i < sorted.Length; i++)
+                for (var i = 0; i < sorted.Length; i++)
                 {
                     _analyzerItems.Move(_analyzerItems.IndexOf(sorted[i]), i);
                 }
 
                 _analyzerItems.EndBulkOperation();
 
-                NotifyPropertyChanged("HasItems");
+                NotifyPropertyChanged(nameof(HasItems));
             }
         }
 
@@ -186,9 +188,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private ImmutableHashSet<string> GetAnalyzersWithLoadErrors()
         {
-            var vsWorkspace = _analyzersFolder.Workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace != null)
+            if (_analyzersFolder.Workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
+                /*
                 var vsProject = vsWorkspace.DeferredState?.ProjectTracker.GetProject(_analyzersFolder.ProjectId);
                 var vsAnalyzersMap = vsProject?.GetProjectAnalyzersMap();
 
@@ -196,6 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     return vsAnalyzersMap.Where(kvp => kvp.Value.HasLoadErrors).Select(kvp => kvp.Key).ToImmutableHashSet();
                 }
+                */
             }
 
             return ImmutableHashSet<string>.Empty;

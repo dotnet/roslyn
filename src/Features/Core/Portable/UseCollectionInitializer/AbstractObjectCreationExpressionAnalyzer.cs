@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         protected SemanticModel _semanticModel;
-        protected ISyntaxFactsService _syntaxFacts;
+        protected ISyntaxFacts _syntaxFacts;
         protected TObjectCreationExpressionSyntax _objectCreationExpression;
         protected CancellationToken _cancellationToken;
 
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         public void Initialize(
             SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {
@@ -50,9 +52,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _semanticModel = null;
             _syntaxFacts = null;
             _objectCreationExpression = null;
-            _cancellationToken = default(CancellationToken);
+            _cancellationToken = default;
             _containingStatement = null;
-            _valuePattern = default(SyntaxNodeOrToken);
+            _valuePattern = default;
             _initializedSymbol = null;
         }
 
@@ -63,6 +65,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
             {
                 // Don't bother if this already has an initializer.
+                return null;
+            }
+
+            if (!ShouldAnalyze())
+            {
                 return null;
             }
 
@@ -90,8 +97,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            var containingDeclarator = _objectCreationExpression.Parent.Parent as TVariableDeclaratorSyntax;
-            if (containingDeclarator == null)
+            if (!(_objectCreationExpression.Parent.Parent is TVariableDeclaratorSyntax containingDeclarator))
             {
                 return false;
             }
@@ -179,5 +185,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             return false;
         }
+
+        protected abstract bool ShouldAnalyze();
     }
 }

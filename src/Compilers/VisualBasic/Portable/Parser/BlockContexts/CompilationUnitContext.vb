@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
@@ -144,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Private _parser As Parser
             Private _declarationBlocksBeingVisited As ArrayBuilder(Of VisualBasicSyntaxNode) ' CompilationUnitSyntax is treated as a declaration block for our purposes
-            Private _parentsOfRegionDirectivesAwaitingClosure As ArrayBuilder(Of VisualBasicSyntaxNode) ' Nodes are coming from _declrationBlocksBeingVisited
+            Private _parentsOfRegionDirectivesAwaitingClosure As ArrayBuilder(Of VisualBasicSyntaxNode) ' Nodes are coming from _declarationBlocksBeingVisited
             Private _tokenWithDirectivesBeingVisited As SyntaxToken
 
             Private Sub New()

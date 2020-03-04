@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class NewKeywordRecommenderTests
@@ -15,22 +17,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NewAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "New")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "New")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NewAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, "New")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "New")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NewAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, "New")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "New")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NewAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, "New")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "New")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -114,17 +116,17 @@ Loop Until |</MethodBody>, "New")
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NewAfterAsInPropertyDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public Property foo As |</ClassDeclaration>, "New")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public Property goo As |</ClassDeclaration>, "New")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NewAfterAsInReadOnlyPropertyDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public ReadOnly Property foo As |</ClassDeclaration>, "New")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public ReadOnly Property goo As |</ClassDeclaration>, "New")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NewNotAfterAsInWriteOnlyPropertyDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Public WriteOnly Property foo As |</ClassDeclaration>, "New")
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Public WriteOnly Property goo As |</ClassDeclaration>, "New")
         End Function
 
         <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
@@ -134,10 +136,10 @@ Loop Until |</MethodBody>, "New")
 <File>
 Module Program
     Sub Main(args As String())
-        Dim f1 As New Foo2( |
+        Dim f1 As New Goo2( |
     End Sub
 
-    Delegate Sub Foo2()
+    Delegate Sub Goo2()
 
     Function Bar2() As Object
         Return Nothing
@@ -161,6 +163,13 @@ End Module
         Public Async Function AfterExplicitLineContinuationTest() As Task
             Await VerifyRecommendationsContainAsync(
 <MethodBody>Dim x As _
+|</MethodBody>, "New")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>Dim x As _ ' Test
 |</MethodBody>, "New")
         End Function
     End Class

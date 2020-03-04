@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -15,20 +17,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed class GraphNavigatorExtension : ForegroundThreadAffinitizedObject, IGraphNavigateToItem
     {
         private readonly Workspace _workspace;
 
-        public GraphNavigatorExtension(Workspace workspace)
+        public GraphNavigatorExtension(IThreadingContext threadingContext, Workspace workspace)
+            : base(threadingContext)
         {
             _workspace = workspace;
         }
 
         public void NavigateTo(GraphObject graphObject)
         {
-            var graphNode = graphObject as GraphNode;
 
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 var sourceLocation = graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation);
                 if (sourceLocation.FileName == null)
@@ -72,10 +76,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         // background thread then the current NewDocumentStateScope is unrelated to
                         // this navigation and it is safe to continue on the UI thread 
                         // asynchronously.
-                        Task.Factory.SafeStartNew(
-                            () => NavigateOnForegroundThread(sourceLocation, symbolId, project, document),
+                        Task.Factory.SafeStartNewFromAsync(
+                            async () =>
+                            {
+                                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                                NavigateOnForegroundThread(sourceLocation, symbolId, project, document);
+                            },
                             CancellationToken.None,
-                            ForegroundTaskScheduler);
+                            TaskScheduler.Default);
                     }
                 }
             }
@@ -96,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 if (symbol != null &&
                     !(symbol is ITypeSymbol) &&
                     !symbol.IsConstructor() &&
-                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project.Solution, CancellationToken.None))
+                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project, CancellationToken.None))
                 {
                     return;
                 }
@@ -123,9 +131,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public int GetRank(GraphObject graphObject)
         {
-            var graphNode = graphObject as GraphNode;
 
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 var sourceLocation = graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation);
                 var projectId = graphNode.GetValue<ProjectId>(RoslynGraphProperties.ContextProjectId);

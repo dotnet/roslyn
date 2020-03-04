@@ -1,0 +1,262 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pt-BR" original="../VBWorkspaceResources.resx">
+    <body>
+      <trans-unit id="Namespace_can_not_be_added_in_this_destination">
+        <source>Namespace can not be added in this destination.</source>
+        <target state="translated">Namespace não pode ser adicionado nesse destino.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_attributes_expressions_or_statements_can_be_made_explicit">
+        <source>Only attributes, expressions or statements can be made explicit</source>
+        <target state="translated">Somente atributos, expressões ou instruções podem ser tornados explícitos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_and_Sort_Imports">
+        <source>R&amp;emove and Sort Imports</source>
+        <target state="translated">R&amp;emover e Classificar Importações</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">Cla&amp;ssificar Importações</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="event_">
+        <source>&lt;event&gt;</source>
+        <target state="translated">&lt;event&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="handler">
+        <source>&lt;handler&gt;</source>
+        <target state="translated">&lt;manipulador&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_expression_to_be_evaluated_and_converted">
+        <source>The expression to be evaluated and converted.</source>
+        <target state="translated">A expressão a ser avaliada e convertida.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_name_of_the_data_type_to_which_the_value_of_expression_will_be_converted">
+        <source>The name of the data type to which the value of expression will be converted.</source>
+        <target state="translated">O nome do tipo de dados para o qual o valor da expressão será convertido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expression">
+        <source>&lt;expression&gt;</source>
+        <target state="translated">&lt;expressão&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeName">
+        <source>&lt;typeName&gt;</source>
+        <target state="translated">&lt;typeName&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time">
+        <source>Associates an event with an event handler, delegate or lambda expression at run time.</source>
+        <target state="translated">Associa um evento a um manipulador de eventos, delegado ou expressão lambda em tempo de execução.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_to_associate_an_event_handler_delegate_or_lambda_expression_with">
+        <source>The event to associate an event handler, delegate or lambda expression with.</source>
+        <target state="translated">O evento ao qual associar um manipulador de eventos, delegado ou expressão lambda.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_handler_to_associate_with_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate_lambdaExpression">
+        <source>The event handler to associate with the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; }.</source>
+        <target state="translated">O manipulador de eventos para associar com o evento. Isso pode assumir a forma de { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; }.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing">
+        <source>If &lt;expression&gt; evaluates to a reference or Nullable value that is not Nothing, the function returns that value. Otherwise, it calculates and returns &lt;expressionIfNothing&gt;.</source>
+        <target state="translated">Se &lt;expression&gt; é avaliada como uma referência ou um valor Anulável que não é Nothing, a função retorna esse valor. Caso contrário, ela calcula e retorna &lt;expressionIfNothing&gt;.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returned_if_it_evaluates_to_a_reference_or_nullable_type_that_is_not_Nothing">
+        <source>Returned if it evaluates to a reference or nullable type that is not Nothing.</source>
+        <target state="translated">Retornado se ele for avaliado como uma referência ou um tipo anulável que não é Nada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluated_and_returned_if_expression_evaluates_to_Nothing">
+        <source>Evaluated and returned if &lt;expression&gt; evaluates to Nothing.</source>
+        <target state="translated">Avaliado e retornado se &lt;expression&gt; for avaliada como Nada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expressionIfNothing">
+        <source>&lt;expressionIfNothing&gt;</source>
+        <target state="translated">&lt;expressionIfNothing&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type">
+        <source>Returns the result of explicitly converting an expression to a specified data type.</source>
+        <target state="translated">Retorna o resultado da conversão explícita de uma expressão a um tipo de dados especificado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_type_conversion_operation_similar_to_CType_The_difference_is_that_CType_succeeds_as_long_as_there_is_a_valid_conversion_whereas_DirectCast_requires_that_one_type_inherit_from_or_implement_the_other_type">
+        <source>Introduces a type conversion operation similar to CType. The difference is that CType succeeds as long as there is a valid conversion, whereas DirectCast requires that one type inherit from or implement the other type.</source>
+        <target state="translated">Apresenta uma operação de conversão de tipo semelhante a CType. A diferença é que CType tem êxito desde que haja uma conversão válida, enquanto DirectCast exige que um tipo herda de ou implementa o outro tipo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_name_to_return_a_System_Type_object_for">
+        <source>The type name to return a System.Type object for.</source>
+        <target state="translated">O nome de tipo para retornar um objeto System.Type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_a_System_Type_object_for_the_specified_type_name">
+        <source>Returns a System.Type object for the specified type name.</source>
+        <target state="translated">Retorna um objeto System.Type para o nome de tipo especificado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_XML_namespace_prefix_to_return_a_System_Xml_Linq_XNamespace_object_for_If_this_is_omitted_the_object_for_the_default_XML_namespace_is_returned">
+        <source>The XML namespace prefix to return a System.Xml.Linq.XNamespace object for. If this is omitted, the object for the default XML namespace is returned.</source>
+        <target state="translated">O prefixo do namespace XML para retornar um objeto System.Xml.Linq.XNamespace. Se isso for omitido, o objeto para o namespace XML padrão é retornado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="xmlNamespacePrefix">
+        <source>&lt;xmlNamespacePrefix&gt;</source>
+        <target state="translated">&lt;xmlNamespacePrefix&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_namespace_prefix">
+        <source>Returns the System.Xml.Linq.XNamespace object corresponding to the specified XML namespace prefix.</source>
+        <target state="translated">Retorna o objeto System.Xml.Linq.XNamespace correspondente para o prefixo de namespace XML especificado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string">
+        <source>Replaces a specified number of characters in a String variable with characters from another string.</source>
+        <target state="translated">Substitui um número especificado de caracteres em uma variável de Cadeia de Caracteres com caracteres de outra cadeia de caracteres.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_name_of_the_string_variable_to_modify">
+        <source>The name of the string variable to modify.</source>
+        <target state="translated">O nome da variável da cadeia de caracteres para modificar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_one_based_character_position_in_the_string_where_the_replacement_of_text_begins">
+        <source>The one-based character position in the string where the replacement of text begins.</source>
+        <target state="translated">A posição do caracteres com base um na cadeia de caracteres onde a substituição de texto começa.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_number_of_characters_to_replace_If_omitted_the_length_of_stringExpression_is_used">
+        <source>The number of characters to replace. If omitted, the length of &lt;stringExpression&gt; is used.</source>
+        <target state="translated">O número de caracteres a substituir. Se omitido, o comprimento de &lt;stringExpression&gt; é usado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="stringName">
+        <source>&lt;stringName&gt;</source>
+        <target state="translated">&lt;stringName&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="startIndex">
+        <source>&lt;startIndex&gt;</source>
+        <target state="translated">&lt;startIndex&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="length">
+        <source>&lt;length&gt;</source>
+        <target state="translated">&lt;length&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="stringExpression">
+        <source>&lt;stringExpression&gt;</source>
+        <target state="translated">&lt;stringExpression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Converts_an_expression_to_the_0_data_type">
+        <source>Converts an expression to the {0} data type.</source>
+        <target state="translated">Converte uma expressão para o {0} tipo de dados.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removes_the_association_between_an_event_and_an_event_handler_or_delegate_at_run_time">
+        <source>Removes the association between an event and an event handler or delegate at run time.</source>
+        <target state="translated">Remove a associação entre um evento e um manipulador de eventos ou delegado em tempo de execução.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_to_disassociate_an_event_handler_or_delegate_from">
+        <source>The event to disassociate an event handler or delegate from.</source>
+        <target state="translated">O evento para desassociar um manipulador de eventos ou delegado dele.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_handler_to_disassociate_from_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate">
+        <source>The event handler to disassociate from the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; }.</source>
+        <target state="translated">O manipulador de eventos para desassociar a partir do evento. Isso pode assumir a forma de { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; }.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse">
+        <source>If &lt;condition&gt; returns True, the function calculates and returns &lt;expressionIfTrue&gt;. Otherwise, it returns &lt;expressionIfFalse&gt;.</source>
+        <target state="translated">Se &lt;condition&gt; retorna Verdadeiro, a função calcula e retorna &lt;expressionIfTrue&gt;. Caso contrário, ela retorna &lt;expressionIfFalse&gt;.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_expression_to_evaluate">
+        <source>The expression to evaluate.</source>
+        <target state="translated">A expressão a ser avaliada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluated_and_returned_if_condition_evaluates_to_True">
+        <source>Evaluated and returned if &lt;condition&gt; evaluates to True.</source>
+        <target state="translated">Avaliado e retornado se &lt;condition&gt; for avaliada como Verdadeiro.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluated_and_returned_if_condition_evaluates_to_False">
+        <source>Evaluated and returned if &lt;condition&gt; evaluates to False.</source>
+        <target state="translated">Avaliado e retornado se &lt;condition&gt; for avaliada como Falso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="condition">
+        <source>&lt;condition&gt;</source>
+        <target state="translated">&lt;condition&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expressionIfTrue">
+        <source>&lt;expressionIfTrue&gt;</source>
+        <target state="translated">&lt;expressionIfTrue&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expressionIfFalse">
+        <source>&lt;expressionIfFalse&gt;</source>
+        <target state="translated">&lt;expressionIfFalse&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for">
+        <source>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</source>
+        <target state="translated">Apresenta uma operação de conversão de tipo que não gera uma exceção. Se uma tentativa de conversão falhar, TryCast retorna Nothing, para a qual seu programa pode testar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Node_does_not_descend_from_root">
+        <source>Node does not descend from root.</source>
+        <target state="translated">Nó não deriva da raiz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Node_not_in_parent_s_child_list">
+        <source>Node not in parent's child list</source>
+        <target state="translated">Nó não está na lista de filhos do pai</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Trivia_is_not_associated_with_token">
+        <source>Trivia is not associated with token</source>
+        <target state="translated">Trívia não está associada a token</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeOrMember">
+        <source>&lt;typeOrMember&gt;</source>
+        <target state="translated">&lt;typeOrMember&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_of_member_to_return_the_name_of">
+        <source>The type of member to return the name of.</source>
+        <target state="translated">O tipo de membro para retornar o nome.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Produces_a_string_for_the_name_of_the_specified_type_or_member">
+        <source>Produces a string for the name of the specified type or member.</source>
+        <target state="translated">Produz uma cadeia de caracteres para o nome do tipo ou do membro especificado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="result">
+        <source>&lt;result&gt;</source>
+        <target state="translated">&lt;resultado&gt;</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

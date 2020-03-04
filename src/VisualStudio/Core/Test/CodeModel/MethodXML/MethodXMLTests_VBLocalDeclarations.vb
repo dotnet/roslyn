@@ -1,6 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
@@ -74,10 +76,10 @@ End Class
         <Document>
 Public Class Class1
     $$Sub M()
-        Dim s As String = Foo()
+        Dim s As String = Goo()
     End Sub
 
-    Function Foo() As String
+    Function Goo() As String
         Return "Hello"
     End Function
 End Class
@@ -97,7 +99,7 @@ End Class
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
             </MethodCall>
@@ -117,10 +119,10 @@ End Class
         <Document>
 Public Class Class1
     $$Sub M()
-        Dim s As String = Foo(1)
+        Dim s As String = Goo(1)
     End Sub
 
-    Function Foo(i As Integer) As String
+    Function Goo(i As Integer) As String
         Return "Hello"
     End Function
 End Class
@@ -140,7 +142,7 @@ End Class
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
                 <Argument>
@@ -543,7 +545,7 @@ End Class
         <Document>
 Public Class Class1
     $$Sub M()
-        Dim i("Foo") As Integer
+        Dim i("Goo") As Integer
     End Sub
 End Class
         </Document>
@@ -552,7 +554,7 @@ End Class
 
             Dim expected =
 <Block>
-    <Quote line="3">Dim i("Foo") As Integer</Quote>
+    <Quote line="3">Dim i("Goo") As Integer</Quote>
 </Block>
 
             Test(definition, expected)
@@ -567,7 +569,7 @@ End Class
         <Document>
 Public Class Class1
     $$Sub M()
-        Dim i(CInt("Foo")) As Integer
+        Dim i(CInt("Goo")) As Integer
     End Sub
 End Class
         </Document>
@@ -576,7 +578,7 @@ End Class
 
             Dim expected =
 <Block>
-    <Quote line="3">Dim i(CInt("Foo")) As Integer</Quote>
+    <Quote line="3">Dim i(CInt("Goo")) As Integer</Quote>
 </Block>
 
             Test(definition, expected)
@@ -591,7 +593,7 @@ End Class
             <Document>
 Public Class Class1
     $$Sub M()
-        Dim i("Foo".Length) As Integer
+        Dim i("Goo".Length) As Integer
     End Sub
 End Class
         </Document>
@@ -600,7 +602,7 @@ End Class
 
             Dim expected =
     <Block>
-        <Quote line="3">Dim i("Foo".Length) As Integer</Quote>
+        <Quote line="3">Dim i("Goo".Length) As Integer</Quote>
     </Block>
 
             Test(definition, expected)

@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var result = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 foreach (var document in project.Documents)
                 {
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
-                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvoke(
+                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
                         symbolAndProjectId, document, cancellationToken).ConfigureAwait(false));
                 }
             }
@@ -64,20 +66,23 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(project.Documents.ToImmutableArray());
         }
 
-        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // FAR on the Delegate type and use those results to find Invoke calls
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodes = root.DescendantNodes();
@@ -90,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         if (convertedType != null)
                         {
                             convertedType =
-                                SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult(cancellationToken)
+                                SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken)
                                     ?? convertedType;
                         }
 
@@ -100,10 +105,23 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var invocations = nodes.Where(n => syntaxFactsService.IsInvocationExpression(n))
                 .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
 
-            var result = invocations.Concat(convertedAnonymousFunctions).Select(
-                e => new ReferenceLocation(document, null, e.GetLocation(), isImplicit: false, isWrittenTo: false, candidateReason: CandidateReason.None));
-
-            return result.ToImmutableArray();
+            return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
+                  node => new FinderLocation(
+                      node,
+                      new ReferenceLocation(
+                          document,
+                          alias: null,
+                          node.GetLocation(),
+                          isImplicit: false,
+                          symbolUsageInfo: GetSymbolUsageInfo(
+                              node,
+                              semanticModel,
+                              syntaxFactsService,
+                              semanticFactsService,
+                              cancellationToken),
+                          additionalProperties: GetAdditionalFindUsagesProperties(
+                              node, semanticModel, syntaxFactsService),
+                          candidateReason: CandidateReason.None)));
         }
     }
 }

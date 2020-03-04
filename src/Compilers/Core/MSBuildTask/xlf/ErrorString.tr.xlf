@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../ErrorString.resx">
+    <body>
+      <trans-unit id="Compiler_UnexpectedException">
+        <source>MSB3883: Unexpected exception: </source>
+        <target state="translated">MSB3883: Beklenmeyen özel durum: </target>
+        <note>{StrBegin="MSB3883: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">
+        <source>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</source>
+        <target state="translated">MSB3053: "{0}" başvurusundaki "{1}" derleme diğer adında geçersiz karakterler var.</target>
+        <note>{StrBegin="MSB3053: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_InvalidParameter">
+        <source>MSB3051: The parameter to the compiler is invalid.  {0}</source>
+        <target state="translated">MSB3051: Derleyici parametresi geçersiz. {0}</target>
+        <note>{StrBegin="MSB3051: "}</note>
+      </trans-unit>
+      <trans-unit id="Csc_InvalidParameterWarning">
+        <source>MSB3052: The parameter to the compiler is invalid, '{0}{1}' will be ignored.</source>
+        <target state="translated">MSB3052: Derleyici parametresi geçersiz. '{0}{1}' yoksayılacak.</target>
+        <note>{StrBegin="MSB3052: "}</note>
+      </trans-unit>
+      <trans-unit id="General_CannotConvertStringToBool">
+        <source>The string "{0}" cannot be converted to a boolean (true/false) value.</source>
+        <target state="translated">"{0}" dizesi bir boole (doğru/yanlış) değerine dönüştürülemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_CouldNotSetHostObjectParameter">
+        <source>MSB3081: A problem occurred while trying to set the "{0}" parameter for the IDE's in-process compiler. {1}</source>
+        <target state="translated">MSB3081: IDE'nin işlem içi derleyicisi için "{0}" parametresi ayarlanmaya çalışılırken bir sorunla karşılaşıldı. {1}</target>
+        <note>{StrBegin="MSB3081: "}</note>
+      </trans-unit>
+      <trans-unit id="General_DuplicateItemsNotSupported">
+        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
+        <target state="translated">MSB3105: "{0}" öğesi, "{1}" parametresinde bir kereden fazla belirtildi. "{1}" parametresi yinelenen öğeleri desteklemez.</target>
+        <note>{StrBegin="MSB3105: "}</note>
+      </trans-unit>
+      <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
+        <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
+        <target state="translated">MSB3083: "{1}" parametresinde "{0}" öğesi birden çok kez belirtildi ve her iki öğe de "{3}" meta verisi için aynı "{2}" değerini içeriyordu. "{1}" parametresi, "{3}" meta verisi için farklı değerlere sahip olmayan yinelenen öğeleri desteklemez.</target>
+        <note>{StrBegin="MSB3083: "}</note>
+      </trans-unit>
+      <trans-unit id="General_ExpectedFileMissing">
+        <source>Expected file "{0}" does not exist.</source>
+        <target state="translated">Beklenen "{0}" dosyası yok.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_SkippingCopy1">
+        <source>Reference assembly "{0}" already has latest information. Leaving it untouched.</source>
+        <target state="translated">"{0}" başvuru bütünleştirilmiş kodu zaten son bilgileri içeriyor. Olduğu gibi bırakılıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_SourceNotRef1">
+        <source>Could not extract the MVID from "{0}". Are you sure it is a reference assembly?</source>
+        <target state="translated">"{0}" öğesinden MVID ayıklanamadı. Bunun bir başvuru bütünleştirilmiş kodu olduğundan emin misiniz?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_BadSource3">
+        <source>Failed to check the content hash of the source ref assembly '{0}': {1}
+{2}</source>
+        <target state="translated">Kaynak ürün kodu derleme '{0}' içerik karma denetlemek başarısız oldu: {1}
+{2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_BadDestination1">
+        <source>Failed to check the content hash of the destination ref assembly '{0}'. It will be overwritten.</source>
+        <target state="translated">Hedef ürün kodu derleme '{0}' içerik karma denetlemek başarısız oldu. O-ecek var overwritten.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ToolFileNotFound">
+        <source>MSB3082: Task failed because "{0}" was not found.</source>
+        <target state="translated">MSB3082: "{0}" bulunamadığı için görev başarısız oldu.</target>
+        <note>{StrBegin="MSB3082: "}</note>
+      </trans-unit>
+      <trans-unit id="General_IncorrectHostObject">
+        <source>MSB3087: An incompatible host object was passed into the "{0}" task.  The host object for this task must implement the "{1}" interface.</source>
+        <target state="translated">MSB3087: "{0}" görevine uyumlu olmayan bir ana nesnesi geçirildi. Bu görevin ana nesnesi "{1}" arabirimini uygulamalıdır.</target>
+        <note>{StrBegin="MSB3087: "}</note>
+      </trans-unit>
+      <trans-unit id="General_InvalidAttributeMetadata">
+        <source>Item "{0}" has attribute "{1}" with value "{2}" that could not be converted to "{3}".</source>
+        <target state="translated">"{0}" öğesinin, "{3}" değerine dönüştürülemeyen "{2}" değerine sahip "{1}" özniteliği var.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ParameterUnsupportedOnHostCompiler">
+        <source>The IDE's in-process compiler does not support the specified values for the "{0}" parameter.  Therefore, this task will fallback to using the command-line compiler.</source>
+        <target state="translated">IDE'nin işlem içi derleyicisi, "{0}" parametresi için belirtilen değerleri desteklemiyor. Bu nedenle, bu görev komut satırı derleyicisini kullanmak için geri dönecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General_ReferenceDoesNotExist">
+        <source>MSB3104: The referenced assembly "{0}" was not found. If this assembly is produced by another one of your projects, please make sure to build that project before building this one.</source>
+        <target state="translated">MSB3104: Başvurulan "{0}" derlemesi bulunamadı. Bu derleme başka bir projeniz tarafından üretildiyse, lütfen bunu oluşturmadan önce ilgili projeyi oluşturduğunuzdan emin olun.</target>
+        <note>{StrBegin="MSB3104: "}</note>
+      </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">"{0}" dosyası okunamadı: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SharedCompilationFallback">
+        <source>Shared compilation failed; falling back to tool: {0}</source>
+        <target state="translated">Paylaşılan derleme başarısız oldu; önceki araca dönülüyor: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UsingSharedCompilation">
+        <source>Using shared compilation with compiler from directory: {0}</source>
+        <target state="translated">Şu dizindeki derleyici ile paylaşılan derleme kullanılıyor: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Vbc_EnumParameterHasInvalidValue">
+        <source>MSB3401: "{1}" is an invalid value for the "{0}" parameter.  The valid values are: {2}</source>
+        <target state="translated">MSB3401: "{1}" değeri, "{0}" parametresi için geçersiz. Geçerli değerler şunlardır: {2}</target>
+        <note>{StrBegin="MSB3401: "}</note>
+      </trans-unit>
+      <trans-unit id="Vbc_ParameterHasInvalidValue">
+        <source>"{1}" is an invalid value for the "{0}" parameter.</source>
+        <target state="translated">"{1}" değeri "{0}" parametresi için geçersiz bir değer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Vbc_RenamePDB">
+        <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
+        <target state="translated">MSB3402: "{0}" pdb dosyası oluşturulurken hata oluştu. {1}</target>
+        <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0}, çakışan '{2}' meta verileriyle birlikte yinelenen '{1}' öğelerini içeriyor: '{3}' ve '{4}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">{0} yolunun sonunda eğik çizgi veya ters eğik çizgi olması gerekir: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">{1} true olduğunda {0} öğe en az bir üst düzey (iç içe geçmemiş) öğe içermelidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">{0} değeri, {1} öğede bulunamadı veya karşılık gelen öğe, üst düzey kaynak kökü değil: '{2}'</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

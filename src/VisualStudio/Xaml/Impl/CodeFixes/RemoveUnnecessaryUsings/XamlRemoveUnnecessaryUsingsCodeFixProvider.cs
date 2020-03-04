@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -19,9 +21,20 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
     internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
     {
+        [ImportingConstructor]
+        public RemoveUnnecessaryUsingsCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(XamlDiagnosticIds.UnnecessaryNamespacesId); }
+        }
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix, because the action already applies to one document at a time
+            return null;
         }
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -30,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
                 new MyCodeAction(
                     c => RemoveUnnecessaryImportsAsync(context.Document, c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private Task<Document> RemoveUnnecessaryImportsAsync(
@@ -42,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument)
             {
             }
         }

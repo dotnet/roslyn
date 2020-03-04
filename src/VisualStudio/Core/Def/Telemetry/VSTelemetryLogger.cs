@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -28,8 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
-            var kvLogMessage = logMessage as KeyValueLogMessage;
-            if (kvLogMessage == null)
+            if (!(logMessage is KeyValueLogMessage kvLogMessage))
             {
                 return;
             }
@@ -53,8 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
         {
-            var kvLogMessage = logMessage as KeyValueLogMessage;
-            if (kvLogMessage == null)
+            if (!(logMessage is KeyValueLogMessage kvLogMessage))
             {
                 return;
             }
@@ -71,8 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int blockId, int delta, CancellationToken cancellationToken)
         {
-            var kvLogMessage = logMessage as KeyValueLogMessage;
-            if (kvLogMessage == null)
+            if (!(logMessage is KeyValueLogMessage kvLogMessage))
             {
                 return;
             }
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         {
             if (!_pendingScopes.TryRemove(blockId, out var value))
             {
-                Contract.Requires(false, "when can this happen?");
+                Debug.Assert(false, "when can this happen?");
                 return;
             }
 
@@ -120,15 +120,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             // TelemetryScope<Operation> can't be shared
             var eventName = functionId.GetEventName();
 
-            switch (kind)
+            return kind switch
             {
-                case LogType.Trace:
-                    return _session.StartOperation(eventName);
-                case LogType.UserAction:
-                    return _session.StartUserTask(eventName);
-                default:
-                    return FatalError.Report(new Exception($"unknown type: {kind}"));
-            }
+                LogType.Trace => _session.StartOperation(eventName),
+                LogType.UserAction => _session.StartUserTask(eventName),
+                _ => (object)FatalError.Report(new Exception($"unknown type: {kind}")),
+            };
         }
 
         private TelemetryEvent CreateTelemetryEvent(FunctionId functionId, KeyValueLogMessage logMessage)

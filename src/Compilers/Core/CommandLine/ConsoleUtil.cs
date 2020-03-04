@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis;
 using System;
@@ -17,20 +21,17 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static T RunWithUtf8Output<T>(Func<TextWriter, T> func)
         {
-            TextWriter savedOut = Console.Out;
+            Encoding savedEncoding = Console.OutputEncoding;
             try
             {
-                using (var streamWriterOut = new StreamWriter(Console.OpenStandardOutput(), s_utf8Encoding))
-                {
-                    Console.SetOut(streamWriterOut);
-                    return func(streamWriterOut);
-                }
+                Console.OutputEncoding = s_utf8Encoding;
+                return func(Console.Out);
             }
             finally
             {
                 try
                 {
-                    Console.SetOut(savedOut);
+                    Console.OutputEncoding = savedEncoding;
                 }
                 catch
                 {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static T RunWithUtf8Output<T>(bool utf8Output, TextWriter textWriter, Func<TextWriter, T> func)
         {
-            if (utf8Output)
+            if (utf8Output && textWriter.Encoding.CodePage != s_utf8Encoding.CodePage)
             {
                 if (textWriter != Console.Out)
                 {

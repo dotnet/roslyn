@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Rename
     public static class Renamer
     {
         public static Task<Solution> RenameSymbolAsync(
-            Solution solution, ISymbol symbol, string newName, OptionSet optionSet, CancellationToken cancellationToken = default(CancellationToken))
+            Solution solution, ISymbol symbol, string newName, OptionSet optionSet, CancellationToken cancellationToken = default)
         {
             return RenameSymbolAsync(
                 solution,
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         internal static Task<Solution> RenameSymbolAsync(
-            Solution solution, SymbolAndProjectId symbolAndProjectId, string newName, OptionSet optionSet, CancellationToken cancellationToken = default(CancellationToken))
+            Solution solution, SymbolAndProjectId symbolAndProjectId, string newName, OptionSet optionSet, CancellationToken cancellationToken = default)
         {
             return RenameSymbolAsync(solution, symbolAndProjectId, newName, optionSet, filter: null, cancellationToken: cancellationToken);
         }
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            options = options ?? solution.Options;
+            options ??= solution.Options;
             return RenameLocations.FindAsync(
                 symbolAndProjectId, solution, options, cancellationToken);
         }
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Rename
             string newName,
             Func<Location, bool> filter = null,
             Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(newName))
             {
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 locations = new RenameLocations(
                     locations.Locations.Where(loc => filter(loc.Location)).ToSet(),
                     symbolAndProjectId, locations.Solution,
-                    locations.ReferencedSymbols, locations.ImplicitLocations,
+                    locations.ReferencedSymbols, locations.ImplicitLocations.Where(loc => filter(loc.Location)),
                     locations.Options);
             }
 
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Rename
             OptionSet options,
             Func<Location, bool> filter,
             Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (solution == null)
             {
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            options = options ?? solution.Workspace.Options;
+            options ??= solution.Workspace.Options;
             var renameLocations = await GetRenameLocationsAsync(solution, symbolAndProjectId, options, cancellationToken).ConfigureAwait(false);
             return await RenameAsync(renameLocations, newName, filter, hasConflict, cancellationToken).ConfigureAwait(false);
         }

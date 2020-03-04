@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -43,6 +45,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        public event EventHandler DiagnosticsCleared
+        {
+            add
+            {
+                // don't do anything. this update source doesn't use cleared event
+            }
+
+            remove
+            {
+                // don't do anything. this update source doesn't use cleared event
+            }
+        }
+
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
             // all diagnostics events are serialized.
@@ -63,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // we do this bulk update to reduce number of tasks (with captured data) enqueued.
                 // we saw some "out of memory" due to us having long list of pending tasks in memory. 
                 // this is to reduce for such case to happen.
-                Action<DiagnosticsUpdatedArgs> raiseEvents = args => ev.RaiseEvent(handler => handler(this, args));
+                void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
 
                 var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
                 _eventQueue.ScheduleTask(() => eventAction(raiseEvents)).CompletesAsyncOperation(asyncToken);
@@ -79,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // we do this bulk update to reduce number of tasks (with captured data) enqueued.
                 // we saw some "out of memory" due to us having long list of pending tasks in memory. 
                 // this is to reduce for such case to happen.
-                Action<DiagnosticsUpdatedArgs> raiseEvents = args => ev.RaiseEvent(handler => handler(this, args));
+                void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
 
                 var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
                 _eventQueue.ScheduleTask(() => eventActionAsync(raiseEvents)).CompletesAsyncOperation(asyncToken);
@@ -92,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (id != null)
             {
-                return GetSpecificCachedDiagnosticsAsync(workspace, id, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult(cancellationToken);
+                return GetSpecificCachedDiagnosticsAsync(workspace, id, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             }
 
-            return GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult(cancellationToken);
+            return GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
     }
 }

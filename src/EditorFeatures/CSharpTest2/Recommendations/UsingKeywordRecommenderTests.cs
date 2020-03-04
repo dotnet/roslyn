@@ -1,7 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -48,6 +50,32 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAwait()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    async void M()
+    {
+        await $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAwaitInAssignment()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    async void M()
+    {
+        _ = await $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtRoot()
         {
             await VerifyKeywordAsync(
@@ -64,7 +92,7 @@ $$");
         public async Task TestAfterPreviousUsing()
         {
             await VerifyKeywordAsync(
-@"using Foo;
+@"using Goo;
 $$");
         }
 
@@ -72,7 +100,7 @@ $$");
         public async Task TestAfterExtern()
         {
             await VerifyKeywordAsync(
-@"extern alias foo;
+@"extern alias goo;
 $$");
         }
 
@@ -81,14 +109,14 @@ $$");
         {
             await VerifyKeywordAsync(
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterUsingAlias()
         {
             await VerifyKeywordAsync(
-@"using Foo = Bar;
+@"using Goo = Bar;
 $$");
         }
 
@@ -127,7 +155,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"namespace N {
-   using Foo;
+   using Goo;
    $$");
         }
 
@@ -137,7 +165,7 @@ $$");
             await VerifyKeywordAsync(
 @"namespace N {
     $$
-    using Foo;");
+    using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -162,7 +190,7 @@ $$");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"$$
-extern alias Foo;");
+extern alias Goo;");
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -170,7 +198,7 @@ extern alias Foo;");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$
-extern alias Foo;");
+extern alias Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -258,7 +286,7 @@ $$"));
         public async Task TestBetweenUsings()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"using Foo;
+@"using Goo;
 $$
 using Bar;"));
         }

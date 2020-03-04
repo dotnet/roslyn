@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
             const string code = @"
 class C
 {
-    {|hint:$$public int Foo{|textspan:
+    {|hint:$$public int Goo{|textspan:
     {
         get { }
         set { }
@@ -36,9 +38,9 @@ class C
             const string code = @"
 class C
 {
-    {|span1:// Foo
+    {|span1:// Goo
     // Bar|}
-    {|hint2:$$public int Foo{|textspan2:
+    {|hint2:$$public int Goo{|textspan2:
     {
         get { }
         set { }
@@ -46,7 +48,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("span1", "// Goo ...", autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
@@ -56,13 +58,13 @@ class C
             const string code = @"
 class C
 {
-    {|span:// Foo
+    {|span:// Goo
     // Bar|}
-    $$public int Foo => 0;
+    $$public int Goo => 0;
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "// Foo ...", autoCollapse: true));
+                Region("span", "// Goo ...", autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -71,7 +73,7 @@ class C
             const string code = @"
 class C
 {
-    {|hint:$$public int Foo    {|textspan:
+    {|hint:$$public int Goo    {|textspan:
     {
         get { }
         set { }

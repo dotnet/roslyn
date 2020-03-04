@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out 
 ");
             N(SyntaxKind.CompilationUnit);
@@ -127,7 +129,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C
 ");
             N(SyntaxKind.CompilationUnit);
@@ -229,7 +231,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C c
 ");
             N(SyntaxKind.CompilationUnit);
@@ -331,7 +333,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C c
 ");
             N(SyntaxKind.CompilationUnit);
@@ -406,7 +408,7 @@ class C {
                                                         }
                                                         N(SyntaxKind.IdentifierToken); // parameter name
                                                     }
-                                                    N(SyntaxKind.CloseParenToken);
+                                                    M(SyntaxKind.CloseParenToken);
                                                 }
                                                 M(SyntaxKind.EqualsGreaterThanToken);
                                                 M(SyntaxKind.IdentifierName); // lambda body
@@ -433,7 +435,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C c,
 ");
             N(SyntaxKind.CompilationUnit);

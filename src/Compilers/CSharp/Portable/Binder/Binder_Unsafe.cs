@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -19,34 +22,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
-        /// <returns>True if a diagnostic was reported, or would have been reported if not for
-        /// the suppress flag.</returns>
-        private bool ReportUnsafeIfNotAllowed(SyntaxNode node, DiagnosticBag diagnostics)
-        {
-            return ReportUnsafeIfNotAllowed(node, null, diagnostics);
-        }
-
-        /// <returns>True if a diagnostic was reported, or would have been reported if not for
-        /// the suppress flag.</returns>
-        private bool ReportUnsafeIfNotAllowed(SyntaxNode node, TypeSymbol sizeOfTypeOpt, DiagnosticBag diagnostics)
+        /// <returns>True if a diagnostic was reported</returns>
+        internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, DiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
         {
             Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
-            return ReportUnsafeIfNotAllowed(node.Location, sizeOfTypeOpt, diagnostics);
+            return ReportUnsafeIfNotAllowed(node.Location, diagnostics, sizeOfTypeOpt);
         }
 
-        /// <returns>True if a diagnostic was reported, or would have been reported if not for
-        /// the suppress flag.</returns>
-        internal bool ReportUnsafeIfNotAllowed(Location location, DiagnosticBag diagnostics)
-        {
-            return ReportUnsafeIfNotAllowed(location, sizeOfTypeOpt: null, diagnostics: diagnostics);
-        }
-
-        /// <returns>True if a diagnostic was reported, or would have been reported if not for
-        /// the suppress flag.</returns>
-        private bool ReportUnsafeIfNotAllowed(Location location, TypeSymbol sizeOfTypeOpt, DiagnosticBag diagnostics)
+        /// <returns>True if a diagnostic was reported</returns>
+        internal bool ReportUnsafeIfNotAllowed(Location location, DiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
         {
             var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt);
-            if (diagnosticInfo == null || this.Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics))
+            if (diagnosticInfo == null)
             {
                 return false;
             }
@@ -57,7 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSDiagnosticInfo GetUnsafeDiagnosticInfo(TypeSymbol sizeOfTypeOpt)
         {
-            if (this.IsIndirectlyInIterator)
+            if (this.Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics))
+            {
+                return null;
+            }
+            else if (this.IsIndirectlyInIterator)
             {
                 // Spec 8.2: "An iterator block always defines a safe context, even when its declaration
                 // is nested in an unsafe context."

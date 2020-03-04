@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 
@@ -293,6 +295,164 @@ Class C
     Sub M()
         Dim x = 1 &gt; (&lt;xml&gt;&lt;/xml&gt;)
     End Sub
+End Class
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_RemoveEmptyArgumentListOnMethodGroup() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Public Class TestClass
+    Shared Function GetFour() As Integer
+        Return 4
+    End Function
+    
+    Public Shared Sub Main()
+        Dim inferredMethodGroup = MyIf({|SimplifyExtension:TestClass.GetFour()|})
+        System.Console.WriteLine(inferredMethodGroup)
+    End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Public Class TestClass
+    Shared Function GetFour() As Integer
+        Return 4
+    End Function
+    
+    Public Shared Sub Main()
+        Dim inferredMethodGroup = MyIf(TestClass.GetFour)
+        System.Console.WriteLine(inferredMethodGroup)
+    End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
+End Class
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_DoNotRemoveEmptyArgumentListOnInlineLambda() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Public Class TestClass
+    Public Shared Sub Main()
+        Dim inferredInlineFunction = MyIf({|SimplifyExtension:Function()
+                Return 5
+            End Function()|})
+        System.Console.WriteLine(inferredInlineFunction)
+    End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Public Class TestClass
+    Public Shared Sub Main()
+        Dim inferredInlineFunction = MyIf(Function()
+                Return 5
+            End Function())
+        System.Console.WriteLine(inferredInlineFunction)
+    End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
+End Class
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_DoNotRemoveEmptyArgumentListOnLocalLambda() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Public Class TestClass
+    Public Shared Sub Main()
+        Dim localDelegate = Function() As Integer
+                Return 6
+            End Function
+
+        Dim inferredLocalDelegate = MyIf({|SimplifyExtension:localDelegate()|})
+        System.Console.WriteLine(inferredLocalDelegate)
+    End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Public Class TestClass
+    Public Shared Sub Main()
+        Dim localDelegate = Function() As Integer
+                Return 6
+            End Function
+
+        Dim inferredLocalDelegate = MyIf(localDelegate())
+        System.Console.WriteLine(inferredLocalDelegate)
+    End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
 End Class
 </code>
 
@@ -632,12 +792,12 @@ class Program
     {
         var arr = new int[1];
         var y = arr[0];
-        var z = new Foo {
+        var z = new Goo {
                             A = arr[{|Simplify:(0)|}]
                         };
      }
 }
-class Foo{
+class Goo{
     public int A { get; set; }
 }
         </Document>
@@ -652,12 +812,12 @@ class Program
     {
         var arr = new int[1];
         var y = arr[0];
-        var z = new Foo {
+        var z = new Goo {
                             A = arr[0]
                         };
      }
 }
-class Foo{
+class Goo{
     public int A { get; set; }
 }
 </code>
@@ -822,7 +982,7 @@ class C
         <Document>
 using System.Linq;
 
-class foo
+class goo
 {
     void www()
     {
@@ -841,7 +1001,7 @@ class foo
 <code>
 using System.Linq;
 
-class foo
+class goo
 {
     void www()
     {
@@ -1010,7 +1170,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation3() As Task
             Dim input =
@@ -1043,7 +1203,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation4() As Task
             Dim input =
@@ -1078,7 +1238,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation5() As Task
             Dim input =
@@ -1113,7 +1273,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation6() As Task
             Dim input =
@@ -1184,6 +1344,84 @@ class Program
         var x = new List&lt;int&gt;();
         int i = (x?.Count).GetValueOrDefault();
     }
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_RemoveParensInExpressionBodiedProperty() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    object Value => {|Simplify:(new object())|};
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    object Value => new object();
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_RemoveParensInExpressionBodiedMethod() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    object GetValue() => {|Simplify:(new object())|};
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    object GetValue() => new object();
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_RemoveParensInLambdaExpression() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    Func&lt;object&gt; Value => () => {|Simplify:(new object())|};
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    Func&lt;object&gt; Value => () => new object();
 }
 </code>
 

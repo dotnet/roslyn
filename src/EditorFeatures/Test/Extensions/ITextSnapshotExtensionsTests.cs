@@ -1,15 +1,17 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.EditorUtilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
+    [UseExportProvider]
     public class ITextSnapshotExtensionsTests
     {
         [Fact]
@@ -43,84 +45,84 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_TextLine()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Foo", 0);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Goo", 0);
             Assert.Equal(string.Empty, leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_TextLineStartingWithWhitespace1()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("    Foo", 0);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("    Goo", 0);
             Assert.Equal("    ", leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_TextLineStartingWithWhitespace2()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition(" \t Foo", 0);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition(" \t Goo", 0);
             Assert.Equal(" \t ", leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_TextLineStartingWithWhitespace3()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("\t\tFoo", 0);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("\t\tGoo", 0);
             Assert.Equal("\t\t", leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_EmptySecondLineReturnsEmptyString()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Foo\r\n", 5);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Goo\r\n", 5);
             Assert.Equal(string.Empty, leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_WhitespaceSecondLineReturnsWhitespace1()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Foo\r\n    ", 5);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Goo\r\n    ", 5);
             Assert.Equal("    ", leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_WhitespaceSecondLineReturnsWhitespace2()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Foo\r\n \t ", 5);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Goo\r\n \t ", 5);
             Assert.Equal(" \t ", leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_WhitespaceSecondLineReturnsWhitespace3()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Foo\r\n\t\t", 5);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Goo\r\n\t\t", 5);
             Assert.Equal("\t\t", leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_TextSecondLine()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Foo\r\nFoo", 5);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Goo\r\nGoo", 5);
             Assert.Equal(string.Empty, leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_TextSecondLineStartingWithWhitespace1()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Foo\r\n    Foo", 5);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Goo\r\n    Goo", 5);
             Assert.Equal("    ", leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_TextSecondLineStartingWithWhitespace2()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Foo\r\n \t Foo", 5);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Goo\r\n \t Goo", 5);
             Assert.Equal(" \t ", leadingWhitespace);
         }
 
         [Fact]
         public void GetLeadingWhitespaceOfLineAtPosition_TextSecondLineStartingWithWhitespace3()
         {
-            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Foo\r\n\t\tFoo", 5);
+            var leadingWhitespace = GetLeadingWhitespaceOfLineAtPosition("Goo\r\n\t\tGoo", 5);
             Assert.Equal("\t\t", leadingWhitespace);
         }
 
@@ -132,10 +134,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             var span = snapshot.GetSpan(0, 2, 1, 1);
 
             // column 0, index 2 = (0 * 5) + 2 = 2
-            Assert.Equal(span.Start, 2);
+            Assert.Equal(2, span.Start);
 
             // column 1, index 1 = (1 * 5) + 1 = 6
-            Assert.Equal(span.End, 6);
+            Assert.Equal(6, span.End);
         }
 
         [Fact]
@@ -159,19 +161,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         }
 
         [Fact]
-        public void GetPointTest()
+        public void TryGetPointValueTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            Assert.Equal(new SnapshotPoint(snapshot, 15), snapshot.GetPoint(3, 0));
+            Assert.Equal(new SnapshotPoint(snapshot, 15), snapshot.TryGetPoint(3, 0).Value);
         }
 
         [Fact]
-        public void GetLineAndColumnTest()
+        public void TryGetPointNullTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            snapshot.GetLineAndColumn(16, out var line, out var col);
+            Assert.Null(snapshot.TryGetPoint(3000, 0));
+        }
+
+        [Fact]
+        public void GetLineAndCharacterTest()
+        {
+            var snapshot = GetSampleCodeSnapshot();
+            snapshot.GetLineAndCharacter(16, out var line, out var character);
             Assert.Equal(3, line);
-            Assert.Equal(1, col);
+            Assert.Equal(1, character);
         }
 
         private string GetLeadingWhitespaceOfLineAtPosition(string code, int position)
@@ -188,11 +197,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             //   position = row * 5 + column
             var lines = new string[]
             {
-                "foo1",
+                "goo1",
                 "bar1",
-                "foo2",
+                "goo2",
                 "bar2",
-                "foo3",
+                "goo3",
                 "bar3",
             };
             var code = string.Join("\n", lines);

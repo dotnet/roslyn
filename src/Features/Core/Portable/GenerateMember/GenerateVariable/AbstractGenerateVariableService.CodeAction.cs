@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -23,8 +24,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly bool _generateProperty;
             private readonly bool _isReadonly;
             private readonly bool _isConstant;
-            private readonly bool _returnsByRef;
-            private readonly SemanticDocument _document;
+            private readonly RefKind _refKind;
+            private readonly SemanticDocument _semanticDocument;
             private readonly string _equivalenceKey;
 
             public GenerateVariableCodeAction(
@@ -34,22 +35,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 bool generateProperty,
                 bool isReadonly,
                 bool isConstant,
-                bool returnsByRef)
+                RefKind refKind)
             {
                 _service = service;
-                _document = document;
+                _semanticDocument = document;
                 _state = state;
                 _generateProperty = generateProperty;
                 _isReadonly = isReadonly;
                 _isConstant = isConstant;
-                _returnsByRef = returnsByRef;
+                _refKind = refKind;
                 _equivalenceKey = Title;
             }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var solution = _document.Project.Solution;
-                var syntaxTree = _document.SyntaxTree;
+                var solution = _semanticDocument.Project.Solution;
+                var syntaxTree = _semanticDocument.SyntaxTree;
                 var generateUnsafe = _state.TypeMemberType.IsUnsafe() &&
                                      !_state.IsContainedInUnsafeType;
 
@@ -61,16 +62,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 if (_generateProperty)
                 {
                     var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state), cancellationToken);
-                    var setAccessor = _isReadonly || _returnsByRef 
-                        ? null 
+                    var setAccessor = _isReadonly || _refKind != RefKind.None
+                        ? null
                         : CreateAccessor(DetermineMinimalAccessibility(_state), cancellationToken);
 
                     var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: DetermineMaximalAccessibility(_state),
                         modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                         type: _state.TypeMemberType,
-                        returnsByRef: _returnsByRef,
+                        refKind: _refKind,
                         explicitInterfaceImplementations: default,
                         name: _state.IdentifierToken.ValueText,
                         isIndexer: _state.IsIndexer,
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 else
                 {
                     var fieldSymbol = CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: DetermineMinimalAccessibility(_state),
                         modifiers: _isConstant
                             ? new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe)
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 Accessibility accessibility, CancellationToken cancellationToken)
             {
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: accessibility,
                     statements: GenerateStatements(cancellationToken));
             }
@@ -109,14 +110,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private ImmutableArray<SyntaxNode> GenerateStatements(
                 CancellationToken cancellationToken)
             {
-                var syntaxFactory = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
+                var syntaxFactory = _semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
 
                 var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(
-                    syntaxFactory, this._document, "System.NotImplementedException", cancellationToken);
+                    syntaxFactory, _semanticDocument, "System.NotImplementedException");
 
-                return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _returnsByRef
+                return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
                     ? ImmutableArray.Create(throwStatement)
-                    : default(ImmutableArray<SyntaxNode>);
+                    : default;
             }
 
             private Accessibility DetermineMaximalAccessibility(State state)
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 // Otherwise, figure out what accessibility modifier to use and optionally mark
                 // it as static.
-                var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsAttributeNamedArgumentIdentifier(state.SimpleNameOrMemberAccessExpressionOpt))
                 {
                     return Accessibility.Public;
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     // NOTE(cyrusn): We only generate protected in the case of statics.  Consider
                     // the case where we're generating into one of our base types.  i.e.:
                     //
-                    // class B : A { void Foo() { A a; a.Foo(); }
+                    // class B : A { void Goo() { A a; a.Goo(); }
                     //
                     // In this case we can *not* mark the method as protected.  'B' can only
                     // access protected members of 'A' through an instance of 'B' (or a subclass
@@ -176,9 +177,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     //
                     // However, this does not apply if the method will be static.  i.e.
                     // 
-                    // class B : A { void Foo() { A.Foo(); }
+                    // class B : A { void Goo() { A.Goo(); }
                     //
-                    // B can access the protected statics of A, and so we generate 'Foo' as
+                    // B can access the protected statics of A, and so we generate 'Goo' as
                     // protected.
                     return Accessibility.Protected;
                 }

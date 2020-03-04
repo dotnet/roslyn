@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -36,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         // Cast simplification inside a binary expression, check if we need to parenthesize the binary expression to avoid breaking parent syntax.
                         // For example, cast removal in below case leads to syntax errors in error free code, unless parenting binary expression is parenthesized:
-                        //   Original:                  Foo(x < (int)i, x > y)
-                        //   Incorrect cast removal:    Foo(x < i, x > y)
-                        //   Correct cast removal:      Foo((x < i), x > y)
+                        //   Original:                  Goo(x < (int)i, x > y)
+                        //   Incorrect cast removal:    Goo(x < i, x > y)
+                        //   Correct cast removal:      Goo((x < i), x > y)
 
                         // We'll do the following to detect such cases:
                         // 1) Get the topmostExpressionAncestor of node.
