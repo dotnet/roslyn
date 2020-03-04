@@ -571,7 +571,15 @@ tryAgain:
         private bool IsPossibleSubpatternElement()
         {
             return this.IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false) ||
-                this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
+                this.CurrentToken.Kind switch
+                {
+                    SyntaxKind.OpenBraceToken => true,
+                    SyntaxKind.LessThanToken => true,
+                    SyntaxKind.LessThanEqualsToken => true,
+                    SyntaxKind.GreaterThanToken => true,
+                    SyntaxKind.GreaterThanEqualsToken => true,
+                    _ => false
+                };
         }
 
         private PostSkipAction SkipBadPatternListTokens(
