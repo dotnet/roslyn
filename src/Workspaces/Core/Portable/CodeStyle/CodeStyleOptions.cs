@@ -6,11 +6,15 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
+using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
     public class CodeStyleOptions
     {
