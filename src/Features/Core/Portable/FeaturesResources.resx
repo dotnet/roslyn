@@ -1765,4 +1765,7 @@ This version used in: {2}</value>
   <data name="Resolve_conflict_markers" xml:space="preserve">
     <value>Resolve conflict markers</value>
   </data>
+  <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
+    <value>Base classes contain inaccessible unimplemented members</value>
+  </data>
 </root>
