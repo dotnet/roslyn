@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// </summary>
         private const int MaximumConversionOptions = 3;
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
+        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
@@ -63,14 +63,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             if (targetNode != null)
             {
                 var hasSolution = TryGetTargetTypeInfo(semanticModel, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes);
-                if (hasSolution && potentialConversionTypes.Length == 1)
+                if (!hasSolution)
+                {
+                    return;
+                }
+
+                if (potentialConversionTypes.Length == 1)
                 {
                     context.RegisterCodeFix(new MyCodeAction(
                         CSharpFeaturesResources.Add_explicit_cast,
                         c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                         context.Diagnostics);
                 }
-                else if (hasSolution && potentialConversionTypes.Length > 1)
+                else
                 {
                     var actions = ArrayBuilder<CodeAction>.GetInstance();
 
@@ -123,15 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// True, if the target node has at least one potential conversion type, and they are assigned to "potentialConversionTypes"
         /// False, if the target node has no conversion type.
         /// </returns>
-        private static bool TryGetTargetTypeInfo(SemanticModel semanticModel, SyntaxNode? targetNode, CancellationToken cancellationToken,
-            out ITypeSymbol? targetNodeType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
+        private static bool TryGetTargetTypeInfo(SemanticModel semanticModel, SyntaxNode targetNode, CancellationToken cancellationToken,
+            [NotNullWhen(true)]  out ITypeSymbol? targetNodeType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
         {
-            targetNodeType = null;
             potentialConversionTypes = ImmutableArray<ITypeSymbol>.Empty;
-            if (targetNode == null)
-            {
-                return false;
-            }
 
             var targetNodeInfo = semanticModel.GetTypeInfo(targetNode, cancellationToken);
             targetNodeType = targetNodeInfo.Type;
