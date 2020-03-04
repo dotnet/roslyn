@@ -182,11 +182,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            return await GetRenameInfoAsync(document, position, false, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, bool synchronous, CancellationToken cancellationToken)
-        {
             var info = await _service.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {

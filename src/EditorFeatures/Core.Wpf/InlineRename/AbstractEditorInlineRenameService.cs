@@ -9,12 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -28,12 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _refactorNotifyServices = refactorNotifyServices;
         }
 
-        public Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            return GetRenameInfoAsync(document, position, false, cancellationToken);
-        }
-
-        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, bool synchronous, CancellationToken cancellationToken)
+        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // This is unpleasant, but we do everything synchronously.  That's because we end up
             // needing to make calls on the UI thread to determine if the locations of the symbol
@@ -43,32 +35,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             //      the wrong thread.
             //   2) if we try to call those pieces of code on the UI thread, then we will deadlock
             //      as our caller often is doing a 'Wait' on us, and our UI calling code won't run.
-            var info = synchronous ?
-                this.GetRenameInfoHelperAsync(document, position, synchronous, cancellationToken).WaitAndGetResult(cancellationToken) :
-                await this.GetRenameInfoHelperAsync(document, position, synchronous, cancellationToken).ConfigureAwait(false);
-
-            return info;
-        }
-
-        private async Task<IInlineRenameInfo> GetRenameInfoHelperAsync(Document document, int position, bool synchronous, CancellationToken cancellationToken)
-        {
-            var triggerToken = synchronous ?
-                GetTriggerTokenAsync(document, position, synchronous, cancellationToken).WaitAndGetResult(cancellationToken) :
-                await GetTriggerTokenAsync(document, position, synchronous, cancellationToken).ConfigureAwait(false);
+            var triggerToken = await GetTriggerTokenAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             if (triggerToken == default)
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
 
-            return synchronous ?
-                GetRenameInfoAsync(_refactorNotifyServices, document, triggerToken, synchronous, cancellationToken).WaitAndGetResult(cancellationToken) :
-                await GetRenameInfoAsync(_refactorNotifyServices, document, triggerToken, synchronous, cancellationToken).ConfigureAwait(false);
+            return await GetRenameInfoAsync(_refactorNotifyServices, document, triggerToken, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<IInlineRenameInfo> GetRenameInfoAsync(
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            Document document, SyntaxToken triggerToken, bool synchronous, CancellationToken cancellationToken)
+            Document document, SyntaxToken triggerToken, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFactsService.IsReservedOrContextualKeyword(triggerToken))
@@ -78,8 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var test = document.GetSemanticModelAsync(cancellationToken);
 
-            var semanticModel = synchronous ?
-                document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken) : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, triggerToken, cancellationToken);
@@ -123,9 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var symbolAndProjectId = synchronous ?
-                RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken) :
-                await RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var symbolAndProjectId = await RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
             var symbol = symbolAndProjectId.Symbol;
             if (symbol == null)
             {
@@ -144,10 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 symbol.Language == LanguageNames.VisualBasic &&
                 triggerToken.ToString().Equals("New", StringComparison.OrdinalIgnoreCase))
             {
-                var originalSymbol = synchronous ?
-                    SymbolFinder.FindSymbolAtPositionAsync(semanticModel, triggerToken.SpanStart, workspace, cancellationToken: cancellationToken)
-                    .WaitAndGetResult(cancellationToken) :
-                    await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, triggerToken.SpanStart, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var originalSymbol = await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, triggerToken.SpanStart, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 if (originalSymbol != null && originalSymbol.IsConstructor())
                 {
@@ -196,9 +169,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var symbolLocations = symbol.Locations;
 
             // Does our symbol exist in an unchangeable location?
-            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+            var documentSpans = ArrayBuilder<DocumentSpan>.GetInstance();
             foreach (var location in symbolLocations)
             {
+                // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
+                documentSpans.Add(new DocumentSpan(document, location.SourceSpan));
+
                 if (location.IsInMetadata)
                 {
                     return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_that_are_defined_in_metadata);
@@ -215,22 +191,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_from_previous_submissions);
                         }
                     }
-                    else if (synchronous)
-                    {
-                        var sourceText = location.SourceTree.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                        var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
-
-                        if (textSnapshot != null)
-                        {
-                            var buffer = textSnapshot.TextBuffer;
-                            var originalSpan = location.SourceSpan.ToSnapshotSpan(textSnapshot).TranslateTo(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-
-                            if (buffer.IsReadOnly(originalSpan) || !navigationService.CanNavigateToSpan(workspace, document.Id, location.SourceSpan))
-                            {
-                                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
-                            }
-                        }
-                    }
                 }
                 else
                 {
@@ -240,25 +200,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             return new SymbolInlineRenameInfo(
                 refactorNotifyServices, document, triggerToken.Span,
-                symbolAndProjectId, forceRenameOverloads, cancellationToken);
+                symbolAndProjectId, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
         }
 
-        private async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, bool synchronous, CancellationToken cancellationToken)
+        private async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)
         {
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            if (synchronous)
-            {
-                var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
-                var token = syntaxTree.GetTouchingWordAsync(position, syntaxFacts, cancellationToken, findInsideTrivia: true).WaitAndGetResult(cancellationToken);
-                return token;
-            }
-            else
-            {
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var token = syntaxTree.GetTouchingWordAsync(position, syntaxFacts, cancellationToken, findInsideTrivia: true).WaitAndGetResult(cancellationToken);
-                return token;
-            }
+            var token = await syntaxTree.GetTouchingWordAsync(position, syntaxFacts, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+            return token;
         }
     }
 }

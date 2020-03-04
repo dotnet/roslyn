@@ -29,11 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            return await GetRenameInfoAsync(document, position, false, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, bool synchronous, CancellationToken cancellationToken)
-        {
             var renameInfo = await _renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             return new InlineRenameInfo(_renameService, document, position, renameInfo);

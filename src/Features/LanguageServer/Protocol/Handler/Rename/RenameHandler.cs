@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // This is typically quick. It's marked configureawait(false) so that the bulk of the rename operation can happen
                 // in background threads.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                var renameInfo = await renameService.GetRenameInfoAsync(document, position, false, cancellationToken).ConfigureAwait(false);
+                var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (!renameInfo.CanRename)
                 {
                     return workspaceEdit;

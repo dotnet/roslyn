@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.AbstractEditorInlineRenameService;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -64,6 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var editorRenameService = document.GetLanguageService<IEditorInlineRenameService>();
             var renameInfo = editorRenameService.GetRenameInfoAsync(document, textSpan.Start, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (IsReadOnlyOrCannotNavigateToSpan(renameInfo, document, cancellationToken))
+            {
+                return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+            }
+
             if (!renameInfo.CanRename)
             {
                 return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);
@@ -84,6 +91,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _asyncListener);
 
             return new InlineRenameSessionInfo(ActiveSession);
+
+            static bool IsReadOnlyOrCannotNavigateToSpan(IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
+            {
+                if (renameInfo is SymbolInlineRenameInfo symbolInlineRenameInfo)
+                {
+                    var workspace = document.Project.Solution.Workspace;
+                    var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+                    foreach (var documentSpan in symbolInlineRenameInfo.DocumentSpans)
+                    {
+                        var sourceText = documentSpan.Document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                        var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
+
+                        if (textSnapshot != null)
+                        {
+                            var buffer = textSnapshot.TextBuffer;
+                            var originalSpan = documentSpan.SourceSpan.ToSnapshotSpan(textSnapshot).TranslateTo(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+
+                            if (buffer.IsReadOnly(originalSpan) || !navigationService.CanNavigateToSpan(workspace, document.Id, documentSpan.SourceSpan))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         IInlineRenameSession IInlineRenameService.ActiveSession => _activeRenameSession;

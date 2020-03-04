@@ -10,14 +10,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Represents information about the ability to rename a particular location.
         /// </summary>
-        private partial class SymbolInlineRenameInfo : IInlineRenameInfoWithFileRename
+        internal partial class SymbolInlineRenameInfo : IInlineRenameInfoWithFileRename
         {
             private const string AttributeSuffix = "Attribute";
 
@@ -51,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public SymbolAndProjectId RenameSymbolAndProjectId { get; }
             public bool HasOverloads { get; }
             public bool ForceRenameOverloads { get; }
+            public IEnumerable<DocumentSpan> DocumentSpans { get; }
 
             public ISymbol RenameSymbol => RenameSymbolAndProjectId.Symbol;
 
@@ -60,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 TextSpan triggerSpan,
                 SymbolAndProjectId renameSymbolAndProjectId,
                 bool forceRenameOverloads,
+                ImmutableArray<DocumentSpan> documentSpans,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
 
                 _shortenedTriggerSpan = this.TriggerSpan != triggerSpan;
+
+                this.DocumentSpans = documentSpans;
             }
 
             private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)

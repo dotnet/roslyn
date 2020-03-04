@@ -16,11 +16,5 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Rename
             // TODO: Implement inline rename. Until then, return failure message.
             return Task.FromResult<IInlineRenameInfo>(new FailureInlineRenameInfo("Cannot rename this identifier"));
         }
-
-        public Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, bool synchronous, CancellationToken cancellationToken)
-        {
-            // TODO: Implement inline rename. Until then, return failure message.
-            return Task.FromResult<IInlineRenameInfo>(new FailureInlineRenameInfo("Cannot rename this identifier"));
-        }
     }
 }
