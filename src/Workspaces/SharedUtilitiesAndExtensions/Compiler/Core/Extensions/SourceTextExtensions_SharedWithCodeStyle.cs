@@ -64,10 +64,32 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool AreOnSameLine(this SourceText text, SyntaxToken token1, SyntaxToken token2)
+            => token1.RawKind != 0 &&
+               token2.RawKind != 0 &&
+               text.AreOnSameLine(token1.Span.End, token2.SpanStart);
+
+        public static bool AreOnSameLine(this SourceText text, int pos1, int pos2)
+            => text.Lines.IndexOf(pos1) == text.Lines.IndexOf(pos2);
+
+        public static bool IsBeforeOrAfterNodeOnSameLine(
+            this SourceText text, SyntaxNode root, SyntaxNode member, int position)
         {
-            return token1.RawKind != 0 &&
-                token2.RawKind != 0 &&
-                text.Lines.IndexOf(token1.Span.End) == text.Lines.IndexOf(token2.SpanStart);
+            var token = root.FindToken(position);
+            if (token == member.GetFirstToken() &&
+                position <= token.SpanStart &&
+                text.AreOnSameLine(position, token.SpanStart))
+            {
+                return true;
+            }
+
+            if (token == member.GetLastToken() &&
+                position >= token.Span.End &&
+                text.AreOnSameLine(position, token.Span.End))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

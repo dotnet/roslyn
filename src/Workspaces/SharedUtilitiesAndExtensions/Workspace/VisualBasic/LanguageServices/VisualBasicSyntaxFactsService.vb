@@ -53,8 +53,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 newContextNode = contextNode
             End Sub
 
-            Public Function GetSelectedFieldsAndProperties(root As SyntaxNode, textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedFieldsAndProperties
-                Return ImmutableArray(Of SyntaxNode).CastUp(root.GetSelectedFieldsAndPropertiesInSpan(textSpan, allowPartialSelection))
+            Public Function GetSelectedFieldsAndPropertiesAsync(tree As SyntaxTree, textSpan As TextSpan, allowPartialSelection As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxNode)) Implements ISyntaxFactsService.GetSelectedFieldsAndPropertiesAsync
+                Return tree.GetSelectedFieldsAndPropertiesAsync(textSpan, allowPartialSelection, cancellationToken)
             End Function
         End Class
     End Class
