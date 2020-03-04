@@ -5,12 +5,15 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     Friend Class VisualBasicSelectedMembers
+        Inherits AbstractSelectedMembers
+
         Public Shared ReadOnly Instance As New VisualBasicSelectedMembers()
 
         Private Sub New()
@@ -125,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 '  3. Position Is after the last token of the member (on the same line).
 
                 Dim position = textSpan.Start
-                If text.IsBeforeOrAfterNodeOnSameLine(root, member, position) Then
+                If IsBeforeOrAfterNodeOnSameLine(text, root, member, position) Then
                     AddAllMembers(selectedMembers, member)
                     Return
                 Else

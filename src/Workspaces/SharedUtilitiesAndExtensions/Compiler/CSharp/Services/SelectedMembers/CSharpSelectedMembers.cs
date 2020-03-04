@@ -8,13 +8,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
-    internal class CSharpSelectedMembers
+    internal class CSharpSelectedMembers : AbstractSelectedMembers
     {
         public static readonly CSharpSelectedMembers Instance = new CSharpSelectedMembers();
 
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     //  3. Position is after the last token of the member (on the same line).
 
                     var position = textSpan.Start;
-                    if (text.IsBeforeOrAfterNodeOnSameLine(root, member, position))
+                    if (IsBeforeOrAfterNodeOnSameLine(text, root, member, position))
                     {
                         AddAllMembers(member);
                         return;
