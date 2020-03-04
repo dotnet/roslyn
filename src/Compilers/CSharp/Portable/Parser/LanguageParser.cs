@@ -1057,7 +1057,7 @@ tryAgain:
 
                     case DeclarationModifiers.Ref:
                         {
-                            if (!ScanForTypeDeclaration())
+                            if (!isTypeDeclaration())
                             {
                                 if (forAccessors && IsPossibleAccessorModifier())
                                 {
@@ -1114,6 +1114,18 @@ tryAgain:
 
                 tokens.Add(modTok);
             }
+
+            bool isTypeDeclaration()
+            {
+                for (var peekIndex = 1; ; peekIndex++)
+                {
+                    var currentToken = this.PeekToken(peekIndex);
+                    if (!IsAnyModifier(currentToken))
+                    {
+                        return IsTypeDeclarationStart(currentToken.Kind);
+                    }
+                }
+            }
         }
 
         private static bool IsContextualModifier(SyntaxToken token)
@@ -1153,23 +1165,6 @@ tryAgain:
             }
 
             return true;
-        }
-
-
-        /// <summary>
-        /// Check if the current token is a contextual modifier before a type declaration.
-        /// </summary>
-        private bool ScanForTypeDeclaration()
-        {
-            Debug.Assert(IsAnyModifier(this.CurrentToken));
-            for (int peekIndex = 1; ; peekIndex++)
-            {
-                var currentToken = this.PeekToken(peekIndex);
-                if (!IsAnyModifier(currentToken))
-                {
-                    return IsPossibleStartOfTypeDeclaration(currentToken.Kind);
-                }
-            }
         }
 
         /// <summary>
@@ -1406,19 +1401,6 @@ tryAgain:
         private static bool IsAnyModifier(SyntaxToken nextToken)
         {
             return GetModifier(nextToken) != DeclarationModifiers.None;
-        }
-
-        private bool IsTypeDeclaration(out SyntaxToken typeDeclarationStart)
-        {
-            for (var peekIndex = 1; ; peekIndex++)
-            {
-                var currentToken = this.PeekToken(peekIndex);
-                if (!IsAnyModifier(currentToken))
-                {
-                    typeDeclarationStart = currentToken;
-                    return IsTypeDeclarationStart(typeDeclarationStart.Kind);
-                }
-            }
         }
 
         private bool IsPossibleMemberName()
