@@ -162,11 +162,6 @@
         <target state="translated">すべての出現箇所を簡素化します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">不要な using の削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">アクセシビリティ修飾子を並べ替える</target>
@@ -440,11 +435,6 @@
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
         <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
         <target state="translated">TODO: 上のファイナライザーがオーバーライドされる場合は、次の行のコメントを解除してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_directive_is_unnecessary">
-        <source>Using directive is unnecessary.</source>
-        <target state="translated">Using ディレクティブは必要ありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

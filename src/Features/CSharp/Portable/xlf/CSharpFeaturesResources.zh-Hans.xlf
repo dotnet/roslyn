@@ -162,11 +162,6 @@
         <target state="translated">简化所有事件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">删除不必要的 Using</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">对可访问性修饰符排序</target>
@@ -440,11 +435,6 @@
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
         <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
         <target state="translated">TODO: 如果在以上内容中替代了终结器，则取消注释以下行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_directive_is_unnecessary">
-        <source>Using directive is unnecessary.</source>
-        <target state="translated">Using 指令是不需要的。</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

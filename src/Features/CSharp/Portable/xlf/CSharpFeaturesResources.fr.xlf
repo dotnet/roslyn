@@ -162,11 +162,6 @@
         <target state="translated">Simplifier toutes les occurrences</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">Supprimer les Usings inutiles</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Trier les modificateurs d'accessibilité</target>
@@ -440,11 +435,6 @@
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
         <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
         <target state="translated">TODO: supprimer les marques de commentaire pour la ligne suivante si le finaliseur est remplacé ci-dessus.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_directive_is_unnecessary">
-        <source>Using directive is unnecessary.</source>
-        <target state="translated">La directive using n'est pas nécessaire.</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

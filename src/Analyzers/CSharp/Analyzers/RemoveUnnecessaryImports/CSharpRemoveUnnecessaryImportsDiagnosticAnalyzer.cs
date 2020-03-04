@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
     {
         private static readonly LocalizableString s_TitleAndMessageFormat =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.Using_directive_is_unnecessary), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Using_directive_is_unnecessary), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         protected override LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor()
             => s_TitleAndMessageFormat;

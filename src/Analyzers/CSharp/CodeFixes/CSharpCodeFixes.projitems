@@ -13,6 +13,7 @@
     <None Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersCodeFixProvider.cs" />
   </ItemGroup>
 </Project>

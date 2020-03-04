@@ -13,6 +13,7 @@
     <None Include="$(MSBuildThisFileDirectory)CSharpAnalyzersResources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersDiagnosticAnalyzer.cs" />
   </ItemGroup>
 </Project>

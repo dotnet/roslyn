@@ -9,6 +9,8 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\RemoveUnusedMembersTests.cs" />
   </ItemGroup>
 </Project>
