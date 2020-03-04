@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -15,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Host
         CompilationOptions GetDefaultCompilationOptions();
 
         // PROTOTYPE: an easy way to get a generator driver into the IDE layer
-        GeneratorDriver CreateGeneratorDriver(Compilation compilation, ParseOptions parseOptions);
+        GeneratorDriver CreateGeneratorDriver(Compilation compilation, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts);
     }
 }

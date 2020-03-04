@@ -2019,8 +2019,9 @@ namespace Microsoft.CodeAnalysis
                 // PROTOTYPE: we currently aren't adding any actual providers, so this won't cause anything to happen
                 GeneratorDriver? driver = _projectIdToGeneratorDriverMap.ContainsKey(project.Id)
                                        ? _projectIdToGeneratorDriverMap[project.Id]
-                                       : project.LanguageServices.CompilationFactory?.CreateGeneratorDriver(comp, project.ParseOptions)
-                                         ?.WithAdditionalTexts(project.AdditionalDocumentStates.Values.SelectAsArray<TextDocumentState, AdditionalText>(d => new AdditionalTextWithState(d)));
+                                       : project.LanguageServices.CompilationFactory?.CreateGeneratorDriver(comp, project.ParseOptions,
+                                                                                                            generators: ImmutableArray<ISourceGenerator>.Empty,
+                                                                                                            additionalTexts: project.AdditionalDocumentStates.Values.SelectAsArray<TextDocumentState, AdditionalText>(d => new AdditionalTextWithState(d)));
 
                 if (driver is object)
                 {
