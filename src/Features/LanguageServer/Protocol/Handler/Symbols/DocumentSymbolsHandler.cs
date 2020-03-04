@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -20,63 +22,68 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentDocumentSymbolName)]
-    internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, object[]>
+    internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, SumType<SymbolInformation[], DocumentSymbol[]>?>
     {
-        public async Task<object[]> HandleRequestAsync(Solution solution, DocumentSymbolParams request,
+        public async Task<SumType<SymbolInformation[], DocumentSymbol[]>?> HandleRequestAsync(Solution solution, DocumentSymbolParams request,
             ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document == null)
             {
-                return Array.Empty<SymbolInformation>();
+                return null;
             }
 
-            var symbols = ArrayBuilder<object>.GetInstance();
-
-            var navBarService = document.Project.LanguageServices.GetService<INavigationBarItemService>();
+            var navBarService = document.Project.LanguageServices.GetRequiredService<INavigationBarItemService>();
             var navBarItems = await navBarService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             if (navBarItems.Count == 0)
             {
-                return symbols.ToArrayAndFree();
+                return null;
             }
 
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
+            if (compilation == null || tree == null)
+            {
+                return null;
+            }
+
             // TODO - Return more than 2 levels of symbols.
             // https://github.com/dotnet/roslyn/projects/45#card-20033869
             if (clientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true)
             {
+                var symbols = ArrayBuilder<DocumentSymbol>.GetInstance();
                 foreach (var item in navBarItems)
                 {
                     // only top level ones
-                    symbols.Add(await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
+                    symbols.AddIfNotNull(await TryGetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
                 }
+
+                return symbols.ToArrayAndFree();
             }
             else
             {
+                var symbols = ArrayBuilder<SymbolInformation>.GetInstance();
                 foreach (var item in navBarItems)
                 {
-                    symbols.Add(GetSymbolInformation(item, compilation, tree, document, text, cancellationToken, containerName: null));
+                    symbols.AddIfNotNull(GetSymbolInformation(item, compilation, tree, document, text, cancellationToken, containerName: null));
 
                     foreach (var childItem in item.ChildItems)
                     {
-                        symbols.Add(GetSymbolInformation(childItem, compilation, tree, document, text, cancellationToken, item.Text));
+                        symbols.AddIfNotNull(GetSymbolInformation(childItem, compilation, tree, document, text, cancellationToken, item.Text));
                     }
                 }
-            }
 
-            var result = symbols.WhereNotNull().ToArray();
-            symbols.Free();
-            return result;
+                return symbols.ToArrayAndFree();
+            }
         }
 
         /// <summary>
         /// Get a symbol information from a specified nav bar item.
         /// </summary>
-        private static SymbolInformation GetSymbolInformation(NavigationBarItem item, Compilation compilation, SyntaxTree tree, Document document,
-            SourceText text, CancellationToken cancellationToken, string containerName = null)
+        private static SymbolInformation? GetSymbolInformation(NavigationBarItem item, Compilation compilation, SyntaxTree tree, Document document,
+            SourceText text, CancellationToken cancellationToken, string? containerName = null)
         {
             if (item.Spans.Count == 0)
             {
@@ -92,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return Create(item, location.SourceSpan, containerName, document, text);
 
-            static SymbolInformation Create(NavigationBarItem item, TextSpan span, string containerName, Document document, SourceText text)
+            static SymbolInformation Create(NavigationBarItem item, TextSpan span, string? containerName, Document document, SourceText text)
             {
                 return new SymbolInformation
                 {
@@ -111,7 +118,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Get a document symbol from a specified nav bar item.
         /// </summary>
-        private static async Task<DocumentSymbol> GetDocumentSymbolAsync(NavigationBarItem item, Compilation compilation, SyntaxTree tree,
+        private static async Task<DocumentSymbol?> TryGetDocumentSymbolAsync(NavigationBarItem item, Compilation compilation, SyntaxTree tree,
             SourceText text, CancellationToken cancellationToken)
         {
             // it is actually symbol location getter. but anyway.
@@ -138,33 +145,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Children = await GetChildrenAsync(item.ChildItems, compilation, tree, text, cancellationToken).ConfigureAwait(false),
             };
 
-            static async Task<DocumentSymbol[]> GetChildrenAsync(IEnumerable<NavigationBarItem> items, Compilation compilation, SyntaxTree tree,
+            static async Task<DocumentSymbol?[]> GetChildrenAsync(IEnumerable<NavigationBarItem> items, Compilation compilation, SyntaxTree tree,
                 SourceText text, CancellationToken cancellationToken)
             {
                 var list = new ArrayBuilder<DocumentSymbol>();
                 foreach (var item in items)
                 {
-                    list.Add(await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
+                    list.AddIfNotNull(await TryGetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
                 }
 
                 return list.ToArrayAndFree();
             }
 
-            static async Task<ISymbol> GetSymbolAsync(Location location, Compilation compilation, CancellationToken cancellationToken)
+            static async Task<ISymbol?> GetSymbolAsync(Location location, Compilation compilation, CancellationToken cancellationToken)
             {
-                var model = compilation.GetSemanticModel(location.SourceTree);
-                var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var node = root.FindNode(location.SourceSpan);
-
-                while (node != null)
+                if (location.SourceTree != null)
                 {
-                    var symbol = model.GetDeclaredSymbol(node);
-                    if (symbol != null)
-                    {
-                        return symbol;
-                    }
+                    var model = compilation.GetSemanticModel(location.SourceTree);
+                    var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    var node = root.FindNode(location.SourceSpan);
 
-                    node = node.Parent;
+                    while (node != null)
+                    {
+                        var symbol = model.GetDeclaredSymbol(node);
+                        if (symbol != null)
+                        {
+                            return symbol;
+                        }
+
+                        node = node.Parent;
+                    }
                 }
 
                 return null;
@@ -174,7 +184,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Get a location for a particular nav bar item.
         /// </summary>
-        private static Location GetLocation(NavigationBarItem item, Compilation compilation, SyntaxTree tree, CancellationToken cancellationToken)
+        private static Location? GetLocation(NavigationBarItem item, Compilation compilation, SyntaxTree tree, CancellationToken cancellationToken)
         {
             if (!(item is NavigationBarSymbolItem symbolItem))
             {
@@ -196,7 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            var location = symbol.Locations.FirstOrDefault(l => l.SourceTree.Equals(tree));
+            var location = symbol.Locations.FirstOrDefault(l => tree.Equals(l.SourceTree));
             return location ?? symbol.Locations.FirstOrDefault();
         }
     }

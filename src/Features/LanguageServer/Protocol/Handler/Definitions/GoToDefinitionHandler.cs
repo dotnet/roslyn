@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentDefinitionName)]
-    internal class GoToDefinitionHandler : GoToDefinitionHandlerBase, IRequestHandler<LSP.TextDocumentPositionParams, LSP.SumType<LSP.Location, LSP.Location[]>?>
+    internal class GoToDefinitionHandler : GoToDefinitionHandlerBase, IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         [ImportingConstructor]
         public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService) : base(metadataAsSourceFileService)
         {
         }
 
-        public async Task<LSP.SumType<LSP.Location, LSP.Location[]>?> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
+        public async Task<LSP.Location[]> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
             LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             return await GetDefinitionAsync(solution, request, typeOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);

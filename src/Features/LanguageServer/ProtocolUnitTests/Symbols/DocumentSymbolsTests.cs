@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             };
             CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", locations["method"].Single(), locations["methodSelection"].Single(), expected.First());
 
-            var results = await RunGetDocumentSymbolsAsync(solution, true);
+            var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol>(solution);
             AssertJsonEquals(expected, results);
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 CreateSymbolInformation(LSP.SymbolKind.Method, "M()", locations["method"].Single(), "A")
             };
 
-            var results = await RunGetDocumentSymbolsAsync(solution, false);
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation>(solution);
             AssertJsonEquals(expected, results);
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     }
 }";
             var (solution, _) = CreateTestSolution(markup);
-            var results = await RunGetDocumentSymbolsAsync(solution, false).ConfigureAwait(false);
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation>(solution).ConfigureAwait(false);
             Assert.Equal(3, results.Length);
         }
 
@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
         {
             var (solution, _) = CreateTestSolution(string.Empty);
 
-            var results = await RunGetDocumentSymbolsAsync(solution, true);
-            Assert.Empty(results);
+            var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol>(solution);
+            Assert.Null(results);
         }
 
-        private static async Task<object[]> RunGetDocumentSymbolsAsync(Solution solution, bool hierarchicalSupport)
+        private static async Task<T[]> RunGetDocumentSymbolsAsync<T>(Solution solution)
         {
             var document = solution.Projects.First().Documents.First();
             var request = new LSP.DocumentSymbolParams
@@ -97,12 +97,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 {
                     DocumentSymbol = new LSP.DocumentSymbolSetting()
                     {
-                        HierarchicalDocumentSymbolSupport = hierarchicalSupport
+                        HierarchicalDocumentSymbolSupport = typeof(T) == typeof(LSP.DocumentSymbol)
                     }
                 }
             };
 
-            return await GetLanguageServer(solution).GetDocumentSymbolsAsync(solution, request, clientCapabilities, CancellationToken.None);
+            var results = await GetLanguageServer(solution).GetDocumentSymbolsAsync(solution, request, clientCapabilities, CancellationToken.None);
+            return results?.Value as T[];
         }
 
         private static void AssertDocumentSymbolEquals(LSP.DocumentSymbol expected, LSP.DocumentSymbol actual)

@@ -107,14 +107,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName)]
-        public Task<SumType<Location, Location[]>?> GetTextDocumentDefinitionAsync(JToken input, CancellationToken cancellationToken)
+        public Task<Location[]> GetTextDocumentDefinitionAsync(JToken input, CancellationToken cancellationToken)
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
             return _protocol.GoToDefinitionAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName)]
-        public Task<SumType<CompletionItem[], CompletionList>?> GetTextDocumentCompletionAsync(JToken input, CancellationToken cancellationToken)
+        public Task<CompletionItem[]> GetTextDocumentCompletionAsync(JToken input, CancellationToken cancellationToken)
         {
             var completionParams = input.ToObject<CompletionParams>(JsonSerializer);
             return _protocol.GetCompletionsAsync(_workspace.CurrentSolution, completionParams, _clientCapabilities, cancellationToken);
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentSymbolName)]
-        public Task<object[]> GetTextDocumentDocumentSymbolsAsync(JToken input, CancellationToken cancellationToken)
+        public Task<SumType<SymbolInformation[], DocumentSymbol[]>?> GetTextDocumentDocumentSymbolsAsync(JToken input, CancellationToken cancellationToken)
         {
             var documentSymbolParams = input.ToObject<DocumentSymbolParams>(JsonSerializer);
             return _protocol.GetDocumentSymbolsAsync(_workspace.CurrentSolution, documentSymbolParams, _clientCapabilities, cancellationToken);
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.TextDocumentImplementationName)]
-        public Task<SumType<Location, Location[]>?> GetTextDocumentImplementationsAsync(JToken input, CancellationToken cancellationToken)
+        public Task<Location[]> GetTextDocumentImplementationsAsync(JToken input, CancellationToken cancellationToken)
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
             return _protocol.FindImplementationsAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);

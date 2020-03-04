@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentImplementationName)]
-    internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.SumType<LSP.Location, LSP.Location[]>?>
+    internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
-        public async Task<LSP.SumType<LSP.Location, LSP.Location[]>?> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
+        public async Task<LSP.Location[]> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
             LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();

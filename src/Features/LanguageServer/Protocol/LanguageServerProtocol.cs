@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the location(s) of the implementations of the symbol.</returns>
-        public Task<LSP.SumType<LSP.Location, LSP.Location[]>?> FindImplementationsAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SumType<LSP.Location, LSP.Location[]>?>(LSP.Methods.TextDocumentImplementationName, solution, request, clientCapabilities, cancellationToken);
+        public Task<LSP.Location[]> FindImplementationsAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentImplementationName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a format document request to format the entire document.
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of completions.</returns>
-        public Task<LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?> GetCompletionsAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.CompletionParams, LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?>(LSP.Methods.TextDocumentCompletionName, solution, request, clientCapabilities, cancellationToken);
+        public Task<LSP.CompletionItem[]> GetCompletionsAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionItem[]>(LSP.Methods.TextDocumentCompletionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a document highlights request by returning the highlights for a given document location.
@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of symbols in the document.</returns>
-        public Task<object[]> GetDocumentSymbolsAsync(Solution solution, LSP.DocumentSymbolParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.DocumentSymbolParams, object[]>(LSP.Methods.TextDocumentDocumentSymbolName, solution, request, clientCapabilities, cancellationToken);
+        public Task<LSP.SumType<LSP.SymbolInformation[], LSP.DocumentSymbol[]>?> GetDocumentSymbolsAsync(Solution solution, LSP.DocumentSymbolParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.DocumentSymbolParams, LSP.SumType<LSP.SymbolInformation[], LSP.DocumentSymbol[]>?>(LSP.Methods.TextDocumentDocumentSymbolName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a folding range request by returning all folding ranges in a given document.
@@ -224,8 +224,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the location(s) of a given symbol.</returns>
-        public Task<LSP.SumType<LSP.Location, LSP.Location[]>?> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SumType<LSP.Location, LSP.Location[]>?>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
+        public Task<LSP.Location[]> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a goto type definition request by returning the location of a given type definition.
