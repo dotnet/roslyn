@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Threading;
@@ -14,20 +16,20 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Remote
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory), layer: ServiceLayer.Host), Shared]
     internal class RemoteHostClientFactory : IRemoteHostClientFactory
     {
-        public async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        public RemoteHostClientFactory()
+        {
+        }
+
+        public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             // this is the point where we can create different kind of remote host client in future (cloud or etc)
             if (workspace.Options.GetOption(RemoteHostClientFactoryOptions.RemoteHost_InProc))
             {
-                var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // register workspace host for in proc remote host client
-                await ServiceHubRemoteHostClient.RegisterWorkspaceHostAsync(workspace, client).ConfigureAwait(false);
-
-                return client;
+                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: true);
             }
 
-            return await ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken).ConfigureAwait(false);
+            return ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken);
         }
     }
 }

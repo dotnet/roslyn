@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     public class OptionalArgumentsTests : CSharpTestBase
     {
         [WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDuplicateConstantAttributesMetadata()
         {
             var ilSource =
@@ -97,10 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     }
     static void Report(object o)
     {
-        System.Console.WriteLine(""{0}: {1}"", o.GetType(), o);
+        var value = o is System.DateTime ? ((System.DateTime)o).ToString(""MM'/'dd'/'yyyy HH':'mm':'ss"") : o;
+        System.Console.WriteLine(""{0}: {1}"", o.GetType(), value);
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, TargetFramework.Mscorlib45, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"System.Reflection.Missing: System.Reflection.Missing
@@ -136,7 +139,7 @@ public class C
 }
 public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 ";
-            var comp1 = CreateStandardCompilation(source1, references: new[] { SystemRef }, options: TestOptions.DebugDll);
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugDll);
             comp1.VerifyDiagnostics();
             CompileAndVerify(comp1, sourceSymbolValidator: module =>
                 {
@@ -165,18 +168,18 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
         System.Console.WriteLine(o);   
     }
 }";
-            var comp2a = CreateStandardCompilation(
+            var comp2a = CreateCompilation(
                 source2,
-                references: new[] { SystemRef, new CSharpCompilationReference(comp1) },
+                references: new[] { new CSharpCompilationReference(comp1) },
                 options: TestOptions.DebugExe);
             comp2a.VerifyDiagnostics();
             CompileAndVerify(comp2a, expectedOutput:
 @"1
 2
 3");
-            var comp2b = CreateStandardCompilation(
+            var comp2b = CreateCompilation(
                 source2,
-                references: new[] { SystemRef, MetadataReference.CreateFromStream(comp1.EmitToStream()) },
+                references: new[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 options: TestOptions.DebugExe);
             comp2b.VerifyDiagnostics();
             CompileAndVerify(comp2b, expectedOutput:
@@ -199,7 +202,7 @@ partial class C
 {
     static partial void F([DecimalConstant(0, 0, 0, 0, 2)]decimal o) { }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, sourceSymbolValidator: module =>
                 {
@@ -213,11 +216,11 @@ partial class C
             var attributes = parameter.GetAttributes();
             if (expectedAttributeName == null)
             {
-                Assert.Equal(attributes.Length, 0);
+                Assert.Equal(0, attributes.Length);
             }
             else
             {
-                Assert.Equal(attributes.Length, 1);
+                Assert.Equal(1, attributes.Length);
                 var attribute = attributes[0];
                 var argument = attribute.ConstructorArguments.Last();
                 Assert.Equal(expectedAttributeName, attribute.AttributeClass.Name);
@@ -249,7 +252,7 @@ interface I
 }
 delegate void D([DecimalConstant(0, 0, 0, 0, 3)]decimal b = 4);
 ";
-            CreateStandardCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,14): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
                 //     void F1([DefaultParameterValue(1)]int o = 2);
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(5, 14),
@@ -318,7 +321,7 @@ partial class C
     partial void F1(int o = 2);
     partial void F9([DecimalConstant(0, 0, 0, 0, 0), DateTimeConstant(0)]int o) {}
 }";
-            CreateStandardCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,22): error CS8017: The parameter has multiple distinct default values.
                 //     partial void F9([DefaultParameterValue(0)]int o);
                 Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "DefaultParameterValue(0)"),
@@ -346,7 +349,7 @@ interface I
     void M2([DefaultParameterValue(0), DecimalConstantAttribute(0, 0, 0, 0, typeof(C))] decimal o);
     void M3([DefaultParameterValue(0), DecimalConstantAttribute(0, 0, 0, 0, 0)] decimal o);
 }";
-            CreateStandardCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,40): error CS8017: The parameter has multiple distinct default values.
                 //     void M3([DefaultParameterValue(0), DecimalConstantAttribute(0, 0, 0, 0, 0)] decimal o);
                 Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "DecimalConstantAttribute(0, 0, 0, 0, 0)").WithLocation(7, 40),
@@ -399,7 +402,7 @@ class C
 
     [DecimalConstant(0, 0, 0, 0, 0)] public const decimal F14 = 1;
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
 // (11,38): error CS0579: Duplicate 'DecimalConstant' attribute
@@ -451,7 +454,7 @@ class C
 {
     [DecimalConstantAttribute(0, 128, 0, 0, 7)] public const decimal F15 = -7;
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source);
 
             CompileAndVerify(comp, symbolValidator: module =>
             {

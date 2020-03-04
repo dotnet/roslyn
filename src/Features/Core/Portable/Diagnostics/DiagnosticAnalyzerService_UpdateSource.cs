@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -40,6 +42,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             remove
             {
                 _eventMap.RemoveEventHandler(DiagnosticsUpdatedEventName, value);
+            }
+        }
+
+        public event EventHandler DiagnosticsCleared
+        {
+            add
+            {
+                // don't do anything. this update source doesn't use cleared event
+            }
+
+            remove
+            {
+                // don't do anything. this update source doesn't use cleared event
             }
         }
 
@@ -92,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (id != null)
             {
-                return GetSpecificCachedDiagnosticsAsync(workspace, id, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult(cancellationToken);
+                return GetSpecificCachedDiagnosticsAsync(workspace, id, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             }
 
-            return GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult(cancellationToken);
+            return GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -241,8 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            var parentTypeItem = parentListItem as TypeListItem;
-            if (parentTypeItem == null)
+            if (!(parentListItem is TypeListItem parentTypeItem))
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }
@@ -410,8 +411,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            var parentTypeItem = parentListItem as TypeListItem;
-            if (parentTypeItem == null)
+            if (!(parentListItem is TypeListItem parentTypeItem))
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }
@@ -580,13 +580,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             foreach (var typeMember in typeMembers)
             {
-                if (IncludeSymbol(typeMember) && typeMember.IsAccessibleWithin(assemblySymbol))
+                if (IncludeTypeMember(typeMember, assemblySymbol))
                 {
                     builder.Add(typeMember);
                 }
             }
 
             return builder.ToImmutable();
+        }
+
+        private bool IncludeTypeMember(INamedTypeSymbol typeMember, IAssemblySymbol assemblySymbol)
+        {
+            if (!IncludeSymbol(typeMember))
+            {
+                return false;
+            }
+
+            if (typeMember.Locations.Any(l => l.IsInSource))
+            {
+                return true;
+            }
+
+            if (typeMember.Locations.Any(l => l.IsInMetadata))
+            {
+                return typeMember.IsAccessibleWithin(assemblySymbol);
+            }
+
+            return false;
         }
 
         public ImmutableArray<ObjectListItem> GetProjectListItems(Solution solution, string languageName, uint listFlags, CancellationToken cancellationToken)
@@ -600,6 +620,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var projectListItemBuilder = ImmutableArray.CreateBuilder<ObjectListItem>();
             var referenceListItemBuilder = ImmutableArray.CreateBuilder<ObjectListItem>();
             HashSet<AssemblyIdentity> assemblyIdentitySet = null;
+            var visitedAssemblies = new Dictionary<string, AssemblyIdentity>();
 
             foreach (var projectId in projectIds)
             {
@@ -627,7 +648,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     {
                         if (reference is PortableExecutableReference portableExecutableReference)
                         {
-                            var assemblyIdentity = AssemblyIdentityUtils.TryGetAssemblyIdentity(portableExecutableReference.FilePath);
+                            var assemblyIdentity = visitedAssemblies.GetOrAdd(portableExecutableReference.FilePath, filePath => AssemblyIdentityUtils.TryGetAssemblyIdentity(filePath));
                             if (assemblyIdentity != null && !assemblyIdentitySet.Contains(assemblyIdentity))
                             {
                                 assemblyIdentitySet.Add(assemblyIdentity);

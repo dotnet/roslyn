@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 #region Assembly Microsoft.VisualStudio.Debugger.Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 
@@ -28,5 +30,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         Visualized = 8192,
         ExpandableError = 16384,
         ExceptionThrown = 32768,
+        CanFavorite = 0x1000000,
+        IsFavorite = 0x2000000,
+        HasFavorites = 0x4000000,
     }
 }

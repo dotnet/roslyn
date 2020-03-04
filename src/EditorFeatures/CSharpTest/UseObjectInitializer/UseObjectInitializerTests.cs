@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -575,6 +578,106 @@ class MyClass
         };
 
         int horse = 1;
+    }
+}");
+        }
+
+        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestWithExplicitImplementedInterfaceMembers1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+interface IExample {
+    string Name { get; set; }
+}
+
+class C : IExample {
+    string IExample.Name { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        IExample e = [||]new C();
+        e.Name = string.Empty;
+    }
+}");
+        }
+
+        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestWithExplicitImplementedInterfaceMembers2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+interface IExample {
+    string Name { get; set; }
+    string LastName { get; set; }
+}
+
+class C : IExample {
+    string IExample.Name { get; set; }
+    public string LastName { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        IExample e = [||]new C();
+        e.Name = string.Empty;
+        e.LastName = string.Empty;
+    }
+}");
+        }
+
+        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestWithExplicitImplementedInterfaceMembers3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+interface IExample {
+    string Name { get; set; }
+    string LastName { get; set; }
+}
+
+class C : IExample {
+    string IExample.Name { get; set; }
+    public string LastName { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        IExample e = [||]new C();
+        e.LastName = string.Empty;
+        e.Name = string.Empty;
+    }
+}",
+@"
+interface IExample {
+    string Name { get; set; }
+    string LastName { get; set; }
+}
+
+class C : IExample {
+    string IExample.Name { get; set; }
+    public string LastName { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        IExample e = new C
+        {
+            LastName = string.Empty
+        };
+        e.Name = string.Empty;
     }
 }");
         }

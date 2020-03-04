@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 
 Imports Microsoft.CodeAnalysis
@@ -31,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       26 (0x1a)
@@ -68,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Goo",
             <![CDATA[{
   // Code size       16 (0x10)
@@ -166,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       26 (0x1a)
@@ -196,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       16 (0x10)
@@ -208,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 }]]>)
 
             ' We are looking for a nop after a call to System.Diagnostics.Debugger.Break():
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.DebugExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(Source, TestOptions.DebugExe)
             compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
             <![CDATA[{
   // Code size       19 (0x13)

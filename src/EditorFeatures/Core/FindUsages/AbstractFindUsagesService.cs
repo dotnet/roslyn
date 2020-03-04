@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -15,6 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService : IFindUsagesService
     {
+        private readonly IThreadingContext _threadingContext;
+
+        protected AbstractFindUsagesService(IThreadingContext threadingContext)
+        {
+            _threadingContext = threadingContext;
+        }
+
         public async Task FindImplementationsAsync(
             Document document, int position, IFindUsagesContext context)
         {
@@ -44,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             foreach (var implementation in tuple.Value.implementations)
             {
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    project, includeHiddenLocations: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    project, includeHiddenLocations: false,
+                    FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
         }
@@ -120,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             await FindSymbolReferencesAsync(
+                _threadingContext,
                 context, symbolAndProject?.symbol, symbolAndProject?.project, cancellationToken).ConfigureAwait(false);
         }
 
@@ -128,11 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// and want to push all the references to it into the Streaming-Find-References window.
         /// </summary>
         public static async Task FindSymbolReferencesAsync(
+            IThreadingContext threadingContext,
             IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
-            var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context);
+
+            var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+            var progressAdapter = new FindReferencesProgressAdapter(threadingContext, project.Solution, context, options);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
@@ -143,6 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 project.Solution,
                 progressAdapter,
                 documents: null,
+                options: options,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 

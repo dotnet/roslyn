@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -25,7 +27,7 @@ class A {
     public int F(int x, int y) {}
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateEmptyCompilation(text, skipUsesIsNullable: true);
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");
@@ -37,7 +39,7 @@ class A {
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(x.HasComplete(CompletionPart.Type));
 
-            var xType = x.Type;
+            var xType = x.TypeWithAnnotations;
             Assert.True(x.HasComplete(CompletionPart.Type));
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
 
@@ -45,13 +47,13 @@ class A {
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(y.HasComplete(CompletionPart.Type));
 
-            var yType = y.Type;
+            var yType = y.TypeWithAnnotations;
             Assert.True(y.HasComplete(CompletionPart.Type));
             Assert.False(a.HasComplete(CompletionPart.StartBaseType)); // needed to look in A's base for y's type
 
             var f = a.GetMember<MethodSymbol>("F");
             Assert.False(f.HasComplete(CompletionPart.StartMethodChecks));
-            Assert.Equal(false, f.ReturnsVoid);
+            Assert.False(f.ReturnsVoid);
             Assert.True(f.HasComplete(CompletionPart.StartMethodChecks));
             Assert.True(f.HasComplete(CompletionPart.FinishMethodChecks));
         }
@@ -65,7 +67,7 @@ class A {
     object P { get; set; }
     object this[object o] { get { return null; } set { } }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text, skipUsesIsNullable: true);
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");
@@ -76,13 +78,13 @@ class A {
             Assert.True(a.HasComplete(CompletionPart.Members)); // getting one member completes the whole set
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
 
-            var pType = p.Type;
+            var pType = p.TypeWithAnnotations;
             var pParameters = p.Parameters;
             Assert.False(p.HasComplete(CompletionPart.Type));
             Assert.False(p.HasComplete(CompletionPart.Parameters));
 
             p = a.GetMember<PropertySymbol>("this[]");
-            pType = p.Type;
+            pType = p.TypeWithAnnotations;
             pParameters = p.Parameters;
             Assert.False(p.HasComplete(CompletionPart.Type));
             Assert.False(p.HasComplete(CompletionPart.Parameters));

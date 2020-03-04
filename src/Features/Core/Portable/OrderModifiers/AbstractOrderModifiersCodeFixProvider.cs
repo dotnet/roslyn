@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -19,12 +21,12 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 {
     internal abstract class AbstractOrderModifiersCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly Option<CodeStyleOption<string>> _option;
         private readonly AbstractOrderModifiersHelpers _helpers;
 
         protected AbstractOrderModifiersCodeFixProvider(
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             Option<CodeStyleOption<string>> option,
             AbstractOrderModifiersHelpers helpers)
         {
@@ -33,15 +35,24 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             _helpers = helpers;
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.OrderModifiersDiagnosticId);
+        protected abstract ImmutableArray<string> FixableCompilerErrorIds { get; }
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
+            => FixableCompilerErrorIds.Add(IDEDiagnosticIds.OrderModifiersDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            var syntaxTree = await context.Document.GetSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
+            var syntaxNode = Location.Create(syntaxTree, context.Span).FindNode(context.CancellationToken);
+
+            if (_syntaxFacts.GetModifiers(syntaxNode) != default)
+            {
+                context.RegisterCodeFix(
+                    new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
+                    context.Diagnostics);
+            }
         }
 
         protected override async Task FixAllAsync(
@@ -83,7 +94,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Order_modifiers, createChangedDocument, FeaturesResources.Order_modifiers)
             {
             }

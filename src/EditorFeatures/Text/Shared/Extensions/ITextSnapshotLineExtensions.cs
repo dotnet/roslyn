@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
 
             var text = line.GetText();
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))
                 {
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
 
             var text = line.GetText();
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))
                 {
@@ -67,13 +69,19 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         /// <summary>
         /// Determines whether the specified line is empty or contains whitespace only.
         /// </summary>
-        public static bool IsEmptyOrWhitespace(this ITextSnapshotLine line)
+        public static bool IsEmptyOrWhitespace(this ITextSnapshotLine line, int startIndex = 0, int endIndex = -1)
         {
             Contract.ThrowIfNull("line");
+            Contract.ThrowIfFalse(startIndex >= 0);
 
             var text = line.GetText();
 
-            for (int i = 0; i < text.Length; i++)
+            if (endIndex == -1)
+            {
+                endIndex = text.Length;
+            }
+
+            for (var i = startIndex; i < endIndex; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))
                 {
@@ -95,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             }
 
             var snapshot = line.Snapshot;
-            for (int lineNumber = line.LineNumber - 1; lineNumber >= 0; lineNumber--)
+            for (var lineNumber = line.LineNumber - 1; lineNumber >= 0; lineNumber--)
             {
                 var currentLine = snapshot.GetLineFromLineNumber(lineNumber);
                 if (!predicate(currentLine))
@@ -140,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
                 return false;
             }
 
-            for (int i = 0; i < value.Length; i++)
+            for (var i = 0; i < value.Length; i++)
             {
                 var snapshotIndex = index + i;
                 var actualCharacter = snapshot[snapshotIndex];

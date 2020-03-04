@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// be searching.
         /// 
         /// Note that the <see cref="Solution"/> returned may absolutely *not* be
-        /// the same as <code>document.Project.Solution</code>.  This is because 
+        /// the same as <c>document.Project.Solution</c>.  This is because 
         /// there may be symbol mapping involved (for example in Metadata-As-Source
         /// scenarios).
         /// </summary>
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var implementations = await SymbolFinder.FindImplementationsAsync(
                     symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                // It's important we use a HashSet here -- we may have cases in an inheritence hierarchy where more than one method
+                // It's important we use a HashSet here -- we may have cases in an inheritance hierarchy where more than one method
                 // in an overrides chain implements the same interface method, and we want to duplicate those. The easiest way to do it
                 // is to just use a HashSet.
                 var implementationsAndOverrides = new HashSet<ISymbol>();
@@ -105,6 +107,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                             implementation, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                         implementationsAndOverrides.AddRange(overrides);
                     }
+                }
+
+                if (!symbol.IsInterfaceType() && !symbol.IsAbstract)
+                {
+                    implementationsAndOverrides.Add(symbol);
                 }
 
                 return implementationsAndOverrides.ToImmutableArray();

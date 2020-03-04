@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Reflection.Metadata
@@ -11,9 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBEmbeddedSourceTests
         Inherits BasicTestBase
 
-        <Fact>
-        Public Sub StandalonePdb()
-            Dim source1 = "
+        <Theory>
+        <InlineData(DebugInformationFormat.PortablePdb)>
+        <InlineData(DebugInformationFormat.Pdb)>
+        <WorkItem(28045, "https://github.com/dotnet/roslyn/issues/28045")>
+        Public Sub StandalonePdb(format As DebugInformationFormat)
+            Dim source1 = WithWindowsLineBreaks("
 Imports System
 
 Class C
@@ -21,14 +26,14 @@ Class C
         Console.WriteLine()
     End Sub
 End Class
-"
-            Dim source2 = "
+")
+            Dim source2 = WithWindowsLineBreaks("
 ' no code
-"
+")
 
             Dim tree1 = Parse(source1, "f:/build/goo.vb")
             Dim tree2 = Parse(source2, "f:/build/nocode.vb")
-            Dim c = CreateCompilationWithMscorlib({tree1, tree2}, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40({tree1, tree2}, options:=TestOptions.DebugDll)
             Dim embeddedTexts = {
                                    EmbeddedText.FromSource(tree1.FilePath, tree1.GetText()),
                                    EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())
@@ -37,7 +42,7 @@ End Class
             c.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="f:/build/goo.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=" 3, 28, AD, AE,  3, 81, AD, 8B, 6E, C4, 60, 7B, 13, 4E, 9C, 4F, 8E, D6, D5, 65, " embeddedSourceLength="99"><![CDATA[﻿
+        <file id="1" name="f:/build/goo.vb" language="VB" checksumAlgorithm="SHA1" checksum="03-28-AD-AE-03-81-AD-8B-6E-C4-60-7B-13-4E-9C-4F-8E-D6-D5-65"><![CDATA[﻿
 Imports System
 Class C
     Public Shared Sub Main()
@@ -45,7 +50,7 @@ Class C
     End Sub
 End Class
 ]]></file>
-        <file id="2" name="f:/build/nocode.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="40, 43, 2C, 44, BA, 1C, C7, 1A, B3, F3, 68, E5, 96, 7C, 65, 9D, 61, 85, D5, 44, " embeddedSourceLength="20"><![CDATA[﻿
+        <file id="2" name="f:/build/nocode.vb" language="VB" checksumAlgorithm="SHA1" checksum="40-43-2C-44-BA-1C-C7-1A-B3-F3-68-E5-96-7C-65-9D-61-85-D5-44"><![CDATA[﻿
 ' no code
 ]]></file>
     </files>
@@ -63,7 +68,7 @@ End Class
         </method>
     </methods>
 </symbols>,
-            embeddedTexts)
+            embeddedTexts, format:=format)
         End Sub
 
         <Fact>
@@ -78,7 +83,7 @@ Class C
 End Class
 "
             Dim tree = Parse(source, "f:/build/goo.cs")
-            Dim c = CreateCompilationWithMscorlib(tree, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40(tree, options:=TestOptions.DebugDll)
 
             Dim pdbStream = New MemoryStream()
             Dim peBlob = c.EmitToArray(

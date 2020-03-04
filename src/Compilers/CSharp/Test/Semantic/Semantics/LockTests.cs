@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -32,25 +34,25 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var localSymbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+            var localSymbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
             Assert.Equal("o", localSymbol.Name);
             Assert.Equal(SpecialType.System_Object, localSymbol.Type.SpecialType);
 
             var lockStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
             var lockExprInfo = model.GetSymbolInfo(lockStatement.Expression);
-            Assert.NotNull(lockExprInfo);
+            Assert.NotEqual(default, lockExprInfo);
             Assert.Equal(localSymbol, lockExprInfo.Symbol);
 
             var memberAccessExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             var memberAccessInfo = model.GetSymbolInfo(memberAccessExpression.Expression);
-            Assert.NotNull(memberAccessInfo);
+            Assert.NotEqual(default, memberAccessInfo);
             Assert.Equal(localSymbol, memberAccessInfo.Symbol);
         }
 
@@ -69,7 +71,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0185: 'method group' is not a reference type as required by the lock statement
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "Main").WithArguments("method group"));
         }
@@ -89,7 +91,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0185: 'lambda expression' is not a reference type as required by the lock statement
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "x => x").WithArguments("lambda expression"));
         }
@@ -109,7 +111,7 @@ class C
 }
 ";
             // Dev10 allows this.
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -128,7 +130,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,53): warning CS0642: Possible mistaken empty statement
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
         }
@@ -155,7 +157,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,14): error CS0631: ref and out are not valid in this context
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
                 // (9,13): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
@@ -187,7 +189,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (15,14): error CS0631: ref and out are not valid in this context
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
                 // (8,13): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
@@ -212,7 +214,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,15): error CS0185: 'int' is not a reference type as required by the lock statement
                 //         lock (x)
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "x").WithArguments("int"),
@@ -233,7 +235,7 @@ struct Conv
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0185: 'Conv' is not a reference type as required by the lock statement
                 //         lock (this) { } 
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "this").WithArguments("Conv"));
@@ -254,7 +256,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,15): error CS0185: 'int?' is not a reference type as required by the lock statement
                 //         lock (a)
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "a").WithArguments("int?"));
@@ -282,7 +284,7 @@ partial class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0185: 'method group' is not a reference type as required by the lock statement
                 //         lock (PM)
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "PM").WithArguments("method group"),
@@ -309,8 +311,8 @@ class Res
 {
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
-                                                                    //         lock (Res d = new Res ())// Invalid
+            CreateCompilation(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
+                                                        //         lock (Res d = new Res ())// Invalid
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "d"),
                 // (6,33): error CS1002: ; expected
                 //         lock (Res d = new Res ())// Invalid
@@ -345,7 +347,7 @@ class Test
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0185: 'lambda expression' is not a reference type as required by the lock statement
                 //         lock ((ref int y) => { y = y + 1; return y; })     // Invalid
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "(ref int y) => { y = y + 1; return y; }").WithArguments("lambda expression"),
@@ -375,7 +377,7 @@ class Test
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,26): error CS1026: ) expected
                 //         lock ((C + yield return +D).ToString())
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "return").WithLocation(9, 26),
@@ -400,9 +402,6 @@ class Test
                 // (9,26): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         lock ((C + yield return +D).ToString())
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(9, 26),
-                // (9,33): error CS0029: Cannot implicitly convert type 'int' to 'System.Collections.Generic.IEnumerable<int>'
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "+D").WithArguments("int", "System.Collections.Generic.IEnumerable<int>").WithLocation(9, 33),
                 // (9,37): warning CS0162: Unreachable code detected
                 //         lock ((C + yield return +D).ToString())
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "ToString").WithLocation(9, 37)
@@ -427,7 +426,7 @@ class Test
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"));
+            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"));
         }
 
         [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
@@ -445,7 +444,7 @@ class D
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,26): error CS1026: ) expected
                 //             lock (varnew object)
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "object"),
@@ -469,7 +468,7 @@ class D
         [Fact]
         public void LockNull()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -493,7 +492,7 @@ public class Test
         [Fact]
         public void LockThis()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -512,7 +511,7 @@ public class Test
         [Fact]
         public void LockExpression()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -531,7 +530,7 @@ public class Test
         [Fact]
         public void LockTypeParameterExpression()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -547,13 +546,13 @@ public class Test
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().Single();
             var parameterSymbol = model.GetDeclaredSymbol(localDecl);
-            VerifySemanticInfoForLockStatements(compilation, parameterSymbol);
+            VerifySemanticInfoForLockStatements(compilation, parameterSymbol.GetSymbol());
         }
 
         [Fact]
         public void LockQuery()
         {
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(
 @"
 using System.Linq;
 class Test
@@ -579,7 +578,7 @@ class Test
         [Fact]
         public void LockDelegate()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 delegate void D(int p1);
 partial class Test
@@ -600,14 +599,14 @@ partial class Test
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type, isSymbolNull: true);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+            VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol(), isSymbolNull: true);
         }
 
         [Fact()]
         public void LockAnonymousTypes()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 class Test
 {
@@ -624,14 +623,14 @@ class Test
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+            VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol());
         }
 
         [Fact()]
         public void LockTypeOf()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 class Test
 {
@@ -650,7 +649,7 @@ class Test
         [Fact()]
         public void LockString()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 class Test
 {
@@ -669,7 +668,7 @@ class Test
         [Fact()]
         public void AssignmentInLock()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 class Test
 {
@@ -689,7 +688,7 @@ class Test
 
         #region help method
 
-        private static void VerifySemanticInfoForLockStatements(CSharpCompilation compilation, ISymbol symbol, int index = 1, bool isSymbolNull = false)
+        private static void VerifySemanticInfoForLockStatements(CSharpCompilation compilation, Symbol symbol, int index = 1, bool isSymbolNull = false)
         {
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -709,8 +708,8 @@ class Test
             Assert.NotNull(typeInfo.Type);
             Assert.NotNull(typeInfo.ConvertedType);
 
-            Assert.Equal(symbol, (TypeSymbol)typeInfo.Type);
-            Assert.Equal(symbol, (TypeSymbol)typeInfo.ConvertedType);
+            Assert.Equal(symbol, typeInfo.Type.GetSymbol());
+            Assert.Equal(symbol, typeInfo.ConvertedType.GetSymbol());
         }
 
         #endregion
@@ -729,7 +728,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,20): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
         }
@@ -769,8 +768,8 @@ class Gen3<T> where T : class
     }
 }
 ";
-            var regularCompilation = CreateStandardCompilation(source);
-            var strictCompilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+            var regularCompilation = CreateCompilation(source);
+            var strictCompilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
             regularCompilation.VerifyDiagnostics(
                 // (16,15): error CS0185: 'T' is not a reference type as required by the lock statement

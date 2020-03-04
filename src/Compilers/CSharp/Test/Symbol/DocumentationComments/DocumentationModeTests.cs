@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -347,7 +349,7 @@ partial class Partial {{ }}
             var trees = AllModes.Select(mode =>
                 Parse(string.Format(sourceTemplate, xml, mode), string.Format("{0}.cs", mode), GetOptions(mode)));
 
-            var comp = CreateStandardCompilation(trees, assemblyName: "Test");
+            var comp = CreateCompilation(trees.ToArray(), assemblyName: "Test");
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var actualText = GetDocumentationCommentText(comp, expectedDiagnostics: null);
@@ -376,8 +378,8 @@ partial class Partial {{ }}
             var trees = AllModes.Select(mode =>
                 Parse(string.Format(sourceTemplate, includeElement, mode), string.Format("{0}.cs", mode), GetOptions(mode)));
 
-            var comp = CreateStandardCompilation(
-                trees,
+            var comp = CreateCompilation(
+                trees.ToArray(),
                 options: TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
                 assemblyName: "Test");
 

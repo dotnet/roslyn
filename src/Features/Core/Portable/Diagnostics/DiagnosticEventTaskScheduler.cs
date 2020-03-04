@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -13,16 +14,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class DiagnosticEventTaskScheduler : TaskScheduler
     {
-        private readonly Task _mainTask;
+        private readonly Thread _thread;
         private readonly BlockingCollection<Task> _tasks;
 
         public DiagnosticEventTaskScheduler(int blockingUpperBound)
         {
             _tasks = new BlockingCollection<Task>(blockingUpperBound);
 
-            // portable layer doesnt support explicit thread creation. use long running task to create and hold onto a thread
-            _mainTask = Task.Factory.SafeStartNew(Start, CancellationToken.None,
-                TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            _thread = new Thread(Start)
+            {
+                Name = "Roslyn Diagnostics",
+                IsBackground = true
+            };
+
+            _thread.Start();
         }
 
         private void Start()
@@ -30,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             while (true)
             {
                 var task = _tasks.Take();
-                bool ret = this.TryExecuteTask(task);
+                var ret = TryExecuteTask(task);
             }
         }
 
@@ -43,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // NOTE: TPL will ensure only one task ever run when running scheduled task. and since this is only used
             // in diagnostic events, we know task will always run sequencely. so no worry about reverted order here.
-            return this.TryExecuteTask(task);
+            return TryExecuteTask(task);
         }
 
         protected override IEnumerable<Task> GetScheduledTasks()

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -247,7 +249,7 @@ Module M1
 End Module
 ]]></file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source,
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source,
                                                                                                options:=TestOptions.ReleaseExe,
                                                                                                parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
             CompileAndVerify(comp,
@@ -263,7 +265,7 @@ blah
             Assert.Equal(True, dict("Blah"))
             Assert.Equal(True, dict("blah"))
 
-            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source,
+            comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source,
                                                                                                options:=TestOptions.ReleaseExe,
                                                                                                parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
             CompileAndVerify(comp,

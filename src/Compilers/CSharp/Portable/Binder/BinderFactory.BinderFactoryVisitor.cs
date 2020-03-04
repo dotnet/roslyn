@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -208,6 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Destructors have neither parameters nor type parameters, so there's nothing special to do here.
                     resultBinder = VisitCore(parent.Parent);
+
+                    SourceMemberMethodSymbol method = GetMethodSymbol(parent, resultBinder);
+                    resultBinder = new InMethodBinder(method, resultBinder);
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
 

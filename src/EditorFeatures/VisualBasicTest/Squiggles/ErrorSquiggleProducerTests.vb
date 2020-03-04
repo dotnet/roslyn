@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -15,6 +17,7 @@ Imports Microsoft.VisualStudio.Text.Adornments
 Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
+    <[UseExportProvider]>
     Public Class ErrorSquiggleProducerTests
 
         Private _producer As New DiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider)
@@ -32,17 +35,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
-        Public Async Sub ErrorTagGeneratedForSimpleError()
+        Public Async Function ErrorTagGeneratedForSimpleError() As Task
             ' Make sure we have errors from the tree
             Dim spans = Await ProduceSquiggles("^")
             Assert.Equal(1, spans.Count())
 
             Dim firstSpan = spans.First()
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
-        Public Async Sub ArgOutOfRangeExceptionBug_904382()
+        Public Async Function ArgOutOfRangeExceptionBug_904382() As Task
             Dim spans = Await ProduceSquiggles(
 "Class C1
 Sub Goo(
@@ -50,10 +53,10 @@ End Class")
 
             'If the following line does not throw an exception then the test passes.
             Dim count = spans.Count
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
-        Public Async Sub ErrorDoesNotCrashPastEOF()
+        Public Async Function ErrorDoesNotCrashPastEOF() As Task
             Dim spans = Await ProduceSquiggles(
 "Class C1
     Sub Goo()
@@ -61,10 +64,10 @@ End Class")
     End Sub
 End Class")
             Assert.Equal(5, spans.Count())
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
-        Public Async Sub SemanticError()
+        Public Async Function SemanticError() As Task
             Dim spans = Await ProduceSquiggles(
 "Class C1
     Sub Goo(b as Bar)
@@ -75,10 +78,10 @@ End Class")
             Dim firstSpan = spans.First()
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType)
             Assert.Contains("Bar", DirectCast(firstSpan.Tag.ToolTipContent, String), StringComparison.Ordinal)
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
-        Public Async Sub CustomizableTagsForUnnecessaryCode()
+        Public Async Function CustomizableTagsForUnnecessaryCode() As Task
 
             Dim content = "
 ' System.Diagnostics is used - rest are unused.
@@ -125,6 +128,6 @@ End Class"
                 Assert.Equal(5, second.Span.Length)
             End Using
 
-        End Sub
+        End Function
     End Class
 End Namespace

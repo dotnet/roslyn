@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.IO;
@@ -25,21 +27,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
-                using (var reader = ObjectReader.TryGetReader(stream))
+                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
+
+                if (reader != null)
                 {
-                    if (reader != null)
+                    var format = reader.ReadString();
+                    if (string.Equals(format, FormatVersion))
                     {
-                        var format = reader.ReadString();
-                        if (string.Equals(format, FormatVersion))
-                        {
-                            var textVersion = VersionStamp.ReadFrom(reader);
-                            var dataVersion = VersionStamp.ReadFrom(reader);
+                        var textVersion = VersionStamp.ReadFrom(reader);
+                        var dataVersion = VersionStamp.ReadFrom(reader);
 
-                            var list = ArrayBuilder<TodoItem>.GetInstance();
-                            AppendItems(reader, value, list, cancellationToken);
+                        using var listDisposer = ArrayBuilder<TodoItem>.GetInstance(out var list);
+                        AppendItems(reader, value, list, cancellationToken);
 
-                            return new Data(textVersion, dataVersion, list.ToImmutableAndFree());
-                        }
+                        return new Data(textVersion, dataVersion, list.ToImmutable());
                     }
                 }
 
@@ -48,29 +49,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken: cancellationToken);
+
+                writer.WriteString(FormatVersion);
+                data.TextVersion.WriteTo(writer);
+                data.SyntaxVersion.WriteTo(writer);
+
+                writer.WriteInt32(data.Items.Length);
+
+                foreach (var item in data.Items.OfType<TodoItem>())
                 {
-                    writer.WriteString(FormatVersion);
-                    data.TextVersion.WriteTo(writer);
-                    data.SyntaxVersion.WriteTo(writer);
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    writer.WriteInt32(data.Items.Length);
+                    writer.WriteInt32(item.Priority);
+                    writer.WriteString(item.Message);
 
-                    foreach (var item in data.Items.OfType<TodoItem>())
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
+                    writer.WriteString(item.OriginalFilePath);
+                    writer.WriteInt32(item.OriginalLine);
+                    writer.WriteInt32(item.OriginalColumn);
 
-                        writer.WriteInt32(item.Priority);
-                        writer.WriteString(item.Message);
-
-                        writer.WriteString(item.OriginalFilePath);
-                        writer.WriteInt32(item.OriginalLine);
-                        writer.WriteInt32(item.OriginalColumn);
-
-                        writer.WriteString(item.MappedFilePath);
-                        writer.WriteInt32(item.MappedLine);
-                        writer.WriteInt32(item.MappedColumn);
-                    }
+                    writer.WriteString(item.MappedFilePath);
+                    writer.WriteInt32(item.MappedLine);
+                    writer.WriteInt32(item.MappedColumn);
                 }
             }
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
                     list.Add(new TodoItem(
                         priority, message,
-                        document.Project.Solution.Workspace, document.Id,
+                        document.Id,
                         mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile));
                 }
             }

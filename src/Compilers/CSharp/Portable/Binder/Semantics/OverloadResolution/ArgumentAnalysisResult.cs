@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -57,6 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.NoCorrespondingNamedParameter, argumentPosition, 0, default(ImmutableArray<int>));
         }
 
+        public static ArgumentAnalysisResult DuplicateNamedArgument(int argumentPosition)
+        {
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.DuplicateNamedArgument, argumentPosition, 0, default(ImmutableArray<int>));
+        }
+
         public static ArgumentAnalysisResult RequiredParameterMissing(int parameterPosition)
         {
             return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.RequiredParameterMissing, 0, parameterPosition, default(ImmutableArray<int>));
@@ -91,6 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case ArgumentAnalysisResultKind.NameUsedForPositional:
                     s += "Invalid because argument " + ArgumentPosition + " had a name.";
+                    break;
+                case ArgumentAnalysisResultKind.DuplicateNamedArgument:
+                    s += "Invalid because named argument " + ArgumentPosition + " was specified twice.";
                     break;
                 case ArgumentAnalysisResultKind.NoCorrespondingParameter:
                     s += "Invalid because argument " + ArgumentPosition + " has no corresponding parameter.";

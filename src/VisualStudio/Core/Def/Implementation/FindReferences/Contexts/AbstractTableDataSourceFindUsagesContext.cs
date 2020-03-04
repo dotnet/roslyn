@@ -1,17 +1,24 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -80,7 +87,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
-                 IFindAllReferencesWindow findReferencesWindow)
+                 IFindAllReferencesWindow findReferencesWindow,
+                 ImmutableArray<ITableColumnDefinition> customColumns,
+                 bool includeContainingTypeAndMemberColumns,
+                 bool includeKindColumn)
             {
                 presenter.AssertIsForeground();
 
@@ -96,12 +106,45 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 Debug.Assert(_findReferencesWindow.Manager.Sources.Count == 0);
 
-                // And add ourselves as the source of results for the window.
-                _findReferencesWindow.Manager.AddSource(this);
+                // Add ourselves as the source of results for the window.
+                // Additionally, add applicable custom columns to display custom reference information
+                _findReferencesWindow.Manager.AddSource(
+                    this,
+                    SelectCustomColumnsToInclude(customColumns, includeContainingTypeAndMemberColumns, includeKindColumn));
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
                 Debug.Assert(_tableDataSink != null);
+            }
+
+            private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+            {
+                var customColumnsToInclude = ArrayBuilder<string>.GetInstance();
+
+                foreach (var column in customColumns)
+                {
+                    switch (column.Name)
+                    {
+                        case AbstractReferenceFinder.ContainingMemberInfoPropertyName:
+                        case AbstractReferenceFinder.ContainingTypeInfoPropertyName:
+                            if (includeContainingTypeAndMemberColumns)
+                            {
+                                customColumnsToInclude.Add(column.Name);
+                            }
+
+                            break;
+
+                        case StandardTableColumnDefinitions2.SymbolKind:
+                            if (includeKindColumn)
+                            {
+                                customColumnsToInclude.Add(column.Name);
+                            }
+
+                            break;
+                    }
+                }
+
+                return customColumnsToInclude.ToImmutableAndFree();
             }
 
             protected void NotifyChange()
@@ -222,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 // Note: IFindAllReferenceWindow.Title is safe to set from any thread.
                 _findReferencesWindow.Title = title;
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public sealed override async Task OnCompletedAsync()
@@ -254,47 +297,67 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
                 // when we have another type of workspace.  This means we will show results, but
                 // certain features (like filtering) may not work in that context.
-                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                var hostProject = workspace?.GetHostProject(document.Project.Id);
+                var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
 
-                var projectName = hostProject?.DisplayName ?? document.Project.Name;
-                var guid = hostProject?.Guid ?? Guid.Empty;
+                var projectName = document.Project.Name;
+                var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
 
                 var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
                 return (guid, projectName, sourceText);
             }
 
-            protected async Task<Entry> CreateDocumentSpanEntryAsync(
+            protected async Task<Entry> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
-                HighlightSpanKind spanKind)
+                HighlightSpanKind spanKind,
+                SymbolUsageInfo symbolUsageInfo,
+                ImmutableDictionary<string, string> additionalProperties)
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
+                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan).ConfigureAwait(false);
 
-                var classifiedSpansAndHighlightSpan =
-                    await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
+                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
+                if (mappedDocumentSpan == null)
+                {
+                    // this will be removed from the result
+                    return null;
+                }
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, documentSpan, spanKind,
-                    projectName, guid, sourceText, classifiedSpansAndHighlightSpan);
+                    this, definitionBucket, spanKind, projectName,
+                    guid, mappedDocumentSpan.Value, excerptResult, lineText, symbolUsageInfo, additionalProperties);
             }
 
-            private TextSpan GetRegionSpanForReference(SourceText sourceText, TextSpan referenceSpan)
+            private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
             {
-                const int AdditionalLineCountPerSide = 3;
+                var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
+                if (excerptService != null)
+                {
+                    var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, CancellationToken).ConfigureAwait(false);
+                    if (result != null)
+                    {
+                        return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
+                    }
+                }
 
-                var lineNumber = sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
-                var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
-                var lastLineNumber = Math.Min(sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
+                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
 
-                return TextSpan.FromBounds(
-                    sourceText.Lines[firstLineNumber].Start,
-                    sourceText.Lines[lastLineNumber].End);
+                // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
+                var excerptResult = new ExcerptResult(
+                    sourceText,
+                    classificationResult.HighlightSpan,
+                    classificationResult.ClassifiedSpans,
+                    documentSpan.Document,
+                    documentSpan.SourceSpan);
+
+                return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
             public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
-                => OnReferenceFoundWorkerAsync(reference);
+            {
+                return OnReferenceFoundWorkerAsync(reference);
+            }
 
             protected abstract Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
 
@@ -331,7 +394,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 #endif
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             #endregion
@@ -350,7 +413,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         // If we've been cleared, then just return an empty list of entries.
                         // Otherwise return the appropriate list based on how we're currently
                         // grouping.
-                        var entries = _cleared 
+                        var entries = _cleared
                             ? ImmutableList<Entry>.Empty
                             : _currentlyGroupingByDefinition
                                 ? EntriesWhenGroupingByDefinition

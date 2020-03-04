@@ -1,26 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CaseCorrection;
-using Microsoft.CodeAnalysis.CSharp.GenerateType;
-using Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices;
-using Microsoft.CodeAnalysis.Editor.Implementation.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
-using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices;
 using Microsoft.CodeAnalysis.GenerateType;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ProjectManagement;
-using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.CaseCorrection;
-using Microsoft.CodeAnalysis.VisualBasic.GenerateType;
-using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 {
@@ -43,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             string languageName)
         {
             var workspace = TestWorkspace.IsWorkspaceElement(initial)
-                ? TestWorkspace.Create(initial, exportProvider: s_exportProvider)
+                ? TestWorkspace.Create(initial)
                 : languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(initial, exportProvider: s_exportProvider)
-                  : TestWorkspace.CreateVisualBasic(initial, exportProvider: s_exportProvider);
+                  ? TestWorkspace.CreateCSharp(initial)
+                  : TestWorkspace.CreateVisualBasic(initial);
 
             return new GenerateTypeTestState(projectToBeModified, typeName, existingFileName, workspace);
         }
@@ -105,22 +92,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
                 return (TestProjectManagementService)InvocationDocument.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
             }
         }
-
-        private static readonly ExportProvider s_exportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                typeof(TestGenerateTypeOptionsService),
-                typeof(TestProjectManagementService),
-                typeof(CSharpGenerateTypeService),
-                typeof(VisualBasicGenerateTypeService),
-                typeof(CSharpCaseCorrectionService),
-                typeof(VisualBasicCaseCorrectionServiceFactory),
-                typeof(CSharpTypeInferenceService),
-                typeof(VisualBasicTypeInferenceService),
-                typeof(CodeActionEditHandlerService),
-                typeof(PreviewFactoryService),
-                typeof(InlineRenameService),
-                typeof(TextBufferAssociatedViewService),
-                typeof(IProjectionBufferFactoryServiceExtensions)));
 
         public void Dispose()
         {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Reflection;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -104,14 +106,50 @@ class C
                 EvalResult("c", "{C}", "C", "c", DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("o", "{B}", "I {B}", "c.o", DkmEvaluationResultFlags.Expandable));
+                EvalResult("o", "{B}", "I {B}", "c.o", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             children = GetChildren(children[0]);
             Verify(children,
                 EvalResult("I.P2", "2", "object {int}", "c.o.P2", DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("I.P3", "3", "object {int}", "c.o.P3", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P1", "1", "object {int}", "((B)c.o).P1", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P5", "5", "object {int}", "((B)c.o).P5", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P6", "6", "object {int}", "((B)c.o).P6", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("P1", "1", "object {int}", "((B)c.o).P1", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P5", "5", "object {int}", "((B)c.o).P5", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P6", "6", "object {int}", "((B)c.o).P6", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
+        }
+
+        [Fact]
+        public void DuplicateAttributes()
+        {
+            var source =
+@"using System.Diagnostics;
+abstract class A
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public object P1;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public object P2;
+    internal object P3 => 0;
+}
+class B : A
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    new public object P1 => base.P1;
+    new public object P2 => 1;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    internal new object P3 => 2;
+}";
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("B");
+            var value = CreateDkmClrValue(
+                value: type.Instantiate(),
+                type: type,
+                evalFlags: DkmEvaluationResultFlags.None,
+                valueFlags: DkmClrValueFlags.Synthetic);
+            var evalResult = FormatResult("this", value);
+            Verify(evalResult,
+                EvalResult("this", "{B}", "B", "this", DkmEvaluationResultFlags.Expandable));
+            var children = GetChildren(evalResult);
+            Verify(children,
+                EvalResult("P3 (A)", "0", "object {int}", "((A)this).P3", DkmEvaluationResultFlags.ReadOnly));
         }
 
         /// <summary>
@@ -359,7 +397,7 @@ class B : I<A>
                 EvalResult("F", "1", "object {int}", "((I<A>)o).P.F"),
                 EvalResult("I<A>.Q", "{A}", "A", "((I<A>)o).Q", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             Verify(GetChildren(children[1]),
-                EvalResult("F", "2", "object {int}", "((I<A>)o).Q.F"));
+                EvalResult("F", "2", "object {int}", "((I<A>)o).Q.F", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -615,7 +653,7 @@ public class C<T>
                 EvalResult("o", "{C<int>}", "C<int>", "o", DkmEvaluationResultFlags.Expandable));
 
             Verify(GetChildren(evalResult),
-                EvalResult("X", "0", "int", "o.X"));
+                EvalResult("X", "0", "int", "o.X", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [WorkItem(18581, "https://github.com/dotnet/roslyn/issues/18581")]

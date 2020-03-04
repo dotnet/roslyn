@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact, WorkItem(6040, "https://github.com/dotnet/roslyn/issues/6040")>
         Public Sub ImplicitClassSymbol()
-            Dim c = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file>
 Namespace N
@@ -40,7 +42,7 @@ End Namespace
             Assert.False(implicitClass.IsSubmissionClass)
             Assert.False(implicitClass.IsScriptClass)
 
-            Dim c2 = CreateCompilationWithMscorlib45({}, {c.ToMetadataReference()})
+            Dim c2 = CreateCompilationWithMscorlib45(source:=Nothing, {c.ToMetadataReference()})
 
             n = DirectCast(c2.GlobalNamespace.GetMembers("N").Single(), NamespaceSymbol)
             implicitClass = DirectCast(n.GetMembers().Single(), NamedTypeSymbol)
@@ -51,7 +53,7 @@ End Namespace
 
         <Fact>
         Public Sub ScriptClassSymbol()
-            Dim c = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file>
 Sub Goo

@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: Nie można odnaleźć przywoływanego zestawu „{0}”. Jeżeli zestaw jest tworzony przez inny projekt, upewnij się, że przed skompilowaniem tego zestawu został skompilowany ten inny projekt.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">Nie można odczytać pliku „{0}”: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">Udostępniona kompilacja nie powiodła się; nastąpi powrót do narzędzia: {0}</target>
@@ -118,6 +123,26 @@
         <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
         <target state="translated">MSB3402: Wystąpił błąd podczas tworzenia pliku pdb „{0}”. {1}</target>
         <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">Element {0} zawiera zduplikowane elementy „{1}” z metadanymi powodującymi konflikt „{2}”: „{3}” i „{4}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">Ścieżki {0} muszą kończyć się ukośnikiem lub ukośnikiem odwrotnym: „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">Elementy {0} muszą zawierać co najmniej jeden niezagnieżdżony element najwyższego poziomu, gdy właściwość {1} ma wartość true</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">Nie odnaleziono wartości {0} w elementach {1} bądź odpowiadający element nie jest źródłowym elementem głównym najwyższego poziomu: „{2}”</target>
+        <note />
       </trans-unit>
     </body>
   </file>

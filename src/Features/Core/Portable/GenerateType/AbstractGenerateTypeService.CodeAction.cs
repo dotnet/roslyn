@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateType
 {
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetService<IGenerateTypeOptionsService>();
                 var notificationService = _document.Project.Solution.Workspace.Services.GetService<INotificationService>();
                 var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
-                var syntaxFactsService = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = _document.GetLanguageService<ISyntaxFactsService>();
                 var typeKindValue = GetTypeKindOption(_state);
                 var isPublicOnlyAccessibility = IsPublicOnlyAccessibility(_state, _document.Project);
                 return generateTypeOptionsService.GetGenerateTypeOptions(
@@ -147,7 +150,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return true;
                 }
 
-                TypeKindOptions typeKindValue = TypeKindOptions.None;
+                var typeKindValue = TypeKindOptions.None;
                 if (_service.TryGetBaseList(state.NameOrMemberAccessExpression, out typeKindValue) || _service.TryGetBaseList(state.SimpleName, out typeKindValue))
                 {
                     typeKindValueFinal = typeKindValue;

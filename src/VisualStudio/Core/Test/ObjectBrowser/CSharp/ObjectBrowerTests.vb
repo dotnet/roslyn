@@ -1,11 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Globalization
 Imports Microsoft.CodeAnalysis
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
-Imports System.Threading.Tasks
-Imports System.Globalization
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
     Public Class ObjectBrowserTests
@@ -17,8 +20,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
             End Get
         End Property
 
-        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider) As AbstractObjectBrowserLibraryManager
-            Return New ObjectBrowserLibraryManager(serviceProvider)
+        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace) As AbstractObjectBrowserLibraryManager
+            Return New ObjectBrowserLibraryManager(serviceProvider, componentModel, workspace)
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
@@ -70,6 +73,79 @@ namespace N
                 list = list.GetNamespaceList(0)
 
                 list.VerifyEmpty()
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudePrivateNestedTypeMembersInSourceCode()
+            Dim code =
+<Code>
+namespace N
+{
+    class C
+    {
+        private enum PrivateEnumTest { }
+        private class PrivateClassTest { }
+        private struct PrivateStructTest { }
+    }
+}
+</Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.PrivateStructTest", "C.PrivateClassTest", "C.PrivateEnumTest")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudePrivateDoubleNestedTypeMembersInSourceCode()
+            Dim code =
+<Code>
+namespace N
+{
+    internal class C
+    {
+        private class NestedClass
+        {
+            private class NestedNestedClass { }
+        }
+    }
+}
+</Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.NestedClass", "C.NestedClass.NestedNestedClass")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudeNoPrivateNestedTypeOfMetaData()
+            Dim metaDatacode =
+<Code>
+namespace N
+{
+    public class C
+    {
+        public enum PublicEnumTest { }
+        private class PrivateClassTest { }
+        private struct PrivateStructTest { }
+    }
+}
+</Code>
+            Dim code = <Code></Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code, metaDatacode, False))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList().GetReferenceList(0).GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.PublicEnumTest")
             End Using
         End Sub
 
@@ -1123,6 +1199,111 @@ ServicesVSResources.Returns_colon & vbCrLf &
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestDescription_XmlDocComment_Returns1()
+            Dim code =
+<Code>
+    <![CDATA[
+class C
+{
+    /// <summary>
+    /// Describes the method.
+    /// </summary>
+    /// <returns>Returns a value.</returns>
+    public int M()
+    {
+        return 0;
+    }
+}
+]]>
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetTypeList(0)
+                list = list.GetMemberList(0)
+
+                list.VerifyImmediateMemberDescriptions(
+"public int M()" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Summary_colon & vbCrLf &
+"Describes the method." & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Returns_colon & vbCrLf &
+"Returns a value.")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestDescription_XmlDocComment_Returns2()
+            Dim code =
+<Code>
+    <![CDATA[
+class C
+{
+    /// <summary>
+    /// Gets a value.
+    /// </summary>
+    /// <returns>Returns a value.</returns>
+    public int M { get; }
+}
+]]>
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetTypeList(0)
+                list = list.GetMemberList(0)
+
+                list.VerifyImmediateMemberDescriptions(
+"public int M { get; }" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Summary_colon & vbCrLf &
+"Gets a value." & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Returns_colon & vbCrLf &
+"Returns a value.")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestDescription_XmlDocComment_Value()
+            Dim code =
+<Code>
+    <![CDATA[
+class C
+{
+    /// <summary>
+    /// Gets a value.
+    /// </summary>
+    /// <value>An integer value.</value>
+    public int M { get; }
+}
+]]>
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetTypeList(0)
+                list = list.GetMemberList(0)
+
+                list.VerifyImmediateMemberDescriptions(
+"public int M { get; }" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Summary_colon & vbCrLf &
+"Gets a value." & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Value_colon & vbCrLf &
+"An integer value.")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub TestDescription_Operator_Add()
             Dim code =
 <Code>
@@ -1279,7 +1460,7 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
 using System.Runtime.InteropServices;
 class C
 {
-    [DllImport("User32.dll", CharSet=CharSet.Unicode)] 
+    [DllImport("User32.dll", CharSet=CharSet.Unicode)]
     public static extern int MessageBox(System.IntPtr h, string m, string c, int type);
 }
 </Code>

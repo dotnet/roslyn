@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -20,11 +22,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             IAsynchronousOperationListener listener,
             IGlobalOperationNotificationService globalOperationNotificationService,
             int backOffTimeSpanInMs,
-            CancellationToken shutdownToken) :
-            base(listener, backOffTimeSpanInMs, shutdownToken)
+            CancellationToken shutdownToken)
+            : base(listener, backOffTimeSpanInMs, shutdownToken)
         {
             _globalOperation = null;
-            _globalOperationTask = SpecializedTasks.EmptyTask;
+            _globalOperationTask = Task.CompletedTask;
 
             _globalOperationNotificationService = globalOperationNotificationService;
             _globalOperationNotificationService.Started += OnGlobalOperationStarted;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             _globalOperation = null;
 
             // set to empty task so that we don't need a lock
-            _globalOperationTask = SpecializedTasks.EmptyTask;
+            _globalOperationTask = Task.CompletedTask;
         }
 
         public virtual void Shutdown()

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly SemanticModel s_testModel;
         private static readonly int s_testPosition;
-        private static readonly Symbol s_testSymbol;
+        private static readonly ISymbol s_testSymbol;
 
         static AccessibilityTests()
         {
@@ -26,26 +28,26 @@ class C1
 }
 
 ");
-            CSharpCompilation c = CreateCompilation(new[] { t });
+            CSharpCompilation c = CreateEmptyCompilation(new[] { t });
             s_testModel = c.GetSemanticModel(t);
             s_testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
-            s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception);
+            s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception).GetPublicSymbol();
         }
 
         [Fact]
         public void IsAccessibleNullArguments()
         {
-            Assert.Throws(typeof(ArgumentNullException), () =>
+            Assert.Throws<ArgumentNullException>(() =>
                 s_testModel.IsAccessible(s_testPosition, null));
         }
 
         [Fact]
         public void IsAccessibleLocationNotInSource()
         {
-            Assert.Throws(typeof(ArgumentOutOfRangeException), () =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
                 s_testModel.IsAccessible(-1, s_testSymbol));
 
-            Assert.Throws(typeof(ArgumentOutOfRangeException), () =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
                 s_testModel.IsAccessible(s_testModel.SyntaxTree.GetCompilationUnitRoot().FullSpan.End + 1, s_testSymbol));
         }
 
@@ -65,7 +67,7 @@ class C1
                 references: new MetadataReference[] { MscorlibRef }).GetWellKnownType(WellKnownType.System_Exception);
 
             Assert.True(
-                s_testModel.IsAccessible(s_testPosition, symbol));
+                s_testModel.IsAccessible(s_testPosition, symbol.GetPublicSymbol()));
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -79,7 +81,7 @@ public class G<T>
 
     protected G<int>.N P { get; set; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -96,7 +98,7 @@ class C : G<int>
 {
     protected G<long>.N P { get; set; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -110,7 +112,7 @@ public class G<T>
 
     protected G<int>.N this[int x] { get { throw null; } }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -127,7 +129,7 @@ class C : G<int>
 {
     protected G<long>.N this[int x] { get { throw null; } }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -141,7 +143,7 @@ public class G<T>
 
     protected G<int>.N M() { throw null; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -158,7 +160,7 @@ class C : G<int>
 {
     protected G<long>.N M() { throw null; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
@@ -172,7 +174,7 @@ public class G<T>
 
     protected event G<int>.N E;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,30): warning CS0067: The event 'G<T>.E' is never used
                 //     protected event G<int>.N E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("G<T>.E"));
@@ -192,7 +194,7 @@ class C : G<int>
 {
     protected event G<long>.N E;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,31): warning CS0067: The event 'C.E' is never used
                 //     protected event G<long>.N E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
@@ -252,7 +254,7 @@ class Test
     {
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,32): warning CS0649: Field 'RuleE<T>.Z1.Goo' is never assigned to, and will always have its default value null
                 //         protected RuleE<int>.N Goo;    
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Goo").WithArguments("RuleE<T>.Z1.Goo", "null"),
@@ -289,7 +291,7 @@ class Test
         public C " + brackets + @" x;
     }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("P.x", "P.C" + brackets)
 );
         }

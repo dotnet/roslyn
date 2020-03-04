@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -155,7 +157,7 @@ End Class
             Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
             Dim ref3 = CompileIL(il3.Value, prependDefaultHeader:=False)
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2, ref3})
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(vb, {ref1, ref2, ref3})
 
             Dim ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1)
             Assert.NotNull(ilAssembly1)
@@ -220,7 +222,7 @@ End Class
             Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
             Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2})
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(vb, {ref1, ref2})
 
             Dim ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1)
             Assert.NotNull(ilAssembly1)
@@ -291,7 +293,7 @@ End Class
             Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
             Dim ref3 = CompileIL(il3.Value, prependDefaultHeader:=False)
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2, ref3})
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(vb, {ref1, ref2, ref3})
 
             Dim ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1)
             Assert.NotNull(ilAssembly1)
@@ -382,7 +384,7 @@ End Class
             Dim ref3 = CompileIL(il3.Value, prependDefaultHeader:=False)
             Dim ref4 = CompileIL(il4.Value, prependDefaultHeader:=False)
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2, ref3, ref4})
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(vb, {ref1, ref2, ref3, ref4})
 
             Dim ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1)
             Assert.NotNull(ilAssembly1)
@@ -487,7 +489,7 @@ End Class
             Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
             Dim ref3 = CompileIL(il3.Value, prependDefaultHeader:=False)
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2, ref3})
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(vb, {ref1, ref2, ref3})
 
             Dim ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1)
             Assert.NotNull(ilAssembly1)
@@ -548,7 +550,7 @@ End Class
             Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
             Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2})
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(vb, {ref1, ref2})
 
             Dim ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1)
             Assert.NotNull(ilAssembly1)
@@ -612,7 +614,7 @@ End Class
             Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
             Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
 
-            CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2}).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndReferences(vb, {ref1, ref2}).VerifyDiagnostics()
         End Sub
 
         ''' <summary>
@@ -681,7 +683,7 @@ End Class
             Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
             Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
 
-            CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2}).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndReferences(vb, {ref1, ref2}).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -733,7 +735,7 @@ End Class
 
             Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
 
-            CreateCompilationWithMscorlibAndReferences(vb, {ref1}).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndReferences(vb, {ref1}).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "Outer").WithArguments("Outer", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "Outer").WithArguments("Outer", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "Outer").WithArguments("Outer", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -774,7 +776,7 @@ End Class
 
             Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
 
-            CreateCompilationWithMscorlibAndReferences(vb, {ref1}).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndReferences(vb, {ref1}).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "upper").WithArguments("upper", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "uPPeR").WithArguments("uPPeR", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "LOWER.mixed").WithArguments("LOWER.mixed", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -825,7 +827,7 @@ End Class
 
             Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1})
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(vb, {ref1})
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "t0").WithArguments("t0", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -887,7 +889,7 @@ End Namespace
 
             Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1})
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(vb, {ref1})
 
             ' TODO: it would be nice if we could report ERR_ForwardedTypeUnavailable3 in the first
             ' case as well (see DevDiv #14280).
@@ -929,7 +931,7 @@ End Class
         </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
 
             ' Attribute is erased. This is an intentional change in behavior by comparison to Dev12.
             Dim verifier = CompileAndVerify(compilation,
@@ -958,7 +960,7 @@ End Class
         </file>
 </compilation>
 
-            Dim forwardedTypesCompilation = CreateCompilationWithMscorlib(forwardedTypes, TestOptions.ReleaseDll)
+            Dim forwardedTypesCompilation = CreateCompilationWithMscorlib40(forwardedTypes, options:=TestOptions.ReleaseDll)
 
             Dim netmod =
 <compilation>
@@ -967,7 +969,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim modCompilation = CreateCompilationWithMscorlibAndReferences(netmod, {New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseModule)
+            Dim modCompilation = CreateCompilationWithMscorlib40AndReferences(netmod, {New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseModule)
             Dim modRef = modCompilation.EmitToImageReference()
 
             Dim app =
@@ -978,7 +980,7 @@ End class
     ]]></file>
 </compilation>
 
-            Dim appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef}, TestOptions.ReleaseDll)
+            Dim appCompilation = CreateCompilationWithMscorlib40AndReferences(app, {modRef}, TestOptions.ReleaseDll)
 
             Dim peModule = DirectCast(appCompilation.Assembly.Modules(1), PEModuleSymbol)
             Dim metadata = peModule.Module
@@ -1030,7 +1032,7 @@ End class
 
             Dim modRef1 = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
-            appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef1, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
+            appCompilation = CreateCompilationWithMscorlib40AndReferences(app, {modRef1, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
             peModule = DirectCast(appCompilation.Assembly.Modules(1), PEModuleSymbol)
             metadata = peModule.Module
@@ -1042,7 +1044,7 @@ End class
             token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
             Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
-            ' Exported types in .Net module cause PEVerify to fail.
+            ' Exported types in .NET module cause PEVerify to fail.
             CompileAndVerify(appCompilation, verify:=Verification.Fails,
                 symbolValidator:=Sub(m)
                                      Dim metadataReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
@@ -1089,7 +1091,7 @@ End class
 
             Dim modRef2 = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
-            appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef2, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
+            appCompilation = CreateCompilationWithMscorlib40AndReferences(app, {modRef2, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
             peModule = DirectCast(appCompilation.Assembly.Modules(1), PEModuleSymbol)
             metadata = peModule.Module
@@ -1111,7 +1113,7 @@ End class
                                  End Sub
             ).VerifyDiagnostics()
 
-            appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef1, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseModule)
+            appCompilation = CreateCompilationWithMscorlib40AndReferences(app, {modRef1, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseModule)
 
             Dim appModule = ModuleMetadata.CreateFromImage(appCompilation.EmitToArray()).Module
             metadataReader = appModule.GetMetadataReader()
@@ -1120,7 +1122,7 @@ End class
             token = appModule.GetTypeRef(appModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
             Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
-            appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef1}, TestOptions.ReleaseDll)
+            appCompilation = CreateCompilationWithMscorlib40AndReferences(app, {modRef1}, TestOptions.ReleaseDll)
 
             AssertTheseDeclarationDiagnostics(appCompilation,
 <expected>
@@ -1166,7 +1168,7 @@ End Class
         </file>
 </compilation>
 
-            Dim forwardedTypesCompilation = CreateCompilationWithMscorlib(forwardedTypes, TestOptions.ReleaseDll)
+            Dim forwardedTypesCompilation = CreateCompilationWithMscorlib40(forwardedTypes, options:=TestOptions.ReleaseDll)
 
             Dim ilSource =
             <![CDATA[
@@ -1208,9 +1210,9 @@ End class
     ]]></file>
 </compilation>
 
-            Dim appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
+            Dim appCompilation = CreateCompilationWithMscorlib40AndReferences(app, {modRef, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
-            ' Exported types in .Net module cause PEVerify to fail.
+            ' Exported types in .NET module cause PEVerify to fail.
             CompileAndVerify(appCompilation, verify:=Verification.Fails,
                 symbolValidator:=Sub(m)
                                      Dim peReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
@@ -1224,15 +1226,15 @@ End class
 
         <Fact>
         Public Sub MetadataTypeReferenceResolutionThroughATypeForwardedByCompilation()
-            Dim cA_v1 = CreateCompilationWithMscorlib(
+            Dim cA_v1 = CreateCompilationWithMscorlib40(
 <compilation name="A">
     <file name="a.vb"><![CDATA[
 public class Forwarded(Of T)
 End class
     ]]></file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
-            Dim cB = CreateCompilationWithMscorlibAndReferences(
+            Dim cB = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="B">
     <file name="a.vb"><![CDATA[
 Public Class B 
@@ -1243,17 +1245,17 @@ End class
 
             Dim cB_ImageRef = cB.EmitToImageReference()
 
-            Dim cC_v1 = CreateCompilationWithMscorlib(
+            Dim cC_v1 = CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 public class Forwarded(Of T)
 End class
     ]]></file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim cC_v1_ImageRef = cC_v1.EmitToImageReference()
 
-            Dim cA_v3 = CreateCompilationWithMscorlibAndReferences(
+            Dim cA_v3 = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="A">
     <file name="a.vb"><![CDATA[
     ]]></file>
@@ -1262,13 +1264,13 @@ End class
                 TestOptions.ReleaseDll)
 
 
-            Dim cC_v2 = CreateCompilationWithMscorlib(
+            Dim cC_v2 = CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 public class Forwarded(Of T)
 End class
     ]]></file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim ref1 = New MetadataReference() {
                 New VisualBasicCompilationReference(cA_v3)
@@ -1288,7 +1290,7 @@ End class
             For Each r1 In ref1
                 For Each r2 In ref2
                     For Each r3 In ref3
-                        Dim context = CreateCompilationWithMscorlibAndReferences(
+                        Dim context = CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
     ]]></file>

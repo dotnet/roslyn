@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -33,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int i = 0;
                 goto start;
 
-            again:
+again:
                 hashCode = unchecked((text[i] ^ hashCode) * 16777619);
                 i = i + 1;
 
-            start:
+start:
                 if (i < text.Length)
                     goto again;
             }
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            F.CurrentMethod = this;
+            F.CurrentFunction = this;
 
             try
             {
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            F.CurrentMethod = (MethodSymbol)this.OriginalDefinition;
+            F.CurrentFunction = (MethodSymbol)this.OriginalDefinition;
 
             try
             {
@@ -186,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            F.CurrentMethod = (MethodSymbol)this.OriginalDefinition;
+            F.CurrentFunction = (MethodSymbol)this.OriginalDefinition;
 
             try
             {
@@ -221,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                F.CurrentMethod = this.OriginalDefinition;
+                F.CurrentFunction = this.OriginalDefinition;
 
                 try
                 {
@@ -263,17 +265,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var argBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             //var refKindBuilder = ArrayBuilder<RefKind>.GetInstance();
 
-            foreach (var param in F.CurrentMethod.Parameters)
+            foreach (var param in F.CurrentFunction.Parameters)
             {
                 argBuilder.Add(F.Parameter(param));
                 //refKindBuilder.Add(param.RefKind);
             }
 
-            BoundExpression invocation = F.Call(useBaseReference ? (BoundExpression)F.Base() : F.This(),
+            BoundExpression invocation = F.Call(useBaseReference ? (BoundExpression)F.Base(baseType: methodToInvoke.ContainingType) : F.This(),
                                                 methodToInvoke,
                                                 argBuilder.ToImmutableAndFree());
 
-            return F.CurrentMethod.ReturnsVoid
+            return F.CurrentFunction.ReturnsVoid
                         ? F.Block(F.ExpressionStatement(invocation), F.Return())
                         : F.Block(F.Return(invocation));
         }

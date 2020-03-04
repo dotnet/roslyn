@@ -1,15 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -18,27 +23,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Export(typeof(InlineRenameService))]
     internal class InlineRenameService : IInlineRenameService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
-        private readonly AggregateAsynchronousOperationListener _aggregateListener;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
-
+        private readonly IFeatureServiceFactory _featureServiceFactory;
         private InlineRenameSession _activeRenameSession;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineRenameService(
+            IThreadingContext threadingContext,
             IWaitIndicator waitIndicator,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
+            IFeatureServiceFactory featureServiceFactory,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _waitIndicator = waitIndicator;
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferFactoryService = textBufferFactoryService;
+            _featureServiceFactory = featureServiceFactory;
             _refactorNotifyServices = refactorNotifyServices;
-            _aggregateListener = new AggregateAsynchronousOperationListener(listeners, FeatureAttribute.Rename);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
         }
 
         public InlineRenameSessionInfo StartInlineSession(
@@ -60,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var snapshot = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).FindCorrespondingEditorTextSnapshot();
             ActiveSession = new InlineRenameSession(
+                _threadingContext,
                 this,
                 document.Project.Solution.Workspace,
                 renameInfo.TriggerSpan.ToSnapshotSpan(snapshot),
@@ -67,8 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _waitIndicator,
                 _textBufferAssociatedViewService,
                 _textBufferFactoryService,
+                _featureServiceFactory,
                 _refactorNotifyServices,
-                _aggregateListener);
+                _asyncListener);
 
             return new InlineRenameSessionInfo(ActiveSession);
         }

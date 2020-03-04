@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -13,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub DirectCircularInheritance()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -33,7 +35,7 @@ BC31447: Class 'A' cannot reference itself in Inherits clause.
 
         <Fact>
         Public Sub InDirectCircularInheritance()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -58,7 +60,7 @@ BC30257: Class 'A' cannot inherit from itself:
 
         <Fact>
         Public Sub InDirectCircularInheritance1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -86,7 +88,7 @@ BC30257: Class 'A' cannot inherit from itself:
 
         <Fact>
         Public Sub ContainmentDependency()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -108,7 +110,7 @@ BC31446: Class 'A' cannot reference its nested type 'A.B' in Inherits clause.
 
         <Fact>
         Public Sub ContainmentDependency2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -136,7 +138,7 @@ BC30907: This inheritance causes circular dependencies between class 'A' and its
 
         <Fact>
         Public Sub ContainmentDependency3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -167,7 +169,7 @@ BC30907: This inheritance causes circular dependencies between class 'A' and its
 
         <Fact>
         Public Sub ContainmentDependency4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -204,7 +206,7 @@ BC30907: This inheritance causes circular dependencies between class 'A' and its
 
         <Fact>
         Public Sub ContainmentDependency5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -248,7 +250,7 @@ BC30907: This inheritance causes circular dependencies between class 'A.C' and i
 
         <Fact>
         Public Sub InheritanceDependencyGeneric()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 namespace n1
@@ -272,7 +274,7 @@ BC31447: Class 'Program.A(Of T)' cannot reference itself in Inherits clause.
 
         <Fact>
         Public Sub ContainmentDependencyGeneric()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
     Class A
@@ -294,7 +296,7 @@ BC31446: Class 'A' cannot reference its nested type 'A.C(Of String)' in Inherits
 
         <Fact>
         Public Sub ContainmentDependencyGeneric1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A(of T)
@@ -329,7 +331,7 @@ BC30907: This inheritance causes circular dependencies between class 'A(Of T)' a
 
         <Fact>
         Public Sub DirectCircularInheritanceInInterface1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface A
@@ -353,7 +355,7 @@ BC30584: 'A' cannot be inherited more than once.
 
         <Fact>
         Public Sub InDirectCircularInheritanceInInterface1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface x1
@@ -381,7 +383,7 @@ End Interface
 
         <Fact>
         Public Sub InterfaceContainmentDependency()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface A
@@ -403,7 +405,7 @@ BC30908: interface 'A' cannot inherit from a type nested within it.
 
         <Fact>
         Public Sub InterfaceContainmentDependency2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface A
@@ -431,7 +433,7 @@ BC30907: This inheritance causes circular dependencies between interface 'A' and
 
         <Fact>
         Public Sub InterfaceContainmentDependency4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface A
@@ -473,7 +475,7 @@ BC30907: This inheritance causes circular dependencies between interface 'A' and
 
         <Fact>
         Public Sub InterfaceImplementingDependency5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         Class cls1
@@ -512,7 +514,7 @@ BC30907: This inheritance causes circular dependencies between interface 'A' and
         <WorkItem(850140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850140")>
         <Fact>
         Public Sub InterfaceCycleBug850140()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         Interface B(Of S)    
@@ -535,7 +537,7 @@ BC30907: This inheritance causes circular dependencies between interface 'A' and
         <WorkItem(850140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850140")>
         <Fact>
         Public Sub InterfaceCycleBug850140_a()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         Interface B(Of S)    
@@ -558,7 +560,7 @@ BC30907: This inheritance causes circular dependencies between interface 'A' and
         <WorkItem(850140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850140")>
         <Fact>
         Public Sub InterfaceCycleBug850140_b()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         Interface B(Of S)    
@@ -581,7 +583,7 @@ BC30296: Interface 'B(Of S).C(Of U)' cannot inherit from itself:
 
         <Fact>
         Public Sub ClassCycleBug850140()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         Class B(Of S)    
@@ -603,7 +605,7 @@ BC30002: Type 'C.' is not defined.
 
         <Fact>
         Public Sub ClassCycleBug850140_a()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         Class B(Of S)    
@@ -625,7 +627,7 @@ BC30002: Type 'C.' is not defined.
 
         <Fact>
         Public Sub ClassCycleBug850140_b()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         Class B(Of S)    
@@ -648,7 +650,7 @@ BC31447: Class 'B(Of S).C(Of U)' cannot reference itself in Inherits clause.
 
         <Fact>
         Public Sub InterfaceClassMutualContainment()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class cls1
@@ -680,7 +682,7 @@ BC30907: This inheritance causes circular dependencies between class 'cls1' and 
 
         <Fact>
         Public Sub InterfaceClassMutualContainmentGeneric()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class cls1(of T)
@@ -715,7 +717,7 @@ BC30907: This inheritance causes circular dependencies between class 'cls1(Of T)
             Dim C1 = TestReferences.SymbolsTests.CyclicInheritance.Class1
             Dim C2 = TestReferences.SymbolsTests.CyclicInheritance.Class2
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="Compilation">
     <file name="a.vb">
 Class C3
@@ -741,7 +743,7 @@ BC30916: Type 'C1' is not supported because it either directly or indirectly inh
             Dim C3 = TestReferences.SymbolsTests.CyclicInheritance.Class3
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="Compilation">
     <file name="a.vb">
             Class C3
@@ -759,7 +761,7 @@ BC30916: Type 'C1' is not supported because it either directly or indirectly inh
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
 
-            compilation = CompilationUtils.CreateCompilationWithReferences(
+            compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="Compilation">
     <file name="a.vb">
 Class C4
@@ -784,7 +786,7 @@ BC30916: Type 'C3' is not supported because it either directly or indirectly inh
             Dim C1 = TestReferences.SymbolsTests.CyclicInheritance.Class1
             Dim C2 = TestReferences.SymbolsTests.CyclicInheritance.Class2
 
-            Dim Comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I4
@@ -816,7 +818,7 @@ BC30916: Type 'I1' is not supported because it either directly or indirectly inh
             Dim ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll
 
 
-            Dim Comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="ClassB">
     <file name="B.vb">
 Public Class ClassB
@@ -836,7 +838,7 @@ End Class
             Assert.IsAssignableFrom(Of PENamedTypeSymbol)(A_base)
 
             Dim ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll
-            Dim Comp2 = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp2 = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="ClassB1">
     <file name="B.vb">
 Public Class ClassC
@@ -876,7 +878,7 @@ BC30916: Type 'ClassB' is not supported because it either directly or indirectly
             Dim ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll
             Dim ClassBv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassB.netmodule
 
-            Dim Comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="ClassB">
     <file name="B.vb">
 'hi
@@ -898,7 +900,7 @@ BC30916: Type 'ClassB' is not supported because it either directly or indirectly
             Assert.IsAssignableFrom(Of PENamedTypeSymbol)(A_base)
 
             Dim ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll
-            Dim Comp2 = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp2 = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="ClassB1">
     <file name="B.vb">
 Public Class ClassC
@@ -941,7 +943,7 @@ BC30916: Type 'ClassB' is not supported because it either directly or indirectly
 #End If
             Dim ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll
 
-            Dim Comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="ClassB">
     <file name="B.vb">
 Public Class ClassB
@@ -974,7 +976,7 @@ BC30257: Class 'ClassB' cannot inherit from itself:
             Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
 
             Dim ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll
-            Dim Comp2 = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp2 = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="ClassB1">
     <file name="B.vb">
 Public Class ClassC
@@ -1005,7 +1007,7 @@ New MetadataReference() {TestReferences.NetFx.v4_0_30319.mscorlib, ClassAv1, New
             Dim ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll
             Dim ClassBv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassB.netmodule
 
-            Dim Comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="ClassB">
     <file name="B.vb">
 'hi
@@ -1035,7 +1037,7 @@ New MetadataReference() {TestReferences.NetFx.v4_0_30319.mscorlib, ClassAv1, New
 
             Dim ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll
 
-            Dim Comp2 = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp2 = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation name="ClassB1">
     <file name="B.vb">
 Public Class ClassC
@@ -1072,7 +1074,7 @@ End Class
 #End If
             Dim ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll
 
-            Dim Comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="ClassB">
         <file name="B.vb">
 Public Class ClassB
@@ -1105,7 +1107,7 @@ BC30257: Class 'ClassB' cannot inherit from itself:
             Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
 
             Dim ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll
-            Dim Comp2 = CompilationUtils.CreateCompilationWithReferences(
+            Dim Comp2 = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="ClassB1">
         <file name="B.vb">
 Public Class ClassC
@@ -1130,7 +1132,7 @@ End Class
         <WorkItem(538503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538503")>
         <Fact>
         Public Sub TypeFromBaseInterface()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface IA
@@ -1153,7 +1155,7 @@ End Interface
         <WorkItem(538500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538500")>
         <Fact>
         Public Sub TypeThroughBaseInterface()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface IA
@@ -1184,7 +1186,7 @@ End Class
         '    .
         <Fact>
         Public Sub TypeFromBaseInterfaceAmbiguous()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface IA
@@ -1225,7 +1227,7 @@ BC30685: 'C' is ambiguous across the inherited interfaces 'IA1Base' and 'IA'.
 
         <Fact>
         Public Sub TypeFromInterfaceDiamondInheritance()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface IA
@@ -1271,7 +1273,7 @@ End Interface
         '
         <Fact>
         Public Sub TypeFromInterfaceYInheritanceShadow()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I0
@@ -1316,7 +1318,7 @@ End Interface
         '
         <Fact>
         Public Sub TypeFromInterfaceYInheritanceNoShadow()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I0
@@ -1366,7 +1368,7 @@ BC30685: 'C1' is ambiguous across the inherited interfaces 'IA' and 'I0'.
         '
         <Fact>
         Public Sub TypeFromInterfaceAInheritanceShadow()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I0
@@ -1410,7 +1412,7 @@ End Interface
         '
         <Fact>
         Public Sub TypeFromInterfaceAInheritanceShadow1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I0
@@ -1457,7 +1459,7 @@ End Interface
         '
         <Fact>
         Public Sub TypeFromInterfaceAInheritanceShadow2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I0
@@ -1507,7 +1509,7 @@ End Interface
         '
         <Fact>
         Public Sub TypeFromInterfaceAInheritanceNoShadow()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I0
@@ -1554,7 +1556,7 @@ BC30685: 'C1' is ambiguous across the inherited interfaces 'I0' and 'I1'.
 
         <Fact>
         Public Sub TypeFromInterfaceCycles()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 interface ii1 : inherits ii1,ii2
@@ -1579,7 +1581,7 @@ interface ii1 : inherits ii1,ii2
 
         <Fact>
         Public Sub TypeFromInterfaceCantShadowAmbiguity()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface Base1
@@ -1624,7 +1626,7 @@ BC30685: 'c1' is ambiguous across the inherited interfaces 'Base1' and 'Base2'.
 
         <Fact>
         Public Sub TypeFromInterfaceCantShadowAmbiguity1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface Base1
@@ -1671,7 +1673,7 @@ End Class
 
         <Fact>
         Public Sub TypeFromInterfaceUnreachableAmbiguityIsOk()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface Base1
@@ -1732,7 +1734,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1759,7 +1761,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1773,7 +1775,7 @@ End Class
         <WorkItem(538878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538878")>
         <Fact>
         Public Sub ProtectedNestedBase()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -1802,7 +1804,7 @@ End Class
         <WorkItem(537949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537949")>
         <Fact>
         Public Sub ImplementingNestedInherited()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I(Of T)
@@ -1822,7 +1824,7 @@ End Class
         <WorkItem(538509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538509")>
         <Fact>
         Public Sub ImplementingNestedInherited1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class B
@@ -1848,7 +1850,7 @@ End Class
         <WorkItem(538811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538811")>
         <Fact>
         Public Sub OverloadedViaInterfaceInheritance()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface IA(Of T)
@@ -1886,7 +1888,7 @@ BC30521: Overload resolution failed because no accessible 'Goo' is most specific
 
         <Fact>
         Public Sub OverloadedViaInterfaceInheritance1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 
@@ -1927,7 +1929,7 @@ BC30685: 'Goo' is ambiguous across the inherited interfaces 'IB' and 'IA(Of Stri
         <WorkItem(539775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539775")>
         <Fact>
         Public Sub AmbiguousNestedInterfaceInheritedFromMultipleGenericInstantiations()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         Interface A(Of T)
@@ -1954,7 +1956,7 @@ BC30685: 'B' is ambiguous across the inherited interfaces 'A(Of A(Of T).B)' and 
         <WorkItem(538809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538809")>
         <Fact>
         Public Sub Bug4532()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface IA(Of T)
@@ -1983,7 +1985,7 @@ End Class
 
         <Fact>
         Public Sub CircularInheritanceThroughSubstitution()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A(Of T)
@@ -2033,7 +2035,7 @@ End Class
 
             If True Then
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(text)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(text)
 
                 Dim classB = CType(compilation.GlobalNamespace.GetMembers("B").Single(), NamedTypeSymbol)
                 Dim classY = CType(classB.GetMembers("Y").Single(), NamedTypeSymbol)
@@ -2050,7 +2052,7 @@ End Class
 
             If True Then
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(text)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(text)
 
                 Dim classB = CType(compilation.GlobalNamespace.GetMembers("B").Single(), NamedTypeSymbol)
                 Dim classY = CType(classB.GetMembers("Y").Single(), NamedTypeSymbol)
@@ -2081,7 +2083,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Dim g = compilation.GlobalNamespace
             Dim x = g.GetTypeMembers("X").Single()
             Dim y = g.GetTypeMembers("Y").Single()
@@ -2110,7 +2112,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Assert.Equal(1, compilation.GetDeclarationDiagnostics().Length)
         End Sub
 
@@ -2139,7 +2141,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Dim g = compilation.GlobalNamespace
             Dim z = g.GetTypeMembers("Z").Single()
             Dim w = g.GetTypeMembers("W").Single()
@@ -2167,7 +2169,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithMscorlib40(text)
             CompilationUtils.AssertNoErrors(compilation0)  ' same as in Dev10
 
         End Sub
@@ -2175,7 +2177,7 @@ End Class
         <WorkItem(544454, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544454")>
         <Fact()>
         Public Sub InterfaceImplementedWithPrivateType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports System
@@ -2212,13 +2214,13 @@ End Class
     </file>
 </compilation>
 
-            Dim c2 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(c2Source, {New VisualBasicCompilationReference(compilation)})
+            Dim c2 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(c2Source, {New VisualBasicCompilationReference(compilation)})
             'Works this way, but doesn't when compilation is supplied as metadata
             compilation.VerifyDiagnostics()
             c2.VerifyDiagnostics()
 
             Dim compilationImage = compilation.EmitToArray(options:=New EmitOptions(metadataOnly:=True))
-            CompilationUtils.CreateCompilationWithMscorlibAndReferences(c2Source, {MetadataReference.CreateFromImage(compilationImage)}).VerifyDiagnostics()
+            CompilationUtils.CreateCompilationWithMscorlib40AndReferences(c2Source, {MetadataReference.CreateFromImage(compilationImage)}).VerifyDiagnostics()
         End Sub
 
         <WorkItem(792711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792711")>
@@ -2235,9 +2237,9 @@ End Class
     </file>
                 </compilation>
 
-            Dim metadataRef = CreateCompilationWithMscorlib(source).EmitToImageReference(embedInteropTypes:=True)
+            Dim metadataRef = CreateCompilationWithMscorlib40(source).EmitToImageReference(embedInteropTypes:=True)
 
-            Dim comp = CreateCompilationWithMscorlibAndReferences(<compilation/>, {metadataRef})
+            Dim comp = CreateCompilationWithMscorlib40AndReferences(<compilation/>, {metadataRef})
             Dim derived = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Derived")
             Assert.Equal(TypeKind.Class, derived.TypeKind)
         End Sub
@@ -2257,7 +2259,7 @@ End Interface
     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC30002: Type 'B.B' is not defined.
     Interface B(Of S) : Inherits A(Of B(Of S).B(Of S))
@@ -2287,7 +2289,7 @@ End Interface
                 </compilation>
 
             ' Can't find NotFound in C(Of Integer), so we check the base type C(Of C(Of Integer)), etc.
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC30296: Interface 'C(Of T)' cannot inherit from itself: 
     'C(Of T)' inherits from 'C(Of T)'.
@@ -2321,7 +2323,7 @@ End Interface
                 </compilation>
 
             ' Can't find NotFound in C(Of Integer), so we check the base type D(Of C(Of Integer)), etc.
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC30296: Interface 'C(Of T)' cannot inherit from itself: 
     'C(Of T)' inherits from 'D(Of C(Of T))'.
@@ -2353,7 +2355,7 @@ End Class
                 </compilation>
 
             ' Can't find NotFound in C(Of Integer), so we check the base type C(Of C(Of Integer)), etc.
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC31447: Class 'C(Of T)' cannot reference itself in Inherits clause.
 Class C(Of T) : Inherits C(Of C(Of T))
@@ -2382,7 +2384,7 @@ Interface A(Of T)
 End Interface
     </file>
                 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
 
             Dim a = comp.GetTypeByMetadataName("A`1")
             Dim interfaces = a.AllInterfaces
@@ -2416,7 +2418,7 @@ End Interface
 
     </file>
                 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
 
             Dim a = comp.GetTypeByMetadataName("A`1")
             Dim interfaces = a.AllInterfaces

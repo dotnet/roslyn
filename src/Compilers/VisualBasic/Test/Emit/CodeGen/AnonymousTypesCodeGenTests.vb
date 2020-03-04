@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Threading.Tasks
@@ -157,7 +159,7 @@ End Module
                          </compilation>
 
             For i = 0 To 100
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+                Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
 
                 Dim tasks(10) As Task
                 For jj = 0 To tasks.Length - 1
@@ -807,7 +809,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly))>
         Public Sub TestAnonymousTypeWithOptionInferOn()
             CompileAndVerify(
 <compilation>

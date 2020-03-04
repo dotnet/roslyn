@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         public abstract bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
         public abstract (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
-        public abstract SyntaxNode Update(SyntaxNode declaration, OptionSet options, ParseOptions parseOptions, bool useExpressionBody);
+        public abstract SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody);
 
         public abstract Location GetDiagnosticLocation(SyntaxNode declaration);
 
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 UseExpressionBodyForMethodsHelper.Instance,
                 UseExpressionBodyForOperatorsHelper.Instance,
                 UseExpressionBodyForPropertiesHelper.Instance,
-                UseExpressionBodyForAccessorsHelper.Instance);
+                UseExpressionBodyForAccessorsHelper.Instance,
+                UseExpressionBodyForLocalFunctionHelper.Instance);
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,10 +31,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamedTypeSymbol baseType,
             ImmutableArray<INamedTypeSymbol> interfaces,
             SpecialType specialType,
+            NullableAnnotation nullableAnnotation,
             ImmutableArray<ISymbol> members,
             ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
             INamedTypeSymbol enumUnderlyingType)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType, typeMembers)
+            : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation, typeMembers)
         {
             _typeKind = typeKind;
             _typeParameters = typeParameters.NullToEmpty();
@@ -44,12 +47,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.OriginalDefinition = this;
         }
 
-        protected override CodeGenerationSymbol Clone()
+        protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
         {
             return new CodeGenerationNamedTypeSymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
                 this.Modifiers, this.TypeKind, this.Name, _typeParameters, _baseType,
-                _interfaces, this.SpecialType, _members, this.TypeMembers,
+                _interfaces, this.SpecialType, nullableAnnotation, _members, this.TypeMembers,
                 this.EnumUnderlyingType);
         }
 
@@ -57,13 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override SymbolKind Kind => SymbolKind.NamedType;
 
-        public override int Arity
-        {
-            get
-            {
-                return this.TypeParameters.Length;
-            }
-        }
+        public override int Arity => this.TypeParameters.Length;
 
         public override bool IsGenericType
         {
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override INamedTypeSymbol EnumUnderlyingType => _enumUnderlyingType;
 
-        public override INamedTypeSymbol ConstructedFrom
+        protected override CodeGenerationNamedTypeSymbol ConstructedFrom
         {
             get
             {
@@ -125,6 +122,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 return this.TypeParameters.As<ITypeSymbol>();
+            }
+        }
+
+        public override ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations
+        {
+            get
+            {
+                // TODO: what should this be?
+                return this.TypeParameters.SelectAsArray(t => NullableAnnotation.NotAnnotated);
             }
         }
 

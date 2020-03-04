@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -30,7 +32,7 @@ namespace NS
     }
 }
 ";
-                    var comp = CreateStandardCompilation(src, assemblyName: "Goo1", options: TestOptions.ReleaseDll);
+                    var comp = CreateCompilation(src, assemblyName: "Goo1", options: TestOptions.ReleaseDll);
                     s_goo1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
@@ -55,7 +57,7 @@ namespace NS
     }
 }
 ";
-                    var comp = CreateStandardCompilation(src, assemblyName: "Goo2", options: TestOptions.ReleaseDll);
+                    var comp = CreateCompilation(src, assemblyName: "Goo2", options: TestOptions.ReleaseDll);
                     s_goo2 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
@@ -80,7 +82,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.GetDiagnostics().Verify();
         }
@@ -132,7 +134,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.GetDiagnostics().Verify();
         }
@@ -152,7 +154,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.VerifyDiagnostics(
                 // (3,1): error CS1537: The using alias 'Bar' appeared previously in this namespace
@@ -180,7 +182,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (2,14): error CS0430: The extern alias 'bar' was not specified in a /reference option
@@ -207,7 +209,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateStandardCompilation(src, assemblyName: "Baz.dll", options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src, assemblyName: "Baz.dll", options: TestOptions.ReleaseDll);
             var outputMetadata = AssemblyMetadata.CreateFromImage(comp.EmitToArray());
             var goo1 = outputMetadata.GetReference();
             var goo1Alias = outputMetadata.GetReference(aliases: ImmutableArray.Create("Baz"));
@@ -222,7 +224,7 @@ namespace NS
     }
 }
 ";
-            comp = CreateStandardCompilation(src, assemblyName: "Bar.dll", options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(src, assemblyName: "Bar.dll", options: TestOptions.ReleaseDll);
             comp = comp.AddReferences(goo1);
             var goo2 = MetadataReference.CreateFromImage(comp.EmitToArray());
 
@@ -236,7 +238,7 @@ class Maine
     }
 }
 ";
-            comp = CreateStandardCompilation(src);
+            comp = CreateCompilation(src);
             comp = comp.AddReferences(goo2, goo1Alias);
             comp.VerifyDiagnostics(
                 // (6,20): warning CS0219: The variable 'd' is assigned but its value is never used
@@ -258,7 +260,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0246: The type or namespace name 'NS' could not be found (are you missing a using directive or an assembly reference?)
@@ -282,7 +284,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (2,14): error CS1537: The using alias 'Bar' appeared previously in this namespace
@@ -309,7 +311,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateStandardCompilation(src, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
             var goo1Alias = comp.EmitToImageReference(aliases: ImmutableArray.Create("global"));
 
             src =
@@ -323,7 +325,7 @@ class Maine
     }
 }
 ";
-            comp = CreateStandardCompilation(src);
+            comp = CreateCompilation(src);
             comp = comp.AddReferences(goo1Alias);
             comp.VerifyDiagnostics(
                 // (2,14): error CS1681: You cannot redefine the global extern alias
@@ -344,7 +346,7 @@ class A : Bar::NS.Goo {}
 ";
             var tree = Parse(text);
             var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp = comp.AddReferences(Goo1);
 
             var model = comp.GetSemanticModel(tree);
@@ -377,7 +379,7 @@ class A : Bar::NS.Goo {}
         }
     }
 }";
-            var comp = CreateStandardCompilation(text).AddReferences(Goo1);
+            var comp = CreateCompilation(text).AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (3,5): info CS8020: Unused extern alias.
                 //     extern alias Bar;
@@ -388,14 +390,14 @@ class A : Bar::NS.Goo {}
         [Fact]
         public void SameExternAliasInMultipleTreesValid()
         {
-            var comp1 = CreateStandardCompilation("public class C { }", assemblyName: "A1");
+            var comp1 = CreateCompilation("public class C { }", assemblyName: "A1");
             var ref1 = comp1.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
-            var comp2 = CreateStandardCompilation("public class D { }", assemblyName: "A2");
+            var comp2 = CreateCompilation("public class D { }", assemblyName: "A2");
             var ref2 = comp2.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
             const int numFiles = 20;
-            var comp3 = CreateStandardCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;"), new[] { ref1, ref2 }, assemblyName: "A3.dll");
+            var comp3 = CreateCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;").ToArray(), new[] { ref1, ref2 }, assemblyName: "A3.dll");
 
             var targets = comp3.SyntaxTrees.AsParallel().Select(tree =>
             {
@@ -404,14 +406,14 @@ class A : Bar::NS.Goo {}
                 var aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
 
                 var aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
-                return (NamespaceSymbol)aliasSymbol.Target;
+                return (INamespaceSymbol)aliasSymbol.Target;
             }).ToArray(); //force evaluation
 
             var firstTarget = targets.First();
             Assert.NotNull(firstTarget);
-            Assert.IsType<MergedNamespaceSymbol>(firstTarget);
-            firstTarget.GetMember<NamedTypeSymbol>("C");
-            firstTarget.GetMember<NamedTypeSymbol>("D");
+            Assert.IsType<MergedNamespaceSymbol>(firstTarget.GetSymbol());
+            firstTarget.GetMember<INamedTypeSymbol>("C");
+            firstTarget.GetMember<INamedTypeSymbol>("D");
 
             Assert.True(targets.All(target => ReferenceEquals(firstTarget, target)));
         }
@@ -421,7 +423,7 @@ class A : Bar::NS.Goo {}
         public void SameExternAliasInMultipleTreesInvalid()
         {
             const int numFiles = 20;
-            var comp3 = CreateStandardCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;"), assemblyName: "A3.dll");
+            var comp3 = CreateCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;").ToArray(), assemblyName: "A3.dll");
 
             var targets = comp3.SyntaxTrees.AsParallel().Select(tree =>
             {
@@ -430,13 +432,13 @@ class A : Bar::NS.Goo {}
                 var aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
 
                 var aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
-                return (NamespaceSymbol)aliasSymbol.Target;
+                return (INamespaceSymbol)aliasSymbol.Target;
             }).ToArray(); //force evaluation
 
             var firstTarget = targets.First();
             Assert.NotNull(firstTarget);
-            Assert.IsType<MissingNamespaceSymbol>(firstTarget);
-            Assert.Equal(0, firstTarget.GetMembers().Length);
+            Assert.IsType<MissingNamespaceSymbol>(firstTarget.GetSymbol());
+            Assert.Empty(firstTarget.GetMembers());
 
             Assert.True(targets.All(target => ReferenceEquals(firstTarget, target)));
         }
@@ -464,8 +466,8 @@ class Test
         C c = new C();
     }
 }";
-            var libRef = new CSharpCompilationReference(CreateStandardCompilation(libSource, assemblyName: "lib"), aliases: ImmutableArray.Create("A"));
-            var comp = CreateStandardCompilation(source, new[] { libRef });
+            var libRef = new CSharpCompilationReference(CreateCompilation(libSource, assemblyName: "lib"), aliases: ImmutableArray.Create("A"));
+            var comp = (Compilation)CreateCompilation(source, new[] { libRef });
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -477,9 +479,9 @@ class Test
             var usingTargetSyntax = (QualifiedNameSyntax)usingSyntax.Name;
             var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)usingTargetSyntax.Left;
 
-            var aliasedGlobalNamespace = comp.GetReferencedAssemblySymbol(libRef).GlobalNamespace;
-            var namespaceN = aliasedGlobalNamespace.GetMember<NamespaceSymbol>("N");
-            var typeC = namespaceN.GetMember<NamedTypeSymbol>("C");
+            var aliasedGlobalNamespace = ((IAssemblySymbol)comp.GetAssemblyOrModuleSymbol(libRef)).GlobalNamespace;
+            var namespaceN = aliasedGlobalNamespace.GetMember<INamespaceSymbol>("N");
+            var typeC = namespaceN.GetMember<INamedTypeSymbol>("C");
 
             var externAliasSymbol = model.GetDeclaredSymbol(externAliasSyntax);
             Assert.Equal("A", externAliasSymbol.Name);

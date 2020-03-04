@@ -1,4 +1,4 @@
-##Checklist of work for Source Generators:
+## Checklist of work for Source Generators:
 - [ ] GenerateSource
   - [ ] Return errors to caller
   - [ ] Catch exceptions and return to caller as errors

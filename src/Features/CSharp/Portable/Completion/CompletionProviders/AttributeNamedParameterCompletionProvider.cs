@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -54,10 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     return;
                 }
-
-                var attributeArgumentList = token.Parent as AttributeArgumentListSyntax;
-                var attributeSyntax = token.Parent.Parent as AttributeSyntax;
-                if (attributeSyntax == null || attributeArgumentList == null)
+                if (!(token.Parent.Parent is AttributeSyntax attributeSyntax) || !(token.Parent is AttributeArgumentListSyntax attributeArgumentList))
                 {
                     return;
                 }
@@ -96,8 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private bool IsAfterNameColonArgument(SyntaxToken token)
         {
-            var argumentList = token.Parent as AttributeArgumentListSyntax;
-            if (token.Kind() == SyntaxKind.CommaToken && argumentList != null)
+            if (token.Kind() == SyntaxKind.CommaToken && token.Parent is AttributeArgumentListSyntax argumentList)
             {
                 foreach (var item in argumentList.Arguments.GetWithSeparators())
                 {
@@ -122,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private bool IsAfterNameEqualsArgument(SyntaxToken token)
         {
-            var argumentList = token.Parent as AttributeArgumentListSyntax;
-            if (token.Kind() == SyntaxKind.CommaToken && argumentList != null)
+            if (token.Kind() == SyntaxKind.CommaToken && token.Parent is AttributeArgumentListSyntax argumentList)
             {
                 foreach (var item in argumentList.Arguments.GetWithSeparators())
                 {
@@ -157,7 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var q = from p in attributeNamedParameters
                     where !existingNamedParameters.Contains(p.Name)
                     select SymbolCompletionItem.CreateWithSymbolId(
-                       displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
+                       displayText: p.Name.ToIdentifierToken().ToString(),
+                       displayTextSuffix: SpaceEqualsString,
                        insertionText: null,
                        symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
@@ -177,7 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                    from p in pl
                    where !existingNamedParameters.Contains(p.Name)
                    select SymbolCompletionItem.CreateWithSymbolId(
-                       displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
+                       displayText: p.Name.ToIdentifierToken().ToString(),
+                       displayTextSuffix: ColonString,
                        insertionText: null,
                        symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
@@ -214,8 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CancellationToken cancellationToken)
         {
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
-            var attributeType = semanticModel.GetTypeInfo(attribute, cancellationToken).Type as INamedTypeSymbol;
-            if (within != null && attributeType != null)
+            if (within != null && semanticModel.GetTypeInfo(attribute, cancellationToken).Type is INamedTypeSymbol attributeType)
             {
                 return attributeType.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
                                                          .Select(c => c.Parameters);
@@ -242,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
         {
-            var displayText = selectedItem.DisplayText;
+            var displayText = selectedItem.DisplayText + selectedItem.DisplayTextSuffix;
 
             if (ch != null)
             {

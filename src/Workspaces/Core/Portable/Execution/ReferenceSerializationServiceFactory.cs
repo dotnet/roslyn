@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Reflection;
@@ -16,17 +18,22 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private static readonly IAnalyzerAssemblyLoader s_loader = new NullLoader();
 
+        [ImportingConstructor]
+        public ReferenceSerializationServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(
-                workspaceServices.GetService<ITemporaryStorageService>(),
+                workspaceServices.GetService<ITemporaryStorageService>() as ITemporaryStorageService2,
                 workspaceServices.GetService<IDocumentationProviderService>());
         }
 
         private sealed class Service : AbstractReferenceSerializationService
         {
-            public Service(ITemporaryStorageService service, IDocumentationProviderService documentationService) :
-                base(service, documentationService)
+            public Service(ITemporaryStorageService2 service, IDocumentationProviderService documentationService)
+                : base(service, documentationService)
             {
             }
 

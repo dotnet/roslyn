@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -27,13 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 public override string Title => EditorFeaturesResources.Preview_changes2;
 
-                protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+                internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var previewDialogService = _workspace.Services.GetService<IPreviewDialogService>();
                     if (previewDialogService == null)
                     {
-                        return null;
+                        return ImmutableArray<CodeActionOperation>.Empty;
                     }
 
                     var changedSolution = previewDialogService.PreviewChanges(
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     if (changedSolution == null)
                     {
                         // User pressed the cancel button.
-                        return null;
+                        return ImmutableArray<CodeActionOperation>.Empty;
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();

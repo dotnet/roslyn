@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1539,7 +1541,7 @@ public class myFor
     }
 }
 ";
-            CompileAndVerify(text, additionalRefs: new MetadataReference[] { CSharpRef, SystemCoreRef }, expectedOutput: @"Initialize
+            CompileAndVerify(text, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"Initialize
 Done
 Next
 Done
@@ -1614,7 +1616,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"1
+            var comp = CompileAndVerify(text, expectedOutput: @"1
 2
 3");
         }
@@ -1650,7 +1652,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"1
+            var comp = CompileAndVerify(text, expectedOutput: @"1
 2
 3");
         }
@@ -1674,7 +1676,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"1
+            CompileAndVerify(text, expectedOutput: @"1
 4
 9
 16");
@@ -1699,7 +1701,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"1
+            var comp = CompileAndVerify(text, expectedOutput: @"1
 4
 9
 16");

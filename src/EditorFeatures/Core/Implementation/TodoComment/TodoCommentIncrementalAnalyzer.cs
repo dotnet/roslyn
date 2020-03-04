@@ -1,15 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -56,38 +59,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 return;
             }
 
+            // Compute and persist the TODO comments for this document.
+            var (existingData, newData) = await ComputeAndPersistTodoCommentsAsync(document, _state, _todoCommentTokens, cancellationToken).ConfigureAwait(false);
+
+            // Now update the task list if there are any changes from the previously computed TODO comments, if any.
+            // NOTE: We don't check for cancellation here to ensure the task list view and our latest
+            // computed state are identical.
+            if (existingData == null || existingData.Items.Length != newData.Items.Length)
+            {
+                Debug.Assert(_workspace == document.Project.Solution.Workspace);
+                RaiseTaskListUpdated(_workspace, document.Project.Solution, document.Id, newData.Items);
+            }
+        }
+
+        private static async Task<(Data existingData, Data newData)> ComputeAndPersistTodoCommentsAsync(
+            Document document,
+            TodoCommentState state,
+            TodoCommentTokens todoCommentTokens,
+            CancellationToken cancellationToken)
+        {
             // use tree version so that things like compiler option changes are considered
             var textVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
             var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            var existingData = await _state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
+            var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
             if (existingData != null)
             {
                 // check whether we can use the data as it is (can happen when re-using persisted data from previous VS session)
                 if (CheckVersions(document, textVersion, syntaxVersion, existingData))
                 {
-                    Contract.Requires(_workspace == document.Project.Solution.Workspace);
-                    RaiseTaskListUpdated(_workspace, document.Project.Solution, document.Id, existingData.Items);
-                    return;
+                    return (existingData, existingData);
                 }
             }
 
-            var tokens = _todoCommentTokens.GetTokens(document, cancellationToken);
+            var tokens = todoCommentTokens.GetTokens(document);
             var comments = await GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
             var items = await CreateItemsAsync(document, comments, cancellationToken).ConfigureAwait(false);
 
             var data = new Data(textVersion, syntaxVersion, items);
-            await _state.PersistAsync(document, data, cancellationToken).ConfigureAwait(false);
-
-            // * NOTE * cancellation can't throw after this point.
-            if (existingData == null || existingData.Items.Length > 0 || data.Items.Length > 0)
-            {
-                Contract.Requires(_workspace == document.Project.Solution.Workspace);
-                RaiseTaskListUpdated(_workspace, document.Project.Solution, document.Id, data.Items);
-            }
+            await state.PersistAsync(document, data, cancellationToken).ConfigureAwait(false);
+            return (existingData, data);
         }
 
-        private async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
+        private static async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<ITodoCommentService>();
             if (service == null)
@@ -99,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return await service.GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<TodoItem>> CreateItemsAsync(Document document, IList<TodoComment> comments, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<TodoItem>> CreateItemsAsync(Document document, IList<TodoComment> comments, CancellationToken cancellationToken)
         {
             var items = ImmutableArray.CreateBuilder<TodoItem>();
             if (comments != null)
@@ -116,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return items.ToImmutable();
         }
 
-        private TodoItem CreateItem(Document document, SourceText text, SyntaxTree tree, TodoComment comment)
+        private static TodoItem CreateItem(Document document, SourceText text, SyntaxTree tree, TodoComment comment)
         {
             // make sure given position is within valid text range.
             var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, comment.Position)), 0);
@@ -128,7 +142,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return new TodoItem(
                 comment.Descriptor.Priority,
                 comment.Message,
-                document.Project.Solution.Workspace,
                 document.Id,
                 mappedLine: mappedLineInfo.StartLinePosition.Line,
                 originalLine: originalLineInfo.StartLinePosition.Line,
@@ -149,16 +162,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             // TODO let's think about what to do here. for now, let call it synchronously. also, there is no actual async-ness for the
             // TryGetExistingDataAsync, API just happen to be async since our persistent API is async API. but both caller and implementor are
             // actually not async.
-            var existingData = _state.TryGetExistingDataAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (existingData == null)
-            {
-                return ImmutableArray<TodoItem>.Empty;
-            }
-
-            return existingData.Items;
+            var (_, newData) = ComputeAndPersistTodoCommentsAsync(document, _state, _todoCommentTokens, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            return newData.Items;
         }
 
-        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace, CancellationToken cancellationToken)
+        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace)
         {
             foreach (var documentId in _state.GetDocumentIds())
             {
@@ -216,27 +224,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         #region not used
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public void RemoveProject(ProjectId projectId)

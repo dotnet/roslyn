@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -330,12 +333,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _lazyWellKnownTypeMembers(member)
         End Function
 
-        Friend Overrides Function IsSystemTypeReference(type As ITypeSymbol) As Boolean
-            Return DirectCast(type, TypeSymbol) = GetWellKnownType(WellKnownType.System_Type)
+        Friend Overrides Function IsSystemTypeReference(type As ITypeSymbolInternal) As Boolean
+            Return TypeSymbol.Equals(DirectCast(type, TypeSymbol), GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.ConsiderEverything)
         End Function
 
-        Friend Overrides Function CommonGetWellKnownTypeMember(member As WellKnownMember) As ISymbol
+        Friend Overrides Function CommonGetWellKnownTypeMember(member As WellKnownMember) As ISymbolInternal
             Return GetWellKnownTypeMember(member)
+        End Function
+
+        Friend Overrides Function CommonGetWellKnownType(wellknownType As WellKnownType) As ITypeSymbolInternal
+            Return GetWellKnownType(wellknownType)
         End Function
 
         Friend Overrides Function IsAttributeType(type As ITypeSymbol) As Boolean
@@ -626,6 +633,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Protected Overrides Function IsByRefMethod(ByVal method As MethodSymbol) As Boolean
                 Return method.ReturnsByRef
+            End Function
+
+            Protected Overrides Function IsByRefProperty(ByVal [property] As PropertySymbol) As Boolean
+                Return [property].ReturnsByRef
             End Function
 
             Protected Overrides Function IsGenericMethodTypeParam(type As TypeSymbol, paramPosition As Integer) As Boolean

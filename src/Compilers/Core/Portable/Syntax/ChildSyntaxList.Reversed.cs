@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -11,9 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public partial struct ChildSyntaxList
+    public readonly partial struct ChildSyntaxList
     {
-        public partial struct Reversed : IEnumerable<SyntaxNodeOrToken>, IEquatable<Reversed>
+        public readonly partial struct Reversed : IEnumerable<SyntaxNodeOrToken>, IEquatable<Reversed>
         {
             private readonly SyntaxNode _node;
             private readonly int _count;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void DocCommentWriteException()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 /// <summary>
 /// Doc comment for <see href=""C"" />
 /// </summary>
@@ -45,7 +47,7 @@ public class C
     /// </summary>
     public void M() { }
 }");
-            using (new EnsureEnglishUICulture()) 
+            using (new EnsureEnglishUICulture())
             {
                 var diags = new DiagnosticBag();
                 var badStream = new BrokenStream();
@@ -2652,7 +2654,7 @@ class C{}";
             var doc = classKeyword.GetLeadingTrivia()[0].GetStructure() as DocumentationCommentTriviaSyntax;
 
             // we should still get an XmlElement
-            Assert.IsType(typeof(XmlElementSyntax), doc.Content[0]);
+            Assert.IsType<XmlElementSyntax>(doc.Content[0]);
         }
 
         [WorkItem(926873, "DevDiv/Personal")]
@@ -2962,7 +2964,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlSummaryElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// This class provides extension methods.
 /// </summary>";
@@ -2982,7 +2984,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlSeeElementAndXmlSeeAlsoElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// This class provides extension methods for the <see cref=""TypeName""/> class and the <seealso cref=""TypeName2""/> class.
 /// </summary>";
@@ -3008,7 +3010,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlNewLineElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// This is a summary.
 /// </summary>
@@ -3039,7 +3041,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlParamAndParamRefElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// <paramref name=""b""/>
 /// </summary>
@@ -3065,7 +3067,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlReturnsElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// 
 /// </summary>
@@ -3092,7 +3094,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlRemarksElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// 
 /// </summary>
@@ -3121,7 +3123,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlExceptionElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// 
 /// </summary>
@@ -3129,7 +3131,7 @@ public class Program
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine(Environment.NewLine), 
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
                     SyntaxFactory.XmlNewLine(Environment.NewLine)),
                 SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlExceptionElement(
@@ -3146,7 +3148,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlPermissionElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// 
 /// </summary>
@@ -3165,6 +3167,106 @@ public class Program
             var actual = documentationComment.ToFullString();
 
             Assert.Equal<string>(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(39315, "https://github.com/dotnet/roslyn/issues/39315")]
+        public void WriteDocumentationCommentXml_01()
+        {
+            var comp = CreateCompilation(new[] {
+                Parse(@"
+/// <summary> a
+/// </summary>
+"),
+                Parse(@"
+
+/// <summary> b
+/// </summary>
+")});
+
+            var diags = DiagnosticBag.GetInstance();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName: null,
+                xmlDocStream: null,
+                diags,
+                default(CancellationToken),
+                filterTree: comp.SyntaxTrees[0]);
+
+            diags.ToReadOnlyAndFree().Verify(
+                // (2,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> a
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(2, 1)
+                );
+
+            diags = DiagnosticBag.GetInstance();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName: null,
+                xmlDocStream: null,
+                diags,
+                default(CancellationToken),
+                filterTree: comp.SyntaxTrees[0],
+                filterSpanWithinTree: new TextSpan(0, 0));
+
+            diags.ToReadOnlyAndFree().Verify();
+
+            diags = DiagnosticBag.GetInstance();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName: null,
+                xmlDocStream: null,
+                diags,
+                default(CancellationToken),
+                filterTree: comp.SyntaxTrees[1]);
+
+            diags.ToReadOnlyAndFree().Verify(
+                // (3,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> b
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 1)
+                );
+
+            diags = DiagnosticBag.GetInstance();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName: null,
+                xmlDocStream: null,
+                diags,
+                default(CancellationToken),
+                filterTree: null);
+
+            diags.ToReadOnlyAndFree().Verify(
+                // (2,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> a
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(2, 1),
+                // (3,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> b
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 1)
+                );
+
+            diags = DiagnosticBag.GetInstance();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName: null,
+                xmlDocStream: null,
+                diags,
+                default(CancellationToken),
+                filterTree: null,
+                filterSpanWithinTree: new TextSpan(0, 0));
+
+            diags.ToReadOnlyAndFree().Verify(
+                // (2,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> a
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(2, 1),
+                // (3,1): warning CS1587: XML comment is not placed on a valid language element
+                // /// <summary> b
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 1)
+                );
         }
 
         #region Xml Test helpers

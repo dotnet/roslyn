@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -56,6 +58,85 @@ End Module|]",
     End Sub
 End Module")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        Public Async Function TestNoImportsWithCopyright() As Task
+            Await TestInRegularAndScriptAsync(
+"[|' Copyright (c) Somebody.
+
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module|]",
+"' Copyright (c) Somebody.
+
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module")
+        End Function
+
+        <WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        Public Async Function TestReferencesWithCopyrightAndGroupings() As Task
+            Await TestInRegularAndScriptAsync(
+"[|' Copyright (c) Somebody.
+
+Imports System.Collections.Generic
+
+Imports System.Linq
+
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Dim a As Action
+    End Sub
+End Module|]",
+"' Copyright (c) Somebody.
+
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Dim a As Action
+    End Sub
+End Module")
+        End Function
+
+        <WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        Public Async Function TestReferencesWithCopyrightAndPreservableTrivia() As Task
+            Await TestInRegularAndScriptAsync(
+"[|' Copyright (c) Somebody.
+
+Imports System.Collections.Generic
+
+Imports System
+' This is important
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim a As Action
+    End Sub
+End Module|]",
+"' Copyright (c) Somebody.
+
+Imports System
+' This is important
+
+Module Program
+    Sub Main(args As String())
+        Dim a As Action
+    End Sub
+End Module")
+        End Function
+
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestSimpleTypeName() As Task

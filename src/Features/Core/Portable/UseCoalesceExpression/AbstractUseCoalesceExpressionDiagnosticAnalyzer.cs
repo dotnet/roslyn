@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,49 +18,43 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         TSyntaxKind,
         TExpressionSyntax,
         TConditionalExpressionSyntax,
-        TBinaryExpressionSyntax> : AbstractCodeStyleDiagnosticAnalyzer
+        TBinaryExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        protected AbstractUseCoalesceExpressionDiagnosticAnalyzer() 
+        protected AbstractUseCoalesceExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
+                   CodeStyleOptions.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
-        protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
-        protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
+        {
+            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
+                syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
+        }
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
+            var option = context.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
             if (!option.Value)
             {
                 return;
             }
 
-            var syntaxFacts = this.GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 
@@ -64,14 +62,14 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             var whenTrueNodeLow = syntaxFacts.WalkDownParentheses(whenTrueNodeHigh);
             var whenFalseNodeLow = syntaxFacts.WalkDownParentheses(whenFalseNodeHigh);
 
-            var condition = conditionNode as TBinaryExpressionSyntax;
-            if (condition == null)
+            if (!(conditionNode is TBinaryExpressionSyntax condition))
             {
                 return;
             }
 
-            var isEquals = IsEquals(condition);
-            var isNotEquals = IsNotEquals(condition);
+            var syntaxKinds = syntaxFacts.SyntaxKinds;
+            var isEquals = syntaxKinds.ReferenceEqualsExpression == condition.RawKind;
+            var isNotEquals = syntaxKinds.ReferenceNotEqualsExpression == condition.RawKind;
             if (!isEquals && !isNotEquals)
             {
                 return;
@@ -105,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var semanticModel = context.SemanticModel;
             var conditionType = semanticModel.GetTypeInfo(
-                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, cancellationToken).Type;
+                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, context.CancellationToken).Type;
             if (conditionType != null &&
                 !conditionType.IsReferenceType)
             {
@@ -128,10 +126,12 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 conditionPartToCheck.GetLocation(),
                 whenPartToCheck.GetLocation());
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                this.GetDescriptorWithSeverity(option.Notification.Value),
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 conditionalExpression.GetLocation(),
-                locations));
+                option.Notification.Severity,
+                locations,
+                properties: null));
         }
     }
 }

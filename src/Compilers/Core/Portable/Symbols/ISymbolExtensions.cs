@@ -1,15 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis
 {
-    public static class ISymbolExtensions
+    public static partial class ISymbolExtensions
     {
         /// <summary>
         /// Returns the constructed form of the ReducedFrom property,
@@ -60,7 +55,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if a given field is a nondefault tuple element
+        /// Returns true if a given field is a default tuple element
         /// </summary>
         internal static bool IsDefaultTupleElement(this IFieldSymbol field)
         {
@@ -99,6 +94,22 @@ namespace Microsoft.CodeAnalysis
             }
 
             return null;
+        }
+
+        internal static bool IsNetModule(this IAssemblySymbol assembly) =>
+            assembly is ISourceAssemblySymbol sourceAssembly && sourceAssembly.Compilation.Options.OutputKind.IsNetModule();
+
+        internal static bool IsInSource(this ISymbol symbol)
+        {
+            foreach (var location in symbol.Locations)
+            {
+                if (location.IsInSource)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

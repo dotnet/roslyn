@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Reflection;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -116,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expectedParts, actualParts);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void GetDisplayName()
         {
             var id = new AssemblyIdentity("goo");
@@ -153,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"Goo, Version=0.0.0.0, Culture=""  \'\t\r\n\\\=\,  "", PublicKeyToken=null", id.GetDisplayName());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void TryParseDisplayName_QuotingAndEscaping()
         {
             // escapes:
@@ -326,7 +329,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseSimpleName(dn, simpleName);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void GetDisplayName_QuotingAndEscaping()
         {
             TestQuotingAndEscaping(",", "\\,");
@@ -349,7 +352,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestQuotingAndEscaping("\u2000", "\u2000");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void TryParseDisplayName()
         {
             string V = "\\u" + ((int)'V').ToString("X4") + ";";
@@ -397,6 +400,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(39647, "https://github.com/dotnet/roslyn/issues/39647")]
+        public void AssemblyIdentity_EmptyName()
+        {
+            var identity = new AssemblyIdentity(noThrow: true, name: "");
+            var name = identity.GetDisplayName();
+            Assert.Equal(", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", name);
+            Assert.False(AssemblyIdentity.TryParseDisplayName(name, out _));
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void TryParseDisplayName_Version()
         {
             TestParseDisplayName("Version=1.2.3.4, goo", null);
@@ -418,7 +431,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 AssemblyIdentityParts.Name | AssemblyIdentityParts.Culture);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void TestParseVersion_Parts()
         {
             TestParseVersionInvalid("a");
@@ -465,7 +478,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseVersionInvalid("1.2.3.4.5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void TestParseVersionAll()
         {
             // all combinations:
@@ -489,7 +502,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void TryParseDisplayName_Culture()
         {
             TestParseDisplayName("goo, Version=1.0.0.1, Culture=null",
@@ -515,7 +528,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new AssemblyIdentity("Goo", new Version(1, 0, 0, 0), cultureName: null), NVCT);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void TryParseDisplayName_Keys()
         {
             // empty keys:
@@ -556,7 +569,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseDisplayName("goo, Culture=neutral, Version=1.0.0.0, PublicKey=" + StrPublicKey1 + ", PublicKeyToken=1111111111111111", null);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void TryParseDisplayName_ContentType()
         {
             TestParseDisplayName("goo, Version=1.0.0.1, ContentType=WindowsRuntime",
@@ -568,7 +581,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseDisplayName("goo, Version=1.0.0.1, ContentType=Default", null);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void TryParseDisplayName_Retargetable()
         {
             // for some reason the Fusion rejects to parse Retargetable if they are not full names
@@ -601,3 +614,4 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
     }
 }
+

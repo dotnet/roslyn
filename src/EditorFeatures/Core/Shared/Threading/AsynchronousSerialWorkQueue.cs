@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -41,25 +43,32 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
 
         #endregion
 
-        public AsynchronousSerialWorkQueue(IAsynchronousOperationListener asyncListener)
-            : base(assertIsForeground: false)
+        public AsynchronousSerialWorkQueue(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, assertIsForeground: false)
         {
             Contract.ThrowIfNull(asyncListener);
             _asyncListener = asyncListener;
 
             // Initialize so we don't have to check for null below. Force the background task to run
             // on the threadpool. 
-            _currentBackgroundTask = SpecializedTasks.EmptyTask;
+            _currentBackgroundTask = Task.CompletedTask;
         }
 
         public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         public void CancelCurrentWork()
+            => CancelCurrentWork(remainCancelled: false);
+
+        public void CancelCurrentWork(bool remainCancelled)
         {
             lock (_gate)
             {
+                remainCancelled |= _cancellationTokenSource.IsCancellationRequested;
                 _cancellationTokenSource.Cancel();
-                _cancellationTokenSource = new CancellationTokenSource();
+                if (!remainCancelled)
+                {
+                    _cancellationTokenSource = new CancellationTokenSource();
+                }
             }
         }
 

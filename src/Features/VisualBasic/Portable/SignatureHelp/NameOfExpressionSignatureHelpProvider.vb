@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -11,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Class NameOfExpressionSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of NameOfExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function IsRetriggerCharacter(ch As Char) As Boolean
             Return ch = ")"c
         End Function
@@ -19,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return ch = "("c
         End Function
 
-        Protected Overrides Function GetIntrinsicOperatorDocumentation(node As NameOfExpressionSyntax, document As Document, cancellationToken As CancellationToken) As IEnumerable(Of AbstractIntrinsicOperatorDocumentation)
-            Return {New NameOfExpressionDocumentation()}
+        Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As NameOfExpressionSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
+            Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New NameOfExpressionDocumentation()})
         End Function
 
         Protected Overrides Function IsArgumentListToken(node As NameOfExpressionSyntax, token As SyntaxToken) As Boolean

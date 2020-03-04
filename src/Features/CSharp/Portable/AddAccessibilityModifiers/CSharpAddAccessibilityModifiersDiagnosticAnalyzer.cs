@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
@@ -11,7 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer 
+    internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
         : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
     {
         public CSharpAddAccessibilityModifiersDiagnosticAnalyzer()
@@ -19,15 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
         }
 
         protected override void ProcessCompilationUnit(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
             CodeStyleOption<AccessibilityModifiersRequired> option, CompilationUnitSyntax compilationUnit)
         {
             ProcessMembers(context, generator, option, compilationUnit.Members);
         }
 
         private void ProcessMembers(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
-            CodeStyleOption<AccessibilityModifiersRequired> option, 
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
+            CodeStyleOption<AccessibilityModifiersRequired> option,
             SyntaxList<MemberDeclarationSyntax> members)
         {
             foreach (var memberDeclaration in members)
@@ -76,19 +78,67 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                 return;
             }
 
-            // If they already have accessibility, no need to report anything.
+            // This analyzer bases all of its decisions on the accessibility
             var accessibility = generator.GetAccessibility(member);
-            if (accessibility != Accessibility.NotApplicable)
+
+            // Omit will flag any accessibility values that exist and are default
+            // The other options will remove or ignore accessibility
+            var isOmit = option.Value == AccessibilityModifiersRequired.OmitIfDefault;
+
+            if (isOmit)
             {
-                return;
+                if (accessibility == Accessibility.NotApplicable)
+                {
+                    return;
+                }
+
+                var parentKind = member.Parent.Kind();
+                switch (parentKind)
+                {
+                    // Check for default modifiers in namespace and outside of namespace
+                    case SyntaxKind.CompilationUnit:
+                    case SyntaxKind.NamespaceDeclaration:
+                        {
+                            // Default is internal
+                            if (accessibility != Accessibility.Internal)
+                            {
+                                return;
+                            }
+                        }
+                        break;
+
+                    case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.StructDeclaration:
+                        {
+                            // Inside a type, default is private
+                            if (accessibility != Accessibility.Private)
+                            {
+                                return;
+                            }
+                        }
+                        break;
+
+                    default:
+                        return; // Unknown parent kind, don't do anything
+                }
+            }
+            else
+            {
+                // Mode is always, so we have to flag missing modifiers
+                if (accessibility != Accessibility.NotApplicable)
+                {
+                    return;
+                }
             }
 
-            // Missing accessibility.  Report issue to user.
+            // Have an issue to flag, either add or remove. Report issue to user.
             var additionalLocations = ImmutableArray.Create(member.GetLocation());
-            context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptorWithSeverity(option.Notification.Value),
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 name.GetLocation(),
-                additionalLocations: additionalLocations));
+                option.Notification.Severity,
+                additionalLocations: additionalLocations,
+                properties: null));
         }
     }
 }

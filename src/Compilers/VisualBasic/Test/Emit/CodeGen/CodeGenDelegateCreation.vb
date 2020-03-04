@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -39,7 +41,7 @@ End Class
     </file>
 </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(c1, symbolValidator:=
                     Sub([module])
@@ -345,7 +347,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -431,7 +433,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -522,7 +524,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -562,7 +564,7 @@ End Class
                     </file>
                          </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -622,7 +624,7 @@ BC30939: 'AddressOf' expression cannot be converted to 'MulticastDelegate' becau
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -710,7 +712,7 @@ Hello again.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -829,7 +831,7 @@ Imports System
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                  expectedOutput:=<![CDATA[
@@ -874,7 +876,7 @@ Hello from instance WideningValueDelegate S1
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -988,7 +990,7 @@ Imports System
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1089,7 +1091,7 @@ Hello from instance IdentityValueDelegate S1
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1136,7 +1138,7 @@ Hello from instance WideningValueDelegate
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1229,7 +1231,7 @@ Hello from instance WideningNullableDelegate
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1275,7 +1277,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1360,7 +1362,7 @@ Hello from instance WideningReturnNullableFunction
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
@@ -1398,7 +1400,7 @@ Hello from instance NarrowingValueDelegate
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
@@ -1433,7 +1435,7 @@ Hello from instance NarrowingNullableDelegate 23
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
@@ -1465,7 +1467,7 @@ Hello from instance OmittingArgumentsDelegate.
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
@@ -1503,7 +1505,7 @@ Hello from instance OmittingArgumentsDelegate.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1548,7 +1550,7 @@ Hello from instance OmittingReturnValueSub.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1614,7 +1616,7 @@ Hello from instance OmittingOptionalParameter1Sub.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1659,7 +1661,7 @@ Hello from instance ParamArrayInSubPerfectMatch1Sub.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1817,7 +1819,7 @@ End Module
     </file>
 </compilation>
             CompileAndVerify(source,
-                additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                 expectedOutput:=<![CDATA[
 Called SubWithParamArray: 1 2
 SubWithParamArray returned: 1 2
@@ -1877,7 +1879,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                 expectedOutput:=<![CDATA[
 Called SubWithByRefParamArrayOfReferenceTypes_Identify_1.
 SubWithByRefParamArrayOfReferenceTypes_Identify_1 returned: 1 2
@@ -1914,7 +1916,7 @@ End Module
     </file>
     </compilation>
                 CompileAndVerify(source,
-                    additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                    references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                     expectedOutput:=<![CDATA[
 Called SubWithParamArray: 1 2
 Called SubWithByRefParamArrayOfReferenceTypes_Identify_2.
@@ -2044,7 +2046,7 @@ expectedOutput:=<![CDATA[
 Derived
     ]]>)
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom)).
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom)).
                 AssertTheseDiagnostics(<expected>
 BC42016: Implicit conversion from 'Base' to 'Derived'.
         Dim x1 As new MyDelegate(AddressOf goo)
@@ -2077,7 +2079,7 @@ BC42016: Implicit conversion from 'Base' to 'Derived'.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                 expectedOutput:=<![CDATA[
@@ -2091,7 +2093,7 @@ Hello from lambda 3.
         ''' bug 7319
         <Fact>
         Public Sub AddressOfAndGenerics1()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -2137,7 +2139,7 @@ End Module
     </compilation>
 
             CompileAndVerify(source,
-                additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                 expectedOutput:=<![CDATA[
 ByRefParamArraySubOfBase returned: 23 2 3
     ]]>)
@@ -2431,7 +2433,7 @@ Module Test
 End Module
     </file>
 </compilation>
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(c,
 <expected>
@@ -2524,7 +2526,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+                Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
                 CompilationUtils.AssertNoErrors(c)
                 CompileAndVerify(c, expectedOutput:="passpass")
             Next
@@ -2584,7 +2586,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+                Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
                 CompilationUtils.AssertNoErrors(c)
                 CompileAndVerify(c, expectedOutput:="passpass")
             Next
@@ -2757,7 +2759,7 @@ Option Strict Off
 ]]>)
 #Else
             ' According to the spec, zero argument relaxation can be used only when target method has NO parameters.
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2800,7 +2802,7 @@ End Class
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>

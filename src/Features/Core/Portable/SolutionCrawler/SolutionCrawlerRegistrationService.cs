@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         [ImportingConstructor]
         public SolutionCrawlerRegistrationService(
             [ImportMany] IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _gate = new object();
 
@@ -38,12 +40,29 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             AssertAnalyzerProviders(_analyzerProviders);
 
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.SolutionCrawler);
+            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
 
-            _progressReporter = new SolutionCrawlerProgressReporter(_listener);
+            _progressReporter = new SolutionCrawlerProgressReporter();
         }
 
         public void Register(Workspace workspace)
+        {
+            EnsureRegistration(workspace, initializeLazily: true);
+        }
+
+        /// <summary>
+        /// make sure solution cralwer is registered for the given workspace.
+        /// </summary>
+        /// <param name="workspace"><see cref="Workspace"/> this solution crawler runs for</param>
+        /// <param name="initializeLazily">
+        /// when true, solution crawler will be initialized when there is the first workspace event fired. 
+        /// otherwise, it will be initialized when workspace is registered right away. 
+        /// something like "Build" will use initializeLazily:false to make sure diagnostic analyzer engine (incremental analyzer)
+        /// is initialized. otherwise, if build is called before workspace is fully populated, we will think some errors from build
+        /// doesn't belong to us since diagnostic analyzer engine is not there yet and 
+        /// let project system to take care of these unknown errors.
+        /// </param>
+        public void EnsureRegistration(Workspace workspace, bool initializeLazily)
         {
             var correlationId = LogAggregator.GetNextId();
 
@@ -58,6 +77,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var coordinator = new WorkCoordinator(
                     _listener,
                     GetAnalyzerProviders(workspace),
+                    initializeLazily,
                     new Registration(correlationId, workspace, _progressReporter));
 
                 _documentWorkCoordinatorMap.Add(workspace, coordinator);
@@ -230,13 +250,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     if (IsDefaultProvider(lazyProvider.Metadata))
                     {
-                        Contract.Requires(set.Add(Default));
+                        Debug.Assert(set.Add(Default));
                         continue;
                     }
 
                     foreach (var kind in lazyProvider.Metadata.WorkspaceKinds)
                     {
-                        Contract.Requires(set.Add(kind));
+                        Debug.Assert(set.Add(kind));
                     }
                 }
 
@@ -247,7 +267,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         private static bool IsDefaultProvider(IncrementalAnalyzerProviderMetadata providerMetadata)
         {
-            return providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Length == 0;
+            return providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Count == 0;
         }
 
         private class Registration

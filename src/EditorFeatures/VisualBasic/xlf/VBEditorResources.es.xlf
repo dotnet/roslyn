@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="translated">Aplicando formato al documento...</target>
+        <target state="translated">Dando formato al documento...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">
@@ -87,11 +87,6 @@
         <target state="translated">Lista descriptiva de Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;Varios tipos&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
         <target state="translated">no compatible</target>
@@ -105,6 +100,11 @@
       <trans-unit id="Line_commit">
         <source>Line commit</source>
         <target state="translated">Confirmación de línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="translated">Implementar interfaz o clase abstracta</target>
         <note />
       </trans-unit>
     </body>

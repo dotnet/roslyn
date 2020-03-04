@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -26,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 Where(Function(m) m.CanBeReferencedByName AndAlso m.Kind = SymbolKind.Method).
                 Cast(Of IMethodSymbol)()
 
-            Dim syntaxFacts = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim methodAndMethodSyntaxesWithHandles = methods.
                 Select(Function(m) Tuple.Create(m, GetMethodStatement(syntaxFacts, m))).
                 Where(Function(t) t.Item2.HandlesClause IsNot Nothing).
@@ -68,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 Return
             End If
 
-            Dim textBuffer = targetDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).Container.TryGetTextBuffer()
+            Dim textBuffer = targetDocument.GetTextSynchronously(cancellationToken).Container.TryGetTextBuffer()
             If textBuffer Is Nothing Then
                 Using visualStudioWorkspace.OpenInvisibleEditor(targetDocument.Id)
                     targetDocument = visualStudioWorkspace.CurrentSolution.GetDocument(targetDocument.Id)
@@ -97,7 +100,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 Return
             End If
 
-            Dim textBuffer = targetDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).Container.TryGetTextBuffer()
+            Dim textBuffer = targetDocument.GetTextSynchronously(cancellationToken).Container.TryGetTextBuffer()
             If textBuffer Is Nothing Then
                 Using visualStudioWorkspace.OpenInvisibleEditor(targetDocument.Id)
                     targetDocument = visualStudioWorkspace.CurrentSolution.GetDocument(targetDocument.Id)

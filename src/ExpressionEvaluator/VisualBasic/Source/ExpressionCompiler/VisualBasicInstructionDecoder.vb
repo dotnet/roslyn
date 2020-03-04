@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -84,15 +86,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function GetCompilation(moduleInstance As DkmClrModuleInstance) As VisualBasicCompilation
             Dim appDomain = moduleInstance.AppDomain
+            Dim moduleVersionId = moduleInstance.Mvid
             Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
             Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
 
-            Dim compilation As VisualBasicCompilation
-            If previous.Matches(metadataBlocks) Then
-                compilation = previous.Compilation
-            Else
-                compilation = metadataBlocks.ToCompilation()
-                appDomain.SetMetadataContext(New VisualBasicMetadataContext(metadataBlocks, compilation))
+            Dim kind = GetMakeAssemblyReferencesKind()
+            Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
+            Dim assemblyContexts = If(previous.Matches(metadataBlocks), previous.AssemblyContexts, ImmutableDictionary(Of MetadataContextId, VisualBasicMetadataContext).Empty)
+            Dim previousContext As VisualBasicMetadataContext = Nothing
+            assemblyContexts.TryGetValue(contextId, previousContext)
+
+            Dim compilation = previousContext.Compilation
+            If compilation Is Nothing Then
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind)
+                appDomain.SetMetadataContext(
+                    New MetadataContext(Of VisualBasicMetadataContext)(
+                        metadataBlocks,
+                        assemblyContexts.SetItem(contextId, New VisualBasicMetadataContext(compilation))),
+                    report:=kind = MakeAssemblyReferencesKind.AllReferences)
             End If
 
             Return compilation

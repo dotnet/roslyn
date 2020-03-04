@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports CompilationCreationTestHelpers
@@ -218,6 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim ambiguous As NoPiaAmbiguousCanonicalTypeSymbol
             Assert.Equal(SymbolKind.ErrorType, param(0).[Type].Kind)
             ambiguous = DirectCast(param(0).[Type], NoPiaAmbiguousCanonicalTypeSymbol)
+            Assert.False(DirectCast(param(0).Type, INamedTypeSymbol).IsSerializable)
             Assert.Same(localTypes1_8, ambiguous.EmbeddingAssembly)
             Assert.Same(pia4_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.FirstCandidate)
             Assert.Same(pia1_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.SecondCandidate)
@@ -772,6 +775,7 @@ End Class
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test2").ReturnType.Kind)
             Assert.Equal(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test3").ReturnType.Kind)
             Dim illegal As NoPiaIllegalGenericInstantiationSymbol = DirectCast(localTypes3.GetMember(Of MethodSymbol)("Test3").ReturnType, NoPiaIllegalGenericInstantiationSymbol)
+            Assert.False(DirectCast(illegal, INamedTypeSymbol).IsSerializable)
             Assert.Equal("C31(Of I1).I31(Of C33)", illegal.UnderlyingSymbol.ToTestDisplayString())
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test4").ReturnType.Kind)
             Assert.IsType(Of NoPiaIllegalGenericInstantiationSymbol)(localTypes3.GetMember(Of MethodSymbol)("Test5").ReturnType)
@@ -1013,7 +1017,8 @@ End interface
             GC.KeepAlive(tc7)
         End Sub
 
-        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub Bug16689_1()
             Dim ilSource =
             <![CDATA[
@@ -1151,7 +1156,8 @@ Derived
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub Bug16689_3()
 
             Dim i3Def =
@@ -1162,7 +1168,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim i3Compilation = CreateCompilationWithMscorlib(i3Def, TestOptions.ReleaseDll)
+            Dim i3Compilation = CreateCompilationWithMscorlib40(i3Def, options:=TestOptions.ReleaseDll)
 
             Dim ilSource =
             <![CDATA[

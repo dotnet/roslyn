@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
@@ -17,11 +21,11 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxTrivia"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
-    public partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
+    public readonly partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
     {
         public static SyntaxTriviaList Empty => default(SyntaxTriviaList);
 
-        internal SyntaxTriviaList(SyntaxToken token, GreenNode node, int position, int index = 0)
+        internal SyntaxTriviaList(in SyntaxToken token, GreenNode? node, int position, int index = 0)
         {
             Token = token;
             Node = node;
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             Index = index;
         }
 
-        internal SyntaxTriviaList(SyntaxToken token, GreenNode node)
+        internal SyntaxTriviaList(in SyntaxToken token, GreenNode? node)
         {
             Token = token;
             Node = node;
@@ -58,12 +62,12 @@ namespace Microsoft.CodeAnalysis
         /// Creates a list of trivia.
         /// </summary>
         /// <param name="trivias">A sequence of trivia.</param>
-        public SyntaxTriviaList(IEnumerable<SyntaxTrivia> trivias)
+        public SyntaxTriviaList(IEnumerable<SyntaxTrivia>? trivias)
             : this(default, SyntaxTriviaListBuilder.Create(trivias).Node, 0, 0)
         {
         }
 
-        private static GreenNode CreateNode(SyntaxTrivia[] trivias)
+        private static GreenNode? CreateNode(SyntaxTrivia[]? trivias)
         {
             if (trivias == null)
             {
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxToken Token { get; }
 
-        internal GreenNode Node { get; }
+        internal GreenNode? Node { get; }
 
         internal int Position { get; }
 
@@ -205,7 +209,7 @@ namespace Microsoft.CodeAnalysis
 
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(ref this);
+            return new Enumerator(in this);
         }
 
         public int IndexOf(SyntaxTrivia triviaInList)
@@ -349,7 +353,7 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTriviaList(default(SyntaxToken), Node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+            return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
         }
 
         /// <summary>
@@ -395,7 +399,7 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTrivia);
-                return new SyntaxTriviaList(default(SyntaxToken), Node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+                return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
             }
 
             throw new ArgumentOutOfRangeException(nameof(triviaInList));
@@ -411,7 +415,7 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
             }
 
-            return new EnumeratorImpl(ref this);
+            return new EnumeratorImpl(in this);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -421,18 +425,19 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
             }
 
-            return new EnumeratorImpl(ref this);
+            return new EnumeratorImpl(in this);
         }
 
         /// <summary>
         /// get the green node at the specific slot
         /// </summary>
-        private GreenNode GetGreenNodeAt(int i)
+        private GreenNode? GetGreenNodeAt(int i)
         {
+            Debug.Assert(Node is object);
             return GetGreenNodeAt(Node, i);
         }
 
-        private static GreenNode GetGreenNodeAt(GreenNode node, int i)
+        private static GreenNode? GetGreenNodeAt(GreenNode node, int i)
         {
             Debug.Assert(node.IsList || (i == 0 && !node.IsList));
             return node.IsList ? node.GetSlot(i) : node;
@@ -453,9 +458,9 @@ namespace Microsoft.CodeAnalysis
             return !left.Equals(right);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return (obj is SyntaxTriviaList) && Equals((SyntaxTriviaList)obj);
+            return (obj is SyntaxTriviaList list) && Equals(list);
         }
 
         public override int GetHashCode()

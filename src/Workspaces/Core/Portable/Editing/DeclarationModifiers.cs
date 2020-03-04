@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -26,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Editing
             bool isWithEvents = false,
             bool isPartial = false,
             bool isAsync = false,
-            bool isWriteOnly = false)
+            bool isWriteOnly = false,
+            bool isRef = false)
             : this(
                   (isStatic ? Modifiers.Static : Modifiers.None) |
                   (isAbstract ? Modifiers.Abstract : Modifiers.None) |
@@ -39,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editing
                   (isConst ? Modifiers.Const : Modifiers.None) |
                   (isWithEvents ? Modifiers.WithEvents : Modifiers.None) |
                   (isPartial ? Modifiers.Partial : Modifiers.None) |
-                  (isAsync ? Modifiers.Async : Modifiers.None))
+                  (isAsync ? Modifiers.Async : Modifiers.None) |
+                  (isRef ? Modifiers.Ref : Modifiers.None))
         {
         }
 
@@ -57,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
                 isSealed: symbol.IsSealed,
-                isConst: field != null && field.IsConst);
+                isConst: field != null && field.IsConst,
+                isUnsafe: symbol.IsUnsafe());
         }
 
         public bool IsStatic => (_modifiers & Modifiers.Static) != 0;
@@ -143,6 +150,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Partial, isPartial));
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Public API.")]
         public DeclarationModifiers WithAsync(bool isAsync)
         {
             return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Async, isAsync));
@@ -151,6 +159,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public DeclarationModifiers WithIsWriteOnly(bool isWriteOnly)
         {
             return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.WriteOnly, isWriteOnly));
+        }
+
+        public DeclarationModifiers WithIsRef(bool isRef)
+        {
+            return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Ref, isRef));
         }
 
         private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)

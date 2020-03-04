@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
 
         private CSharpResultProviderTestBase(CSharpFormatter formatter) :
-            this(new DkmInspectionSession(ImmutableArray.Create<IDkmClrFormatter>(formatter), ImmutableArray.Create<IDkmClrResultProvider>(new CSharpResultProvider(formatter, formatter))))
+            this(CreateDkmInspectionSession(formatter))
         {
         }
 
@@ -27,15 +29,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
         }
 
+        internal static DkmInspectionContext CreateDkmInspectionContext(DkmEvaluationFlags evalFlags)
+        {
+            var inspectionSession = CreateDkmInspectionSession();
+            return CreateDkmInspectionContext(inspectionSession, evalFlags, radix: 10);
+        }
+
+        private static DkmInspectionSession CreateDkmInspectionSession(CSharpFormatter formatter = null)
+        {
+            formatter = formatter ?? new CSharpFormatter();
+            return new DkmInspectionSession(ImmutableArray.Create<IDkmClrFormatter>(formatter), ImmutableArray.Create<IDkmClrResultProvider>(new CSharpResultProvider(formatter, formatter)));
+        }
+
         public static Assembly GetAssembly(string source)
         {
-            var comp = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source);
+            var comp = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source);
             return ReflectionUtilities.Load(comp.EmitToArray());
         }
 
         public static Assembly GetUnsafeAssembly(string source)
         {
-            var comp = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.UnsafeReleaseDll);
             return ReflectionUtilities.Load(comp.EmitToArray());
         }
 
@@ -48,6 +62,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             else
             {
                 return string.Format("0x{0:x8}", pointer.ToInt32());
+            }
+        }
+
+        protected static string PointerToString(UIntPtr pointer)
+        {
+            if (Environment.Is64BitProcess)
+            {
+                return string.Format("0x{0:x16}", pointer.ToUInt64());
+            }
+            else
+            {
+                return string.Format("0x{0:x8}", pointer.ToUInt32());
             }
         }
     }

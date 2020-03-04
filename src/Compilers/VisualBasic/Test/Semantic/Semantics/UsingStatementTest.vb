@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -13,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 #Region "Semantic API"
         <Fact()>
         Public Sub MultipleResourceWithDifferentType_SemanticAPI()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MultipleResourceWithDifferentType">
     <file name="a.vb">
 Option Infer On
@@ -50,7 +52,7 @@ End Structure
 
         <Fact()>
         Public Sub InitResourceWithFunctionCall()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Infer On
@@ -91,7 +93,7 @@ End Structure
 
         <Fact()>
         Public Sub InitResource()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="InitResource">
     <file name="a.vb">
 Option Infer On
@@ -128,7 +130,7 @@ End Structure
 
         <Fact()>
         Public Sub NoVariableDeclaredInUSING()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoVariableDeclaredInUSING">
     <file name="a.vb">
 Option Infer On
@@ -165,7 +167,7 @@ End Structure
 
         <Fact()>
         Public Sub NestedUsing()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NestedUsing">
     <file name="a.vb">
 Option Infer On

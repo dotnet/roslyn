@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -6,9 +8,9 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static void Set64bit(bool x64)
         {
-            RemoteHostService = "remoteHostService" + (x64 ? "64" : "");
+            RemoteHostService = "roslynRemoteHost" + (x64 ? "64" : "");
         }
 
-        public static string RemoteHostService { get; private set; } = "remoteHostService";
+        public static string RemoteHostService { get; private set; } = "roslynRemoteHost";
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -48,7 +50,7 @@ namespace B
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
 
             comp.GetMethodBodyDiagnostics().Verify();
@@ -70,7 +72,7 @@ public class MyClass
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
 
             comp.GetMethodBodyDiagnostics().Verify();
@@ -93,7 +95,7 @@ class Program
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -116,7 +118,7 @@ class Program
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             int[] count = new int[4];
             Dictionary<int, int> errors = new Dictionary<int, int>();
@@ -156,7 +158,7 @@ class Program
     } 
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -196,7 +198,7 @@ class Program
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -236,7 +238,7 @@ class Program
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -259,7 +261,7 @@ class Program
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -287,7 +289,7 @@ public class MyClass
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -337,7 +339,7 @@ class A
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
     // (6,42): error CS1525: Invalid expression term ','
     //         int[,] arr = new int[3,2] {{1,2},,{4,5}};
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",")
@@ -363,7 +365,7 @@ public class Program
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -387,7 +389,7 @@ public class Program2
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -410,7 +412,7 @@ public class Program1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -434,7 +436,7 @@ public class Program1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -457,7 +459,7 @@ public class Program1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -480,7 +482,7 @@ public class Program1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -503,7 +505,7 @@ public class Program1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -526,7 +528,7 @@ public class Program
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -557,7 +559,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (19,19): error CS0229: Ambiguity between 'IA.Goo' and 'IB.Goo'
                 //         int y = x.Goo;
@@ -609,7 +611,7 @@ public class Program : I3
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var diags = comp.GetDiagnostics();
             Assert.Equal(0, diags.Count(d => d.Severity == DiagnosticSeverity.Error));
             Assert.Equal(0, diags.Count(d => d.Severity == DiagnosticSeverity.Warning));
@@ -633,7 +635,7 @@ public class Program
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (10,18): warning CS0219: The variable 'C' is assigned but its value is never used
                 //         const c1 C = null;
@@ -660,7 +662,7 @@ class A<T> : B
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -692,7 +694,7 @@ namespace ParenthesizedExpression
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -719,7 +721,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -744,7 +746,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -764,7 +766,7 @@ class F
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (8,19): warning CS0414: The field 'F.p' is assigned but its value is never used
                 //   ProtectionLevel p = ProtectionLevel.Privacy;
@@ -789,8 +791,7 @@ class F
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree,
-                references: new[] { TestReferences.NetFx.v4_0_30319.System });
+            var comp = CreateCompilation(tree);
             Assert.Equal(string.Empty, string.Join(Environment.NewLine, comp.GetDiagnostics()));
         }
 
@@ -827,7 +828,7 @@ namespace LevelOne.LevelTwo.LevelThree
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -854,7 +855,7 @@ public static int Main()
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -879,7 +880,7 @@ public class TestClass
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -906,7 +907,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -927,7 +928,7 @@ class Test
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -948,7 +949,7 @@ struct Outer
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
             comp.GetMethodBodyDiagnostics().Verify(
                 // (10,21): error CS0120: An object reference is required for the non-static field, method, or property 'Outer.f1'
@@ -987,7 +988,7 @@ class Program
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.GetMethodBodyDiagnostics().Verify(
                 // (23,15): error CS0457: Ambiguous user defined conversions 'D.explicit operator D(Goo)' and 'D.implicit operator D(Action)' when converting from 'method group' to 'D'
                 //          D d = (D) Main;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -247,10 +249,10 @@ class Z
 }
 ";
 
-            var comp = CreateStandardCompilation(source1 + source2);
+            var comp = CreateCompilation(source1 + source2);
             comp.VerifyDiagnostics();
 
-            comp = CreateStandardCompilation(source1 + source3);
+            comp = CreateCompilation(source1 + source3);
             comp.VerifyDiagnostics(
 // (115,8): error CS1503: Argument 1: cannot convert from 'H?' to 'G'
 //     MG(default(H?));
@@ -310,7 +312,7 @@ class Z
         MG((G)default(R?));
     }
 }";
-            var comp = CreateStandardCompilation(implicitConversions + implicitConversionBadSuccess);
+            var comp = CreateCompilation(implicitConversions + implicitConversionBadSuccess);
             comp.VerifyDiagnostics();
 
             // More cases where the specification says that the conversion should be bad, but
@@ -331,7 +333,7 @@ class Z
     MG((G)default(R?));
   }
 }";
-            comp = CreateStandardCompilation(explicitConversions + explicitConversionsBadSuccess);
+            comp = CreateCompilation(explicitConversions + explicitConversionsBadSuccess);
             comp.VerifyDiagnostics();
 
             // These are cases where the specification indicates that a conversion should be legal,
@@ -348,7 +350,7 @@ class Z
   }  
 };";
 
-            comp = CreateStandardCompilation(implicitConversions + implicitConversionsBadFailures);
+            comp = CreateCompilation(implicitConversions + implicitConversionsBadFailures);
             comp.VerifyDiagnostics(
 // (103,9): error CS0457: Ambiguous user defined conversions 'N.implicit operator G(N?)' and 'N.implicit operator G?(N)' when converting from 'N?' to 'G?'
 //     MNG(default(N?)); 
@@ -373,7 +375,7 @@ class Z
   }  
 };";
 
-            comp = CreateStandardCompilation(explicitConversions + explicitConversionsBadFailures);
+            comp = CreateCompilation(explicitConversions + explicitConversionsBadFailures);
             comp.VerifyDiagnostics(
 // (103,9): error CS0457: Ambiguous user defined conversions 'N.explicit operator G(N?)' and 'N.explicit operator G?(N)' when converting from 'N?' to 'G?'
 //     MNG((G?)default(N?)); 
@@ -427,7 +429,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(source1);
+            var comp = CreateCompilation(source1);
             comp.VerifyDiagnostics(
                 // (18,13): error CS0457: Ambiguous user defined conversions 'B.implicit operator B(long)' and 'A.implicit operator A(int)' when converting from 'int' to 'B'
                 //         b = (B)1; 
@@ -451,7 +453,7 @@ class X<T> where T : Mammal
 }
 ";
 
-            comp = CreateStandardCompilation(source2);
+            comp = CreateCompilation(source2);
             comp.VerifyDiagnostics();
         }
 
@@ -477,7 +479,7 @@ class X<T> where T : Mammal
   }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,15): error CS0030: Cannot convert type 'T' to 'X<T>'
                 //     X<T> xt = (X<T>)t;
@@ -513,7 +515,7 @@ public class X
 ";
             // Dev11 doesn't use identity conversion and reports an error, which is wrong:
             // error CS0457: Ambiguous user defined conversions 'A<dynamic>.explicit operator T(A<dynamic>)' and 'A<object>.explicit operator T(A<object>)' when converting from 'S' to 'T'
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(605326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605326")]
@@ -533,7 +535,7 @@ public class B : A<dynamic>
 }
 ";
             // TODO (tomat): This should report ERR_ConversionWithBase 
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -662,10 +664,10 @@ class Z
 ";
 
 
-            var comp = CreateStandardCompilation(source1 + source3);
+            var comp = CreateCompilation(source1 + source3);
             comp.VerifyDiagnostics();
 
-            comp = CreateStandardCompilation(source2 + source3);
+            comp = CreateCompilation(source2 + source3);
             comp.VerifyDiagnostics();
 
             // The native compiler produces errors for all of these because
@@ -675,7 +677,7 @@ class Z
 
             // Roslyn originally had a breaking change here, but now matches dev11.
 
-            comp = CreateStandardCompilation(source1 + source4);
+            comp = CreateCompilation(source1 + source4);
             comp.VerifyDiagnostics(
                 // (105,8): error CS0457: Ambiguous user defined conversions 'N.implicit operator G(N?)' and 'N.implicit operator G?(N)' when converting from 'N' to 'G'
                 //     MG((G)default(N));
@@ -687,7 +689,7 @@ class Z
             // When restricted to only use explicit conversions, the conversions
             // truly are ambiguous; the native and Roslyn compilers agree on these cases:
 
-            comp = CreateStandardCompilation(source2 + source4);
+            comp = CreateCompilation(source2 + source4);
             comp.VerifyDiagnostics(
                 // (105,8): error CS0457: Ambiguous user defined conversions 'N.explicit operator G(N?)' and 'N.explicit operator G?(N)' when converting from 'N' to 'G'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(G)default(N)").WithArguments("N.explicit operator G(N?)", "N.explicit operator G?(N)", "N", "G"),
@@ -1143,7 +1145,7 @@ unsafe class P
             string source5 = "}}";
 
             // All of the cases above should pass semantic analysis:
-            var comp = CreateStandardCompilation(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
 
             // However, we have not yet implemented lowering and code generation for decimal,
@@ -1177,7 +1179,7 @@ class A
         return null;
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0457: Ambiguous user defined conversions 'A.implicit operator A(ulong)' and 'A.implicit operator A(long)' when converting from 'int' to 'A'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "1").WithArguments("A.implicit operator A(ulong)", "A.implicit operator A(long)", "int", "A"));
@@ -1240,7 +1242,7 @@ class A
 
             CompileAndVerify(source1, expectedOutput: "A5A5A6A7A7A7A6A5A5");
 
-            var comp = CreateStandardCompilation(source2);
+            var comp = CreateCompilation(source2);
             comp.VerifyDiagnostics(
 // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'A'
 //         a++;
@@ -1403,7 +1405,7 @@ class C
         }
  ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(// (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(B)' and 'Program.Goo(C)'
                                    //                 Goo(x);
                                    Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Program.Goo(B)", "Program.Goo(C)"));
@@ -1462,7 +1464,7 @@ class Program
 }
 ";
 
-            var comp = CreateStandardCompilation(source1);
+            var comp = CreateCompilation(source1);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(source: source1, expectedOutput: "");
@@ -1540,7 +1542,7 @@ public struct start
         InArgument<object> outArgument2 = bar as InArgument<object>;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(1063555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063555")]
@@ -1595,7 +1597,51 @@ namespace System
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateEmptyCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
+        public void GenericOperatorVoidConversion()
+        {
+            var source = @"
+class C<T>
+{
+    public static implicit operator C<T>(T t) => new C<T>();
+
+    private static void M1() { }
+    private static C<object> M2()
+    {
+        return M1();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0029: Cannot implicitly convert type 'void' to 'C<object>'
+                //         return M1();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M1()").WithArguments("void", "C<object>").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
+        public void GenericOperatorVoidConversion_Cast()
+        {
+            var source = @"
+class C<T>
+{
+    public static explicit operator C<T>(T t) => new C<T>();
+
+    private static void M1() { }
+    private static C<object> M2()
+    {
+        return (C<object>) M1();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0030: Cannot convert type 'void' to 'C<object>'
+                //         return (C<object>) M1();
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>) M1()").WithArguments("void", "C<object>").WithLocation(9, 16));
         }
     }
 }

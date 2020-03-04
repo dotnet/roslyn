@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using Microsoft.CodeAnalysis;
@@ -32,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
         {
-            private ITextUndoHistoryRegistry _undoHistoryRegistry;
+            private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
             public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry undoHistoryRegistry)
             {
@@ -55,7 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // In the Visual Studio case, there might be projection buffers involved for Venus,
                         // where we associate undo history with the surface buffer and not the subject buffer.
-                        textBuffer = visualStudioWorkspace.GetHostDocument(documentId).GetTextUndoHistoryBuffer();
+                        var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
+
+                        if (containedDocument != null)
+                        {
+                            textBuffer = containedDocument.DataBuffer;
+                        }
 
                         break;
 

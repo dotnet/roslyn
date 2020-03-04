@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -27,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         [ImportingConstructor]
         public CallHierarchyProvider(
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            IAsynchronousOperationListenerProvider listenerProvider,
             IGlyphService glyphService)
         {
-            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.CallHierarchy);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.CallHierarchy);
             this.GlyphService = glyphService;
         }
 
-        public async Task<ICallHierarchyMemberItem> CreateItem(ISymbol symbol,
+        public async Task<ICallHierarchyMemberItem> CreateItemAsync(ISymbol symbol,
             Project project, IEnumerable<Location> callsites, CancellationToken cancellationToken)
         {
             if (symbol.Kind == SymbolKind.Method ||
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             {
                 symbol = GetTargetSymbol(symbol);
 
-                var finders = await CreateFinders(symbol, project, cancellationToken).ConfigureAwait(false);
+                var finders = await CreateFindersAsync(symbol, project, cancellationToken).ConfigureAwait(false);
 
                 ICallHierarchyMemberItem item = new CallHierarchyItem(symbol,
                     project.Id,
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                                             details);
         }
 
-        public async Task<IEnumerable<AbstractCallFinder>> CreateFinders(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        public async Task<IEnumerable<AbstractCallFinder>> CreateFindersAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             if (symbol.Kind == SymbolKind.Property ||
                     symbol.Kind == SymbolKind.Event ||

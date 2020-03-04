@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,11 +13,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
     /// <summary>
     /// Creates an <see cref="IIncrementalAnalyzer"/> that collects basic information on <see cref="Project"/> inputs
@@ -24,9 +24,14 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
     /// <remarks>
     /// This includes data such an source file counts, project, metadata, and analyzer reference counts, and so on.
     /// </remarks>
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
+    [ExportIncrementalAnalyzerProvider(nameof(ProjectTelemetryIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host }), Shared]
     internal sealed class ProjectTelemetryIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
+        [ImportingConstructor]
+        public ProjectTelemetryIncrementalAnalyzerProvider()
+        {
+        }
+
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
         {
             return new Analyzer();
@@ -84,7 +89,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                 {
                     lock (_lockObject)
                     {
-                        Inputs newInputs = new Inputs(
+                        var newInputs = new Inputs(
                             language,
                             analyzerReferenceCount,
                             projectReferencesCount,
@@ -133,7 +138,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             /// <summary>
@@ -147,7 +152,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
             {
                 if (!semanticsChanged)
                 {
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 }
 
                 var projectId = project.Id;
@@ -163,11 +168,11 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                     try
                     {
                         var workspace = (VisualStudioWorkspaceImpl)project.Solution.Workspace;
-                        var vsProject = workspace.GetHostProject(projectId);
 
                         var telemetryEvent = TelemetryHelper.TelemetryService.CreateEvent(TelemetryEventPath);
                         telemetryEvent.SetStringProperty(TelemetryProjectIdName, projectId.Id.ToString());
-                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, vsProject?.Guid.ToString() ?? Guid.Empty.ToString());
+                        // TODO: reconnect project GUID
+                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, Guid.Empty.ToString());
                         telemetryEvent.SetStringProperty(TelemetryLanguageName, language);
                         telemetryEvent.SetIntProperty(TelemetryAnalyzerReferencesCountName, analyzerReferencesCount);
                         telemetryEvent.SetIntProperty(TelemetryProjectReferencesCountName, projectReferencesCount);
@@ -195,27 +200,27 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                     }
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -225,7 +230,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void RemoveDocument(DocumentId documentId)

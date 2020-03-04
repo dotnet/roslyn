@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.Text;
@@ -11,11 +13,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromSpanNotIncludingBreaks()
         {
-            var text = SourceText.From("goo" + Environment.NewLine);
+            string newLine = Environment.NewLine;
+            var text = SourceText.From("goo" + newLine);
             var span = new TextSpan(0, 3);
             var line = TextLine.FromSpan(text, span);
             Assert.Equal(span, line.Span);
-            Assert.Equal(5, line.EndIncludingLineBreak);
+            Assert.Equal(3 + newLine.Length, line.EndIncludingLineBreak);
             Assert.Equal(0, line.LineNumber);
         }
 
@@ -34,10 +37,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void FromSpanIncludingBreaks()
         {
             var text = SourceText.From("goo" + Environment.NewLine + "bar");
-            var span = TextSpan.FromBounds(0, 5);
+            var span = TextSpan.FromBounds(0, text.Length);
             var line = TextLine.FromSpan(text, span);
             Assert.Equal(span, line.SpanIncludingLineBreak);
-            Assert.Equal(3, line.End);
+            Assert.Equal(text.Length, line.End);
             Assert.Equal(0, line.LineNumber);
         }
 

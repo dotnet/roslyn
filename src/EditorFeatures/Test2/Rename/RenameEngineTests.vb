@@ -1,8 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
+Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -12,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' rename. The position given with the $$ mark in the tests is just the symbol that is renamed;
     ''' there is no fancy logic applied to it.
     ''' </summary>
+    <[UseExportProvider]>
     Partial Public Class RenameEngineTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -6161,6 +6164,31 @@ End Class
             End Using
         End Sub
 
+        <WorkItem(25655, "https://github.com/dotnet/roslyn/issues/25655")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameClassWithNoCompilationProjectReferencingProject()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="NoCompilation" CommonReferences="false">
+                        <ProjectReference>CSharpProject</ProjectReference>
+                        <Document>
+                            // a no-compilation document
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+                        <Document>
+                            public class [|$$A|]
+                            {
+                                public [|A|]()
+                                {
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="B")
+            End Using
+        End Sub
+
 #Region "Rename in strings/comments"
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
@@ -7051,5 +7079,32 @@ class C
         End Sub
 #End Region
 
+        <WpfFact>
+        <WorkItem(28474, "https://github.com/dotnet/roslyn/issues/28474")>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub HandleProjectsWithoutCompilations()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+                        <Document>
+                            public interface IGoo
+                            {
+                                void [|$$Goo|]();
+                            }
+                            public class C : IGoo
+                            {
+                                public void [|Goo|]() {}
+                            }
+                        </Document>
+                    </Project>
+                    <Project Language="NoCompilation" CommonReferences="false">
+                        <ProjectReference>CSharpProject</ProjectReference>
+                        <Document>
+                            // a no-compilation document
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="Cat")
+            End Using
+        End Sub
     End Class
 End Namespace

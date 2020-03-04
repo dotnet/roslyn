@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -71,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement InstrumentLocalDeclarationIfNecessary(BoundLocalDeclaration originalOpt, LocalSymbol localSymbol, BoundStatement rewrittenLocalDeclaration)
         {
             // Add sequence points, if necessary.
-            if (this.Instrument && originalOpt?.WasCompilerGenerated == false && !localSymbol.IsConst && 
-                (originalOpt.Syntax.Kind() == SyntaxKind.VariableDeclarator || 
-                    (originalOpt.Syntax.Kind() == SyntaxKind.LocalDeclarationStatement && 
+            if (this.Instrument && originalOpt?.WasCompilerGenerated == false && !localSymbol.IsConst &&
+                (originalOpt.Syntax.Kind() == SyntaxKind.VariableDeclarator ||
+                    (originalOpt.Syntax.Kind() == SyntaxKind.LocalDeclarationStatement &&
                         ((LocalDeclarationStatementSyntax)originalOpt.Syntax).Declaration.Variables.Count == 1)))
             {
                 rewrittenLocalDeclaration = _instrumenter.InstrumentLocalInitialization(originalOpt, rewrittenLocalDeclaration);

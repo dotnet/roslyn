@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -1109,8 +1111,8 @@ class Test
 
             var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
-        [Fact]
 
+        [ConditionalFact(typeof(ClrOnly), Reason = "Test of execution of explicitly ambiguous IL")]
         private void TestAmbiguousOverridesWarningCase()
         {
             // Tests:
@@ -2133,7 +2135,7 @@ public class Base<T>
     public virtual List<T> Property1 { get { return null; } protected internal set { } }
     public virtual List<T> Property2 { protected internal get { return null; } set { } }
 }";
-            var compilation1 = CreateStandardCompilation(source1);
+            var compilation1 = CreateCompilation(source1);
 
             var source2 = @"
 using System.Collections.Generic;
@@ -2425,12 +2427,12 @@ public class Test
 }";
 
             var referencedCompilation =
-                CreateStandardCompilation(source,
+                CreateCompilation(source,
                     options: TestOptions.ReleaseDll,
                     assemblyName: "OHI_CodeGen_TestHideWithInaccessibleVirtualMember1");
 
             var outerCompilation =
-                CreateStandardCompilation(source2,
+                CreateCompilation(source2,
                     new[] { new CSharpCompilationReference(referencedCompilation) },
                     options: TestOptions.ReleaseExe,
                     assemblyName: "OHI_CodeGen_TestHideWithInaccessibleVirtualMember2");
@@ -2544,7 +2546,7 @@ public class Test
     }
 }";
 
-            var referencedCompilation = CreateStandardCompilation(source, assemblyName: "OHI_CodeGen_TestHideWithInaccessibleMember");
+            var referencedCompilation = CreateCompilation(source, assemblyName: "OHI_CodeGen_TestHideWithInaccessibleMember");
 
             var comp = CompileAndVerify(
                 source2,
@@ -2649,7 +2651,7 @@ public class Test
     }
 }";
 
-            var referencedCompilation = CreateStandardCompilation(source, assemblyName: "OHI_CodeGen_TestHideSealedMember");
+            var referencedCompilation = CreateCompilation(source, assemblyName: "OHI_CodeGen_TestHideSealedMember");
 
             var comp = CompileAndVerify(
                 source2,
@@ -2719,11 +2721,11 @@ class Test
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp1 = CreateStandardCompilation(text1, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload001",
+            var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload001",
                             options: TestOptions.ReleaseDll);
             refs.Add(new CSharpCompilationReference(comp1));
 
-            var comp = CreateStandardCompilation(text2, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload002",
+            var comp = CreateCompilation(text2, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload002",
                         options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"CSS1_OV CSS1_OV VBS11_OL CSS1_OV CSF1_New VBF1_V VBF11 VBF1_V");
@@ -2812,11 +2814,11 @@ class Test
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp1 = CreateStandardCompilation(text1, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp001",
+            var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp001",
                             options: TestOptions.ReleaseDll);
             refs.Add(new CSharpCompilationReference(comp1));
 
-            var comp = CreateStandardCompilation(text2, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp002",
+            var comp = CreateCompilation(text2, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp002",
                         options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"VBDefault VBDefault VBWriteReadOnly VBWriteReadOnly 100200900900");
@@ -2872,12 +2874,12 @@ class Test
             var asm01 = TestReferences.MetadataTests.InterfaceAndClass.CSInterfaces01;
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.CSClasses01;
 
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
                 text1,
                 references: new[] { asm01, asm02 },
                 assemblyName: "OHI_DeriveBaseInMetadataProp001");
 
-            var comp2 = CreateStandardCompilation(
+            var comp2 = CreateCompilation(
                 text2,
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1) },
                 options: TestOptions.ReleaseExe,
@@ -3050,19 +3052,19 @@ class Test
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.CSClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp1 = CreateStandardCompilation(text1, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata001",
+            var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata001",
                             options: TestOptions.ReleaseDll);
             // better output with error info if any
             comp1.VerifyDiagnostics(); // No Errors
 
             refs.Add(new CSharpCompilationReference(comp1));
 
-            var comp2 = CreateStandardCompilation(text2, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata002",
+            var comp2 = CreateCompilation(text2, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata002",
                             options: TestOptions.ReleaseDll);
             Assert.Equal(0, comp2.GetDiagnostics().Count());
             refs.Add(new CSharpCompilationReference(comp2));
 
-            var comp = CreateStandardCompilation(text3, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata003",
+            var comp = CreateCompilation(text3, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata003",
                             options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(); // No Errors
 
@@ -3109,7 +3111,7 @@ partial class Test
             var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses02;
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 new string[] { text1, text2 },
                 references: new[] { asm01, asm02 },
                 options: TestOptions.ReleaseExe,
@@ -3261,17 +3263,17 @@ class Test
             var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
 
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
                 text1,
                 references: new MetadataReference[] { asm01, asm02 },
                 assemblyName: "OHI_OverloadGetSetMethodWithProp001");
 
-            var comp2 = CreateStandardCompilation(
+            var comp2 = CreateCompilation(
                 text2,
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1) },
                 assemblyName: "OHI_OverloadGetSetMethodWithProp002");
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 text3,
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
                 options: TestOptions.ReleaseExe,
@@ -3365,17 +3367,17 @@ class Test
 
             var asmfile = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
 
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
                 text1,
                 references: new[] { asmfile },
                 assemblyName: "OHI_ClassOverrideNewVBNested001");
 
-            var comp2 = CreateStandardCompilation(
+            var comp2 = CreateCompilation(
                 text2,
                 references: new[] { asmfile, comp1.EmitToImageReference() },
                 assemblyName: "OHI_ClassOverrideNewVBNested002");
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 text,
                 references: new MetadataReference[] { asmfile, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
                 options: TestOptions.ReleaseExe,
@@ -3421,7 +3423,7 @@ namespace Metadata
                 expectedOutput: @"Hello 3",
                 expectedSignatures: new[]
                 {
-                    // The ILDASM output is following,and Roslyn handles it correctly. 
+                    // The ILDASM output is following, and Roslyn handles it correctly. 
                     // Verifier tool gives different output due to the limitation of Reflection
                     // @".method public hidebysig virtual instance System.Void Method<X>(" +
                     // @"System.String modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) x," +
@@ -3435,7 +3437,7 @@ namespace Metadata
         }
 
         [WorkItem(540516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540516")]
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/12422")]
         public void TestCallMethodsWithLeastCustomModifiers()
         {
             var text = @"using Metadata;
@@ -3450,7 +3452,7 @@ public class Program
 }
 ";
             var verifier = CompileAndVerify(text,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "51");
         }
 
@@ -3477,7 +3479,7 @@ public class Test
 }
 ";
             var verifier = CompileAndVerify(text,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: @"88
 88
 ",
@@ -3594,7 +3596,7 @@ class Test
             //Assert.Equal(109, errs.First().Code);
 
             var verifier = CompileAndVerify(text,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "1122",
                 expectedSignatures: new[]
                 {
@@ -3858,8 +3860,8 @@ class Program
                 var classB = globalNamespace.GetMember<NamedTypeSymbol>("DerivedNonVirtual");
                 var classC = globalNamespace.GetMember<NamedTypeSymbol>("Derived2Override");
 
-                Assert.Equal(classA, classB.BaseType);
-                Assert.Equal(classB, classC.BaseType);
+                Assert.Equal(classA, classB.BaseType());
+                Assert.Equal(classB, classC.BaseType());
 
                 var methodA = classA.GetMember<MethodSymbol>("M");
                 var methodB = classB.GetMember<MethodSymbol>("M");
@@ -3878,7 +3880,7 @@ class Program
             var references = new MetadataReference[] { TestReferences.SymbolsTests.Methods.ILMethods };
             var verifier = CompileAndVerify(
                 source,
-                additionalRefs: references,
+                references: references,
                 sourceSymbolValidator: validator,
                 expectedOutput: @"BaseVirtual
 DerivedNonVirtual
@@ -3961,7 +3963,7 @@ class B : A
                 var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
                 var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
 
-                Assert.Equal(classA, classB.BaseType);
+                Assert.Equal(classA, classB.BaseType());
 
                 var fooA = classA.GetMember<MethodSymbol>("Foo");
                 var fooB = classB.GetMember<MethodSymbol>("Foo");
@@ -4015,8 +4017,8 @@ public class Test
         obj.M();
     }
 }";
-            var compref = CreateStandardCompilation(source, assemblyName: "XNoDefaultForParams_Dev10781558_Library");
-            var comp = CompileAndVerify(source2, additionalRefs: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
+            var compref = CreateCompilation(source, assemblyName: "XNoDefaultForParams_Dev10781558_Library");
+            var comp = CompileAndVerify(source2, references: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
         }
 
         [Fact]
@@ -4220,11 +4222,11 @@ Derived.M(y:2)");
         [Fact]
         public void MissingAssemblyReference02()
         {
-            var A = CreateStandardCompilation(@"public class A {}", assemblyName: "A");
-            var B = CreateStandardCompilation(@"public interface B { void M(A a); }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "B");
-            var C = CreateStandardCompilation(@"public class C { public void M(A a) { } }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "C");
+            var A = CreateCompilation(@"public class A {}", assemblyName: "A");
+            var B = CreateCompilation(@"public interface B { void M(A a); }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "B");
+            var C = CreateCompilation(@"public class C { public void M(A a) { } }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "C");
 
-            var D = CreateStandardCompilation(@"public class D : C, B { }", references: new[] { new CSharpCompilationReference(B), new CSharpCompilationReference(C) }, assemblyName: "D");
+            var D = CreateCompilation(@"public class D : C, B { }", references: new[] { new CSharpCompilationReference(B), new CSharpCompilationReference(C) }, assemblyName: "D");
 
             A.VerifyDiagnostics();
             B.VerifyDiagnostics();

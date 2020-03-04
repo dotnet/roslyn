@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -383,7 +385,7 @@ unsafe struct C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             // NOTE: unsigned addition
             verifier.VerifyIL("C.Add_Int1", @"
@@ -1372,7 +1374,7 @@ class C
         }
     }
 }
-", new[] { SystemCoreRef }).VerifyIL("C.<>c.<F>b__0_0(int)", @"
+").VerifyIL("C.<>c.<F>b__0_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1397,7 +1399,7 @@ class C
         var a = checked(from x in new[] { 1 } select x * 2);  // mul_ovf
     }
 }
-", new[] { SystemCoreRef }).VerifyIL("C.<>c.<F>b__0_0(int)", @"
+").VerifyIL("C.<>c.<F>b__0_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1982,7 +1984,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0220: The operation overflows at compile time in checked mode
                 //         r = int.MaxValue + 1;
@@ -2114,7 +2116,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,81): error CS0220: The operation overflows at compile time in checked mode
                 //         d1 = unchecked(delegate (int i) { r1 = int.MaxValue + 1; return checked(int.MaxValue + 1); });
@@ -2152,7 +2154,7 @@ class M
         var r1 = decimal.MaxValue + 1;
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,25): error CS0463: Evaluation of the decimal constant expression failed
                 //         var r = checked(decimal.MaxValue + 1);
@@ -2368,7 +2370,7 @@ class Derived2 : Base1
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedConversionsInExpressionTrees_Implicit()
         {
             // char
@@ -2467,14 +2469,14 @@ class Derived2 : Base1
             CheckedConversionInExpressionTree_Implicit("int", "long?", "arg => F(ConvertChecked(ConvertChecked(arg)))");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
         public void CheckedConversionsInExpressionTrees_ImplicitTuple()
         {
             CheckedConversionInExpressionTree_Implicit("(int, int)", "(int, int)?", ConvertMethod.Convert);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedConversionsInExpressionTrees_Explicit()
         {
             // char
@@ -2663,7 +2665,7 @@ class Derived2 : Base1
             CheckedConversionInExpressionTree_Explicit("int", "long?", "arg => ConvertChecked(ConvertChecked(arg))");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedConversionsInExpressionTrees_ExplicitTuple()
         {
             CheckedConversionInExpressionTree_Explicit("(int, int)", "(int, int)?", ConvertMethod.Convert);
@@ -2679,7 +2681,7 @@ class Derived2 : Base1
         private void CheckedConversionInExpressionTree_Implicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
         {
             var source = CheckedConversionInExpressionTree_ImplicitSource(fromType, toType, additionalTypes);
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             string expectedOutput;
             switch (expectedMethod)
             {
@@ -2702,7 +2704,7 @@ class Derived2 : Base1
         private void CheckedConversionInExpressionTree_Implicit(string fromType, string toType, string expectedOutput)
         {
             var source = CheckedConversionInExpressionTree_ImplicitSource(fromType, toType, additionalTypes: "");
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -2726,7 +2728,7 @@ class C
         private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
         {
             var source = CheckedConversionInExpressionTree_ExplicitSource(fromType, toType, additionalTypes);
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             string expectedOutput;
             switch (expectedMethod)
             {
@@ -2749,7 +2751,7 @@ class C
         private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, string expectedOutput)
         {
             var source = CheckedConversionInExpressionTree_ExplicitSource(fromType, toType, additionalTypes: "");
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

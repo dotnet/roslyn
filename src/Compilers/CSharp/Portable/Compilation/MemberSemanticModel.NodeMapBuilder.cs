@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (map.ContainsKey(key))
                     {
-#if DEBUG && PATTERNS_FIXED
+#if DEBUG
                         // It's possible that AddToMap was previously called with a subtree of root.  If this is the case,
                         // then we'll see an entry in the map.  Since the incremental binder should also have seen the
                         // pre-existing map entry, the entry in addition map should be identical.
@@ -83,17 +86,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (existing[i].Kind == BoundKind.TypeExpression && added[i].Kind == BoundKind.TypeOrValueExpression)
                                 {
                                     Debug.Assert(
-                                        ((BoundTypeExpression)existing[i]).Type == ((BoundTypeOrValueExpression)added[i]).Type,
+                                        TypeSymbol.Equals(((BoundTypeExpression)existing[i]).Type, ((BoundTypeOrValueExpression)added[i]).Type, TypeCompareKind.ConsiderEverything2),
                                         string.Format(
-                                            CultureInfo.InvariantCulture,
+                                            System.Globalization.CultureInfo.InvariantCulture,
                                             "((BoundTypeExpression)existing[{0}]).Type == ((BoundTypeOrValueExpression)added[{0}]).Type", i));
                                 }
                                 else if (existing[i].Kind == BoundKind.TypeOrValueExpression && added[i].Kind == BoundKind.TypeExpression)
                                 {
                                     Debug.Assert(
-                                        ((BoundTypeOrValueExpression)existing[i]).Type == ((BoundTypeExpression)added[i]).Type,
+                                        TypeSymbol.Equals(((BoundTypeOrValueExpression)existing[i]).Type, ((BoundTypeExpression)added[i]).Type, TypeCompareKind.ConsiderEverything2),
                                         string.Format(
-                                            CultureInfo.InvariantCulture,
+                                            System.Globalization.CultureInfo.InvariantCulture,
                                             "((BoundTypeOrValueExpression)existing[{0}]).Type == ((BoundTypeExpression)added[{0}]).Type", i));
                                 }
                                 else
@@ -106,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(
                                     (object)existing[i] == added[i] || !(key is StatementSyntax),
                                     string.Format(
-                                        CultureInfo.InvariantCulture,
+                                        System.Globalization.CultureInfo.InvariantCulture,
                                         "(object)existing[{0}] == added[{0}] || !(key is StatementSyntax)", i));
                             }
                         }
@@ -247,6 +250,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode VisitRangeVariable(BoundRangeVariable node)
+            {
+                return null;
+            }
+
+            public override BoundNode VisitAwaitableInfo(BoundAwaitableInfo node)
             {
                 return null;
             }

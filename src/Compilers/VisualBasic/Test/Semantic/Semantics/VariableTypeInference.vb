@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -24,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Public Sub TestSelfInferenceCycleError()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
             
@@ -57,7 +59,7 @@ BC42104: Variable 'i' is used before it has been assigned a value. A null refere
         Public Sub TestMultiVariableInferenceCycleError()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
             
@@ -88,7 +90,7 @@ BC32000: Local variable 'j' cannot be referred to before it is declared.
         Public Sub TestArrayInferenceRankError()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
             
@@ -121,7 +123,7 @@ BC30414: Value of type 'Integer()' cannot be converted to 'Object(*,*)' because 
         Public Sub TestArrayInferenceNonNullableElementError()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
             
@@ -155,7 +157,7 @@ BC30333: Value of type 'Integer()' cannot be converted to 'Object()' because 'In
         Public Sub TestNullableIdentifierWithArrayExpression()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
             
@@ -186,7 +188,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
         Public Sub TestArrayIdentifierWithScalarExpression()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
             
@@ -219,7 +221,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Object()'.
         Public Sub TestNullableIdentifierWithScalarReferenceType()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
             
@@ -251,7 +253,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
         Public Sub TestInferOffPrimitiveTypes()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOff.vb">
         Option Infer Off
@@ -288,7 +290,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
         Public Sub TestInferOnPrimitiveTypes()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
         Option Infer On
@@ -325,7 +327,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
         Public Sub TestDontInferStaticLocal()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
         Option Infer On
@@ -355,7 +357,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
         Public Sub TestInferNullableArrayOfInteger()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
         Option Infer On
@@ -386,7 +388,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
         Public Sub TestArrayInference()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="inferOn.vb">
         Option Infer On
@@ -423,7 +425,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
         Public Sub TestOptionInferWithOptionStrict()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="inferOn.vb">
         Module m1
@@ -465,7 +467,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
         Public Sub TestErrorsForLocalsWithoutAsClause()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="TestInferredTypes.vb">
         Module m1
@@ -529,7 +531,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
             'Static Locals do not type infer
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="TestInferredTypes.vb">
         Module m1
@@ -595,7 +597,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
         Public Sub TestCircularDeclarationReference()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="inferOn.vb">
         Option Infer On
@@ -627,7 +629,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
         <Fact()>
         Public Sub TestNothingConversionLocalConst1()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="TestSByteLocalConst">
     <file name="a.vb">
 Class C
@@ -654,7 +656,7 @@ End Module
         <Fact()>
         Public Sub TestNothingConversionLocalConst2()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="TestSByteLocalConst">
     <file name="a.vb">
 Class C

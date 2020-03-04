@@ -1,16 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // Note: this code has a copy-and-paste sibling in AbstractRegionDataFlowPass.
-    // Any fix to one should be applied to the other.
-    internal class AbstractRegionDataFlowPass : DataFlowPass
+    internal abstract class AbstractRegionDataFlowPass : DefiniteAssignmentPass
     {
         internal AbstractRegionDataFlowPass(
             CSharpCompilation compilation,
@@ -30,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
-            SetState(ReachableState());
             MakeSlots(MethodParameters);
             if ((object)MethodThisParameter != null) GetOrCreateSlot(MethodThisParameter);
             var result = base.Scan(ref badRegion);

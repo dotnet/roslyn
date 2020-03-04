@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -46,19 +48,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="assemblyLoader">Loader for obtaining the <see cref="Assembly"/> from the <paramref name="fullPath"/></param>
         public AnalyzerFileReference(string fullPath, IAnalyzerAssemblyLoader assemblyLoader)
         {
-            if (fullPath == null)
-            {
-                throw new ArgumentNullException(nameof(fullPath));
-            }
-
-            if (assemblyLoader == null)
-            {
-                throw new ArgumentNullException(nameof(assemblyLoader));
-            }
-
-            _fullPath = fullPath;
+            _fullPath = fullPath ?? throw new ArgumentNullException(nameof(fullPath));
             _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute);
-            _assemblyLoader = assemblyLoader;
+            _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
+
+            // Note this analyzer full path as a dependency location, so that the analyzer loader
+            // can correctly load analyzer dependencies.
+            if (PathUtilities.IsAbsolute(fullPath))
+            {
+                assemblyLoader.AddDependencyLocation(fullPath);
+            }
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
@@ -143,8 +142,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string message = e.Message.Replace("\r", "").Replace("\n", "");
 
             var errorCode = (typeNameOpt != null) ?
-                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer : 
-                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer; 
+                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer :
+                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer;
 
             return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeNameOpt);
         }
@@ -159,15 +158,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         /// <exception cref="IOException">IO error reading the metadata.</exception>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30449")]
         private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath, AttributePredicate attributePredicate)
         {
             using (var assembly = AssemblyMetadata.CreateFromFile(fullPath))
             {
+                // This is longer than strictly necessary to avoid thrashing the GC with string allocations
+                // in the call to GetFullyQualifiedTypeNames. Specifically, this checks for the presence of
+                // supported languages prior to creating the type names.
                 var typeNameMap = from module in assembly.GetModules()
                                   from typeDefHandle in module.MetadataReader.TypeDefinitions
                                   let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
+                                  let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributePredicate)
+                                  where supportedLanguages.Any()
                                   let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
-                                  from supportedLanguage in GetSupportedLanguages(typeDef, module.Module, attributePredicate)
+                                  from supportedLanguage in supportedLanguages
                                   group typeName by supportedLanguage;
 
                 return typeNameMap.ToImmutableDictionary(g => g.Key, g => g.ToImmutableHashSet());

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -128,20 +130,29 @@ public struct C
     public static bool N(__arglist) { return true;}
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
+// (8,44): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+//         Expression<Func<bool>> ex1 = ()=>M(__makeref(S)); // CS7053
+Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "__makeref(S)").WithArguments("TypedReference").WithLocation(8, 44),
 // (8,44): error CS7053: An expression tree may not contain '__makeref'
 //         Expression<Func<bool>> ex1 = ()=>M(__makeref(S)); // CS7053
-Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__makeref(S)").WithArguments("__makeref"),
+Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__makeref(S)").WithArguments("__makeref").WithLocation(8, 44),
 // (9,42): error CS7053: An expression tree may not contain '__reftype'
 //         Expression<Func<Type>> ex2 = ()=>__reftype(default(TypedReference));
-Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__reftype(default(TypedReference))").WithArguments("__reftype"),
+Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__reftype(default(TypedReference))").WithArguments("__reftype").WithLocation(9, 42),
+// (9,52): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+//         Expression<Func<Type>> ex2 = ()=>__reftype(default(TypedReference));
+Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(TypedReference)").WithArguments("TypedReference").WithLocation(9, 52),
 // (10,41): error CS7053: An expression tree may not contain '__refvalue'
 //         Expression<Func<int>> ex3 = ()=>__refvalue(default(TypedReference), int);
-Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__refvalue(default(TypedReference), int)").WithArguments("__refvalue"),
+Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__refvalue(default(TypedReference), int)").WithArguments("__refvalue").WithLocation(10, 41),
+// (10,52): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+//         Expression<Func<int>> ex3 = ()=>__refvalue(default(TypedReference), int);
+Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(TypedReference)").WithArguments("TypedReference").WithLocation(10, 52),
 // (11,44): error CS1952: An expression tree lambda may not contain a method with variable arguments
 //         Expression<Func<bool>> ex4 = ()=>N(__arglist());
-Diagnostic(ErrorCode.ERR_VarArgsInExpressionTree, "__arglist()")
+Diagnostic(ErrorCode.ERR_VarArgsInExpressionTree, "__arglist()").WithLocation(11, 44)
                 );
         }
 
@@ -207,7 +218,7 @@ public struct C
 
             // UNDONE: Test what happens when __makereffing a volatile field, readonly field, etc.
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (8,30): error CS1601: Cannot make reference to variable of type 'TypedReference'
     //         TypedReference tr2 = __makeref(tr1); // CS1601
@@ -241,7 +252,7 @@ public class C
     }
 }";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,25): error CS8361: __arglist cannot have an argument of void type
                 //         M2(__arglist(1, M()));
@@ -278,7 +289,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (13,20): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref r;
@@ -308,7 +319,7 @@ public struct C
     }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -361,7 +372,7 @@ public struct C
 }";
 
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (6,25): error CS0037: Cannot convert null to 'System.TypedReference' because it is a non-nullable value type
 //         System.Type t = __reftype(null);
@@ -369,7 +380,7 @@ Diagnostic(ErrorCode.ERR_ValueCantBeNull, "__reftype(null)").WithArguments("Syst
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest01()
         {
             var text = @"
@@ -399,7 +410,7 @@ public class C
             verifier.VerifyIL("C.M(__arglist)", expectedIL);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest02()
         {
             var text = @"
@@ -470,7 +481,7 @@ public class C
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest03()
         {
             // The native parser produces "type expected" when __arglist is preceded by an illegal
@@ -523,7 +534,7 @@ public class MyAttribute : System.Attribute
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (5,26): error CS1669: __arglist is not valid in this context
                 //     static void N(params __arglist) {}
@@ -586,7 +597,7 @@ class error
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (7,24): error CS1669: __arglist is not valid in this context
                 // 		Action a = delegate (__arglist) { };
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist"));
@@ -809,7 +820,7 @@ static class C
             // CS0246: The type or namespace name 'Main' could not be found
             // The native compiler behavior seems better here; we might consider fixing Roslyn to match.
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (9,17): error CS0029: Cannot implicitly convert type 'int' to 'System.TypedReference'
 //         int b = __refvalue(123, int);
@@ -856,7 +867,7 @@ public struct C
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -941,7 +952,7 @@ public struct C
         {
             var text = @"public class C { public void M() { var t = __makeref(delegate); } }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
             var clss = root.Members[0] as ClassDeclarationSyntax;
@@ -966,7 +977,7 @@ class A
     public void M4(__arglist, int x, __arglist) { } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1025,7 +1036,7 @@ class Unused
 } // end of class A
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1052,7 +1063,7 @@ class A
     public int operator /(__arglist, A a, __arglist) { return 0; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1084,7 +1095,7 @@ class A
     public explicit operator A(__arglist) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1104,7 +1115,7 @@ class A
     public explicit operator A(int x, __arglist) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1124,7 +1135,7 @@ class A
     public explicit operator A(__arglist, A a) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1144,7 +1155,7 @@ class A
     public explicit operator A(__arglist, A a, __arglist) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
@@ -1164,7 +1175,7 @@ class A
     public A(__arglist) { }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(0, constructor.ParameterCount); //doesn't use syntax
@@ -1182,7 +1193,7 @@ class A
     public A(int x, __arglist) { }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
@@ -1201,7 +1212,7 @@ class A
     public A(__arglist, int x) { } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
@@ -1219,7 +1230,7 @@ class A
     public A(__arglist, int x, __arglist) { } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
@@ -1237,7 +1248,7 @@ class A
     public int this[__arglist] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(0, indexer.ParameterCount); //doesn't use syntax
@@ -1263,7 +1274,7 @@ class A
     public int this[int x, __arglist] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(1, indexer.ParameterCount); //doesn't use syntax
@@ -1289,7 +1300,7 @@ class A
     public int this[__arglist, int x] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(1, indexer.ParameterCount); //doesn't use syntax
@@ -1315,7 +1326,7 @@ class A
     public int this[__arglist, int x, __arglist] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(1, indexer.ParameterCount); //doesn't use syntax
@@ -1331,7 +1342,7 @@ class A
         }
 
         [WorkItem(545086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545086")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void BoxReceiverTest()
         {
             var text = @"
@@ -1355,7 +1366,7 @@ class C
         tr.GetHashCode();   // no error: virtual, overridden on TypedReference
     }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (11,9): error CS0029: Cannot implicitly convert type 'System.RuntimeArgumentHandle' to 'object'
 //         rah.GetType(); // not virtual
@@ -1436,7 +1447,7 @@ class E
         D.M(null, null, __arglist());
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (26,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'A.A(object, __arglist)'
                 //         new A(__arglist());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "A").WithArguments("__arglist", "A.A(object, __arglist)").WithLocation(26, 13),
@@ -1496,7 +1507,7 @@ class E
         d(__arglist());
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
             compilation.VerifyDiagnostics(
                 // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D'
                 //         d(__arglist());
@@ -1528,7 +1539,7 @@ namespace ConsoleApplication21
     }
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
     // (12,44): error CS7036: There is no argument given that corresponds to the required formal parameter 'context' of 'GooBar.AllocateNativeOverlapped(IOCompletionCallback, object, byte[])'
     //             NativeOverlapped* overlapped = AllocateNativeOverlapped(() => { });
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AllocateNativeOverlapped").WithArguments("context", "ConsoleApplication21.GooBar.AllocateNativeOverlapped(System.Threading.IOCompletionCallback, object, byte[])").WithLocation(12, 44)
@@ -1552,7 +1563,7 @@ public class SpecialCases
     }
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
     // (8,17): error CS0111: Type 'SpecialCases' already defines a member called 'ArgListMethod' with the same parameter types
     //     public void ArgListMethod(__arglist)
     Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "ArgListMethod").WithArguments("ArgListMethod", "SpecialCases").WithLocation(8, 17),
@@ -1563,6 +1574,89 @@ public class SpecialCases
     //         ArgListMethod(__arglist(""));
     Diagnostic(ErrorCode.ERR_AmbigCall, "ArgListMethod").WithArguments("SpecialCases.ArgListMethod(__arglist)", "SpecialCases.ArgListMethod(__arglist)").WithLocation(10, 9)
                 );
+        }
+
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void ArgListMayNotHaveAnOutArgument()
+        {
+            CreateCompilation(@"
+class Program
+{
+    static void Test(__arglist)
+    {
+        var a = 1;
+    	Test(__arglist(out a));
+    }
+}
+").VerifyDiagnostics(
+                // (7,25): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //     	Test(__arglist(out a));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 25));
+        }
+
+        [Fact]
+        public void ArgListMayNotHaveAnInArgument()
+        {
+            CreateCompilation(@"
+class Program
+{
+    static void Test(__arglist)
+    {
+        var a = 1;
+    	Test(__arglist(in a));
+    }
+}
+").VerifyDiagnostics(
+                // (7,24): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //     	Test(__arglist(in a));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 24));
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void ArgListMayHaveARefArgument()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref int a = ref __refvalue(args.GetNextArg(), int);
+        a = 5;
+    }
+    static void Main()
+    {
+        int a = 0;
+        Test(__arglist(ref a));
+        Console.WriteLine(a);
+    }
+}",
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                expectedOutput: "5");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void ArgListMayHaveAByValArgument()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        int a = __refvalue(args.GetNextArg(), int);
+        Console.WriteLine(a);
+    }
+    static void Main()
+    {
+        int a = 5;
+        Test(__arglist(a));
+    }
+}",
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                expectedOutput: "5");
         }
     }
 }

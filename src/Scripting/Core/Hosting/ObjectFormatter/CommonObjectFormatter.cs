@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -65,9 +67,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
 
-            builder.AppendLine(e.Message);
+            builder.Append(e.GetType());
+            builder.Append(": ");
+            builder.Append(e.Message);
+            builder.Append(Environment.NewLine);
 
-            var trace = new StackTrace(e, needFileInfo: true);
+            var trace = new StackTrace(e, fNeedFileInfo: true);
             foreach (var frame in trace.GetFrames())
             {
                 if (!Filter.Include(frame))

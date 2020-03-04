@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite;
+using Microsoft.CodeAnalysis.Storage;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -16,27 +17,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLitePersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override IPersistentStorageService GetStorageService(IPersistentStorageFaultInjector faultInjector)
-            => new SQLitePersistentStorageService(_persistentEnabledOptionService, faultInjector);
-
-        [Fact]
-        public async Task TestNullFilePaths()
-        {
-            var solution = CreateOrOpenSolution(nullPaths: true);
-
-            var streamName = "stream";
-
-            using (var storage = GetStorage(solution))
-            {
-                var project = solution.Projects.First();
-                var document = project.Documents.First();
-                Assert.False(await storage.WriteStreamAsync(project, streamName, EncodeString("")));
-                Assert.False(await storage.WriteStreamAsync(document, streamName, EncodeString("")));
-
-                Assert.Null(await storage.ReadStreamAsync(project, streamName));
-                Assert.Null(await storage.ReadStreamAsync(document, streamName));
-            }
-        }
+        internal override AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector)
+            => new SQLitePersistentStorageService(_persistentEnabledOptionService, locationService, faultInjector);
 
         [Fact]
         public void TestCrashInNewConnection()
@@ -52,9 +34,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 },
                 onFatalError: e => throw e);
 
-            using (var storage = GetStorageService(faultInjector).GetStorage(solution))
+            using (var storage = GetStorage(solution, faultInjector))
             {
-                // Because instantiating hte connection will fail, we will not get back
+                // Because instantiating the connection will fail, we will not get back
                 // a working persistent storage.
                 Assert.IsType<NoOpPersistentStorage>(storage);
             }

@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
+        <target state="translated">관계형 연산자:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
         <source>Microsoft Visual Basic</source>
         <target state="translated">Microsoft Visual Basic</target>
@@ -9,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="translated">코드 조각 삽입</target>
+        <target state="translated">조각 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="IntelliSense">
@@ -25,6 +30,21 @@
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">Interface 및 MustOverride 멤버 자동 삽입(_I)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">안 함 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
+        <source>Prefer 'Is Nothing' for reference equality checks</source>
+        <target state="translated">참조 같음 검사에 대해 'Is Nothing' 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">가져오지 않은 네임스페이스의 항목 표시(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -59,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>_Pretty listing (reformatting) of code</source>
-        <target state="translated">코드 서식 다시 적용(_P)</target>
+        <target state="translated">코드 자동 서식 지정(서식 다시 지정)(_P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
@@ -94,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="translated">보통</target>
+        <target state="translated">일반</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
@@ -199,22 +219,22 @@
       </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
-        <target state="translated">&amp;lt;Enter&amp;gt; 키 기능:</target>
+        <target state="translated">&lt;Enter&gt; 키 기능:</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="translated">단어를 모두 입력한 후 &amp;lt;Enter&amp;gt; 키를 누르면 새 줄 추가(_O)</target>
+        <target state="translated">단어를 모두 입력한 후 &lt;Enter&gt; 키를 누르면 새 줄 추가(_O)</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>_Always add new line on enter</source>
-        <target state="translated">&amp;lt;Enter&amp;gt; 키를 누르면 항상 새 줄 추가(_A)</target>
+        <target state="translated">&lt;Enter&gt; 키를 누르면 항상 새 줄 추가(_A)</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
-        <target state="translated">&amp;lt;Enter&amp;gt; 키를 누르면 새 줄 추가 안 함(_N)</target>
+        <target state="translated">&lt;Enter&gt; 키를 누르면 새 줄 추가 안 함(_N)</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">
@@ -247,6 +267,16 @@
         <target state="translated">문자를 입력하면 완성 목록 표시(_S)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">사용하지 않는 로컬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">VB 코딩 규칙</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'nothing' 검사:</target>
@@ -257,11 +287,6 @@
         <target state="translated">사용하지 않는 import 페이드 아웃</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_Is_Nothing_over_ReferenceEquals">
-        <source>Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</source>
-        <target state="translated">Object.ReferenceEquals(..., Nothing)'보다 'Is Nothing' 선호</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'String.Format' calls</source>
         <target state="translated">String.Format' 호출에서 잘못된 자리 표시자 보고</target>
@@ -270,6 +295,16 @@
       <trans-unit id="Separate_import_directive_groups">
         <source>Separate import directive groups</source>
         <target state="translated">import 지시문 그룹 구분</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</source>
+        <target state="translated">산술 연산자:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
+        <target state="translated">기타 이항 연산자:  And  AndAlso  Or  OrElse</target>
         <note />
       </trans-unit>
     </body>

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -52,14 +54,14 @@ Public Class C
 End Class
 "
 
-            Dim lib0 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Dim lib0 = CreateCompilationWithMscorlib40({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
             lib0.VerifyDiagnostics()
-            Dim lib1 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Dim lib1 = CreateCompilationWithMscorlib40({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
             lib1.VerifyDiagnostics()
-            Dim lib2 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Dim lib2 = CreateCompilationWithMscorlib40({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
             lib2.VerifyDiagnostics()
 
-            Dim compilation0 = CreateCompilationWithMscorlib({src0}, {lib0.ToMetadataReference()}, assemblyName:="C", options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({src0}, {lib0.ToMetadataReference()}, assemblyName:="C", options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(src1).WithReferences({MscorlibRef, lib1.ToMetadataReference()})
             Dim compilation2 = compilation1.WithSource(src2).WithReferences({MscorlibRef, lib2.ToMetadataReference()})
 
@@ -152,19 +154,19 @@ Class C
     End Function
 End Class
 "
-            Dim lib0 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Dim lib0 = CreateCompilationWithMscorlib40({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
             DirectCast(lib0.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity("Lib", version0)
             lib0.VerifyDiagnostics()
 
-            Dim lib1 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Dim lib1 = CreateCompilationWithMscorlib40({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
             DirectCast(lib1.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity("Lib", version1)
             lib1.VerifyDiagnostics()
 
-            Dim lib2 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Dim lib2 = CreateCompilationWithMscorlib40({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
             DirectCast(lib2.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity("Lib", version2)
             lib2.VerifyDiagnostics()
 
-            Dim compilation0 = CreateCompilationWithMscorlib({src0}, {lib0.ToMetadataReference()}, assemblyName:="C", options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({src0}, {lib0.ToMetadataReference()}, assemblyName:="C", options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(src1).WithReferences({MscorlibRef, lib1.ToMetadataReference()})
             Dim compilation2 = compilation1.WithSource(src2).WithReferences({MscorlibRef, lib2.ToMetadataReference()})
 
@@ -237,19 +239,19 @@ Class C
     End Function
 End Class
 "
-            Dim lib0 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Dim lib0 = CreateCompilationWithMscorlib40({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
             DirectCast(lib0.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity("Lib", New Version(1, 0, 2000, 1001))
             lib0.VerifyDiagnostics()
 
-            Dim lib1 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Dim lib1 = CreateCompilationWithMscorlib40({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
             DirectCast(lib1.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity("Lib", New Version(1, 0, 2000, 1002))
             lib1.VerifyDiagnostics()
 
-            Dim lib2 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Dim lib2 = CreateCompilationWithMscorlib40({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
             DirectCast(lib2.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity("Lib", New Version(1, 0, 2000, 1003))
             lib2.VerifyDiagnostics()
 
-            Dim compilation0 = CreateCompilationWithMscorlib({src0}, {lib0.EmitToImageReference()}, assemblyName:="C", options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({src0}, {lib0.EmitToImageReference()}, assemblyName:="C", options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(src1).WithReferences({MscorlibRef, lib1.EmitToImageReference()})
             Dim compilation2 = compilation1.WithSource(src2).WithReferences({MscorlibRef, lib2.EmitToImageReference()})
 
@@ -270,7 +272,9 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1)))
 
             diff1.EmitResult.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C"))
+                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C",
+                    String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null", "1.0.2000.1002")))
         End Sub
 
         <Fact, WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")>
@@ -313,16 +317,16 @@ Class C
     End Function
 End Class
 "
-            Dim lib01 = CreateCompilationWithMscorlib({srcLib01}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
+            Dim lib01 = CreateCompilationWithMscorlib40({srcLib01}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
             Dim ref01 = lib01.ToMetadataReference()
-            Dim lib02 = CreateCompilationWithMscorlib({srcLib02}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
+            Dim lib02 = CreateCompilationWithMscorlib40({srcLib02}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
             Dim ref02 = lib02.ToMetadataReference()
-            Dim lib11 = CreateCompilationWithMscorlib({srcLib11}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
+            Dim lib11 = CreateCompilationWithMscorlib40({srcLib11}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
             Dim ref11 = lib11.ToMetadataReference()
-            Dim lib12 = CreateCompilationWithMscorlib({srcLib12}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
+            Dim lib12 = CreateCompilationWithMscorlib40({srcLib12}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
             Dim ref12 = lib12.ToMetadataReference()
 
-            Dim compilation0 = CreateCompilationWithMscorlib({src0}, {ref01, ref11}, assemblyName:="C", options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({src0}, {ref01, ref11}, assemblyName:="C", options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(src1).WithReferences({MscorlibRef, ref02, ref12})
 
             Dim v0 = CompileAndVerify(compilation0)
@@ -338,7 +342,9 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1)))
 
             diff1.EmitResult.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C"))
+                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C",
+                    String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "1.0.0.2")))
         End Sub
 
         Public Sub VerifyAssemblyReferences(reader As AggregatedMetadataReader, expected As String())
@@ -437,7 +443,7 @@ Class C
 End Class")
             Dim options = ComSafeDebugDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2)
 
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=options.WithCurrentLocalTime(New DateTime(2016, 1, 1, 1, 0, 0)))
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, options:=options.WithCurrentLocalTime(New DateTime(2016, 1, 1, 1, 0, 0)))
             Dim compilation1 = compilation0.WithSource(source1.Tree).WithOptions(options.WithCurrentLocalTime(New DateTime(2016, 1, 1, 1, 0, 10)))
             Dim compilation2 = compilation1.WithSource(source2.Tree).WithOptions(options.WithCurrentLocalTime(New DateTime(2016, 1, 1, 1, 0, 20)))
             Dim compilation3 = compilation2.WithSource(source3.Tree).WithOptions(options.WithCurrentLocalTime(New DateTime(2016, 1, 1, 1, 0, 30)))

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// <summary>
         /// Determines the symbol on which we are invoking ReorderParameters
         /// </summary>
-        public abstract Task<ISymbol> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
+        public abstract Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a SyntaxNode for which we want to reorder parameters/arguments, find the 
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         public abstract SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node);
 
-        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);
 
         public abstract SyntaxNode ChangeSignature(
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SignatureChange signaturePermutation,
             CancellationToken cancellationToken);
 
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
@@ -84,10 +87,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-        private async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
+        internal async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var symbol = await GetInvocationSymbolAsync(
+            var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
                 document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
             // Cross-language symbols will show as metadata, so map it to source if possible.
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
-            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod);
+            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod, selectedIndex);
             if (!parameterConfiguration.IsChangeable())
             {
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.InsufficientParameters);
@@ -146,7 +149,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
         {
-            var options = GetChangeSignatureOptions(context, CancellationToken.None);
+            var options = GetChangeSignatureOptions(context);
             if (options.IsCancelled)
             {
                 return new ChangeSignatureResult(succeeded: false);
@@ -161,8 +164,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
-        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(
-            ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
+        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedContext context)
         {
             var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
@@ -187,6 +189,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     documents,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
                     streamingProgress,
+                    FindReferencesSearchOptions.Default,
                     cancellationToken);
 
                 await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
@@ -194,16 +197,20 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
+#nullable enable
+
         private bool TryCreateUpdatedSolution(
-            ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, out Solution updatedSolution)
+            ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, [NotNullWhen(true)] out Solution? updatedSolution)
         {
-            updatedSolution = context.Solution;
+            updatedSolution = null;
+
+            var currentSolution = context.Solution;
             var declaredSymbol = context.Symbol;
 
             var nodesToUpdate = new Dictionary<DocumentId, List<SyntaxNode>>();
             var definitionToUse = new Dictionary<SyntaxNode, ISymbol>();
 
-            bool hasLocationsInMetadata = false;
+            var hasLocationsInMetadata = false;
 
             var symbols = FindChangeSignatureReferencesAsync(
                 SymbolAndProjectId.Create(declaredSymbol, context.Project.Id),
@@ -211,8 +218,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             foreach (var symbol in symbols)
             {
-                if (symbol.Definition.Kind == SymbolKind.Method &&
-                    ((symbol.Definition as IMethodSymbol).MethodKind == MethodKind.PropertyGet || (symbol.Definition as IMethodSymbol).MethodKind == MethodKind.PropertySet))
+                var methodSymbol = symbol.Definition as IMethodSymbol;
+
+                if (methodSymbol != null &&
+                    (methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet))
                 {
                     continue;
                 }
@@ -238,9 +247,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     includeDefinitionLocations = false;
                 }
 
-                if (symbolWithSyntacticParameters.Kind == SymbolKind.Event)
+                if (symbolWithSyntacticParameters is IEventSymbol eventSymbol)
                 {
-                    var eventSymbol = symbolWithSyntacticParameters as IEventSymbol;
                     if (eventSymbol.Type is INamedTypeSymbol type && type.DelegateInvokeMethod != null)
                     {
                         symbolWithSemanticParameters = type.DelegateInvokeMethod;
@@ -251,9 +259,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     }
                 }
 
-                if (symbolWithSyntacticParameters.Kind == SymbolKind.Method)
+                if (methodSymbol != null)
                 {
-                    var methodSymbol = symbolWithSyntacticParameters as IMethodSymbol;
                     if (methodSymbol.MethodKind == MethodKind.DelegateInvoke)
                     {
                         symbolWithSyntacticParameters = methodSymbol.ContainingType;
@@ -273,7 +280,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     foreach (var def in symbolWithSyntacticParameters.Locations)
                     {
-                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, updatedSolution, out var nodeToUpdate, out var documentId))
+                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, currentSolution, out var nodeToUpdate, out var documentId))
                         {
                             continue;
                         }
@@ -297,7 +304,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         continue;
                     }
 
-                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, updatedSolution, out var nodeToUpdate2, out var documentId2))
+                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, currentSolution, out var nodeToUpdate2, out var documentId2))
                     {
                         continue;
                     }
@@ -313,7 +320,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (hasLocationsInMetadata)
             {
-                var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
+                var notificationService = context.Solution.Workspace.Services.GetRequiredService<INotificationService>();
                 if (!notificationService.ConfirmMessageBox(FeaturesResources.This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue, severity: NotificationSeverity.Warning))
                 {
                     return false;
@@ -325,9 +332,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var updatedRoots = new Dictionary<DocumentId, SyntaxNode>();
             foreach (var docId in nodesToUpdate.Keys)
             {
-                var doc = updatedSolution.GetDocument(docId);
-                var updater = doc.Project.LanguageServices.GetService<AbstractChangeSignatureService>();
+                var doc = currentSolution.GetRequiredDocument(docId);
+                var updater = doc.Project.LanguageServices.GetRequiredService<AbstractChangeSignatureService>();
                 var root = doc.GetSyntaxRootSynchronously(CancellationToken.None);
+                if (root is null)
+                {
+                    throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
+                }
 
                 var nodes = nodesToUpdate[docId];
 
@@ -338,13 +349,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
 
-                var formattedRoot = Formatter.FormatAsync(
+                var formattedRoot = Formatter.Format(
                     newRoot,
                     changeSignatureFormattingAnnotation,
                     doc.Project.Solution.Workspace,
                     options: null,
                     rules: GetFormattingRules(doc),
-                    cancellationToken: CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    cancellationToken: CancellationToken.None);
 
                 updatedRoots[docId] = formattedRoot;
             }
@@ -353,11 +364,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             foreach (var docId in nodesToUpdate.Keys)
             {
-                updatedSolution = updatedSolution.WithDocumentSyntaxRoot(docId, updatedRoots[docId]);
+                currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, updatedRoots[docId]);
             }
 
+            updatedSolution = currentSolution;
             return true;
         }
+
+#nullable restore
 
         private void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, List<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
         {
@@ -377,8 +391,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var document = solution.GetDocument(documentId);
 
             var root = tree.GetRoot();
-            SyntaxNode node = root.FindNode(location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-            var updater = document.Project.LanguageServices.GetService<AbstractChangeSignatureService>();
+            var node = root.FindNode(location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
+            var updater = document.GetLanguageService<AbstractChangeSignatureService>();
             nodeToUpdate = updater.FindNodeToUpdate(document, node);
 
             return nodeToUpdate != null;
@@ -401,7 +415,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var argumentToParameterMap = new Dictionary<IUnifiedArgumentSyntax, IParameterSymbol>();
             var parameterToIndexMap = new Dictionary<IParameterSymbol, int>();
 
-            for (int i = 0; i < declarationParametersToPermute.Count; i++)
+            for (var i = 0; i < declarationParametersToPermute.Count; i++)
             {
                 var decl = declarationParametersToPermute[i];
                 var arg = argumentsToPermute[i];
@@ -412,7 +426,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var updatedIndex = updatedSignature.GetUpdatedIndex(originalIndex);
 
                 // If there's no value, then we may be handling a method with more parameters than the original symbol (like BeginInvoke).
-                parameterToIndexMap[decl] = updatedIndex.HasValue ? updatedIndex.Value : -1;
+                parameterToIndexMap[decl] = updatedIndex ?? -1;
             }
 
             // 3. Sort the arguments that need to be reordered
@@ -422,8 +436,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             // 4. Add names to arguments where necessary.
 
             var newArguments = new List<IUnifiedArgumentSyntax>();
-            int expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
-            bool seenNamedArgument = false;
+            var expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
+            var seenNamedArgument = false;
 
             foreach (var argument in argumentsToPermute)
             {
@@ -451,9 +465,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             // 5. Add the remaining arguments. These will already have names or be params arguments, but may have been removed.
 
-            bool removedParams = updatedSignature.OriginalConfiguration.ParamsParameter != null && updatedSignature.UpdatedConfiguration.ParamsParameter == null;
+            var removedParams = updatedSignature.OriginalConfiguration.ParamsParameter != null && updatedSignature.UpdatedConfiguration.ParamsParameter == null;
 
-            for (int i = declarationParametersToPermute.Count; i < arguments.Count; i++)
+            for (var i = declarationParametersToPermute.Count; i < arguments.Count; i++)
             {
                 if (!arguments[i].IsNamed && removedParams && i >= updatedSignature.UpdatedConfiguration.ToListOfParameters().Count)
                 {
@@ -483,8 +497,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 origStuff.AddRange(bonusParameters);
                 newStuff.AddRange(bonusParameters);
 
-                var newOrigParams = ParameterConfiguration.Create(origStuff, updatedSignature.OriginalConfiguration.ThisParameter != null);
-                var newUpdatedParams = ParameterConfiguration.Create(newStuff, updatedSignature.OriginalConfiguration.ThisParameter != null);
+                var newOrigParams = ParameterConfiguration.Create(origStuff, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
+                var newUpdatedParams = ParameterConfiguration.Create(newStuff, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
                 updatedSignature = new SignatureChange(newOrigParams, newUpdatedParams);
             }
 
@@ -496,7 +510,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             List<IParameterSymbol> originalParameters,
             bool isReducedExtensionMethod)
         {
-            int position = -1 + (isReducedExtensionMethod ? 1 : 0);
+            var position = -1 + (isReducedExtensionMethod ? 1 : 0);
             var parametersToPermute = new List<IParameterSymbol>();
 
             foreach (var argument in arguments)
@@ -531,6 +545,42 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             return parametersToPermute;
+        }
+
+        /// <summary>
+        /// Given the cursor position, find which parameter is selected.
+        /// Returns 0 as the default value. Note that the ChangeSignature dialog adjusts the selection for
+        /// the `this` parameter in extension methods (the selected index won't remain 0).
+        /// </summary>
+        protected static int GetParameterIndex<TNode>(SeparatedSyntaxList<TNode> parameters, int position)
+            where TNode : SyntaxNode
+        {
+            if (parameters.Count == 0)
+            {
+                return 0;
+            }
+
+            if (position < parameters.Span.Start)
+            {
+                return 0;
+            }
+
+            if (position > parameters.Span.End)
+            {
+                return 0;
+            }
+
+            for (var i = 0; i < parameters.Count - 1; i++)
+            {
+                // `$$,` points to the argument before the separator
+                // but `,$$` points to the argument following the separator
+                if (position <= parameters.GetSeparator(i).Span.Start)
+                {
+                    return i;
+                }
+            }
+
+            return parameters.Count - 1;
         }
     }
 }

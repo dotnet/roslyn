@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly Symbol _memberSymbol;
         private readonly SyntaxNode _root;
-        private readonly Func<Binder, SyntaxNode, Binder> _rootBinderAdjusterOpt;
+        private readonly Action<Binder, SyntaxNode> _binderUpdatedHandler;
         private SmallDictionary<SyntaxNode, Binder> _lazyBinderMap;
         private ImmutableArray<MethodSymbol> _methodSymbolsWithYield;
 
-        internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, Func<Binder, SyntaxNode, Binder> rootBinderAdjusterOpt = null)
+        internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, Action<Binder, SyntaxNode> binderUpdatedHandler = null)
             : this(root, memberSymbol, next, next.Flags)
         {
-            _rootBinderAdjusterOpt = rootBinderAdjusterOpt;
+            _binderUpdatedHandler = binderUpdatedHandler;
         }
 
         internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, BinderFlags additionalFlags)
@@ -45,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return _memberSymbol ?? Next.ContainingMemberOrLambda; }
         }
+
+        protected override bool InExecutableBinder
+            => true;
 
         internal Symbol MemberSymbol { get { return _memberSymbol; } }
 
@@ -64,11 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var methodsWithYield = ArrayBuilder<SyntaxNode>.GetInstance();
                 var symbolsWithYield = ArrayBuilder<MethodSymbol>.GetInstance();
-                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _rootBinderAdjusterOpt);
+                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _binderUpdatedHandler);
                 foreach (var methodWithYield in methodsWithYield)
                 {
-                    Binder binder;
-                    if (map.TryGetValue(methodWithYield, out binder))
+                    Binder binder = this;
+                    if (methodWithYield.Kind() != SyntaxKind.GlobalStatement &&
+                        (methodWithYield == _root || map.TryGetValue(methodWithYield, out binder)))
                     {
                         Symbol containing = binder.ContainingMemberOrLambda;
 
@@ -151,16 +157,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                Location errorLocation = iterator.Locations[0];
                 if (iterator.IsVararg)
                 {
                     // error CS1636: __arglist is not allowed in the parameter list of iterators
-                    diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_VarargsIterator, errorLocation);
                 }
 
                 if (((iterator as SourceMemberMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
                     && Compilation.Options.AllowUnsafe) // Don't cascade
                 {
-                    diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, errorLocation);
+                }
+
+                var returnType = iterator.ReturnType;
+                RefKind refKind = iterator.RefKind;
+                TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation, diagnostics);
+
+                if (elementType.IsDefault)
+                {
+                    if (refKind != RefKind.None)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadIteratorReturnRef, errorLocation, iterator);
+                    }
+                    else if (!returnType.IsErrorType())
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, iterator, returnType);
+                    }
+                }
+
+                bool asyncInterface = InMethodBinder.IsAsyncStreamInterface(Compilation, refKind, returnType);
+                if (asyncInterface && !iterator.IsAsync)
+                {
+                    diagnostics.Add(ErrorCode.ERR_IteratorMustBeAsync, errorLocation, iterator, returnType);
                 }
             }
         }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         /// The baseline metadata might have less (or even different) references than
         /// the current compilation. We shouldn't assume that the reference sets are the same.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void CompilationReferences_Less()
         {
             // Add some references that are actually not used in the source.
@@ -59,7 +61,7 @@ class C
 }
 ";
 
-            var c1 = CreateCompilation(src1, references);
+            var c1 = CreateEmptyCompilation(src1, references);
             var c2 = c1.WithSource(src2);
             var md1 = AssemblyMetadata.CreateFromStream(c1.EmitToStream());
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
@@ -71,7 +73,7 @@ class C
 
             var edits = new[]
             {
-                new SemanticEdit(
+                SemanticEdit.Create(
                     SemanticEditKind.Update,
                     c1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"),
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
@@ -97,7 +99,7 @@ class C
         /// The baseline metadata might have more references than the current compilation. 
         /// References that aren't found in the compilation are treated as missing.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void CompilationReferences_More()
         {
             string src1 = @"
@@ -129,9 +131,9 @@ class C
     public static void Main() { F(null); }
 }
 ";
-            var md1 = AssemblyMetadata.CreateFromStream(CreateCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
+            var md1 = AssemblyMetadata.CreateFromStream(CreateEmptyCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
 
-            var c1 = CreateCompilation(src1, new[] { MscorlibRef });
+            var c1 = CreateEmptyCompilation(src1, new[] { MscorlibRef });
             var c2 = c1.WithSource(src2);
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
 
@@ -142,7 +144,7 @@ class C
 
             var edits = new[]
             {
-                new SemanticEdit(
+                SemanticEdit.Create(
                     SemanticEditKind.Update,
                     c1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"),
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
@@ -169,7 +171,7 @@ class C
         /// <summary>
         /// Symbol matcher considers two source types that only differ in the declaring compilations different.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ChangingCompilationDependencies()
         {
             string srcLib = @"
@@ -194,16 +196,16 @@ class C
     public static int F(D a) { return 3; }
 }
 ";
-            var lib0 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             lib0.VerifyDiagnostics();
 
-            var lib1 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             lib1.VerifyDiagnostics();
 
-            var lib2 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
             var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
 
@@ -220,19 +222,19 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             diff1.EmitResult.Diagnostics.Verify();
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2)));
 
             diff2.EmitResult.Diagnostics.Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DependencyVersionWildcards_Compilation()
         {
             TestDependencyVersionWildcards(
@@ -293,21 +295,21 @@ class C
     public static int G(D a) { return 4; }
 }
 ";
-            var lib0 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
 
             ((SourceAssemblySymbol)lib0.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version0);
             lib0.VerifyDiagnostics();
 
-            var lib1 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib1.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version1);
             lib1.VerifyDiagnostics();
 
-            var lib2 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib2.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version2);
 
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
             var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
 
@@ -325,13 +327,13 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2),
-                    new SemanticEdit(SemanticEditKind.Insert, null, g2)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, g2)));
 
             var md1 = diff1.GetMetadata();
             var md2 = diff2.GetMetadata();
@@ -350,7 +352,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DependencyVersionWildcards_Metadata()
         {
             string srcLib = @"
@@ -378,19 +380,19 @@ class C
     public static int G(D a) { return 4; }
 }
 ";
-            var lib0 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib0.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1001));
             lib0.VerifyDiagnostics();
 
-            var lib1 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib1.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1002));
             lib1.VerifyDiagnostics();
 
-            var lib2 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib2.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1003));
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, lib0.EmitToImageReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.EmitToImageReference() }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.EmitToImageReference() });
             var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.EmitToImageReference() });
 
@@ -408,14 +410,18 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             diff1.EmitResult.Diagnostics.Verify(
-                // error CS7038: Failed to emit module 'C'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
+                // error CS7038: Failed to emit module 'C': Changing the version of an assembly reference is not allowed during debugging: 
+                // 'Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null' changed version to '1.0.2000.1002'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C",
+                    string.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null", "1.0.2000.1002")));
         }
 
-        [Fact, WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")]
+        [WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DependencyVersionWildcardsCollisions()
         {
             string srcLib01 = @"
@@ -458,19 +464,19 @@ class C
     public static int F(L0::D a, L1::D b) => 2;
 }
 ";
-            var lib01 = CreateStandardCompilation(srcLib01, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var lib01 = CreateCompilation(srcLib01, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
             var ref01 = lib01.ToMetadataReference(ImmutableArray.Create("L0"));
 
-            var lib02 = CreateStandardCompilation(srcLib02, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var lib02 = CreateCompilation(srcLib02, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
             var ref02 = lib02.ToMetadataReference(ImmutableArray.Create("L0"));
 
-            var lib11 = CreateStandardCompilation(srcLib11, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var lib11 = CreateCompilation(srcLib11, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
             var ref11 = lib11.ToMetadataReference(ImmutableArray.Create("L1"));
 
-            var lib12 = CreateStandardCompilation(srcLib12, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var lib12 = CreateCompilation(srcLib12, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
             var ref12 = lib12.ToMetadataReference(ImmutableArray.Create("L1"));
 
-            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
 
             var v0 = CompileAndVerify(compilation0);
@@ -483,12 +489,14 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
-            // TODO: message should be: Changing the version of an assembly reference is not allowed during debugging
             diff1.EmitResult.Diagnostics.Verify(
-                // error CS7038: Failed to emit module 'C'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
+                // error CS7038: Failed to emit module 'C': Changing the version of an assembly reference is not allowed during debugging: 
+                // 'Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null' changed version to '1.0.0.2'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C",
+                    string.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "1.0.0.2")));
         }
 
         private void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
@@ -496,7 +504,7 @@ class C
             AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(aref => $"{reader.GetString(aref.Name)}, {aref.Version}"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
         public void CurrentCompilationVersionWildcards()
         {
@@ -570,7 +578,7 @@ class C
 
             var options = ComSafeDebugDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
 
-            var compilation0 = CreateStandardCompilation(source0.Tree, options: options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 0)));
+            var compilation0 = CreateCompilation(source0.Tree, options: options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 0)));
             var compilation1 = compilation0.WithSource(source1.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 10)));
             var compilation2 = compilation1.WithSource(source2.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 20)));
             var compilation3 = compilation2.WithSource(source3.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 30)));
@@ -592,7 +600,7 @@ class C
             // First update adds some new synthesized members (lambda related)
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -601,7 +609,7 @@ class C
             // Second update is to a method that doesn't produce any synthesized members 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -613,7 +621,7 @@ class C
             // hence we need to account for wildcards when comparing the versions.
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
 
             diff3.VerifySynthesizedMembers(
                 "C: {<>c}",

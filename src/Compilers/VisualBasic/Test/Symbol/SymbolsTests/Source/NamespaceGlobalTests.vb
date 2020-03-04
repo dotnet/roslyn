@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -12,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Global is the root of all namespace even set root namespace of compilation
         <Fact>
         Public Sub RootNSForGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Namespace NS1
@@ -24,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     </file>
                 </compilation>)
             Dim opt = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("RootNS")
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp2">
                     <file name="a.vb">
                         Namespace Global.Global.ns1
@@ -38,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                         Class C1        'RootNS.C1
                         End Class 
                     </file>
-                </compilation>, opt)
+                </compilation>, options:=opt)
 
             ' While the root namespace is empty it means Global is the container
             CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "Class1", "NS1.Class1")
@@ -57,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Empty Name Space is equal to Global while  Root namespace is empty
         <Fact>
         Public Sub BC30179ERR_TypeConflict6_RootNSIsEmpty()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Class A
@@ -82,7 +84,7 @@ Class A
         <Fact>
         Public Sub RootNSIsGlobal()
             Dim opt = TestOptions.ReleaseDll.WithRootNamespace("Global")
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Class A 
@@ -95,7 +97,7 @@ Class A
                             End Class
                         End Namespace
                     </file>
-                </compilation>, opt)
+                </compilation>, options:=opt)
 
             ' While the root namespace is Global it means [Global] 
             Dim globalNS = compilation1.SourceModule.GlobalNamespace
@@ -115,8 +117,8 @@ Class A
                                  End Namespace
                              </file>
                          </compilation>
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(source)
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib(source, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Global"))
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(source)
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Global"))
             Dim globalNS1 = compilation1.SourceModule.GlobalNamespace.GetMembers().Single()
             Dim globalNS2 = compilation2.SourceModule.GlobalNamespace.GetMembers().Single()
             Assert.Equal("Global", globalNS1.Name)
@@ -130,7 +132,7 @@ Class A
         ' Global for Partial class
         <Fact>
         Public Sub PartialInGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Partial Class Class1
@@ -154,7 +156,7 @@ Class A
         <WorkItem(527731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527731")>
         <Fact>
         Public Sub EscapedGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Namespace [Global]
@@ -175,7 +177,7 @@ Class A
         ' Global is Not Case sensitive  
         <Fact>
         Public Sub BC30179ERR_TypeConflict6_CaseSenGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Namespace GLOBAL
@@ -200,7 +202,7 @@ BC30179: class 'C1' and class 'C1' conflict in namespace '&lt;Default&gt;'.
         ' Global for Imports   
         <Fact>
         Public Sub BC36001ERR_NoGlobalExpectedIdentifier_ImportsGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Imports Global.[global]'invalid
@@ -234,7 +236,7 @@ BC36001: 'Global' not allowed in this context; identifier expected.
         ' Global for Alias name   
         <Fact>
         Public Sub BC36001ERR_NoGlobalExpectedIdentifier_ImportsAliasGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Imports Global = System	'invalid 
@@ -259,7 +261,7 @@ BC40056: Namespace or type specified in the Imports 'Global.Global' doesn't cont
         <WorkItem(527728, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527728")>
         <Fact>
         Public Sub BC30183ERR_InvalidUseOfKeyword_GlobalAsType()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Imports System
@@ -302,7 +304,7 @@ BC30183: Keyword is not valid as an identifier.
         <WorkItem(527728, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527728")>
         <Fact>
         Public Sub BC30183ERR_InvalidUseOfKeyword_GlobalAsIdentifier()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Class Global(Of T As Class)
@@ -326,7 +328,7 @@ BC30183: Keyword is not valid as an identifier.
         ' Global can't be used as Access Modifier 
         <Fact>
         Public Sub BC30035ERR_Syntax_AccessModifier()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Global Class C1(of T as class)
@@ -346,7 +348,7 @@ Global Class C1(of T as class)
         <WorkItem(539076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539076")>
         <Fact>
         Public Sub BC31544ERR_NestedGlobalNamespace_NestedGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Namespace Global
@@ -370,7 +372,7 @@ BC31544: Global namespace may not be nested in another namespace.
         ' [Global] namespace could be nested in another namespace 
         <Fact>
         Public Sub NestedEscapedGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Namespace Global
@@ -389,7 +391,7 @@ BC31544: Global namespace may not be nested in another namespace.
         ' Global in Fully qualified names 
         <Fact>
         Public Sub FullyQualifiedOfGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Imports [Global].ns1
@@ -439,7 +441,7 @@ BC30179: class 'C2' and class 'C2' conflict in namespace 'NS1.Global'.
         ' Different types in global namespace 
         <Fact>
         Public Sub DiffTypeInGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Namespace Global
@@ -468,7 +470,7 @@ BC30179: class 'C2' and class 'C2' conflict in namespace 'NS1.Global'.
         ' Access different fields with different access modifiers in Global 
         <Fact>
         Public Sub DiffAccessInGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Namespace Global
@@ -498,7 +500,7 @@ BC30179: class 'C2' and class 'C2' conflict in namespace 'NS1.Global'.
             Dim opt1 = TestOptions.ReleaseDll.WithRootNamespace("NS1")
             Dim opt2 = TestOptions.ReleaseDll.WithRootNamespace("NS2")
             Dim opt3 = TestOptions.ReleaseDll.WithRootNamespace("NS3")
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Namespace Global
@@ -511,7 +513,7 @@ BC30179: class 'C2' and class 'C2' conflict in namespace 'NS1.Global'.
                         End Namespace 
                     </file>
                 </compilation>, options:=opt1)
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp2">
                     <file name="a.vb">
                         Namespace Global
@@ -526,7 +528,7 @@ BC30179: class 'C2' and class 'C2' conflict in namespace 'NS1.Global'.
                 </compilation>, options:=opt2)
             Dim ref1 = New VisualBasicCompilationReference(compilation1)
             Dim ref2 = New VisualBasicCompilationReference(compilation2)
-            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp3">
                     <file name="a.vb">
                         Namespace NS1
@@ -555,7 +557,7 @@ BC30554: 'C1' is ambiguous.
         ' Define customer namespace same as namespace of the .NET Framework in Global 
         <Fact>
         Public Sub DefSystemNSInGlobal()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="comp1">
                     <file name="a.vb">
                         Namespace Global
@@ -575,7 +577,7 @@ BC30554: 'C1' is ambiguous.
         <Fact>
         <WorkItem(545787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545787")>
         Public Sub NestedGlobalNS()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="NestedGlobalNS">
         <file name="a.vb">
 Imports System            
@@ -596,7 +598,7 @@ End Namespace
 
         <Fact>
         Public Sub Bug529716()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation>
                     <file name="a.vb">
 Namespace Global

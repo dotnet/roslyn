@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -140,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub SourceNamedTypeDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="SourceNamedTypeDeclaringSyntax">
         <file name="a.vb">
 Namespace N1
@@ -188,7 +190,7 @@ End Namespace
 
         <Fact>
         Public Sub NonSourceTypeDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="NonSourceTypeDeclaringSyntax">
         <file name="a.vb">
 Namespace N1
@@ -214,7 +216,7 @@ End Namespace    </file>
 
         <Fact>
         Public Sub AnonTypeDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="AnonTypeDeclaringSyntax">
         <file name="a.vb">
 Public Class C1
@@ -249,7 +251,7 @@ End Class
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub AnonTypeDeclaringSyntaxStaticLocal()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="AnonTypeDeclaringSyntax">
         <file name="a.vb">
 Public Class C1
@@ -291,7 +293,7 @@ End Class
         Public Sub AnonTypeDeclaringSyntaxStaticLocalWithDimKeyword()
             'This should be fixed when multiple modifiers issues is resolved so that this should work in the same
             'way as static and not normal local declarations as at present.
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="AnonTypeDeclaringSyntax">
         <file name="a.vb">
 Public Class C1
@@ -332,7 +334,7 @@ End Class
 
         <Fact>
         Public Sub NamespaceDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="NamespaceDeclaringSyntax">
         <file name="a.vb">
 Namespace N1
@@ -366,7 +368,7 @@ End Namespace     </file>
 
         <Fact>
         Public Sub NamespaceDeclaringSyntax2()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="NamespaceDeclaringSyntax">
         <file name="a.vb">
 Namespace N2
@@ -377,7 +379,7 @@ End Namespace
 Namespace Global.N4
 End Namespace
 </file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("N1"))
+    </compilation>, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("N1"))
 
             Dim tree = comp.SyntaxTrees(0)
             Dim globalNS = comp.GlobalNamespace
@@ -395,7 +397,7 @@ End Namespace
 
         <Fact>
         Public Sub TypeParameterDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="TypeParameterDeclaringSyntax">
         <file name="a.vb">
 Imports System
@@ -450,7 +452,7 @@ End Namespace
 
         <Fact>
         Public Sub MemberDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="SourceNamedTypeDeclaringSyntax">
         <file name="a.vb">
 Namespace N1
@@ -606,7 +608,7 @@ End Namespace
 
         <Fact>
         Public Sub LocalDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="LocalDeclaringSyntax">
         <file name="a.vb">
 Imports System
@@ -650,7 +652,7 @@ End Class
 
         <Fact>
         Public Sub LabelDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="LabelDeclaringSyntax">
         <file name="a.vb">
 Imports System
@@ -675,7 +677,7 @@ End Class
 
         <Fact>
         Public Sub AliasDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="AliasDeclaringSyntax">
         <file name="a.vb">
 Imports System
@@ -697,7 +699,7 @@ End Namespace
 
         <Fact>
         Public Sub RangeVariableDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="RangeVariableDeclaringSyntax">
         <file name="a.vb">
 Imports System
@@ -729,7 +731,7 @@ End Class
 
         <Fact>
         Public Sub LambdaDeclaringSyntax()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="RangeVariableDeclaringSyntax">
         <file name="a.vb">
 Imports System

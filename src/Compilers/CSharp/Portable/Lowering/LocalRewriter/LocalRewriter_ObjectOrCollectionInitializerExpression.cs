@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,15 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class LocalRewriter
     {
-        private static BoundExpression UpdateInitializers(BoundExpression initializerExpression, ImmutableArray<BoundExpression> newInitializers)
+        private static BoundObjectInitializerExpressionBase UpdateInitializers(BoundObjectInitializerExpressionBase initializerExpression, ImmutableArray<BoundExpression> newInitializers)
         {
-            if (initializerExpression.Kind == BoundKind.ObjectInitializerExpression)
+            switch (initializerExpression)
             {
-                return ((BoundObjectInitializerExpression)initializerExpression).Update(newInitializers, initializerExpression.Type);
-            }
-            else
-            {
-                return ((BoundCollectionInitializerExpression)initializerExpression).Update(newInitializers, initializerExpression.Type);
+                case BoundObjectInitializerExpression objectInitializer:
+                    return objectInitializer.Update(objectInitializer.Placeholder, newInitializers, initializerExpression.Type);
+                case BoundCollectionInitializerExpression collectionInitializer:
+                    return collectionInitializer.Update(collectionInitializer.Placeholder, newInitializers, initializerExpression.Type);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(initializerExpression.Kind);
             }
         }
 
@@ -36,14 +39,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(rewrittenReceiver != null);
 
-            switch (initializerExpression.Kind)
+            switch (initializerExpression)
             {
-                case BoundKind.ObjectInitializerExpression:
-                    AddObjectInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenReceiver, ((BoundObjectInitializerExpression)initializerExpression).Initializers);
+                case BoundObjectInitializerExpression objectInitializer:
+                    {
+                        var placeholder = objectInitializer.Placeholder;
+                        AddPlaceholderReplacement(placeholder, rewrittenReceiver);
+                        AddObjectInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenReceiver, objectInitializer.Initializers);
+                        RemovePlaceholderReplacement(placeholder);
+                    }
                     return;
 
-                case BoundKind.CollectionInitializerExpression:
-                    AddCollectionInitializers(ref dynamicSiteInitializers, result, rewrittenReceiver, ((BoundCollectionInitializerExpression)initializerExpression).Initializers);
+                case BoundCollectionInitializerExpression collectionInitializer:
+                    {
+                        var placeholder = collectionInitializer.Placeholder;
+                        AddPlaceholderReplacement(placeholder, rewrittenReceiver);
+                        AddCollectionInitializers(ref dynamicSiteInitializers, result, rewrittenReceiver, collectionInitializer.Initializers);
+                        RemovePlaceholderReplacement(placeholder);
+                    }
                     return;
 
                 default:
@@ -119,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _dynamicFactory.MakeDynamicMemberInvocation(
                 WellKnownMemberNames.CollectionInitializerAddMethodName,
                 rewrittenReceiver,
-                ImmutableArray<TypeSymbol>.Empty,
+                ImmutableArray<TypeWithAnnotations>.Empty,
                 rewrittenArguments,
                 default(ImmutableArray<string>),
                 default(ImmutableArray<RefKind>),
@@ -132,12 +145,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         //                  ~                               ~~~~~~~~
         private BoundExpression MakeCollectionInitializer(BoundExpression rewrittenReceiver, BoundCollectionElementInitializer initializer)
         {
-            Debug.Assert(initializer.AddMethod.Name == "Add");
+            MethodSymbol addMethod = initializer.AddMethod;
+
+            Debug.Assert(addMethod.Name == "Add");
+            Debug.Assert(addMethod.Parameters
+                .Skip(addMethod.IsExtensionMethod ? 1 : 0)
+                .All(p => p.RefKind == RefKind.None || p.RefKind == RefKind.In));
             Debug.Assert(initializer.Arguments.Any());
             Debug.Assert(rewrittenReceiver != null || _inExpressionLambda);
 
             var syntax = initializer.Syntax;
-            MethodSymbol addMethod = initializer.AddMethod;
 
             if (_allowOmissionOfConditionalCalls)
             {
@@ -156,25 +173,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
             var argumentRefKindsOpt = default(ImmutableArray<RefKind>);
+            if (addMethod.Parameters[0].RefKind == RefKind.Ref)
+            {
+                // If the Add method is an extension which takes a `ref this` as the first parameter, implicitly add a `ref` to the argument
+                // Initializer element syntax cannot have `ref`, `in`, or `out` keywords.
+                // Arguments to `in` parameters will be converted to have RefKind.In later on.
+                var builder = ArrayBuilder<RefKind>.GetInstance(addMethod.Parameters.Length, RefKind.None);
+                builder[0] = RefKind.Ref;
+                argumentRefKindsOpt = builder.ToImmutableAndFree();
+            }
+
             rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
-            Debug.Assert(argumentRefKindsOpt.IsDefault);
 
             if (initializer.InvokedAsExtensionMethod)
             {
-                // the add method was found as an extension method.  Replace the implicit receiver (first argument) with the rewritten receiver.
-                Debug.Assert(addMethod.IsStatic && addMethod.IsExtensionMethod);
-                Debug.Assert(rewrittenArguments[0].Kind == BoundKind.ImplicitReceiver);
+                Debug.Assert(addMethod.IsStatic);
+                Debug.Assert(addMethod.IsExtensionMethod);
                 Debug.Assert(!_inExpressionLambda, "Expression trees do not support extension Add");
-                rewrittenArguments = rewrittenArguments.SetItem(0, rewrittenReceiver);
                 rewrittenReceiver = null;
             }
 
             if (_inExpressionLambda)
             {
-                return initializer.Update(addMethod, rewrittenArguments, false, default(ImmutableArray<int>), initializer.InvokedAsExtensionMethod, initializer.ResultKind, rewrittenType);
+                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, initializer.InvokedAsExtensionMethod, initializer.ResultKind, initializer.BinderOpt, rewrittenType);
             }
 
-            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, default(ImmutableArray<RefKind>), initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps);
+            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps);
         }
 
         // Rewrite object initializer member assignments and add them to the result.
@@ -230,7 +254,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!memberInit.Arguments.IsDefaultOrEmpty)
                         {
-                            var args = EvaluateSideEffectingArgumentsToTemps(memberInit.Arguments, result, ref temps);
+                            var args = EvaluateSideEffectingArgumentsToTemps(
+                                memberInit.Arguments,
+                                memberInit.MemberSymbol?.GetParameterRefKinds() ?? default(ImmutableArray<RefKind>),
+                                result,
+                                ref temps);
+
                             memberInit = memberInit.Update(
                                 memberInit.MemberSymbol,
                                 args,
@@ -316,7 +345,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ArrayAccess:
                     {
                         var arrayAccess = (BoundArrayAccess)rewrittenLeft;
-                        var indices = EvaluateSideEffectingArgumentsToTemps(arrayAccess.Indices, result, ref temps);
+                        var indices = EvaluateSideEffectingArgumentsToTemps(
+                            arrayAccess.Indices,
+                            paramRefKindsOpt: default,
+                            result,
+                            ref temps);
                         rewrittenAccess = arrayAccess.Update(rewrittenReceiver, indices, arrayAccess.Type);
 
                         if (!isRhsNestedInitializer)
@@ -372,6 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> EvaluateSideEffectingArgumentsToTemps(
                                                  ImmutableArray<BoundExpression> args,
+                                                 ImmutableArray<RefKind> paramRefKindsOpt,
                                                  ArrayBuilder<BoundExpression> sideeffects,
                                                  ref ArrayBuilder<LocalSymbol> temps)
         {
@@ -389,8 +423,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         newArgs.AddRange(args, i);
                     }
 
+                    RefKind refKind = paramRefKindsOpt.RefKinds(i);
+
                     BoundAssignmentOperator store;
-                    var temp = _factory.StoreToTemp(arg, out store);
+                    var temp = _factory.StoreToTemp(arg, out store, refKind);
                     newArgs.Add(temp);
 
                     if (temps == null)
@@ -406,9 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return newArgs?
-                .ToImmutableAndFree() ??
-                args;
+            return newArgs?.ToImmutableAndFree() ?? args;
         }
 
         private BoundExpression MakeObjectInitializerMemberAccess(

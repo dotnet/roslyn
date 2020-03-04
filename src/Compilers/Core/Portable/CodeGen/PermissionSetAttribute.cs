@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -34,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public PermissionSetAttributeWithFileReference(Cci.ICustomAttribute sourceAttribute, string resolvedPermissionSetFilePath)
         {
-            Debug.Assert(resolvedPermissionSetFilePath != null);
+            RoslynDebug.Assert(resolvedPermissionSetFilePath != null);
 
             _sourceAttribute = sourceAttribute;
             _resolvedPermissionSetFilePath = resolvedPermissionSetFilePath;
@@ -51,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// A reference to the constructor that will be used to instantiate this custom attribute during execution (if the attribute is inspected via Reflection).
         /// </summary>
-        public Cci.IMethodReference Constructor(EmitContext context)
-            => _sourceAttribute.Constructor(context);
+        public Cci.IMethodReference Constructor(EmitContext context, bool reportDiagnostics)
+            => _sourceAttribute.Constructor(context, reportDiagnostics);
 
         /// <summary>
         /// Zero or more named arguments that specify values for fields and properties of the attribute.
@@ -74,11 +79,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Named argument value must be a non-empty string
             Debug.Assert(fileArg.ArgumentValue is MetadataConstant);
-            var fileName = (string)((MetadataConstant)fileArg.ArgumentValue).Value;
+            var fileName = (string?)((MetadataConstant)fileArg.ArgumentValue).Value;
             Debug.Assert(!String.IsNullOrEmpty(fileName));
 
             // PermissionSetAttribute type must have a writable public string type property member 'Hex'
-            Debug.Assert(((INamedTypeSymbol)_sourceAttribute.GetType(context)).GetMembers(HexPropertyName).Any(
+            ISymbol iSymbol = ((ISymbolInternal)_sourceAttribute.GetType(context)).GetISymbol();
+            Debug.Assert(((INamedTypeSymbol)iSymbol).GetMembers(HexPropertyName).Any(
                 member => member.Kind == SymbolKind.Property && ((IPropertySymbol)member).Type.SpecialType == SpecialType.System_String));
 #endif
 
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             var resolver = context.Module.CommonCompilation.Options.XmlReferenceResolver;
 
             // If the resolver isn't available we won't get here since we had to use it to resolve the path.
-            Debug.Assert(resolver != null);
+            RoslynDebug.Assert(resolver != null);
 
             try
             {
@@ -111,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // internal for testing purposes.
         internal static string ConvertToHex(Stream stream)
         {
-            Debug.Assert(stream != null);
+            RoslynDebug.Assert(stream != null);
 
             var pooledStrBuilder = PooledStringBuilder.GetInstance();
             StringBuilder stringBuilder = pooledStrBuilder.Builder;

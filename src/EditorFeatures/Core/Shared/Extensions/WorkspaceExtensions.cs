@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -45,33 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         internal static Solution UpdateDocument(this Solution solution, DocumentId id, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
         {
             var oldDocument = solution.GetDocument(id);
-            var oldText = oldDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var oldText = oldDocument.GetTextSynchronously(cancellationToken);
             var newText = oldText.WithChanges(textChanges);
             return solution.WithDocumentText(id, newText, PreservationMode.PreserveIdentity);
-        }
-
-        internal static void GetLanguageAndProjectType(this Workspace workspace, ProjectId projectId, out string language, out string projectType)
-        {
-            language = string.Empty;
-            projectType = string.Empty;
-
-            if (workspace == null)
-            {
-                return;
-            }
-
-            var projectTypeLookup = workspace.Services.GetService<IProjectTypeLookupService>();
-
-            projectType = projectTypeLookup.GetProjectType(workspace, projectId);
-
-            // if projectId doesn't exist, not much we need to do.
-            if (projectId == null)
-            {
-                return;
-            }
-
-            var project = workspace.CurrentSolution.GetProject(projectId);
-            language = project?.Language ?? string.Empty;
         }
     }
 }

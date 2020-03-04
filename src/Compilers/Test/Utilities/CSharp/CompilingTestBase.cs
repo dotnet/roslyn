@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static BoundBlock ParseAndBindMethodBody(string program, string typeName = DefaultTypeName, string methodName = DefaultMethodName)
         {
-            var compilation = CreateStandardCompilation(program);
+            var compilation = CreateCompilation(program);
             var method = (MethodSymbol)compilation.GlobalNamespace.GetTypeMembers(typeName).Single().GetMembers(methodName).Single();
 
             // Provide an Emit.Module so that the lowering passes will be run
@@ -56,39 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Obsolete("Use VerifyDiagnostics", true)]
         public void TestAllErrors(string code, params string[] errors)
         {
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var diagnostics = compilation.GetDiagnostics();
             AssertEx.SetEqual(errors, diagnostics.Select(DumpDiagnostic));
-        }
-
-        // Tests just the errors found while binding method M in class C.
-        [Obsolete("Use VerifyDiagnostics", true)]
-        public void TestErrors(string code, params string[] errors)
-        {
-            var compilation = CreateStandardCompilation(code);
-            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
-            var factory = compilation.GetBinderFactory(method.SyntaxTree);
-            var bodyBlock = (BlockSyntax)method.BodySyntax;
-            var parameterBinderContext = factory.GetBinder(bodyBlock);
-            var binder = new ExecutableCodeBinder(bodyBlock.Parent, method, parameterBinderContext);
-            var diagnostics = new DiagnosticBag();
-            var block = binder.BindEmbeddedBlock(bodyBlock, diagnostics);
-            AssertEx.SetEqual(errors, diagnostics.AsEnumerable().Select(DumpDiagnostic));
-        }
-
-        [Obsolete("Use VerifyDiagnostics", true)]
-        public void TestWarnings(string code, params string[] expectedWarnings)
-        {
-            var compilation = CreateStandardCompilation(code);
-            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
-            var factory = compilation.GetBinderFactory(method.SyntaxTree);
-            var bodyBlock = (BlockSyntax)method.BodySyntax;
-            var parameterBinderContext = factory.GetBinder(bodyBlock);
-            var binder = new ExecutableCodeBinder(bodyBlock.Parent, method, parameterBinderContext);
-            var block = binder.BindEmbeddedBlock(bodyBlock, new DiagnosticBag());
-            var actualWarnings = new DiagnosticBag();
-            DiagnosticsPass.IssueDiagnostics(compilation, block, actualWarnings, method);
-            AssertEx.SetEqual(expectedWarnings, actualWarnings.AsEnumerable().Select(DumpDiagnostic));
         }
 
         public const string LINQ =

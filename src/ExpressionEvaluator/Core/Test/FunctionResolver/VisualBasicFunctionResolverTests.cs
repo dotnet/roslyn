@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     static void F() { }
 }";
-            var bytes = CreateStandardCompilation(source).EmitToArray();
+            var bytes = CreateCompilation(source).EmitToArray();
             var resolver = Resolver.VisualBasicResolver;
             var unknownId = Guid.Parse("F02FB87B-64EC-486E-B039-D4A97F48858C");
             var csharpLanguageId = Guid.Parse("3f5162f8-07c6-11d3-9053-00c04fa302a1");
@@ -114,7 +116,7 @@ interface I
 {
     object P { get; set; }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.VisualBasicResolver;
@@ -151,7 +153,7 @@ class B
     static void Method() { }
     object Property { get; set; }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.VisualBasicResolver;
@@ -182,7 +184,7 @@ namespace One.Two
         static void Method(Three t) { }
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.VisualBasicResolver;

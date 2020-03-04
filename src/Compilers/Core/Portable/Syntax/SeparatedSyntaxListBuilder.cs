@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             return this;
         }
 
-        public SeparatedSyntaxListBuilder<TNode> AddSeparator(SyntaxToken separatorToken)
+        public SeparatedSyntaxListBuilder<TNode> AddSeparator(in SyntaxToken separatorToken)
         {
             CheckExpectedSeparator();
             _expectedSeparator = false;
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             return this;
         }
 
-        public SeparatedSyntaxListBuilder<TNode> AddRange(SeparatedSyntaxList<TNode> nodes)
+        public SeparatedSyntaxListBuilder<TNode> AddRange(in SeparatedSyntaxList<TNode> nodes)
         {
             CheckExpectedElement();
             SyntaxNodeOrTokenList list = nodes.GetWithSeparators();
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             return this;
         }
 
-        public SeparatedSyntaxListBuilder<TNode> AddRange(SeparatedSyntaxList<TNode> nodes, int count)
+        public SeparatedSyntaxListBuilder<TNode> AddRange(in SeparatedSyntaxList<TNode> nodes, int count)
         {
             CheckExpectedElement();
             SyntaxNodeOrTokenList list = nodes.GetWithSeparators();
@@ -116,12 +118,12 @@ namespace Microsoft.CodeAnalysis.Syntax
             return _builder.ToSeparatedList<TDerived>();
         }
 
-        public static implicit operator SyntaxListBuilder(SeparatedSyntaxListBuilder<TNode> builder)
+        public static implicit operator SyntaxListBuilder(in SeparatedSyntaxListBuilder<TNode> builder)
         {
             return builder._builder;
         }
 
-        public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxListBuilder<TNode> builder)
+        public static implicit operator SeparatedSyntaxList<TNode>(in SeparatedSyntaxListBuilder<TNode> builder)
         {
             if (builder._builder != null)
             {

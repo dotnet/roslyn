@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
+        <target state="translated">İlişkisel işleçleri içinde: = Transfeleri'nin &lt; &gt; &lt;&gt; = nasıl olduğunu =</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
         <source>Microsoft Visual Basic</source>
         <target state="translated">Microsoft Visual Basic</target>
@@ -25,6 +30,21 @@
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">Interface ve MustOverride üyelerini otomatik olarak _ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">Hiçbir zaman</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
+        <source>Prefer 'Is Nothing' for reference equality checks</source>
+        <target state="translated">Başvuru eşitliği denetimleri için 'Is Nothing'i tercih et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">İçeri aktarılmayan ad alanlarındaki öğeleri göster (deneysel)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -164,12 +184,12 @@
       </trans-unit>
       <trans-unit id="Do_not_prefer_Me">
         <source>Do not prefer 'Me.'</source>
-        <target state="translated">Me.' öğesini tercih etme</target>
+        <target state="translated">'Me.' öğesini tercih etme</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Me">
         <source>Prefer 'Me.'</source>
-        <target state="translated">Me.' öğesini tercih et</target>
+        <target state="translated">'Me' tercih</target>
         <note />
       </trans-unit>
       <trans-unit id="Me_preferences_colon">
@@ -194,7 +214,7 @@
       </trans-unit>
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
-        <target state="translated">Tamamlanma Listeleri</target>
+        <target state="translated">Tamamlama Listeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
@@ -247,6 +267,16 @@
         <target state="translated">Bir karakter yazıldıktan sonra tamamlanma listesini _göster</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">Kullanılmayan yerel</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">VB kodlama kuralları</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'nothing' denetimi:</target>
@@ -257,19 +287,24 @@
         <target state="translated">Kullanılmayan içeri aktarmaları soluklaştır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_Is_Nothing_over_ReferenceEquals">
-        <source>Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</source>
-        <target state="translated">Object.ReferenceEquals(..., Nothing)' yerine 'Is Nothing' tercih et</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'String.Format' calls</source>
-        <target state="translated">String.Format' çağrılarındaki geçersiz yer tutucuları bildir</target>
+        <target state="translated">Rapor geçersiz yer tutucuları 'String.Format' çağrıları</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_import_directive_groups">
         <source>Separate import directive groups</source>
         <target state="translated">İçeri aktarma yönerge gruplarını ayır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</source>
+        <target state="translated">İçinde aritmetik işleçler: ^ * / \ Mod + - &amp; &lt;&gt; &lt;&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
+        <target state="translated">Diğer ikili işleçlerde: And AndAlso Or OrElse</target>
         <note />
       </trans-unit>
     </body>

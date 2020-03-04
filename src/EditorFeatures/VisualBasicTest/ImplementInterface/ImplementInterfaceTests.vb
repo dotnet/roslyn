@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -861,25 +863,14 @@ Class A
 End Class")
         End Function
 
-        <WorkItem(541092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541092")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
-        Public Async Function TestShowForNonImplementedPrivateInterfaceMethod() As Task
-            Await TestInRegularAndScriptAsync(
+        Public Async Function TestDoNotShowForNonImplementedPrivateInterfaceMethod() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "Interface I1
     Private Sub Goo()
 End Interface
 Class A
     Implements [|I1|]
-End Class",
-"Interface I1
-    Private Sub Goo()
-End Interface
-Class A
-    Implements I1
-
-    Public Sub Goo() Implements I1.Goo
-        Throw New System.NotImplementedException()
-    End Sub
 End Class")
         End Function
 
@@ -976,16 +967,16 @@ Class A
 
     Public ReadOnly Property Count As Integer Implements IReadOnlyCollection(Of Integer).Count
         Get
-            Return DirectCast(field, IReadOnlyList(Of Integer)).Count
+            Return DirectCast(field, IReadOnlyCollection(Of Integer)).Count
         End Get
     End Property
 
     Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return DirectCast(field, IEnumerable(Of Integer)).GetEnumerator()
     End Function
 
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return field.GetEnumerator()
     End Function
 End Class",
 index:=1)
@@ -1013,18 +1004,18 @@ Class A
 
     Public ReadOnly Property Count As Integer Implements IReadOnlyCollection(Of Integer).Count
         Get
-            Return DirectCast(field, IReadOnlyList(Of Integer)).Count
+            Return DirectCast(field, IReadOnlyCollection(Of Integer)).Count
         End Get
     End Property
 
     Private Property field As Integer()
 
     Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return DirectCast(field, IEnumerable(Of Integer)).GetEnumerator()
     End Function
 
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return field.GetEnumerator()
     End Function
 End Class",
 index:=1)
@@ -4227,7 +4218,7 @@ End Structure
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDisposePatternWhenAdditionalImportsAreIntroduced1() As Task
             Await TestInRegularAndScriptAsync(
-"Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
+$"Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
     Function M(a As System.Collections.Generic.Dictionary(Of T, System.Collections.Generic.List(Of U)), b As T, c As U) As System.Collections.Generic.List(Of U)
     Function M(Of TT, UU As TT)(a As System.Collections.Generic.Dictionary(Of TT, System.Collections.Generic.List(Of UU)), b As TT, c As UU) As System.Collections.Generic.List(Of UU)
 End Interface
@@ -4265,33 +4256,33 @@ Class _
     End Function
 
 #Region ""IDisposable Support""
-    Private disposedValue As Boolean ' To detect redundant calls
+    Private disposedValue As Boolean ' { FeaturesResources.To_detect_redundant_calls }
 
     ' IDisposable
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
             If disposing Then
-                ' TODO: dispose managed state (managed objects).
+                ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
 
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
+            ' { VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below }
+            ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
         End If
         disposedValue = True
     End Sub
 
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+    ' { VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources }
     'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+    '    ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
     '    Dispose(False)
     '    MyBase.Finalize()
     'End Sub
 
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
+    ' {VBFeaturesResources.This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern }
     Public Sub Dispose() Implements IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+        ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
         Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
+        ' { VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above }
         ' GC.SuppressFinalize(Me)
     End Sub
 #End Region
@@ -4307,7 +4298,7 @@ End Class",
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDisposePatternWhenAdditionalImportsAreIntroduced2() As Task
             Await TestInRegularAndScriptAsync(
-"Class C
+$"Class C
 End Class
 
 Partial Class C
@@ -4342,33 +4333,33 @@ Partial Class C
     End Function
 
 #Region ""IDisposable Support""
-    Private disposedValue As Boolean ' To detect redundant calls
+    Private disposedValue As Boolean ' { FeaturesResources.To_detect_redundant_calls }
 
     ' IDisposable
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
             If disposing Then
-                ' TODO: dispose managed state (managed objects).
+                ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
 
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
+            ' { VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below }
+            ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
         End If
         disposedValue = True
     End Sub
 
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+    ' { VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources }
     'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+    '    ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
     '    Dispose(False)
     '    MyBase.Finalize()
     'End Sub
 
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
+    ' { VBFeaturesResources.This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern }
     Public Sub Dispose() Implements IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+        ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
         Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
+        ' { VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above }
         ' GC.SuppressFinalize(Me)
     End Sub
 #End Region
@@ -4492,13 +4483,13 @@ Class Program(Of T)
 
     Public ReadOnly Property Count As Integer Implements ICollection(Of Object).Count
         Get
-            Return DirectCast(innerList, IList(Of Object)).Count
+            Return DirectCast(innerList, ICollection(Of Object)).Count
         End Get
     End Property
 
     Public ReadOnly Property IsReadOnly As Boolean Implements ICollection(Of Object).IsReadOnly
         Get
-            Return DirectCast(innerList, IList(Of Object)).IsReadOnly
+            Return DirectCast(innerList, ICollection(Of Object)).IsReadOnly
         End Get
     End Property
 
@@ -4511,15 +4502,15 @@ Class Program(Of T)
     End Sub
 
     Public Sub Add(item As Object) Implements ICollection(Of Object).Add
-        DirectCast(innerList, IList(Of Object)).Add(item)
+        DirectCast(innerList, ICollection(Of Object)).Add(item)
     End Sub
 
     Public Sub Clear() Implements ICollection(Of Object).Clear
-        DirectCast(innerList, IList(Of Object)).Clear()
+        DirectCast(innerList, ICollection(Of Object)).Clear()
     End Sub
 
     Public Sub CopyTo(array() As Object, arrayIndex As Integer) Implements ICollection(Of Object).CopyTo
-        DirectCast(innerList, IList(Of Object)).CopyTo(array, arrayIndex)
+        DirectCast(innerList, ICollection(Of Object)).CopyTo(array, arrayIndex)
     End Sub
 
     Public Function IndexOf(item As Object) As Integer Implements IList(Of Object).IndexOf
@@ -4527,19 +4518,19 @@ Class Program(Of T)
     End Function
 
     Public Function Contains(item As Object) As Boolean Implements ICollection(Of Object).Contains
-        Return DirectCast(innerList, IList(Of Object)).Contains(item)
+        Return DirectCast(innerList, ICollection(Of Object)).Contains(item)
     End Function
 
     Public Function Remove(item As Object) As Boolean Implements ICollection(Of Object).Remove
-        Return DirectCast(innerList, IList(Of Object)).Remove(item)
+        Return DirectCast(innerList, ICollection(Of Object)).Remove(item)
     End Function
 
     Public Function GetEnumerator() As IEnumerator(Of Object) Implements IEnumerable(Of Object).GetEnumerator
-        Return DirectCast(innerList, IList(Of Object)).GetEnumerator()
+        Return DirectCast(innerList, IEnumerable(Of Object)).GetEnumerator()
     End Function
 
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Return DirectCast(innerList, IList(Of Object)).GetEnumerator()
+        Return DirectCast(innerList, IEnumerable).GetEnumerator()
     End Function
 End Class",
 index:=1)

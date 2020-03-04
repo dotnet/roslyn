@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -10,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool Includes(this BinderFlags self, BinderFlags other)
         {
             return (self & other) == other;
+        }
+
+        public static bool IncludesAny(this BinderFlags self, BinderFlags other)
+        {
+            return (self & other) != 0;
         }
     }
 }

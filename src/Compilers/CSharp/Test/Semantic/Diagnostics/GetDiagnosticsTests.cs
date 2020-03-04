@@ -1,12 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -120,12 +125,12 @@ class C
             var hidden = diag.WithSeverity(DiagnosticSeverity.Hidden);
             Assert.Equal(DiagnosticSeverity.Hidden, hidden.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, hidden.DefaultSeverity);
-            Assert.Equal(4, hidden.WarningLevel);
+            Assert.Equal(1, hidden.WarningLevel);
 
             var info = diag.WithSeverity(DiagnosticSeverity.Info);
             Assert.Equal(DiagnosticSeverity.Info, info.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity);
-            Assert.Equal(4, info.WarningLevel);
+            Assert.Equal(1, info.WarningLevel);
         }
 
         [Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")]
@@ -273,7 +278,7 @@ namespace N1
                         var added = declaredSymbolNames.Add(symbol.Name);
                         if (!added)
                         {
-                            var method = symbol as Symbols.MethodSymbol;
+                            var method = symbol.GetSymbol() as Symbols.MethodSymbol;
                             Assert.NotNull(method);
 
                             var isPartialMethod = method.PartialDefinitionPart != null ||
@@ -298,7 +303,7 @@ namespace N1
         [Fact]
         public void TestEventQueueCompletionForEmptyCompilation()
         {
-            var compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable<SyntaxTree>()).WithEventQueue(new AsyncQueue<CompilationEvent>());
+            var compilation = CreateCompilationWithMscorlib45(CSharpTestSource.None).WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             // Force complete compilation event queue
             var unused = compilation.GetDiagnostics();
@@ -309,7 +314,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
+            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
 
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
@@ -333,7 +338,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithLanguageVersion((LanguageVersion)10000));
+            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithLanguageVersion((LanguageVersion)10000));
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8192: Provided language version is unsupported or invalid: '10000'.
                 // 
@@ -343,7 +348,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidDocumentationModeShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
+            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8191: Provided documentation mode is unsupported or invalid: '100'.
                 // 
@@ -357,7 +362,7 @@ namespace N1
             var syntaxTree2 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" }));
             var syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "3" }));
 
-            var compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            var compilation = CreateEmptyCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
             var diagnostics = compilation.GetDiagnostics();
 
             diagnostics.Verify(
@@ -386,7 +391,7 @@ namespace N1
             var syntaxTree2 = Parse(string.Empty, options: parseOptions2);
             var syntaxTree3 = Parse(string.Empty, options: parseOptions2);
 
-            var compilation = CreateStandardCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            var compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
             var diagnostics = compilation.GetDiagnostics();
 
             diagnostics.Verify(
@@ -399,6 +404,106 @@ namespace N1
 
             Assert.True(diagnostics[0].Location.SourceTree.Equals(syntaxTree1));
             Assert.True(diagnostics[1].Location.SourceTree.Equals(syntaxTree2));
+        }
+
+        [Fact]
+        [WorkItem(24351, "https://github.com/dotnet/roslyn/issues/24351")]
+        public void GettingDeclarationDiagnosticsForATreeShouldNotFreezeCompilation()
+        {
+            var parseOptions = new CSharpParseOptions(LanguageVersion.Latest);
+            var tree1 = Parse(string.Empty, options: parseOptions);
+            var tree2 = Parse("ref struct X {}", options: parseOptions);
+
+            var compilation = CreateCompilation(new[] { tree1, tree2 });
+
+            // Verify diagnostics for the first tree. This should have sealed the attributes
+            compilation.GetSemanticModel(tree1).GetDeclarationDiagnostics().Verify();
+
+            // Verify diagnostics for the second tree. This should have triggered the assert
+            compilation.GetSemanticModel(tree2).GetDeclarationDiagnostics().Verify();
+        }
+
+        [Fact]
+        [WorkItem(39094, "https://github.com/dotnet/roslyn/issues/39094")]
+        public void TestSuppressMessageAttributeDoesNotSuppressCompilerDiagnostics()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage("""", ""CS0168"", Justification = """", Scope = ""type"", Target = ""~T:C"")]
+
+class C
+{
+    void M()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            // Verify unsuppressed CS0168 in 'Compilation.GetDiagnostics'
+            var compilation = CreateCompilation(source);
+            var diagnostics = compilation.GetDiagnostics();
+            var expected = Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(11, 13);
+            diagnostics.Verify(expected);
+            Assert.False(diagnostics.Single().IsSuppressed);
+
+            // Verify 'GetEffectiveDiagnostics' does not apply SuppressMessage suppression to compiler diagnostics.
+            var effectiveDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation);
+            effectiveDiagnostics.Verify(expected);
+            Assert.False(effectiveDiagnostics.Single().IsSuppressed);
+
+            // Verify CS0168 is not suppressed for compiler diagnostics computed
+            // using CompilerDiagnosticAnalyzer
+            var analyzers = new DiagnosticAnalyzer[] { new CSharpCompilerDiagnosticAnalyzer() };
+            var analyzerDiagnostics = compilation.GetAnalyzerDiagnostics(analyzers);
+            analyzerDiagnostics.Verify(expected);
+            Assert.False(analyzerDiagnostics.Single().IsSuppressed);
+        }
+
+        [Fact]
+        [WorkItem(42116, "https://github.com/dotnet/roslyn/issues/42116")]
+        public async Task TestAnalyzerConfigurationDoesNotAffectCompilerDiagnostics()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            // Verify CS0168 reported from 'Compilation.GetDiagnostics'
+            var compilation = CreateCompilation(source);
+            var compilerDiagnostics = compilation.GetDiagnostics();
+            verifyDiagnostics(compilerDiagnostics);
+
+            // Verify CS0168 reported from 'CSharpCompilerDiagnosticAnalyzer', i.e. the diagnostic analyzer used in the IDE layer to report live compiler diagnostics.
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty));
+            var analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+            verifyDiagnostics(analyzerDiagnostics);
+
+            // Verify CS0168 reported by CSharpCompilerDiagnosticAnalyzer is not affected by "dotnet_analyzer_diagnostic = none"
+            var analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("dotnet_analyzer_diagnostic.severity", "none"));
+            var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
+                ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions));
+            var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
+            compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, analyzerOptions);
+            analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+            verifyDiagnostics(analyzerDiagnostics);
+
+            static void verifyDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+            {
+                var expected = Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 13);
+                diagnostics.Verify(expected);
+
+                var diagnostic = diagnostics.Single();
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+                Assert.False(diagnostic.IsSuppressed);
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using Microsoft.CodeAnalysis.Emit;
@@ -28,7 +30,7 @@ class Test
         yield break;
     }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
         }
 
@@ -45,7 +47,7 @@ class Test
         yield return 1;
     }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
         }
 
@@ -63,7 +65,7 @@ class Test
         yield break;
     }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,22): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         yield return 1.1;
@@ -86,7 +88,7 @@ class Test
         yield break;
     }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (8,44): error CS1621: The yield statement cannot be used inside an anonymous method or lambda expression
                 //         Func<IEnumerable<int>> i = () => { yield break; };
@@ -124,7 +126,7 @@ class Test
     {
     }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             EmitResult emitResult;
             using (var output = new MemoryStream())
@@ -365,7 +367,7 @@ class Base
         }
     }
 }";
-            var comp = CreateStandardCompilation(text, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(text, options: TestOptions.DebugDll);
             comp.VerifyEmitDiagnostics(); // without the fix for bug 11649, the compilation would fail emitting
             CompileAndVerify(comp);
         }
@@ -424,7 +426,7 @@ class Test
         yield return;
     }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,15): error CS1627: Expression expected after yield return
                 //         yield return;

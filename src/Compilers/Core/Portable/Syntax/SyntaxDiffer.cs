@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -336,7 +338,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void FindBestMatch(Stack<SyntaxNodeOrToken> stack, SyntaxNodeOrToken node, out int index, out int similarity, int startIndex = 0)
+        private void FindBestMatch(Stack<SyntaxNodeOrToken> stack, in SyntaxNodeOrToken node, out int index, out int similarity, int startIndex = 0)
         {
             index = -1;
             similarity = -1;
@@ -419,7 +421,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private int GetSimilarity(SyntaxNodeOrToken node1, SyntaxNodeOrToken node2)
+        private int GetSimilarity(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
         {
             // count the characters in the common/identical nodes
             int w = 0;
@@ -495,12 +497,12 @@ namespace Microsoft.CodeAnalysis
             return w;
         }
 
-        private static bool AreIdentical(SyntaxNodeOrToken node1, SyntaxNodeOrToken node2)
+        private static bool AreIdentical(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
         {
             return node1.UnderlyingNode == node2.UnderlyingNode;
         }
 
-        private static bool AreSimilar(SyntaxNodeOrToken node1, SyntaxNodeOrToken node2)
+        private static bool AreSimilar(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
         {
             return node1.RawKind == node2.RawKind;
         }
@@ -582,7 +584,7 @@ namespace Microsoft.CodeAnalysis
             _changes.Add(change);
         }
 
-        private void RecordChange(TextChangeRange textChangeRange, SyntaxNodeOrToken removedNode, SyntaxNodeOrToken insertedNode)
+        private void RecordChange(TextChangeRange textChangeRange, in SyntaxNodeOrToken removedNode, SyntaxNodeOrToken insertedNode)
         {
             if (_changes.Count > 0)
             {

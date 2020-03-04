@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../WorkspaceMSBuildResources.resx">
+    <body>
+      <trans-unit id="Found_project_reference_without_a_matching_metadata_reference_0">
+        <source>Found project reference without a matching metadata reference: {0}</source>
+        <target state="translated">Proje başvurusu eşleşen meta veriler başvuru olmadan bulundu: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Msbuild_failed_when_processing_the_file_0">
+        <source>Msbuild failed when processing the file '{0}'</source>
+        <target state="translated">'{0}' dosyası işlenirken MSBuild başarısız oldu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
+        <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
+        <target state="translated">MSBuild mesaj ile '{0}' dosyasını işlerken başarısız oldu: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_contain_0_target">
+        <source>Project does not contain '{0}' target.</source>
+        <target state="translated">Proje '{0}' hedefini içermiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_project_with_the_same_file_path_and_output_path_as_another_project_0">
+        <source>Found project with the same file path and output path as another project: {0}</source>
+        <target state="translated">Başka bir proje ile aynı dosya yoluna ve çıktı yoluna sahip proje bulundu: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Duplicate_project_discovered_and_skipped_0">
+        <source>Duplicate project discovered and skipped: {0}</source>
+        <target state="translated">Yinelenen proje bulundu ve atlandı: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unresolved_metadata_reference_removed_from_project_0">
+        <source>Unresolved metadata reference removed from project: {0}</source>
+        <target state="translated">Çözümlenmemiş projeden meta verileri başvuru: {0}</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

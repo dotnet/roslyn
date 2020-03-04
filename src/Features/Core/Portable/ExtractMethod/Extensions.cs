@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable 
 
 using System.Collections.Generic;
 using System.Linq;
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return baseFlag & ~flagToRemove;
         }
 
-        public static ITypeSymbol GetLambdaOrAnonymousMethodReturnType(this SemanticModel binding, SyntaxNode node)
+        public static ITypeSymbol? GetLambdaOrAnonymousMethodReturnType(this SemanticModel binding, SyntaxNode node)
         {
             var info = binding.GetSymbolInfo(node);
             if (info.Symbol == null)
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             var methodSymbol = info.Symbol as IMethodSymbol;
-            if (methodSymbol.MethodKind != MethodKind.AnonymousFunction)
+            if (methodSymbol?.MethodKind != MethodKind.AnonymousFunction)
             {
                 return null;
             }
@@ -89,7 +93,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// </summary>
         public static T ResolveType<T>(this SemanticModel semanticModel, T symbol) where T : class, ITypeSymbol
         {
-            return (T)symbol.GetSymbolKey().Resolve(semanticModel.Compilation).GetAnySymbol();
+            // Can be cleaned up when https://github.com/dotnet/roslyn/issues/38061 is resolved
+            var typeSymbol = (T)symbol.GetSymbolKey().Resolve(semanticModel.Compilation).GetAnySymbol();
+            return (T)typeSymbol.WithNullableAnnotation(symbol.NullableAnnotation);
         }
 
         /// <summary>

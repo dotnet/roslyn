@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -368,6 +370,157 @@ Class C
         }
         z.y = 2
     End Sub
+End Class
+")
+        End Function
+
+        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestWithExplicitImplementedInterfaceMembers1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+class C
+    Sub Bar()
+        Dim c As IExample = [||]New Goo
+        c.Name = String.Empty
+    End Sub
+End Class
+
+Interface IExample
+    Property Name As String
+    Property LastName As String
+End Interface
+
+Class Goo
+    Implements IExample
+
+    Private Property Name As String Implements IExample.Name
+    Public Property LastName As String Implements IExample.LastName
+End Class
+")
+        End Function
+
+        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestWithExplicitImplementedInterfaceMembers2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+class C
+    Sub Bar()
+        Dim c As IExample = [||]New Goo
+        c.Name = String.Empty
+        c.LastName = String.Empty
+    End Sub
+End Class
+
+Interface IExample
+    Property Name As String
+    Property LastName As String
+End Interface
+
+Class Goo
+    Implements IExample
+
+    Private Property Name As String Implements IExample.Name
+    Public Property LastName As String Implements IExample.LastName
+End Class
+")
+        End Function
+
+        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestWithExplicitImplementedInterfaceMembers3() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    Sub Bar()
+        Dim c As IExample = [||]New Goo
+        c.LastName = String.Empty
+        c.Name = String.Empty
+    End Sub
+End Class
+
+Interface IExample
+    Property Name As String
+    Property LastName As String
+End Interface
+
+Class Goo
+    Implements IExample
+
+    Private Property Name As String Implements IExample.Name
+    Public Property LastName As String Implements IExample.LastName
+End Class
+",
+"
+class C
+    Sub Bar()
+        Dim c As IExample = New Goo With {
+            .LastName = String.Empty
+        }
+        c.Name = String.Empty
+    End Sub
+End Class
+
+Interface IExample
+    Property Name As String
+    Property LastName As String
+End Interface
+
+Class Goo
+    Implements IExample
+
+    Private Property Name As String Implements IExample.Name
+    Public Property LastName As String Implements IExample.LastName
+End Class
+")
+        End Function
+
+        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestWithExplicitImplementedInterfaceMembers4() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    Sub Bar()
+        Dim c As IExample = [||]New Goo
+        c.LastName = String.Empty
+        c.Name = String.Empty
+    End Sub
+End Class
+
+Interface IExample
+    Property Name As String
+    Property LastName As String
+End Interface
+
+Class Goo
+    Implements IExample
+
+    Private Property Name As String Implements IExample.Name
+    Public Property MyLastName As String Implements IExample.LastName
+End Class
+",
+"
+class C
+    Sub Bar()
+        Dim c As IExample = New Goo With {
+            .MyLastName = String.Empty
+        }
+        c.Name = String.Empty
+    End Sub
+End Class
+
+Interface IExample
+    Property Name As String
+    Property LastName As String
+End Interface
+
+Class Goo
+    Implements IExample
+
+    Private Property Name As String Implements IExample.Name
+    Public Property MyLastName As String Implements IExample.LastName
 End Class
 ")
         End Function

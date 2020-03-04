@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -69,11 +71,11 @@ namespace Microsoft.CodeAnalysis
 
     internal abstract class MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> :
         TypeNameDecoder<ModuleSymbol, TypeSymbol>
-        where ModuleSymbol : class
-        where TypeSymbol : class, Symbol, ITypeSymbol
-        where MethodSymbol : class, Symbol, IMethodSymbol
-        where FieldSymbol : class, Symbol, IFieldSymbol
-        where Symbol : class, ISymbol
+        where ModuleSymbol : class, IModuleSymbolInternal
+        where TypeSymbol : class, Symbol, ITypeSymbolInternal
+        where MethodSymbol : class, Symbol, IMethodSymbolInternal
+        where FieldSymbol : class, Symbol, IFieldSymbolInternal
+        where Symbol : class, ISymbolInternal
     {
         public readonly PEModule Module;
 
@@ -352,7 +354,7 @@ namespace Microsoft.CodeAnalysis
                 bool argumentRefersToNoPia;
                 SignatureTypeCode typeCode;
                 ImmutableArray<ModifierInfo<TypeSymbol>> modifiers = DecodeModifiersOrThrow(ref ppSig, AllowedRequiredModifierType.None, out typeCode, out _);
-                argumentsBuilder.Add(KeyValuePair.Create(DecodeTypeOrThrow(ref ppSig, typeCode, out argumentRefersToNoPia), modifiers));
+                argumentsBuilder.Add(KeyValuePairUtil.Create(DecodeTypeOrThrow(ref ppSig, typeCode, out argumentRefersToNoPia), modifiers));
                 argumentRefersToNoPiaLocalTypeBuilder.Add(argumentRefersToNoPia);
             }
 
@@ -476,7 +478,7 @@ namespace Microsoft.CodeAnalysis
             if (cache != null && !isNoPiaLocalType)
             {
                 TypeSymbol result1 = cache.GetOrAdd(typeRef, result);
-                Debug.Assert(result1.Equals(result));
+                Debug.Assert(result1.Equals(result, TypeCompareKind.ConsiderEverything));
             }
 
             return result;
@@ -714,6 +716,9 @@ namespace Microsoft.CodeAnalysis
                         case AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile:
                             isAllowed = IsAcceptedVolatileModifierType(type);
                             break;
+                        case AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType:
+                            isAllowed = IsAcceptedUnmanagedTypeModifierType(type);
+                            break;
                     }
 
                     if (isAllowed)
@@ -745,10 +750,10 @@ namespace Microsoft.CodeAnalysis
             TypeSymbol type;
             bool isNoPiaLocalType;
 
-            // According to ECMA spec:
-            //  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
-            //  indexes a row in the TypeDef table or the TypeRef table.
-            tryAgain:
+// According to ECMA spec:
+//  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
+//  indexes a row in the TypeDef table or the TypeRef table.
+tryAgain:
             switch (token.Kind)
             {
                 case HandleKind.TypeDefinition:
@@ -875,6 +880,60 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal TypeSymbol DecodeGenericParameterConstraint(EntityHandle token, out bool isUnmanagedConstraint)
+        {
+            isUnmanagedConstraint = false;
+
+            switch (token.Kind)
+            {
+                case HandleKind.TypeSpecification:
+                    {
+                        try
+                        {
+                            var memoryReader = this.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)token);
+                            var modifiers = DecodeModifiersOrThrow(ref memoryReader, AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType, out var typeCode, out var modReqFound);
+                            var type = DecodeTypeOrThrow(ref memoryReader, typeCode, out _);
+
+                            if (modReqFound)
+                            {
+                                // Any other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                                Debug.Assert(!modifiers.IsDefaultOrEmpty);
+
+                                if (type.SpecialType == SpecialType.System_ValueType && modifiers.Length == 1)
+                                {
+                                    isUnmanagedConstraint = true;
+                                }
+                                else
+                                {
+                                    return GetUnsupportedMetadataTypeSymbol();
+                                }
+                            }
+                            else if (!modifiers.IsDefaultOrEmpty)
+                            {
+                                // Any other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                                return GetUnsupportedMetadataTypeSymbol();
+                            }
+
+                            return type;
+                        }
+                        catch (BadImageFormatException mrEx)
+                        {
+                            return GetUnsupportedMetadataTypeSymbol(mrEx);
+                        }
+                        catch (UnsupportedSignatureContent)
+                        {
+                            return GetUnsupportedMetadataTypeSymbol();
+                        }
+                    }
+                case HandleKind.TypeReference:
+                    return GetTypeOfTypeRef((TypeReferenceHandle)token, out _);
+                case HandleKind.TypeDefinition:
+                    return GetTypeOfTypeDef((TypeDefinitionHandle)token);
+                default:
+                    return GetUnsupportedMetadataTypeSymbol();
+            }
+        }
+
         /// <exception cref="UnsupportedSignatureContent">If the encoded local variable type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal LocalInfo<TypeSymbol> DecodeLocalVariableOrThrow(ref BlobReader signatureReader)
@@ -941,7 +1000,7 @@ namespace Microsoft.CodeAnalysis
                 else if (sigReader.RemainingBytes == 0)
                 {
                     // default(T)
-                    value = (type.IsReferenceType || type is IPointerTypeSymbol) ? ConstantValue.Null : ConstantValue.Bad;
+                    value = (type.IsReferenceType || type.TypeKind == TypeKind.Pointer) ? ConstantValue.Null : ConstantValue.Bad;
                 }
                 else
                 {
@@ -1075,7 +1134,7 @@ namespace Microsoft.CodeAnalysis
                 throw new UnsupportedSignatureContent();
             }
 
-            fixed (byte* ptr = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(signature))
+            fixed (byte* ptr = signature.AsSpan())
             {
                 var blobReader = new BlobReader(ptr, signature.Length);
                 var info = DecodeLocalVariableOrThrow(ref blobReader);
@@ -2355,7 +2414,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return false;
                 }
-                if (!param2.Type.Equals(param1.Type))
+                if (!param2.Type.Equals(param1.Type, TypeCompareKind.ConsiderEverything))
                 {
                     return false;
                 }
@@ -2393,6 +2452,7 @@ namespace Microsoft.CodeAnalysis
             None,
             System_Runtime_CompilerServices_Volatile,
             System_Runtime_InteropServices_InAttribute,
+            System_Runtime_InteropServices_UnmanagedType,
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -28,7 +30,7 @@ Class Goo
 		Dim b = New Goo($$
 	End Sub
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -46,7 +48,7 @@ Class FogBar
 		MyBase.New($$
 	End Sub
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -63,7 +65,7 @@ End Class
 &lt;Test($$)&gt; _
 Class Goo
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <WorkItem(546190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546190")>
@@ -79,7 +81,7 @@ End Class
 &lt;Something($$)&gt; ' type x in the parens
 Class D
 End Class
-</Text>.Value, "x:=")
+</Text>.Value, "x", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -95,7 +97,7 @@ End Class
 &lt;Test(s:="""",$$  &gt; _
 Class Goo
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -107,7 +109,7 @@ Class Goo
 		Bar($$
 	End Sub
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -119,7 +121,7 @@ Class Goo
 		Bar(b:="""", $$
 	End Sub
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -142,7 +144,7 @@ Module TestModule
         y = x($$
     End Sub
 End Module
-</Text>.Value, "i:=")
+</Text>.Value, "i", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -160,7 +162,7 @@ Module Test
         d($$
     End Sub
 End Module
-</Text>.Value, "x:=")
+</Text>.Value, "x", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -178,7 +180,7 @@ Module Test
         d.Invoke($$
     End Sub
 End Module
-</Text>.Value, "x:=")
+</Text>.Value, "x", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -222,8 +224,8 @@ Class Class1
 End Class
 </Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "bool:=")
-            Await VerifyItemExistsAsync(markup, "character:=")
+            Await VerifyItemExistsAsync(markup, "bool", displayTextSuffix:=":=")
+            Await VerifyItemExistsAsync(markup, "character", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -245,9 +247,9 @@ Class Goo
 End Class
 </Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "str:=")
-            Await VerifyItemExistsAsync(markup, "num:=")
-            Await VerifyItemExistsAsync(markup, "b:=")
+            Await VerifyItemExistsAsync(markup, "str", displayTextSuffix:=":=")
+            Await VerifyItemExistsAsync(markup, "num", displayTextSuffix:=":=")
+            Await VerifyItemExistsAsync(markup, "b", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -271,10 +273,10 @@ Class Goo
 End Class
 </Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "num:=")
-            Await VerifyItemExistsAsync(markup, "b:=")
-            Await VerifyItemIsAbsentAsync(markup, "obj:=")
-            Await VerifyItemIsAbsentAsync(markup, "str:=")
+            Await VerifyItemExistsAsync(markup, "num", displayTextSuffix:=":=")
+            Await VerifyItemExistsAsync(markup, "b", displayTextSuffix:=":=")
+            Await VerifyItemIsAbsentAsync(markup, "obj", displayTextSuffix:=":=")
+            Await VerifyItemIsAbsentAsync(markup, "str", displayTextSuffix:=":=")
         End Function
 
         <WorkItem(529370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529370")>
@@ -287,7 +289,7 @@ Class Goo
         Bar($$
     End Sub
 End Class
-</Text>.Value, "[Boolean]:=")
+</Text>.Value, "[Boolean]", displayTextSuffix:=":=")
         End Function
 
         <WorkItem(546589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546589")>
@@ -384,7 +386,7 @@ Class Goo
         x?($$
     End Sub
 End Class
-</Text>.Value, "obj:=")
+</Text>.Value, "obj", displayTextSuffix:=":=")
         End Function
 
         <WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")>

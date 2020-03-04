@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -33,8 +36,10 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
+        internal abstract ISyntaxFacts SyntaxFacts { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
+        internal abstract SyntaxTrivia Whitespace(string text);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
@@ -175,7 +180,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
             if (method.ExplicitInterfaceImplementations.Length > 0)
             {
-                decl = this.WithExplicitInterfaceImplementations(decl, method.ExplicitInterfaceImplementations);
+                decl = this.WithExplicitInterfaceImplementations(decl,
+                    ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations));
             }
 
             return decl;
@@ -273,8 +279,18 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Creates a property declaration.
+        /// Creates a property declaration. The property will have a <c>get</c> accessor if
+        /// <see cref="DeclarationModifiers.IsWriteOnly"/> is <see langword="false"/> and will have
+        /// a <c>set</c> accessor if <see cref="DeclarationModifiers.IsReadOnly"/> is <see
+        /// langword="false"/>.
         /// </summary>
+        /// <remarks>
+        /// In C# there is a distinction betwene passing in <see langword="null"/> for <paramref
+        /// name="getAccessorStatements"/> or <paramref name="setAccessorStatements"/> versus
+        /// passing in an empty list. <see langword="null"/> will produce an auto-property-accessor
+        /// (i.e. <c>get;</c>) whereas an empty list will produce an accessor with an empty block
+        /// (i.e. <c>get { }</c>).
+        /// </remarks>
         public abstract SyntaxNode PropertyDeclaration(
             string name,
             SyntaxNode type,
@@ -684,7 +700,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return declaration;
         }
 
-        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations);
+        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
@@ -788,6 +804,21 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Creates an alias import declaration.
+        /// </summary>
+        /// <param name="aliasIdentifierName">The name of the alias.</param>
+        /// <param name="symbol">The namespace or type to be aliased.</param>
+        public SyntaxNode AliasImportDeclaration(string aliasIdentifierName, INamespaceOrTypeSymbol symbol)
+            => AliasImportDeclaration(aliasIdentifierName, NameExpression(symbol));
+
+        /// <summary>
+        /// Creates an alias import declaration.
+        /// </summary>
+        /// <param name="aliasIdentifierName">The name of the alias.</param>
+        /// <param name="name">The namespace or type to be aliased.</param>
+        public abstract SyntaxNode AliasImportDeclaration(string aliasIdentifierName, SyntaxNode name);
+
+        /// <summary>
         /// Creates an attribute.
         /// </summary>
         public abstract SyntaxNode Attribute(SyntaxNode name, IEnumerable<SyntaxNode> attributeArguments = null);
@@ -815,16 +846,11 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var args = attribute.ConstructorArguments.Select(a => this.AttributeArgument(this.TypedConstantExpression(a)))
                     .Concat(attribute.NamedArguments.Select(n => this.AttributeArgument(n.Key, this.TypedConstantExpression(n.Value))))
-                    .ToImmutableReadOnlyListOrEmpty();
+                    .ToBoxedImmutableArray();
 
             return Attribute(
                 name: this.TypeExpression(attribute.AttributeClass),
                 attributeArguments: args.Count > 0 ? args : null);
-        }
-
-        private IEnumerable<SyntaxNode> GetSymbolAttributes(ISymbol symbol)
-        {
-            return symbol.GetAttributes().Select(a => Attribute(a));
         }
 
         /// <summary>
@@ -846,11 +872,25 @@ namespace Microsoft.CodeAnalysis.Editing
         public SyntaxNode RemoveAllAttributes(SyntaxNode declaration)
             => this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
 
-        internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
+        /// <summary>
+        /// Removes comments from leading and trailing trivia, as well
+        /// as potentially removing comments from opening and closing tokens.
+        /// </summary>
+        internal abstract SyntaxNode RemoveAllComments(SyntaxNode node);
+
+        internal SyntaxNode RemoveLeadingAndTrailingComments(SyntaxNode node)
         {
-            return declaration.WithLeadingTrivia(declaration.GetLeadingTrivia().Where(t => !IsRegularOrDocComment(t)))
-                              .WithTrailingTrivia(declaration.GetTrailingTrivia().Where(t => !IsRegularOrDocComment(t)));
+            return node.WithLeadingTrivia(RemoveCommentLines(node.GetLeadingTrivia()))
+                .WithTrailingTrivia(RemoveCommentLines(node.GetTrailingTrivia()));
         }
+
+        internal SyntaxToken RemoveLeadingAndTrailingComments(SyntaxToken token)
+        {
+            return token.WithLeadingTrivia(RemoveCommentLines(token.LeadingTrivia))
+                .WithTrailingTrivia(RemoveCommentLines(token.TrailingTrivia));
+        }
+
+        internal abstract SyntaxTriviaList RemoveCommentLines(SyntaxTriviaList syntaxTriviaList);
 
         internal abstract bool IsRegularOrDocComment(SyntaxTrivia trivia);
 
@@ -1065,6 +1105,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration);
 
+        internal abstract SyntaxNode GetParameterListNode(SyntaxNode declaration);
+
         /// <summary>
         /// Inserts the parameters at the specified index into the declaration.
         /// </summary>
@@ -1197,6 +1239,9 @@ namespace Microsoft.CodeAnalysis.Editing
             }
         }
 
+        internal SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
+            => root.ReplaceNode(node, newDeclarations);
+
         /// <summary>
         /// Inserts the new node before the specified declaration.
         /// </summary>
@@ -1246,6 +1291,8 @@ namespace Microsoft.CodeAnalysis.Editing
         #endregion
 
         #region Utility
+
+        internal abstract SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list) where TElement : SyntaxNode;
 
         internal static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
         {
@@ -1382,6 +1429,12 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode ReturnStatement(SyntaxNode expression = null);
 
         /// <summary>
+        /// Creates a statement that can be used to yield a value from an iterator method.
+        /// </summary>
+        /// <param name="expression">An expression that can be yielded.</param>
+        internal abstract SyntaxNode YieldReturnStatement(SyntaxNode expression);
+
+        /// <summary>
         /// Creates a statement that can be used to throw an exception.
         /// </summary>
         /// <param name="expression">An optional expression that can be thrown.</param>
@@ -1393,9 +1446,26 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode ThrowExpression(SyntaxNode expression);
 
         /// <summary>
+        /// True if <see cref="ThrowExpression"/> can be used
+        /// </summary>
+        internal abstract bool SupportsThrowExpression();
+
+        /// <summary>
+        /// <see langword="true"/> if the language requires a <see cref="TypeExpression(ITypeSymbol)"/>
+        /// (including <see langword="var"/>) to be stated when making a 
+        /// <see cref="LocalDeclarationStatement(ITypeSymbol, string, SyntaxNode, bool)"/>.
+        /// <see langword="false"/> if the language allows the type node to be entirely elided.
+        /// </summary>
+        internal abstract bool RequiresLocalDeclarationType();
+
+        /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
-        public abstract SyntaxNode LocalDeclarationStatement(SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
+        public abstract SyntaxNode LocalDeclarationStatement(
+            SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
+
+        internal abstract SyntaxNode LocalDeclarationStatement(
+            SyntaxNode type, SyntaxToken identifier, SyntaxNode initializer = null, bool isConst = false);
 
         internal abstract SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer);
         internal abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
@@ -1403,18 +1473,21 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
-        public SyntaxNode LocalDeclarationStatement(ITypeSymbol type, string name, SyntaxNode initializer = null, bool isConst = false)
-        {
-            return LocalDeclarationStatement(TypeExpression(type), name, initializer, isConst);
-        }
+        public SyntaxNode LocalDeclarationStatement(
+            ITypeSymbol type, string name, SyntaxNode initializer = null, bool isConst = false)
+                => LocalDeclarationStatement(TypeExpression(type), name, initializer, isConst);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
         public SyntaxNode LocalDeclarationStatement(string name, SyntaxNode initializer)
-        {
-            return LocalDeclarationStatement((SyntaxNode)null, name, initializer);
-        }
+            => LocalDeclarationStatement((SyntaxNode)null, name, initializer);
+
+        /// <summary>
+        /// Creates a statement that declares a single local variable.
+        /// </summary>
+        internal SyntaxNode LocalDeclarationStatement(SyntaxToken name, SyntaxNode initializer)
+            => LocalDeclarationStatement((SyntaxNode)null, name, initializer);
 
         /// <summary>
         /// Creates an if-statement
@@ -1422,7 +1495,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="condition">A condition expression.</param>
         /// <param name="trueStatements">The statements that are executed if the condition is true.</param>
         /// <param name="falseStatements">The statements that are executed if the condition is false.</param>
-        public abstract SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null);
+        public abstract SyntaxNode IfStatement(
+            SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null);
 
         /// <summary>
         /// Creates an if statement
@@ -1535,6 +1609,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode WhileStatement(SyntaxNode condition, IEnumerable<SyntaxNode> statements);
 
+        /// <summary>
+        /// Creates a block of statements. Not supported in VB.
+        /// </summary>
+        internal abstract SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements);
+
         #endregion
 
         #region Expressions
@@ -1545,6 +1624,8 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
         internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
         internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
+        internal abstract SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment);
+        internal abstract SyntaxNode InterpolationFormatClause(string format);
 
         /// <summary>
         /// An expression that represents the default value of a type.
@@ -1613,6 +1694,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode GenericName(string identifier, IEnumerable<SyntaxNode> typeArguments);
 
+        internal abstract SyntaxNode GenericName(SyntaxToken identifier, IEnumerable<SyntaxNode> typeArguments);
+
         /// <summary>
         /// Creates an expression that denotes a generic identifier name.
         /// </summary>
@@ -1660,6 +1743,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode QualifiedName(SyntaxNode left, SyntaxNode right);
 
         /// <summary>
+        /// Returns a new name node qualified with the 'global' alias ('Global' in VB).
+        /// </summary>
+        internal abstract SyntaxNode GlobalAliasedName(SyntaxNode name);
+
+        /// <summary>
         /// Creates a name expression from a dotted name string.
         /// </summary>
         public SyntaxNode DottedName(string dottedName)
@@ -1688,6 +1776,13 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         private static readonly char[] s_dotSeparator = new char[] { '.' };
+
+        /// <summary>
+        /// Creates a name that denotes a type or namespace.
+        /// </summary>
+        /// <param name="namespaceOrTypeSymbol">The symbol to create a name for.</param>
+        /// <returns></returns>
+        public abstract SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol);
 
         /// <summary>
         /// Creates an expression that denotes a type.
@@ -1893,9 +1988,29 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse);
 
-        internal abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
-        internal abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
-        internal abstract SyntaxNode ElementBindingExpression(SyntaxNode argumentList);
+        /// <summary>
+        /// Creates an expression that denotes a conditional access operation. Use <see
+        /// cref="MemberBindingExpression"/> and <see
+        /// cref="ElementBindingExpression(IEnumerable{SyntaxNode})"/> to generate the <paramref
+        /// name="whenNotNull"/> argument.
+        /// </summary>
+        public abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
+
+        /// <summary>
+        /// Creates an expression that denotes a member binding operation.
+        /// </summary>
+        public abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
+
+        /// <summary>
+        /// Creates an expression that denotes an element binding operation.
+        /// </summary>
+        public abstract SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments);
+
+        /// <summary>
+        /// Creates an expression that denotes an element binding operation.
+        /// </summary>
+        public SyntaxNode ElementBindingExpression(params SyntaxNode[] arguments)
+            => ElementBindingExpression((IEnumerable<SyntaxNode>)arguments);
 
         /// <summary>
         /// Creates an expression that denotes a coalesce operation. 
@@ -2169,6 +2284,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode AwaitExpression(SyntaxNode expression);
 
         /// <summary>
+        /// Wraps with parens.
+        /// </summary>
+        internal abstract SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
+
+        /// <summary>
         /// Creates an nameof expression.
         /// </summary>
         public abstract SyntaxNode NameOfExpression(SyntaxNode expression);
@@ -2177,6 +2297,15 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an tuple expression.
         /// </summary>
         public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
+
+        #endregion
+
+        #region Patterns
+
+        internal abstract bool SupportsPatterns(ParseOptions options);
+        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern);
+        internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
+        internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
 
         #endregion
     }

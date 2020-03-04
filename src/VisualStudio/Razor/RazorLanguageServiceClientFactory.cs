@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,11 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     internal static class RazorLanguageServiceClientFactory
     {
-        public static async Task<RazorLangaugeServiceClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<RazorLanguageServiceClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken = default)
         {
             var clientFactory = workspace.Services.GetRequiredService<IRemoteHostClientService>();
             var client = await clientFactory.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            return client == null ? null : new RazorLangaugeServiceClient(client, GetServiceName(workspace));
+            return client == null ? null : new RazorLanguageServiceClient(client, GetServiceName(workspace));
         }
 
         #region support a/b testing. after a/b testing, we can remove all this code

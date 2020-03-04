@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -17,13 +19,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
         // on remote host, so we need to make sure given input always belong to right workspace where
         // the session belong to.
         private readonly Workspace _workspace;
-        private readonly SemaphoreSlim _gate;
-
-        private KeepAliveSession _sessionDoNotAccessDirectly;
 
         protected AbstractDesignerAttributeService(Workspace workspace)
         {
-            _gate = new SemaphoreSlim(initialCount: 1);
             _workspace = workspace;
         }
 
@@ -36,43 +34,31 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             // make sure given input is right one
             Contract.ThrowIfFalse(_workspace == document.Project.Solution.Workspace);
 
-            // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
-            // so inproc one will always run
-            var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client != null && !document.IsOpen())
+            // run designer attributes scanner on remote host
+            // we only run closed files to make open document to have better responsiveness. 
+            // also we cache everything related to open files anyway, no saving by running
+            // them in remote host
+            if (!document.IsOpen())
             {
-                // run designer attributes scanner on remote host
-                // we only run closed files to make open document to have better responsiveness. 
-                // also we cache everything related to open files anyway, no saving by running
-                // them in remote host
-                return await ScanDesignerAttributesInRemoteHostAsync(client, document, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.TryRunRemoteAsync<DesignerAttributeResult>(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
+                        document.Project.Solution,
+                        new[] { document.Id },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue)
+                    {
+                        return result.Value;
+                    }
+                }
             }
 
             return await ScanDesignerAttributesInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client, CancellationToken cancellationToken)
-        {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                if (_sessionDoNotAccessDirectly == null)
-                {
-                    _sessionDoNotAccessDirectly = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(cancellationToken).ConfigureAwait(false);
-                }
-
-                return _sessionDoNotAccessDirectly;
-            }
-        }
-
-        private async Task<DesignerAttributeResult> ScanDesignerAttributesInRemoteHostAsync(RemoteHostClient client, Document document, CancellationToken cancellationToken)
-        {
-            var keepAliveSession = await TryGetKeepAliveSessionAsync(client, cancellationToken).ConfigureAwait(false);
-
-            var result = await keepAliveSession.TryInvokeAsync<DesignerAttributeResult>(
-                nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
-                document.Project.Solution, new object[] { document.Id }, cancellationToken).ConfigureAwait(false);
-
-            return result;
         }
 
         private async Task<DesignerAttributeResult> ScanDesignerAttributesInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
@@ -96,7 +82,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                 {
                     if (designerAttribute == null)
                     {
-                        compilation = compilation ?? await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                        compilation ??= await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                         designerAttribute = compilation.DesignerCategoryAttributeType();
                         if (designerAttribute == null)
@@ -112,8 +98,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
                     }
 
-                    var definedType = model.GetDeclaredSymbol(typeNode, cancellationToken) as INamedTypeSymbol;
-                    if (definedType == null)
+                    if (!(model.GetDeclaredSymbol(typeNode, cancellationToken) is INamedTypeSymbol definedType))
                     {
                         continue;
                     }

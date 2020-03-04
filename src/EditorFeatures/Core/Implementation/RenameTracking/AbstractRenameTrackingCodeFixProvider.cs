@@ -1,28 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     internal abstract class AbstractRenameTrackingCodeFixProvider : CodeFixProvider
     {
-        private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         protected AbstractRenameTrackingCodeFixProvider(
-            IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices)
         {
-            _waitIndicator = waitIndicator;
             _undoHistoryRegistry = undoHistoryRegistry;
             _refactorNotifyServices = refactorNotifyServices;
         }
@@ -43,11 +40,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             // any fixes.
             if (RenameTrackingTaggerProvider.CanInvokeRename(document))
             {
-                var action = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _waitIndicator, _refactorNotifyServices, _undoHistoryRegistry);
+                var action = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _refactorNotifyServices, _undoHistoryRegistry);
                 context.RegisterCodeFix(action, diagnostic);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
+        }
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            return null;
         }
     }
 }

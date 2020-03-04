@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,7 +40,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var symbol = symbolAndProjectId.Symbol;
                         var finder = symbolAndFinder.finder;
 
-                        var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, _documents, _cancellationToken).ConfigureAwait(false);
+                        var documents = await finder.DetermineDocumentsToSearchAsync(
+                            symbol, project, _documents, _options, _cancellationToken).ConfigureAwait(false);
                         foreach (var document in documents.Distinct().WhereNotNull())
                         {
                             if (_documents == null || _documents.Contains(document))
@@ -125,7 +128,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                List<Task> finderTasks = new List<Task>();
+                var finderTasks = new List<Task>();
                 foreach (var f in _finders)
                 {
                     finderTasks.Add(Task.Run(async () =>
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var symbolTasks = new List<Task>();
 
                         var symbols = await f.DetermineCascadedSymbolsAsync(
-                            searchSymbolAndProjectId, _solution, projects, _cancellationToken).ConfigureAwait(false);
+                            searchSymbolAndProjectId, _solution, projects, _options, _cancellationToken).ConfigureAwait(false);
                         AddSymbolTasks(result, symbols, symbolTasks);
 
                         // Defer to the language to see if it wants to cascade here in some special way.

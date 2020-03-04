@@ -1,4 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal ImmutableArray<BoundInitializer> BoundInitializers { get; set; }
             internal BoundStatement LoweredInitializers { get; set; }
             internal bool HasErrors { get; set; }
-            internal ImportChain FirstImportChain { get; set; }
+            internal ImportChain? FirstImportChain { get; set; }
         }
 
         internal static void BindFieldInitializers(
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref ProcessedFieldInitializers processedInitializers)
         {
             var diagsForInstanceInitializers = DiagnosticBag.GetInstance();
-            ImportChain firstImportChain;
+            ImportChain? firstImportChain;
             processedInitializers.BoundInitializers = BindFieldInitializers(compilation, scriptInitializerOpt, fieldInitializers, diagsForInstanceInitializers, out firstImportChain);
             processedInitializers.HasErrors = diagsForInstanceInitializers.HasAnyErrors();
             processedInitializers.FirstImportChain = firstImportChain;
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedInteractiveInitializerMethod scriptInitializerOpt,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             DiagnosticBag diagnostics,
-            out ImportChain firstImportChain)
+            out ImportChain? firstImportChain)
         {
             if (initializers.IsEmpty)
             {
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             ArrayBuilder<BoundInitializer> boundInitializers,
             DiagnosticBag diagnostics,
-            out ImportChain firstDebugImports)
+            out ImportChain? firstDebugImports)
         {
             firstDebugImports = null;
 
@@ -78,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // All sibling initializers share the same parent node and tree so we can reuse the binder 
                 // factory across siblings.  Unfortunately, we cannot reuse the binder itself, because
                 // individual fields might have their own binders (e.g. because of being declared unsafe).
-                BinderFactory binderFactory = null;
+                BinderFactory? binderFactory = null;
 
                 foreach (FieldOrPropertyInitializer initializer in siblingInitializers)
                 {
@@ -100,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         Binder parentBinder = binderFactory.GetBinder(initializerNode);
-                        Debug.Assert(parentBinder.ContainingMemberOrLambda == fieldSymbol.ContainingType || //should be the binder for the type
+                        Debug.Assert((parentBinder.ContainingMemberOrLambda is TypeSymbol containing && TypeSymbol.Equals(containing, fieldSymbol.ContainingType, TypeCompareKind.ConsiderEverything2)) || //should be the binder for the type
                                 fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
 
                         if (firstDebugImports == null)
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         parentBinder = new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.FieldInitializer, fieldSymbol);
 
-                        BoundFieldInitializer boundInitializer = BindFieldInitializer(parentBinder, fieldSymbol, initializerNode, diagnostics);
+                        BoundFieldEqualsValue boundInitializer = BindFieldInitializer(parentBinder, fieldSymbol, initializerNode, diagnostics);
                         boundInitializers.Add(boundInitializer);
                     }
                 }
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             ArrayBuilder<BoundInitializer> boundInitializers,
             DiagnosticBag diagnostics,
-            out ImportChain firstDebugImports)
+            out ImportChain? firstDebugImports)
         {
             firstDebugImports = null;
 
@@ -138,9 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // All sibling initializers share the same parent node and tree so we can reuse the binder 
                 // factory across siblings.  Unfortunately, we cannot reuse the binder itself, because
                 // individual fields might have their own binders (e.g. because of being declared unsafe).
-                BinderFactory binderFactory = null;
+                BinderFactory? binderFactory = null;
                 // Label instances must be shared across all global statements.
-                ScriptLocalScopeBinder.Labels labels = null;
+                ScriptLocalScopeBinder.Labels? labels = null;
 
                 for (int j = 0; j < siblingInitializers.Length; j++)
                 {
@@ -167,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     Binder scriptClassBinder = binderFactory.GetBinder(syntax);
-                    Debug.Assert(((NamedTypeSymbol)scriptClassBinder.ContainingMemberOrLambda).IsScriptClass);
+                    Debug.Assert(scriptClassBinder.ContainingMemberOrLambda is NamedTypeSymbol { IsScriptClass: true });
 
                     if (firstDebugImports == null)
                     {
@@ -180,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new ScriptLocalScopeBinder(labels, scriptClassBinder));
 
                     BoundInitializer boundInitializer;
-                    if ((object)fieldSymbol != null)
+                    if ((object?)fieldSymbol != null)
                     {
                         boundInitializer = BindFieldInitializer(
                             parentBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.FieldInitializer, fieldSymbol),
@@ -219,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // insert an implicit conversion for the submission return type (if needed):
                     var expression = InitializerRewriter.GetTrailingScriptExpression(statement);
                     if (expression != null &&
-                        ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Void))
+                        ((object?)expression.Type == null || !expression.Type.IsVoidType()))
                     {
                         var submissionResultType = scriptInitializer.ResultType;
                         expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);
@@ -246,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundGlobalStatementInitializer(statementNode, statement);
         }
 
-        private static BoundFieldInitializer BindFieldInitializer(Binder binder, FieldSymbol fieldSymbol, EqualsValueClauseSyntax equalsValueClauseNode,
+        private static BoundFieldEqualsValue BindFieldInitializer(Binder binder, FieldSymbol fieldSymbol, EqualsValueClauseSyntax equalsValueClauseNode,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(!fieldSymbol.IsMetadataConstant);
@@ -254,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fieldsBeingBound = binder.FieldsBeingBound;
 
             var sourceField = fieldSymbol as SourceMemberFieldSymbolFromDeclarator;
-            bool isImplicitlyTypedField = (object)sourceField != null && sourceField.FieldTypeInferred(fieldsBeingBound);
+            bool isImplicitlyTypedField = (object?)sourceField != null && sourceField.FieldTypeInferred(fieldsBeingBound);
 
             // If the type is implicitly typed, the initializer diagnostics have already been reported, so ignore them here:
             // CONSIDER (tomat): reusing the bound field initializers for implicitly typed fields.
@@ -269,17 +272,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             binder = new ExecutableCodeBinder(equalsValueClauseNode, fieldSymbol, new LocalScopeBinder(binder));
-            var boundInitValue = binder.BindVariableOrAutoPropInitializer(equalsValueClauseNode, RefKind.None, fieldSymbol.GetFieldType(fieldsBeingBound), initializerDiagnostics);
+            BoundFieldEqualsValue boundInitValue = binder.BindFieldInitializer(fieldSymbol, equalsValueClauseNode, initializerDiagnostics);
 
             if (isImplicitlyTypedField)
             {
                 initializerDiagnostics.Free();
             }
 
-            return new BoundFieldInitializer(
-                equalsValueClauseNode.Value, //we want the attached sequence point to indicate the value node
-                fieldSymbol,
-                boundInitValue);
+            return boundInitValue;
         }
     }
 }

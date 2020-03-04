@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -76,7 +78,7 @@ End Namespace
 ]]>
     </file>
 </compilation>
-            Dim comp1 = CreateCompilationWithMscorlib(source1, references:={ref0})
+            Dim comp1 = CreateCompilationWithMscorlib40(source1, references:={ref0})
             comp1.AssertTheseDiagnostics(<errors>
 BC42380: 'N.A(Of T).B' is for evaluation purposes only and is subject to change or removal in future updates.
             Dim o = New B()
@@ -102,7 +104,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp2A = CreateCompilationWithMscorlib(source2, references:={ref0, comp1.EmitToImageReference()})
+            Dim comp2A = CreateCompilationWithMscorlib40(source2, references:={ref0, comp1.EmitToImageReference()})
             comp2A.AssertTheseDiagnostics(<errors>
 BC42380: 'N.A(Of Integer).B' is for evaluation purposes only and is subject to change or removal in future updates.
 Imports B = N.A(Of Integer).B
@@ -118,7 +120,7 @@ BC42380: 'N.E' is for evaluation purposes only and is subject to change or remov
             ~
      </errors>)
 
-            Dim comp2B = CreateCompilationWithMscorlib(source2, references:={ref0, New VisualBasicCompilationReference(comp1)})
+            Dim comp2B = CreateCompilationWithMscorlib40(source2, references:={ref0, New VisualBasicCompilationReference(comp1)})
             comp2B.AssertTheseDiagnostics(<errors>
 BC42380: 'N.A(Of Integer).B' is for evaluation purposes only and is subject to change or removal in future updates.
 Imports B = N.A(Of Integer).B
@@ -180,7 +182,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp1 = CreateCompilationWithMscorlib(source1, references:={ref0})
+            Dim comp1 = CreateCompilationWithMscorlib40(source1, references:={ref0})
             comp1.AssertTheseDiagnostics(<errors>
 BC42380: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
         e = E.A              ' BC42380: 'A' is for evaluation purposes only
@@ -249,7 +251,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ref0})
             comp.AssertTheseDiagnostics(<errors>
 BC42380: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
     Shared Sub F(a As A)
@@ -318,7 +320,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ref0})
             comp.AssertTheseDiagnostics(<errors>
 BC40008: 'Friend Sub F1()' is obsolete.
         a.F1()
@@ -363,7 +365,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ref0})
             comp.AssertTheseDiagnostics(<errors/>)
         End Sub
 
@@ -395,7 +397,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ref0})
             comp.AssertTheseDiagnostics(<errors>
 BC42380: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
         Return New A()
@@ -430,7 +432,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ref0})
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC40008: 'MyAttribute' is obsolete.
 <MyAttribute>
@@ -465,7 +467,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ref0})
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC42380: 'MyAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
 <MyAttribute>
@@ -498,7 +500,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ref0})
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC40008: 'BAttribute' is obsolete.
 <Experimental><B>
@@ -537,7 +539,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ref0})
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC42380: 'BAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
 <Obsolete><B>
@@ -584,7 +586,7 @@ Public Structure SA : End Structure
 ]]>
     </file>
 </compilation>
-            Dim comp1 = CreateCompilationWithMscorlib(source1, references:={ref0})
+            Dim comp1 = CreateCompilationWithMscorlib40(source1, references:={ref0})
             comp1.AssertTheseDiagnostics(<errors/>)
 
             Dim source2 =
@@ -614,7 +616,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp2 = CreateCompilationWithMscorlib(source2, references:={ref0, comp1.EmitToImageReference()})
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={ref0, comp1.EmitToImageReference()})
             comp2.AssertTheseDiagnostics(<errors>
 BC40000: 'SA' is obsolete: 'DA'.
         F(New SA())
@@ -700,7 +702,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={ref0})
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC40008: 'A' is obsolete.
 Imports CA = C(Of A)
@@ -718,7 +720,7 @@ Imports CD = C(Of D)
         End Sub
 
         Private Shared Function CreateDeprecatedAndExperimentalAttributeReference() As MetadataReference
-            Dim comp = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
+            Dim comp = CreateCompilationWithMscorlib40(DeprecatedAndExperimentalAttributeSource)
             comp.AssertNoDiagnostics()
             Return comp.EmitToImageReference()
         End Function

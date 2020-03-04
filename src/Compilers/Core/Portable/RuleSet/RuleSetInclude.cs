@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -55,6 +57,11 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 path = GetIncludePath(parent);
+                if (path == null)
+                {
+                    return null;
+                }
+
                 ruleSet = RuleSetProcessor.LoadFromFile(path);
             }
             catch (FileNotFoundException)
@@ -78,11 +85,9 @@ namespace Microsoft.CodeAnalysis
         private string GetIncludePath(RuleSet parent)
         {
             var resolvedIncludePath = ResolveIncludePath(_includePath, parent?.FilePath);
-
-            // If we still couldn't find it then throw an exception;
             if (resolvedIncludePath == null)
             {
-                throw new FileNotFoundException(string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, _includePath), _includePath);
+                return null;
             }
 
             // Return the canonical full path
@@ -105,7 +110,7 @@ namespace Microsoft.CodeAnalysis
         private static string ResolveIncludePathCore(string includePath, string parentRulesetPath)
         {
             includePath = Environment.ExpandEnvironmentVariables(includePath);
-            
+
             // If a full path is specified then use it
             if (Path.IsPathRooted(includePath))
             {

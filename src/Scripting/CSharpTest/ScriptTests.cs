@@ -1,20 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.IO;
-using System.Globalization;
-using System.Text;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.Scripting.Test;
-using KeyValuePair = Roslyn.Utilities.KeyValuePair;
+using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -69,25 +71,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
-        public void TestCreateScriptDelegate()
+        public void TestEmit_PortablePdb() => TestEmit(DebugInformationFormat.PortablePdb);
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestEmit_WindowsPdb() => TestEmit(DebugInformationFormat.Pdb);
+
+        private void TestEmit(DebugInformationFormat format)
+        {
+            var script = CSharpScript.Create("1 + 2", options: ScriptOptions.Default.WithEmitDebugInformation(true));
+            var compilation = script.GetCompilation();
+            var emitOptions = ScriptBuilder.GetEmitOptions(emitDebugInformation: true).WithDebugInformationFormat(format);
+
+            var peStream = new MemoryStream();
+            var pdbStream = new MemoryStream();
+            var emitResult = ScriptBuilder.Emit(peStream, pdbStream, compilation, emitOptions, cancellationToken: default);
+
+            peStream.Position = 0;
+            pdbStream.Position = 0;
+
+            PdbValidation.ValidateDebugDirectory(
+                peStream,
+                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null,
+                pdbPath: compilation.AssemblyName + ".pdb",
+                hashAlgorithm: default,
+                hasEmbeddedPdb: false,
+                isDeterministic: false);
+        }
+
+        [Fact]
+        public async Task TestCreateScriptDelegate()
         {
             // create a delegate for the entire script
             var script = CSharpScript.Create("1 + 2");
             var fn = script.CreateDelegate();
 
             Assert.Equal(3, fn().Result);
-            Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
         }
 
         [Fact]
-        public void TestCreateScriptDelegateWithGlobals()
+        public async Task TestCreateScriptDelegateWithGlobals()
         {
             // create a delegate for the entire script
             var script = CSharpScript.Create<int>("X + Y", globalsType: typeof(Globals));
             var fn = script.CreateDelegate();
 
-            Assert.ThrowsAsync<ArgumentException>("globals", () => fn());
-            Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => fn());
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
             Assert.Equal(4, fn(new Globals { X = 1, Y = 3 }).Result);
         }
 
@@ -141,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
         [WorkItem(5279, "https://github.com/dotnet/roslyn/issues/5279")]
         [Fact]
-        public async void TestRunExpressionStatement()
+        public async Task TestRunExpressionStatement()
         {
             var state = await CSharpScript.RunAsync(
 @"int F() { return 1; }
@@ -150,9 +180,9 @@ F();");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/170")]
-        public void TestRunDynamicVoidScriptWithTerminatingSemicolon()
+        public async Task TestRunDynamicVoidScriptWithTerminatingSemicolon()
         {
-            var result = CSharpScript.RunAsync(@"
+            await CSharpScript.RunAsync(@"
 class SomeClass
 {
     public void Do()
@@ -165,9 +195,9 @@ d.Do();"
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/170")]
-        public void TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
+        public async Task TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
         {
-            var result = CSharpScript.RunAsync(@"
+            await CSharpScript.RunAsync(@"
 class SomeClass
 {
     public void Do()
@@ -199,7 +229,7 @@ d.Do()"
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 32));
             }
 
-             Assert.True(exceptionThrown);
+            Assert.True(exceptionThrown);
         }
 
         [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
@@ -272,30 +302,30 @@ throw e;", globals: new ScriptTests());
         }
 
         [Fact]
-        public void TestRunCreatedScriptWithUnexpectedGlobals()
+        public async Task TestRunCreatedScriptWithUnexpectedGlobals()
         {
             var script = CSharpScript.Create("X + Y");
 
             // Global variables passed to a script without a global type
-            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new Globals { X = 1, Y = 2 }));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new Globals { X = 1, Y = 2 }));
         }
 
         [Fact]
-        public void TestRunCreatedScriptWithoutGlobals()
+        public async Task TestRunCreatedScriptWithoutGlobals()
         {
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
 
             //  The script requires access to global variables but none were given
-            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync());
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync());
         }
 
         [Fact]
-        public void TestRunCreatedScriptWithMismatchedGlobals()
+        public async Task TestRunCreatedScriptWithMismatchedGlobals()
         {
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
 
             //  The globals of type 'System.Object' is not assignable to 'Microsoft.CodeAnalysis.CSharp.Scripting.Test.ScriptTests+Globals'
-            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new object()));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new object()));
         }
 
         [Fact]
@@ -326,7 +356,7 @@ throw e;", globals: new ScriptTests());
         [Fact]
         public async Task TestRepl()
         {
-            string[] submissions = new[]
+            var submissions = new[]
             {
                 "int x = 100;",
                 "int y = x * x;",
@@ -379,7 +409,7 @@ throw e;", globals: new ScriptTests());
             Assert.Equal(5m, state.GetVariable("x").Value);
             Assert.Equal(20, state.GetVariable("X").Value);
 
-            Assert.Equal(null, state.GetVariable("A"));
+            Assert.Null(state.GetVariable("A"));
             Assert.Same(state.GetVariable("X"), state.GetVariable("X"));
         }
 
@@ -592,7 +622,7 @@ if (true)
         public async Task ReturnInLoadedFile()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 42;"));
+                KeyValuePairUtil.Create("a.csx", "return 42;"));
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
 
             var script = CSharpScript.Create("#load \"a.csx\"", options);
@@ -610,7 +640,7 @@ if (true)
         public async Task ReturnInLoadedFileTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 if (false)
 {
     return 42;
@@ -633,7 +663,7 @@ if (false)
         public void ReturnInLoadedFileTrailingVoidExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 if (false)
 {
     return 1;
@@ -656,8 +686,8 @@ System.Console.WriteLine(42)"));
         public async Task MultipleLoadedFilesWithTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "1"),
-                KeyValuePair.Create("b.csx", @"
+                KeyValuePairUtil.Create("a.csx", "1"),
+                KeyValuePairUtil.Create("b.csx", @"
 #load ""a.csx""
 2"));
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
@@ -666,8 +696,8 @@ System.Console.WriteLine(42)"));
             Assert.Null(result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "1"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "1"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -676,8 +706,8 @@ System.Console.WriteLine(42)"));
             Assert.Null(result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "1"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "1"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -691,8 +721,8 @@ System.Console.WriteLine(42)"));
         public async Task MultipleLoadedFilesWithReturnAndTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 1;"),
-                KeyValuePair.Create("b.csx", @"
+                KeyValuePairUtil.Create("a.csx", "return 1;"),
+                KeyValuePairUtil.Create("b.csx", @"
 #load ""a.csx""
 2"));
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
@@ -701,8 +731,8 @@ System.Console.WriteLine(42)"));
             Assert.Equal(1, result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 1;"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "return 1;"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -711,8 +741,8 @@ System.Console.WriteLine(42)"));
             Assert.Equal(1, result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return 1;"),
-                KeyValuePair.Create("b.csx", "2"));
+                KeyValuePairUtil.Create("a.csx", "return 1;"),
+                KeyValuePairUtil.Create("b.csx", "2"));
             options = ScriptOptions.Default.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -726,7 +756,7 @@ return 3;", options);
         public async Task LoadedFileWithReturnAndGoto()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 goto EOF;
 NEXT:
 return 1;
@@ -775,7 +805,7 @@ b");
         public async Task LoadedFileWithVoidReturn()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+                KeyValuePairUtil.Create("a.csx", @"
 var i = 42;
 return;
 i = -1;"));
@@ -799,11 +829,11 @@ i", options);
             catch (CompilationErrorException ex)
             {
                 //  CS8055: Cannot emit debug information for a source text without encoding.
-                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1,1));
+                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1, 1));
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
@@ -811,21 +841,21 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "debug.csx");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath(null).WithFileEncoding(null);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_CodeFromFile_WithEmitDebugInformation_ResultInPdbEmitted()
         {
@@ -840,7 +870,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
         {
@@ -848,7 +878,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
@@ -870,7 +900,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_InlineCode_WithEmitDebugInformation_ResultInPdbEmitted()
         {
@@ -893,6 +923,31 @@ i", options);
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
             var script = CSharpScript.Create(@"#load ""a.csx""", options);
             ScriptingTestHelpers.EvaluateScriptWithOutput(script, "Hello World!");
+        }
+
+        [Fact]
+        public void CreateScriptWithFeatureThatIsNotSupportedInTheSelectedLanguageVersion()
+        {
+            var script = CSharpScript.Create(@"string x = default;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = script.GetCompilation();
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").
+                    WithArguments("default literal", "7.1").
+                    WithLocation(1, 12)
+            );
+        }
+
+        [Fact]
+        public void CreateScriptWithNullableContextWithCSharp8()
+        {
+            var script = CSharpScript.Create(@"#nullable enable
+                string x = null;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            var compilation = script.GetCompilation();
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 28)
+            );
         }
 
         private class StreamOffsetResolver : SourceReferenceResolver

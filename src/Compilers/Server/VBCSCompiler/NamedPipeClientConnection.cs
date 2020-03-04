@@ -1,129 +1,79 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
-using System.IO.Pipes;
-using System.Runtime.CompilerServices;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
-using System.Security.AccessControl;
+using System.IO.Pipes;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal sealed class NamedPipeClientConnectionHost : IClientConnectionHost
+    internal readonly struct ConnectionData
     {
-        // Size of the buffers to use: 64K
-        private const int PipeBufferSize = 0x10000;
+        public readonly CompletionReason CompletionReason;
+        public readonly TimeSpan? KeepAlive;
 
-        private readonly ICompilerServerHost _compilerServerHost;
-        private readonly string _pipeName;
-        private int _loggingIdentifier;
-
-        internal NamedPipeClientConnectionHost(ICompilerServerHost compilerServerHost, string pipeName)
+        public ConnectionData(CompletionReason completionReason, TimeSpan? keepAlive = null)
         {
-            _compilerServerHost = compilerServerHost;
-            _pipeName = pipeName;
-        }
-
-        public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
-        {
-            var pipeStream = await CreateListenTaskCore(cancellationToken).ConfigureAwait(false);
-            return new NamedPipeClientConnection(_compilerServerHost, _loggingIdentifier++.ToString(), pipeStream);
-        }
-
-        /// <summary>
-        /// Creates a Task that waits for a client connection to occur and returns the connected 
-        /// <see cref="NamedPipeServerStream"/> object.  Throws on any connection error.
-        /// </summary>
-        /// <param name="cancellationToken">Used to cancel the connection sequence.</param>
-        private async Task<NamedPipeServerStream> CreateListenTaskCore(CancellationToken cancellationToken)
-        {
-            // Create the pipe and begin waiting for a connection. This 
-            // doesn't block, but could fail in certain circumstances, such
-            // as Windows refusing to create the pipe for some reason 
-            // (out of handles?), or the pipe was disconnected before we 
-            // starting listening.
-            NamedPipeServerStream pipeStream = ConstructPipe(_pipeName);
-
-            CompilerServerLogger.Log("Waiting for new connection");
-            await pipeStream.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
-            CompilerServerLogger.Log("Pipe connection detected.");
-
-            if (Environment.Is64BitProcess || MemoryHelper.IsMemoryAvailable())
-            {
-                CompilerServerLogger.Log("Memory available - accepting connection");
-                return pipeStream;
-            }
-
-            pipeStream.Close();
-            throw new Exception("Insufficient resources to process new connection.");
-        }
-
-        /// <summary>
-        /// Create an instance of the pipe. This might be the first instance, or a subsequent instance.
-        /// There always needs to be an instance of the pipe created to listen for a new client connection.
-        /// </summary>
-        /// <returns>The pipe instance or throws an exception.</returns>
-        private NamedPipeServerStream ConstructPipe(string pipeName)
-        {
-            CompilerServerLogger.Log("Constructing pipe '{0}'.", pipeName);
-
-#if NET46
-            SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
-            PipeSecurity security = new PipeSecurity();
-
-            // Restrict access to just this account.  
-            PipeAccessRule rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
-            security.AddAccessRule(rule);
-            security.SetOwner(identifier);
-
-            NamedPipeServerStream pipeStream = new NamedPipeServerStream(
-                pipeName,
-                PipeDirection.InOut,
-                NamedPipeServerStream.MaxAllowedServerInstances, // Maximum connections.
-                PipeTransmissionMode.Byte,
-                PipeOptions.Asynchronous | PipeOptions.WriteThrough,
-                PipeBufferSize, // Default input buffer
-                PipeBufferSize, // Default output buffer
-                security,
-                HandleInheritability.None);
-#else
-            // The overload of NamedPipeServerStream with the PipeAccessRule
-            // parameter was removed in netstandard. However, the default
-            // constructor does not provide WRITE_DAC, so attempting to use
-            // SetAccessControl will always fail. So, completely ignore ACLs on
-            // netcore, and trust that our `ClientAndOurIdentitiesMatch`
-            // verification will catch any invalid connections.
-            // Issue to add WRITE_DAC support:
-            // https://github.com/dotnet/corefx/issues/24040
-            NamedPipeServerStream pipeStream = new NamedPipeServerStream(
-                pipeName,
-                PipeDirection.InOut,
-                NamedPipeServerStream.MaxAllowedServerInstances, // Maximum connections.
-                PipeTransmissionMode.Byte,
-                PipeOptions.Asynchronous | PipeOptions.WriteThrough,
-                PipeBufferSize, // Default input buffer
-                PipeBufferSize);// Default output buffer
-#endif
-
-            CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", pipeName);
-
-            return pipeStream;
+            CompletionReason = completionReason;
+            KeepAlive = keepAlive;
         }
     }
 
-    internal sealed class NamedPipeClientConnection : ClientConnection
+    internal enum CompletionReason
     {
-        private readonly NamedPipeServerStream _pipeStream;
+        /// <summary>
+        /// There was an error creating the <see cref="BuildRequest"/> object and a compilation was never
+        /// created.
+        /// </summary>
+        CompilationNotStarted,
 
-        internal NamedPipeClientConnection(ICompilerServerHost compilerServerHost, string loggingIdentifier, NamedPipeServerStream pipeStream)
-            : base(compilerServerHost, loggingIdentifier, pipeStream)
+        /// <summary>
+        /// The compilation completed and results were provided to the client.
+        /// </summary>
+        CompilationCompleted,
+
+        /// <summary>
+        /// The compilation process was initiated and the client disconnected before
+        /// the results could be provided to them.
+        /// </summary>
+        ClientDisconnect,
+
+        /// <summary>
+        /// There was an unhandled exception processing the result.
+        /// </summary>
+        ClientException,
+
+        /// <summary>
+        /// There was a request from the client to shutdown the server.
+        /// </summary>
+        ClientShutdownRequest,
+    }
+
+    /// <summary>
+    /// Represents a single connection from a client process. Handles the named pipe
+    /// from when the client connects to it, until the request is finished or abandoned.
+    /// A new task is created to actually service the connection and do the operation.
+    /// </summary>
+    internal sealed class NamedPipeClientConnection : IClientConnection
+    {
+        private readonly ICompilerServerHost _compilerServerHost;
+        private readonly string _loggingIdentifier;
+        private readonly NamedPipeServerStream _stream;
+
+        public string LoggingIdentifier => _loggingIdentifier;
+
+        public NamedPipeClientConnection(ICompilerServerHost compilerServerHost, string loggingIdentifier, NamedPipeServerStream stream)
         {
-            _pipeStream = pipeStream;
+            _compilerServerHost = compilerServerHost;
+            _loggingIdentifier = loggingIdentifier;
+            _stream = stream;
         }
 
         /// <summary>
@@ -133,62 +83,29 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         ///
         /// This will return true if the pipe was disconnected.
         /// </summary>
-        protected override Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
+        private Task MonitorDisconnectAsync(CancellationToken cancellationToken)
         {
-            return BuildServerConnection.CreateMonitorDisconnectTask(_pipeStream, LoggingIdentifier, cancellationToken);
+            return BuildServerConnection.MonitorDisconnectAsync(_stream, LoggingIdentifier, cancellationToken);
         }
 
-        protected override void ValidateBuildRequest(BuildRequest request)
+        private void ValidateBuildRequest(BuildRequest request)
         {
             // Now that we've read data from the stream we can validate the identity.
-            if (!ClientAndOurIdentitiesMatch(_pipeStream))
+            if (!NamedPipeUtil.CheckClientElevationMatches(_stream))
             {
                 throw new Exception("Client identity does not match server identity.");
             }
         }
 
         /// <summary>
-        /// Does the client of "pipeStream" have the same identity and elevation as we do?
+        /// Close the connection.  Can be called multiple times.
         /// </summary>
-        private static bool ClientAndOurIdentitiesMatch(NamedPipeServerStream pipeStream)
-        {
-            if (PlatformInformation.IsWindows)
-            {
-                var serverIdentity = GetIdentity(impersonating: false);
-
-                (string name, bool admin) clientIdentity = default;
-                pipeStream.RunAsClient(() => { clientIdentity = GetIdentity(impersonating: true); });
-
-                CompilerServerLogger.Log($"Server identity = '{serverIdentity.name}', server elevation='{serverIdentity.admin}'.");
-                CompilerServerLogger.Log($"Client identity = '{clientIdentity.name}', client elevation='{serverIdentity.admin}'.");
-
-                return
-                    StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.name, clientIdentity.name) &&
-                    serverIdentity.admin == clientIdentity.admin;
-            }
-            else
-            {
-                return BuildServerConnection.CheckIdentityUnix(pipeStream);
-            }
-        }
-
-        /// <summary>
-        /// Return the current user name and whether the current user is in the administrator role.
-        /// </summary>
-        private static (string name, bool admin) GetIdentity(bool impersonating)
-        {
-            WindowsIdentity currentIdentity = WindowsIdentity.GetCurrent(impersonating);
-            WindowsPrincipal currentPrincipal = new WindowsPrincipal(currentIdentity);
-            var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
-            return (currentIdentity.Name, elevatedToAdmin);
-        }
-
-        public override void Close()
+        public void Close()
         {
             CompilerServerLogger.Log($"Pipe {LoggingIdentifier}: Closing.");
             try
             {
-                _pipeStream.Close();
+                _stream.Close();
             }
             catch (Exception e)
             {
@@ -198,6 +115,180 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var msg = string.Format($"Pipe {LoggingIdentifier}: Error closing pipe.");
                 CompilerServerLogger.LogException(e, msg);
             }
+        }
+
+        public async Task<ConnectionData> HandleConnectionAsync(bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            try
+            {
+                BuildRequest request;
+                try
+                {
+                    Log("Begin reading request.");
+                    request = await BuildRequest.ReadAsync(_stream, cancellationToken).ConfigureAwait(false);
+                    ValidateBuildRequest(request);
+                    Log("End reading request.");
+                }
+                catch (Exception e)
+                {
+                    LogException(e, "Error reading build request.");
+                    return new ConnectionData(CompletionReason.CompilationNotStarted);
+                }
+
+                if (request.ProtocolVersion != BuildProtocolConstants.ProtocolVersion)
+                {
+                    return await HandleMismatchedVersionRequestAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else if (!string.Equals(request.CompilerHash, BuildProtocolConstants.GetCommitHash(), StringComparison.OrdinalIgnoreCase))
+                {
+                    return await HandleIncorrectHashRequestAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else if (IsShutdownRequest(request))
+                {
+                    return await HandleShutdownRequestAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else if (!allowCompilationRequests)
+                {
+                    return await HandleRejectedRequestAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    return await HandleCompilationRequestAsync(request, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                Close();
+            }
+        }
+
+        private async Task<ConnectionData> HandleCompilationRequestAsync(BuildRequest request, CancellationToken cancellationToken)
+        {
+            var keepAlive = CheckForNewKeepAlive(request);
+
+            // Kick off both the compilation and a task to monitor the pipe for closing.
+            var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var compilationTask = ServeBuildRequestAsync(request, buildCts.Token);
+            var monitorTask = MonitorDisconnectAsync(buildCts.Token);
+            await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
+
+            // Do an 'await' on the completed task, preference being compilation, to force
+            // any exceptions to be realized in this method for logging.
+            CompletionReason reason;
+            if (compilationTask.IsCompleted)
+            {
+                var response = await compilationTask.ConfigureAwait(false);
+
+                try
+                {
+                    Log("Begin writing response.");
+                    await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+                    reason = CompletionReason.CompilationCompleted;
+                    Log("End writing response.");
+                }
+                catch
+                {
+                    reason = CompletionReason.ClientDisconnect;
+                }
+            }
+            else
+            {
+                await monitorTask.ConfigureAwait(false);
+                reason = CompletionReason.ClientDisconnect;
+            }
+
+            // Begin the tear down of the Task which didn't complete.
+            buildCts.Cancel();
+            return new ConnectionData(reason, keepAlive);
+        }
+
+        private async Task<ConnectionData> HandleMismatchedVersionRequestAsync(CancellationToken cancellationToken)
+        {
+            var response = new MismatchedVersionBuildResponse();
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.CompilationNotStarted);
+        }
+
+        private async Task<ConnectionData> HandleIncorrectHashRequestAsync(CancellationToken cancellationToken)
+        {
+            var response = new IncorrectHashBuildResponse();
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.CompilationNotStarted);
+        }
+
+        private async Task<ConnectionData> HandleRejectedRequestAsync(CancellationToken cancellationToken)
+        {
+            var response = new RejectedBuildResponse();
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.CompilationNotStarted);
+        }
+
+        private async Task<ConnectionData> HandleShutdownRequestAsync(CancellationToken cancellationToken)
+        {
+            var id = Process.GetCurrentProcess().Id;
+            var response = new ShutdownBuildResponse(id);
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.ClientShutdownRequest);
+        }
+
+        /// <summary>
+        /// Check the request arguments for a new keep alive time. If one is present,
+        /// set the server timer to the new time.
+        /// </summary>
+        private TimeSpan? CheckForNewKeepAlive(BuildRequest request)
+        {
+            TimeSpan? timeout = null;
+            foreach (var arg in request.Arguments)
+            {
+                if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.KeepAlive)
+                {
+                    int result;
+                    // If the value is not a valid integer for any reason,
+                    // ignore it and continue with the current timeout. The client
+                    // is responsible for validating the argument.
+                    if (int.TryParse(arg.Value, out result))
+                    {
+                        // Keep alive times are specified in seconds
+                        timeout = TimeSpan.FromSeconds(result);
+                    }
+                }
+            }
+
+            return timeout;
+        }
+
+        private bool IsShutdownRequest(BuildRequest request)
+        {
+            return request.Arguments.Count == 1 && request.Arguments[0].ArgumentId == BuildProtocolConstants.ArgumentId.Shutdown;
+        }
+
+        private Task<BuildResponse> ServeBuildRequestAsync(BuildRequest buildRequest, CancellationToken cancellationToken)
+        {
+            Func<BuildResponse> func = () =>
+            {
+                // Do the compilation
+                Log("Begin compilation");
+
+                var request = BuildProtocolUtil.GetRunRequest(buildRequest);
+                var response = _compilerServerHost.RunCompilation(request, cancellationToken);
+
+                Log("End compilation");
+                return response;
+            };
+
+            var task = new Task<BuildResponse>(func, cancellationToken, TaskCreationOptions.LongRunning);
+            task.Start();
+            return task;
+        }
+
+        private void Log(string message)
+        {
+            CompilerServerLogger.Log("Client {0}: {1}", _loggingIdentifier, message);
+        }
+
+        private void LogException(Exception e, string message)
+        {
+            CompilerServerLogger.LogException(e, string.Format("Client {0}: {1}", _loggingIdentifier, message));
         }
     }
 }

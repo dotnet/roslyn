@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -27,8 +29,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             int backOffTimeSpanInMS,
             CancellationToken cancellationToken)
         {
-            this.Listener = listener;
-            this.CancellationToken = cancellationToken;
+            Listener = listener;
+            CancellationToken = cancellationToken;
 
             BackOffTimeSpanInMS = backOffTimeSpanInMS;
             _lastAccessTimeInMS = Environment.TickCount;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             if (_processorTask == null)
             {
-                _processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, this.CancellationToken, TaskScheduler.Default);
+                _processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken, TaskScheduler.Default);
             }
         }
 
@@ -50,11 +52,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             _lastAccessTimeInMS = Environment.TickCount;
         }
 
-        protected async Task WaitForIdleAsync()
+        protected async Task WaitForIdleAsync(IExpeditableDelaySource expeditableDelaySource)
         {
             while (true)
             {
-                if (this.CancellationToken.IsCancellationRequested)
+                if (CancellationToken.IsCancellationRequested)
                 {
                     return;
                 }
@@ -67,7 +69,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 // TODO: will safestart/unwarp capture cancellation exception?
                 var timeLeft = BackOffTimeSpanInMS - diffInMS;
-                await Task.Delay(Math.Max(MinimumDelayInMS, timeLeft), this.CancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                if (!await expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(Math.Max(MinimumDelayInMS, timeLeft)), CancellationToken).ConfigureAwait(false))
+                {
+                    // The delay terminated early to accommodate a blocking operation. Make sure to delay long
+                    // enough that low priority (on idle) operations get a chance to be triggered.
+                    //
+                    // 📝 At the time this was discovered, it was not clear exactly why the delay was needed in order
+                    // to avoid live-lock scenarios.
+                    await Task.Delay(TimeSpan.FromMilliseconds(10), CancellationToken).ConfigureAwait(false);
+                    return;
+                }
             }
         }
 
@@ -77,18 +88,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 try
                 {
-                    if (this.CancellationToken.IsCancellationRequested)
+                    if (CancellationToken.IsCancellationRequested)
                     {
                         return;
                     }
 
                     // wait for next item available
-                    await WaitAsync(this.CancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                    await WaitAsync(CancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
-                    using (this.Listener.BeginAsyncOperation("ProcessAsync"))
+                    using (Listener.BeginAsyncOperation("ProcessAsync"))
                     {
                         // we have items but workspace is busy. wait for idle.
-                        await WaitForIdleAsync().ConfigureAwait(continueOnCapturedContext: false);
+                        await WaitForIdleAsync(Listener).ConfigureAwait(continueOnCapturedContext: false);
 
                         await ExecuteAsync().ConfigureAwait(continueOnCapturedContext: false);
                     }
@@ -106,7 +117,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (_processorTask == null)
                 {
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 }
 
                 return _processorTask;

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
@@ -77,22 +79,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         <Extension>
         Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock)) As VisualBasicCompilation
-            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId:=Nothing, identityComparer:=Nothing)
-            Return references.ToCompilation()
+            Return ToCompilation(metadataBlocks, moduleVersionId:=Nothing, MakeAssemblyReferencesKind.AllAssemblies)
         End Function
 
         <Extension>
         Friend Function ToCompilationReferencedModulesOnly(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid) As VisualBasicCompilation
-            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer)
-            Return references.ToCompilation()
+            Return ToCompilation(metadataBlocks, moduleVersionId, MakeAssemblyReferencesKind.DirectReferencesOnly)
         End Function
 
         <Extension>
-        Friend Function ToCompilation(references As ImmutableArray(Of MetadataReference)) As VisualBasicCompilation
+        Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid, kind As MakeAssemblyReferencesKind) As VisualBasicCompilation
+            Dim referencesBySimpleName As IReadOnlyDictionary(Of String, ImmutableArray(Of (AssemblyIdentity, MetadataReference))) = Nothing
+            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, referencesBySimpleName)
+            Dim options = s_compilationOptions
+            If referencesBySimpleName IsNot Nothing Then
+                Debug.Assert(kind = MakeAssemblyReferencesKind.AllReferences)
+                Dim resolver = New EEMetadataReferenceResolver(IdentityComparer, referencesBySimpleName)
+                options = options.WithMetadataReferenceResolver(resolver)
+            End If
             Return VisualBasicCompilation.Create(
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
                 references:=references,
-                options:=s_compilationOptions)
+                options:=options)
         End Function
 
         <Extension>

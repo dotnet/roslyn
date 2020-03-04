@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
 using System.Windows.Media;
@@ -25,7 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         [UserVisible(true)]
         private class InlineRenameFieldFormatDefinition : ClassificationFormatDefinition
         {
-            private InlineRenameFieldFormatDefinition()
+            [ImportingConstructor]
+            public InlineRenameFieldFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Inline_Rename_Field_Text;
                 this.ForegroundColor = Color.FromRgb(0x00, 0x64, 0x00);

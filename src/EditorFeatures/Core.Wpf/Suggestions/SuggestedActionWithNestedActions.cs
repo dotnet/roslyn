@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -16,20 +20,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// </summary>
     internal sealed class SuggestedActionWithNestedActions : SuggestedAction
     {
-        public readonly SuggestedActionSet NestedActionSet;
+        public readonly ImmutableArray<SuggestedActionSet> NestedActionSets;
 
         public SuggestedActionWithNestedActions(
-            SuggestedActionsSourceProvider sourceProvider, Workspace workspace, 
-            ITextBuffer subjectBuffer, object provider, 
-            CodeAction codeAction, SuggestedActionSet nestedActionSet) 
-            : base(sourceProvider, workspace, subjectBuffer, provider, codeAction)
+            IThreadingContext threadingContext,
+            SuggestedActionsSourceProvider sourceProvider, Workspace workspace,
+            ITextBuffer subjectBuffer, object provider,
+            CodeAction codeAction, ImmutableArray<SuggestedActionSet> nestedActionSets)
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer, provider, codeAction)
         {
-            NestedActionSet = nestedActionSet;
+            Debug.Assert(!nestedActionSets.IsDefaultOrEmpty);
+            NestedActionSets = nestedActionSets;
+        }
+
+        public SuggestedActionWithNestedActions(
+            IThreadingContext threadingContext,
+            SuggestedActionsSourceProvider sourceProvider, Workspace workspace,
+            ITextBuffer subjectBuffer, object provider,
+            CodeAction codeAction, SuggestedActionSet nestedActionSet)
+            : this(threadingContext, sourceProvider, workspace, subjectBuffer, provider, codeAction, ImmutableArray.Create(nestedActionSet))
+        {
         }
 
         public override bool HasActionSets => true;
 
         public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-            => Task.FromResult<IEnumerable<SuggestedActionSet>>(ImmutableArray.Create(NestedActionSet));
+            => Task.FromResult<IEnumerable<SuggestedActionSet>>(NestedActionSets);
     }
 }

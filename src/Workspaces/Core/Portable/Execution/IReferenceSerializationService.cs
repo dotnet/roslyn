@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -15,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Execution
     internal interface IReferenceSerializationService : IWorkspaceService
     {
         Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken);
-        Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken);
+        Checksum CreateChecksum(AnalyzerReference reference, bool usePathFromAssembly, CancellationToken cancellationToken);
 
         void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken);
         void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken);

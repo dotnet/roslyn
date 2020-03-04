@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -44,10 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));
 
-        public static readonly PerLanguageOption<bool> AutoFormattingOnReturn = new PerLanguageOption<bool>(
-            nameof(FeatureOnOffOptions), nameof(AutoFormattingOnReturn), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return"));
-
         public static readonly PerLanguageOption<bool> AutoFormattingOnCloseBrace = new PerLanguageOption<bool>(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnCloseBrace), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
@@ -60,16 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
 
         /// <summary>
-        /// This option is currently used by Roslyn, but we might want to implement it in the 
-        /// future. Keeping the option while it's unimplemented allows all upgrade paths to 
+        /// This option is currently used by Roslyn, but we might want to implement it in the
+        /// future. Keeping the option while it's unimplemented allows all upgrade paths to
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
         public static readonly PerLanguageOption<bool> RenameTracking = new PerLanguageOption<bool>(nameof(FeatureOnOffOptions), nameof(RenameTracking), defaultValue: true);
 
         /// <summary>
-        /// This option is currently used by Roslyn, but we might want to implement it in the 
-        /// future. Keeping the option while it's unimplemented allows all upgrade paths to 
+        /// This option is currently used by Roslyn, but we might want to implement it in the
+        /// future. Keeping the option while it's unimplemented allows all upgrade paths to
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
@@ -83,6 +83,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(NavigateToDecompiledSources)}"));
 
+        public static readonly Option<int> UseEnhancedColors = new Option<int>(
+            nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
+            storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
+
         // Note: no storage location since this is intentionally a session variable
         public static readonly Option<bool> AcceptedDecompilerDisclaimer = new Option<bool>(
             nameof(FeatureOnOffOptions), nameof(AcceptedDecompilerDisclaimer), defaultValue: false);
@@ -91,6 +95,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     [ExportOptionProvider, Shared]
     internal class FeatureOnOffOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public FeatureOnOffOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             FeatureOnOffOptions.EndConstruct,
             FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers,
@@ -103,12 +112,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
             FeatureOnOffOptions.AutoFormattingOnTyping,
-            FeatureOnOffOptions.AutoFormattingOnReturn,
             FeatureOnOffOptions.AutoFormattingOnCloseBrace,
             FeatureOnOffOptions.AutoFormattingOnSemicolon,
             FeatureOnOffOptions.RenameTrackingPreview,
             FeatureOnOffOptions.RenameTracking,
             FeatureOnOffOptions.RefactoringVerification,
-            FeatureOnOffOptions.StreamingGoToImplementation);
+            FeatureOnOffOptions.StreamingGoToImplementation,
+            FeatureOnOffOptions.NavigateToDecompiledSources,
+            FeatureOnOffOptions.AcceptedDecompilerDisclaimer,
+            FeatureOnOffOptions.UseEnhancedColors);
     }
 }

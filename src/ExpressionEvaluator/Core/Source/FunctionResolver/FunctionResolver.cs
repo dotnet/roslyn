@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     module.RuntimeInstance,
                     module,
                     new DkmClrMethodId(Token: token, Version: (uint)version),
-                    NativeOffset: 0,
+                    NativeOffset: uint.MaxValue,
                     ILOffset: (uint)ilOffset,
                     CPUInstruction: null);
                 // Use async overload of OnFunctionResolved to avoid deadlock.
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // At this point, we should only get 0 or 1, but to be
                 // safe, treat values other than 0 or 1 as false.
                 Debug.Assert(result == 0 || result == 1);
-                return result == 0; 
+                return result == 0;
             }
             catch (NotImplementedException)
             {

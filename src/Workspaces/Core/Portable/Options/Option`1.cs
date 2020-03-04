@@ -1,19 +1,39 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
+    /// <summary>
+    /// Marker interface for <see cref="Option{T}"/>
+    /// </summary>
+    internal interface ILanguageSpecificOption : IOptionWithGroup
+    {
+    }
+
     /// <summary>
     /// An global option. An instance of this class can be used to access an option value from an OptionSet.
     /// </summary>
-    public class Option<T> : IOption
+    public class Option<T> : ILanguageSpecificOption
     {
         /// <summary>
         /// Feature this option is associated with.
         /// </summary>
         public string Feature { get; }
+
+        /// <summary>
+        /// Optional group/sub-feature for this option.
+        /// </summary>
+        internal OptionGroup Group { get; }
 
         /// <summary>
         /// The name of the option.
@@ -32,13 +52,24 @@ namespace Microsoft.CodeAnalysis.Options
 
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
+        [Obsolete("Use a constructor that specifies an explicit default value.")]
         public Option(string feature, string name)
-            : this(feature, name, default)
+            : this(feature, name, default!)
         {
             // This constructor forwards to the next one; it exists to maintain source-level compatibility with older callers.
         }
 
         public Option(string feature, string name, T defaultValue)
+            : this(feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation>())
+        {
+        }
+
+        public Option(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
+        {
+        }
+
+        internal Option(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -51,19 +82,17 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             this.Feature = feature;
+            this.Group = group ?? throw new ArgumentNullException(nameof(group));
             this.Name = name;
             this.DefaultValue = defaultValue;
+            this.StorageLocations = storageLocations.ToImmutableArray();
         }
 
-        public Option(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-            : this(feature, name, defaultValue)
-        {
-            StorageLocations = storageLocations.ToImmutableArray();
-        }
-
-        object IOption.DefaultValue => this.DefaultValue;
+        object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => false;
+
+        OptionGroup IOptionWithGroup.Group => this.Group;
 
         public override string ToString()
         {

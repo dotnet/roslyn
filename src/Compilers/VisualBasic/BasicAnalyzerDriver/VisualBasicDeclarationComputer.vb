@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -9,13 +12,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicDeclarationComputer
         Inherits DeclarationComputer
 
-        Public Shared Sub ComputeDeclarationsInSpan(model As SemanticModel, span As TextSpan, getSymbol As Boolean, builder As List(Of DeclarationInfo), cancellationToken As CancellationToken)
+        Public Shared Sub ComputeDeclarationsInSpan(model As SemanticModel,
+                                                    span As TextSpan,
+                                                    getSymbol As Boolean,
+                                                    builder As ArrayBuilder(Of DeclarationInfo),
+                                                    cancellationToken As CancellationToken)
             ComputeDeclarationsCore(model, model.SyntaxTree.GetRoot(),
                                     Function(node, level) Not node.Span.OverlapsWith(span) OrElse InvalidLevel(level),
                                     getSymbol, builder, Nothing, cancellationToken)
         End Sub
 
-        Public Shared Sub ComputeDeclarationsInNode(model As SemanticModel, node As SyntaxNode, getSymbol As Boolean, builder As List(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
+        Public Shared Sub ComputeDeclarationsInNode(model As SemanticModel,
+                                                    node As SyntaxNode,
+                                                    getSymbol As Boolean,
+                                                    builder As ArrayBuilder(Of DeclarationInfo),
+                                                    cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
             ComputeDeclarationsCore(model, node, Function(n, level) InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken)
         End Sub
 
@@ -28,7 +39,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(level.HasValue, level.Value - 1, level)
         End Function
 
-        Private Shared Sub ComputeDeclarationsCore(model As SemanticModel, node As SyntaxNode, shouldSkip As Func(Of SyntaxNode, Integer?, Boolean), getSymbol As Boolean, builder As List(Of DeclarationInfo), levelsToCompute As Integer?, cancellationToken As CancellationToken)
+        Private Shared Sub ComputeDeclarationsCore(model As SemanticModel,
+                                                   node As SyntaxNode,
+                                                   shouldSkip As Func(Of SyntaxNode, Integer?, Boolean),
+                                                   getSymbol As Boolean,
+                                                   builder As ArrayBuilder(Of DeclarationInfo),
+                                                   levelsToCompute As Integer?,
+                                                   cancellationToken As CancellationToken)
             cancellationToken.ThrowIfCancellationRequested()
 
             If shouldSkip(node, levelsToCompute) Then

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -42,7 +44,8 @@ namespace Microsoft.CodeAnalysis
             var span = node.FullSpan;
             var textSpanOpt = span.Intersection(fullSpan);
             int index;
-
+            char found = default;
+            char expected = default;
             if (textSpanOpt == null)
             {
                 index = 0;
@@ -52,6 +55,11 @@ namespace Microsoft.CodeAnalysis
                 var fromText = text.ToString(textSpanOpt.Value);
                 var fromNode = node.ToFullString();
                 index = FindFirstDifference(fromText, fromNode);
+                if (index >= 0)
+                {
+                    found = fromNode[index];
+                    expected = fromText[index];
+                }
             }
 
             if (index >= 0)
@@ -63,11 +71,7 @@ namespace Microsoft.CodeAnalysis
                     var position = text.Lines.GetLinePosition(index);
                     var line = text.Lines[position.Line];
                     var allText = text.ToString(); // Entire document as string to allow inspecting the text in the debugger.
-                    message = string.Format("Unexpected difference at offset {0}: Line {1}, Column {2} \"{3}\"",
-                        index,
-                        position.Line + 1,
-                        position.Character + 1,
-                        line.ToString());
+                    message = $"Unexpected difference at offset {index}: Line {position.Line + 1}, Column {position.Character + 1} \"{line.ToString()}\"  (Found: [{found}] Expected: [{expected}])";
                 }
                 else
                 {

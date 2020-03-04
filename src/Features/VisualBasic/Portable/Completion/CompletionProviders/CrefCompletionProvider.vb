@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Text
@@ -228,6 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText:=displayString,
+                displayTextSuffix:="",
                 insertionText:=Nothing,
                 symbols:=ImmutableArray.Create(symbol),
                 contextPosition:=position,
@@ -236,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Function CreateOfCompletionItem() As CompletionItem
             Return CommonCompletionItem.Create(
-                "Of", CompletionItemRules.Default, Glyph.Keyword,
+                "Of", displayTextSuffix:="", CompletionItemRules.Default, Glyph.Keyword,
                 description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
         End Function
 

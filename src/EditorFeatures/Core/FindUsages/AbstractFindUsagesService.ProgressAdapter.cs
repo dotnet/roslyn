@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, _context.CancellationToken).ConfigureAwait(false);
                 await _context.OnReferenceFoundAsync(new SourceReferenceItem(
-                    _definition, documentSpan, isWrittenTo: false)).ConfigureAwait(false);
+                    _definition, documentSpan, SymbolUsageInfo.None)).ConfigureAwait(false);
             }
 
             public Task ReportProgressAsync(int current, int maximum)
@@ -49,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         {
             private readonly Solution _solution;
             private readonly IFindUsagesContext _context;
+            private readonly FindReferencesSearchOptions _options;
 
             /// <summary>
             /// We will hear about definition symbols many times while performing FAR.  We'll
@@ -65,18 +69,22 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
-            public FindReferencesProgressAdapter(Solution solution, IFindUsagesContext context)
+            public FindReferencesProgressAdapter(
+                IThreadingContext threadingContext, Solution solution,
+                IFindUsagesContext context, FindReferencesSearchOptions options)
+                : base(threadingContext)
             {
                 _solution = solution;
                 _context = context;
+                _options = options;
             }
 
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
-            public Task OnStartedAsync() => SpecializedTasks.EmptyTask;
-            public Task OnCompletedAsync() => SpecializedTasks.EmptyTask;
-            public Task OnFindInDocumentStartedAsync(Document document) => SpecializedTasks.EmptyTask;
-            public Task OnFindInDocumentCompletedAsync(Document document) => SpecializedTasks.EmptyTask;
+            public Task OnStartedAsync() => Task.CompletedTask;
+            public Task OnCompletedAsync() => Task.CompletedTask;
+            public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
+            public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
 
             // Simple context forwarding functions.
             public Task ReportProgressAsync(int current, int maximum) =>
@@ -93,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     if (!_definitionToItem.TryGetValue(definition.Symbol, out var definitionItem))
                     {
                         definitionItem = await definition.Symbol.ToClassifiedDefinitionItemAsync(
-                            _solution.GetProject(definition.ProjectId), includeHiddenLocations: false, cancellationToken: _context.CancellationToken).ConfigureAwait(false);
+                            _solution.GetProject(definition.ProjectId), includeHiddenLocations: false,
+                            _options, _context.CancellationToken).ConfigureAwait(false);
 
                         _definitionToItem[definition.Symbol] = definitionItem;
                     }
@@ -110,12 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
             {
-                // Ignore duplicate locations.  We don't want to clutter the UI with them.
-                if (location.IsDuplicateReferenceLocation)
-                {
-                    return;
-                }
-
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(
                     definitionItem, includeHiddenLocations: false,

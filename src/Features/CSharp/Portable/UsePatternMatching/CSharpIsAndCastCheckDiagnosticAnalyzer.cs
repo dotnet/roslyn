@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -27,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     }
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckDiagnosticAnalyzer();
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpIsAndCastCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeCheckId,
+                   CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -48,23 +49,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var options = syntaxContext.Options;
             var syntaxTree = syntaxContext.Node.SyntaxTree;
             var cancellationToken = syntaxContext.CancellationToken;
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
-            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, syntaxTree, cancellationToken);
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
             }
 
-            var severity = styleOption.Notification.Value;
+            var severity = styleOption.Notification.Severity;
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
+            // in projects targeting a lesser version.
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {
                 return;
@@ -73,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var isExpression = (BinaryExpressionSyntax)syntaxContext.Node;
 
             if (!TryGetPatternPieces(isExpression,
-                    out var ifStatement, out var localDeclarationStatement, 
+                    out var ifStatement, out var localDeclarationStatement,
                     out var declarator, out var castExpression))
             {
                 return;
@@ -144,10 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 localDeclarationStatement.GetLocation());
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(severity),
+            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 localDeclarationStatement.GetLocation(),
-                additionalLocations));
+                severity,
+                additionalLocations,
+                properties: null));
         }
 
         public bool TryGetPatternPieces(
@@ -163,30 +161,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             castExpression = null;
 
             // The is check has to be in an if check: "if (x is Type)
-            if (!isExpression.Parent.IsKind(SyntaxKind.IfStatement))
+            if (!isExpression.Parent.IsKind(SyntaxKind.IfStatement, out ifStatement))
             {
                 return false;
             }
 
-            ifStatement = (IfStatementSyntax)isExpression.Parent;
-            if (!ifStatement.Statement.IsKind(SyntaxKind.Block))
+            if (!ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax ifBlock))
             {
                 return false;
             }
 
-            var ifBlock = (BlockSyntax)ifStatement.Statement;
             if (ifBlock.Statements.Count == 0)
             {
                 return false;
             }
 
             var firstStatement = ifBlock.Statements[0];
-            if (!firstStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
+            if (!firstStatement.IsKind(SyntaxKind.LocalDeclarationStatement, out localDeclarationStatement))
             {
                 return false;
             }
 
-            localDeclarationStatement = (LocalDeclarationStatementSyntax)firstStatement;
             if (localDeclarationStatement.Declaration.Variables.Count != 1)
             {
                 return false;
@@ -199,12 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             var declaratorValue = declarator.Initializer.Value.WalkDownParentheses();
-            if (!declaratorValue.IsKind(SyntaxKind.CastExpression))
+            if (!declaratorValue.IsKind(SyntaxKind.CastExpression, out castExpression))
             {
                 return false;
             }
 
-            castExpression = (CastExpressionSyntax)declaratorValue;
             if (!SyntaxFactory.AreEquivalent(isExpression.Left.WalkDownParentheses(), castExpression.Expression.WalkDownParentheses(), topLevel: false) ||
                 !SyntaxFactory.AreEquivalent(isExpression.Right.WalkDownParentheses(), castExpression.Type, topLevel: false))
             {
@@ -225,6 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

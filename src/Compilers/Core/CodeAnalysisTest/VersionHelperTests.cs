@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(now, new Version(3, 2, 65535, 65535));
             Assert.Equal(3, version.Major);
             Assert.Equal(2, version.Minor);
-            Assert.Equal(days, version.Build); 
+            Assert.Equal(days, version.Build);
             Assert.Equal(seconds, version.Revision);
 
             version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(now, new Version(1, 2, 3, 65535));
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var expected = new Version(0, 0, 0, 0);
             Version version;
             Assert.False(VersionHelper.TryParse("", out version));
-            Assert.Equal(expected,version);
+            Assert.Equal(expected, version);
             Assert.False(VersionHelper.TryParse(null, out version));
             Assert.Equal(expected, version);
             Assert.False(VersionHelper.TryParse("a", out version));

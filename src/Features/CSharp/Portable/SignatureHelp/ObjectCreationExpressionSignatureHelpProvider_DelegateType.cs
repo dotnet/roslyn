@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private IList<SignatureHelpItem> GetDelegateTypeConstructors(
+        private (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateTypeConstructors(
             ObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod == null)
             {
-                return null;
+                return (null, null);
             }
 
             var position = objectCreationExpression.SpanStart;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 suffixParts: GetDelegateTypePostambleParts(invokeMethod),
                 parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken));
 
-            return SpecializedCollections.SingletonList(item);
+            return (SpecializedCollections.SingletonList(item), 0);
         }
 
         private IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)

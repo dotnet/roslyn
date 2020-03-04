@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -18,27 +20,19 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
     /// A service which enables searching for packages matching certain criteria.
-    /// It works against an <see cref="Microsoft.CodeAnalysis.Elfie"/> database to find results.
+    /// It works against a <see cref="Microsoft.CodeAnalysis.Elfie"/> database to find results.
     /// 
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
     internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
-        private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
+        private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         public SymbolSearchUpdateEngine(
             ISymbolSearchLogService logService,
             ISymbolSearchProgressService progressService)
-            : this(logService, progressService, CancellationToken.None)
-        {
-        }
-
-        public SymbolSearchUpdateEngine(
-            ISymbolSearchLogService logService,
-            ISymbolSearchProgressService progressService,
-            CancellationToken updateCancellationToken)
             : this(logService,
                    progressService,
                    new RemoteControlService(),
@@ -47,8 +41,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new PatchService(),
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them.
-                   FatalError.ReportWithoutCrash,
-                   updateCancellationToken)
+                   FatalError.ReportWithoutCrash)
         {
         }
 
@@ -63,8 +56,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             IIOService ioService,
             IPatchService patchService,
             IDatabaseFactoryService databaseFactoryService,
-            Func<Exception, bool> reportAndSwallowException,
-            CancellationToken updateCancellationToken)
+            Func<Exception, bool> reportAndSwallowException)
         {
             _delayService = delayService;
             _ioService = ioService;
@@ -74,8 +66,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
             _reportAndSwallowException = reportAndSwallowException;
-
-            _updateCancellationToken = updateCancellationToken;
         }
 
         public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
