@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     var parseOptions = (VisualBasicParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-#if !CODE_STYLE // TODO: Add support for Options based tests in CodeStyle layer
                     var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, Options);
                     if (analyzerConfigSource is object)
                     {
@@ -42,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         }
                     }
 
+#if !CODE_STYLE
                     var options = solution.Options;
                     foreach (var (key, value) in remainingOptions)
                     {
@@ -61,13 +61,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic16;
 
-#if !CODE_STYLE // TODO: Add support for Options based tests in CodeStyle layer
             /// <summary>
             /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
             /// using a collection initializer.
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
-#endif
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 

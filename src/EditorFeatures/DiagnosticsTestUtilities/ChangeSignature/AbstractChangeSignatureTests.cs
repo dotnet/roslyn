@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         /// described above.</param>
         public async Task TestAllSignatureChangesAsync(string languageName, string markup, int[] signaturePartCounts, ParseOptions parseOptions = null)
         {
-            Assert.Equal(signaturePartCounts.Length, 4);
+            Assert.Equal(4, signaturePartCounts.Length);
             Assert.True(signaturePartCounts[0] == 0 || signaturePartCounts[0] == 1);
             Assert.True(signaturePartCounts[3] == 0 || signaturePartCounts[3] == 1);
 
