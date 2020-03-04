@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var generator = SyntaxGenerator.GetGenerator(document);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 // Do not add the simplifier annotation.  We do not want the simplifier undoing the 
                 // work we just did.
                 editor.ReplaceNode(node,
-                    (current, _) => syntaxFacts.Parenthesize(
+                    (current, _) => generator.AddParentheses(
                         current, includeElasticTrivia: false, addSimplifierAnnotation: false));
             }
 

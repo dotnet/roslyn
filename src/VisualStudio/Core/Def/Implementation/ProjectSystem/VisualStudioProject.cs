@@ -422,13 +422,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         documentsToOpen,
                         (s, documents) => s.AddDocuments(documents),
                         WorkspaceChangeKind.DocumentAdded,
-                        (s, id) =>
-                        {
-                            // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveDocument directly this is
-                            // called, but since we're doing this in one large batch we need to do it now.
-                            _workspace.ClearDocumentData(id);
-                            return s.RemoveDocument(id);
-                        },
+                        (s, ids) => s.RemoveDocuments(ids),
                         WorkspaceChangeKind.DocumentRemoved);
 
                     _additionalFiles.UpdateSolutionForBatch(
@@ -445,13 +439,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             return s;
                         },
                         WorkspaceChangeKind.AdditionalDocumentAdded,
-                        (s, id) =>
-                        {
-                            // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveDocument directly this is
-                            // called, but since we're doing this in one large batch we need to do it now.
-                            _workspace.ClearDocumentData(id);
-                            return s.RemoveAdditionalDocument(id);
-                        },
+                        (s, ids) => s.RemoveAdditionalDocuments(ids),
                         WorkspaceChangeKind.AdditionalDocumentRemoved);
 
                     _analyzerConfigFiles.UpdateSolutionForBatch(
@@ -460,13 +448,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         analyzerConfigDocumentsToOpen,
                         (s, documents) => s.AddAnalyzerConfigDocuments(documents),
                         WorkspaceChangeKind.AnalyzerConfigDocumentAdded,
-                        (s, id) =>
-                        {
-                            // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveAnalyzerConfigDocument directly this is
-                            // called, but since we're doing this in one large batch we need to do it now.
-                            _workspace.ClearDocumentData(id);
-                            return s.RemoveAnalyzerConfigDocument(id);
-                        },
+                        (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
                         WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
 
                     // Metadata reference adding...
@@ -1219,7 +1201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     FileNameUtilities.GetFileName(fullPath),
-                    folders: folders.IsDefault ? null : (IEnumerable<string>)folders,
+                    folders: folders.NullToEmpty(),
                     sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
                     filePath: fullPath,
@@ -1570,7 +1552,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 List<(DocumentId documentId, SourceTextContainer textContainer)> documentsToOpen,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 WorkspaceChangeKind addDocumentChangeKind,
-                Func<Solution, DocumentId, Solution> removeDocument,
+                Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
                 WorkspaceChangeKind removeDocumentChangeKind)
             {
                 // Document adding...
@@ -1592,12 +1574,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ClearAndZeroCapacity(_documentsAddedInBatch);
 
                 // Document removing...
-                foreach (var documentId in _documentsRemovedInBatch)
-                {
-                    solutionChanges.UpdateSolutionForDocumentAction(removeDocument(solutionChanges.Solution, documentId),
-                        removeDocumentChangeKind,
-                        SpecializedCollections.SingletonEnumerable(documentId));
-                }
+                solutionChanges.UpdateSolutionForRemovedDocumentAction(removeDocuments(solutionChanges.Solution, _documentsRemovedInBatch.ToImmutableArray()),
+                    removeDocumentChangeKind,
+                    _documentsRemovedInBatch);
 
                 ClearAndZeroCapacity(_documentsRemovedInBatch);
 
@@ -1611,8 +1590,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, IEnumerable<string> folders)
+            private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, ImmutableArray<string> folders)
             {
+                Contract.ThrowIfTrue(folders.IsDefault);
+
                 // we use this file path for editorconfig. 
                 var filePath = fileInfo.FilePath;
 

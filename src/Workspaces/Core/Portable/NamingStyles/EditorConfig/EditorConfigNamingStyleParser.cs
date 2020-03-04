@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         // TODO: revisit this cache. The assumption that the dictionary doesn't change in the exact instance is terribly fragile,
         // and with the new .editorconfig support won't hold as well as we'd like: a single tree will have a stable instance but
         // that won't necessarily be the same across files and projects.
-        private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, string>, NamingStylePreferences> _cache = new ConditionalWeakTable<IReadOnlyDictionary<string, string>, NamingStylePreferences>();
+        private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, string?>, NamingStylePreferences> _cache = new ConditionalWeakTable<IReadOnlyDictionary<string, string?>, NamingStylePreferences>();
         private static readonly object _cacheLock = new object();
 
-        public static NamingStylePreferences GetNamingStylesFromDictionary(IReadOnlyDictionary<string, string> rawOptions)
+        public static NamingStylePreferences GetNamingStylesFromDictionary(IReadOnlyDictionary<string, string?> rawOptions)
         {
             if (_cache.TryGetValue(rawOptions, out var value))
             {
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
-        public static NamingStylePreferences ParseDictionary(IReadOnlyDictionary<string, string> allRawConventions)
+        public static NamingStylePreferences ParseDictionary(IReadOnlyDictionary<string, string?> allRawConventions)
         {
             var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
             var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
@@ -127,14 +129,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     }));
         }
 
-        private static Dictionary<string, string> TrimDictionary(IReadOnlyDictionary<string, string> allRawConventions)
+        private static Dictionary<string, string?> TrimDictionary(IReadOnlyDictionary<string, string?> allRawConventions)
         {
             // Keys have been lowercased, but values have not. Because values here reference key
             // names we need any comparisons to ignore case.
             // For example, to make a naming style called "Pascal_Case_style" match up correctly
             // with the key "dotnet_naming_style.pascal_case_style.capitalization", we have to
             // ignore casing for that lookup.
-            var trimmedDictionary = new Dictionary<string, string>(allRawConventions.Count, AnalyzerConfigOptions.KeyComparer);
+            var trimmedDictionary = new Dictionary<string, string?>(allRawConventions.Count, AnalyzerConfigOptions.KeyComparer);
             foreach (var item in allRawConventions)
             {
                 var key = item.Key.Trim();
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return trimmedDictionary;
         }
 
-        private static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, string> allRawConventions)
+        private static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, string?> allRawConventions)
             => (from kvp in allRawConventions
                 where kvp.Key.Trim().StartsWith("dotnet_naming_rule.", StringComparison.Ordinal)
                 let nameSplit = kvp.Key.Split('.')

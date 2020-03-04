@@ -14,14 +14,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {
     class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, IDataErrorInfo
     {
-        private readonly ISyntaxFactsService _syntaxFactsService;
+        private readonly ISyntaxFacts _syntaxFacts;
 
         public MoveToNamespaceDialogViewModel(
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces,
-            ISyntaxFactsService syntaxFactsService)
+            ISyntaxFacts syntaxFacts)
         {
-            _syntaxFactsService = syntaxFactsService ?? throw new ArgumentNullException(nameof(syntaxFactsService));
+            _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
             NamespaceName = defaultNamespace;
             AvailableNamespaces = availableNamespaces;
 
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
             foreach (var identifier in namespaceName.Split('.'))
             {
-                if (_syntaxFactsService.IsValidIdentifier(identifier))
+                if (_syntaxFacts.IsValidIdentifier(identifier))
                 {
                     continue;
                 }

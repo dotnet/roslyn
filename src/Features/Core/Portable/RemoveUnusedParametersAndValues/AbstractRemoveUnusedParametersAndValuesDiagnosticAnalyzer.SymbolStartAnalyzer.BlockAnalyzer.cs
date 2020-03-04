@@ -427,19 +427,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     // Builder to store the symbol read/write usage result for each operation block computed during the first pass.
                     // These are later used to compute unused parameters in second pass.
-                    var symbolUsageResultsBuilder = PooledHashSet<SymbolUsageResult>.GetInstance();
+                    using var _ = PooledHashSet<SymbolUsageResult>.GetInstance(out var symbolUsageResultsBuilder);
 
-                    try
-                    {
-                        // Flag indicating if we found an operation block where all symbol writes were used. 
-                        AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out var hasBlockWithAllUsedWrites, out var hasOperationNoneDescendant);
+                    // Flag indicating if we found an operation block where all symbol writes were used. 
+                    AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out var hasBlockWithAllUsedWrites, out var hasOperationNoneDescendant);
 
-                        AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites, hasOperationNoneDescendant);
-                    }
-                    finally
-                    {
-                        symbolUsageResultsBuilder.Free();
-                    }
+                    AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites, hasOperationNoneDescendant);
                 }
 
                 private void AnalyzeUnusedValueAssignments(

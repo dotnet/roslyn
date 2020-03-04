@@ -136,4 +136,7 @@
     <value>'using' directive preferences</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Expected_string_or_char_literal" xml:space="preserve">
+    <value>Expected string or char literal</value>
+  </data>
 </root>

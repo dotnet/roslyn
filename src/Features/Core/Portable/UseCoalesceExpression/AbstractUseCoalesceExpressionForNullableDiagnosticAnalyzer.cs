@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
             context.RegisterSyntaxNodeAction(AnalyzeSyntax,
                 syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 

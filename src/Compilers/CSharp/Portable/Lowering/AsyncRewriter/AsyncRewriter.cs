@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CSharpCompilation compilation = method.DeclaringCompilation;
-            bool isAsyncEnumerableOrEnumerator = method.IsIAsyncEnumerableReturningAsync(compilation) ||
-                method.IsIAsyncEnumeratorReturningAsync(compilation);
+            bool isAsyncEnumerableOrEnumerator = method.IsAsyncReturningIAsyncEnumerable(compilation) ||
+                method.IsAsyncReturningIAsyncEnumerator(compilation);
             if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
             {
                 bool containsAwait = AwaitDetector.ContainsAwait(bodyWithAwaitLifted);
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         startMethod,
                         ImmutableArray.Create<BoundExpression>(F.Local(stateMachineVariable)))));
 
-            bodyBuilder.Add(method.IsVoidReturningAsync()
+            bodyBuilder.Add(method.IsAsyncReturningVoid()
                 ? F.Return()
                 : F.Return(
                     F.Property(

@@ -1433,14 +1433,13 @@ public class TestClass : VBInterface
             IEnumerable<(string name, bool makeAbstract)> selection = null,
             string destinationName = null,
             int index = 0,
-            CodeActionPriority? priority = null,
             TestParameters parameters = default)
         {
             var service = new TestPullMemberUpService(selection, destinationName);
 
             return TestInRegularAndScript1Async(
                 initialMarkUp, expectedResult,
-                index, priority,
+                index,
                 parameters.WithFixProviderData(service));
         }
 

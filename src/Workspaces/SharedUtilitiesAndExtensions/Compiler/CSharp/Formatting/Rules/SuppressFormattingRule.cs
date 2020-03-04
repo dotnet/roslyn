@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // ex: `e is Type ( /* positional */ )`
-            if (node.IsKind(SyntaxKind.RecursivePattern))
+            if (node.IsKind(SyntaxKind.RecursivePattern, out RecursivePatternSyntax recursivePattern))
             {
-                var positional = ((RecursivePatternSyntax)node).PositionalPatternClause;
-                var property = ((RecursivePatternSyntax)node).PropertyPatternClause;
+                var positional = recursivePattern.PositionalPatternClause;
+                var property = recursivePattern.PropertyPatternClause;
                 if (positional != null)
                 {
                     var openParenToken = positional.OpenParenToken;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                 AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.GetFirstToken(), isPattern.GetLastToken());
 
-                if (isPattern.Pattern.IsKind(SyntaxKind.RecursivePattern))
+                if (isPattern.Pattern.IsKind(SyntaxKind.RecursivePattern, out recursivePattern))
                 {
                     // ex:
                     // ```
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     // _ = expr is { }$$
                     // M();
                     // ```
-                    var propertyPatternClause = ((RecursivePatternSyntax)isPattern.Pattern).PropertyPatternClause;
+                    var propertyPatternClause = recursivePattern.PropertyPatternClause;
                     if (propertyPatternClause != null)
                     {
                         AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, propertyPatternClause.GetLastToken());
