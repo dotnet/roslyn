@@ -6267,10 +6267,11 @@ class Program
             constantFolding("nuint", "const nuint A = 1;", "-A", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-A").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_NoImplicitConvCast
             constantFolding("nuint", "const nuint A = 4294967295;", "-A", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-A").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_NoImplicitConvCast
 
-            constantFolding("nint", "const nint A = -2147483648;", "~A", "2147483647");
-            constantFolding("nint", "const nint A = 2147483647;", "~A", "-2147483648");
-            constantFolding("nuint", "const nuint A = 0;", "~A", "4294967295"); // PROTOTYPE: Should this be an error?
-            constantFolding("nuint", "const nuint A = 4294967295;", "~A", "0"); // PROTOTYPE: Should this be an error?
+            constantFoldingBitwiseComplement("nint", "const nint A = 0;", "~A");
+            constantFoldingBitwiseComplement("nint", "const nint A = -2147483648;", "~A");
+            constantFoldingBitwiseComplement("nint", "const nint A = 2147483647;", "~A");
+            constantFoldingBitwiseComplement("nuint", "const nuint A = 0;", "~A");
+            constantFoldingBitwiseComplement("nuint", "const nuint A = 4294967295;", "~A");
 
             constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A + B", null);
             constantFolding("nint", "const nint A = -2147483647; const nint B = -1;", "A + B", "-2147483648");
@@ -6399,8 +6400,15 @@ class Program
                         Array.Empty<DiagnosticDescription>() :
                     new[] { diagnostic };
                 verify(opType, declarations, expr, expectedResult, diagnostics);
-                verify(opType, declarations, $"checked ({expr})", expectedResult, diagnostics);
+                //verify(opType, declarations, $"checked ({expr})", expectedResult, diagnostics);
                 verify(opType, declarations, $"unchecked ({expr})", expectedResult, (diagnostic is null) ? Array.Empty<DiagnosticDescription>() : diagnostics);
+            }
+
+            void constantFoldingBitwiseComplement(string opType, string declarations, string expr)
+            {
+                verify(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, "~A").WithArguments("Library.F") });
+                verify(opType, declarations, $"checked ({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, "checked (~A)").WithArguments("Library.F") });
+                verify(opType, declarations, $"unchecked ({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, "unchecked (~A)").WithArguments("Library.F") });
             }
 
             void verify(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)

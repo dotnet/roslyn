@@ -2556,12 +2556,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnaryOperatorKind.BoolLogicalNegation:
                     return !value.BooleanValue;
                 case UnaryOperatorKind.IntBitwiseComplement:
-                case UnaryOperatorKind.NIntBitwiseComplement:
                     return ~value.Int32Value;
                 case UnaryOperatorKind.LongBitwiseComplement:
                     return ~value.Int64Value;
                 case UnaryOperatorKind.UIntBitwiseComplement:
-                case UnaryOperatorKind.NUIntBitwiseComplement:
                     return ~value.UInt32Value;
                 case UnaryOperatorKind.ULongBitwiseComplement:
                     return ~value.UInt64Value;
