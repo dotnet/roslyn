@@ -365,18 +365,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         }
 
         /// <summary>
-        /// Tells if the Member access is the starting part of a Dynamic Invocation
+        /// Tells if the member access is dynamically invoked.
         /// </summary>
-        /// <param name="memberAccess"></param>
-        /// <param name="semanticModel"></param>
-        /// <returns>Return true, if the member access is the starting point of a Dynamic Invocation</returns>
         private static bool IsMemberAccessADynamicInvocation(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
         {
-            var ancestorInvocation = memberAccess.FirstAncestorOrSelf<InvocationExpressionSyntax>();
-
-            if (ancestorInvocation != null && ancestorInvocation.SpanStart == memberAccess.SpanStart)
+            if (memberAccess.IsExpressionOfInvocation())
             {
-                var typeInfo = semanticModel.GetTypeInfo(ancestorInvocation);
+                var typeInfo = semanticModel.GetTypeInfo(memberAccess.Parent);
                 if (typeInfo.Type != null &&
                     typeInfo.Type.Kind == SymbolKind.DynamicType)
                 {
