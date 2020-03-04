@@ -4708,5 +4708,40 @@ class C : B
     }
 }");
         }
+
+        [WorkItem(22150, "https://github.com/dotnet/roslyn/issues/22150")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractLocalFunctionToLocalFunction()
+        {
+            var code = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        void Local() { }
+        [|Local();|]
+    }
+
+    static void Local() => System.Console.WriteLine();
+}";
+            var expected = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        void Local() { }
+        {|Rename:NewMethod|}();
+
+        void NewMethod()
+        {
+            Local();
+        }
+    }
+
+    static void Local() => System.Console.WriteLine();
+}";
+
+            await TestInRegularAndScript1Async(code, expected);
+        }
     }
 }
