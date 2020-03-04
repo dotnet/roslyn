@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 namespace Analyzer.Utilities
 {
     internal sealed class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
+        where TValue : notnull
     {
         public static readonly SymbolNamesWithValueOption<TValue> Empty = new SymbolNamesWithValueOption<TValue>();
 
@@ -116,7 +117,7 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Gets the value associated with the specified symbol in the option specification.
         /// </summary>
-        public bool TryGetValue(ISymbol symbol, [NotNullWhen(true)] out TValue value) =>
+        public bool TryGetValue(ISymbol symbol, [MaybeNullWhen(false)] out TValue value) =>
             _symbols.TryGetValue(symbol, out value) || _names.TryGetValue(symbol.Name, out value);
 
         public override bool Equals(object obj) => Equals(obj as SymbolNamesWithValueOption<TValue>);
