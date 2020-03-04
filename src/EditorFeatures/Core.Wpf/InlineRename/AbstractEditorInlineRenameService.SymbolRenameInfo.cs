@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 TextSpan triggerSpan,
                 SymbolAndProjectId renameSymbolAndProjectId,
                 bool forceRenameOverloads,
-                ImmutableArray<DocumentSpan> documentSpans,
+                IEnumerable<DocumentSpan> documentSpans,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;

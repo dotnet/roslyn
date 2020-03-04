@@ -27,14 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            // This is unpleasant, but we do everything synchronously.  That's because we end up
-            // needing to make calls on the UI thread to determine if the locations of the symbol
-            // are in readonly buffer sections or not.  If we go pure async we have the following
-            // problem:
-            //   1) if we call ConfigureAwait(false), then we might call into the text buffer on 
-            //      the wrong thread.
-            //   2) if we try to call those pieces of code on the UI thread, then we will deadlock
-            //      as our caller often is doing a 'Wait' on us, and our UI calling code won't run.
             var triggerToken = await GetTriggerTokenAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             if (triggerToken == default)
@@ -54,8 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
-
-            var test = document.GetSemanticModelAsync(cancellationToken);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
@@ -169,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var symbolLocations = symbol.Locations;
 
             // Does our symbol exist in an unchangeable location?
-            var documentSpans = ArrayBuilder<DocumentSpan>.GetInstance();
+            var documentSpans = new List<DocumentSpan>();
             foreach (var location in symbolLocations)
             {
                 // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
@@ -200,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             return new SymbolInlineRenameInfo(
                 refactorNotifyServices, document, triggerToken.Span,
-                symbolAndProjectId, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
+                symbolAndProjectId, forceRenameOverloads, documentSpans, cancellationToken);
         }
 
         private async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)

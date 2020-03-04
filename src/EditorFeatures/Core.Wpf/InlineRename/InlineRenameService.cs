@@ -94,6 +94,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             static bool IsReadOnlyOrCannotNavigateToSpan(IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
             {
+                // This is unpleasant, but we do everything synchronously.  That's because we end up
+                // needing to make calls on the UI thread to determine if the locations of the symbol
+                // are in readonly buffer sections or not.  If we go pure async we have the following
+                // problem:
+                //   1) if we call ConfigureAwait(false), then we might call into the text buffer on 
+                //      the wrong thread.
+                //   2) if we try to call those pieces of code on the UI thread, then we will deadlock
+                //      as our caller often is doing a 'Wait' on us, and our UI calling code won't run.
                 if (renameInfo is SymbolInlineRenameInfo symbolInlineRenameInfo)
                 {
                     var workspace = document.Project.Solution.Workspace;
