@@ -6400,7 +6400,7 @@ class Program
                         Array.Empty<DiagnosticDescription>() :
                     new[] { diagnostic };
                 verify(opType, declarations, expr, expectedResult, diagnostics);
-                //verify(opType, declarations, $"checked ({expr})", expectedResult, diagnostics);
+                verify(opType, declarations, $"checked ({expr})", expectedResult, diagnostics);
                 verify(opType, declarations, $"unchecked ({expr})", expectedResult, (diagnostic is null) ? Array.Empty<DiagnosticDescription>() : diagnostics);
             }
 
