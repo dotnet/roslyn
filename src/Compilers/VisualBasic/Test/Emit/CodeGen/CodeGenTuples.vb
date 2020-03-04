@@ -22944,6 +22944,112 @@ End Class
             CompileAndVerify(comp6, expectedOutput:="123")
         End Sub
 
+        <Fact>
+        <WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")>
+        Public Sub TupleUnderlyingType_FromCSharp()
+            Dim source =
+"#pragma warning disable 169
+class Program
+{
+    static System.ValueTuple F0;
+    static (int, int) F1;
+    static (int A, int B) F2;
+    static (object, object, object, object, object, object, object, object) F3;
+    static (object, object B, object, object D, object, object F, object, object H) F4;
+}"
+            Dim comp = CreateCSharpCompilation(source, referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard))
+            comp.VerifyDiagnostics()
+            Dim containingType = comp.GlobalNamespace.GetTypeMembers("Program").Single()
+            VerifyTypeFromCSharp(DirectCast(DirectCast(containingType.GetMembers("F0").Single(), IFieldSymbol).Type, INamedTypeSymbol), TupleUnderlyingTypeValue.Nothing, "System.ValueTuple", "()")
+            VerifyTypeFromCSharp(DirectCast(DirectCast(containingType.GetMembers("F1").Single(), IFieldSymbol).Type, INamedTypeSymbol), TupleUnderlyingTypeValue.Nothing, "(System.Int32, System.Int32)", "(System.Int32, System.Int32)")
+            VerifyTypeFromCSharp(DirectCast(DirectCast(containingType.GetMembers("F2").Single(), IFieldSymbol).Type, INamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Int32 A, System.Int32 B)", "(A As System.Int32, B As System.Int32)")
+            VerifyTypeFromCSharp(DirectCast(DirectCast(containingType.GetMembers("F3").Single(), IFieldSymbol).Type, INamedTypeSymbol), TupleUnderlyingTypeValue.Nothing, "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)")
+            VerifyTypeFromCSharp(DirectCast(DirectCast(containingType.GetMembers("F4").Single(), IFieldSymbol).Type, INamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Object, System.Object B, System.Object, System.Object D, System.Object, System.Object F, System.Object, System.Object H)", "(System.Object, B As System.Object, System.Object, D As System.Object, System.Object, F As System.Object, System.Object, H As System.Object)")
+        End Sub
+
+        <Fact>
+        <WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")>
+        Public Sub TupleUnderlyingType_FromVisualBasic()
+            Dim source =
+"Class Program
+    Private F0 As System.ValueTuple
+    Private F1 As (Integer, Integer)
+    Private F2 As (A As Integer, B As Integer)
+    Private F3 As (Object, Object, Object, Object, Object, Object, Object, Object)
+    Private F4 As (Object, B As Object, Object, D As Object, Object, F As Object, Object, H As Object)
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.AssertNoDiagnostics()
+            Dim containingType = comp.GlobalNamespace.GetTypeMembers("Program").Single()
+            VerifyTypeFromVisualBasic(DirectCast(DirectCast(containingType.GetMembers("F0").Single(), FieldSymbol).Type, NamedTypeSymbol), TupleUnderlyingTypeValue.Nothing, "System.ValueTuple", "System.ValueTuple")
+            VerifyTypeFromVisualBasic(DirectCast(DirectCast(containingType.GetMembers("F1").Single(), FieldSymbol).Type, NamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Int32, System.Int32)", "(System.Int32, System.Int32)")
+            VerifyTypeFromVisualBasic(DirectCast(DirectCast(containingType.GetMembers("F2").Single(), FieldSymbol).Type, NamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Int32 A, System.Int32 B)", "(A As System.Int32, B As System.Int32)")
+            VerifyTypeFromVisualBasic(DirectCast(DirectCast(containingType.GetMembers("F3").Single(), FieldSymbol).Type, NamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)")
+            VerifyTypeFromVisualBasic(DirectCast(DirectCast(containingType.GetMembers("F4").Single(), FieldSymbol).Type, NamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Object, System.Object B, System.Object, System.Object D, System.Object, System.Object F, System.Object, System.Object H)", "(System.Object, B As System.Object, System.Object, D As System.Object, System.Object, F As System.Object, System.Object, H As System.Object)")
+        End Sub
+
+        Private Enum TupleUnderlyingTypeValue
+            [Nothing]
+            Distinct
+            Same
+        End Enum
+
+        Private Shared Sub VerifyTypeFromCSharp(type As INamedTypeSymbol, expectedValue As TupleUnderlyingTypeValue, expectedCSharp As String, expectedVisualBasic As String)
+            VerifyDisplay(type, expectedCSharp, expectedVisualBasic)
+            VerifyPublicType(type, expectedValue)
+            VerifyPublicType(type.OriginalDefinition, TupleUnderlyingTypeValue.Nothing)
+        End Sub
+
+        Private Shared Sub VerifyTypeFromVisualBasic(type As NamedTypeSymbol, expectedValue As TupleUnderlyingTypeValue, expectedCSharp As String, expectedVisualBasic As String)
+            VerifyDisplay(type, expectedCSharp, expectedVisualBasic)
+            VerifyInternalType(type, expectedValue)
+            VerifyPublicType(type, expectedValue)
+            type = type.OriginalDefinition
+            VerifyInternalType(type, expectedValue)
+            VerifyPublicType(type, expectedValue)
+        End Sub
+
+        Private Shared Sub VerifyDisplay(type As INamedTypeSymbol, expectedCSharp As String, expectedVisualBasic As String)
+            Assert.Equal(expectedCSharp, CSharp.SymbolDisplay.ToDisplayString(type, SymbolDisplayFormat.TestFormat))
+            Assert.Equal(expectedVisualBasic, VisualBasic.SymbolDisplay.ToDisplayString(type, SymbolDisplayFormat.TestFormat))
+        End Sub
+
+        Private Shared Sub VerifyInternalType(type As NamedTypeSymbol, expectedValue As TupleUnderlyingTypeValue)
+            Dim underlyingType = type.TupleUnderlyingType
+
+            Select Case expectedValue
+                Case TupleUnderlyingTypeValue.Nothing
+                    Assert.Null(underlyingType)
+
+                Case TupleUnderlyingTypeValue.Distinct
+                    Assert.NotEqual(type, underlyingType)
+                    Assert.False(type.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                    Assert.False(type.Equals(underlyingType, TypeCompareKind.ConsiderEverything))
+                    VerifyPublicType(underlyingType, expectedValue:=TupleUnderlyingTypeValue.Nothing)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(expectedValue)
+            End Select
+        End Sub
+
+        Private Shared Sub VerifyPublicType(type As INamedTypeSymbol, expectedValue As TupleUnderlyingTypeValue)
+            Dim underlyingType = type.TupleUnderlyingType
+
+            Select Case expectedValue
+                Case TupleUnderlyingTypeValue.Nothing
+                    Assert.Null(underlyingType)
+
+                Case TupleUnderlyingTypeValue.Distinct
+                    Assert.NotEqual(type, underlyingType)
+                    Assert.False(type.Equals(underlyingType, SymbolEqualityComparer.Default))
+                    Assert.False(type.Equals(underlyingType, SymbolEqualityComparer.ConsiderEverything))
+                    VerifyPublicType(underlyingType, expectedValue:=TupleUnderlyingTypeValue.Nothing)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(expectedValue)
+            End Select
+        End Sub
+
     End Class
 
 End Namespace

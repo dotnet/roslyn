@@ -302,6 +302,7 @@ End Class
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, document.GetTextBuffer())
+                controller.SetWorkspace(workspace)
 
                 mockPresenter.RaiseDropDownFocused()
                 Assert.Equal("VBProj", projectName)
@@ -312,8 +313,8 @@ End Class
                 Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
                 Dim navigationBarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
 
-                Await workspaceWaiter.CreateExpeditedWaitTask()
-                Await navigationBarWaiter.CreateExpeditedWaitTask()
+                Await workspaceWaiter.ExpeditedWaitAsync()
+                Await navigationBarWaiter.ExpeditedWaitAsync()
 
                 Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 

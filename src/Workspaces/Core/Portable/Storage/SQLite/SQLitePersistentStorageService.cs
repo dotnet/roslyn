@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
@@ -65,18 +64,16 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         public SQLitePersistentStorageService(
             IOptionService optionService,
-            IPersistentStorageLocationService locationService,
-            ISolutionSizeTracker solutionSizeTracker)
-            : base(optionService, locationService, solutionSizeTracker)
+            IPersistentStorageLocationService locationService)
+            : base(optionService, locationService)
         {
         }
 
         public SQLitePersistentStorageService(
             IOptionService optionService,
             IPersistentStorageLocationService locationService,
-            ISolutionSizeTracker solutionSizeTracker,
             IPersistentStorageFaultInjector faultInjector)
-            : this(optionService, locationService, solutionSizeTracker)
+            : this(optionService, locationService)
         {
             _faultInjectorOpt = faultInjector;
         }

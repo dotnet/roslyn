@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _interactiveHost.SetOutputs(window.OutputWriter, window.ErrorOutputWriter);
 
-            return ResetAsyncWorker(GetHostOptions(initialize: true, resetOptions.Is64Bit));
+            return ResetCoreAsync(GetHostOptions(initialize: true, resetOptions.Is64Bit));
         }
 
         Task<ExecutionResult> IInteractiveEvaluator.ResetAsync(bool initialize)
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             window.WriteLine(InteractiveEditorFeaturesResources.Resetting_execution_engine);
             window.FlushOutput();
 
-            return ResetAsyncWorker(GetHostOptions(initialize, resetOptions.Is64Bit));
+            return ResetCoreAsync(GetHostOptions(initialize, resetOptions.Is64Bit));
         }
 
         private static string GetDesktopHostDirectory()
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                  culture: CultureInfo.CurrentUICulture,
                  is64Bit: is64bit ?? _interactiveHost.OptionsOpt?.Is64Bit ?? InteractiveHost.DefaultIs64Bit);
 
-        private async Task<ExecutionResult> ResetAsyncWorker(InteractiveHostOptions options)
+        private async Task<ExecutionResult> ResetCoreAsync(InteractiveHostOptions options)
         {
             try
             {

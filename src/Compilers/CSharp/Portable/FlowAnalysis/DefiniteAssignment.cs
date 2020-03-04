@@ -2097,6 +2097,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assign(node.LeftOperand, node.RightOperand);
         }
 
+        protected override void AdjustStateForNullCoalescingAssignmentNonNullCase(BoundNullCoalescingAssignmentOperator node)
+        {
+            // For the purposes of definite assignment in try/finally, we need to treat the left as having been assigned
+            // in the left-side state. If LeftOperand was not definitely assigned before this call, we will have already
+            // reported an error for use before assignment.
+            Assign(node.LeftOperand, node.LeftOperand);
+        }
+
         #endregion Visitors
 
         protected override string Dump(LocalState state)

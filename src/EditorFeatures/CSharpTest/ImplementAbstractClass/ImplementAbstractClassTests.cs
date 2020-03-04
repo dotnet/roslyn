@@ -1822,5 +1822,29 @@ public class Test : ParentTest
     }
 }");
         }
+
+        [Fact]
+        public async Task NothingOfferedWhenInheritanceIsPreventedByInternalAbstractMember()
+        {
+            await TestMissingAsync(
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public abstract class Base
+{
+    internal abstract void Method();
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class [|Derived|] : Base
+{
+    Base inner;
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
     }
 }
