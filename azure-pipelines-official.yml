@@ -10,7 +10,7 @@ resources:
 #  SkipApplyOptimizationData: false
 #  IbcSourceBranchName: 'default'
 #  IbcDropId: 'default'
-#  PrNumber: 'default'
+#  PRNumber: 'default'
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
@@ -38,29 +38,29 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
 
-    - powershell: Write-Host "##vso[task.setvariable variable=IsPrValidationBuild]($(PrNumber) -ne '') -and ($(PrNumber) -ne 'default')"
-      displayName: Setting IsPrValidationBuild variable
+    - powershell: Write-Host "##vso[task.setvariable variable=IsPRValidationBuild]($(PRNumber) -ne '') -and ($(PRNumber) -ne 'default')"
+      displayName: Setting IsPRValidationBuild variable
 
     - task: tagBuildOrRelease@0
       displayName: Tag build
       inputs:
         type: 'Build'
-        tags: if (variables['IsPrValidationBuild']) { 'PrValidationBuild' } else { "OfficialBuild" }
+        tags: if (variables['IsPRValidationBuild']) { 'PrValidationBuild' } else { "OfficialBuild" }
 
     - powershell: |
         if ($SourceBranchName -notlike '*-vs-deps') {
           Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $(SourceBranchName), which is not a vs-deps branch."
         }
-        Write-Host "Setting up the build for PR validation by merging refs/pull/$(PrNumber)/merge into $(SourceBranchName)..."
-        git pull origin refs/pull/$(PrNumber)/merge
+        Write-Host "Setting up the build for PR validation by merging refs/pull/$(PRNumber)/merge into $(SourceBranchName)..."
+        git pull origin refs/pull/$(PRNumber)/merge
         if (!$?) {
-          Write-Host "##vso[task.LogIssue type=error;]Merging branch refs/pull/$(PrNumber)/merge failed."
+          Write-Host "##vso[task.LogIssue type=error;]Merging branch refs/pull/$(PRNumber)/merge failed."
           exit 1
         }
-        Write-Host "Getting the hash of refs/pull/$(PrNumber)/head..."
-        Write-Host ((git ls-remote origin refs/pull/$(PrNumber)/head) | Out-String)
+        Write-Host "Getting the hash of refs/pull/$(PRNumber)/head..."
+        Write-Host ((git ls-remote origin refs/pull/$(PRNumber)/head) | Out-String)
       displayName: Setup branch for insertion validation
-      condition: and(succeeded(), variables['IsPrValidationBuild'])
+      condition: and(succeeded(), variables['IsPRValidationBuild'])
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
@@ -270,7 +270,7 @@ stages:
       queue:
         name: Hosted VS2017
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['IsPrValidationBuild'], false)) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['IsPRValidationBuild'], false)) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
       # Symbol validation is not entirely reliable as of yet, so should be turned off until
