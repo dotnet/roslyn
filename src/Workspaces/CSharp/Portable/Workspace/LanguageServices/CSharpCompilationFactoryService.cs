@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -54,13 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         //PROTOTYPE
 #nullable enable
-        GeneratorDriver? ICompilationFactoryService.CreateGeneratorDriver(Compilation compilation, ParseOptions parseOptions)
+        GeneratorDriver? ICompilationFactoryService.CreateGeneratorDriver(Compilation compilation, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
         {
+            // PROTOTYPE: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
             if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
             {
                 return null;
             }
-            return new CSharpGeneratorDriver(compilation, parseOptions);
+            return new CSharpGeneratorDriver(compilation, parseOptions, generators, additionalTexts);
         }
     }
 }

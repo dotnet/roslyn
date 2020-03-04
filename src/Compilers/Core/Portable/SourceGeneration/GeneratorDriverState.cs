@@ -10,7 +10,6 @@ using System.Text;
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "<Pending>")]
     internal readonly struct GeneratorDriverState
     {
         internal GeneratorDriverState(Compilation compilation, ParseOptions parseOptions)
@@ -57,11 +56,11 @@ namespace Microsoft.CodeAnalysis
         internal readonly ImmutableArray<PendingEdit> Edits;
 
         /// <summary>
-        /// The set of sources added to this state, by provider that added them
+        /// The set of sources added to this state, by generator that added them
         /// </summary>
         /// <remarks>
         /// If this state has not been used to perform generation, this collection will be empty.
-        /// The keys here will be a subset of the <see cref="Generators"/> collection; only genertors
+        /// The keys here will be a subset of the <see cref="Generators"/> collection; only generators
         /// that produced at least 1 source will have an entry.
         /// </remarks>
         internal readonly ImmutableDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>> Sources;

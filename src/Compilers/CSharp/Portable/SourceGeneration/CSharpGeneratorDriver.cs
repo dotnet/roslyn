@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     public sealed class CSharpGeneratorDriver : GeneratorDriver
     {
-        public CSharpGeneratorDriver(Compilation compilation, ParseOptions parseOptions)
-            : base(compilation, parseOptions)
+        public CSharpGeneratorDriver(Compilation compilation, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
+            : base(compilation, parseOptions, generators, additionalTexts)
         {
         }
 

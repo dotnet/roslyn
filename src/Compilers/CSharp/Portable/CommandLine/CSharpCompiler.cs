@@ -399,12 +399,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts)
         {
+            // PROTOTYPE: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
             if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
             {
                 return input;
             }
-            //PROTOTYPE: we need to actually read the generators in via the provider mechanism
-            var driver = new CSharpGeneratorDriver(input, parseOptions).WithAdditionalTexts(additionalTexts);
+
+            // PROTOTYPE: we need to actually read the generators in via the provider mechanism
+            var driver = new CSharpGeneratorDriver(input, parseOptions, ImmutableArray<ISourceGenerator>.Empty, additionalTexts);
             driver.RunFullGeneration(input, out var compilationOut);
             return compilationOut;
         }

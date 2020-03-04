@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal GeneratorDriver(Compilation compilation, ParseOptions parseOptions)
+        internal GeneratorDriver(Compilation compilation, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(compilation, parseOptions, ImmutableArray<ISourceGenerator>.Empty, ImmutableArray<AdditionalText>.Empty, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>>.Empty, finalCompilation: null, editsFailed: true);
+            _state = new GeneratorDriverState(compilation, parseOptions, generators, additionalTexts, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>>.Empty, finalCompilation: null, editsFailed: true);
         }
 
         public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, CancellationToken cancellationToken = default)
