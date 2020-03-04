@@ -5809,6 +5809,33 @@ class P
 }");
         }
 
+        [WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestDoSimplifyCallWithDynamicArgWhenCallingThroughDerivedClass()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Base
+{
+    public static void Goo(int i) { }
+}
+
+class Derived
+{
+}
+
+class P
+{
+    public static void Main()
+    {
+        dynamic y = null;
+        [|Derived|].Goo(y);
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNameofReportsSimplifyMemberAccess()
         {

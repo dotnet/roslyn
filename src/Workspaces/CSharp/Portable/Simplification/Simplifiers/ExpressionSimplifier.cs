@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
-            return TrySimplify(expression, semanticModel, out replacementNode, out issueSpan);
+            return TrySimplify(expression, semanticModel, out replacementNode, out issueSpan, cancellationToken);
         }
 
         private static bool TryReduceExplicitName(
@@ -265,7 +265,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ExpressionSyntax expression,
             SemanticModel semanticModel,
             out ExpressionSyntax replacementNode,
-            out TextSpan issueSpan)
+            out TextSpan issueSpan,
+            CancellationToken cancellationToken)
         {
             replacementNode = null;
             issueSpan = default;
@@ -275,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 case SyntaxKind.SimpleMemberAccessExpression:
                     {
                         var memberAccess = (MemberAccessExpressionSyntax)expression;
-                        if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
+                        if (IsNonRemovablePartOfDynamicMethodInvocation(semanticModel, memberAccess, cancellationToken))
                         {
                             return false;
                         }
@@ -337,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
             }
 
-            if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
+            if (IsNonRemovablePartOfDynamicMethodInvocation(semanticModel, memberAccess, cancellationToken))
             {
                 return false;
             }
@@ -365,17 +366,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         }
 
         /// <summary>
-        /// Tells if the member access is dynamically invoked.
+        /// Tells if the member access is dynamically invoked and cannot be reduced. In the case of
+        /// <c>NS1.NS2.T1.T2.Method(...dynamic...)</c> we can only remove the <c>NS1.NS2</c>
+        /// portion. The namespace part is not encoded into the IL, but the specific types in
+        /// <c>T1.T2</c> and cannot be removed.
         /// </summary>
-        private static bool IsMemberAccessADynamicInvocation(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
+        private static bool IsNonRemovablePartOfDynamicMethodInvocation(
+            SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccess, CancellationToken cancellationToken)
         {
-            if (memberAccess.IsExpressionOfInvocation())
+            var ancestorInvocation = memberAccess.FirstAncestorOrSelf<InvocationExpressionSyntax>();
+            if (ancestorInvocation?.SpanStart == memberAccess.SpanStart)
             {
-                var typeInfo = semanticModel.GetTypeInfo(memberAccess.Parent);
-                if (typeInfo.Type != null &&
-                    typeInfo.Type.Kind == SymbolKind.DynamicType)
+                var leftSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
+                if (leftSymbol is INamedTypeSymbol)
                 {
-                    return true;
+                    var type = semanticModel.GetTypeInfo(memberAccess.Parent, cancellationToken).Type;
+                    if (type?.Kind == SymbolKind.DynamicType)
+                    {
+                        return true;
+                    }
                 }
             }
 
