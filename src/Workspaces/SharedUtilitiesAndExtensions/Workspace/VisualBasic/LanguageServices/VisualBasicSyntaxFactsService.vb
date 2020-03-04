@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Public Function GetSelectedFieldsAndPropertiesAsync(tree As SyntaxTree, textSpan As TextSpan, allowPartialSelection As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxNode)) Implements ISyntaxFactsService.GetSelectedFieldsAndPropertiesAsync
-                Return tree.GetSelectedFieldsAndPropertiesAsync(textSpan, allowPartialSelection, cancellationToken)
+                Return VisualBasicSelectedMembers.Instance.GetSelectedFieldsAndPropertiesAsync(tree, textSpan, allowPartialSelection, cancellationToken)
             End Function
         End Class
     End Class

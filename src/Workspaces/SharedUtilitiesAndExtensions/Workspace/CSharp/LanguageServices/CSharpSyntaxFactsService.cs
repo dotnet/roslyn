@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public Task<ImmutableArray<SyntaxNode>> GetSelectedFieldsAndPropertiesAsync(SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
-                => tree.GetSelectedFieldsAndPropertiesAsync(textSpan, allowPartialSelection, cancellationToken);
+                => CSharpSelectedMembers.Instance.GetSelectedFieldsAndPropertiesAsync(tree, textSpan, allowPartialSelection, cancellationToken);
         }
     }
 }
