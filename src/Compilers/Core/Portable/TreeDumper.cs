@@ -166,8 +166,13 @@ namespace Microsoft.CodeAnalysis
         private static bool IsDefaultImmutableArray(Object o)
         {
             var ti = o.GetType().GetTypeInfo();
-            return ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>) &&
-                (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, Array.Empty<object>());
+            if (ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>))
+            {
+                var result = ti?.GetDeclaredMethod("get_IsDefault")?.Invoke(o, Array.Empty<object>());
+                return result is bool b && b;
+            }
+
+            return false;
         }
 
         protected virtual string DumperString(object o)
@@ -200,7 +205,7 @@ namespace Microsoft.CodeAnalysis
                 return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
             }
 
-            return o.ToString();
+            return o.ToString() ?? "";
         }
     }
 

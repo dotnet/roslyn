@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseInferredMemberName;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 {
@@ -19,30 +22,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.NameColon, SyntaxKind.NameEquals);
 
-        override protected void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, OptionSet optionSet)
+        override protected void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             switch (context.Node.Kind())
             {
                 case SyntaxKind.NameColon:
-                    ReportDiagnosticsIfNeeded((NameColonSyntax)context.Node, context, optionSet, syntaxTree);
+                    ReportDiagnosticsIfNeeded((NameColonSyntax)context.Node, context, options, syntaxTree, cancellationToken);
                     break;
                 case SyntaxKind.NameEquals:
-                    ReportDiagnosticsIfNeeded((NameEqualsSyntax)context.Node, context, optionSet, syntaxTree);
+                    ReportDiagnosticsIfNeeded((NameEqualsSyntax)context.Node, context, options, syntaxTree, cancellationToken);
                     break;
             }
         }
 
-        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxTree syntaxTree)
+        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context, AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            if (!nameColon.IsParentKind(SyntaxKind.Argument))
+            if (!nameColon.Parent.IsKind(SyntaxKind.Argument, out ArgumentSyntax? argument))
             {
                 return;
             }
 
-            var argument = (ArgumentSyntax)nameColon.Parent;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            if (!optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Value ||
+            var preference = options.GetOption(
+                CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
+            if (!preference.Value ||
                 !CSharpInferredMemberNameReducer.CanSimplifyTupleElementName(argument, parseOptions))
             {
                 return;
@@ -53,11 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.Create(
                     Descriptor,
                     nameColon.GetLocation(),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
+                    preference.Notification.Severity,
                     additionalLocations: null,
                     properties: null));
 
             // Also fade out the part of the name-colon syntax
+            RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
             var fadeSpan = TextSpan.FromBounds(nameColon.Name.SpanStart, nameColon.ColonToken.Span.End);
             context.ReportDiagnostic(
                 Diagnostic.Create(
@@ -65,15 +70,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     syntaxTree.GetLocation(fadeSpan)));
         }
 
-        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxTree syntaxTree)
+        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            if (!nameEquals.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
+            if (!nameEquals.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonCtor))
             {
                 return;
             }
 
-            var anonCtor = (AnonymousObjectMemberDeclaratorSyntax)nameEquals.Parent;
-            if (!optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Value ||
+            var preference = options.GetOption(
+                CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
+            if (!preference.Value ||
                 !CSharpInferredMemberNameReducer.CanSimplifyAnonymousTypeMemberName(anonCtor))
             {
                 return;
@@ -84,11 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.Create(
                     Descriptor,
                     nameEquals.GetLocation(),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,
+                    preference.Notification.Severity,
                     additionalLocations: null,
                     properties: null));
 
             // Also fade out the part of the name-equals syntax
+            RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
             var fadeSpan = TextSpan.FromBounds(nameEquals.Name.SpanStart, nameEquals.EqualsToken.Span.End);
             context.ReportDiagnostic(
                 Diagnostic.Create(

@@ -4,8 +4,8 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.ImplementAbstractClass;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ImplementAbstractClass;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
 {
@@ -21,5 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
             : base(CS0534)
         {
         }
+
+        protected override SyntaxToken GetClassIdentifier(ClassDeclarationSyntax classNode)
+            => classNode.Identifier;
     }
 }

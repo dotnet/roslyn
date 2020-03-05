@@ -72,14 +72,14 @@
         <target state="translated">'out' parametreleri ata (başlangıçta)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Convert_switch_statement_to_expression">
-        <source>Convert switch statement to expression</source>
-        <target state="translated">Switch deyimini ifadeye dönüştür</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Yönteme dönüştür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_string">
+        <source>Convert to regular string</source>
+        <target state="new">Convert to regular string</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -90,6 +90,11 @@
       <trans-unit id="Convert_to_switch_statement">
         <source>Convert to 'switch' statement</source>
         <target state="translated">'switch' ifadesine dönüştür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_verbatim_string">
+        <source>Convert to verbatim string</source>
+        <target state="new">Convert to verbatim string</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -165,11 +170,6 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">'{0}' sınıfının mührünü aç</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_switch_expression">
-        <source>Use 'switch' expression</source>
-        <target state="translated">'Switch' ifadesini kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">

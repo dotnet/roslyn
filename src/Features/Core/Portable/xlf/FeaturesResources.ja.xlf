@@ -92,6 +92,11 @@
         <target state="translated">待機中のタスクは値を返しません</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">変更を適用できません。予期しないエラー: '{0}'</target>
@@ -135,6 +140,16 @@
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
         <target state="translated">{0} の重要度の構成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_0_analyzers">
+        <source>Configure severity for all '{0}' analyzers</source>
+        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_analyzers">
+        <source>Configure severity for all analyzers</source>
+        <target state="new">Configure severity for all analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -277,16 +292,6 @@
         <target state="translated">'GetHashCode' の実装を簡略化できます</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="translated">すべてのインターフェイスを明示的に実装する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="translated">明示的に実装する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">'{0}' を明示的に実装する</target>
@@ -297,14 +302,34 @@
         <target state="translated">'{0}' を暗黙的に実装する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">すべてのインターフェイスを暗黙的に実装する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">暗黙的に実装する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -442,29 +467,9 @@
         <target state="translated">パラメーター '{0}' を削除できます。その初期値が使用されていません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">割り当てられている値が読み取られることがないようにプライベートメンバー '{0}' を削除できます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">プライベート メンバー '{0}' は使用されていません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">ソース ファイル {0} を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
-        <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="translated">プライベート メソッド '{0}' が呼び出されることがないよう削除できます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
-        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">プライベート プロパティ '{0}' は、その get アクセサーが呼び出されることがないため、メソッドに変換できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -492,16 +497,6 @@
         <target state="translated">冗長な代入を削除します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unread_private_members">
-        <source>Remove unread private members</source>
-        <target state="translated">読み取られていないプライベート メンバーを削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">未使用のメンバーを削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_parameter">
         <source>Remove unused parameter</source>
         <target state="translated">未使用のパラメーターを削除します</target>
@@ -517,14 +512,14 @@
         <target state="translated">未使用のパラメーター '{0}' が同梱のパブリック API の一部ではない場合に削除します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_private_members">
-        <source>Remove unused private members</source>
-        <target state="translated">使用されていないプライベート メンバーを削除する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}' を '{1}' に置き換える</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolve_conflict_markers">
+        <source>Resolve conflict markers</source>
+        <target state="new">Resolve conflict markers</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -551,6 +546,11 @@
         <source>Stream must support read and seek operations.</source>
         <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
+        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
@@ -2108,11 +2108,6 @@ This version used in: {2}</source>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(不明)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">抽象クラスの実装</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">

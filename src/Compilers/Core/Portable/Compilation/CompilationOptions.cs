@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// The full name of a global implicit class (script class). This class implicitly encapsulates top-level statements, 
         /// type declarations, and member declarations. Could be a namespace qualified name.
         /// </summary>
-        public string ScriptClassName { get; protected set; }
+        public string? ScriptClassName { get; protected set; }
 
         /// <summary>
         /// The full name of a type that declares static Main method. Must be a valid non-generic namespace-qualified name.
@@ -289,7 +290,7 @@ namespace Microsoft.CodeAnalysis
             XmlReferenceResolver? xmlReferenceResolver,
             SourceReferenceResolver? sourceReferenceResolver,
             MetadataReferenceResolver? metadataReferenceResolver,
-            AssemblyIdentityComparer assemblyIdentityComparer,
+            AssemblyIdentityComparer? assemblyIdentityComparer,
             StrongNameProvider? strongNameProvider,
             MetadataImportOptions metadataImportOptions,
             bool referencesSupersedeLowerVersions)
@@ -528,7 +529,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver? resolver);
         protected abstract CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver? resolver);
         protected abstract CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver? resolver);
-        protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer);
+        protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer? comparer);
         protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider? provider);
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>? specificDiagnosticOptions);
@@ -599,9 +600,9 @@ namespace Microsoft.CodeAnalysis
             get { return _lazyErrors.Value; }
         }
 
-        public abstract override bool Equals(object obj);
+        public abstract override bool Equals(object? obj);
 
-        protected bool EqualsHelper(CompilationOptions other)
+        protected bool EqualsHelper([NotNullWhen(true)] CompilationOptions? other)
         {
             if (object.ReferenceEquals(other, null))
             {

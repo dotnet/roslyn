@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
                 return default;
             }
 
+            if (client.IsRemoteHost64Bit)
+            {
+                serviceName += "64";
+            }
+
             using var connection = await client.TryCreateConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
             if (connection == null)
             {

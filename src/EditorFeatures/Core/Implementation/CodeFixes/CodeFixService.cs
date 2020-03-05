@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var fixAllService = document.Project.Solution.Workspace.Services.GetRequiredService<IFixAllGetFixesService>();
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                fixCollection.FixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
+                new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
 
             return solution.GetDocument(document.Id) ?? throw new NotSupportedException(EditorFeaturesResources.Removal_of_document_not_supported);
         }
@@ -624,11 +624,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f));
             }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception e)
+            catch (Exception e) when (!(e is OperationCanceledException))
             {
                 foreach (var logger in _errorLoggers)
                 {

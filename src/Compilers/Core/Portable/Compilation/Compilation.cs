@@ -2732,7 +2732,7 @@ namespace Microsoft.CodeAnalysis
                 pePdbFilePath = null;
             }
 
-            if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded && !string.IsNullOrEmpty(pePdbFilePath))
+            if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded && !RoslynString.IsNullOrEmpty(pePdbFilePath))
             {
                 pePdbFilePath = PathUtilities.GetFileName(pePdbFilePath);
             }
@@ -2803,12 +2803,12 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Cci.PeWritingException e)
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException.ToString()));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException?.ToString() ?? ""));
                     return false;
                 }
                 catch (ResourceException e)
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_CantReadResource, Location.None, e.Message, e.InnerException.Message));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_CantReadResource, Location.None, e.Message, e.InnerException?.Message ?? ""));
                     return false;
                 }
                 catch (PermissionSetFileReadException e)
@@ -2967,7 +2967,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Cci.PeWritingException e)
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException.ToString()));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException?.ToString() ?? ""));
                     return null;
                 }
                 catch (PermissionSetFileReadException e)
@@ -2980,7 +2980,7 @@ namespace Microsoft.CodeAnalysis
 
         internal string? Feature(string p)
         {
-            string v;
+            string? v;
             return _features.TryGetValue(p, out v) ? v : null;
         }
 
@@ -3020,7 +3020,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            SmallConcurrentSetOfInts usedImports;
+            SmallConcurrentSetOfInts? usedImports;
             return syntaxTree != null &&
                 TreeToUsedImportDirectivesMap.TryGetValue(syntaxTree, out usedImports) &&
                 usedImports.Contains(position);

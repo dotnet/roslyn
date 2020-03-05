@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -58,10 +60,9 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         private const string NameOfArgsParameter = "args";
         private const string NameOfFormatStringParameter = "format";
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
-        protected abstract TSyntaxKind GetInvocationExpressionSyntaxKind();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract SyntaxNode GetArgumentExpression(SyntaxNode syntaxNode);
-        protected abstract SyntaxNode TryGetMatchingNamedArgument(SeparatedSyntaxList<SyntaxNode> arguments, string searchArgumentName);
+        protected abstract SyntaxNode? TryGetMatchingNamedArgument(SeparatedSyntaxList<SyntaxNode> arguments, string searchArgumentName);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -76,18 +77,19 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                     return;
                 }
 
+                var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
                 startContext.RegisterSyntaxNodeAction(
                     c => AnalyzeNode(c, formatProviderType),
-                    GetInvocationExpressionSyntaxKind());
+                    syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.InvocationExpression));
             });
         }
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23583",
-            Constraint = nameof(AnalyzerHelper.GetDocumentOptionSetAsync) + " is expensive and should be avoided if a syntax-based fast path exists.")]
+            Constraint = nameof(AnalyzerHelper.GetOption) + " is expensive and should be avoided if a syntax-based fast path exists.")]
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol formatProviderType)
         {
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             var expression = syntaxFacts.GetExpressionOfInvocationExpression(context.Node);
 
             if (!IsValidFormatMethod(syntaxFacts, expression))
@@ -95,12 +97,10 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return;
             }
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(
-                    context.Node.SyntaxTree, context.CancellationToken).GetAwaiter().GetResult();
-
-            if (optionSet.GetOption(
+            var option = context.GetOption(
                     ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls,
-                    context.SemanticModel.Language) == false)
+                    context.SemanticModel.Language);
+            if (option == false)
             {
                 return;
             }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(context.Node);
             var symbolInfo = context.SemanticModel.GetSymbolInfo(expression, context.CancellationToken);
 
-            var method = TryGetValidFormatMethodSymbol(context, symbolInfo);
+            var method = TryGetValidFormatMethodSymbol(symbolInfo);
             if (method == null)
             {
                 return;
@@ -127,10 +127,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             }
 
             var formatStringLiteralExpressionSyntax = TryGetFormatStringLiteralExpressionSyntax(
-                context.SemanticModel,
-                arguments,
-                parameters,
-                syntaxFacts);
+                arguments, parameters, syntaxFacts);
 
             if (formatStringLiteralExpressionSyntax == null)
             {
@@ -162,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 formatString, formatStringLiteralExpressionSyntax.SpanStart);
         }
 
-        private bool IsValidFormatMethod(ISyntaxFactsService syntaxFacts, SyntaxNode expression)
+        private bool IsValidFormatMethod(ISyntaxFacts syntaxFacts, SyntaxNode expression)
         {
             // When calling string.Format(...), the expression will be MemberAccessExpressionSyntax
             if (syntaxFacts.IsSimpleMemberAccessExpression(expression))
@@ -188,19 +185,19 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             SemanticModel semanticModel,
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters,
-            ISyntaxFactsService syntaxFacts)
+            ISyntaxFacts syntaxFacts)
         {
             var argsArgumentType = TryGetArgsArgumentType(semanticModel, arguments, parameters, syntaxFacts);
             return argsArgumentType is IArrayTypeSymbol arrayType && arrayType.ElementType.IsReferenceType;
         }
 
-        private ITypeSymbol TryGetArgsArgumentType(
+        private ITypeSymbol? TryGetArgsArgumentType(
             SemanticModel semanticModel,
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters,
-            ISyntaxFactsService syntaxFacts)
+            ISyntaxFacts syntaxFacts)
         {
-            var argsArgument = TryGetArgument(semanticModel, NameOfArgsParameter, arguments, parameters);
+            var argsArgument = TryGetArgument(NameOfArgsParameter, arguments, parameters);
             if (argsArgument == null)
             {
                 return null;
@@ -210,8 +207,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return semanticModel.GetTypeInfo(expression).Type;
         }
 
-        protected SyntaxNode TryGetArgument(
-            SemanticModel semanticModel,
+        protected SyntaxNode? TryGetArgument(
             string searchArgumentName,
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters)
@@ -248,7 +244,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return arguments[parameterWithMatchingName.Ordinal];
         }
 
-        private IParameterSymbol GetParameterWithMatchingName(ImmutableArray<IParameterSymbol> parameters, string searchArgumentName)
+        private IParameterSymbol? GetParameterWithMatchingName(ImmutableArray<IParameterSymbol> parameters, string searchArgumentName)
         {
             foreach (var p in parameters)
             {
@@ -261,14 +257,12 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return null;
         }
 
-        protected SyntaxNode TryGetFormatStringLiteralExpressionSyntax(
-            SemanticModel semanticModel,
+        protected SyntaxNode? TryGetFormatStringLiteralExpressionSyntax(
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters,
-            ISyntaxFactsService syntaxFacts)
+            ISyntaxFacts syntaxFacts)
         {
             var formatArgumentSyntax = TryGetArgument(
-                semanticModel,
                 NameOfFormatStringParameter,
                 arguments,
                 parameters);
@@ -286,9 +280,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return GetArgumentExpression(formatArgumentSyntax);
         }
 
-        protected static IMethodSymbol TryGetValidFormatMethodSymbol(
-            SyntaxNodeAnalysisContext context,
-            SymbolInfo symbolInfo)
+        protected static IMethodSymbol? TryGetValidFormatMethodSymbol(SymbolInfo symbolInfo)
         {
             if (symbolInfo.Symbol == null)
             {

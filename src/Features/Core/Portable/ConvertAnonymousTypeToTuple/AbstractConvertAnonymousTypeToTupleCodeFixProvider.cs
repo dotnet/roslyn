@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         {
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAllWithEditorAsync(context.Document,
-                    e => FixInCurrentMember(context.Document, e, context.Diagnostics[0], c), c)),
+                    e => FixInCurrentMemberAsync(context.Document, e, context.Diagnostics[0], c), c)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
         }
 
-        private async Task FixInCurrentMember(
+        private async Task FixInCurrentMemberAsync(
             Document document, SyntaxEditor editor,
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {

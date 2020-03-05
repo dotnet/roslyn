@@ -88,19 +88,19 @@ namespace Microsoft.CodeAnalysis
                 return (c1 == c2) ? 0 : ToLower(c1) - ToLower(c2);
             }
 
-            public override int Compare(string str1, string str2)
+            public override int Compare(string? str1, string? str2)
             {
-                if ((object)str1 == str2)
+                if ((object?)str1 == str2)
                 {
                     return 0;
                 }
 
-                if ((object)str1 == null)
+                if (str1 is null)
                 {
                     return -1;
                 }
 
-                if ((object)str2 == null)
+                if (str2 is null)
                 {
                     return 1;
                 }
@@ -124,14 +124,14 @@ namespace Microsoft.CodeAnalysis
                 return c1 == c2 || ToLower(c1) == ToLower(c2);
             }
 
-            public override bool Equals(string str1, string str2)
+            public override bool Equals(string? str1, string? str2)
             {
-                if ((object)str1 == str2)
+                if ((object?)str1 == str2)
                 {
                     return true;
                 }
 
-                if ((object)str1 == null || (object)str2 == null)
+                if (str1 is null || str2 is null)
                 {
                     return false;
                 }
