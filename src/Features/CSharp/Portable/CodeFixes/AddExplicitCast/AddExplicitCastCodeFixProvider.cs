@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 }
             }
 
-            return Array.TrueForAll(matchedTypes, (item => item));
+            return matchedTypes.All(a => a);
         }
 
         protected override async Task FixAllAsync(
@@ -366,8 +366,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
             private int GetInheritanceDistance(ITypeSymbol? derivedType)
             {
-                if (derivedType == null) return int.MaxValue;
-                if (derivedType.Equals(_baseType)) return 0;
+                if (derivedType == null)
+                    return int.MaxValue;
+                if (derivedType.Equals(baseType))
+                    return 0;
 
                 var distance = GetInheritanceDistance(derivedType.BaseType);
 
