@@ -45,7 +45,7 @@ stages:
       displayName: Tag build
       inputs:
         type: 'Build'
-        tags: if (variables['IsPRValidationBuild']) { 'PrValidationBuild' } else { "OfficialBuild" }
+        tags: if (variables['IsPRValidationBuild']) { 'PRValidationBuild' } else { "OfficialBuild" }
 
     - task: PowerShell@2
       displayName: Setup branch for insertion validation
