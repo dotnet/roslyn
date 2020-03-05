@@ -1617,7 +1617,6 @@ namespace Microsoft.CodeAnalysis
             var map = projectStates.Values.Select(state => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(
                     state.Id,
                     state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
-                    .Where(pair => !pair.Value.IsEmpty)
                     .ToImmutableDictionary();
 
             return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
@@ -1644,7 +1643,9 @@ namespace Microsoft.CodeAnalysis
             bool CanReuse(ProjectId id)
             {
                 if (id == changedProjectId)
+                {
                     return true;
+                }
 
                 // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
                 // If the information is not available, do not compute it.
