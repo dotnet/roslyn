@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
     {
+        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
+        protected abstract ISyntaxKinds SyntaxKinds { get; }
+
+        protected abstract SyntaxTriviaList ParseLeadingTrivia(string text);
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
 
@@ -42,11 +47,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             return Task.CompletedTask;
         }
-
-        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
-        protected abstract ISyntaxKinds SyntaxKinds { get; }
-
-        protected abstract SyntaxTriviaList ParseLeadingTrivia(string text);
 
         private async Task<Document> GetTransformedDocumentAsync(Document document, CancellationToken cancellationToken)
         {

@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             InvalidHeaderDescriptor = CreateDescriptorWithId(DescriptorId, invalidHeaderTitle, invalidHeaderMessage);
         }
 
+        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
+
         internal DiagnosticDescriptor MissingHeaderDescriptor => Descriptor;
 
         internal DiagnosticDescriptor InvalidHeaderDescriptor { get; }
-
-        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;

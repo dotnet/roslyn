@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         public abstract string CommentPrefix { get; }
 
+        protected abstract string GetTextContextOfComment(SyntaxTrivia commentTrivia);
+
         private int SingleLineCommentTriviaKind { get; }
         private int MultiLineCommentTriviaKind { get; }
         private int WhitespaceTriviaKind { get; }
         private int EndOfLineTriviaKind { get; }
-
-        protected abstract string GetTextContextOfComment(SyntaxTrivia commentTrivia);
 
         public FileHeader ParseFileHeader(SyntaxNode root)
         {
