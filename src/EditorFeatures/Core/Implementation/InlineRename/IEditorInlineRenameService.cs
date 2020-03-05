@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         InlineRenameFileRenameInfo GetFileRenameInfo();
 
-        // TO-DO: Move property to IInlineRenameInfo once Typescript moves to teh correct IVT layering
+        // TO-DO: Move property to IInlineRenameInfo once Typescript moves to the correct IVT layering
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1077984
         ImmutableArray<DocumentSpan> DefinitionLocations { get; }
     }
