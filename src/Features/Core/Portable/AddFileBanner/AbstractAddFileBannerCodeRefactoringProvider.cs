@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -38,8 +39,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-            if (options.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, out string fileHeaderTemplate)
+            if (document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, tree, out string fileHeaderTemplate)
                 && !string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 // If we have a defined file header template, allow the analyzer and code fix to handle it

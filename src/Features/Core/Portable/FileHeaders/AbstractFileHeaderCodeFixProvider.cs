@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-            if (!options.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, out string fileHeaderTemplate)
+            if (!document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, tree, out string fileHeaderTemplate)
                 || string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 // Avoid making changes if we fail to read the expected header
