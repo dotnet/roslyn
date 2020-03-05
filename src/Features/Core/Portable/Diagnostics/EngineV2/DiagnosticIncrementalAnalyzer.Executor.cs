@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
                     }
 
-                    var diagnostics = await AnalyzerHelper.ComputeDiagnosticsAsync(stateSet.Analyzer, document, kind, DiagnosticAnalyzerInfoCache, compilation, span: null, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = await AnalyzerHelper.ComputeDiagnosticsAsync(stateSet.Analyzer, document, kind, compilation, span: null, cancellationToken).ConfigureAwait(false);
 
                     // this is no-op in product. only run in test environment
                     Logger.Log(functionId, (t, d, a, ds) => $"{GetDocumentLogMessage(t, d, a)}, {string.Join(Environment.NewLine, ds)}",
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
-            var compilerAnalyzer = DiagnosticAnalyzerInfoCache.GetCompilerDiagnosticAnalyzer(project.Language);
+            var compilerAnalyzer = HostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
             if (compilerAnalyzer == null)
             {
                 // this language doesn't support compiler analyzer

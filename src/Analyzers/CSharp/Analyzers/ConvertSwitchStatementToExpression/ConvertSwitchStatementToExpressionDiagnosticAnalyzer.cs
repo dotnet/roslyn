@@ -6,11 +6,15 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
+#else
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
@@ -23,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             : base(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
                 CSharpCodeStyleOptions.PreferSwitchExpression,
                 LanguageNames.CSharp,
-                new LocalizableResourceString(nameof(CSharpFeaturesResources.Convert_switch_statement_to_expression), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
-                new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_switch_expression), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
+                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_switch_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -84,9 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))
                     .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString(CultureInfo.InvariantCulture))));
         }
-
-        public override bool OpenFileOnly(OptionSet options)
-            => false;
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
