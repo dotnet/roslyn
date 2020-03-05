@@ -161,12 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidateSymbols = symbolInfo.CandidateSymbols;
 
-                foreach (var candidateSymbol in candidateSymbols)
+                foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
                 {
-                    if (!(candidateSymbol is IMethodSymbol methodSymbol))
-                    {
-                        continue;
-                    }
 
                     if (IsArgumentListAndParameterListPerfectMatch(semanticModel, argumentList.Arguments, methodSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
                     {
