@@ -747,10 +747,26 @@ End Class")
 
         <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
-        Public Async Function TestMultiplePartialFieldSelection3() As Task
+        Public Async Function TestMultiplePartialFieldSelection3_1() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
     Private [|i|] As Integer = 2, j As Integer = 3
+End Class",
+"Class Program
+    Private i As Integer = 2, j As Integer = 3
+
+    Public Sub New(i As Integer{|Navigation:)|}
+        Me.i = i
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultiplePartialFieldSelection3_2() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Private [|i As Integer = 2, j|] As Integer = 3
 End Class",
 "Class Program
     Private i As Integer = 2, j As Integer = 3
