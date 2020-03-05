@@ -836,26 +836,25 @@ unsafe class C
         public void InaccessibleNestedTypes()
         {
             var comp = CreateFunctionPointerCompilation(@"
-class B<T> {}
 class C
 {
     private class D {}
 }
 class E
 {
-    void M()
+    unsafe void M()
     {
-        B<C.D> b;
+        delegate*<C.D> d;
     }
 }");
 
             comp.VerifyDiagnostics(
-                    // (11,13): error CS0122: 'C.D' is inaccessible due to its protection level
-                    //         B<C.D> b;
-                    Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("C.D").WithLocation(11, 13),
-                    // (11,16): warning CS0168: The variable 'b' is declared but never used
-                    //         B<C.D> b;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(11, 16));
+                    // (10,21): error CS0122: 'C.D' is inaccessible due to its protection level
+                    //         delegate*<C.D> d;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("C.D").WithLocation(10, 21),
+                    // (10,24): warning CS0168: The variable 'd' is declared but never used
+                    //         delegate*<C.D> d;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "d").WithArguments("d").WithLocation(10, 24));
         }
     }
 }

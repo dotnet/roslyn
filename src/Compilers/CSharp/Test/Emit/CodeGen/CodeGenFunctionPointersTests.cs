@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -2247,6 +2246,37 @@ unsafe class C2
                 Assert.NotNull(i1);
                 Assert.Equal(module, i1.ContainingModule);
             }
+        }
+
+        [Fact]
+        public void InternalsVisibleToAccessChecks()
+        {
+            var aRef = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""B"")]
+internal class A {}", assemblyName: "A").EmitToImageReference();
+
+            var bRef = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""C"")]
+internal class B
+{
+    internal unsafe delegate*<A> M() => throw null;
+}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+
+            var cComp = CreateCompilation(@"
+internal class C
+{
+    internal unsafe void CM(B b)
+    {
+        b.M()();
+    }
+}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+
+            cComp.VerifyDiagnostics(
+                    // (6,9): error CS0122: 'B.M()' is inaccessible due to its protection level
+                    //         b.M()();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "b.M").WithArguments("B.M()").WithLocation(6, 9));
         }
 
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
