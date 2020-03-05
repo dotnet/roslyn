@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
             // The error happens either on an assignement operation or on an invocation expression.
             // If the error happens on assignment operation, "ConvertedType" is different from the current "Type"
-            var mutablePotentialConversionTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
+            using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var mutablePotentialConversionTypes);
             if (diagnosticId == "CS0266" && targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
             {
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
