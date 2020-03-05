@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -17,6 +18,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(OverrideCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(ExternAliasCompletionProvider))]
+    [Shared]
     internal partial class OverrideCompletionProvider : AbstractOverrideCompletionProvider
     {
         public OverrideCompletionProvider()

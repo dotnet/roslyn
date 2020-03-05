@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new DeclarationNameCompletionProvider();
+            return typeof(DeclarationNameCompletionProvider);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1266,7 +1266,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DisabledByOption()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.
                 WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false)));
 
@@ -1451,7 +1451,7 @@ public class Class1
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideClass()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                 new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
                 NamesEndWithSuffixPreferences())));
@@ -1475,7 +1475,7 @@ class Configuration
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideMethod()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                 new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
                 NamesEndWithSuffixPreferences())));

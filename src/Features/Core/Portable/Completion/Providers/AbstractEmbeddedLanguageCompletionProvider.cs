@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -20,20 +22,30 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     /// Completions for an individual language are provided by
     /// <see cref="IEmbeddedLanguageFeatures.CompletionProvider"/>.
     /// </summary>
-    internal class EmbeddedLanguageCompletionProvider : CompletionProvider
+    internal abstract class AbstractEmbeddedLanguageCompletionProvider : CompletionProvider
     {
         public const string EmbeddedProviderName = "EmbeddedProvider";
 
-        private readonly ImmutableArray<IEmbeddedLanguage> _languageProviders;
+        private ImmutableArray<IEmbeddedLanguage> _languageProviders;
 
-        public EmbeddedLanguageCompletionProvider(IEmbeddedLanguagesProvider languagesProvider)
+        protected AbstractEmbeddedLanguageCompletionProvider()
         {
-            _languageProviders = languagesProvider?.Languages ?? ImmutableArray<IEmbeddedLanguage>.Empty;
+        }
+
+        protected ImmutableArray<IEmbeddedLanguage> GetLanguageProviders<T>(Func<T, Document> documentProvider, T state)
+        {
+            if (_languageProviders.IsDefault)
+            {
+                var languagesProvider = documentProvider(state).Project.LanguageServices.GetService<IEmbeddedLanguagesProvider>();
+                ImmutableInterlocked.InterlockedInitialize(ref _languageProviders, languagesProvider?.Languages ?? ImmutableArray<IEmbeddedLanguage>.Empty);
+            }
+
+            return _languageProviders;
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            foreach (var language in _languageProviders)
+            foreach (var language in GetLanguageProviders(text => text.GetOpenDocumentInCurrentContextWithChanges(), text))
             {
                 var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
@@ -51,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            foreach (var language in _languageProviders)
+            foreach (var language in GetLanguageProviders(context => context.Document, context))
             {
                 var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
@@ -74,6 +86,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => GetLanguage(item).CompletionProvider.GetDescriptionAsync(document, item, cancellationToken);
 
         private IEmbeddedLanguageFeatures GetLanguage(CompletionItem item)
-            => (IEmbeddedLanguageFeatures)_languageProviders.Single(lang => (lang as IEmbeddedLanguageFeatures)?.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
+        {
+            if (_languageProviders.IsDefault)
+                throw ExceptionUtilities.Unreachable;
+
+            return (IEmbeddedLanguageFeatures)_languageProviders.Single(lang => (lang as IEmbeddedLanguageFeatures)?.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
+        }
     }
 }
