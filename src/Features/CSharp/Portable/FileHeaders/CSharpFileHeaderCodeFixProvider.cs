@@ -21,9 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
     {
         protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
 
-        protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
+        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
-        protected override SyntaxTriviaList ParseLeadingTrivia(string text)
-            => SyntaxFactory.ParseLeadingTrivia(text);
+        protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
     }
 }

@@ -55,6 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
+        public SyntaxTriviaList ParseLeadingTrivia(string text)
+            => SyntaxFactory.ParseLeadingTrivia(text);
+
         public bool IsVerbatimIdentifier(SyntaxToken token)
             => token.IsVerbatimIdentifier();
 

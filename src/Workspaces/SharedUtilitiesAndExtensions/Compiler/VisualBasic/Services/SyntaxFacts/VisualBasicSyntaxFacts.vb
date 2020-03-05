@@ -70,6 +70,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
 
+        Public Function ParseLeadingTrivia(text As String) As SyntaxTriviaList Implements ISyntaxFacts.ParseLeadingTrivia
+            Return SyntaxFactory.ParseLeadingTrivia(text)
+        End Function
+
         Public Function IsVerbatimIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsVerbatimIdentifier
             Return False
         End Function

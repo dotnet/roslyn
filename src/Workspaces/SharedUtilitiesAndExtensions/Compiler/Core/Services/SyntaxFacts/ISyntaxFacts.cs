@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsLocalFunctionDeclaration(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
+        SyntaxTriviaList ParseLeadingTrivia(string text);
 
         bool IsVerbatimIdentifier(SyntaxToken token);
         bool IsOperator(SyntaxToken token);

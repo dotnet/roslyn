@@ -26,9 +26,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
     internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
     {
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract ISyntaxKinds SyntaxKinds { get; }
-
-        protected abstract SyntaxTriviaList ParseLeadingTrivia(string text);
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         {
             var copyrightText = GetCopyrightText(prefixWithLeadingSpaces, expectedFileHeader, newLineText);
             var newHeader = copyrightText;
-            return ParseLeadingTrivia(newHeader);
+            return SyntaxFacts.ParseLeadingTrivia(newHeader);
         }
 
         private static string GetCopyrightText(string prefixWithLeadingSpaces, string copyrightText, string newLineText)
