@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal interface IHostDiagnosticAnalyzerPackageProvider
+    internal interface IHostDiagnosticAnalyzerPackageProvider : IWorkspaceService
     {
         /// <summary>
         /// Gets the analyzers shared across the entire workspace session.
@@ -17,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Gets the loader for VSIX based analyzer assemblies.
         /// </summary>
-        /// <returns></returns>
         IAnalyzerAssemblyLoader GetAnalyzerAssemblyLoader();
     }
 }
