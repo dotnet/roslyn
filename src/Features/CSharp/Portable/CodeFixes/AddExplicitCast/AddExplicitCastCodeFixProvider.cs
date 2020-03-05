@@ -361,7 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
             private int GetInheritanceDistance(ITypeSymbol baseType, ITypeSymbol? derivedType)
             {
-                if (derivedType == null) return int.MaxValue;
+                if (derivedType == null)
+                    return int.MaxValue;
                 if (derivedType.Equals(baseType)) return 0;
 
                 var distance = GetInheritanceDistance(baseType, derivedType.BaseType);
