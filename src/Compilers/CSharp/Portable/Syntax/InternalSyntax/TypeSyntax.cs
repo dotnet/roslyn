@@ -11,5 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public bool IsUnmanaged => this is IdentifierNameSyntax name && name.Identifier.ToString() == "unmanaged";
 
         public bool IsNotNull => this is IdentifierNameSyntax name && name.Identifier.ToString() == "notnull";
+
+        public bool IsRef => Kind == SyntaxKind.RefType;
     }
 }

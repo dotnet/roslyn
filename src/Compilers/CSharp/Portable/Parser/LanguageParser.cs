@@ -1958,11 +1958,17 @@ tryAgain:
                     return true;
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.MethodDeclaration:
-                    // PROTOTYPE(SimplePrograms): We probably could reuse original nodes if we knew whether they also came from
-                    //                            inGlobalNonScript context, but that would require extending NodeFlags enum, which
-                    //                            already uses all bits available in a byte.
-                    //                            At the same time that would allow us to reuse top-level statements (GlobalStatementSyntax) as well.
-                    return !isGlobal || IsScript;
+                    if (!isGlobal || IsScript)
+                    {
+                        return true;
+                    }
+
+                    // We can reuse original nodes if they came from the global context as well.
+                    return (this.CurrentNode.Parent is Syntax.CompilationUnitSyntax);
+
+                case SyntaxKind.GlobalStatement:
+                    return isGlobal;
+
                 default:
                     return false;
             }
@@ -2021,16 +2027,17 @@ tryAgain:
                 }
             }
 
-            var modifiers = _pool.Allocate();
-
             var saveTermState = _termState;
-            var startPoint = this.GetResetPoint();
+
+            var attributes = this.ParseAttributeDeclarations();
+            bool haveAttributes = (attributes.Count > 0);
+
+            var afterAttributesPoint = this.GetResetPoint();
+
+            var modifiers = _pool.Allocate();
 
             try
             {
-                var attributes = this.ParseAttributeDeclarations();
-                bool haveAttributes = (attributes.Count > 0);
-
                 //
                 // Check for the following cases to disambiguate between member declarations and expressions.
                 // Doing this before parsing modifiers simplifies further analysis since some of these keywords can act as modifiers as well.
@@ -2044,7 +2051,7 @@ tryAgain:
                 // new T (...)
                 // new T [...]
                 //
-                if (!haveAttributes)
+                if (!haveAttributes || !IsScript)
                 {
                     bool wasInAsync = IsInAsync;
                     if (!IsScript)
@@ -2096,7 +2103,6 @@ tryAgain:
                 // All modifiers that might start an expression are processed above.
                 this.ParseModifiers(modifiers, forAccessors: false);
                 bool haveModifiers = (modifiers.Count > 0);
-                // PROTOTYPE(SimplePrograms): Make sure extern local functions work.
 
                 // Check for constructor form
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
@@ -2108,8 +2114,8 @@ tryAgain:
                     //            ^
                     //            missing ';'
                     //
-                    // Unless there modifiers or attributes are present this is more likely to be a method call than a method definition.
-                    if (haveAttributes || haveModifiers)
+                    // Unless modifiers or attributes are present this is more likely to be a method call than a method definition.
+                    if ((haveAttributes && IsScript) || haveModifiers)
                     {
                         var token = SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword);
                         token = this.AddError(token, ErrorCode.ERR_MemberNeedsType);
@@ -2130,8 +2136,8 @@ tryAgain:
                 // Check for constant
                 if (this.CurrentToken.Kind == SyntaxKind.ConstKeyword)
                 {
-                    if (!haveAttributes && !IsScript &&
-                        tryParseLocalDeclarationStatementFromStartPoint<LocalDeclarationStatementSyntax>(ref startPoint, out result))
+                    if (!IsScript &&
+                        tryParseLocalDeclarationStatementFromStartPoint<LocalDeclarationStatementSyntax>(attributes, ref afterAttributesPoint, out result))
                     {
                         return result;
                     }
@@ -2177,9 +2183,9 @@ tryAgain:
 
                 try
                 {
-                    if (!haveAttributes && !haveModifiers && (type.Kind == SyntaxKind.RefType || !IsOperatorKeyword()))
+                    if ((!haveAttributes || !IsScript) && !haveModifiers && (type.Kind == SyntaxKind.RefType || !IsOperatorKeyword()))
                     {
-                        this.Reset(ref startPoint);
+                        this.Reset(ref afterAttributesPoint);
 
                         if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken &&
                             this.CurrentToken.Kind != SyntaxKind.EndOfFileToken &&
@@ -2192,15 +2198,15 @@ tryAgain:
                             {
                                 IsInAsync = true; // We are implicitly in an async context
                             }
-                            // We don't allow local declaration statements at the top level.  We want
-                            // to fall out below and parse them instead as fields.
-                            var statement = this.ParseStatementCore(attributes, isGlobalScriptLevel: true);
-
+                            // In Script we don't allow local declaration statements at the top level.  We want
+                            // to fall out below and parse them instead as fields. For Simple Programs, we allow
+                            // them, but want to try properties , etc. first.
+                            var statement = this.ParseStatementCore(attributes, isGlobal: true);
 
                             IsInAsync = wasInAsync;
                             _termState = saveTerm;
 
-                            if (statement != null)
+                            if (isAcceptableNonDeclarationStatement(statement, IsScript))
                             {
                                 return CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
                             }
@@ -2209,7 +2215,7 @@ tryAgain:
                         this.Reset(ref afterTypeResetPoint);
                     }
 
-                    // Everything that's left -- methods, fields, properties, 
+                    // Everything that's left -- methods, fields, properties, locals,
                     // indexers, and non-conversion operators -- starts with a type 
                     // (possibly void).
 
@@ -2221,37 +2227,44 @@ tryAgain:
                     }
 
 parse_member_name:;
-                    // If we've seen the ref keyword, we know we must have an indexer, method, or property.
-                    // PROTOTYPE(SimplePrograms): Support ref locals
-                    if (type.Kind != SyntaxKind.RefType)
+                    // If we've seen the ref keyword, we know we must have an indexer, method, property, or local.
+                    bool typeIsRef = type.IsRef;
+
+                    // Check here for operators
+                    // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
+                    if (!typeIsRef && IsOperatorKeyword())
                     {
-                        // Check here for operators
-                        // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
-                        if (IsOperatorKeyword())
+                        return this.ParseOperatorDeclaration(attributes, modifiers, type);
+                    }
+
+                    if ((!typeIsRef || !IsScript) && IsFieldDeclaration(isEvent: false))
+                    {
+                        var saveTerm = _termState;
+
+                        if ((!haveAttributes && !haveModifiers) || !IsScript)
                         {
-                            return this.ParseOperatorDeclaration(attributes, modifiers, type);
+                            // if we are at top-level then statements can occur
+                            _termState |= TerminatorState.IsPossibleStatementStartOrStop;
+
+                            if (!IsScript)
+                            {
+                                this.Reset(ref afterAttributesPoint);
+                                if (tryParseLocalDeclarationStatement<LocalDeclarationStatementSyntax>(attributes, out result))
+                                {
+                                    return result;
+                                }
+
+                                this.Reset(ref afterTypeResetPoint);
+                            }
                         }
 
-                        if (IsFieldDeclaration(isEvent: false))
+                        if (!typeIsRef)
                         {
-                            if (!haveAttributes && !(haveModifiers && IsScript))
-                            {
-                                // if we are script at top-level then statements can occur
-                                _termState |= TerminatorState.IsPossibleStatementStartOrStop;
-
-                                if (!IsScript)
-                                {
-                                    this.Reset(ref startPoint);
-                                    if (tryParseLocalDeclarationStatement<LocalDeclarationStatementSyntax>(out result))
-                                    {
-                                        return result;
-                                    }
-
-                                    this.Reset(ref afterTypeResetPoint);
-                                }
-                            }
-
                             return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
+                        }
+                        else
+                        {
+                            _termState = saveTerm;
                         }
                     }
 
@@ -2295,9 +2308,8 @@ parse_member_name:;
 
                     // treat anything else as a method.
 
-                    // PROTOTYPE(SimplePrograms): Allow attributes on local functions
-                    if (!IsScript && !haveAttributes && explicitInterfaceOpt is null &&
-                        tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(ref startPoint, out result))
+                    if (!IsScript && explicitInterfaceOpt is null &&
+                        tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(attributes, ref afterAttributesPoint, out result))
                     {
                         return result;
                     }
@@ -2313,17 +2325,17 @@ parse_member_name:;
             {
                 _pool.Free(modifiers);
                 _termState = saveTermState;
-                this.Release(ref startPoint);
+                this.Release(ref afterAttributesPoint);
             }
 
-            bool tryParseLocalDeclarationStatement<DeclarationSyntax>(out MemberDeclarationSyntax result) where DeclarationSyntax : StatementSyntax
+            bool tryParseLocalDeclarationStatement<DeclarationSyntax>(SyntaxList<AttributeListSyntax> attributes, out MemberDeclarationSyntax result) where DeclarationSyntax : StatementSyntax
             {
                 bool wasInAsync = IsInAsync;
                 IsInAsync = true; // We are implicitly in an async context
                 int lastTokenPosition = -1;
                 IsMakingProgress(ref lastTokenPosition);
 
-                var topLevelStatement = ParseLocalDeclarationStatement(attributes: default);
+                var topLevelStatement = ParseLocalDeclarationStatement(attributes);
                 IsInAsync = wasInAsync;
 
                 if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
@@ -2336,14 +2348,14 @@ parse_member_name:;
                 return false;
             }
 
-            bool tryParseLocalDeclarationStatementFromStartPoint<DeclarationSyntax>(ref ResetPoint startPoint, out MemberDeclarationSyntax result) where DeclarationSyntax : StatementSyntax
+            bool tryParseLocalDeclarationStatementFromStartPoint<DeclarationSyntax>(SyntaxList<AttributeListSyntax> attributes, ref ResetPoint startPoint, out MemberDeclarationSyntax result) where DeclarationSyntax : StatementSyntax
             {
                 var resetOnFailurePoint = this.GetResetPoint();
                 try
                 {
                     this.Reset(ref startPoint);
 
-                    if (tryParseLocalDeclarationStatement<DeclarationSyntax>(out result))
+                    if (tryParseLocalDeclarationStatement<DeclarationSyntax>(attributes, out result))
                     {
                         return true;
                     }
@@ -2356,6 +2368,30 @@ parse_member_name:;
                     this.Release(ref resetOnFailurePoint);
                 }
             }
+
+            static bool isAcceptableNonDeclarationStatement(StatementSyntax statement, bool isScript)
+            {
+                switch (statement?.Kind)
+                {
+                    case null:
+                    case SyntaxKind.LocalDeclarationStatement:
+                    case SyntaxKind.LocalFunctionStatement:
+                    case SyntaxKind.ExpressionStatement when
+                                !isScript &&
+                                // Do not parse a single identifier as an expression statement in a Simple Program, this could be a beginning of a keyword and
+                                // we want completion to offer it.
+                                ((ExpressionStatementSyntax)statement) is var exprStatement &&
+                                exprStatement.Expression.Kind == SyntaxKind.IdentifierName &&
+                                exprStatement.SemicolonToken.IsMissing:
+
+                        return false;
+
+                    default:
+                        return true;
+                }
+            }
+
+
         }
 
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
@@ -6665,20 +6701,19 @@ done:;
         public StatementSyntax ParseStatement()
         {
             return ParseWithStackGuard(
-                () => ParsePossiblyAttributedStatement(isGlobalScriptLevel: false) ?? ParseExpressionStatement(attributes: default),
+                () => ParsePossiblyAttributedStatement() ?? ParseExpressionStatement(attributes: default),
                 () => SyntaxFactory.EmptyStatement(attributeLists: default, SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
         }
 
-        private StatementSyntax ParsePossiblyAttributedStatement(bool isGlobalScriptLevel)
-            => ParseStatementCore(ParseAttributeDeclarations(), isGlobalScriptLevel);
+        private StatementSyntax ParsePossiblyAttributedStatement()
+            => ParseStatementCore(ParseAttributeDeclarations(), isGlobal: false);
 
-        /// <param name="isGlobalScriptLevel">If we're being called while parsing a C# script from
-        /// the top-level.  At the top level, we allow most statements *except* for
-        /// local-decls/local-funcs.  Those will instead be parsed out as
-        /// script-fields/methods.</param>
-        private StatementSyntax ParseStatementCore(SyntaxList<AttributeListSyntax> attributes, bool isGlobalScriptLevel)
+        /// <param name="isGlobal">If we're being called while parsing a C# top-level statements (Script or Simple Program).
+        /// At the top level in Script, we allow most statements *except* for local-decls/local-funcs.
+        /// Those will instead be parsed out as script-fields/methods.</param>
+        private StatementSyntax ParseStatementCore(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
         {
-            if (canReuseStatement(attributes, isGlobalScriptLevel))
+            if (canReuseStatement(attributes, isGlobal))
             {
                 return (StatementSyntax)this.EatNode();
             }
@@ -6742,13 +6777,13 @@ done:;
                     case SyntaxKind.SemicolonToken:
                         return _syntaxFactory.EmptyStatement(attributes, this.EatToken());
                     case SyntaxKind.IdentifierToken:
-                        result = TryParseStatementStartingWithIdentifier(attributes, isGlobalScriptLevel);
+                        result = TryParseStatementStartingWithIdentifier(attributes, isGlobal);
                         if (result != null)
                             return result;
                         break;
                 }
 
-                return ParseStatementCoreRest(attributes, isGlobalScriptLevel, ref resetPointBeforeStatement);
+                return ParseStatementCoreRest(attributes, isGlobal, ref resetPointBeforeStatement);
             }
             finally
             {
@@ -6757,25 +6792,25 @@ done:;
 
             }
 
-            bool canReuseStatement(SyntaxList<AttributeListSyntax> attributes, bool isGlobalScriptLevel)
+            bool canReuseStatement(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
             {
-                // Can only reuse a global-script or regular statement if we're in the same
-                // global-script context we were originally in.
                 return this.IsIncrementalAndFactoryContextMatches &&
                        this.CurrentNode is Syntax.StatementSyntax &&
-                       isGlobalScriptLevel == (this.CurrentNode.Parent is Syntax.GlobalStatementSyntax) &&
+                       !isGlobal && // Top-level statements are reused by ParseMemberDeclarationOrStatementCore when possible.
                        attributes.Count == 0;
             }
         }
 
-        private StatementSyntax ParseStatementCoreRest(SyntaxList<AttributeListSyntax> attributes, bool isGlobalScriptLevel, ref ResetPoint resetPointBeforeStatement)
+        private StatementSyntax ParseStatementCoreRest(SyntaxList<AttributeListSyntax> attributes, bool isGlobal, ref ResetPoint resetPointBeforeStatement)
         {
-            if (!this.IsPossibleLocalDeclarationStatement(isGlobalScriptLevel))
+            isGlobal = isGlobal && IsScript;
+
+            if (!this.IsPossibleLocalDeclarationStatement(isGlobal))
             {
                 return this.ParseExpressionStatement(attributes);
             }
 
-            if (isGlobalScriptLevel)
+            if (isGlobal)
             {
                 // if we're at the global script level, then we don't support local-decls or
                 // local-funcs. The caller instead will look for those and parse them as
@@ -6817,7 +6852,7 @@ done:;
             return result;
         }
 
-        private StatementSyntax TryParseStatementStartingWithIdentifier(SyntaxList<AttributeListSyntax> attributes, bool isGlobalScriptLevel)
+        private StatementSyntax TryParseStatementStartingWithIdentifier(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
                 this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword)
@@ -6844,7 +6879,7 @@ done:;
             {
                 return this.ParseExpressionStatement(attributes);
             }
-            else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: isGlobalScriptLevel))
+            else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: isGlobal && IsScript))
             {
                 return this.ParseExpressionStatement(attributes, this.ParseQueryExpression(0));
             }
@@ -7422,7 +7457,7 @@ done:;
             {
                 if (this.IsPossibleStatement(acceptAccessibilityMods: true))
                 {
-                    var statement = this.ParsePossiblyAttributedStatement(isGlobalScriptLevel: false);
+                    var statement = this.ParsePossiblyAttributedStatement();
                     if (statement != null)
                     {
                         statements.Add(statement);
@@ -7552,7 +7587,7 @@ done:;
             // deep impact on the number of recursive calls we can make (more than a hundred during
             // empirical testing).
 
-            return parseEmbeddedStatementRest(this.ParsePossiblyAttributedStatement(isGlobalScriptLevel: false));
+            return parseEmbeddedStatementRest(this.ParsePossiblyAttributedStatement());
 
             StatementSyntax parseEmbeddedStatementRest(StatementSyntax statement)
             {
@@ -8479,7 +8514,7 @@ tryAgain:
             var label = this.ParseIdentifierToken();
             var colon = this.EatToken(SyntaxKind.ColonToken);
             Debug.Assert(!colon.IsMissing);
-            var statement = this.ParsePossiblyAttributedStatement(isGlobalScriptLevel: false) ?? SyntaxFactory.EmptyStatement(attributeLists: default, EatToken(SyntaxKind.SemicolonToken));
+            var statement = this.ParsePossiblyAttributedStatement() ?? SyntaxFactory.EmptyStatement(attributeLists: default, EatToken(SyntaxKind.SemicolonToken));
             return _syntaxFactory.LabeledStatement(attributes, label, colon, statement);
         }
 
