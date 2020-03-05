@@ -1803,10 +1803,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // visit the expression without unsplitting, then check parameters marked with flow analysis attributes
                     Visit(expr);
 
-                    if (this.IsConditionalState)
+                    var parameters = this.MethodParameters;
+                    if (!parameters.IsEmpty)
                     {
-                        var parameters = this.MethodParameters;
-                        if (!parameters.IsEmpty)
+                        if (this.IsConditionalState)
                         {
                             if (!IsConstantFalse(expr))
                             {
@@ -1818,6 +1818,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // don't check WhenFalse state on a 'return true;'
                                 checkConditionalParameterState(node.Syntax, parameters, sense: false);
                             }
+                        }
+                        else
+                        {
+                            checkConditionalParameterState(node.Syntax, parameters, sense: true);
+                            checkConditionalParameterState(node.Syntax, parameters, sense: false);
                         }
                     }
                 }
@@ -1867,7 +1872,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void checkConditionalParameterState(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense)
             {
-                LocalState stateWhen = sense ? StateWhenTrue : StateWhenFalse;
+                LocalState stateWhen =
+                    !IsConditionalState ? State :
+                    sense ? StateWhenTrue :
+                    StateWhenFalse;
                 foreach (var parameter in parameters)
                 {
                     if (badConditionalParameterState(parameter, stateWhen, sense))
