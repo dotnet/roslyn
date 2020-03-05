@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -45,7 +46,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
         protected abstract ISyntaxKinds SyntaxKinds { get; }
 
-        protected abstract SyntaxTrivia EndOfLine(string text);
         protected abstract SyntaxTriviaList ParseLeadingTrivia(string text);
 
         private async Task<Document> GetTransformedDocumentAsync(Document document, CancellationToken cancellationToken)
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
 
             var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language)!;
-            var newLineTrivia = EndOfLine(newLineText);
+            var newLineTrivia = SyntaxGenerator.GetGenerator(document).EndOfLine(newLineText);
 
             var newHeaderTrivia = CreateNewHeader(leadingSpaces + FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText);
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private SyntaxNode AddHeader(Document document, SyntaxNode root, string expectedFileHeader)
         {
             var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language)!;
-            var newLineTrivia = EndOfLine(newLineText);
+            var newLineTrivia = SyntaxGenerator.GetGenerator(document).EndOfLine(newLineText);
             var newTrivia = CreateNewHeader(FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText).Add(newLineTrivia).Add(newLineTrivia);
 
             // Skip blank lines already at the beginning of the document, since we add our own

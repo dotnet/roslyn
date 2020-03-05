@@ -26,10 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
             End Get
         End Property
 
-        Protected Overrides Function EndOfLine(text As String) As SyntaxTrivia
-            Return SyntaxFactory.EndOfLine(text)
-        End Function
-
         Protected Overrides Function ParseLeadingTrivia(text As String) As SyntaxTriviaList
             Return SyntaxFactory.ParseLeadingTrivia(text)
         End Function
