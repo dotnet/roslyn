@@ -58,7 +58,7 @@ stages:
       inputs:
         filePath: 'eng\setup-pr-validation.ps1'
         arguments: '-sourceBranchName $(SourceBranchName) -prNumber $(PRNumber)'
-      condition: and(succeeded(), variables['IsPRValidationBuild'])
+      condition: and(succeeded(), eq(variables['IsPRValidationBuild'], 'true'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
