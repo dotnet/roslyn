@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     var model = compilation.GetSemanticModel(location.SourceTree);
                     var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    var node = root.FindNode(location.SourceSpan);
+                    SyntaxNode? node = root.FindNode(location.SourceSpan);
 
                     while (node != null)
                     {
