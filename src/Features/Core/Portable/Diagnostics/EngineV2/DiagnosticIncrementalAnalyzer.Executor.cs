@@ -414,10 +414,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     title = "semantic";
                     break;
                 default:
-                    functionId = FunctionId.Diagnostics_ProjectDiagnostic;
-                    title = "nonLocal";
-                    Contract.Fail("shouldn't reach here");
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
     }

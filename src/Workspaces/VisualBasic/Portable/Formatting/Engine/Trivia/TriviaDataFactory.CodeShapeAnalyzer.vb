@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return False
                 End If
 
-                Return Contract.FailWithReturn(Of Boolean)("This can't happen")
+                throw ExceptionUtilities.UnexpectedValue(trivia.Kind)
             End Function
 
             Private Function OnRegion(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean

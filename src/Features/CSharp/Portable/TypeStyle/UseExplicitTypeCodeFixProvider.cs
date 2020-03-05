@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
             else
             {
-                Contract.Fail($"unhandled kind {declarationContext.Kind().ToString()}");
+                throw ExceptionUtilities.UnexpectedValue(declarationContext.Kind());
             }
 
             if (parensDesignation is null)

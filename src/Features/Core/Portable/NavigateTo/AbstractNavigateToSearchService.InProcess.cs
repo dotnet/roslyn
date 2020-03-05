@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 case DeclaredSymbolInfoKind.Struct:
                     return NavigateToItemKind.Structure;
                 default:
-                    return Contract.FailWithReturn<string>("Unknown declaration kind " + declaredSymbolInfo.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(declaredSymbolInfo.Kind);
             }
         }
 

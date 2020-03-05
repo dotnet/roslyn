@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return method.EndBlockStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True)
                 End Select
 
-                Return Contract.FailWithReturn(Of SyntaxToken)("can't happen")
+                throw ExceptionUtilities.UnexpectedValue(location)
             End Function
 
             Private Function TriviaResolver(
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return FilterTriviaList(RemoveTrailingElasticTrivia(tokenPair.PreviousToken, list, tokenPair.NextToken))
                 End Select
 
-                Return Contract.FailWithReturn(Of IEnumerable(Of SyntaxTrivia))("Shouldn't reach here")
+                throw ExceptionUtilities.UnexpectedValue(location)
             End Function
 
             Private Function RemoveTrailingElasticTrivia(
