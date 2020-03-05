@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -14,6 +17,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
+    using SymbolsMatch = Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)>;
+
     internal class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
     {
         protected override bool CanFind(IPropertySymbol symbol)
@@ -142,83 +147,112 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return ImmutableArray<FinderLocation>.Empty;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var indexerReferenceExpresssions = syntaxRoot.DescendantNodes(descendIntoTrivia: true)
-                .Where(node => syntaxFacts.IsElementAccessExpression(node) || syntaxFacts.IsConditionalAccessExpression(node) || syntaxFacts.IsIndexerMemberCRef(node));
-            var locations = ArrayBuilder<FinderLocation>.GetInstance();
+                .Where(node =>
+                    syntaxFacts.IsElementAccessExpression(node) ||
+                    syntaxFacts.IsConditionalAccessExpression(node) ||
+                    syntaxFacts.IsIndexerMemberCRef(node));
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
 
             foreach (var node in indexerReferenceExpresssions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                (var indexerReference, var matched, var reason) = EvaluateIndexerNode(symbol, document, semanticModel, node, cancellationToken);
+                (var matched, var candidateReason, var indexerReference) = ComputeIndexerInformation(
+                    symbol, document, semanticModel, node, cancellationToken);
                 if (!matched)
-                {
                     continue;
-                }
 
-                var location = indexerReference.SyntaxTree.GetLocation(new TextSpan(indexerReference.SpanStart, 0));
-                var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
-                locations.Add(new FinderLocation(
-                    node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), candidateReason: reason)));
+                var location = syntaxTree.GetLocation(new TextSpan(indexerReference.SpanStart, 0));
+                var symbolUsageInfo = GetSymbolUsageInfo(
+                    node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
+
+                locations.Add(new FinderLocation(node,
+                    new ReferenceLocation(
+                        document, alias: null, location, isImplicit: false, symbolUsageInfo,
+                        GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts),
+                        candidateReason)));
             }
 
-            return locations.ToImmutableAndFree();
+            return locations.ToImmutable();
         }
 
-        private static (SyntaxNode indexerReference, bool matched, CandidateReason reason) EvaluateIndexerNode(
+        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeIndexerInformation(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             SyntaxNode node, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var symbolsMatch = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
-
-            SyntaxNode indexerReference;
-            var matched = false;
-            var reason = CandidateReason.None;
 
             if (syntaxFacts.IsElementAccessExpression(node))
             {
-                // For an ElementAccessExpression the indexer we are looking for is the argumentList component.
-                syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out indexerReference);
-
-                if (expression != null && symbolsMatch(expression, semanticModel).matched)
-                {
-                    // Element access with explicit member name (allowed in VB).
-                    // We have already added a reference location for the member name identifier, so skip this one.
-                    return (indexerReference, matched, reason);
-                }
-
-                (matched, reason) = symbolsMatch(node, semanticModel);
+                return ComputeElementAccessInformation(
+                    semanticModel, node, syntaxFacts, symbolsMatch);
             }
             else if (syntaxFacts.IsConditionalAccessExpression(node))
             {
-                // For a ConditionalAccessExpression the whenNotNull component is the indexer reference we are looking for
-                syntaxFacts.GetPartsOfConditionalAccessExpression(node, out var expression, out indexerReference);
-
-                if (syntaxFacts.IsInvocationExpression(indexerReference) && symbolsMatch(indexerReference, semanticModel).matched)
-                {
-                    // Element access with explicit member name (allowed in VB).
-                    // We have already added a reference location for the member name identifier, so skip this one.
-                    return (indexerReference, matched, reason);
-                }
-
-                (matched, reason) = symbolsMatch(indexerReference, semanticModel);
+                return ComputeConditionalAccessInformation(
+                    semanticModel, node, syntaxFacts, symbolsMatch);
             }
             else
             {
                 Debug.Assert(syntaxFacts.IsIndexerMemberCRef(node));
 
-                // For an IndexerMemberCRef the node itself is the indexer we are looking for.
-                indexerReference = node;
+                return ComputeIndexerMemberCRefInformation(
+                    semanticModel, node, symbolsMatch);
+            }
+        }
 
-                (matched, reason) = symbolsMatch(node, semanticModel);
+        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeIndexerMemberCRefInformation(
+            SemanticModel semanticModel, SyntaxNode node, SymbolsMatch symbolsMatch)
+        {
+            var (matched, reason) = symbolsMatch(node, semanticModel);
+
+            // For an IndexerMemberCRef the node itself is the indexer we are looking for.
+            return (matched, reason, node);
+        }
+
+        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeConditionalAccessInformation(
+            SemanticModel semanticModel, SyntaxNode node,
+            ISyntaxFactsService syntaxFacts, Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch)
+        {
+            // For a ConditionalAccessExpression the whenNotNull component is the indexer reference we are looking for
+            syntaxFacts.GetPartsOfConditionalAccessExpression(node, out _, out var indexerReference);
+
+            if (syntaxFacts.IsInvocationExpression(indexerReference))
+            {
+                // call to something like: goo?.bar(1)
+                //
+                // this will already be handled by the existing method ref finder.
+                return default;
             }
 
-            return (indexerReference, matched, reason);
+            var (matched, reason) = symbolsMatch(indexerReference, semanticModel);
+            return (matched, reason, indexerReference);
+        }
+
+        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeElementAccessInformation(
+            SemanticModel semanticModel, SyntaxNode node,
+            ISyntaxFactsService syntaxFacts, SymbolsMatch symbolsMatch)
+        {
+            // For an ElementAccessExpression the indexer we are looking for is the argumentList component.
+            syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out var indexerReference);
+            if (expression != null && symbolsMatch(expression, semanticModel).matched)
+            {
+                // Element access with explicit member name (allowed in VB). We will have
+                // already added a reference location for the member name identifier, so skip
+                // this one.
+                return default;
+            }
+
+            var (matched, reason) = symbolsMatch(node, semanticModel);
+            return (matched, reason, indexerReference);
         }
     }
 }
