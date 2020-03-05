@@ -47,19 +47,11 @@ stages:
         type: 'Build'
         tags: if (variables['IsPRValidationBuild']) { 'PrValidationBuild' } else { "OfficialBuild" }
 
-    - powershell: |
-        if ($SourceBranchName -notlike '*-vs-deps') {
-          Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $(SourceBranchName), which is not a vs-deps branch."
-        }
-        Write-Host "Setting up the build for PR validation by merging refs/pull/$(PRNumber)/merge into $(SourceBranchName)..."
-        git pull origin refs/pull/$(PRNumber)/merge
-        if (!$?) {
-          Write-Host "##vso[task.LogIssue type=error;]Merging branch refs/pull/$(PRNumber)/merge failed."
-          exit 1
-        }
-        Write-Host "Getting the hash of refs/pull/$(PRNumber)/head..."
-        Write-Host ((git ls-remote origin refs/pull/$(PRNumber)/head) | Out-String)
+    - task: PowerShell@2
       displayName: Setup branch for insertion validation
+      inputs:
+        filePath: 'eng\setup-pr-validation.ps1'
+        arguments: '-sourceBranchName $(SourceBranchName) -prNumber $(PRNumber)'
       condition: and(succeeded(), variables['IsPRValidationBuild'])
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
