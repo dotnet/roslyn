@@ -62,7 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 .GetAncestorsOrThis<ExpressionSyntax>().FirstOrDefault();
             if (targetNode != null)
             {
-                var hasSolution = TryGetTargetTypeInfo(semanticModel, diagnostic.Id, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes);
+                var hasSolution = TryGetTargetTypeInfo(
+                    semanticModel, diagnostic.Id, targetNode, cancellationToken,
+                    out var nodeType, out var potentialConversionTypes);
                 if (!hasSolution)
                 {
                     return;
