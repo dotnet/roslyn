@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// <summary>
         /// Output the current type information of the target node and the conversion type(s) that the target node is going to be cast by.
         /// Implicit downcast can appear on Variable Declaration, Return Statement, and Function Invocation
-        /// </summary>
+        /// <para/>
         /// For example:
         /// Base b; Derived d = [||]b;       
         /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by is {Derived}
