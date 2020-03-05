@@ -122,6 +122,7 @@
   </data>
   <data name="Use_switch_expression" xml:space="preserve">
     <value>Use 'switch' expression</value>
+  </data>
   <data name="Using_directive_is_unnecessary" xml:space="preserve">
     <value>Using directive is unnecessary.</value>
   </data>
