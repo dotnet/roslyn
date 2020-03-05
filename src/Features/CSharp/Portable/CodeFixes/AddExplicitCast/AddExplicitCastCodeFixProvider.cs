@@ -62,7 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 .GetAncestorsOrThis<ExpressionSyntax>().FirstOrDefault();
             if (targetNode != null)
             {
-                var hasSolution = TryGetTargetTypeInfo(semanticModel, diagnostic.Id, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes);
+                var hasSolution = TryGetTargetTypeInfo(
+                    semanticModel, diagnostic.Id, targetNode, cancellationToken,
+                    out var nodeType, out var potentialConversionTypes);
                 if (!hasSolution)
                 {
                     return;
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
             // The error happens either on an assignement operation or on an invocation expression.
             // If the error happens on assignment operation, "ConvertedType" is different from the current "Type"
-            var mutablePotentialConversionTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
+            using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var mutablePotentialConversionTypes);
             if (diagnosticId == CS0266 && targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
             {
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
@@ -159,19 +161,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidateSymbols = symbolInfo.CandidateSymbols;
 
-                foreach (var candidateSymbol in candidateSymbols)
+                foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
                 {
-                    if (!(candidateSymbol is IMethodSymbol methodSymbol))
-                    {
-                        continue;
-                    }
 
                     if (CanArgumentTypesBeConvertedToParameterTypes(semanticModel, argumentList.Arguments, methodSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
                     {
                         var correspondingParameter = methodSymbol.Parameters[paramIndex];
                         var argumentConversionType = correspondingParameter.Type;
 
-                        if (correspondingParameter.IsParams && correspondingParameter.Type is IArrayTypeSymbol arrayType && !(targetNodeType is IArrayTypeSymbol))
+                        if (correspondingParameter.IsParams &&
+                            correspondingParameter.Type is IArrayTypeSymbol arrayType &&
+                            !(targetNodeType is IArrayTypeSymbol))
                         {
                             // target argument is matched to the parameter with keyword params
                             argumentConversionType = arrayType.ElementType;
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             // For cases like object creation expression. for example:
             // Derived d = [||]new Base();
             // It is always invalid except the target node has explicit conversion operator.
-            var validPotentialConversionTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
+            using var  = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
             foreach (var targetNodeConversionType in mutablePotentialConversionTypes)
             {
                 var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(targetNodeType, targetNodeConversionType);
