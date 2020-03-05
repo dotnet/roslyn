@@ -17,12 +17,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentRenameName), Shared]
     internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit>
     {
-        private readonly IThreadingContext _threadingContext;
-
         [ImportingConstructor]
         public RenameHandler(IThreadingContext threadingContext)
         {
-            _threadingContext = threadingContext;
         }
 
         public async Task<WorkspaceEdit> HandleRequestAsync(Solution solution, RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
@@ -34,11 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var renameService = document.Project.LanguageServices.GetService<IEditorInlineRenameService>();
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-                // We need to be on the UI thread to call GetRenameInfo which computes the rename locations.
-                // This is because Roslyn reads the readonly regions of the buffer to compute the locations in the document.
-                // This is typically quick. It's marked configureawait(false) so that the bulk of the rename operation can happen
-                // in background threads.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (!renameInfo.CanRename)
                 {

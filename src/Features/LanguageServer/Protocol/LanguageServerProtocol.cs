@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the document position of the symbol to rename.</param>
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>the workspace edit of a given symbol.</returns>
+        /// <returns>the workspace edits to rename the given symbol</returns>
         public Task<WorkspaceEdit> RenameAsync(Solution solution, LSP.RenameParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => ExecuteRequestAsync<LSP.RenameParams, WorkspaceEdit>(LSP.Methods.TextDocumentRenameName, solution, request, clientCapabilities, cancellationToken);
 

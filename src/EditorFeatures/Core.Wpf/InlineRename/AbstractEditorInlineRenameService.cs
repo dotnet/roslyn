@@ -168,9 +168,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else if (location.IsInSource)
                 {
-                    // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
-                    documentSpans.Add(new DocumentSpan(document, location.SourceSpan));
-
                     if (document.Project.IsSubmission)
                     {
                         var solution = document.Project.Solution;
@@ -179,6 +176,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         if (solution.Projects.Any(p => p.IsSubmission && p.ProjectReferences.Any(r => r.ProjectId == projectIdOfLocation)))
                         {
                             return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_from_previous_submissions);
+                        }
+                        else
+                        {
+                            // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
+                            documentSpans.Add(new DocumentSpan(document, location.SourceSpan));
                         }
                     }
                 }

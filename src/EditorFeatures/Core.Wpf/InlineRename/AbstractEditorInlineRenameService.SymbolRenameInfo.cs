@@ -186,7 +186,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public string DisplayName => RenameSymbol.Name;
             public string FullDisplayName => RenameSymbol.ToDisplayString();
             public Glyph Glyph => RenameSymbol.GetGlyph();
-            ImmutableArray<DocumentSpan> IInlineRenameInfoWithFileRename.DefinitionLocations { get => this.DefinitionLocations; }
 
             public string GetFinalSymbolName(string replacementText)
             {
