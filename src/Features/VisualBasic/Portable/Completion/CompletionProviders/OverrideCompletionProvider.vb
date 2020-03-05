@@ -24,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private _isSub As Boolean
         Private _isProperty As Boolean
 
+        <ImportingConstructor>
         Public Sub New()
         End Sub
 

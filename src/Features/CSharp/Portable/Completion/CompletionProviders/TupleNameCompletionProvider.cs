@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private const string ColonString = ":";
 
+        [ImportingConstructor]
+        public TupleNameCompletionProvider()
+        {
+        }
+
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             try

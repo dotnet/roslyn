@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend NotInheritable Class ExtensionMethodImportCompletionProvider
         Inherits AbstractExtensionMethodImportCompletionProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property GenericSuffix As String
             Get
                 Return "(Of ...)"

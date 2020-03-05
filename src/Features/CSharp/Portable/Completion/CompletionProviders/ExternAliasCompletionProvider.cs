@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal class ExternAliasCompletionProvider : CommonCompletionProvider
     {
+        [ImportingConstructor]
+        public ExternAliasCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);

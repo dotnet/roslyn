@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -26,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Me.New(Nothing)
         End Sub
 
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Intentionally used for creating multiple instances")>
         Private Sub New(specializedIndentationRule As AbstractFormattingRule)
             _specializedIndentationRule = specializedIndentationRule
         End Sub

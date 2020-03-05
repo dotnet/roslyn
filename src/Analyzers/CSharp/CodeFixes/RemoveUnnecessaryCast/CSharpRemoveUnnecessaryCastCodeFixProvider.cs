@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -51,11 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var castNodes = diagnostics.SelectAsArray(
-                d => (CastExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
+                d => (ExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, castNodes,
-                (semanticModel, castExpression) => castExpression.IsUnnecessaryCast(semanticModel, cancellationToken),
+                (semanticModel, castExpression) => CastSimplifier.IsUnnecessaryCast(castExpression, semanticModel, cancellationToken),
                 (_, currentRoot, castExpression) =>
                 {
                     var oldParent = castExpression.WalkUpParentheses();
@@ -83,6 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
                 // parens will be removed if unnecessary. 
                 return castExpression.Uncast().WithAdditionalAnnotations(Formatter.Annotation)
                                      .Parenthesize();
+            }
+            else if (old is BinaryExpressionSyntax binaryExpression)
+            {
+                return binaryExpression.Left.WithTrailingTrivia(binaryExpression.GetTrailingTrivia())
+                                       .WithAdditionalAnnotations(Simplifier.Annotation);
             }
             else
             {

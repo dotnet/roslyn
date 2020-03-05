@@ -13,5 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class EmbeddedLanguageCompletionProvider
         Inherits AbstractEmbeddedLanguageCompletionProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

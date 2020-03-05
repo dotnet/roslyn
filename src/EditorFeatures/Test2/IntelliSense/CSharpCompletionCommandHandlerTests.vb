@@ -4047,12 +4047,8 @@ class C
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
-                MyClass.New(New TaskCompletionSource(Of Boolean))
-            End Sub
-
-            Private Sub New(completionSource As TaskCompletionSource(Of Boolean))
-                MyBase.New(completionSource.Task)
-                Me.completionSource = completionSource
+                MyBase.New(Task.CompletedTask)
+                Reset()
             End Sub
 
             Public Sub Reset()

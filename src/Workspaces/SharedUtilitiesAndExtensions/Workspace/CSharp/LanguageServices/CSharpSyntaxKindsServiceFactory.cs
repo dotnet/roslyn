@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
     [ExportLanguageServiceFactory(typeof(ISyntaxKindsService), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxKindsServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpSyntaxKindsServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             => CSharpSyntaxKindsService.Instance;
 

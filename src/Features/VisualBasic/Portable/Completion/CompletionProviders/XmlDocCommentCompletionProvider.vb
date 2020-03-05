@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class XmlDocCommentCompletionProvider
         Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(s_defaultRules)
         End Sub
