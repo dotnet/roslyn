@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -169,9 +170,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else if (location.IsInSource)
                 {
+                    var solution = document.Project.Solution;
                     if (document.Project.IsSubmission)
                     {
-                        var solution = document.Project.Solution;
                         var projectIdOfLocation = solution.GetDocument(location.SourceTree).Project.Id;
 
                         if (solution.Projects.Any(p => p.IsSubmission && p.ProjectReferences.Any(r => r.ProjectId == projectIdOfLocation)))
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     else
                     {
                         // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
-                        documentSpans.Add(new DocumentSpan(document, location.SourceSpan));
+                        documentSpans.Add(new DocumentSpan(solution.GetDocument(location.SourceTree), location.SourceSpan));
                     }
                 }
                 else

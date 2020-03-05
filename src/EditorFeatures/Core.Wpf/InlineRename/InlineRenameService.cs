@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
                     foreach (var documentSpan in renameInfoWithFileRename.DefinitionLocations)
                     {
-                        var sourceText = documentSpan.Document.GetTextSynchronously(cancellationToken);
+                        var sourceText = documentSpan.Document.GetSyntaxTreeSynchronously(cancellationToken)?.GetText(cancellationToken);
                         var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
 
                         if (textSnapshot != null)
