@@ -6,8 +6,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 return FileHeader.MissingFileHeader(0);
             }
 
-            var sb = StringBuilderPool.Allocate();
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
             var endOfLineCount = 0;
             var done = false;
             var missingHeaderOffset = 0;
@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             if (fileHeaderStart > fileHeaderEnd)
             {
-                StringBuilderPool.Free(sb);
                 return FileHeader.MissingFileHeader(missingHeaderOffset);
             }
 
@@ -125,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 sb.Remove(sb.Length - eolLength, eolLength);
             }
 
-            return new FileHeader(StringBuilderPool.ReturnAndFree(sb), fileHeaderStart, fileHeaderEnd, CommentPrefix.Length);
+            return new FileHeader(sb.ToString(), fileHeaderStart, fileHeaderEnd, CommentPrefix.Length);
         }
 
         /// <summary>
