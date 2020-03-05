@@ -140,28 +140,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 return default;
             }
 
-            try
-            {
-                // Don't search trivia because we want to ignore inactive regions
-                var linkedToken = root.FindToken(token.SpanStart);
+            // Don't search trivia because we want to ignore inactive regions
+            var linkedToken = root.FindToken(token.SpanStart);
 
-                // The new and old tokens should have the same span?
-                if (token.Span == linkedToken.Span)
-                {
-                    return linkedToken;
-                }
-            }
-            catch (Exception thrownException)
+            // The new and old tokens should have the same span?
+            if (token.Span == linkedToken.Span)
             {
-                // We are seeing linked files with different spans cause FindToken to crash.
-                // Capturing more information for https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299
-                var originalText = await originalDocument.GetTextAsync().ConfigureAwait(false);
-                var linkedText = await linkedDocument.GetTextAsync().ConfigureAwait(false);
-                var linkedFileException = new LinkedFileDiscrepancyException(thrownException, originalText.ToString(), linkedText.ToString());
-
-                // This problem itself does not cause any corrupted state, it just changes the set
-                // of symbols included in QuickInfo, so we report and continue running.
-                FatalError.ReportWithoutCrash(linkedFileException);
+                return linkedToken;
             }
 
             return default;
