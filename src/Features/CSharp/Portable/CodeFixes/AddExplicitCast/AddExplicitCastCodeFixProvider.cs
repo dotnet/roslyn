@@ -163,10 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
                 {
-
-                    if (CanArgumentTypesBeConvertedToParameterTypes(semanticModel, argumentList.Arguments, methodSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
+                    if (CanArgumentTypesBeConvertedToParameterTypes(semanticModel, argumentList.Arguments, candidateSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
                     {
-                        var correspondingParameter = methodSymbol.Parameters[paramIndex];
+                        var correspondingParameter = candidateSymbol.Parameters[paramIndex];
                         var argumentConversionType = correspondingParameter.Type;
 
                         if (correspondingParameter.IsParams &&
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             // For cases like object creation expression. for example:
             // Derived d = [||]new Base();
             // It is always invalid except the target node has explicit conversion operator.
-            using var  = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
+            using var __ = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
             foreach (var targetNodeConversionType in mutablePotentialConversionTypes)
             {
                 var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(targetNodeType, targetNodeConversionType);
@@ -359,6 +358,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             private readonly ITypeSymbol _baseType;
             private readonly SemanticModel _semanticModel;
 
+            public InheritanceDistanceComparer(SemanticModel semanticModel, ITypeSymbol baseType)
+            {
+                _semanticModel = semanticModel;
+                _baseType = baseType;
+            }
+
             private int GetInheritanceDistance(ITypeSymbol? derivedType)
             {
                 if (derivedType == null) return int.MaxValue;
@@ -376,23 +381,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 return distance == int.MaxValue ? distance : distance + 1;
             }
-            public int Compare(ITypeSymbol x, ITypeSymbol y)
-            {
-                // if the node has the explicit conversion operator, then it has the shortest distance
-                var xComversion = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, x);
-                var xDist = xComversion.IsUserDefined || xComversion.IsNumeric ?
-                    0 : GetInheritanceDistance(x);
 
-                var yComversion = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, y);
-                var yDist = yComversion.IsUserDefined || yComversion.IsNumeric ?
-                    0 : GetInheritanceDistance(y);
-                return xDist.CompareTo(yDist);
+            private int GetInheritanceDistanceWrapper(ITypeSymbol type)
+            {
+                var conversion = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, type);
+
+                // If the node has the explicit conversion operator, then it has the shortest distance,
+                // since explicit conversion operator is defined by users and has the highest priority 
+                var distance = conversion.IsUserDefined ? 0 : GetInheritanceDistance(type);
+                return distance;
             }
 
-            public InheritanceDistanceComparer(SemanticModel semanticModel, ITypeSymbol baseType)
+            public int Compare(ITypeSymbol x, ITypeSymbol y)
             {
-                _semanticModel = semanticModel;
-                _baseType = baseType;
+                var xDist = GetInheritanceDistanceWrapper(x);
+                var yDist = GetInheritanceDistanceWrapper(y);
+                return xDist.CompareTo(yDist);
             }
         }
     }
