@@ -39,13 +39,18 @@ stages:
       displayName: Setting SourceBranchName variable
 
     - task: tagBuildOrRelease@0
-      displayName: Tag build
+      displayName: Tag official build
       inputs:
         type: 'Build'
-        ${{ if eq(variables['PRNumber'], 'default') }}:
-          tags: 'OfficialBuild'
-        ${{ if ne(variables['PRNumber'], 'default') }}:
-          tags: 'PRValidationBuild'
+        tags: 'OfficialBuild'
+      condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
+          
+    - task: tagBuildOrRelease@0
+      displayName: Tag PR validation build
+      inputs:
+        type: 'Build'
+        tags: 'PRValidationBuild'
+      condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
     - task: PowerShell@2
       displayName: Setup branch for insertion validation
@@ -262,6 +267,11 @@ stages:
       queue:
         name: Hosted VS2017
 
+- stage: PreparePostBuild
+  displayName: Prepare for Post Build
+  dependsOn: build
+  condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
+
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['PRNumber'], 'default')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
@@ -269,3 +279,5 @@ stages:
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false
       enableSourceLinkValidation: false
+      validateDependsOn:
+        - PreparePostBuild
