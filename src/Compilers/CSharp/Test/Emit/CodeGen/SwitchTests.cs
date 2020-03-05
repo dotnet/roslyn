@@ -880,7 +880,7 @@ public class Test
   {
     switch (i)
     {
-      case 0:       
+      case 0:
       case 1:
       case 2:
       case 3:
@@ -9564,6 +9564,156 @@ class Program
       }
       IL_0079:  ret
     }
+");
+        }
+
+        [Fact]
+        [WorkItem(41502, "https://github.com/dotnet/roslyn/issues/41502")]
+        public void PatternSwitchDagReduction_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        M(1, 1, 6); // 1
+        M(1, 2, 6); // 2
+        M(1, 1, 3); // 3
+        M(1, 2, 3); // 3
+        M(1, 5, 3); // 3
+        M(2, 5, 3); // 3
+        M(1, 3, 4); // 4
+        M(2, 1, 4); // 5
+        M(2, 2, 2); // 6
+    }
+    public static void M(int a, int b, int c) => Console.Write(M2(a, b, c));
+    public static int M2(int a, int b, int c) => (a, b, c) switch
+    {
+        (1,  1,  6) => 1,
+        (1,  2,  6) => 2,
+        (_,  _,  3) => 3,
+        (1,  _,  _) => 4,
+        (_,  1,  _) => 5,
+        (_,  _,  _) => 6,
+    };
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "123333456");
+            compVerifier.VerifyIL("Program.M2", @"
+{
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  bne.un.s   IL_0020
+  IL_0004:  ldarg.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  beq.s      IL_0010
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldarg.1
+  IL_000b:  ldc.i4.2
+  IL_000c:  beq.s      IL_0016
+  IL_000e:  br.s       IL_001a
+  IL_0010:  ldarg.2
+  IL_0011:  ldc.i4.6
+  IL_0012:  beq.s      IL_002a
+  IL_0014:  br.s       IL_001a
+  IL_0016:  ldarg.2
+  IL_0017:  ldc.i4.6
+  IL_0018:  beq.s      IL_002e
+  IL_001a:  ldarg.2
+  IL_001b:  ldc.i4.3
+  IL_001c:  beq.s      IL_0032
+  IL_001e:  br.s       IL_0036
+  IL_0020:  ldarg.2
+  IL_0021:  ldc.i4.3
+  IL_0022:  beq.s      IL_0032
+  IL_0024:  ldarg.1
+  IL_0025:  ldc.i4.1
+  IL_0026:  beq.s      IL_003a
+  IL_0028:  br.s       IL_003e
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.0
+  IL_002c:  br.s       IL_0042
+  IL_002e:  ldc.i4.2
+  IL_002f:  stloc.0
+  IL_0030:  br.s       IL_0042
+  IL_0032:  ldc.i4.3
+  IL_0033:  stloc.0
+  IL_0034:  br.s       IL_0042
+  IL_0036:  ldc.i4.4
+  IL_0037:  stloc.0
+  IL_0038:  br.s       IL_0042
+  IL_003a:  ldc.i4.5
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0042
+  IL_003e:  ldc.i4.6
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0042
+  IL_0042:  ldloc.0
+  IL_0043:  ret
+}
+");
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: "123333456");
+            compVerifier.VerifyIL("Program.M2", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  bne.un.s   IL_001e
+  IL_0004:  ldarg.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  beq.s      IL_000e
+  IL_0008:  ldarg.1
+  IL_0009:  ldc.i4.2
+  IL_000a:  beq.s      IL_0014
+  IL_000c:  br.s       IL_0018
+  IL_000e:  ldarg.2
+  IL_000f:  ldc.i4.6
+  IL_0010:  beq.s      IL_0028
+  IL_0012:  br.s       IL_0018
+  IL_0014:  ldarg.2
+  IL_0015:  ldc.i4.6
+  IL_0016:  beq.s      IL_002c
+  IL_0018:  ldarg.2
+  IL_0019:  ldc.i4.3
+  IL_001a:  beq.s      IL_0030
+  IL_001c:  br.s       IL_0034
+  IL_001e:  ldarg.2
+  IL_001f:  ldc.i4.3
+  IL_0020:  beq.s      IL_0030
+  IL_0022:  ldarg.1
+  IL_0023:  ldc.i4.1
+  IL_0024:  beq.s      IL_0038
+  IL_0026:  br.s       IL_003c
+  IL_0028:  ldc.i4.1
+  IL_0029:  stloc.0
+  IL_002a:  br.s       IL_003e
+  IL_002c:  ldc.i4.2
+  IL_002d:  stloc.0
+  IL_002e:  br.s       IL_003e
+  IL_0030:  ldc.i4.3
+  IL_0031:  stloc.0
+  IL_0032:  br.s       IL_003e
+  IL_0034:  ldc.i4.4
+  IL_0035:  stloc.0
+  IL_0036:  br.s       IL_003e
+  IL_0038:  ldc.i4.5
+  IL_0039:  stloc.0
+  IL_003a:  br.s       IL_003e
+  IL_003c:  ldc.i4.6
+  IL_003d:  stloc.0
+  IL_003e:  ldloc.0
+  IL_003f:  ret
+}
 ");
         }
 
