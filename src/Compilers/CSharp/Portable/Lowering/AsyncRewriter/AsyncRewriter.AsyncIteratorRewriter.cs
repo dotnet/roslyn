@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -39,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!TypeSymbol.Equals(method.IteratorElementTypeWithAnnotations.Type, null, TypeCompareKind.ConsiderEverything2));
 
-                _isEnumerable = method.IsIAsyncEnumerableReturningAsync(method.DeclaringCompilation);
-                Debug.Assert(_isEnumerable != method.IsIAsyncEnumeratorReturningAsync(method.DeclaringCompilation));
+                _isEnumerable = method.IsAsyncReturningIAsyncEnumerable(method.DeclaringCompilation);
+                Debug.Assert(_isEnumerable != method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation));
             }
 
             protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Add a field: bool disposeMode
                 _disposeModeField = F.StateMachineField(boolType, GeneratedNames.MakeDisposeModeFieldName());
 
-                if (_isEnumerable && this.method.Parameters.Any(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true }))
+                if (_isEnumerable && this.method.Parameters.Any(p => p.IsSourceParameterWithEnumeratorCancellationAttribute()))
                 {
                     // Add a field: CancellationTokenSource combinedTokens
                     _combinedTokensField = F.StateMachineField(
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundStatement result;
                 if (_combinedTokensField is object &&
-                    parameter is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true } &&
+                    parameter.IsSourceParameterWithEnumeratorCancellationAttribute() &&
                     parameter.Type.Equals(F.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken), TypeCompareKind.ConsiderEverything))
                 {
                     // For a parameter of type CancellationToken with [EnumeratorCancellation]
@@ -256,6 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Generates the `ValueTask&lt;bool> MoveNextAsync()` method.
             /// </summary>
+            [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Standard naming convention for generating 'IAsyncEnumerator.MoveNextAsync'")]
             private void GenerateIAsyncEnumeratorImplementation_MoveNextAsync()
             {
                 // Produce:
@@ -384,6 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Generates the `ValueTask IAsyncDisposable.DisposeAsync()` method.
             /// The DisposeAsync method should not be called from states -1 (running) or 0-and-up (awaits).
             /// </summary>
+            [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Standard naming convention for generating 'IAsyncDisposable.DisposeAsync'")]
             private void GenerateIAsyncDisposable_DisposeAsync()
             {
                 // Produce:

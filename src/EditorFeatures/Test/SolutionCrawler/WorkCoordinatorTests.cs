@@ -1054,7 +1054,7 @@ End Class";
 
             var root = Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseCompilationUnit(code);
             var property = root.FindToken(position).Parent.FirstAncestorOrSelf<Microsoft.CodeAnalysis.VisualBasic.Syntax.PropertyBlockSyntax>();
-            var memberId = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsService.Instance.GetMethodLevelMemberId(root, property);
+            var memberId = Microsoft.CodeAnalysis.VisualBasic.LanguageServices.VisualBasicSyntaxFacts.Instance.GetMethodLevelMemberId(root, property);
 
             Assert.Equal(0, memberId);
         }
@@ -1207,14 +1207,14 @@ End Class";
                 // make sure global operaiton is actually started
                 // otherwise, solution crawler might processed event we are later waiting for
                 var operationWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.GlobalOperation);
-                await operationWaiter.CreateExpeditedWaitTask();
+                await operationWaiter.ExpeditedWaitAsync();
 
                 // mutate solution
                 workspace.OnSolutionAdded(solution);
 
                 // wait for workspace events to be all processed
                 var workspaceWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.Workspace);
-                await workspaceWaiter.CreateExpeditedWaitTask();
+                await workspaceWaiter.ExpeditedWaitAsync();
 
                 // now wait for semantic processor to finish
                 var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
@@ -1316,10 +1316,10 @@ End Class";
         private async Task WaitWaiterAsync(ExportProvider provider)
         {
             var workspaceWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.Workspace);
-            await workspaceWaiter.CreateExpeditedWaitTask();
+            await workspaceWaiter.ExpeditedWaitAsync();
 
             var solutionCrawlerWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.SolutionCrawler);
-            await solutionCrawlerWaiter.CreateExpeditedWaitTask();
+            await solutionCrawlerWaiter.ExpeditedWaitAsync();
         }
 
         private static SolutionInfo GetInitialSolutionInfoWithP2P()

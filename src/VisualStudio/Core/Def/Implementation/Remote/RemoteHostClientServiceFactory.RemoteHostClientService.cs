@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
-            private readonly IDiagnosticAnalyzerService _analyzerService;
+            private readonly HostDiagnosticAnalyzers _hostAnalyzers;
 
             private readonly object _gate;
 
@@ -44,14 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 IThreadingContext threadingContext,
                 IAsynchronousOperationListener listener,
                 Workspace workspace,
-                IDiagnosticAnalyzerService analyzerService)
+                HostDiagnosticAnalyzers hostAnalyzers)
                 : base(threadingContext)
             {
                 _gate = new object();
 
                 _listener = listener;
                 _workspace = workspace;
-                _analyzerService = analyzerService;
+                _hostAnalyzers = hostAnalyzers;
             }
 
             public Workspace Workspace => _workspace;
@@ -190,11 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private void SetRemoteHostBitness()
             {
-                var x64 = _workspace.Options.GetOption(RemoteHostOptions.OOP64Bit);
-                if (!x64)
-                {
-                    x64 = _workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RoslynOOP64bit);
-                }
+                bool x64 = RemoteHostOptions.IsServiceHubProcess64Bit(_workspace);
 
                 // log OOP bitness
                 Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = x64));
@@ -220,8 +216,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var success = await client.TryRunRemoteAsync(
                         WellKnownRemoteHostServices.RemoteHostService,
                         nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                        new[] { (object)checksums },
                         _workspace.CurrentSolution,
+                        new[] { (object)checksums },
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
@@ -243,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
                     var assetBuilder = new CustomAssetBuilder(_workspace);
 
-                    foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
+                    foreach (var (_, reference) in _hostAnalyzers.GetHostAnalyzerReferencesMap())
                     {
                         var asset = assetBuilder.Build(reference, cancellationToken);
 
@@ -261,7 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
 
-                    foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
+                    foreach (var (_, reference) in _hostAnalyzers.GetHostAnalyzerReferencesMap())
                     {
                         snapshotService.RemoveGlobalAsset(reference, CancellationToken.None);
                     }
@@ -299,7 +295,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // s_lastRemoteClientTask info should be saved in the dump
                     // report NFW when connection is closed unless it is proper shutdown
-                    WatsonReporter.Report(new Exception("Connection to remote host closed"), WatsonSeverity.Critical);
+                    FatalError.ReportWithoutCrash(new InvalidOperationException("Connection to remote host closed"));
 
                     RemoteHostCrashInfoBar.ShowInfoBar(_workspace);
                 }

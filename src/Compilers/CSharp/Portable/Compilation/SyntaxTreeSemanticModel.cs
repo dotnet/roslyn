@@ -2257,7 +2257,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return symbol;
             }
 
-            var memberModel = GetMemberModel(symbol.Locations[0].SourceSpan.Start);
+            var position = CheckAndAdjustPosition(symbol.Locations[0].SourceSpan.Start);
+            var memberModel = GetMemberModel(position);
             return memberModel?.RemapSymbolIfNecessaryCore(symbol) ?? symbol;
         }
     }

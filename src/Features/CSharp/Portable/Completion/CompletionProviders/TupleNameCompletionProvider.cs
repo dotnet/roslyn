@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +20,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(TupleNameCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(XmlDocCommentCompletionProvider))]
+    [Shared]
     internal class TupleNameCompletionProvider : CommonCompletionProvider
     {
         private const string ColonString = ":";
+
+        [ImportingConstructor]
+        public TupleNameCompletionProvider()
+        {
+        }
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {

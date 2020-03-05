@@ -5,6 +5,7 @@
 // This was copied from https://github.com/dotnet/coreclr/blob/60f1e6265bd1039f023a82e0643b524d6aaf7845/src/System.Private.CoreLib/shared/System/Diagnostics/CodeAnalysis/NullableAttributes.cs
 // and updated to have the scope of the attributes be internal.
 
+#if !NETCOREAPP
 #nullable enable
 
 namespace System.Diagnostics.CodeAnalysis
@@ -86,3 +87,5 @@ namespace System.Diagnostics.CodeAnalysis
         public bool ParameterValue { get; }
     }
 }
+
+#endif

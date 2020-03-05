@@ -16,10 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             // dispatch to the switch sections
-            var initialState = VisitSwitchStatementDispatch(node);
+            var (initialState, afterSwitchState) = VisitSwitchStatementDispatch(node);
 
             // visit switch sections
-            var afterSwitchState = UnreachableState();
             var switchSections = node.SwitchSections;
             var iLastSection = (switchSections.Length - 1);
             for (var iSection = 0; iSection <= iLastSection; iSection++)
@@ -30,18 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref afterSwitchState, ref this.State);
             }
 
-            if (node.DecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
-                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
-            {
-                Join(ref afterSwitchState, ref initialState);
-            }
-
             ResolveBreaks(afterSwitchState, node.BreakLabel);
 
             return null;
         }
 
-        protected virtual TLocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
+        protected virtual (TLocalState initialState, TLocalState afterSwitchState) VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
             // visit switch header
             VisitRvalue(node.Expression);
@@ -75,7 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return initialState;
+            TLocalState afterSwitchState = UnreachableState();
+            if (node.DecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
+                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
+            {
+                Join(ref afterSwitchState, ref initialState);
+            }
+
+            return (initialState, afterSwitchState);
         }
 
         /// <summary>

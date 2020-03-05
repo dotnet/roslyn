@@ -360,7 +360,7 @@ public class Test
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("goo", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
+            Assert.True(((string)err.Arguments[1]).EndsWith("0x80090016)", StringComparison.Ordinal), (string)err.Arguments[1]);
 
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
@@ -1452,7 +1452,7 @@ public class Z
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("bogus", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
+            Assert.True(((string)err.Arguments[1]).EndsWith("0x80090016)", StringComparison.Ordinal), (string)err.Arguments[1]);
         }
 
         [Theory]
@@ -2270,7 +2270,7 @@ public class C
             }
         }
 
-#if !NETCOREAPP2_1
+#if !NETCOREAPP
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         [WorkItem(399, "https://github.com/dotnet/roslyn/issues/399")]
         public void Bug399()

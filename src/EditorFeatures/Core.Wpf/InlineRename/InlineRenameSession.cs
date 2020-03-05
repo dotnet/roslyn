@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -294,7 +294,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             AssertIsForeground();
 
             var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
-
             _allRenameLocationsTask = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 var inlineRenameLocations = await findRenameLocationsTask.JoinAsync().ConfigureAwaitRunInline();
@@ -416,6 +415,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             AssertIsForeground();
             SetReferenceLocations(locations);
+
+            // It's OK to call SetReferenceLocations with all documents, including unchangeable ones, 
+            // because they can't be opened, so the _openTextBuffers loop won't matter. In fact, the entire
+            // inline rename is oblivious to unchangeable documents, we just need to filter out references
+            // in them to avoid displaying them in the UI. 
+            // https://github.com/dotnet/roslyn/issues/41242
+            if (_workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges)
+            {
+                locations = locations.WhereAsArray(l => l.Document.CanApplyChange());
+            }
+
             ReferenceLocationsChanged?.Invoke(this, locations);
         }
 

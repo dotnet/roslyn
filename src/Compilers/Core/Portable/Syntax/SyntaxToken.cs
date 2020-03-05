@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the text representation of the value of the token. For example, if the token represents an integer
         /// literal, then this property would return a string representing the integer.
         /// </summary>
-        public string? ValueText => Node?.GetValueText();
+        public string ValueText => Node?.GetValueText() ?? string.Empty;
 
         public string Text => ToString();
 
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia> trivia)
         {
-            var greenList = trivia?.Select(t => t.UnderlyingNode);
+            var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
 
             return Node != null
                 ? new SyntaxToken(null, Node.WithLeadingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia> trivia)
         {
-            var greenList = trivia?.Select(t => t.UnderlyingNode);
+            var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
 
             return Node != null
                 ? new SyntaxToken(null, Node.WithTrailingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines whether the supplied <see cref="SyntaxToken"/> is equal to this
         /// <see cref="SyntaxToken"/>.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SyntaxToken && Equals((SyntaxToken)obj);
         }

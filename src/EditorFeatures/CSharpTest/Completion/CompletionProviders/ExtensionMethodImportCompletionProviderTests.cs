@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -35,16 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
-        protected override ExportProvider GetExportProvider()
+        protected override ComposableCatalog GetExportCatalog()
         {
-            return ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
-                .CreateExportProvider();
+            return base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new ExtensionMethodImportCompletionProvider();
+            return typeof(ExtensionMethodImportCompletionProvider);
         }
 
         public enum ReferenceType
@@ -76,34 +73,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             get
             {
-                var predefinedTypes = new List<List<string>>
-                {
-                    new List<string>()
-                    { "int", "Int32", "System.Int32" },
-                    new List<string>()
-                    { "float", "Single", "System.Single" },
-                    new List<string>()
-                    { "uint", "UInt32", "System.UInt32" },
-                    new List<string>()
-                    { "bool", "Boolean", "System.Boolean"},
-                    new List<string>()
-                    { "string", "String", "System.String"},
-                    new List<string>()
-                    { "object", "Object", "System.Object"},
-                };
-
+                var predefinedTypes = new List<string>() { "string", "String", "System.String" };
                 var arraySuffixes = new[] { "", "[]", "[,]" };
 
-                foreach (var group in predefinedTypes)
+                foreach (var type1 in predefinedTypes)
                 {
-                    foreach (var type1 in group)
+                    foreach (var type2 in predefinedTypes)
                     {
-                        foreach (var type2 in group)
+                        foreach (var suffix in arraySuffixes)
                         {
-                            foreach (var suffix in arraySuffixes)
-                            {
-                                yield return new List<object>() { type1 + suffix, type2 + suffix };
-                            }
+                            yield return new List<object>() { type1 + suffix, type2 + suffix };
                         }
                     }
                 }

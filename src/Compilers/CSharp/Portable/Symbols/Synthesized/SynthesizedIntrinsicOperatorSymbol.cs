@@ -491,6 +491,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return ImmutableArray<CustomModifier>.Empty; }
             }
+
+            internal override MarshalPseudoCustomAttributeData MarshallingInformation
+            {
+                get { return null; }
+            }
         }
     }
 }

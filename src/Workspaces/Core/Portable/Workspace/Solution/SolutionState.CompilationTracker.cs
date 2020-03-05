@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private partial class CompilationTracker
         {
-            private static readonly Func<ProjectState, string> s_logBuildCompilationAsync = LogBuildCompilationAsync;
+            private static readonly Func<ProjectState, string> s_logBuildCompilationAsync =
+                state => string.Join(",", state.AssemblyName, state.DocumentIds.Count);
 
             public ProjectState ProjectState { get; }
 
@@ -341,11 +342,6 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
-            private static string LogBuildCompilationAsync(ProjectState state)
-            {
-                return string.Join(",", state.AssemblyName, state.DocumentIds.Count);
-            }
-
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 try
@@ -510,21 +506,14 @@ namespace Microsoft.CodeAnalysis
                     var compilation = CreateEmptyCompilation();
 
                     var trees = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentIds.Count);
-                    foreach (var document in this.ProjectState.OrderedDocumentStates)
+                    foreach (var document in ProjectState.OrderedDocumentStates)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-
-                        // Do not include syntax trees for documents whose content failed to load.
-                        // Analyzers should not run on these (empty) syntax trees.
-                        var loadDiagnostic = await document.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
-                        if (loadDiagnostic == null)
-                        {
-                            trees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                        }
+                        // Include the tree even if the content of the document failed to load.
+                        trees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
                     }
 
                     compilation = compilation.AddSyntaxTrees(trees);
-
                     trees.Free();
 
                     WriteState(new FullDeclarationState(compilation), solution);

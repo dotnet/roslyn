@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             Debug.Assert(_capacity > 0);
             var lastNode = _nodeList.Last;
-            _nodeList.Remove(lastNode);
-            _cache.Remove(lastNode.Value);
+            _nodeList.Remove(lastNode!);
+            _cache.Remove(lastNode!.Value);
         }
 
         private void UnsafeAddNodeToTop(K key, V value)

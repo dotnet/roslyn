@@ -626,9 +626,24 @@ namespace Microsoft.CodeAnalysis
                 isEnabledByDefault: true);
 
             public AnalyzerWithInvalidDiagnosticSpan(TextSpan badSpan) => _badSpan = badSpan;
+            public Exception ThrownException { get; set; }
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context)
-                => context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(Descriptor, SourceLocation.Create(c.Tree, _badSpan))));
+            {
+                context.RegisterSyntaxTreeAction(c =>
+                {
+                    try
+                    {
+                        ThrownException = null;
+                        c.ReportDiagnostic(Diagnostic.Create(Descriptor, SourceLocation.Create(c.Tree, _badSpan)));
+                    }
+                    catch (Exception e)
+                    {
+                        ThrownException = e;
+                        throw;
+                    }
+                });
+            }
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -1799,10 +1814,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorForId_ThrowsOperationCancelledException : DiagnosticSuppressor
+        {
+            public CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
+            public SuppressionDescriptor SuppressionDescriptor { get; }
+            public DiagnosticSuppressorForId_ThrowsOperationCancelledException(string suppressedDiagnosticId)
+            {
+                SuppressionDescriptor = new SuppressionDescriptor(
+                    id: "SPR0001",
+                    suppressedDiagnosticId: suppressedDiagnosticId,
+                    justification: $"Suppress {suppressedDiagnosticId}");
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(SuppressionDescriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                CancellationTokenSource.Cancel();
+                context.CancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions : DiagnosticSuppressor
         {
+            private readonly NotImplementedException _exception;
+
+            public DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions(NotImplementedException exception)
+            {
+                _exception = exception;
+            }
+
             public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
-                => throw new NotImplementedException();
+                => throw _exception;
 
             public override void ReportSuppressions(SuppressionAnalysisContext context)
             {
@@ -1813,12 +1858,15 @@ namespace Microsoft.CodeAnalysis
         public sealed class DiagnosticSuppressorThrowsExceptionFromReportedSuppressions : DiagnosticSuppressor
         {
             private readonly SuppressionDescriptor _descriptor;
-            public DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(string suppressedDiagnosticId)
+            private readonly NotImplementedException _exception;
+
+            public DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(string suppressedDiagnosticId, NotImplementedException exception)
             {
                 _descriptor = new SuppressionDescriptor(
                     "SPR0001",
                     suppressedDiagnosticId,
                     $"Suppress {suppressedDiagnosticId}");
+                _exception = exception;
             }
 
             public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
@@ -1826,7 +1874,7 @@ namespace Microsoft.CodeAnalysis
 
             public override void ReportSuppressions(SuppressionAnalysisContext context)
             {
-                throw new NotImplementedException();
+                throw _exception;
             }
         }
 
@@ -2059,6 +2107,31 @@ namespace Microsoft.CodeAnalysis
                 context.RegisterSymbolAction(
                     context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0])),
                     SymbolKind.NamedType);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class RegisterOperationBlockAndOperationActionAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                "ID0001",
+                "Title",
+                "Message",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+            public override void Initialize(AnalysisContext analysisContext)
+            {
+                analysisContext.RegisterOperationAction(_ => { }, OperationKind.Invocation);
+                analysisContext.RegisterOperationBlockStartAction(OnOperationBlockStart);
+            }
+
+            private void OnOperationBlockStart(OperationBlockStartAnalysisContext context)
+            {
+                context.RegisterOperationBlockEndAction(
+                    endContext => endContext.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.OwningSymbol.Locations[0])));
             }
         }
     }

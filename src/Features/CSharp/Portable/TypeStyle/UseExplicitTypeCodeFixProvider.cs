@@ -80,14 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
             {
                 typeSyntax = declarationExpression.Type;
-                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
+                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax variableDesignation))
                 {
-                    parensDesignation = (ParenthesizedVariableDesignationSyntax)declarationExpression.Designation;
+                    parensDesignation = variableDesignation;
                 }
             }
             else
             {
-                Contract.Fail($"unhandled kind {declarationContext.Kind().ToString()}");
+                throw ExceptionUtilities.UnexpectedValue(declarationContext.Kind());
             }
 
             if (parensDesignation is null)

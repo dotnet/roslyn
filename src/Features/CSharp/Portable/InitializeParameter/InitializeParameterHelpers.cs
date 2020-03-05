@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 //          a => {
                 //              if (...) {
                 //              } };
-                if (CSharpSyntaxFactsService.Instance.IsOnSingleLine(block, fullSpan: false))
+                if (CSharpSyntaxFacts.Instance.IsOnSingleLine(block, fullSpan: false))
                 {
                     editor.ReplaceNode(
                         block,

@@ -91,9 +91,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy)
         {
+            var infoCache = _diagnosticService.AnalyzerInfoCache;
+            var hostAnalyzers = _diagnosticService.HostAnalyzers;
+
             if (hierarchy == null)
             {
-                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt: null));
+                return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache));
             }
 
             // Analyzers are only supported for C# and VB currently.
@@ -103,7 +106,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             if (projectsWithHierarchy.Count() <= 1)
             {
-                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectsWithHierarchy.FirstOrDefault()));
+                var project = projectsWithHierarchy.FirstOrDefault();
+                if (project == null)
+                {
+                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache));
+                }
+                else
+                {
+                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, project));
+                }
             }
             else
             {
@@ -112,16 +123,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
                 foreach (var project in projectsWithHierarchy)
                 {
-                    var newDescriptorTuples = _diagnosticService.CreateDiagnosticDescriptorsPerReference(project);
-                    foreach (var kvp in newDescriptorTuples)
+                    var descriptorsPerReference = hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, project);
+                    foreach (var (displayName, descriptors) in descriptorsPerReference)
                     {
-                        if (descriptorsMap.TryGetValue(kvp.Key, out var existingDescriptors))
+                        if (descriptorsMap.TryGetValue(displayName, out var existingDescriptors))
                         {
-                            descriptorsMap[kvp.Key] = existingDescriptors.Concat(kvp.Value).Distinct();
+                            descriptorsMap[displayName] = existingDescriptors.Concat(descriptors).Distinct();
                         }
                         else
                         {
-                            descriptorsMap[kvp.Key] = kvp.Value;
+                            descriptorsMap[displayName] = descriptors;
                         }
                     }
                 }
@@ -181,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public void RunAnalyzers(IVsHierarchy? hierarchy)
         {
             var project = GetProject(hierarchy);
-            var solution = _workspace.CurrentSolution;
+            Solution solution = _workspace.CurrentSolution;
             string? projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
 
             // Add a message to VS status bar that we are running code analysis.
