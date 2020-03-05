@@ -60,50 +60,50 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
             var targetNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true)
                 .GetAncestorsOrThis<ExpressionSyntax>().FirstOrDefault();
-            if (targetNode != null)
+            if (targetNode == null)
+                return;
+
+            var hasSolution = TryGetTargetTypeInfo(
+                semanticModel, diagnostic.Id, targetNode, cancellationToken,
+                out var nodeType, out var potentialConversionTypes);
+            if (!hasSolution)
             {
-                var hasSolution = TryGetTargetTypeInfo(
-                    semanticModel, diagnostic.Id, targetNode, cancellationToken,
-                    out var nodeType, out var potentialConversionTypes);
-                if (!hasSolution)
+                return;
+            }
+
+            if (potentialConversionTypes.Length == 1)
+            {
+                context.RegisterCodeFix(new MyCodeAction(
+                    CSharpFeaturesResources.Add_explicit_cast,
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                    context.Diagnostics);
+            }
+            else
+            {
+                var actions = ArrayBuilder<CodeAction>.GetInstance();
+
+                // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
+                for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
                 {
-                    return;
+                    var convType = potentialConversionTypes[i];
+                    actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToMinimalDisplayString(semanticModel, context.Span.Start)),
+                        c => Task.FromResult(document.WithSyntaxRoot(ApplyFix(root, targetNode, convType)))));
                 }
 
-                if (potentialConversionTypes.Length == 1)
+                if (potentialConversionTypes.Length > MaximumConversionOptions)
                 {
-                    context.RegisterCodeFix(new MyCodeAction(
-                        CSharpFeaturesResources.Add_explicit_cast,
-                        c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                        context.Diagnostics);
+                    // If the number of potential conversion types is larger than options we could show, report telemetry
+                    Logger.Log(FunctionId.CodeFixes_AddExplicitCast,
+                        KeyValueLogMessage.Create(m =>
+                        {
+                            m["NumberOfCandidates"] = potentialConversionTypes.Length;
+                        }));
                 }
-                else
-                {
-                    var actions = ArrayBuilder<CodeAction>.GetInstance();
 
-                    // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
-                    for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
-                    {
-                        var convType = potentialConversionTypes[i];
-                        actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToMinimalDisplayString(semanticModel, context.Span.Start)),
-                            c => Task.FromResult(document.WithSyntaxRoot(ApplyFix(root, targetNode, convType)))));
-                    }
-
-                    if (potentialConversionTypes.Length > MaximumConversionOptions)
-                    {
-                        // If the number of potential conversion types is larger than options we could show, report telemetry
-                        Logger.Log(FunctionId.CodeFixes_AddExplicitCast,
-                            KeyValueLogMessage.Create(m =>
-                            {
-                                m["NumberOfCandidates"] = potentialConversionTypes.Length;
-                            }));
-                    }
-
-                    context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
-                        CSharpFeaturesResources.Add_explicit_cast,
-                        actions.ToImmutableAndFree(), isInlinable: false),
-                        context.Diagnostics);
-                }
+                context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
+                    CSharpFeaturesResources.Add_explicit_cast,
+                    actions.ToImmutableAndFree(), isInlinable: false),
+                    context.Diagnostics);
             }
         }
 
@@ -149,13 +149,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             // The error happens either on an assignement operation or on an invocation expression.
             // If the error happens on assignment operation, "ConvertedType" is different from the current "Type"
             using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var mutablePotentialConversionTypes);
-            if (diagnosticId == CS0266 && targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
+            if (diagnosticId == CS0266
+                && targetNodeInfo.ConvertedType != null
+                && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
             {
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
             }
-            else if (diagnosticId == CS1503 && targetNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
-                && targetArgument.Parent is ArgumentListSyntax argumentList
-                && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
+            else if (diagnosticId == CS1503
+                     && targetNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
+                     && targetArgument.Parent is ArgumentListSyntax argumentList
+                     && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
                 // Implicit downcast appears on the argument of invocation node, get all candidate functions and extract potential conversion types 
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
@@ -163,7 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
                 {
-                    if (CanArgumentTypesBeConvertedToParameterTypes(semanticModel, argumentList.Arguments, candidateSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
+                    if (CanArgumentTypesBeConvertedToParameterTypes(semanticModel, argumentList.Arguments,
+                        candidateSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
                     {
                         var correspondingParameter = candidateSymbol.Parameters[paramIndex];
                         var argumentConversionType = correspondingParameter.Type;
@@ -269,7 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                             break;
                         }
                     }
-                    if (!found) return false;
+                    if (!found)
+                        return false;
                 }
 
                 // The argument is either in order with parameters, or have a matched name with parameters
@@ -280,14 +285,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     if (!parameters[parameterIndex].IsParams
                         && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
                     {
-                        if (matchedTypes[parameterIndex]) return false;
+                        if (matchedTypes[parameterIndex])
+                            return false;
                         matchedTypes[parameterIndex] = true;
                     }
                     else if (parameters[parameterIndex].IsParams
                         && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
                     {
                         // The parameter with keyword params takes an array type, then it cannot be matched more than once
-                        if (matchedTypes[parameterIndex]) return false;
+                        if (matchedTypes[parameterIndex])
+                            return false;
                         matchedTypes[parameterIndex] = true;
                         paramsMatchedByArray = true;
                     }
@@ -296,15 +303,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                              && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, paramsType.ElementType).Exists)
                     {
                         // The parameter with keyword params takes a variable number of arguments, compare its element type with the argument's type.
-                        if (matchedTypes[parameterIndex] && paramsMatchedByArray) return false;
+                        if (matchedTypes[parameterIndex] && paramsMatchedByArray)
+                            return false;
                         matchedTypes[parameterIndex] = true;
                         paramsMatchedByArray = false;
                     }
-                    else return false;
+                    else
+                    {
+                        return false;
+                    }
 
-                    if (targetArgument.Equals(arguments[i])) targetParamIndex = parameterIndex;
+                    if (targetArgument.Equals(arguments[i]))
+                        targetParamIndex = parameterIndex;
                 }
-                else return false;
+                else
+                {
+                    return false;
+                }
             }
 
             // mark all optional parameters as matched
@@ -368,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             {
                 if (derivedType == null)
                     return int.MaxValue;
-                if (derivedType.Equals(baseType))
+                if (derivedType.Equals(_baseType))
                     return 0;
 
                 var distance = GetInheritanceDistance(derivedType.BaseType);
