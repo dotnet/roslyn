@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1832,9 +1833,13 @@ class A
 }
 ";
 
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(template,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 6, Column = 34 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 8, Column = 34 });
+            CreateCompilation(template).VerifyDiagnostics(
+                // (6,34): error CS0221: Constant value '-1.7976931348623157E+308' cannot be converted to a 'int?' (use 'unchecked' syntax to override)
+                //         System.Console.WriteLine((int?)double.MinValue); //CS0221
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.MinValue").WithArguments(double.MinValue, "int?").WithLocation(6, 34),
+                // (8,34): error CS0221: Constant value '1.7976931348623157E+308' cannot be converted to a 'int?' (use 'unchecked' syntax to override)
+                //         System.Console.WriteLine((int?)double.MaxValue); //CS0221
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.MaxValue").WithArguments(double.MaxValue, "int?").WithLocation(8, 34));
         }
 
         // Note that the errors for Int64 and UInt64 are not
