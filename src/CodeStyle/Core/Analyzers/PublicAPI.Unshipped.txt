@@ -4,6 +4,7 @@ Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation
 Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation.TryGetOption(System.Collections.Generic.IReadOnlyDictionary<string, string> rawOptions, System.Type type, out object value) -> bool
 Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation2
 Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation2.GetEditorConfigString(object value, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions optionSet) -> string
+Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation2.GetEditorConfigStringValue(object value, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions optionSet) -> string
 Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation2.KeyName.get -> string
 static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
 static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
