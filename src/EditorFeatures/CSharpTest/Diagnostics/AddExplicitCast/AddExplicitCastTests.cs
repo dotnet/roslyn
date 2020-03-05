@@ -2859,5 +2859,20 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task ErrorType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                @"
+class C 
+{
+    void M(C c) 
+    { 
+        TypeThatDoesntExist t = new TypeThatDoesntExist();
+        M([||]t);
+    }
+}");
+        }
     }
 }

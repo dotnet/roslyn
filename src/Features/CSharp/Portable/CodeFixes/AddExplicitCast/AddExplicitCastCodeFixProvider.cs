@@ -147,11 +147,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             // The error happens either on an assignement operation or on an invocation expression.
             // If the error happens on assignment operation, "ConvertedType" is different from the current "Type"
             var mutablePotentialConversionTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
-            if (diagnosticId == "CS0266" && targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
+            if (diagnosticId == CS0266 && targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
             {
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
             }
-            else if (diagnosticId == "CS1503" && targetNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
+            else if (diagnosticId == CS1503 && targetNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
                 && targetArgument.Parent is ArgumentListSyntax argumentList
                 && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         continue;
                     }
 
-                    if (IsArgumentListAndParameterListPerfectMatch(semanticModel, argumentList.Arguments, methodSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
+                    if (CanArgumentTypesBeConvertedToParameterTypes(semanticModel, argumentList.Arguments, methodSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
                     {
                         var correspondingParameter = methodSymbol.Parameters[paramIndex];
                         var argumentConversionType = correspondingParameter.Type;
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         }
 
         /// <summary>
-        /// Test if all argument types can convert to corresponding parameter types, otherwise they are not the perfect matched.
+        /// Test if all argument types can be converted to corresponding parameter types.
         /// </summary>
         /// For example:
         /// class Base { }
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// </returns>
         // TODO: May need an API to replace this function,
         // link: https://github.com/dotnet/roslyn/issues/42149
-        private static bool IsArgumentListAndParameterListPerfectMatch(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
+        private static bool CanArgumentTypesBeConvertedToParameterTypes(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
             ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument, CancellationToken cancellationToken, out int targetParamIndex)
         {
             targetParamIndex = -1; // return invalid index if it is not a perfect match
@@ -359,18 +359,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             private readonly ITypeSymbol _baseType;
             private readonly SemanticModel _semanticModel;
 
-            private int GetInheritanceDistance(ITypeSymbol baseType, ITypeSymbol? derivedType)
+            private int GetInheritanceDistance(ITypeSymbol? derivedType)
             {
                 if (derivedType == null) return int.MaxValue;
-                if (derivedType.Equals(baseType)) return 0;
+                if (derivedType.Equals(_baseType)) return 0;
 
-                var distance = GetInheritanceDistance(baseType, derivedType.BaseType);
+                var distance = GetInheritanceDistance(derivedType.BaseType);
 
                 if (derivedType.Interfaces.Length != 0)
                 {
                     foreach (var interfaceType in derivedType.Interfaces)
                     {
-                        distance = Math.Min(GetInheritanceDistance(baseType, interfaceType), distance);
+                        distance = Math.Min(GetInheritanceDistance(interfaceType), distance);
                     }
                 }
 
@@ -381,11 +381,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 // if the node has the explicit conversion operator, then it has the shortest distance
                 var xComversion = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, x);
                 var xDist = xComversion.IsUserDefined || xComversion.IsNumeric ?
-                    0 : GetInheritanceDistance(_baseType, x);
+                    0 : GetInheritanceDistance(x);
 
                 var yComversion = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, y);
                 var yDist = yComversion.IsUserDefined || yComversion.IsNumeric ?
-                    0 : GetInheritanceDistance(_baseType, y);
+                    0 : GetInheritanceDistance(y);
                 return xDist.CompareTo(yDist);
             }
 
