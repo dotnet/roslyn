@@ -6,12 +6,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Text;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Roslyn.Utilities;
@@ -33,16 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     var parseOptions = (VisualBasicParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, Options);
-                    if (EditorConfig is object)
-                    {
-                        analyzerConfigSource = SourceText.From(EditorConfig + analyzerConfigSource, Encoding.UTF8);
-                    }
-                    else
-                    {
-                        analyzerConfigSource = SourceText.From("root = true" + Environment.NewLine + analyzerConfigSource, Encoding.UTF8);
-                    }
-
+                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
                     if (analyzerConfigSource is object)
                     {
                         foreach (var id in solution.ProjectIds)

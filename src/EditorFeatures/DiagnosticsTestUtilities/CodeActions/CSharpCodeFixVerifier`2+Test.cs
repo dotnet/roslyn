@@ -6,14 +6,12 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Text;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
@@ -46,16 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_nullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
-                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, Options);
-                    if (EditorConfig is object)
-                    {
-                        analyzerConfigSource = SourceText.From(EditorConfig + analyzerConfigSource, Encoding.UTF8);
-                    }
-                    else
-                    {
-                        analyzerConfigSource = SourceText.From("root = true" + Environment.NewLine + analyzerConfigSource, Encoding.UTF8);
-                    }
-
+                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
                     if (analyzerConfigSource is object)
                     {
                         foreach (var id in solution.ProjectIds)
