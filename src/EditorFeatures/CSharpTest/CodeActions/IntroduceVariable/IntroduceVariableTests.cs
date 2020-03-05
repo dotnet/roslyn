@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7325,6 +7327,76 @@ class Bug
         throw new NotImplementedException();
     }
 }", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(561, "https://github.com/dotnet/roslyn/issues/561")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task DoNotGenerateBetweenElseAndIf()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+        else if ([|args.Length|] == 0)
+        {
+        }
+    }
+}",
+@"class C
+{
+    static void Main(string[] args)
+    {
+        int {|Rename:length|} = args.Length;
+        if (true)
+        {
+        }
+        else if (length == 0)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(12591, "https://github.com/dotnet/roslyn/issues/12591")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestWhitespaceSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Class1
+{
+    void M()
+    {
+        Foo(1,[| Bar()|]);
+    }
+
+    private void Foo(int v1, object v2)
+    {
+    }
+
+    private object Bar()
+    {
+    }
+}",
+@"public class Class1
+{
+    void M()
+    {
+        object {|Rename:v2|} = Bar();
+        Foo(1, v2);
+    }
+
+    private void Foo(int v1, object v2)
+    {
+    }
+
+    private object Bar()
+    {
+    }
+}");
         }
     }
 }

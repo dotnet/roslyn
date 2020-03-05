@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -72,13 +74,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty;
                 }
 
-                var analyzersPerReference = _analyzerInfoCache.CreateProjectDiagnosticAnalyzersPerReference(project);
+                var analyzersPerReference = _hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
                 if (analyzersPerReference.Count == 0)
                 {
                     return ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty;
                 }
 
-                return CreateStateSetMap(_analyzerInfoCache, project.Language, analyzersPerReference.Values);
+                return CreateStateSetMap(project.Language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: false);
             }
 
             private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetOrUpdateProjectAnalyzerMap(Project project)
@@ -89,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             private ImmutableDictionary<DiagnosticAnalyzer, StateSet> UpdateProjectAnalyzerMap(Project project)
             {
-                var newAnalyzersPerReference = _analyzerInfoCache.CreateProjectDiagnosticAnalyzersPerReference(project);
-                var newMap = CreateStateSetMap(_analyzerInfoCache, project.Language, newAnalyzersPerReference.Values);
+                var newAnalyzersPerReference = _hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
+                var newMap = CreateStateSetMap(project.Language, newAnalyzersPerReference.Values, includeFileContentLoadAnalyzer: false);
 
                 RaiseProjectAnalyzerReferenceChangedIfNeeded(project, newAnalyzersPerReference, newMap);
 
@@ -151,9 +153,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var builder = ImmutableArray.CreateBuilder<StateSet>();
                 foreach (var reference in references)
                 {
-                    var referenceIdentity = _analyzerInfoCache.GetAnalyzerReferenceIdentity(reference);
                     // check duplication
-                    if (!mapPerReference.TryGetValue(referenceIdentity, out var analyzers))
+                    if (!mapPerReference.TryGetValue(reference.Id, out var analyzers))
                     {
                         continue;
                     }

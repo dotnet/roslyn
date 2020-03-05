@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -2151,6 +2153,58 @@ class C
 
     public string? Name => name;
 }");
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUnsafeGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe int [||]GetP()
+    {
+        return 0;
+    }
+
+    public void SetP(int value)
+    { }
+}",
+@"class C
+{
+    public unsafe int P
+    {
+        get => 0;
+        set
+        { }
+    }
+}", index: 1);
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUnsafeSetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int [||]GetP()
+    {
+        return 0;
+    }
+
+    public unsafe void SetP(int value)
+    { }
+}",
+@"class C
+{
+    public unsafe int P
+    {
+        get => 0;
+        set
+        { }
+    }
+}", index: 1);
         }
 
         private async Task TestWithAllCodeStyleOff(

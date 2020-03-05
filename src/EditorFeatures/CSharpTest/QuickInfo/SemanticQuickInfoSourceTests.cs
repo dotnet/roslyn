@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -6527,7 +6529,7 @@ class X
         }
     }
 }",
-                MainDescription($"({FeaturesResources.local_variable}) string s"),
+                MainDescription($"({FeaturesResources.local_variable}) string? s"),
                 NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
         }
 
@@ -6793,6 +6795,92 @@ class Program
     }
 }",
                 MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithReturnsOnMethod()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <returns>
+    /// Returns text
+    /// </returns>
+    int M()
+    {
+        return $$M();
+    }
+}",
+                MainDescription("int Program.M()"),
+                Documentation("Summary text"),
+                Returns($"\r\n{FeaturesResources.Returns_colon}\r\n  Returns text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithReturnsOnPropertyAccessor()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <returns>
+    /// Returns text
+    /// </returns>
+    int M { $$get; }
+}",
+                MainDescription("int Program.M.get"),
+                Documentation("Summary text"),
+                Returns($"\r\n{FeaturesResources.Returns_colon}\r\n  Returns text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithValueOnMethod()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <value>
+    /// Value text
+    /// </value>
+    int M()
+    {
+        return $$M();
+    }
+}",
+                MainDescription("int Program.M()"),
+                Documentation("Summary text"),
+                Value($"\r\n{FeaturesResources.Value_colon}\r\n  Value text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithValueOnPropertyAccessor()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <value>
+    /// Value text
+    /// </value>
+    int M { $$get; }
+}",
+                MainDescription("int Program.M.get"),
+                Documentation("Summary text"),
+                Value($"\r\n{FeaturesResources.Value_colon}\r\n  Value text"));
         }
     }
 }

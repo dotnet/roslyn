@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,15 +13,16 @@ using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
-using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Nerdbank;
 using Roslyn.Test.Utilities.Remote;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
@@ -105,8 +108,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 _ = await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeTextAsync),
-                    new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
                     solution: null,
+                    new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
                     callbackTarget: null,
                     CancellationToken.None);
 
@@ -179,8 +182,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.True(await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    new object[] { new Checksum[0] { } },
                     workspace.CurrentSolution,
+                    new object[] { new Checksum[0] { } },
                     callbackTarget: null,
                     CancellationToken.None));
 
@@ -200,6 +203,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await UpdatePrimaryWorkspace(client, solution);
             await VerifyAssetStorageAsync(client, solution);
 
+            // Only C# and VB projects are supported in Remote workspace.
+            // See "RemoteSupportedLanguages.IsSupported"
+            Assert.Empty(RemoteWorkspace.CurrentSolution.Projects);
+
+            Assert.NotEqual(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+
+            solution = solution.RemoveProject(solution.ProjectIds.Single());
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
                 await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
@@ -261,10 +273,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                             metadataReferences: new [] { MetadataReference.CreateFromFile(file.Path) })
                     });
 
+                var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
                 var remoteWorkspace = new RemoteWorkspace(workspaceKind: "test");
+                var optionService = remoteWorkspace.Services.GetRequiredService<IOptionService>();
+                var options = new SerializableOptionSet(languages, optionService, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty);
 
                 // this shouldn't throw exception
-                remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion: 1, out var solution);
+                remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion: 1, options, out var solution);
                 Assert.NotNull(solution);
             }
         }
@@ -380,8 +395,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.True(await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
-                new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 solution,
+                new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 callbackTarget: null,
                 CancellationToken.None));
         }

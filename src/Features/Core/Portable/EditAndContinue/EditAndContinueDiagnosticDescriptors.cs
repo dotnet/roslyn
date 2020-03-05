@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -154,6 +156,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddGeneralDiagnostic(EditAndContinueErrorCode.ChangesDisallowedWhileStoppedAtException, nameof(FeaturesResources.ChangesDisallowedWhileStoppedAtException));
             AddGeneralDiagnostic(EditAndContinueErrorCode.ChangesNotAppliedWhileRunning, nameof(FeaturesResources.ChangesNotAppliedWhileRunning), DiagnosticSeverity.Warning);
             AddGeneralDiagnostic(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee, nameof(FeaturesResources.DocumentIsOutOfSyncWithDebuggee), DiagnosticSeverity.Warning);
+            AddGeneralDiagnostic(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb, nameof(FeaturesResources.UnableToReadSourceFileOrPdb), DiagnosticSeverity.Warning);
 
             s_descriptors = builder.ToImmutable();
         }

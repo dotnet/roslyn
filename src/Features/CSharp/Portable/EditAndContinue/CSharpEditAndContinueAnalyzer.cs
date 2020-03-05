@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -121,9 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </returns>
         internal override SyntaxNode? TryGetDeclarationBody(SyntaxNode node, bool isMember)
         {
-            if (node.IsKind(SyntaxKind.VariableDeclarator))
+            if (node.IsKind(SyntaxKind.VariableDeclarator, out VariableDeclaratorSyntax? variableDeclarator))
             {
-                return ((VariableDeclaratorSyntax)node).Initializer?.Value;
+                return variableDeclarator.Initializer?.Value;
             }
 
             return SyntaxUtilities.TryGetMethodDeclarationBody(node);
@@ -208,9 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             var bodyTokens = SyntaxUtilities.TryGetMethodDeclarationBody(node)?.DescendantTokens();
 
-            if (node.IsKind(SyntaxKind.ConstructorDeclaration))
+            if (node.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax? ctor))
             {
-                var ctor = (ConstructorDeclarationSyntax)node;
                 if (ctor.Initializer != null)
                 {
                     bodyTokens = ctor.Initializer.DescendantTokens().Concat(bodyTokens);
@@ -446,9 +447,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             SyntaxNode? rightEqualsClause;
-            if (leftEqualsClause.Parent.IsKind(SyntaxKind.PropertyDeclaration))
+            if (leftEqualsClause.Parent.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? leftDeclaration))
             {
-                var leftDeclaration = (PropertyDeclarationSyntax)leftEqualsClause.Parent;
                 var leftSymbol = leftModel.GetDeclaredSymbol(leftDeclaration, cancellationToken);
                 RoslynDebug.Assert(leftSymbol != null);
 
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     fieldOrPropertyModifiers = SyntaxUtilities.TryGetFieldOrPropertyModifiers(statement);
                     direction = +1;
 
-                    yield return KeyValuePairUtil.Create(nodeOrToken.AsNode(), 0);
+                    yield return KeyValuePairUtil.Create(nodeOrToken.AsNode()!, 0);
                 }
                 else
                 {
@@ -779,10 +779,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // closing brace of a using statement or a block that contains using local declarations:
                     if (statementPart == 2)
                     {
-                        if (oldStatement.Parent.IsKind(SyntaxKind.UsingStatement))
+                        if (oldStatement.Parent.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? oldUsing))
                         {
-                            return newStatement.Parent.IsKind(SyntaxKind.UsingStatement) &&
-                                AreEquivalentActiveStatements((UsingStatementSyntax)oldStatement.Parent, (UsingStatementSyntax)newStatement.Parent);
+                            return newStatement.Parent.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? newUsing) &&
+                                AreEquivalentActiveStatements(oldUsing, newUsing);
                         }
 
                         return HasEquivalentUsingDeclarations((BlockSyntax)oldStatement, (BlockSyntax)newStatement);
@@ -927,10 +927,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
-        {
-            return propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration) &&
-                   SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)propertyOrIndexerDeclaration);
-        }
+            => propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDecl) &&
+               SyntaxUtilities.HasBackingField(propertyDecl);
 
         internal override bool IsDeclarationWithInitializer(SyntaxNode declaration)
         {
@@ -3296,9 +3294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static bool IsSimpleAwaitAssignment(SyntaxNode node, SyntaxNode awaitExpression)
         {
-            if (node.IsKind(SyntaxKind.SimpleAssignmentExpression))
+            if (node.IsKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment))
             {
-                var assignment = (AssignmentExpressionSyntax)node;
                 return assignment.Left.IsKind(SyntaxKind.IdentifierName) && assignment.Right == awaitExpression;
             }
 
@@ -3370,11 +3367,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static bool AreLabelsEquivalent(SwitchLabelSyntax oldLabel, SwitchLabelSyntax newLabel)
         {
-            if (oldLabel.IsKind(SyntaxKind.CasePatternSwitchLabel) && newLabel.IsKind(SyntaxKind.CasePatternSwitchLabel))
+            if (oldLabel.IsKind(SyntaxKind.CasePatternSwitchLabel, out CasePatternSwitchLabelSyntax? oldCasePatternLabel) &&
+                newLabel.IsKind(SyntaxKind.CasePatternSwitchLabel, out CasePatternSwitchLabelSyntax? newCasePatternLabel))
             {
-                var oldCasePatternLabel = (CasePatternSwitchLabelSyntax)oldLabel;
-                var newCasePatternLabel = (CasePatternSwitchLabelSyntax)newLabel;
-
                 // ignore the actual when expressions:
                 return SyntaxFactory.AreEquivalent(oldCasePatternLabel.Pattern, newCasePatternLabel.Pattern) &&
                        (oldCasePatternLabel.WhenClause != null) == (newCasePatternLabel.WhenClause != null);
@@ -3467,7 +3462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ReportUnmatchedStatements<UsingStatementSyntax>(
                 diagnostics,
                 match,
-                n => n.IsKind(SyntaxKind.UsingStatement) && ((UsingStatementSyntax)n).Declaration is null,
+                n => n.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? usingStatement) && usingStatement.Declaration is null,
                 oldActiveStatement,
                 newActiveStatement,
                 areEquivalent: AreEquivalentActiveStatements,

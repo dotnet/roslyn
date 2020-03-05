@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -23,7 +25,6 @@ using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -159,7 +160,6 @@ IL_0005:  ret
                 // A1.M with all assemblies.
                 var allBlocks = ImmutableArray.Create(moduleMscorlib, moduleA1, moduleA2, moduleB1, moduleB2, moduleC).SelectAsArray(m => m.MetadataBlock);
                 context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(),
                     allBlocks,
                     stateA1.SymReader,
                     stateA1.ModuleVersionId,
@@ -181,7 +181,6 @@ IL_0005:  ret
                 // Other EvaluationContext.CreateMethodContext overload.
                 // A1.M with all assemblies, offset outside of IL.
                 context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(),
                     allBlocks,
                     stateA1.SymReader,
                     stateA1.ModuleVersionId,
@@ -1001,7 +1000,7 @@ class C
 
             // Include an empty assembly to verify that not all assemblies
             // with no references are treated as mscorlib.
-            var referenceC = AssemblyMetadata.CreateFromImage(CommonResources.Empty).GetReference();
+            var referenceC = AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.Empty).GetReference();
 
             // At runtime System.Runtime.dll contract assembly is replaced
             // by mscorlib.dll and System.Runtime.dll facade assemblies.

@@ -1,11 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-Imports Microsoft.CodeAnalysis.Completion
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestStateFactory
         Public Shared Function CreateCSharpTestState(documentElement As XElement,
-                                                     Optional extraCompletionProviders As CompletionProvider() = Nothing,
                                                      Optional excludedTypes As List(Of Type) = Nothing,
                                                      Optional extraExportedTypes As List(Of Type) = Nothing,
                                                      Optional includeFormatCommandHandler As Boolean = False,
@@ -18,12 +17,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                          </Document>
                                      </Project>
                                  </Workspace>,
-                                 extraCompletionProviders, excludedTypes, extraExportedTypes,
+                                 excludedTypes, extraExportedTypes,
                                  includeFormatCommandHandler, workspaceKind:=Nothing)
         End Function
 
         Public Shared Function CreateVisualBasicTestState(documentElement As XElement,
-                                                           Optional extraCompletionProviders As CompletionProvider() = Nothing,
                                                            Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
 
             Return New TestState(<Workspace>
@@ -33,16 +31,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                          </Document>
                                      </Project>
                                  </Workspace>,
-                                 extraCompletionProviders, excludedTypes:=Nothing, extraExportedTypes,
+                                 excludedTypes:=Nothing, extraExportedTypes,
                                  includeFormatCommandHandler:=False, workspaceKind:=Nothing)
         End Function
 
         Public Shared Function CreateTestStateFromWorkspace(workspaceElement As XElement,
-                                                            Optional extraCompletionProviders As CompletionProvider() = Nothing,
                                                             Optional extraExportedTypes As List(Of Type) = Nothing,
                                                             Optional workspaceKind As String = Nothing) As TestState
 
-            Return New TestState(workspaceElement, extraCompletionProviders,
+            Return New TestState(workspaceElement,
                                    excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
         End Function
     End Class

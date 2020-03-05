@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -467,7 +469,10 @@ class B : A
 }
 ");
 
-            VisualStudio.Editor.SendKeys("override Goo(");
+            VisualStudio.Editor.SendKeys("override ");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys("Goo(");
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 class B : A
@@ -495,7 +500,10 @@ class C
 }
 ");
 
-            VisualStudio.Editor.SendKeys("new Li(", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys("new Li");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys("(", VirtualKey.Tab);
             VisualStudio.Editor.Verify.CurrentLineText("List<int> li = new List<int>()$$", assertCaretPosition: true);
         }
 

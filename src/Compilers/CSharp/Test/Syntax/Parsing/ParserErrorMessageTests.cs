@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -5965,15 +5967,11 @@ public class Class1
     int Meth2 (int parm) {[Goo(5)]return 0;}
 }
 ";
-            ParseAndValidate(test,
-                // (4,27): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "[").WithLocation(4, 27),
-                // (4,35): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(4, 35),
-                // (4,35): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(4, 35),
-                // (5,1): error CS1022: Type or namespace definition, or end-of-file expected
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 1));
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (4,27): error CS7014: Attributes are not valid in this context.
+                //     int Meth2 (int parm) {[Goo(5)]return 0;}
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[Goo(5)]").WithLocation(4, 27)
+            );
         }
 
         // Preprocessor:
@@ -6493,7 +6491,7 @@ class Program
     {
 ");
 
-            const int depth = 10000;
+            const int depth = 100000;
             for (int i = 0; i < depth; i++)
             {
                 var line = string.Format("Action a{0} = delegate d{0} {{", i);

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal sealed class NamingStylePreferenceEditorConfigStorageLocation : OptionStorageLocation, IEditorConfigStorageLocation
     {
-        public bool TryGetOption(IReadOnlyDictionary<string, string> rawOptions, Type type, out object result)
+        public bool TryGetOption(IReadOnlyDictionary<string, string?> rawOptions, Type type, out object result)
         {
             var tuple = ParseDictionary(rawOptions, type);
             result = tuple.result;
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         private static (object result, bool succeeded) ParseDictionary(
-            IReadOnlyDictionary<string, string> allRawConventions, Type type)
+            IReadOnlyDictionary<string, string?> allRawConventions, Type type)
         {
             if (type == typeof(NamingStylePreferences))
             {

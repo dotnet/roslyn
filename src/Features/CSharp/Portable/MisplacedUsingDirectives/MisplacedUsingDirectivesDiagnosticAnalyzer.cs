@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
-            var option = GetPreferredPlacementOptionAsync(context).GetAwaiter().GetResult();
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
             if (option.Value != AddImportPlacement.OutsideNamespace)
             {
                 return;
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private static void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
         {
-            var option = GetPreferredPlacementOptionAsync(context).GetAwaiter().GetResult();
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
             var compilationUnit = (CompilationUnitSyntax)context.Node;
 
             if (option.Value != AddImportPlacement.InsideNamespace
@@ -83,12 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             // compilation unit (including ExternAlias).
             return compilationUnit.ChildNodes().Any(
                 t => !t.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration));
-        }
-
-        private static async Task<CodeStyleOption<AddImportPlacement>> GetPreferredPlacementOptionAsync(SyntaxNodeAnalysisContext context)
-        {
-            var options = await context.Options.GetDocumentOptionSetAsync(context.Node.SyntaxTree, context.CancellationToken);
-            return options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
         }
 
         private static void ReportDiagnostics(

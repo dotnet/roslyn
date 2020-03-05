@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -115,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.VisitIntoStructuredTrivia && trivia.HasStructure)
             {
-                var structure = (CSharpSyntaxNode)trivia.GetStructure();
+                var structure = (CSharpSyntaxNode)trivia.GetStructure()!;
                 var newStructure = (StructuredTriviaSyntax)this.Visit(structure);
                 if (newStructure != structure)
                 {
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        return default(SyntaxTrivia);
+                        return default;
                     }
                 }
             }
@@ -162,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual TNode VisitListElement<TNode>(TNode node) where TNode : SyntaxNode
         {
-            return (TNode)(SyntaxNode)this.Visit(node);
+            return (TNode)this.Visit(node);
         }
 
         public virtual SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> list) where TNode : SyntaxNode
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var count = list.Count;
             var sepCount = list.SeparatorCount;
 
-            SeparatedSyntaxListBuilder<TNode> alternate = default(SeparatedSyntaxListBuilder<TNode>);
+            SeparatedSyntaxListBuilder<TNode> alternate = default;
 
             int i = 0;
             for (; i < sepCount; i++)

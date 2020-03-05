@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -436,10 +438,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     else
                     {
-                        // we are calling the expression on a copy of the target anyway, 
+                        // We are calling the expression on a copy of the target anyway, 
                         // so even if T is a struct, we don't need to make sure we call the expression on the original target.
 
-                        _builder.EmitLocalLoad(receiverTemp);
+                        // We currently have an address on the stack. Duplicate it, and load the value of the address.
+                        _builder.EmitOpCode(ILOpCode.Dup);
+                        EmitLoadIndirect(receiverType, receiver.Syntax);
                         EmitBox(receiverType, receiver.Syntax);
                     }
                 }
@@ -2016,7 +2020,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (TryEmitAssignmentInPlace(assignmentOperator, useKind != UseKind.Unused))
             {
-                Debug.Assert(!assignmentOperator.IsRef);
                 return;
             }
 
@@ -2083,6 +2086,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         //    i.e. target must not be on the heap and we should not be in a try block.
         private bool TryEmitAssignmentInPlace(BoundAssignmentOperator assignmentOperator, bool used)
         {
+            // If the left hand is itself a ref, then we can't use in-place assignment
+            // because we need to spill the creation. This code can't be written in C#, but
+            // can be produced by lowering.
+            if (assignmentOperator.IsRef)
+            {
+                return false;
+            }
+
             var left = assignmentOperator.Left;
 
             // if result is used, and lives on heap, we must keep RHS value on the stack.

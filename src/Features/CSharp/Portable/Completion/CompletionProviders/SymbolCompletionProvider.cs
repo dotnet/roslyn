@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -17,9 +20,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
+    [Shared]
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
                 context.SemanticModel, position, context.Workspace, options, cancellationToken);
@@ -63,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.Kind() != SyntaxKind.NumericLiteralToken;
         }
 
-        protected override async Task<SyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
             var span = new TextSpan(position, 0);

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -27,22 +31,27 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// The text in the &lt;example&gt; tag. Null if no tag existed.
         /// </summary>
-        public string ExampleText { get; private set; }
+        public string? ExampleText { get; private set; }
 
         /// <summary>
         /// The text in the &lt;summary&gt; tag. Null if no tag existed.
         /// </summary>
-        public string SummaryText { get; private set; }
+        public string? SummaryText { get; private set; }
 
         /// <summary>
         /// The text in the &lt;returns&gt; tag. Null if no tag existed.
         /// </summary>
-        public string ReturnsText { get; private set; }
+        public string? ReturnsText { get; private set; }
+
+        /// <summary>
+        /// The text in the &lt;value&gt; tag. Null if no tag existed.
+        /// </summary>
+        public string? ValueText { get; private set; }
 
         /// <summary>
         /// The text in the &lt;remarks&gt; tag. Null if no tag existed.
         /// </summary>
-        public string RemarksText { get; private set; }
+        public string? RemarksText { get; private set; }
 
         /// <summary>
         /// The names of items in &lt;param&gt; tags.
@@ -63,15 +72,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// The item named in the &lt;completionlist&gt; tag's cref attribute.
         /// Null if the tag or cref attribute didn't exist.
         /// </summary>
-        public string CompletionListCref { get; private set; }
+        public string? CompletionListCref { get; private set; }
 
         /// <summary>
         /// Used for <see cref="CommentBuilder.TrimEachLine"/> method, to prevent new allocation of string
         /// </summary>
         private static readonly string[] s_NewLineAsStringArray = new string[] { "\n" };
 
-        private DocumentationComment()
+        private DocumentationComment(string fullXmlFragment)
         {
+            FullXmlFragment = fullXmlFragment;
+
             ParameterNames = ImmutableArray<string>.Empty;
             TypeParameterNames = ImmutableArray<string>.Empty;
             ExceptionTypes = ImmutableArray<string>.Empty;
@@ -80,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Cache of the most recently parsed fragment and the resulting DocumentationComment
         /// </summary>
-        private static volatile DocumentationComment s_cacheLastXmlFragmentParse;
+        private static volatile DocumentationComment? s_cacheLastXmlFragmentParse;
 
         /// <summary>
         /// Parses and constructs a <see cref="DocumentationComment" /> from the given fragment of XML.
@@ -106,10 +117,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private class CommentBuilder
         {
             private readonly DocumentationComment _comment;
-            private ImmutableArray<string>.Builder _parameterNamesBuilder;
-            private ImmutableArray<string>.Builder _typeParameterNamesBuilder;
-            private ImmutableArray<string>.Builder _exceptionTypesBuilder;
-            private Dictionary<string, ImmutableArray<string>.Builder> _exceptionTextBuilders;
+            private ImmutableArray<string>.Builder? _parameterNamesBuilder;
+            private ImmutableArray<string>.Builder? _typeParameterNamesBuilder;
+            private ImmutableArray<string>.Builder? _exceptionTypesBuilder;
+            private Dictionary<string, ImmutableArray<string>.Builder>? _exceptionTextBuilders;
 
             /// <summary>
             /// Parse and construct a <see cref="DocumentationComment" /> from the given fragment of XML.
@@ -127,13 +138,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     // It would be nice if we only had to catch XmlException to handle invalid XML
                     // while parsing doc comments. Unfortunately, other exceptions can also occur,
                     // so we just catch them all. See Dev12 Bug 612456 for an example.
-                    return new DocumentationComment { FullXmlFragment = xml, HadXmlParseError = true };
+                    return new DocumentationComment(xml) { HadXmlParseError = true };
                 }
             }
 
             private CommentBuilder(string xml)
             {
-                _comment = new DocumentationComment() { FullXmlFragment = xml };
+                _comment = new DocumentationComment(xml);
             }
 
             private DocumentationComment ParseInternal(string xml)
@@ -181,6 +192,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     else if (XmlNames.ElementEquals(localName, XmlNames.ReturnsElementName) && _comment.ReturnsText == null)
                     {
                         _comment.ReturnsText = TrimEachLine(reader.ReadInnerXml());
+                    }
+                    else if (XmlNames.ElementEquals(localName, XmlNames.ValueElementName) && _comment.ValueText == null)
+                    {
+                        _comment.ValueText = TrimEachLine(reader.ReadInnerXml());
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.RemarksElementName) && _comment.RemarksText == null)
                     {
@@ -291,6 +306,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// An empty comment.
         /// </summary>
-        public static readonly DocumentationComment Empty = new DocumentationComment();
+        public static readonly DocumentationComment Empty = new DocumentationComment(string.Empty);
     }
 }

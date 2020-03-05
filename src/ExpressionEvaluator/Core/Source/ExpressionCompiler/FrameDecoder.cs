@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -47,8 +51,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Debug.Assert((argumentFlags & (DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Values)) == argumentFlags,
                     $"Unexpected argumentFlags '{argumentFlags}'");
 
-                GetNameWithGenericTypeArguments(inspectionContext, workList, frame,
-                    onSuccess: method => GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine, method),
+                GetNameWithGenericTypeArguments(workList, frame, onSuccess: method => GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine, method),
                     onFailure: e => completionRoutine(DkmGetFrameNameAsyncResult.CreateErrorResult(e)));
             }
             catch (NotImplementedMetadataException)
@@ -69,8 +72,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             try
             {
-                GetNameWithGenericTypeArguments(inspectionContext, workList, frame,
-                    onSuccess: method => completionRoutine(new DkmGetFrameReturnTypeAsyncResult(_instructionDecoder.GetReturnTypeName(method))),
+                GetNameWithGenericTypeArguments(workList, frame, onSuccess: method => completionRoutine(new DkmGetFrameReturnTypeAsyncResult(_instructionDecoder.GetReturnTypeName(method))),
                     onFailure: e => completionRoutine(DkmGetFrameReturnTypeAsyncResult.CreateErrorResult(e)));
             }
             catch (NotImplementedMetadataException)
@@ -84,7 +86,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private void GetNameWithGenericTypeArguments(
-            DkmInspectionContext inspectionContext,
             DkmWorkList workList,
             DkmStackWalkFrame frame,
             Action<TMethodSymbol> onSuccess,
@@ -166,10 +167,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         var argumentValues = (result.ErrorCode == 0) ? result.Arguments : null;
                         try
                         {
-                            ArrayBuilder<string> builder = null;
+                            ArrayBuilder<string?>? builder = null;
                             if (argumentValues != null)
                             {
-                                builder = ArrayBuilder<string>.GetInstance();
+                                builder = ArrayBuilder<string?>.GetInstance();
                                 foreach (var argument in argumentValues)
                                 {
                                     var formattedArgument = argument as DkmSuccessEvaluationResult;

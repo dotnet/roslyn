@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -30,17 +32,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private readonly MSBuildProjectLoader _loader;
         private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
-
-        private ImmutableList<WorkspaceDiagnostic> _diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
+        private readonly DiagnosticReporter _reporter;
 
         private MSBuildWorkspace(
             HostServices hostServices,
             ImmutableDictionary<string, string> properties)
             : base(hostServices, WorkspaceKind.MSBuild)
         {
-            var diagnosticReporter = new DiagnosticReporter(this);
-            _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(this, diagnosticReporter);
-            _loader = new MSBuildProjectLoader(this, diagnosticReporter, _projectFileLoaderRegistry, properties);
+            _reporter = new DiagnosticReporter(this);
+            _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(Services, _reporter);
+            _loader = new MSBuildProjectLoader(Services, _reporter, _projectFileLoaderRegistry, properties);
         }
 
         /// <summary>
@@ -100,11 +101,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Diagnostics logged while opening solutions, projects and documents.
         /// </summary>
-        public ImmutableList<WorkspaceDiagnostic> Diagnostics => _diagnostics;
+        public ImmutableList<WorkspaceDiagnostic> Diagnostics => _reporter.Diagnostics;
 
         protected internal override void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
         {
-            ImmutableInterlocked.Update(ref _diagnostics, d => d.Add(diagnostic));
+            _reporter.AddDiagnostic(diagnostic);
             base.OnWorkspaceFailed(diagnostic);
         }
 
@@ -291,7 +292,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         }
                         catch (IOException exception)
                         {
-                            this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+                            _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                         }
                     }
                 }
@@ -308,7 +309,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                     catch (IOException exception)
                     {
-                        this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+                        _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                     }
                 }
             }
@@ -403,7 +404,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (IOException exception)
             {
-                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, id));
+                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, id));
             }
         }
 
@@ -431,15 +432,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (IOException exception)
             {
-                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
             }
             catch (NotSupportedException exception)
             {
-                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
             }
             catch (UnauthorizedAccessException exception)
             {
-                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
             }
         }
 

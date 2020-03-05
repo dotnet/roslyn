@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,8 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="request">the lsp request.</param>
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
-        /// <param name="keepThreadContext">a value to set if the threading context in the handler should be kept from the caller.</param>
-        /// <returns>the lps response.</returns>
-        Task<ResponseType> HandleRequestAsync(Solution solution, RequestType request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false);
+        /// <returns>the LSP response.</returns>
+        Task<ResponseType> HandleRequestAsync(Solution solution, RequestType request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken);
     }
 }

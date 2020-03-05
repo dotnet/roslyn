@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -592,6 +594,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // so we stash them here in plain array (can't use immutable, see the bug) just before we report NFW.
         private static ActiveStatement[]? s_fatalErrorBaseActiveStatements;
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "'AnalyzeDocumentAsync' is the name of the method where an error occurred.")]
         private static bool ReportFatalErrorAnalyzeDocumentAsync(ImmutableArray<ActiveStatement> baseActiveStatements, Exception e)
         {
             if (!(e is OperationCanceledException))
@@ -645,7 +648,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
             Debug.Assert(updatedMethods.Count == 0);
 
-            var updatedTrackingSpans = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance();
+            using var _ = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance(out var updatedTrackingSpans);
 
             for (var i = 0; i < script.Edits.Length; i++)
             {
@@ -663,8 +666,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 trackingService!.UpdateActiveStatementSpans(newText, updatedTrackingSpans);
             }
-
-            updatedTrackingSpans.Free();
         }
 
         private void UpdateUneditedSpans(
@@ -794,7 +795,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(newExceptionRegions == null || oldActiveStatements.Length == newExceptionRegions.Length);
 
-            var updatedTrackingSpans = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance();
+            using var _ = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance(out var updatedTrackingSpans);
 
             // Active statements in methods that were not updated 
             // are not changed but their spans might have been. 
@@ -840,8 +841,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 trackingService!.UpdateActiveStatementSpans(newText, updatedTrackingSpans);
             }
-
-            updatedTrackingSpans.Free();
         }
 
         internal readonly struct ActiveNode
@@ -3171,8 +3170,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // - Lambda methods are generated to the same frame as before, so they can be updated in-place.
             // - "Parent" links between closure scopes are preserved.
 
-            var oldCapturesIndex = PooledDictionary<ISymbol, int>.GetInstance();
-            var newCapturesIndex = PooledDictionary<ISymbol, int>.GetInstance();
+            using var _1 = PooledDictionary<ISymbol, int>.GetInstance(out var oldCapturesIndex);
+            using var _2 = PooledDictionary<ISymbol, int>.GetInstance(out var newCapturesIndex);
 
             BuildIndex(oldCapturesIndex, oldCaptures);
             BuildIndex(newCapturesIndex, newCaptures);
@@ -3307,8 +3306,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             reverseCapturesMap.Free();
             newCapturesToClosureScopes.Free();
             oldCapturesToClosureScopes.Free();
-            oldCapturesIndex.Free();
-            newCapturesIndex.Free();
         }
 
         private void ReportMultiScopeCaptures(
@@ -3510,8 +3507,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             //   the closure tree of the previous version and then map 
             //   closure scopes in the new version to the previous ones, keeping empty closures around.
 
-            var oldLocalCapturesBySyntax = PooledDictionary<SyntaxNode, int>.GetInstance();
-            var oldParameterCapturesByLambdaAndOrdinal = PooledDictionary<(SyntaxNode? Node, int Ordinal), int>.GetInstance();
+            using var _1 = PooledDictionary<SyntaxNode, int>.GetInstance(out var oldLocalCapturesBySyntax);
+            using var _2 = PooledDictionary<(SyntaxNode? Node, int Ordinal), int>.GetInstance(out var oldParameterCapturesByLambdaAndOrdinal);
 
             for (var i = 0; i < oldCaptures.Length; i++)
             {
@@ -3730,8 +3727,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 hasErrors = true;
             }
-
-            oldLocalCapturesBySyntax.Free();
         }
 
         protected virtual void ReportLambdaSignatureRudeEdits(

@@ -1,4 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+#nullable enable
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,6 +9,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < fieldCount; i++)
             {
                 AnonymousObjectMemberDeclaratorSyntax fieldInitializer = initializers[i];
-                NameEqualsSyntax nameEquals = fieldInitializer.NameEquals;
+                NameEqualsSyntax? nameEquals = fieldInitializer.NameEquals;
                 ExpressionSyntax expression = fieldInitializer.Expression;
 
                 SyntaxToken nameToken = default(SyntaxToken);
@@ -61,11 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundExpressions[i] = BindRValueWithoutTargetType(expression, diagnostics);
 
                 //  check the name to be unique
-                string fieldName = null;
+                string? fieldName = null;
                 if (nameToken.Kind() == SyntaxKind.IdentifierToken)
                 {
                     fieldName = nameToken.ValueText;
-                    if (!uniqueFieldNames.Add(fieldName))
+                    if (!uniqueFieldNames.Add(fieldName!))
                     {
                         //  name duplication
                         Error(diagnostics, ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, fieldInitializer);
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol fieldType = GetAnonymousTypeFieldType(boundExpressions[i], fieldInitializer, diagnostics, ref hasError);
 
                 // build anonymous type field descriptor
-                fieldSyntaxNodes[i] = (nameToken.Kind() == SyntaxKind.IdentifierToken) ? (CSharpSyntaxNode)nameToken.Parent : fieldInitializer;
+                fieldSyntaxNodes[i] = (nameToken.Kind() == SyntaxKind.IdentifierToken) ? (CSharpSyntaxNode)nameToken.Parent! : fieldInitializer;
                 fields[i] = new AnonymousTypeField(
                     fieldName == null ? "$" + i.ToString() : fieldName,
                     fieldSyntaxNodes[i].Location,
@@ -105,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<BoundAnonymousPropertyDeclaration>.GetInstance();
             for (int i = 0; i < fieldCount; i++)
             {
-                NameEqualsSyntax explicitName = initializers[i].NameEquals;
+                NameEqualsSyntax? explicitName = initializers[i].NameEquals;
                 if (explicitName != null)
                 {
                     AnonymousTypeField field = fields[i];
@@ -176,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsAnonymousTypesAllowed()
         {
             var member = this.ContainingMemberOrLambda;
-            if ((object)member == null)
+            if (member is null)
             {
                 return false;
             }
@@ -203,13 +207,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, DiagnosticBag diagnostics, ref bool hasError)
         {
-            object errorArg = null;
-            TypeSymbol expressionType = expression.Type;
+            object? errorArg = null;
+            TypeSymbol? expressionType = expression.Type;
 
             if (!expression.HasAnyErrors)
             {
                 if (expression.HasExpressionType())
                 {
+                    RoslynDebug.Assert(expressionType is object);
                     if (expressionType.IsVoidType())
                     {
                         errorArg = expressionType;
@@ -231,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if ((object)expressionType == null)
+            if (expressionType is null)
             {
                 expressionType = CreateErrorType("error");
             }

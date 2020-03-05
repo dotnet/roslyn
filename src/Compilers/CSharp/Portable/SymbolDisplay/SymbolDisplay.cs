@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static string ToDisplayString(
             ISymbol symbol,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             return ToDisplayParts(symbol, format).ToDisplayString();
         }
@@ -36,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string ToDisplayString(
             ITypeSymbol symbol,
             CodeAnalysis.NullableFlowState nullableFlowState,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             return ToDisplayParts(symbol, nullableFlowState, format).ToDisplayString();
         }
@@ -44,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string ToDisplayString(
             ITypeSymbol symbol,
             CodeAnalysis.NullableAnnotation nullableAnnotation,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             return ToDisplayParts(symbol, nullableAnnotation, format).ToDisplayString();
         }
@@ -67,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ISymbol symbol,
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             return ToMinimalDisplayParts(symbol, semanticModel, position, format).ToDisplayString();
         }
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CodeAnalysis.NullableFlowState nullableFlowState,
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             return ToMinimalDisplayParts(symbol, nullableFlowState, semanticModel, position, format).ToDisplayString();
         }
@@ -88,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CodeAnalysis.NullableAnnotation nullableAnnotation,
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             return ToMinimalDisplayParts(symbol, nullableAnnotation, semanticModel, position, format).ToDisplayString();
         }
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ISymbol symbol,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             // null indicates the default format
             format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
@@ -119,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ITypeSymbol symbol,
             CodeAnalysis.NullableFlowState nullableFlowState,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             // null indicates the default format
             format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
@@ -130,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ITypeSymbol symbol,
             CodeAnalysis.NullableAnnotation nullableAnnotation,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             // null indicates the default format
             format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
@@ -155,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ISymbol symbol,
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
             return ToDisplayParts(symbol, semanticModel, position, format, minimal: true);
@@ -168,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CodeAnalysis.NullableFlowState nullableFlowState,
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
             return ToDisplayParts(symbol, nullableFlowState, semanticModel, position, format, minimal: true);
@@ -179,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CodeAnalysis.NullableAnnotation nullableAnnotation,
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
             return ToDisplayParts(symbol.WithNullableAnnotation(nullableAnnotation), semanticModel, position, format, minimal: true);
@@ -189,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ITypeSymbol symbol,
             CodeAnalysis.NullableFlowState nullableFlowState,
-            SemanticModel semanticModelOpt,
+            SemanticModel? semanticModelOpt,
             int positionOpt,
             SymbolDisplayFormat format,
             bool minimal)
@@ -199,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ISymbol symbol,
-            SemanticModel semanticModelOpt,
+            SemanticModel? semanticModelOpt,
             int positionOpt,
             SymbolDisplayFormat format,
             bool minimal)

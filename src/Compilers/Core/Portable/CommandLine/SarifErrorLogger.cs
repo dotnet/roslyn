@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -121,7 +123,6 @@ namespace Microsoft.CodeAnalysis
         protected static string GetUri(string path)
         {
             Debug.Assert(!string.IsNullOrEmpty(path));
-            Uri uri;
 
             // Note that in general, these "paths" are opaque strings to be 
             // interpreted by resolvers (see SyntaxTree.FilePath documentation).
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis
                 // N.B. URI does not handle multiple backslashes or `..` well, so call GetFullPath
                 // to normalize before going to URI
                 var fullPath = Path.GetFullPath(path);
-                if (Uri.TryCreate(fullPath, UriKind.Absolute, out uri))
+                if (Uri.TryCreate(fullPath, UriKind.Absolute, out var uri))
                 {
                     // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString()
                     // is unescaped (e.g. spaces remain unreplaced by %20) and therefore
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis
                     path = PathUtilities.NormalizeWithForwardSlash(path);
                 }
 
-                if (Uri.TryCreate(path, UriKind.Relative, out uri))
+                if (Uri.TryCreate(path, UriKind.Relative, out var uri))
                 {
                     // First fallback attempt: attempt to interpret as relative path/URI.
                     // (Perhaps the resolver works that way.)

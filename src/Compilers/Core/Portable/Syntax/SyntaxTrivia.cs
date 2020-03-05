@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static readonly Func<SyntaxTrivia, bool> Any = t => true;
 
-        internal SyntaxTrivia(in SyntaxToken token, GreenNode triviaNode, int position, int index)
+        internal SyntaxTrivia(in SyntaxToken token, GreenNode? triviaNode, int position, int index)
         {
             Token = token;
             UnderlyingNode = triviaNode;
@@ -51,7 +55,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken Token { get; }
 
-        internal GreenNode UnderlyingNode { get; }
+        internal GreenNode? UnderlyingNode { get; }
+
+        internal GreenNode RequiredUnderlyingNode
+        {
+            get
+            {
+                var node = UnderlyingNode;
+                Debug.Assert(node is object);
+                return node;
+            }
+        }
 
         internal int Position { get; }
 
@@ -192,9 +206,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns>The child non-terminal node representing the syntax tree structure under this structured
         /// trivia.</returns>
-        public SyntaxNode GetStructure()
+        public SyntaxNode? GetStructure()
         {
-            return HasStructure ? UnderlyingNode.GetStructure(this) : null;
+            return HasStructure ? UnderlyingNode!.GetStructure(this) : null;
         }
 
         /// <summary> 
@@ -256,9 +270,9 @@ namespace Microsoft.CodeAnalysis
         /// Determines whether the supplied <see cref="SyntaxTrivia"/> is equal to this
         /// <see cref="SyntaxTrivia"/>.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return obj is SyntaxTrivia && Equals((SyntaxTrivia)obj);
+            return obj is SyntaxTrivia trivia && Equals(trivia);
         }
 
         /// <summary>
@@ -377,7 +391,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// SyntaxTree which contains current SyntaxTrivia.
         /// </summary>
-        public SyntaxTree SyntaxTree
+        public SyntaxTree? SyntaxTree
         {
             get
             {
@@ -390,7 +404,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            return this.SyntaxTree.GetLocation(this.Span);
+            // https://github.com/dotnet/roslyn/issues/40773
+            return this.SyntaxTree!.GetLocation(this.Span);
         }
 
         /// <summary>
@@ -400,7 +415,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<Diagnostic> GetDiagnostics()
         {
-            return this.SyntaxTree.GetDiagnostics(this);
+            // https://github.com/dotnet/roslyn/issues/40773
+            return this.SyntaxTree!.GetDiagnostics(this);
         }
 
         /// <summary>

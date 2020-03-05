@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -57,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConfiguration = "CodeActions.Configuration";
             public const string CodeActionsConvertAnonymousTypeToClass = "CodeActions.ConvertAnonymousTypeToClass";
             public const string CodeActionsConvertAnonymousTypeToTuple = "CodeActions.ConvertAnonymousTypeToTuple";
+            public const string CodeActionsConvertBetweenRegularAndVerbatimString = "CodeActions.ConvertBetweenRegularAndVerbatimString";
             public const string CodeActionsConvertForEachToFor = "CodeActions.ConvertForEachToFor";
             public const string CodeActionsConvertForEachToQuery = "CodeActions.ConvertForEachToQuery";
             public const string CodeActionsConvertForToForEach = "CodeActions.ConvertForToForEach";

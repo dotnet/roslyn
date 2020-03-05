@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
@@ -2498,6 +2500,90 @@ Class C
     End Sub
 End Class",
                 MainDescription("Structure System.Int32"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithReturnsOnFunction() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <returns>
+    ''' Returns text
+    ''' </returns>
+    Function M() As Integer
+        Return $$M()
+    End Function
+End Class",
+                MainDescription("Function C.M() As Integer"),
+                Documentation("Summary text"),
+                Returns($"{vbCrLf}{FeaturesResources.Returns_colon}{vbCrLf}  Returns text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithReturnsOnPropertyAccessor() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <returns>
+    ''' Returns text
+    ''' </returns>
+    ReadOnly Property M As Integer
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class",
+                MainDescription("Property Get C.M() As Integer"),
+                Documentation("Summary text"),
+                Returns($"{vbCrLf}{FeaturesResources.Returns_colon}{vbCrLf}  Returns text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithValueOnFunction() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <value>
+    ''' Value text
+    ''' </value>
+    Function M() As Integer
+        Return $$M()
+    End Function
+End Class",
+                MainDescription("Function C.M() As Integer"),
+                Documentation("Summary text"),
+                Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithValueOnPropertyAccessor() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <value>
+    ''' Value text
+    ''' </value>
+    ReadOnly Property M As Integer
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class",
+                MainDescription("Property Get C.M() As Integer"),
+                Documentation("Summary text"),
+                Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
         End Function
     End Class
 End Namespace

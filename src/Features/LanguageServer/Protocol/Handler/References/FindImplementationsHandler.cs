@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Linq;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, object>
     {
         public async Task<object> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
+            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
@@ -26,11 +28,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var context = new SimpleFindUsagesContext(cancellationToken);
 
-            await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(keepThreadContext);
+            await FindImplementationsAsync(findUsagesService, document, position, context).ConfigureAwait(false);
 
             foreach (var definition in context.GetDefinitions())
             {
@@ -39,16 +41,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     if (clientCapabilities?.HasVisualStudioLspCapability() == true)
                     {
-                        locations.Add(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(keepThreadContext));
+                        locations.Add(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
                     }
                     else
                     {
-                        locations.Add(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(keepThreadContext));
+                        locations.Add(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(false));
                     }
                 }
             }
 
             return locations.ToArrayAndFree();
         }
+
+        protected virtual Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context)
+            => findUsagesService.FindImplementationsAsync(document, position, context);
     }
 }

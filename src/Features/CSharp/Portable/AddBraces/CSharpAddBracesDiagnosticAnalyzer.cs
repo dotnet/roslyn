@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Threading;
@@ -45,13 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             var statement = context.Node;
             var cancellationToken = context.CancellationToken;
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(statement.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferBraces);
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferBraces, statement.SyntaxTree, cancellationToken);
             if (option.Value == PreferBracesPreference.None)
             {
                 return;
@@ -122,9 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// </summary>
         private static bool ContainsInterleavedDirective(SyntaxNode statement, StatementSyntax embeddedStatement, CancellationToken cancellationToken)
         {
-            if (statement.Kind() == SyntaxKind.IfStatement)
+            if (statement.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax ifStatementNode))
             {
-                var ifStatementNode = (IfStatementSyntax)statement;
                 var elseNode = ifStatementNode.Else;
                 if (elseNode != null && !embeddedStatement.IsMissing)
                 {

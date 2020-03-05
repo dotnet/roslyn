@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -5027,7 +5029,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_04()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5057,7 +5059,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       48 (0x30)
@@ -5091,7 +5093,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_05()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5120,7 +5122,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       30 (0x1e)
@@ -5148,7 +5150,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_06()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5177,7 +5179,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
    // Code size       30 (0x1e)
@@ -5205,7 +5207,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_07()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5234,7 +5236,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       30 (0x1e)
@@ -5262,7 +5264,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_08()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5288,7 +5290,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       10 (0xa)
@@ -5307,7 +5309,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_09()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5332,7 +5334,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       15 (0xf)
@@ -5354,7 +5356,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_10()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5379,7 +5381,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       10 (0xa)
@@ -5398,7 +5400,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_11()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5423,7 +5425,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       23 (0x17)
@@ -5449,7 +5451,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_12()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5475,7 +5477,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       10 (0xa)
@@ -5494,7 +5496,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_13()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5519,7 +5521,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       23 (0x17)
@@ -5545,7 +5547,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_14()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5570,7 +5572,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       10 (0xa)
@@ -5589,7 +5591,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_15()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5614,7 +5616,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       15 (0xf)
@@ -5636,7 +5638,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_16()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5657,7 +5659,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size        4 (0x4)
@@ -5674,7 +5676,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_17()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5695,7 +5697,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size        4 (0x4)
@@ -5712,7 +5714,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_18()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5738,7 +5740,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       56 (0x38)
@@ -5776,7 +5778,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_19()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5801,7 +5803,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       38 (0x26)
@@ -5832,7 +5834,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_20()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5862,7 +5864,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       37 (0x25)
@@ -5892,7 +5894,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_21()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5918,7 +5920,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       53 (0x35)
@@ -5954,7 +5956,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_22()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5980,7 +5982,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size      134 (0x86)
@@ -6050,7 +6052,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_23()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6076,7 +6078,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size      149 (0x95)
@@ -6151,7 +6153,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_24()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6177,7 +6179,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       53 (0x35)
@@ -6213,7 +6215,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_25()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6239,7 +6241,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       53 (0x35)
@@ -6275,7 +6277,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_26()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6305,7 +6307,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       93 (0x5d)
@@ -6359,7 +6361,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_27()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6389,7 +6391,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       93 (0x5d)
@@ -6443,7 +6445,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_28()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6469,7 +6471,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       68 (0x44)
@@ -6510,7 +6512,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_29()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6536,7 +6538,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       68 (0x44)

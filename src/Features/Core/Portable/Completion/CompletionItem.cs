@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -366,13 +368,28 @@ namespace Microsoft.CodeAnalysis.Completion
 
         int IComparable<CompletionItem>.CompareTo(CompletionItem other)
         {
-            var result = StringComparer.OrdinalIgnoreCase.Compare(SortText, other.SortText);
-            if (result == 0)
-            {
-                result = StringComparer.OrdinalIgnoreCase.Compare(GetEntireDisplayText(), other.GetEntireDisplayText());
-            }
+            // Make sure expanded items are listed after non-expanded ones
+            var thisIsExpandItem = Flags.IsExpanded();
+            var otherIsExpandItem = other.Flags.IsExpanded();
 
-            return result;
+            if (thisIsExpandItem == otherIsExpandItem)
+            {
+                var result = StringComparer.OrdinalIgnoreCase.Compare(SortText, other.SortText);
+                if (result == 0)
+                {
+                    result = StringComparer.OrdinalIgnoreCase.Compare(GetEntireDisplayText(), other.GetEntireDisplayText());
+                }
+
+                return result;
+            }
+            else if (thisIsExpandItem)
+            {
+                return 1;
+            }
+            else
+            {
+                return -1;
+            }
         }
 
         internal string GetEntireDisplayText()

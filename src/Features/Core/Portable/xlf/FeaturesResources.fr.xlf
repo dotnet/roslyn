@@ -84,12 +84,17 @@
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
-        <target state="new">Awaited task returns '{0}'</target>
+        <target state="translated">La tâche attendue retourne '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
         <source>Awaited task returns no value</source>
-        <target state="new">Awaited task returns no value</target>
+        <target state="translated">La tâche attendue ne retourne aucune valeur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -127,11 +132,6 @@
         <target state="translated">Le remplacement de '{0}' par '{1}' va empêcher la session de débogage de se poursuivre, car cela change la forme de la machine à états.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">Qualité du code</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurer le style de code {0}</target>
@@ -140,6 +140,16 @@
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
         <target state="translated">Configurer la gravité {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_0_analyzers">
+        <source>Configure severity for all '{0}' analyzers</source>
+        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_analyzers">
+        <source>Configure severity for all analyzers</source>
+        <target state="new">Configure severity for all analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -198,8 +208,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
-        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="translated">Le contenu actuel du fichier source « {0} » ne correspond pas à la source générée. La session de débogage ne peut pas continuer tant que le contenu du fichier source n'est pas restauré.</target>
+        <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="translated">Le contenu actuel du fichier source '{0}' ne correspond pas à la source générée. Les changements apportés à ce fichier durant le débogage ne seront pas appliqués tant que son contenu ne correspondra pas à la source générée.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -229,22 +239,22 @@
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
-        <target state="new">Extract interface...</target>
+        <target state="translated">Extraire l'interface...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_local_function">
         <source>Extract local function</source>
-        <target state="new">Extract local function</target>
+        <target state="translated">Extraire la fonction locale</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method">
         <source>Extract method</source>
-        <target state="new">Extract method</target>
+        <target state="translated">Extraire une méthode</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method_plus_local">
         <source>Extract method + local</source>
-        <target state="new">Extract method + local</target>
+        <target state="translated">Extraire la méthode + fonction locale</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
@@ -279,37 +289,47 @@
       </trans-unit>
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
-        <target state="new">'GetHashCode' implementation can be simplified</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="new">Implement all interfaces explicitly</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="new">Implement explicitly</target>
+        <target state="translated">L'implémentation de 'GetHashCode' peut être simplifiée</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
-        <target state="new">Implement '{0}' explicitly</target>
+        <target state="translated">Implémenter '{0}' explicitement</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
-        <target state="new">Implement '{0}' implicitly</target>
+        <target state="translated">Implémenter '{0}' implicitement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
-        <target state="new">Implement all interfaces implicitly</target>
+        <target state="translated">Implémenter toutes les interfaces implicitement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
-        <target state="new">Implement implicitly</target>
+        <target state="translated">Implémenter implicitement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -339,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
-        <target state="new">Interpolation can be simplified</target>
+        <target state="translated">L'interpolation peut être simplifiée</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -364,7 +384,7 @@
       </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
-        <target state="new">Make static</target>
+        <target state="translated">Rendre statique</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
@@ -437,29 +457,19 @@
         <target state="translated">Déplacer vers un espace de noms...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">Vous pouvez supprimer le membre privé '{0}', car la valeur qui lui est attribuée n'est jamais lue.</target>
+      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="translated">Impossible de supprimer le paramètre '{0}' s'il ne fait pas partie d'une API publique fournie, sa valeur initiale n'est jamais utilisée</target>
         <note />
       </trans-unit>
-      <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">Le membre privé '{0}' n'est pas utilisé.</target>
+      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed, its initial value is never used</source>
+        <target state="translated">Le paramètre '{0}' peut être supprimé, sa valeur initiale n'est jamais utilisée</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">Le fait de modifier le fichier source {0} empêche la session de débogage de se poursuivre en raison de l’erreur interne : {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
-        <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="translated">Impossible de supprimer la méthode privée '{0}', car elle n'est jamais appelée.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
-        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">La propriété privée '{0}' peut être convertie en méthode, car son accesseur get n'est jamais appelé.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -487,16 +497,6 @@
         <target state="translated">Supprimer l'attribution redondante</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unread_private_members">
-        <source>Remove unread private members</source>
-        <target state="translated">Supprimer les membres privés non lus</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">Supprimer les membres non utilisés</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_parameter">
         <source>Remove unused parameter</source>
         <target state="translated">Supprimer le paramètre inutilisé</target>
@@ -512,24 +512,14 @@
         <target state="translated">Supprimer le paramètre inutilisé '{0}' si celui-ci ne fait pas partie d’une API publique livrée</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Supprimer le paramètre '{0}' inutilisé s'il ne fait pas partie d'une API publique fournie, sa valeur initiale n'est jamais utilisée</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}', its initial value is never used</source>
-        <target state="translated">Supprimer le paramètre '{0}' inutilisé, sa valeur initiale n'est jamais utilisée</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_private_members">
-        <source>Remove unused private members</source>
-        <target state="translated">Supprimer les membres privés non utilisés</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Remplacer '{0}' par '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolve_conflict_markers">
+        <source>Resolve conflict markers</source>
+        <target state="new">Resolve conflict markers</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -539,7 +529,7 @@
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
         <source>Simplify interpolation</source>
-        <target state="new">Simplify interpolation</target>
+        <target state="translated">Simplifier l’interpolation</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -557,6 +547,11 @@
         <target state="translated">Le flux doit prendre en charge les opérations de lecture et de recherche.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
+        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Supprimer {0}</target>
@@ -569,7 +564,12 @@
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
-        <target state="new">The selection contains a local function call without its declaration.</target>
+        <target state="translated">La sélection contient un appel de fonction locale sans sa déclaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToReadSourceFileOrPdb">
+        <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="translated">Impossible de lire le fichier source '{0}' ou le PDB généré pour le projet conteneur. Les changements apportés à ce fichier durant le débogage ne seront pas appliqués tant que son contenu ne correspondra pas à la source générée.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="Use_System_HashCode">
         <source>Use 'System.HashCode'</source>
-        <target state="new">Use 'System.HashCode'</target>
+        <target state="translated">Utiliser 'System.HashCode'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -700,6 +700,11 @@
       <trans-unit id="Use_simple_using_statement">
         <source>Use simple 'using' statement</source>
         <target state="translated">Utiliser une instruction 'using' simple</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -774,7 +779,7 @@
       </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
-        <target state="new">discard</target>
+        <target state="translated">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -1673,16 +1678,6 @@ Voulez-vous continuer ?</target>
         <target state="translated">Implémenter l'interface avec le modèle Dispose</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Compilateur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Style</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">
         <source>Re-triage {0}(currently '{1}')</source>
         <target state="translated">Répétition du triage {0}(actuellement '{1}')</target>
@@ -2113,11 +2108,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(Inconnu)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Implémenter une classe abstraite</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">
