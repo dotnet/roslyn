@@ -677,26 +677,6 @@
         <target state="translated">プロパティ</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_explicit_type_instead_of_var">
-        <source>Use explicit type instead of 'var'</source>
-        <target state="translated">var' ではなく明示的な型を使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicit_type">
-        <source>Use explicit type</source>
-        <target state="translated">明示的な型の使用</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="use_var_instead_of_explicit_type">
-        <source>use 'var' instead of explicit type</source>
-        <target state="translated">明示的な型ではなく 'var' を使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_implicit_type">
-        <source>Use implicit type</source>
-        <target state="translated">暗黙的な型の使用</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
         <source>Autoselect disabled due to namespace declaration.</source>
         <target state="translated">名前空間宣言により、Autoselect は無効です。</target>
