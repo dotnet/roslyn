@@ -267,12 +267,14 @@ stages:
       queue:
         name: Hosted VS2017
 
-- stage: PreparePostBuild
-  displayName: Prepare for Post Build
+# We need to skip post-build stages for PR validation build, but it can only be identified by 
+# the runtime variable 'PRNumber', thus this dummy stage.
+- stage: SetValidateDependency
+  displayName: Setup the dependency for post-build stages
   dependsOn: build
   condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['PRNumber'], 'default')) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
       # Symbol validation is not entirely reliable as of yet, so should be turned off until
@@ -280,4 +282,4 @@ stages:
       enableSymbolValidation: false
       enableSourceLinkValidation: false
       validateDependsOn:
-        - PreparePostBuild
+        - SetValidateDependency
