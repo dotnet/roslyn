@@ -38,14 +38,14 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
 
-    - powershell: Write-Host "##vso[task.setvariable variable=IsPRValidationBuild]($(PRNumber) -ne '') -and ($(PRNumber) -ne 'default')"
+    - powershell: Write-Host "##vso[task.setvariable variable=IsPRValidationBuild]($PRNumber -ne '') -and ($PRNumber -ne 'default')"
       displayName: Setting IsPRValidationBuild variable
 
     - task: tagBuildOrRelease@0
       displayName: Tag build
       inputs:
         type: 'Build'
-        tags: if (variables['IsPRValidationBuild']) { 'PRValidationBuild' } else { "OfficialBuild" }
+        tags: ${{ if (variables['IsPRValidationBuild']) { 'PRValidationBuild' } else { "OfficialBuild" } }}
 
     - task: PowerShell@2
       displayName: Setup branch for insertion validation
