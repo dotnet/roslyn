@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.AbstractEditorInlineRenameService;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
