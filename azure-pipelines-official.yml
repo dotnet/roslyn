@@ -262,7 +262,7 @@ stages:
       queue:
         name: Hosted VS2017
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['PRNumber'], default)) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['PRNumber'], 'default')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
       # Symbol validation is not entirely reliable as of yet, so should be turned off until
