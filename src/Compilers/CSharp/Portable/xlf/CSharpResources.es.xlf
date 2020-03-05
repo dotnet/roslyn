@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
         <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
-        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <target state="translated">No se puede aplicar el operador "{0}" a "Predeterminado" y a un operando de tipo "{1}", ya que es un parámetro de tipo del que no se conoce que sea un tipo de referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -102,6 +102,11 @@
         <target state="translated">El parámetro de tipo "{1}" tiene la restricción "unmanaged"; por tanto, "{1}" no se puede usar como restricción para "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalOnLocalFunction">
+        <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
+        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
         <target state="translated">Un patrón de tipo "{0}" no se puede controlar por un patrón de tipo "{1}". Use la versión de lenguaje "{2}" o superior para buscar un tipo abierto con un patrón constante.</target>
@@ -170,6 +175,21 @@
       <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
         <source>Expression tree cannot contain value of ref struct or restricted type '{0}'.</source>
         <target state="translated">Un árbol de expresión no puede contener un valor de estructura ref ni el tipo restringido “{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
+        <source>An expression tree may not contain a from-end index ('^') expression.</source>
+        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+        <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
+        <source>An expression tree may not contain a range ('..') expression.</source>
+        <target state="new">An expression tree may not contain a range ('..') expression.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -314,12 +334,17 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">"{0}": el tipo usado en una instrucción using asincrónica debe poder convertirse de forma implícita en "System.IAsyncDisposable" o implemente un método "DisposeAsync" adecuado. ¿Quiso decir "using" en lugar de "await using"?</target>
+        <target state="translated">"{0}": el tipo usado en una instrucción using asincrónica debe poder convertirse de forma implícita en "System.IAsyncDisposable" o implementar un método "DisposeAsync" adecuado. ¿Quiso decir "using" en lugar de "await using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
         <target state="translated">"{0}": el tipo usado en una instrucción using debe poder convertirse implícitamente en "System.IDisposable". ¿Quiso decir "await using" en lugar de "using"?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoOutputDirectory">
+        <source>Output directory could not be determined</source>
+        <target state="new">Output directory could not be determined</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -430,6 +455,11 @@
       <trans-unit id="ERR_StaticMemberCantBeReadOnly">
         <source>Static member '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">El miembro estático "{0}" no se puede marcar como "readonly".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -574,12 +604,14 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
-
+ 
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
 -warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
@@ -659,7 +691,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Opciones del compilador de Visual C#
 
                         - ARCHIVOS DE SALIDA -
@@ -857,6 +889,11 @@
         <target state="translated">instrucción "fixed" extensible</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="translated">operador de índice</target>
@@ -865,6 +902,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">indexando búferes fijos movibles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLocalFunctionAttributes">
+        <source>local function attributes</source>
+        <target state="new">local function attributes</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
@@ -1384,12 +1426,22 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">No se puede pasar un posible valor NULL a un destino marcado con el atributo [DisallowNull]</target>
+        <target state="translated">No se puede usar un posible valor null para un tipo marcado con [NotNull] o [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">No se puede pasar un posible valor NULL a un destino marcado con el atributo [DisallowNull]</target>
+        <target state="translated">No se puede usar un posible valor null para un tipo marcado con [NotNull] o [DisallowNull]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoesNotReturnMismatch">
+        <source>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
+        <target state="new">Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoesNotReturnMismatch_Title">
+        <source>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
+        <target state="new">Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1607,6 +1659,16 @@
         <target state="translated">La nulabilidad de los tipos de referencia del tipo de parámetro "{0}" no coincide con el miembro implementado "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member.</source>
         <target state="translated">La nulabilidad de los tipos de referencia del tipo de parámetro no coincide con el miembro implementado</target>
@@ -1617,6 +1679,16 @@
         <target state="translated">La nulabilidad de los tipos de referencia del tipo de parámetro"{0}" de "{1}" no coincide con el miembro "{2}" implementado de forma implícita.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</source>
         <target state="translated">La nulabilidad de los tipos de referencia del tipo de parámetro no coincide con el miembro implementado de forma implícita</target>
@@ -1625,6 +1697,16 @@
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</source>
         <target state="translated">La nulabilidad de los tipos de referencia del tipo de parámetro"{0}" no coincide con el miembro reemplazado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes">
+        <source>Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes_Title">
+        <source>Type of parameter doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Type of parameter doesn't match overridden member because of nullability attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride_Title">
@@ -1657,6 +1739,16 @@
         <target state="translated">La nulabilidad de los tipos de referencia en el tipo de valor devuelto no coincide con el miembro implementado "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member.</source>
         <target state="translated">La nulabilidad de los tipos de referencia en el tipo de valor devuelto no coincide con el miembro implementado</target>
@@ -1667,6 +1759,16 @@
         <target state="translated">La nulabilidad de los tipos de referencia del tipo de valor devuelto de "{0}" no coincide con el miembro "{1}" implementado de forma implícita.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member.</source>
         <target state="translated">La nulabilidad de los tipos de referencia en el tipo de valor devuelto no coincide con el miembro implementado de forma implícita</target>
@@ -1675,6 +1777,16 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">La nulabilidad de los tipos de referencia en el tipo de valor devuelto no coincide con el miembro reemplazado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes">
+        <source>Return type doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Return type doesn't match overridden member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes_Title">
+        <source>Return type doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Return type doesn't match overridden member because of nullability attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
@@ -1754,22 +1866,22 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
-        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <target state="translated">El parámetro "{0}" no puede tener un valor NULL al salir con "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter may not have a null value when exiting in some condition.</source>
-        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
+        <target state="translated">El parámetro no puede tener un valor NULL al salir en alguna condición.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">Un método marcado [DoesNotReturn] no debe devolver.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">Un método marcado [DoesNotReturn] no debe devolver.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -4087,8 +4199,8 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
-        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</source>
-        <target state="translated">El atributo DllImport no se puede aplicar a un método que sea genérico o esté contenido en un tipo genérico.</target>
+        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
+        <target state="needs-review-translation">El atributo DllImport no se puede aplicar a un método que sea genérico o esté contenido en un tipo genérico.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -5962,7 +6074,7 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
         <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
-        <target state="new">A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</target>
+        <target state="translated">No se puede asignar un campo de solo lectura (excepto en un constructor de la clase en la que se define el campo o en un inicializador de variable)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -9589,8 +9701,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'"{0}" es una función local y, por lo tanto, siempre debe tener un cuerpo.</target>
+        <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
+        <target state="needs-review-translation">'"{0}" es una función local y, por lo tanto, siempre debe tener un cuerpo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
@@ -9725,7 +9837,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">"{0}": el tipo usado en una instrucción using asincrónica debe poder convertirse de forma implícita en "System.IAsyncDisposable" o implemente un método "DisposeAsync" adecuado.</target>
+        <target state="translated">"{0}": el tipo usado en una instrucción using asincrónica debe poder convertirse de forma implícita en "System.IAsyncDisposable" o implementar un método "DisposeAsync" adecuado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

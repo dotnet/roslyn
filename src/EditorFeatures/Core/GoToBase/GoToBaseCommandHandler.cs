@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
         protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
 
-        protected override Task FindAction(IGoToBaseService service, Document document, int caretPosition, IFindUsagesContext context)
+        protected override Task FindActionAsync(IGoToBaseService service, Document document, int caretPosition, IFindUsagesContext context)
             => service.FindBasesAsync(document, caretPosition, context);
     }
 }

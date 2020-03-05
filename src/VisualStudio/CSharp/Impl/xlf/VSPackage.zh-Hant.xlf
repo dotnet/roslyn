@@ -78,8 +78,9 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">顯示已關閉檔案的診斷;
+Use enhanced colors;
+Editor Color Scheme;</source>
+        <target state="needs-review-translation">顯示已關閉檔案的診斷;
 為規則運算式標示色彩; 
 醒目提示游標下的相關元件; 
 回報無效的規則運算式;

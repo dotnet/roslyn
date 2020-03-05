@@ -568,7 +568,7 @@ End Class</a>.Value
             Dim position As Integer
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -589,7 +589,7 @@ End Class</a>.Value
 
             Await BaseVerifyWorkerAsync(
                 code, position, "[Class]", "Property CBase.Class As Integer",
-                SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+                SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>

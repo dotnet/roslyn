@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     var host = _host;
                     if (host != null)
                     {
-                        await host.OnProcessExited(Process).ConfigureAwait(false);
+                        await host.OnProcessExitedAsync(Process).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.Report(e))

@@ -228,6 +228,13 @@
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                 case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                 case ErrorCode.WRN_ShouldNotReturn:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_DoesNotReturnMismatch:
                     return true;
                 default:
                     return false;

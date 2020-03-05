@@ -126,6 +126,12 @@
   <data name="IDS_FeatureSwitchExpression" xml:space="preserve">
     <value>&lt;switch expression&gt;</value>
   </data>
+  <data name="IDS_FeatureLocalFunctionAttributes" xml:space="preserve">
+    <value>local function attributes</value>
+  </data>
+  <data name="IDS_FeatureExternLocalFunctions" xml:space="preserve">
+    <value>extern local functions</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -1023,6 +1029,9 @@
   <data name="ERR_ConditionalOnOverride" xml:space="preserve">
     <value>The Conditional attribute is not valid on '{0}' because it is an override method</value>
   </data>
+  <data name="ERR_ConditionalOnLocalFunction" xml:space="preserve">
+    <value>Local function '{0}' must be 'static' in order to use the Conditional attribute</value>
+  </data>
   <data name="ERR_PointerInAsOrIs" xml:space="preserve">
     <value>Neither 'is' nor 'as' is valid on pointer types</value>
   </data>
@@ -1713,7 +1722,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
   </data>
   <data name="ERR_DllImportOnGenericMethod" xml:space="preserve">
-    <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</value>
+    <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</value>
   </data>
   <data name="ERR_FieldCantBeRefAny" xml:space="preserve">
     <value>Field or property cannot be of type '{0}'</value>
@@ -2571,6 +2580,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_OutputNeedsName" xml:space="preserve">
     <value>Outputs without source must have the /out option specified</value>
+  </data>
+  <data name="ERR_NoOutputDirectory" xml:space="preserve">
+    <value>Output directory could not be determined</value>
   </data>
   <data name="ERR_CantHaveWin32ResAndManifest" xml:space="preserve">
     <value>Conflicting options specified: Win32 resource file; Win32 manifest</value>
@@ -4600,12 +4612,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
-
+ 
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
 -warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
@@ -5081,6 +5095,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchCaseSubsumed" xml:space="preserve">
     <value>The switch case has already been handled by a previous case.</value>
   </data>
+  <data name="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected" xml:space="preserve">
+    <value>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</value>
+  </data>
   <data name="ERR_SwitchArmSubsumed" xml:space="preserve">
     <value>The pattern has already been handled by a previous arm of the switch expression.</value>
   </data>
@@ -5339,11 +5356,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInReturnTypeOnOverride_Title" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match overridden member.</value>
   </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes" xml:space="preserve">
+    <value>Return type doesn't match overridden member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Return type doesn't match overridden member because of nullability attributes.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnOverride" xml:space="preserve">
     <value>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnOverride_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes" xml:space="preserve">
+    <value>Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Type of parameter doesn't match overridden member because of nullability attributes.</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnPartial" xml:space="preserve">
     <value>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</value>
@@ -5369,6 +5398,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</value>
   </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInTypeOnExplicitImplementation" xml:space="preserve">
     <value>Nullability of reference types in type doesn't match implemented member '{0}'.</value>
   </data>
@@ -5386,6 +5427,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implemented member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
     <value>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</value>
@@ -5459,6 +5512,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ShouldNotReturn_Title" xml:space="preserve">
     <value>A method marked [DoesNotReturn] should not return.</value>
   </data>
+  <data name="WRN_DoesNotReturnMismatch" xml:space="preserve">
+    <value>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</value>
+  </data>
+  <data name="WRN_DoesNotReturnMismatch_Title" xml:space="preserve">
+    <value>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
   </data>
@@ -5520,7 +5579,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Local function is declared but never used</value>
   </data>
   <data name="ERR_LocalFunctionMissingBody" xml:space="preserve">
-    <value>'{0}' is a local function and must therefore always have a body.</value>
+    <value>Local function '{0}' must declare a body because it is not marked 'static extern'.</value>
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>
@@ -5947,5 +6006,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ImplicitRangeIndexerWithName" xml:space="preserve">
     <value>Invocation of implicit Range Indexer cannot name the argument.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer" xml:space="preserve">
+    <value>An expression tree may not contain a pattern System.Index or System.Range indexer access</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsFromEndIndexExpression" xml:space="preserve">
+    <value>An expression tree may not contain a from-end index ('^') expression.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsRangeExpression" xml:space="preserve">
+    <value>An expression tree may not contain a range ('..') expression.</value>
   </data>
 </root>

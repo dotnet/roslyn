@@ -187,14 +187,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // for specific strings (i.e. they never do a custom search).
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
-            var symbols = await FindAsyncWorker(query, lazyAssembly, cancellationToken).ConfigureAwait(false);
+            var symbols = await FindCoreAsync(query, lazyAssembly, cancellationToken).ConfigureAwait(false);
 
             return DeclarationFinder.FilterByCriteria(
                 symbols.SelectAsArray(s => new SymbolAndProjectId(s, assemblyProjectId)),
                 filter);
         }
 
-        private Task<ImmutableArray<ISymbol>> FindAsyncWorker(
+        private Task<ImmutableArray<ISymbol>> FindCoreAsync(
             SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);
 
-        private static Task<SpellChecker> GetSpellCheckerTask(
+        private static Task<SpellChecker> GetSpellCheckerAsync(
             Solution solution, Checksum checksum, string filePath,
             string concatenatedNames, ImmutableArray<Node> sortedNodes)
         {
@@ -506,24 +506,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             else
             {
-                var containerSymbols = ArrayBuilder<ISymbol>.GetInstance();
-                try
-                {
-                    Bind(node.ParentIndex, rootContainer, containerSymbols, cancellationToken);
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var containerSymbols);
 
-                    foreach (var containerSymbol in containerSymbols)
+                Bind(node.ParentIndex, rootContainer, containerSymbols, cancellationToken);
+
+                foreach (var containerSymbol in containerSymbols)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (containerSymbol is INamespaceOrTypeSymbol nsOrType)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        if (containerSymbol is INamespaceOrTypeSymbol nsOrType)
-                        {
-                            results.AddRange(nsOrType.GetMembers(GetName(node)));
-                        }
+                        results.AddRange(nsOrType.GetMembers(GetName(node)));
                     }
-                }
-                finally
-                {
-                    containerSymbols.Free();
                 }
             }
         }
@@ -579,7 +573,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ImmutableArray<ExtensionMethodInfo> complexMethods)
         {
             SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
-            var createSpellCheckerTask = GetSpellCheckerTask(
+            var createSpellCheckerTask = GetSpellCheckerAsync(
                 solution, checksum, filePath, concatenatedNames, sortedNodes);
 
             return new SymbolTreeInfo(
@@ -621,24 +615,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var derivedTypeIndices = _inheritanceMap[baseTypeNameIndex];
 
             var builder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var tempBuilder);
 
             foreach (var derivedTypeIndex in derivedTypeIndices)
             {
-                var tempBuilder = ArrayBuilder<ISymbol>.GetInstance();
-                try
+                tempBuilder.Clear();
+
+                Bind(derivedTypeIndex, compilation.GlobalNamespace, tempBuilder, cancellationToken);
+                foreach (var symbol in tempBuilder)
                 {
-                    Bind(derivedTypeIndex, compilation.GlobalNamespace, tempBuilder, cancellationToken);
-                    foreach (var symbol in tempBuilder)
+                    if (symbol is INamedTypeSymbol namedType)
                     {
-                        if (symbol is INamedTypeSymbol namedType)
-                        {
-                            builder.Add(namedType);
-                        }
+                        builder.Add(namedType);
                     }
-                }
-                finally
-                {
-                    tempBuilder.Free();
                 }
             }
 

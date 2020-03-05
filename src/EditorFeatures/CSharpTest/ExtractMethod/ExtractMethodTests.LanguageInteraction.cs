@@ -1069,7 +1069,7 @@ unsafe class C
             }
 
             [WorkItem(545180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545180")]
-            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37210"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
             public async Task NodeHasSyntacticErrors()
             {
                 var code = @"using System;
@@ -1968,6 +1968,41 @@ namespace ConsoleApp1
             foreach ()
                 Console.WriteLine(2);
         }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(22150, "https://github.com/dotnet/roslyn/issues/22150")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethod_LocalVariableCrossingLocalFunction()
+        {
+            var code = @"using System;
+
+class C
+{
+    public void Test()
+    {
+        int x = 0;
+        [|void Local() { }
+        Console.WriteLine(x);|]
+    }
+}";
+            var expected = @"using System;
+
+class C
+{
+    public void Test()
+    {
+        int x = 0;
+        NewMethod(x);
+    }
+
+    private static void NewMethod(int x)
+    {
+        void Local() { }
+        Console.WriteLine(x);
     }
 }";
 

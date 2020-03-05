@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             // That's why each task set's a signal to say that it has begun and we first wait for
             // that, and then start waiting.
             Assert.True(signal.Wait(s_testTimeout), "Shouldn't have hit timeout waiting for task to begin");
-            var waitTask = listener.CreateExpeditedWaitTask();
+            var waitTask = listener.ExpeditedWaitAsync();
             Assert.True(waitTask.Wait(s_testTimeout), "Wait shouldn't have needed to timeout");
         }
 
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.True(signal1.Wait(s_testTimeout), "Shouldn't have hit timeout waiting for task to begin");
             Assert.True(signal2.Wait(s_testTimeout), "Shouldn't have hit timeout waiting for task to begin");
 
-            var waitTask = listener.CreateExpeditedWaitTask();
+            var waitTask = listener.ExpeditedWaitAsync();
             Assert.True(waitTask.Wait(s_testTimeout), "Wait shouldn't have needed to timeout");
         }
     }

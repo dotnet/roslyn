@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
-                var compilation = await GetOrCreateCompilationWithAnalyzers(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
+                var compilation = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => !AnalyzerService.IsAnalyzerSuppressed(a, project) && !a.IsOpenFileOnly(options));
+                                        .Where(a => !DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressed(a, project) && !a.IsOpenFileOnly(options));
 
                 // get driver only with active analyzers.
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.OldResult == null)
@@ -324,8 +324,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
+            if (analyzer is DiagnosticSuppressor)
+            {
+                // Always execute diagnostic suppressors.
+                return true;
+            }
+
             // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
-            var descriptors = AnalyzerService.GetDiagnosticDescriptors(analyzer);
+            var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
             return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions!) != ReportDiagnostic.Hidden);
         }
 
@@ -539,8 +545,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _ = await client.TryRunRemoteAsync(
                     WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                    new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(AnalyzerService), /* unit count */ 1 },
                     solution: null,
+                    new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(DiagnosticAnalyzerInfoCache), /* unit count */ 1 },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }

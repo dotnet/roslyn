@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
 
-        protected override async Task<SyntaxContext> CreateContext(
+        protected override async Task<SyntaxContext> CreateContextAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
             SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var targetToken = context.TargetToken;

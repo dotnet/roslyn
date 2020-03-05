@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="translated">Annuler</target>
+        <target state="translated">Discard</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">

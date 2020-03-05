@@ -134,47 +134,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         private static ImmutableArray<Assembly> LoadDefaultAssemblies()
         {
-            return LoadNearbyAssemblies(s_defaultAssemblyNames);
-        }
-
-        internal static ImmutableArray<Assembly> LoadNearbyAssemblies(string[] assemblyNames)
-        {
-            var assemblies = new List<Assembly>();
-
-            foreach (var assemblyName in assemblyNames)
-            {
-                var assembly = TryLoadNearbyAssembly(assemblyName);
-                if (assembly != null)
-                {
-                    assemblies.Add(assembly);
-                }
-            }
-
-            return assemblies.ToImmutableArray();
-        }
-
-        private static Assembly TryLoadNearbyAssembly(string assemblySimpleName)
-        {
-            var thisAssemblyName = typeof(MefHostServices).GetTypeInfo().Assembly.GetName();
-            var assemblyShortName = thisAssemblyName.Name;
-            var assemblyVersion = thisAssemblyName.Version;
-            var publicKeyToken = thisAssemblyName.GetPublicKeyToken().Aggregate(string.Empty, (s, b) => s + b.ToString("x2"));
-
-            if (string.IsNullOrEmpty(publicKeyToken))
-            {
-                publicKeyToken = "null";
-            }
-
-            var assemblyName = new AssemblyName(string.Format("{0}, Version={1}, Culture=neutral, PublicKeyToken={2}", assemblySimpleName, assemblyVersion, publicKeyToken));
-
-            try
-            {
-                return Assembly.Load(assemblyName);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            return MefHostServicesHelpers.LoadNearbyAssemblies(s_defaultAssemblyNames);
         }
 
         #endregion

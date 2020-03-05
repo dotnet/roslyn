@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     // Dictionary that can be recycled via an object pool
     // NOTE: these dictionaries always have the default comparer.
-    internal sealed class PooledDictionary<K, V> : Dictionary<K, V>
+    internal sealed partial class PooledDictionary<K, V> : Dictionary<K, V>
     {
         private readonly ObjectPool<PooledDictionary<K, V>> _pool;
 
@@ -22,10 +22,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public ImmutableDictionary<K, V> ToImmutableDictionaryAndFree()
         {
-            var result = this.ToImmutableDictionary();
+            var result = this.ToImmutableDictionary(this.Comparer);
             this.Free();
             return result;
         }
+
+        public ImmutableDictionary<K, V> ToImmutableDictionary() => this.ToImmutableDictionary(this.Comparer);
 
         public void Free()
         {

@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 {
     internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly Option<CodeStyleOption<string>> _option;
         private readonly AbstractOrderModifiersHelpers _helpers;
 
         protected AbstractOrderModifiersDiagnosticAnalyzer(
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             Option<CodeStyleOption<string>> option,
             AbstractOrderModifiersHelpers helpers,
             string language)
@@ -41,22 +41,13 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var syntaxTree = context.Tree;
-            var root = syntaxTree.GetRoot(cancellationToken);
-
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(_option);
+            var option = context.GetOption(_option);
             if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;
             }
 
+            var root = context.Tree.GetRoot(context.CancellationToken);
             Recurse(context, preferredOrder, option.Notification.Severity, root);
         }
 

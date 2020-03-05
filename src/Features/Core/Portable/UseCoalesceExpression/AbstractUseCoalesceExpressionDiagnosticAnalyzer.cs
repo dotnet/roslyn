@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,33 +35,26 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
-        protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
-        protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
+        {
+            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
+                syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
+        }
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
+            var option = context.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
             if (!option.Value)
             {
                 return;
             }
 
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 
@@ -72,8 +67,9 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            var isEquals = IsEquals(condition);
-            var isNotEquals = IsNotEquals(condition);
+            var syntaxKinds = syntaxFacts.SyntaxKinds;
+            var isEquals = syntaxKinds.ReferenceEqualsExpression == condition.RawKind;
+            var isNotEquals = syntaxKinds.ReferenceNotEqualsExpression == condition.RawKind;
             if (!isEquals && !isNotEquals)
             {
                 return;
@@ -107,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var semanticModel = context.SemanticModel;
             var conditionType = semanticModel.GetTypeInfo(
-                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, cancellationToken).Type;
+                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, context.CancellationToken).Type;
             if (conditionType != null &&
                 !conditionType.IsReferenceType)
             {

@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
         <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
-        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <target state="translated">演算子 '{0}' は、参照型として認識されていない型パラメーターであるため、型 '{1}' の 'default' およびオペランドに適用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -102,6 +102,11 @@
         <target state="translated">型パラメーター '{1}' は 'unmanaged' 制約を含むので、'{0}' の制約として '{1}' を使用することはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalOnLocalFunction">
+        <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
+        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
         <target state="translated">型 '{0}' の式を型 '{1}' のパターンで処理することはできません。オープン型と定数パターンを一致させるには、言語バージョン '{2}' 以上をご使用ください。</target>
@@ -170,6 +175,21 @@
       <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
         <source>Expression tree cannot contain value of ref struct or restricted type '{0}'.</source>
         <target state="translated">式ツリーに ref 構造体または制限がある型 '{0}' の値を含めることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
+        <source>An expression tree may not contain a from-end index ('^') expression.</source>
+        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+        <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
+        <source>An expression tree may not contain a range ('..') expression.</source>
+        <target state="new">An expression tree may not contain a range ('..') expression.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -322,6 +342,11 @@
         <target state="translated">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。'using' ではなく 'await using' ですか?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoOutputDirectory">
+        <source>Output directory could not be determined</source>
+        <target state="new">Output directory could not be determined</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
         <target state="translated">'notnull' 制約は、他の制約の前に指定されなければなりません</target>
@@ -389,7 +414,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="translated">型 '{0}' には基底インターフェイスからの再抽象化があるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
+        <target state="translated">型 '{0}' には基底インターフェイスからのメンバーの再抽象化があるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -430,6 +455,11 @@
       <trans-unit id="ERR_StaticMemberCantBeReadOnly">
         <source>Static member '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">静的メンバー '{0}' を 'readonly' とマークすることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -574,12 +604,14 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
-
+ 
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
 -warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
@@ -659,7 +691,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Visual C# コンパイラのオプション
 
                        - 出力ファイル -
@@ -857,6 +889,11 @@
         <target state="translated">拡張可能な fixed ステートメント</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExternLocalFunctions">
+        <source>extern local functions</source>
+        <target state="new">extern local functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="translated">インデックス演算子</target>
@@ -865,6 +902,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">移動可能な固定バッファーのインデックス化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLocalFunctionAttributes">
+        <source>local function attributes</source>
+        <target state="new">local function attributes</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
@@ -1384,12 +1426,22 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
+        <target state="translated">[NotNull] または [DisallowNull] としてマークされた型に対して、Null の可能性がある値を使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
+        <target state="translated">[NotNull] または [DisallowNull] としてマークされた型に対して、Null の可能性がある値を使用することはできない</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoesNotReturnMismatch">
+        <source>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
+        <target state="new">Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoesNotReturnMismatch_Title">
+        <source>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
+        <target state="new">Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1607,6 +1659,16 @@
         <target state="translated">パラメーター '{0}' の型における参照型の Null 許容性が、実装されるメンバー '{1}' と一致しません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member.</source>
         <target state="translated">パラメーターの型における参照型の Null 許容性が、実装されるメンバーと一致しません。</target>
@@ -1617,6 +1679,16 @@
         <target state="translated">'{1}' のパラメーター '{0}' の型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{2}' と一致しません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</source>
         <target state="translated">パラメーターの型における参照型の Null 許容性が、暗黙的に実装されるメンバーと一致しません。</target>
@@ -1625,6 +1697,16 @@
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</source>
         <target state="translated">パラメーター '{0}' の型における参照型の Null 許容性が、オーバーライドされるメンバーと一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes">
+        <source>Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes_Title">
+        <source>Type of parameter doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Type of parameter doesn't match overridden member because of nullability attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride_Title">
@@ -1657,6 +1739,16 @@
         <target state="translated">戻り値の型における参照型の Null 許容性が、実装されるメンバー '{0}' と一致しません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member.</source>
         <target state="translated">戻り値の型における参照型の Null 許容性が、実装されるメンバーと一致しません。</target>
@@ -1667,6 +1759,16 @@
         <target state="translated">'{0}' の戻り値の型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{1}' と一致しません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes">
+        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes_Title">
+        <source>Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member.</source>
         <target state="translated">戻り値の型における参照型の Null 許容性が、暗黙的に実装されるメンバーと一致しません。</target>
@@ -1675,6 +1777,16 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">戻り値の型における参照型の Null 許容性が、オーバーライドされるメンバーと一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes">
+        <source>Return type doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Return type doesn't match overridden member because of nullability attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes_Title">
+        <source>Return type doesn't match overridden member because of nullability attributes.</source>
+        <target state="new">Return type doesn't match overridden member because of nullability attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
@@ -1754,27 +1866,27 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
-        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <target state="translated">'{1}' で終了する場合、パラメーター '{0}' の値を null にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter may not have a null value when exiting in some condition.</source>
-        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
+        <target state="translated">一部の条件で終了するときに、パラメーターの値を null にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">[DoesNotReturn] とマークされたメソッドを返すことはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">[DoesNotReturn] とマークされたメソッドの返却禁止。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="translated">switch 式が入力の種類のうちすべての可能な入力を処理していません (すべてを網羅していません)。</target>
+        <target state="translated">switch 式が入力の種類で可能なすべての値を処理していません (すべてを網羅していません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1789,7 +1901,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="translated">switch 式が入力の種類のうちすべての可能な入力を処理していません (すべてを網羅していません)。</target>
+        <target state="translated">switch 式が入力の種類で可能なすべての値を処理していません (すべてを網羅していません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -4087,8 +4199,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
-        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</source>
-        <target state="translated">DllImport 属性は、ジェネリックであるメソッド、またはジェネリック型に含まれるメソッドには適用できません。</target>
+        <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
+        <target state="needs-review-translation">DllImport 属性は、ジェネリックであるメソッド、またはジェネリック型に含まれるメソッドには適用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -5962,7 +6074,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
         <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
-        <target state="new">A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</target>
+        <target state="translated">読み取り専用フィールドを割り当てることはできません (フィールドが定義されているクラスのコンストラクターまたは変数初期化子では可)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -9589,8 +9701,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
-        <source>'{0}' is a local function and must therefore always have a body.</source>
-        <target state="translated">'{0}' はローカル関数であるため、常に本体が必要です。</target>
+        <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
+        <target state="needs-review-translation">'{0}' はローカル関数であるため、常に本体が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

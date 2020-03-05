@@ -10,6 +10,7 @@
     <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+    <UseAppHost>false</UseAppHost>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -17,7 +18,7 @@
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />

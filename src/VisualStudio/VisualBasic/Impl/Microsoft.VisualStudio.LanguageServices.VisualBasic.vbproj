@@ -1,12 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <UseWpf>true</UseWpf>
     <CreateVsixContainer>false</CreateVsixContainer>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
-    <TargetFramework>net472</TargetFramework>
     <RootNamespace></RootNamespace>
     <ApplyNgenOptimization>partial</ApplyNgenOptimization>
   </PropertyGroup>
@@ -24,26 +25,7 @@
     <ProjectReference Include="..\..\..\VisualStudio\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="BasicVSResources.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>BasicVSResources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Options\AdvancedOptionPageControl.xaml.vb">
-      <DependentUpon>AdvancedOptionPageControl.xaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Design" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="WindowsBase" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="Microsoft.MSXML" Version="$(MicrosoftMSXMLVersion)" />
@@ -66,34 +48,12 @@
     <Import Include="Roslyn.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="BasicVSResources.resx">
-      <CustomToolNamespace>Microsoft.VisualStudio.LanguageServices.VisualBasic</CustomToolNamespace>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>BasicVSResources.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="BasicVSResources.resx" GenerateSource="true" Namespace="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="Options\AdvancedOptionPageControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Options\IntelliSenseOptionPageControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Options\IntelliSenseOptionPageControl.xaml.vb">
-      <DependentUpon>IntelliSenseOptionPageControl.xaml</DependentUpon>
-    </Compile>
     <Content Include="VisualBasicPackageRegistration.pkgdef" />
   </ItemGroup>
 </Project>

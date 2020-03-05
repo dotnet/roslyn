@@ -697,10 +697,7 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 17),
                 // (7,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         var y = null;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = null").WithArguments("<null>").WithLocation(7, 13),
-                // (7,13): warning CS0219: The variable 'y' is assigned but its value is never used
-                //         var y = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = null").WithArguments("<null>").WithLocation(7, 13)
                 );
 
             var tree = comp.SyntaxTrees.First();

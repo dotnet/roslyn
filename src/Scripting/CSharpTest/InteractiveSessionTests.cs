@@ -1598,7 +1598,7 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(

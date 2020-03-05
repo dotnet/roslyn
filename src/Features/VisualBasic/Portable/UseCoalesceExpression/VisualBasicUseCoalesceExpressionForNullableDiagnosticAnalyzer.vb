@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.UseCoalesceExpression
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
@@ -18,12 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
             MemberAccessExpressionSyntax,
             UnaryExpressionSyntax)
 
-        Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
-            Return VisualBasicSyntaxFactsService.Instance
-        End Function
-
-        Protected Overrides Function GetSyntaxKindToAnalyze() As SyntaxKind
-            Return SyntaxKind.TernaryConditionalExpression
+        Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
+            Return VisualBasicSyntaxFacts.Instance
         End Function
     End Class
 End Namespace

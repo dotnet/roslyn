@@ -131,6 +131,7 @@ namespace Roslyn.Utilities
             }
             catch (TargetInvocationException e)
             {
+                Debug.Assert(e.InnerException is object);
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                 Debug.Assert(false, "Unreachable");
                 return default!;
@@ -142,9 +143,10 @@ namespace Roslyn.Utilities
             return constructorInfo.InvokeConstructor<object?>(args);
         }
 
+        [return: MaybeNull]
         public static T Invoke<T>(this MethodInfo methodInfo, object obj, params object[] args)
         {
-            return (T)methodInfo.Invoke(obj, args);
+            return (T)methodInfo.Invoke(obj, args)!;
         }
     }
 }

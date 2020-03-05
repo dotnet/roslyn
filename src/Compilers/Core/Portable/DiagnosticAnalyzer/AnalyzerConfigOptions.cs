@@ -37,6 +37,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
-
     }
 }

@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseAutoProperty
@@ -1108,6 +1109,118 @@ end class",
 "class Class1
     readonly property P as integer
 end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
+        Public Async Function TestUseTabs() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class Foo
+	[||]Private ReadOnly o2 As Object
+
+	Public ReadOnly Property O As Object
+		Get
+			Return o2
+		End Get
+	End Property
+End Class",
+"Public Class Foo
+	Public ReadOnly Property O As Object
+End Class", options:=[Option](FormattingOptions.UseTabs, True))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
+        Public Async Function TestUseSpaces() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class Foo
+	[||]Private ReadOnly o2 As Object
+
+	Public ReadOnly Property O As Object
+		Get
+			Return o2
+		End Get
+	End Property
+End Class",
+"Public Class Foo
+    Public ReadOnly Property O As Object
+End Class", options:=[Option](FormattingOptions.UseTabs, False))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
+        Public Async Function TestUseTabs_Editorconfig() As Task
+            Await TestInRegularAndScriptAsync(
+"<Workspace>
+    <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.vb"">
+Public Class Foo
+	[||]Private ReadOnly o2 As Object
+
+	Public ReadOnly Property O As Object
+		Get
+			Return o2
+		End Get
+	End Property
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = tab
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>",
+"<Workspace>
+    <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.vb"">
+Public Class Foo
+	Public ReadOnly Property O As Object
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = tab
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")>
+        Public Async Function TestUseSpaces_Editorconfig() As Task
+            Await TestInRegularAndScriptAsync(
+"<Workspace>
+    <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.vb"">
+Public Class Foo
+	[||]Private ReadOnly o2 As Object
+
+	Public ReadOnly Property O As Object
+		Get
+			Return o2
+		End Get
+	End Property
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = space
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>",
+"<Workspace>
+    <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.vb"">
+Public Class Foo
+    Public ReadOnly Property O As Object
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = space
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>")
         End Function
     End Class
 End Namespace

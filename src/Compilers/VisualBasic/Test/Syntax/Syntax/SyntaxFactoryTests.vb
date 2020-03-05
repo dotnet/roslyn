@@ -84,7 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' float
             CheckLiteralToString(0.0F, "0F")
             CheckLiteralToString(0.012345F, "0.012345F")
+#If NET472 Then
             CheckLiteralToString(Single.MaxValue, "3.40282347E+38F")
+#Else
+            CheckLiteralToString(Single.MaxValue, "3.4028235E+38F")
+#End If
+
 
             ' double
             CheckLiteralToString(0.0, "0")

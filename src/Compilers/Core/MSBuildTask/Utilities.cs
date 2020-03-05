@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
@@ -150,7 +152,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
         }
 
-        internal static string TryGetAssemblyPath(Assembly assembly)
+        internal static string? TryGetAssemblyPath(Assembly assembly)
         {
             if (assembly.GlobalAssemblyCache)
             {
@@ -176,8 +178,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
 
             return RuntimeHostInfo.IsDesktopRuntime
-                ? Path.Combine(assemblyDirectory, toolName)
-                : Path.Combine(assemblyDirectory, "bincore", toolName);
+                ? Path.Combine(assemblyDirectory!, toolName)
+                : Path.Combine(assemblyDirectory!, "bincore", toolName);
         }
     }
 }

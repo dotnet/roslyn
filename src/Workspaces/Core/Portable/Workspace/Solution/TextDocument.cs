@@ -121,11 +121,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// True if the info of the document change (name, folders, file path; not the content)
+        /// True if the info of the document change (name, folders, file path; not the content).
         /// </summary>
         internal virtual bool HasInfoChanged(TextDocument otherTextDocument)
         {
-            return State.Attributes != otherTextDocument.State.Attributes;
+            return State.HasInfoChanged(otherTextDocument.State);
+        }
+
+        /// <summary>
+        /// Only checks if the source of the text has changed, no content check is done.
+        /// </summary>
+        internal bool HasTextChanged(TextDocument otherTextDocument, bool ignoreUnchangeableDocument)
+        {
+            return State.HasTextChanged(otherTextDocument.State, ignoreUnchangeableDocument);
         }
     }
 }

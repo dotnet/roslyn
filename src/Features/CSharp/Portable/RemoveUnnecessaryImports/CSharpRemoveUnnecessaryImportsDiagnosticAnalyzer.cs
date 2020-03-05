@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -30,6 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         // are unnecessary.
         protected override ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports)
             => unnecessaryImports;
+
+        protected override IUnnecessaryImportsProvider UnnecessaryImportsProvider
+            => CSharpUnnecessaryImportsProvider.Instance;
+
+        protected override bool IsRegularCommentOrDocComment(SyntaxTrivia trivia)
+            => trivia.IsRegularComment() || trivia.IsDocComment();
 
         protected override IEnumerable<TextSpan> GetFixableDiagnosticSpans(
             IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken)

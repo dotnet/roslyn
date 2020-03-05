@@ -1550,5 +1550,69 @@ class c
                 //         System.Collections.Generic.IEnumerable<string> getGoo(int count, out bool goobar)
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "getGoo").WithArguments("output").WithLocation(6, 56));
         }
+
+        [Fact]
+        [WorkItem(41631, "https://github.com/dotnet/roslyn/issues/41631")]
+        public void UseOfCapturedVariableAssignedByOutParameter()
+        {
+            CreateCompilation(@"
+public class C
+{
+    void M()
+    {
+        string s0;
+        local1(out s0); // 1
+    
+        void local1(out string s1)
+        {
+            s0.ToString();
+            s1 = ""hello"";
+        }
+    }
+}").VerifyDiagnostics(
+                    // (7,9): error CS0165: Use of unassigned local variable 's0'
+                    //         local1(out s0);
+                    Diagnostic(ErrorCode.ERR_UseDefViolation, "local1(out s0)").WithArguments("s0").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void OutParameterIsAssignedByLocalFunction()
+        {
+            CreateCompilation(@"
+public class C
+{
+    void M()
+    {
+        string s0;
+        local1(out s0);
+        s0.ToString();
+    
+        void local1(out string s1)
+        {
+            s1 = ""hello"";
+        }
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UseOfCapturedVariableAssignedInArgument()
+        {
+            CreateCompilation(@"
+public class C
+{
+    void M()
+    {
+        string s0;
+        local1(s0 = ""hello"", out s0);
+    
+        void local1(string s1, out string s2)
+        {
+               s0.ToString();
+               s2 = ""bye"";
+        }
+    }
+}").VerifyDiagnostics();
+        }
     }
 }

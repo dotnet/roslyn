@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         public static ImmutableArray<TExpressionStatementSyntax>? Analyze(
             SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {

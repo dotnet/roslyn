@@ -32,11 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
 
-            return GetOrCreateIncrementalAnalyzer(workspace);
-        }
-
-        private DiagnosticIncrementalAnalyzer GetOrCreateIncrementalAnalyzer(Workspace workspace)
-        {
             return _map.GetValue(workspace, _createIncrementalAnalyzer);
         }
 
@@ -54,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, _analyzerInfoCache, _hostDiagnosticUpdateSource);
+            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, AnalyzerInfoCache, _hostDiagnosticUpdateSource);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InvertLogical
 {
@@ -31,16 +34,15 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         /// </summary>
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
-        protected abstract TSyntaxKind GetKind(int rawKind);
-        protected abstract TSyntaxKind InvertedKind(TSyntaxKind binaryExprKind);
         protected abstract string GetOperatorText(TSyntaxKind binaryExprKind);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
 
-            var expression = await context.TryGetRelevantNodeAsync<TBinaryExpressionSyntax>().ConfigureAwait(false) as SyntaxNode;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var expression = (SyntaxNode?)await context.TryGetRelevantNodeAsync<TBinaryExpressionSyntax>().ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
 
             if (expression == null ||
                 (!syntaxFacts.IsLogicalAndExpression(expression) &&
@@ -74,8 +76,8 @@ namespace Microsoft.CodeAnalysis.InvertLogical
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    GetTitle(GetKind(expression.RawKind)),
-                    c => InvertLogicalAsync(document, expression, c)),
+                    GetTitle(syntaxKinds, expression.RawKind),
+                    c => InvertLogicalAsync(document, expression, c).AsNullable()),
                 expression.Span);
         }
 
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             Document document, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var newBinary = generator.Negate(binaryExpression, semanticModel, cancellationToken);
@@ -113,11 +115,11 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         private async Task<Document> InvertOuterExpressionAsync(
             Document document, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var expression = root.GetAnnotatedNodes(s_annotation).Single();
+            var expression = root.GetAnnotatedNodes(s_annotation).Single()!;
 
             // Walk up parens and !'s.  That way we don't end up with something like !!.
             // It also ensures that this refactoring reverses itself when invoked twice.
@@ -136,13 +138,19 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 generator.Negate(expression, semanticModel, negateBinary: false, cancellationToken)));
         }
 
-        private string GetTitle(TSyntaxKind binaryExprKind)
+        private string GetTitle(ISyntaxKindsService syntaxKinds, int binaryExprKind)
             => string.Format(FeaturesResources.Replace_0_with_1,
-                    GetOperatorText(binaryExprKind), GetOperatorText(InvertedKind(binaryExprKind)));
+                    GetOperatorText(syntaxKinds.Convert<TSyntaxKind>(binaryExprKind)),
+                    GetOperatorText(syntaxKinds.Convert<TSyntaxKind>(InvertedKind(syntaxKinds, binaryExprKind))));
+
+        private int InvertedKind(ISyntaxKindsService syntaxKinds, int binaryExprKind)
+            => binaryExprKind == syntaxKinds.LogicalAndExpression
+                ? syntaxKinds.LogicalOrExpression
+                : syntaxKinds.LogicalAndExpression;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document?>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

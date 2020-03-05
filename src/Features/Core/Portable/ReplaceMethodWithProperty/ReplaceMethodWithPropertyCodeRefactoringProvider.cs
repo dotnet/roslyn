@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             // Looks good!
             context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                 string.Format(FeaturesResources.Replace_0_with_property, methodName),
-                c => ReplaceMethodsWithProperty(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
+                c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
                 methodName),
                 methodDeclaration.Span);
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 {
                     context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                         string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
-                        c => ReplaceMethodsWithProperty(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
+                        c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
                         methodName + "-get/set"),
                         methodDeclaration.Span);
                 }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 setMethod.DeclaringSyntaxReferences.Length == 1;
         }
 
-        private async Task<Solution> ReplaceMethodsWithProperty(
+        private async Task<Solution> ReplaceMethodsWithPropertyAsync(
             Document document,
             string propertyName,
             bool nameChanged,

@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
     <OutputType>Library</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <UseWpf>true</UseWpf>
     <RootNamespace>Roslyn.VisualStudio.DiagnosticsWindow</RootNamespace>
 
     <!-- VSIX -->
@@ -43,18 +44,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Design" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.XML" />
-    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
@@ -68,50 +59,18 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Telemetry\TelemetryPanel.xaml.cs">
-      <DependentUpon>TelemetryPanel.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="VenusMargin\ProjectionBufferMargin.xaml.cs">
-      <DependentUpon>ProjectionBufferMargin.xaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <EmbeddedResource Update="Resources.resx" GenerateSource="true" />
     <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\Images.png" />
-  </ItemGroup>
-  <ItemGroup>
     <VSCTCompile Include="VisualStudioDiagnosticsWindow.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Resources\Package.ico" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="Telemetry\TelemetryPanel.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="VenusMargin\ProjectionBufferMargin.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
   </ItemGroup>
 </Project>

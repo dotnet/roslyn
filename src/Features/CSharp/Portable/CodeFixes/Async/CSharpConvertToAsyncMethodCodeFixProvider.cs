@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -32,23 +34,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             get { return ImmutableArray.Create(CS4008); }
         }
 
-        protected override async Task<string> GetDescription(
+        protected override async Task<string> GetDescriptionAsync(
             Diagnostic diagnostic,
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var methodNode = await GetMethodDeclaration(node, semanticModel, cancellationToken).ConfigureAwait(false);
-            return string.Format(CSharpFeaturesResources.Make_0_return_Task_instead_of_void, methodNode.WithBody(null));
+            var methodNode = await GetMethodDeclarationAsync(node, semanticModel, cancellationToken).ConfigureAwait(false);
+
+            // We only call GetDescription when we already know that we succeeded (so it's safe to
+            // assume we have a methodNode here).
+            return string.Format(CSharpFeaturesResources.Make_0_return_Task_instead_of_void, methodNode!.WithBody(null));
         }
 
-        protected override async Task<Tuple<SyntaxTree, SyntaxNode>> GetRootInOtherSyntaxTree(
+        protected override async Task<Tuple<SyntaxTree, SyntaxNode>?> GetRootInOtherSyntaxTreeAsync(
             SyntaxNode node,
             SemanticModel semanticModel,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = await GetMethodDeclaration(node, semanticModel, cancellationToken).ConfigureAwait(false);
+            var methodDeclaration = await GetMethodDeclarationAsync(node, semanticModel, cancellationToken).ConfigureAwait(false);
             if (methodDeclaration == null)
             {
                 return null;
@@ -59,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return Tuple.Create(oldRoot.SyntaxTree, newRoot);
         }
 
-        private async Task<MethodDeclarationSyntax> GetMethodDeclaration(
+        private async Task<MethodDeclarationSyntax?> GetMethodDeclarationAsync(
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)

@@ -9,9 +9,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-// The ShadowCopyAnalyzerAssemblyLoader type is only defined for the below platforms
-#if NET472 || NETCOREAPP2_1
-
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class ShadowCopyAnalyzerAssemblyLoaderTests : TestBase
@@ -99,7 +96,3 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
         }
     }
 }
-
-#else
-#error unsupported configuration
-#endif
