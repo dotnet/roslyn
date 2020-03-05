@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         literal = _factory.Literal(literal.ConstantValue.Int32Value);
                     }
 
-                    return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, comparisonType, method: null);
+                    return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null);
                 }
 
                 BoundExpression makeEqualityTest(BoundExpression loweredLiteral, BoundExpression input)

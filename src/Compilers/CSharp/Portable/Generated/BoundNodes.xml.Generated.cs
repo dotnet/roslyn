@@ -7223,17 +7223,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBinaryPattern : BoundPattern
     {
-        public BoundBinaryPattern(SyntaxNode syntax, bool disjunction, BoundPattern left, BoundPattern right, TypeSymbol inputType, bool hasErrors = false)
+        public BoundBinaryPattern(SyntaxNode syntax, bool disjunction, BoundPattern left, BoundPattern right, TypeSymbol outputType, TypeSymbol inputType, bool hasErrors = false)
             : base(BoundKind.BinaryPattern, syntax, inputType, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
             RoslynDebug.Assert(left is object, "Field 'left' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(right is object, "Field 'right' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(outputType is object, "Field 'outputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Disjunction = disjunction;
             this.Left = left;
             this.Right = right;
+            this.OutputType = outputType;
         }
 
 
@@ -7242,14 +7244,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundPattern Left { get; }
 
         public BoundPattern Right { get; }
+
+        public TypeSymbol OutputType { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBinaryPattern(this);
 
-        public BoundBinaryPattern Update(bool disjunction, BoundPattern left, BoundPattern right, TypeSymbol inputType)
+        public BoundBinaryPattern Update(bool disjunction, BoundPattern left, BoundPattern right, TypeSymbol outputType, TypeSymbol inputType)
         {
-            if (disjunction != this.Disjunction || left != this.Left || right != this.Right || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
+            if (disjunction != this.Disjunction || left != this.Left || right != this.Right || !TypeSymbol.Equals(outputType, this.OutputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundBinaryPattern(this.Syntax, disjunction, left, right, inputType, this.HasErrors);
+                var result = new BoundBinaryPattern(this.Syntax, disjunction, left, right, outputType, inputType, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10317,8 +10321,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundPattern left = (BoundPattern)this.Visit(node.Left);
             BoundPattern right = (BoundPattern)this.Visit(node.Right);
+            TypeSymbol outputType = this.VisitType(node.OutputType);
             TypeSymbol inputType = this.VisitType(node.InputType);
-            return node.Update(node.Disjunction, left, right, inputType);
+            return node.Update(node.Disjunction, left, right, outputType, inputType);
         }
         public override BoundNode? VisitNegatedPattern(BoundNegatedPattern node)
         {
@@ -12515,10 +12520,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
         {
+            TypeSymbol outputType = GetUpdatedSymbol(node, node.OutputType);
             TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
             BoundPattern left = (BoundPattern)this.Visit(node.Left);
             BoundPattern right = (BoundPattern)this.Visit(node.Right);
-            return node.Update(node.Disjunction, left, right, inputType);
+            return node.Update(node.Disjunction, left, right, outputType, inputType);
         }
 
         public override BoundNode? VisitNegatedPattern(BoundNegatedPattern node)
@@ -14312,6 +14318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("disjunction", node.Disjunction, null),
             new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
             new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
+            new TreeDumperNode("outputType", node.OutputType, null),
             new TreeDumperNode("inputType", node.InputType, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

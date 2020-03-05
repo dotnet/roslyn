@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void AddConjunct(BoundExpression test)
             {
+                // When in error recovery, the generated code doesn't matter.
+                if (test.Type.IsErrorType())
+                    return;
+
+                Debug.Assert(test.Type.SpecialType == SpecialType.System_Boolean);
                 if (_sideEffectBuilder.Count != 0)
                 {
                     test = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, _sideEffectBuilder.ToImmutable(), test);

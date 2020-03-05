@@ -2788,10 +2788,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand = ToBadExpression(operand);
                 }
 
-                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression);
+                bool hasErrors = node.Right.HasErrors;
+                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression);
                 if (wasExpression)
                 {
-                    var hasErrors = node.Right.HasErrors || constantValueOpt is null;
+                    hasErrors |= constantValueOpt is null;
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
                     var boundConstantPattern = new BoundConstantPattern(node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, operand.Type, hasErrors) { WasCompilerGenerated = true };

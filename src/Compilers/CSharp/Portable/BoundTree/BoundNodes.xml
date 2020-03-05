@@ -2016,6 +2016,7 @@
     <Field Name="Disjunction" Type="bool"/>
     <Field Name="Left" Type="BoundPattern"/>
     <Field Name="Right" Type="BoundPattern"/>
+    <Field Name="OutputType" Type="TypeSymbol"/>
   </Node>
 
   <Node Name="BoundNegatedPattern" Base="BoundPattern">
