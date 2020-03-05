@@ -2249,7 +2249,7 @@ unsafe class C2
         }
 
         [Fact]
-        public void InternalsVisibleToAccessChecks()
+        public void InternalsVisibleToAccessChecks_01()
         {
             var aRef = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -2277,6 +2277,33 @@ internal class C
                     // (6,9): error CS0122: 'B.M()' is inaccessible due to its protection level
                     //         b.M()();
                     Diagnostic(ErrorCode.ERR_BadAccess, "b.M").WithArguments("B.M()").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void InternalsVisibleToAccessChecks_02()
+        {
+            var aRef = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class A {}", assemblyName: "A").EmitToImageReference();
+
+            var bRef = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""C"")]
+internal class B
+{
+    internal unsafe delegate*<A> M() => throw null;
+}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+
+            var cComp = CreateCompilation(@"
+internal class C
+{
+    internal unsafe void CM(B b)
+    {
+        b.M()();
+    }
+}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+
+            cComp.VerifyDiagnostics();
         }
 
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
