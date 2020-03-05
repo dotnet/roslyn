@@ -13,7 +13,24 @@ namespace Microsoft.CodeAnalysis.FileHeaders
     /// </summary>
     internal readonly struct FileHeader
     {
+        /// <summary>
+        /// The location in the source where the file header was expected to start.
+        /// </summary>
         private readonly int _fileHeaderStart;
+
+        /// <summary>
+        /// The length of the prefix indicating the start of a comment. For example:
+        /// <list type="bullet">
+        ///   <item>
+        ///     <term>C#</term>
+        ///     <description>2, for the length of <c>//</c>.</description>
+        ///   </item>
+        ///   <item>
+        ///     <term>Visual Basic</term>
+        ///     <description>1, for the length of <c>'</c>.</description>
+        ///   </item>
+        /// </list>
+        /// </summary>
         private readonly int _commentPrefixLength;
 
         /// <summary>

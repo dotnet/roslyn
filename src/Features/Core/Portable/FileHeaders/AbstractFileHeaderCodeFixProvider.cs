@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private SyntaxNode ReplaceHeader(Document document, SyntaxNode root, string expectedFileHeader)
         {
             // Skip single line comments, whitespace, and end of line trivia until a blank line is encountered.
-            var trivia = root.GetLeadingTrivia();
+            var triviaList = root.GetLeadingTrivia();
             var onBlankLine = false;
             var inCopyright = true;
             var removalList = new List<int>();
@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var possibleLeadingSpaces = string.Empty;
 
             // Need to do this with index so we get the line endings correct.
-            for (var i = 0; i < trivia.Count; i++)
+            for (var i = 0; i < triviaList.Count; i++)
             {
-                var triviaLine = trivia[i];
+                var triviaLine = triviaList[i];
                 if (triviaLine.RawKind == SyntaxKinds.SingleLineCommentTrivia)
                 {
                     if (possibleLeadingSpaces != string.Empty)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             // Remove copyright lines in reverse order.
             for (var i = removalList.Count - 1; i >= 0; i--)
             {
-                trivia = trivia.RemoveAt(removalList[i]);
+                triviaList = triviaList.RemoveAt(removalList[i]);
             }
 
             var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language)!;
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia);
 
             // Insert header at top of the file.
-            return root.WithLeadingTrivia(newHeaderTrivia.Add(newLineTrivia).AddRange(trivia));
+            return root.WithLeadingTrivia(newHeaderTrivia.Add(newLineTrivia).AddRange(triviaList));
         }
 
         private SyntaxNode AddHeader(Document document, SyntaxNode root, string expectedFileHeader)
@@ -197,12 +197,17 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var lines = copyrightText.Split('\n');
             return string.Join(newLineText, lines.Select(line =>
             {
+                // Rewrite the lines of the header as comments without trailing whitespace.
                 if (string.IsNullOrEmpty(line))
                 {
+                    // This is a blank line of the header. We want the prefix indicating the line is a comment, but no
+                    // additional trailing whitespace.
                     return prefixWithLeadingSpaces;
                 }
                 else
                 {
+                    // This is a normal line of the header. We want the prefix, followed by a single space, and then the
+                    // text of the header line.
                     return prefixWithLeadingSpaces + " " + line;
                 }
             }));
