@@ -41,6 +41,9 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=IsPRValidationBuild]$(('$(PRNumber)' -ne '') -and ('$(PRNumber)' -ne 'default'))"
       displayName: Setting IsPRValidationBuild variable
 
+    - powershell: Write-Host "$(IsPRValidationBuild)"
+      displayName: Display IsPRValidationBuild variable
+
     - task: tagBuildOrRelease@0
       displayName: Tag build
       inputs:
