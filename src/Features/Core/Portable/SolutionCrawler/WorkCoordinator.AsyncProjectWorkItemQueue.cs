@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return true;
                     }
 
-                    throw Contract.Unreachable;
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 protected override bool AddOrReplace_NoLock(WorkItem item)

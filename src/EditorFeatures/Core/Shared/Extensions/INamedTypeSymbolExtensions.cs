@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case TypeKind.Error:
                     return StandardGlyphGroup.GlyphGroupError;
                 default:
-                    throw Contract.UnexpectedValue(symbol.TypeKind);
+                    throw ExceptionUtilities.UnexpectedValue(symbol.TypeKind);
             }
         }
     }

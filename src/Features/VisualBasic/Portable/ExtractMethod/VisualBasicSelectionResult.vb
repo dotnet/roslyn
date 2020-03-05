@@ -286,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             ' Contract.ThrowIfFalse(last.IsParentKind(SyntaxKind.GlobalStatement))
             ' Contract.ThrowIfFalse(last.Parent.IsParentKind(SyntaxKind.CompilationUnit))
             ' Return last.Parent.Parent
-            Throw Contract.Unreachable
+            throw ExceptionUtilities.Unreachable
         End Function
 
         Public Function IsUnderModuleBlock() As Boolean

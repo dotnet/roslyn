@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return multiLineLambdaExpression.Statements
             End If
 
-            Throw Contract.UnexpectedValue(node)
+            throw ExceptionUtilities.UnexpectedValue(node)
         End Function
 
         <Extension()>

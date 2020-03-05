@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return (result: editorconfigNamingStylePreferences, succeeded: true);
             }
 
-            throw Contract.UnexpectedValue(type);
+            throw ExceptionUtilities.UnexpectedValue(type);
         }
     }
 }

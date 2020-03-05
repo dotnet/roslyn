@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
             else
             {
-                throw Contract.UnexpectedValue(declarationContext.Kind());
+                throw ExceptionUtilities.UnexpectedValue(declarationContext.Kind());
             }
 
             if (parensDesignation is null)

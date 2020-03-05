@@ -70,12 +70,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Sub AddSuppressWrappingIfOnSingleLineOperation(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             ' VB doesn't need to use this operation
-            Throw Contract.Unreachable
+            throw ExceptionUtilities.Unreachable
         End Sub
 
         Protected Sub AddSuppressAllOperationIfOnMultipleLine(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             ' VB doesn't need to use this operation
-            Throw Contract.Unreachable
+            throw ExceptionUtilities.Unreachable
         End Sub
 
         Protected Sub AddAnchorIndentationOperation(operations As List(Of AnchorIndentationOperation), startToken As SyntaxToken, endToken As SyntaxToken)

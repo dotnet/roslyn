@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return pair.Key;
                     }
 
-                    throw Contract.Unreachable;
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
         }

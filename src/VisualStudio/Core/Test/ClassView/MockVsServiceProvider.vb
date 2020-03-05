@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Return _navigationTool
             End If
 
-            Throw Contract.UnexpectedValue(serviceType)
+            throw ExceptionUtilities.UnexpectedValue(serviceType)
         End Function
     End Class
 End Namespace

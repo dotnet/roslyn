@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return method.EndBlockStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True)
                 End Select
 
-                Throw Contract.UnexpectedValue(location)
+                throw ExceptionUtilities.UnexpectedValue(location)
             End Function
 
             Private Function TriviaResolver(
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return FilterTriviaList(RemoveTrailingElasticTrivia(tokenPair.PreviousToken, list, tokenPair.NextToken))
                 End Select
 
-                Throw Contract.UnexpectedValue(location)
+                throw ExceptionUtilities.UnexpectedValue(location)
             End Function
 
             Private Function RemoveTrailingElasticTrivia(

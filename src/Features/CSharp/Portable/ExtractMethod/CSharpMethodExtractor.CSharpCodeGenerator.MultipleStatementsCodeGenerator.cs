@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     {
                         BlockSyntax blockNode => blockNode.Statements,
                         SwitchSectionSyntax switchSectionNode => switchSectionNode.Statements,
-                        _ => throw Contract.UnexpectedValue(node),
+                        _ => throw ExceptionUtilities.UnexpectedValue(node),
                     };
                 }
 

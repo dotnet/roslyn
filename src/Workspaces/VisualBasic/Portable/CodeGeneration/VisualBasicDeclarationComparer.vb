@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return Compare(DirectCast(x, TypeStatementSyntax), DirectCast(y, TypeStatementSyntax))
             End Select
 
-            Throw Contract.UnexpectedValue(x.Kind)
+            throw ExceptionUtilities.UnexpectedValue(x.Kind)
         End Function
 
         Private Shared Function ConvertBlockToStatement(node As SyntaxNode) As SyntaxNode

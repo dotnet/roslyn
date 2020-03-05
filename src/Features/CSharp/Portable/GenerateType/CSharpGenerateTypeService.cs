@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                                 return true;
                             }
 
-                            throw Contract.Unreachable;
+                            throw ExceptionUtilities.Unreachable;
                         }
                         else
                         {
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         }
                     }
 
-                    throw Contract.Unreachable;
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 if ((node is EventDeclarationSyntax || node is EventFieldDeclarationSyntax) &&

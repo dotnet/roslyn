@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                             If nameOrMemberAccessExpression.Parent IsNot Nothing AndAlso TypeOf nameOrMemberAccessExpression.Parent Is QualifiedNameSyntax Then
                                 Return True
                             Else
-                                Throw Contract.Unreachable
+                                throw ExceptionUtilities.Unreachable
                             End If
                         Else
                             ' Case : NSOrSomething.GenType

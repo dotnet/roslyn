@@ -509,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                            Return newPreviousToken
                                        End If
 
-                                       Throw Contract.UnexpectedValue(o)
+                                       throw ExceptionUtilities.UnexpectedValue(o)
                                    End Function)
             End Function
 

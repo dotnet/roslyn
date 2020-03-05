@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         return 2;
 
                     default:
-                        throw Contract.UnexpectedValue(group);
+                        throw ExceptionUtilities.UnexpectedValue(group);
                 }
             }
 

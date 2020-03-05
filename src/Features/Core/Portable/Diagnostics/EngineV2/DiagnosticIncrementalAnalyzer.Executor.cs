@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     title = "semantic";
                     break;
                 default:
-                    throw Contract.UnexpectedValue(kind);
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
     }

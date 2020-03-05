@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     break;
                 default:
-                    throw Contract.UnexpectedValue(e.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(e.Kind);
             }
         }
 

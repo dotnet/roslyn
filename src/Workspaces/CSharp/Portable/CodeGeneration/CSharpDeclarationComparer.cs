@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // for REPL, don't mess with order, just put new one at the end.
                     return 1;
                 default:
-                    throw Contract.UnexpectedValue(x.Kind());
+                    throw ExceptionUtilities.UnexpectedValue(x.Kind());
             }
         }
 

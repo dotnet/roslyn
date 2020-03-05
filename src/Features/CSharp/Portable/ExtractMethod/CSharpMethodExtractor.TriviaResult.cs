@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     TriviaLocation.BeforeEndOfSpan => body != null
                         ? body.CloseBraceToken.GetPreviousToken(includeZeroWidth: true)
                         : semicolonToken,
-                    _ => throw Contract.UnexpectedValue(location)
+                    _ => throw ExceptionUtilities.UnexpectedValue(location)
                 };
             }
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     TriviaLocation.AfterEndOfSpan => FilterTriviaList(list.Concat(tokenPair.NextToken.LeadingTrivia)),
                     TriviaLocation.AfterBeginningOfSpan => FilterTriviaList(AppendTrailingTrivia(tokenPair).Concat(list).Concat(tokenPair.NextToken.LeadingTrivia)),
                     TriviaLocation.BeforeEndOfSpan => FilterTriviaList(tokenPair.PreviousToken.TrailingTrivia.Concat(list).Concat(tokenPair.NextToken.LeadingTrivia)),
-                    _ => throw Contract.UnexpectedValue(location),
+                    _ => throw ExceptionUtilities.UnexpectedValue(location),
                 };
             }
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     MethodDeclarationSyntax methodDeclaration => (methodDeclaration.Body, methodDeclaration.ExpressionBody, methodDeclaration.SemicolonToken),
                     LocalFunctionStatementSyntax localFunctionDeclaration => (localFunctionDeclaration.Body, localFunctionDeclaration.ExpressionBody, localFunctionDeclaration.SemicolonToken),
-                    _ => throw Contract.UnexpectedValue(method)
+                    _ => throw ExceptionUtilities.UnexpectedValue(method)
                 };
             }
 

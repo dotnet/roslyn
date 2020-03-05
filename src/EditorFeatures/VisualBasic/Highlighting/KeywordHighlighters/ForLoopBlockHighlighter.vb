@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     highlights.Add(.InKeyword.Span)
                 End With
             Else
-                Throw Contract.UnexpectedValue(forBlock.ForOrForEachStatement)
+                throw ExceptionUtilities.UnexpectedValue(forBlock.ForOrForEachStatement)
             End If
 
             highlights.AddRange(

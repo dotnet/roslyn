@@ -19,12 +19,6 @@ namespace Roslyn.Utilities
         // This approach makes the common path efficient (both execution time and code size) 
         // while keeping the rarely executed code in a separate method.
 
-        public static Exception Unreachable
-            => ExceptionUtilities.Unreachable;
-
-        public static Exception UnexpectedValue(object? o)
-            => ExceptionUtilities.UnexpectedValue(o);
-
         /// <summary>
         /// Throws a non-accessible exception if the provided value is null.  This method executes in
         /// all builds

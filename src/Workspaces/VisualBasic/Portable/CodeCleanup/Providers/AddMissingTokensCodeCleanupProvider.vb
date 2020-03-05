@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                       Return lastTokenWithTrailingTrivia
                                                   End If
 
-                                                  Throw Contract.UnexpectedValue(o)
+                                                  throw ExceptionUtilities.UnexpectedValue(o)
                                               End Function)
 
                 Return True

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     }
 
                 default:
-                    throw Contract.Unreachable;
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 

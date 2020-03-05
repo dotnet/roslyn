@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     ILocalSymbol local => local.Type,
                     IParameterSymbol parameter => parameter.Type,
                     IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
-                    _ => throw Contract.UnexpectedValue(symbol)
+                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
 
             protected VariableStyle AlwaysReturn(VariableStyle style)
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             continue;
 
                         default:
-                            throw Contract.UnexpectedValue(symbol);
+                            throw ExceptionUtilities.UnexpectedValue(symbol);
                     }
                 }
             }
@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         style),
                     IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style),
                     IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style),
-                    _ => throw Contract.UnexpectedValue(symbol)
+                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
             }
         }

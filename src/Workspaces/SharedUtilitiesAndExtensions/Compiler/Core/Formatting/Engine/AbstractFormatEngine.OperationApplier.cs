@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         break;
 
                     default:
-                        throw Contract.UnexpectedValue(operation.Option);
+                        throw ExceptionUtilities.UnexpectedValue(operation.Option);
                 }
 
                 ApplyIndentationChangesToDependentTokens(tokenData, previousChangesMap, cancellationToken);

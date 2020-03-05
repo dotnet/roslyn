@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return false;
                 }
 
-                throw Contract.Unreachable;
+                throw ExceptionUtilities.Unreachable;
             }
 
             private bool OnRegion(SyntaxTrivia trivia, int currentIndex)

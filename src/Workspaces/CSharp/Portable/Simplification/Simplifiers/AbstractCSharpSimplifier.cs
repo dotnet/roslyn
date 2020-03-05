@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 CompilationUnitSyntax compilation => GetNamespaceId(compilation.Members, target, ref index),
                 NamespaceDeclarationSyntax @namespace => GetNamespaceId(@namespace.Members, target, ref index),
-                _ => throw Contract.UnexpectedValue(container)
+                _ => throw ExceptionUtilities.UnexpectedValue(container)
             };
 
         private static int GetNamespaceId(SyntaxList<MemberDeclarationSyntax> members, NamespaceDeclarationSyntax target, ref int index)

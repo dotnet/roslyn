@@ -42,14 +42,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Protected MustOverride Function CreateStringFromState() As String
 
             Public Overrides Function WithSpace(space As Integer, context As FormattingContext, formattingRules As ChainedFormattingRules) As TriviaData
-                Throw Contract.Unreachable
+                throw ExceptionUtilities.Unreachable
             End Function
 
             Public Overrides Function WithLine(line As Integer, indentation As Integer,
                                                context As FormattingContext,
                                                formattingRules As ChainedFormattingRules,
                                                cancellationToken As CancellationToken) As TriviaData
-                Throw Contract.Unreachable
+                throw ExceptionUtilities.Unreachable
             End Function
 
             Public Overrides ReadOnly Property ContainsChanges As Boolean

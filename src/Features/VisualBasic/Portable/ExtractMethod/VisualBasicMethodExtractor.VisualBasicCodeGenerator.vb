@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return New MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult)
                 End If
 
-                Throw Contract.UnexpectedValue(selectionResult)
+                throw ExceptionUtilities.UnexpectedValue(selectionResult)
             End Function
 
             Protected Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult)

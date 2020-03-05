@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return False
                 End If
 
-                Throw Contract.UnexpectedValue(trivia.Kind)
+                throw ExceptionUtilities.UnexpectedValue(trivia.Kind)
             End Function
 
             Private Function OnRegion(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean

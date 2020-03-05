@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     : s1.Kind == SymbolKind.Event ? -1 : 1;
             }
 
-            throw Contract.UnexpectedValue((s1.Kind, s2.Kind));
+            throw ExceptionUtilities.UnexpectedValue((s1.Kind, s2.Kind));
         }
     }
 }
