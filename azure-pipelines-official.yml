@@ -38,27 +38,21 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
 
-    - powershell: Write-Host "##vso[task.setvariable variable=IsPRValidationBuild]$(('$(PRNumber)' -ne '') -and ('$(PRNumber)' -ne 'default'))"
-      displayName: Setting IsPRValidationBuild variable
-
-    - powershell: Write-Host "$(IsPRValidationBuild)"
-      displayName: Display IsPRValidationBuild variable
-
     - task: tagBuildOrRelease@0
       displayName: Tag build
       inputs:
         type: 'Build'
-        ${{ if eq(variables['IsPRValidationBuild'], 'false') }}:
-          tags: 'PRValidationBuild'
-        ${{ if eq(variables['IsPRValidationBuild'], 'true') }}:
+        ${{ if eq(variables['PRNumber'], 'default') }}:
           tags: 'OfficialBuild'
+        ${{ if ne(variables['PRNumber'], 'default') }}:
+          tags: 'PRValidationBuild'
 
     - task: PowerShell@2
       displayName: Setup branch for insertion validation
       inputs:
         filePath: 'eng\setup-pr-validation.ps1'
         arguments: '-sourceBranchName $(SourceBranchName) -prNumber $(PRNumber)'
-      condition: and(succeeded(), eq(variables['IsPRValidationBuild'], 'true'))
+      condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
@@ -268,7 +262,7 @@ stages:
       queue:
         name: Hosted VS2017
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['IsPRValidationBuild'], false)) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['PRNumber'], default)) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
       # Symbol validation is not entirely reliable as of yet, so should be turned off until
