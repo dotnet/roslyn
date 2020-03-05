@@ -2038,9 +2038,6 @@ tryAgain:
 
             try
             {
-                TerminatorState saveTerm;
-                bool wasInAsync;
-
                 //
                 // Check for the following cases to disambiguate between member declarations and expressions.
                 // Doing this before parsing modifiers simplifies further analysis since some of these keywords can act as modifiers as well.
@@ -2056,7 +2053,7 @@ tryAgain:
                 //
                 if (!haveAttributes || !IsScript)
                 {
-                    wasInAsync = IsInAsync;
+                    bool wasInAsync = IsInAsync;
                     if (!IsScript)
                     {
                         IsInAsync = true; // We are implicitly in an async context
@@ -2117,7 +2114,7 @@ tryAgain:
                     //            ^
                     //            missing ';'
                     //
-                    // Unless there modifiers or attributes are present this is more likely to be a method call than a method definition.
+                    // Unless modifiers or attributes are present this is more likely to be a method call than a method definition.
                     if ((haveAttributes && IsScript) || haveModifiers)
                     {
                         var token = SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword);
@@ -2194,16 +2191,16 @@ tryAgain:
                             this.CurrentToken.Kind != SyntaxKind.EndOfFileToken &&
                             this.IsPossibleStatement(acceptAccessibilityMods: true))
                         {
-                            saveTerm = _termState;
+                            var saveTerm = _termState;
                             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-                            wasInAsync = IsInAsync;
+                            bool wasInAsync = IsInAsync;
                             if (!IsScript)
                             {
                                 IsInAsync = true; // We are implicitly in an async context
                             }
                             // In Script we don't allow local declaration statements at the top level.  We want
                             // to fall out below and parse them instead as fields. For Simple Programs, we allow
-                            // them, but want to try  properties , etc. first.
+                            // them, but want to try properties , etc. first.
                             var statement = this.ParseStatementCore(attributes, isGlobal: true);
 
                             IsInAsync = wasInAsync;
@@ -2242,7 +2239,7 @@ parse_member_name:;
 
                     if ((!typeIsRef || !IsScript) && IsFieldDeclaration(isEvent: false))
                     {
-                        saveTerm = _termState;
+                        var saveTerm = _termState;
 
                         if ((!haveAttributes && !haveModifiers) || !IsScript)
                         {
