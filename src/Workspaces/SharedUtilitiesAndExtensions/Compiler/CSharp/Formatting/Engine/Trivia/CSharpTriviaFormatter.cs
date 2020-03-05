@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             if (_newLine == default)
             {
-                var text = this.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+                var text = this.Context.Options.GetOption(FormattingOptions.NewLine);
                 _newLine = SyntaxFactory.EndOfLine(text);
             }
 
@@ -200,9 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     false /* forceIndentation */,
                     indentation,
                     indentationDelta,
-                    this.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp),
-                    this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp),
-                    this.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp));
+                    this.Options.GetOption(FormattingOptions.UseTabs),
+                    this.Options.GetOption(FormattingOptions.TabSize),
+                    this.Options.GetOption(FormattingOptions.NewLine));
 
                 var multilineCommentTrivia = SyntaxFactory.ParseLeadingTrivia(multiLineComment);
                 Contract.ThrowIfFalse(multilineCommentTrivia.Count == 1);
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     true /* forceIndentation */,
                     indentation,
                     0 /* indentationDelta */,
-                    this.OptionSet);
+                    this.Options);
                 var newTrivia = singleLineDocumentationCommentExteriorCommentRewriter.VisitTrivia(trivia);
 
                 return newTrivia;
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     false /* forceIndentation */,
                     indentation,
                     indentationDelta,
-                    this.OptionSet);
+                    this.Options);
             var newMultiLineTrivia = multiLineDocumentationCommentExteriorCommentRewriter.VisitTrivia(trivia);
 
             return newMultiLineTrivia;
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (!trivia.IsDocComment())
             {
                 var result = CSharpStructuredTriviaFormatEngine.Format(
-                    trivia, this.InitialLineColumn.Column, this.OptionSet, this.FormattingRules, cancellationToken);
+                    trivia, this.InitialLineColumn.Column, this.Options, this.FormattingRules, cancellationToken);
                 var formattedTrivia = SyntaxFactory.Trivia((StructuredTriviaSyntax)result.GetFormattedRoot(cancellationToken));
 
                 changes.Add(formattedTrivia);
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (!trivia.IsDocComment())
             {
                 var result = CSharpStructuredTriviaFormatEngine.Format(
-                    trivia, this.InitialLineColumn.Column, this.OptionSet, this.FormattingRules, cancellationToken);
+                    trivia, this.InitialLineColumn.Column, this.Options, this.FormattingRules, cancellationToken);
                 if (result.GetTextChanges(cancellationToken).Count == 0)
                 {
                     return GetLineColumnDelta(lineColumn, trivia);

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -27,12 +28,13 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 if (!_optionService.TryMapEditorConfigKeyToOption(key, _language, out var storageLocation, out var optionKey))
                 {
+                    Debug.Fail("Failed to find an .editorconfig entry for the requested key.");
                     value = null;
                     return false;
                 }
 
                 var typedValue = _optionSet.GetOption(optionKey);
-                value = storageLocation.GetEditorConfigString(typedValue, _optionSet);
+                value = storageLocation.GetEditorConfigStringValue(typedValue, _optionSet);
                 return true;
             }
         }

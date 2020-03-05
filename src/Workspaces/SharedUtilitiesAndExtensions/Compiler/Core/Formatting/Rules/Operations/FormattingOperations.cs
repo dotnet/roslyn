@@ -5,12 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
@@ -165,9 +160,9 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return SuppressOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<SuppressOperation> GetSuppressOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<SuppressOperation> GetSuppressOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
         {
-            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
+            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
 
             var list = new List<SuppressOperation>();
             chainedFormattingRules.AddSuppressOperations(list, node);
@@ -177,9 +172,9 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return AnchorIndentationOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<AnchorIndentationOperation> GetAnchorIndentationOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<AnchorIndentationOperation> GetAnchorIndentationOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
         {
-            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
+            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
 
             var list = new List<AnchorIndentationOperation>();
             chainedFormattingRules.AddAnchorIndentationOperations(list, node);
@@ -189,9 +184,9 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return IndentBlockOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<IndentBlockOperation> GetIndentBlockOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<IndentBlockOperation> GetIndentBlockOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
         {
-            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
+            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
 
             var list = new List<IndentBlockOperation>();
             chainedFormattingRules.AddIndentBlockOperations(list, node);
@@ -201,9 +196,9 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return AlignTokensOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<AlignTokensOperation> GetAlignTokensOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<AlignTokensOperation> GetAlignTokensOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
         {
-            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
+            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
 
             var list = new List<AlignTokensOperation>();
             chainedFormattingRules.AddAlignTokensOperations(list, node);
@@ -213,18 +208,18 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return AdjustNewLinesOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static AdjustNewLinesOperation GetAdjustNewLinesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet)
+        internal static AdjustNewLinesOperation GetAdjustNewLinesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
         {
-            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
+            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
             return chainedFormattingRules.GetAdjustNewLinesOperation(previousToken, currentToken);
         }
 
         /// <summary>
         /// return AdjustSpacesOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static AdjustSpacesOperation GetAdjustSpacesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet)
+        internal static AdjustSpacesOperation GetAdjustSpacesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
         {
-            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
+            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
             return chainedFormattingRules.GetAdjustSpacesOperation(previousToken, currentToken);
         }
     }
