@@ -169,7 +169,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         var correspondingParameter = methodSymbol.Parameters[paramIndex];
                         var argumentConversionType = correspondingParameter.Type;
 
-                        if (correspondingParameter.IsParams && correspondingParameter.Type is IArrayTypeSymbol arrayType && !(targetNodeType is IArrayTypeSymbol))
+                        if (correspondingParameter.IsParams &&
+                            correspondingParameter.Type is IArrayTypeSymbol arrayType &&
+                            !(targetNodeType is IArrayTypeSymbol))
                         {
                             // target argument is matched to the parameter with keyword params
                             argumentConversionType = arrayType.ElementType;
