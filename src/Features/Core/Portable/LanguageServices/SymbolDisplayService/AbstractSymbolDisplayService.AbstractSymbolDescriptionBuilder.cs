@@ -353,6 +353,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         return 0;
 
                     case SymbolDescriptionGroups.Documentation:
+                    case SymbolDescriptionGroups.ReturnsDocumentation:
+                    case SymbolDescriptionGroups.ValueDocumentation:
                         return 1;
 
                     case SymbolDescriptionGroups.AnonymousTypes:

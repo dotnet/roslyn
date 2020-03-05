@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
-            var option = GetPreferredPlacementOptionAsync(context).GetAwaiter().GetResult();
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
             if (option.Value != AddImportPlacement.OutsideNamespace)
             {
                 return;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private static void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
         {
-            var option = GetPreferredPlacementOptionAsync(context).GetAwaiter().GetResult();
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
             var compilationUnit = (CompilationUnitSyntax)context.Node;
 
             if (option.Value != AddImportPlacement.InsideNamespace
@@ -85,12 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             // compilation unit (including ExternAlias).
             return compilationUnit.ChildNodes().Any(
                 t => !t.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration));
-        }
-
-        private static async Task<CodeStyleOption<AddImportPlacement>> GetPreferredPlacementOptionAsync(SyntaxNodeAnalysisContext context)
-        {
-            var options = await context.Options.GetDocumentOptionSetAsync(context.Node.SyntaxTree, context.CancellationToken);
-            return options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
         }
 
         private static void ReportDiagnostics(

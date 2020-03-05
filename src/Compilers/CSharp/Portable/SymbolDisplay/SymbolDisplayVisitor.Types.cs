@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case CodeAnalysis.NullableAnnotation.NotAnnotated:
-                    if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier) &&
+                    if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier) &&
                         !type.IsValueType &&
                         (type as Symbols.PublicModel.TypeSymbol)?.UnderlyingTypeSymbol.IsTypeParameterDisallowingAnnotation() != true)
                     {
@@ -450,12 +450,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         private bool CanUseTupleSyntax(INamedTypeSymbol tupleSymbol)
         {
-            INamedTypeSymbol currentUnderlying = tupleSymbol.TupleUnderlyingType;
             if (containsModopt(tupleSymbol))
             {
                 return false;
             }
 
+            INamedTypeSymbol currentUnderlying = GetTupleUnderlyingTypeOrSelf(tupleSymbol);
             if (currentUnderlying.Arity <= 1)
             {
                 return false;
@@ -473,11 +473,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                currentUnderlying = tupleSymbol.TupleUnderlyingType;
+                currentUnderlying = GetTupleUnderlyingTypeOrSelf(tupleSymbol);
             }
 
             return true;
-
 
             bool containsModopt(INamedTypeSymbol symbol)
             {
@@ -490,6 +489,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return modifiers.Any(m => !m.IsEmpty);
             }
+        }
+
+        private static INamedTypeSymbol GetTupleUnderlyingTypeOrSelf(INamedTypeSymbol type)
+        {
+            return type.TupleUnderlyingType ?? type;
         }
 
         private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
@@ -807,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         break;
 
                                     case CodeAnalysis.NullableAnnotation.NotAnnotated:
-                                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier))
+                                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier))
                                         {
                                             AddPunctuation(SyntaxKind.ExclamationToken);
                                         }

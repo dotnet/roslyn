@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
@@ -24,12 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return True
         End Function
 
-        Protected Overrides Function GetObjectCreationSyntaxKind() As SyntaxKind
-            Return SyntaxKind.ObjectCreationExpression
-        End Function
-
-        Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
-            Return VisualBasicSyntaxFactsService.Instance
+        Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
+            Return VisualBasicSyntaxFacts.Instance
         End Function
     End Class
 End Namespace

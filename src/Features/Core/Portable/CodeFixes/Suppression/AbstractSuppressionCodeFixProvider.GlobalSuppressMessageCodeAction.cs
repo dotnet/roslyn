@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
@@ -13,12 +14,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         internal sealed class GlobalSuppressMessageCodeAction : AbstractGlobalSuppressMessageCodeAction
         {
             private readonly ISymbol _targetSymbol;
+            private readonly INamedTypeSymbol _suppressMessageAttribute;
             private readonly Diagnostic _diagnostic;
 
-            public GlobalSuppressMessageCodeAction(ISymbol targetSymbol, Project project, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer)
+            public GlobalSuppressMessageCodeAction(
+                ISymbol targetSymbol, INamedTypeSymbol suppressMessageAttribute,
+                Project project, Diagnostic diagnostic,
+                AbstractSuppressionCodeFixProvider fixer)
                 : base(fixer, project)
             {
                 _targetSymbol = targetSymbol;
+                _suppressMessageAttribute = suppressMessageAttribute;
                 _diagnostic = diagnostic;
             }
 
@@ -28,9 +34,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var workspace = suppressionsDoc.Project.Solution.Workspace;
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = await suppressionsDoc.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var addImportsService = suppressionsDoc.Project.LanguageServices.GetRequiredService<IAddImportsService>();
+                var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
 
-                suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(suppressionsRoot, _targetSymbol, _diagnostic, workspace, compilation, addImportsService, cancellationToken);
+                suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(
+                    suppressionsRoot, _targetSymbol, _suppressMessageAttribute, _diagnostic, workspace, compilation, addImportsService, cancellationToken);
                 return suppressionsDoc.WithSyntaxRoot(suppressionsRoot);
             }
 

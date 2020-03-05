@@ -1311,7 +1311,7 @@ Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="Extract_Interface">
         <source>Extract Interface</source>
-        <target state="translated">Extrair Interface</target>
+        <target state="translated">Extrair a Interface</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Adjacent_Member">

@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AssemblyIdentity assemblyIdentity,
                 ref Dictionary<AssemblyIdentity, MissingAssemblySymbol>? missingAssemblies)
             {
-                MissingAssemblySymbol missingAssembly;
+                MissingAssemblySymbol? missingAssembly;
 
                 if (missingAssemblies == null)
                 {

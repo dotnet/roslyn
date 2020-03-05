@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -18,6 +19,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
+    [Shared]
     internal partial class ExplicitInterfaceMemberCompletionProvider : CommonCompletionProvider
     {
         private const string InsertionTextOnOpenParen = nameof(InsertionTextOnOpenParen);

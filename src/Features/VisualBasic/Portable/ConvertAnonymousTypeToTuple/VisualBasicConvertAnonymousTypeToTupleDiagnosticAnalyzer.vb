@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
@@ -12,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
         Inherits AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer(Of
             SyntaxKind, AnonymousObjectCreationExpressionSyntax)
 
-        Protected Overrides Function GetAnonymousObjectCreationExpressionSyntaxKind() As SyntaxKind
-            Return SyntaxKind.AnonymousObjectCreationExpression
-        End Function
+        Public Sub New()
+            MyBase.New(VisualBasicSyntaxKinds.Instance)
+        End Sub
 
         Protected Overrides Function GetInitializerCount(anonymousType As AnonymousObjectCreationExpressionSyntax) As Integer
             Return anonymousType.Initializer.Initializers.Count

@@ -34,13 +34,9 @@ namespace Microsoft.CodeAnalysis.Remote
         // TODO: probably need to split this to private and public services
         public static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
-                // This adds the exported MEF services from Workspaces.Desktop
-                .Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly)
                 // This adds the exported MEF services from the RemoteWorkspaces assembly.
                 .Add(typeof(RoslynServices).Assembly)
-                .Add(typeof(ICodingConventionsManager).Assembly)
-                .Add(typeof(CSharp.CodeLens.CSharpCodeLensDisplayInfoService).Assembly)
-                .Add(typeof(VisualBasic.CodeLens.VisualBasicDisplayInfoService).Assembly);
+                .Add(typeof(ICodingConventionsManager).Assembly);
 
         public static HostServices HostServices
         {
@@ -62,21 +58,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
         }
-
-        private readonly int _scopeId;
-
-        public RoslynServices(int scopeId, AssetStorage storage, HostServices hostServices)
-        {
-            _scopeId = scopeId;
-
-            AssetService = new AssetService(_scopeId, storage, SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>());
-            SolutionService = new SolutionService(AssetService);
-            CompilationService = new CompilationService(SolutionService);
-        }
-
-        public AssetService AssetService { get; }
-        public SolutionService SolutionService { get; }
-        public CompilationService CompilationService { get; }
 
         /// <summary>
         /// Set default telemetry session

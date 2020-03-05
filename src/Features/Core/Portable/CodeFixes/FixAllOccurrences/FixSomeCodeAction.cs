@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return service.GetFixAllOperationsAsync(
-                FixAllState.CreateFixAllContext(progressTracker, cancellationToken),
+                new FixAllContext(FixAllState, progressTracker, cancellationToken),
                 _showPreviewChangesDialog);
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllChangedSolutionAsync(
-                FixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
+                new FixAllContext(FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)

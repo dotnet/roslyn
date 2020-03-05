@@ -195,7 +195,7 @@ Module Module1
         System.Console.WriteLine("Decimal: {0}", val)
     End Sub
     Sub PrintResult(val As Single)
-        System.Console.WriteLine("Single: {0}", val.ToString(System.Globalization.CultureInfo.InvariantCulture))
+        System.Console.WriteLine("Single: {0}", val.ToString("G7", System.Globalization.CultureInfo.InvariantCulture))
     End Sub
     Sub PrintResult(val As Double)
         System.Console.WriteLine("Double: {0}", val)

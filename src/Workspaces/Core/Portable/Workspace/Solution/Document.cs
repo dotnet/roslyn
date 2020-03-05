@@ -63,9 +63,10 @@ namespace Microsoft.CodeAnalysis
                    DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
         }
 
+        [Obsolete("Use TextDocument.HasTextChanged")]
         internal bool HasTextChanged(Document otherDocument)
         {
-            return DocumentState.HasTextChanged(otherDocument.DocumentState);
+            return HasTextChanged(otherDocument, ignoreUnchangeableDocument: false);
         }
 
         /// <summary>

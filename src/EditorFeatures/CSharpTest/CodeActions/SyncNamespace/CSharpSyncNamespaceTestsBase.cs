@@ -192,7 +192,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                                 WarningAnnotation.GetDescription(annotation) == FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
                         }));
 
-
                     var actualText = (await modifiedOriginalDocument.GetTextAsync()).ToString();
                     Assert.Equal(expectedSourceOriginal, actualText);
 

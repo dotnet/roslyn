@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -61,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
                 isSealed: symbol.IsSealed,
-                isConst: field != null && field.IsConst);
+                isConst: field != null && field.IsConst,
+                isUnsafe: symbol.IsUnsafe());
         }
 
         public bool IsStatic => (_modifiers & Modifiers.Static) != 0;
@@ -147,6 +150,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Partial, isPartial));
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Public API.")]
         public DeclarationModifiers WithAsync(bool isAsync)
         {
             return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Async, isAsync));

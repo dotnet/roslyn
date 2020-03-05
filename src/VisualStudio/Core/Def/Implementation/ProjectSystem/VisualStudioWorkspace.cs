@@ -74,6 +74,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
+        internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges => true;
+
         /// <summary>
         /// Returns the hierarchy for a given project. 
         /// </summary>

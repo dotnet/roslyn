@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                     if (IsStarted)
                     {
-                        ParseDocumentAsync(document);
+                        _ = ParseDocumentAsync(document);
                     }
                 }
             }
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private void ParseDocumentAsync(Document document)
+        private Task ParseDocumentAsync(Document document)
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Host
                 cancellationToken);
 
             // Always ensure that we mark this work as done from the workmap.
-            task.SafeContinueWith(
+            return task.SafeContinueWith(
                 _ =>
                 {
                     using (_stateLock.DisposableWrite())

@@ -2193,6 +2193,107 @@ ServicesVSResources.Remarks_colon & vbCrLf &
             End Using
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestDescription_XmlDocComments_Returns1()
+            Dim code =
+<Code>
+    <![CDATA[
+Class C
+    ''' <summary>
+    ''' Describes the method.
+    ''' </summary>
+    ''' <returns>Returns a value.</returns>
+    Function M() As Integer
+        Return 0
+    End Function
+End Class
+]]>
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetTypeList(0)
+                list = list.GetMemberList(0)
+
+                list.VerifyImmediateMemberDescriptions(
+"Public Function M() As Integer" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Summary_colon & vbCrLf &
+"Describes the method." & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Returns_colon & vbCrLf &
+"Returns a value.")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestDescription_XmlDocComments_Returns2()
+            Dim code =
+<Code>
+    <![CDATA[
+Class C
+    ''' <summary>
+    ''' Gets a value.
+    ''' </summary>
+    ''' <returns>Returns a value.</returns>
+    ReadOnly Property M As Integer
+End Class
+]]>
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetTypeList(0)
+                list = list.GetMemberList(0)
+
+                list.VerifyImmediateMemberDescriptions(
+"Public ReadOnly Property M As Integer" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Summary_colon & vbCrLf &
+"Gets a value." & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Returns_colon & vbCrLf &
+"Returns a value.")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestDescription_XmlDocComments_Value()
+            Dim code =
+<Code>
+    <![CDATA[
+Class C
+    ''' <summary>
+    ''' Gets a value.
+    ''' </summary>
+    ''' <value>An integer value.</value>
+    ReadOnly Property M As Integer
+End Class
+]]>
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetTypeList(0)
+                list = list.GetMemberList(0)
+
+                list.VerifyImmediateMemberDescriptions(
+"Public ReadOnly Property M As Integer" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Summary_colon & vbCrLf &
+"Gets a value." & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Value_colon & vbCrLf &
+"An integer value.")
+            End Using
+        End Sub
+
         <WorkItem(942021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub TestNavInfo_Class()

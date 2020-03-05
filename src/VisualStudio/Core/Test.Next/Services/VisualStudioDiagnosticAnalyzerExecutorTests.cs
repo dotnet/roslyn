@@ -135,6 +135,7 @@ End Class";
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         [WorkItem(26178, "https://github.com/dotnet/roslyn/pull/26178")]
+        [Obsolete("Razor only")]
         public async Task TestCancellationOnSessionWithSolution()
         {
             var code = @"class Test { void Method() { } }";
@@ -181,8 +182,8 @@ End Class";
                 Assert.True(await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    new[] { new Checksum[] { asset.Checksum } },
                     workspace.CurrentSolution,
+                    new[] { new Checksum[] { asset.Checksum } },
                     callbackTarget: null,
                     CancellationToken.None));
 
@@ -239,8 +240,8 @@ End Class";
                 Assert.True(await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    new[] { new Checksum[] { asset.Checksum } },
                     workspace.CurrentSolution,
+                    new[] { new Checksum[] { asset.Checksum } },
                     callbackTarget: null,
                     cancellationToken: CancellationToken.None));
 
@@ -264,8 +265,10 @@ End Class";
 
         private static DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner(Workspace workspace)
         {
-            var infoCache = new DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference>.Empty);
-            return new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(AsynchronousOperationListenerProvider.NullListener, infoCache, hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
+            return new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(
+                AsynchronousOperationListenerProvider.NullListener,
+                new DiagnosticAnalyzerInfoCache(),
+                hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
         }
 
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default)
@@ -370,7 +373,7 @@ End Class";
                 => throw new NotImplementedException();
 
             public override Task<T> InvokeAsync<T>(
-                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
                 => throw new NotImplementedException();
         }
     }

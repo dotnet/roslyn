@@ -2,23 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Diagnostics
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualBasic
-
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports Microsoft.CodeAnalysis.Options
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
@@ -28,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Protected ReadOnly _original As String
             Protected ReadOnly _newString As String
 
-            Public Sub New(optionSet As OptionSet,
+            Public Sub New(options As AnalyzerConfigOptions,
                            original As String,
                            lineBreaks As Integer,
                            indentation As Integer,
                            elastic As Boolean)
-                MyBase.New(optionSet, lineBreaks, indentation, elastic, LanguageNames.VisualBasic)
+                MyBase.New(options, lineBreaks, indentation, elastic, LanguageNames.VisualBasic)
 
                 Me._original = original
                 Me._newString = CreateStringFromState()

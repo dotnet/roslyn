@@ -164,6 +164,23 @@
     <Rule Id="VSTHRD103" Action="None" /> <!-- Call async methods when in an async method -->
     <Rule Id="VSTHRD010" Action="None" /> <!-- Invoke single-threaded types on Main thread https://github.com/dotnet/roslyn/issues/29275 -->
     <Rule Id="VSTHRD110" Action="None" /> <!-- Observe result of async calls -->
-    <Rule Id="VSTHRD200" Action="None" /> <!-- Use "Async" suffix for async methods -->
+  </Rules>
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers">
+    <Rule Id="HAA0101" Action="None" />
+    <Rule Id="HAA0102" Action="None" />
+    <Rule Id="HAA0201" Action="None" />
+    <Rule Id="HAA0202" Action="None" />
+    <Rule Id="HAA0301" Action="None" />
+    <Rule Id="HAA0302" Action="None" />
+    <Rule Id="HAA0303" Action="None" />
+    <Rule Id="HAA0401" Action="None" />
+    <Rule Id="HAA0501" Action="None" />
+    <Rule Id="HAA0502" Action="None" />
+    <Rule Id="HAA0503" Action="None" />
+    <Rule Id="HAA0506" Action="None" />
+    <Rule Id="HAA0601" Action="None" />
+    <Rule Id="HAA0602" Action="None" />
+    <Rule Id="HAA0603" Action="None" />
+    <Rule Id="HeapAnalyzerReadonlyMethodGroupAllocationRule" Action="None" />
   </Rules>
 </RuleSet>

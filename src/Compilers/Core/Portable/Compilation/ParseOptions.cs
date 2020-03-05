@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract override bool Equals(object? obj);
 
-        protected bool EqualsHelper(ParseOptions? other)
+        protected bool EqualsHelper([NotNullWhen(true)] ParseOptions? other)
         {
             if (object.ReferenceEquals(other, null))
             {

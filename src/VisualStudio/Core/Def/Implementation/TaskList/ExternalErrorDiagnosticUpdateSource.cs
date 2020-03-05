@@ -425,7 +425,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     // set ids set
                     var builder = ImmutableHashSet.CreateBuilder<string>();
-                    var descriptorMap = _owner._diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project);
+                    var descriptorMap = _owner._diagnosticService.HostAnalyzers.GetDiagnosticDescriptorsPerReference(_owner._diagnosticService.AnalyzerInfoCache, project);
                     builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
 
                     var set = builder.ToImmutable();
@@ -513,8 +513,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // REVIEW: current design is that we special case compiler analyzer case and we accept only document level
                 //         diagnostic as live. otherwise, we let them be build errors. we changed compiler analyzer accordingly as well
                 //         so that it doesn't report project level diagnostic as live errors.
-                if (_owner._diagnosticService.AnalyzerInfoCache.IsCompilerDiagnostic(project.Language, diagnosticData) &&
-                    !IsDocumentLevelDiagnostic(diagnosticData))
+                if (!IsDocumentLevelDiagnostic(diagnosticData) &&
+                    diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
                 {
                     // compiler error but project level error
                     return false;
@@ -580,7 +580,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     var diagnosticService = _owner._diagnosticService;
                     var infoCache = diagnosticService.AnalyzerInfoCache;
 
-                    foreach (var analyzersPerReference in infoCache.CreateDiagnosticAnalyzersPerReference(project))
+                    foreach (var analyzersPerReference in diagnosticService.HostAnalyzers.CreateDiagnosticAnalyzersPerReference(project))
                     {
                         foreach (var analyzer in analyzersPerReference.Value)
                         {

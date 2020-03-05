@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#if NETCOREAPP2_1
+#if NETCOREAPP
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -25,9 +25,7 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         public TestExecutionLoadContext(IList<ModuleData> dependencies)
         {
-            _dependencies = dependencies
-                .Select(x => new KeyValuePair<string, ModuleData>(x.FullName, x))
-                .ToImmutableDictionary(StringComparer.Ordinal);
+            _dependencies = dependencies.ToImmutableDictionary(d => d.FullName, StringComparer.Ordinal);
         }
 
         protected override Assembly Load(AssemblyName assemblyName)

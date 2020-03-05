@@ -3857,7 +3857,7 @@ public class Program
         }
 
         private static readonly SymbolDisplayFormat _displayFormat = SymbolDisplayFormat.TestFormat.
-            WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes).
+            WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes).
             WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         private static void VerifyBytes(TypeWithAnnotations type, byte[] expectedPreviously, byte[] expectedNow, string expectedDisplay)

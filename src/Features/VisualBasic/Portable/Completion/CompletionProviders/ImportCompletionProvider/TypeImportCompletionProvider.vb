@@ -3,7 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -12,6 +14,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
+    <ExportCompletionProvider(NameOf(TypeImportCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(EmbeddedLanguageCompletionProvider))>
+    <[Shared]>
     Friend NotInheritable Class TypeImportCompletionProvider
         Inherits AbstractTypeImportCompletionProvider
 

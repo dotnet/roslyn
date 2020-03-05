@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -843,13 +844,22 @@ public class B
         public void TestReportingUnsupportedDiagnostic()
         {
             string source = @"";
-            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerReportingUnsupportedDiagnostic() };
-            string message = new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, AnalyzerReportingUnsupportedDiagnostic.UnsupportedDescriptor.Id), "diagnostic").Message;
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
 
-            CreateCompilationWithMscorlib45(source)
+            var analyzer = new AnalyzerReportingUnsupportedDiagnostic();
+            var analyzers = new DiagnosticAnalyzer[] { analyzer };
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, AnalyzerReportingUnsupportedDiagnostic.UnsupportedDescriptor.Id), "diagnostic").Message;
+            IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: {compilation.AssemblyName}")}
+
+{new LazyToString(() => analyzer.ThrownException)}
+-----
+
+{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ID_1")}";
+
+            compilation
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
-                     .WithArguments("Microsoft.CodeAnalysis.CSharp.UnitTests.DiagnosticAnalyzerTests+AnalyzerReportingUnsupportedDiagnostic", "System.ArgumentException", message)
+                     .WithArguments("Microsoft.CodeAnalysis.CSharp.UnitTests.DiagnosticAnalyzerTests+AnalyzerReportingUnsupportedDiagnostic", "System.ArgumentException", message, context)
                      .WithLocation(1, 1));
         }
 
@@ -862,6 +872,8 @@ public class B
             public static readonly DiagnosticDescriptor UnsupportedDescriptor =
                 new DiagnosticDescriptor("ID_2", "DummyTitle", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+            public Exception ThrownException { get; set; }
+
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
@@ -873,7 +885,18 @@ public class B
             public override void Initialize(AnalysisContext context)
             {
                 context.RegisterCompilationAction(compilationContext =>
-                    compilationContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(UnsupportedDescriptor, Location.None)));
+                {
+                    try
+                    {
+                        ThrownException = null;
+                        compilationContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(UnsupportedDescriptor, Location.None));
+                    }
+                    catch (Exception e)
+                    {
+                        ThrownException = e;
+                        throw;
+                    }
+                });
             }
         }
 
@@ -881,14 +904,40 @@ public class B
         public void TestReportingDiagnosticWithInvalidId()
         {
             string source = @"";
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithInvalidDiagnosticId() };
             string message = new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticIdReported, AnalyzerWithInvalidDiagnosticId.Descriptor.Id), "diagnostic").Message;
+            Exception analyzerException = null;
+            IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: {compilation.AssemblyName}")}
 
-            CreateCompilationWithMscorlib45(source)
-                .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
-                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticId", "System.ArgumentException", message)
-                     .WithLocation(1, 1));
+{new LazyToString(() => analyzerException)}
+-----
+
+{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "Invalid ID")}";
+
+            EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
+            {
+                if (e.Exception is ArgumentException
+                    && e.Exception.Message == message)
+                {
+                    analyzerException = e.Exception;
+                }
+            };
+
+            try
+            {
+                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
+
+                compilation
+                    .VerifyDiagnostics()
+                    .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
+                         .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticId", "System.ArgumentException", message, context)
+                         .WithLocation(1, 1));
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
+            }
         }
 
         [Fact, WorkItem(30453, "https://github.com/dotnet/roslyn/issues/30453")]
@@ -898,12 +947,33 @@ public class B
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithNullDescriptor() };
             var analyzerFullName = "Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithNullDescriptor";
             string message = new ArgumentException(string.Format(CodeAnalysisResources.SupportedDiagnosticsHasNullDescriptor, analyzerFullName), "SupportedDiagnostics").Message;
+            Exception analyzerException = null;
+            IFormattable context = $@"{new LazyToString(() => analyzerException)}
+-----";
 
-            CreateCompilationWithMscorlib45(source)
-                .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
-                     .WithArguments(analyzerFullName, "System.ArgumentException", message)
-                     .WithLocation(1, 1));
+            EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
+            {
+                if (e.Exception is ArgumentException
+                    && e.Exception.Message == message)
+                {
+                    analyzerException = e.Exception;
+                }
+            };
+
+            try
+            {
+                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
+
+                CreateCompilationWithMscorlib45(source)
+                    .VerifyDiagnostics()
+                    .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
+                         .WithArguments(analyzerFullName, "System.ArgumentException", message, context)
+                         .WithLocation(1, 1));
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
+            }
         }
 
         [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
@@ -928,8 +998,9 @@ public class B
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, Diagnostic("BC101").WithLocation(1, 1));
         }
 
-        [Fact, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
-        public void TestReportingDiagnosticWithInvalidLocation()
+        [Theory, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
+        [CombinatorialData]
+        public void TestReportingDiagnosticWithInvalidLocation(AnalyzerWithInvalidDiagnosticLocation.ActionKind actionKind)
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
             var source2 = @"class C2 { void M() { int i = 0; i++; } }";
@@ -942,16 +1013,81 @@ public class B
 
             compilation.VerifyDiagnostics();
 
-            foreach (AnalyzerWithInvalidDiagnosticLocation.ActionKind actionKind in Enum.GetValues(typeof(AnalyzerWithInvalidDiagnosticLocation.ActionKind)))
+            var analyzer = new AnalyzerWithInvalidDiagnosticLocation(treeInAnotherCompilation, actionKind);
+            var analyzers = new DiagnosticAnalyzer[] { analyzer };
+            Exception analyzerException = null;
+
+            string contextDetail;
+            switch (actionKind)
             {
-                var analyzer = new AnalyzerWithInvalidDiagnosticLocation(treeInAnotherCompilation, actionKind);
-                var analyzers = new DiagnosticAnalyzer[] { analyzer };
+                case AnalyzerWithInvalidDiagnosticLocation.ActionKind.Symbol:
+                    contextDetail = $@"Compilation: {compilation.AssemblyName}
+ISymbol: C1 (NamedType)";
+                    break;
+
+                case AnalyzerWithInvalidDiagnosticLocation.ActionKind.CodeBlock:
+                    contextDetail = $@"Compilation: {compilation.AssemblyName}
+ISymbol: M (Method)
+SyntaxTree: 
+SyntaxNode: void M() {{ int i = 0; i++; }} [MethodDeclarationSyntax]@[11..39) (0,11)-(0,39)";
+                    break;
+
+                case AnalyzerWithInvalidDiagnosticLocation.ActionKind.Operation:
+                    contextDetail = $@"Compilation: {compilation.AssemblyName}
+IOperation: VariableDeclarationGroup
+SyntaxTree: 
+SyntaxNode: int i = 0; [LocalDeclarationStatementSyntax]@[22..32) (0,22)-(0,32)";
+                    break;
+
+                case AnalyzerWithInvalidDiagnosticLocation.ActionKind.OperationBlockEnd:
+                    contextDetail = $@"Compilation: {compilation.AssemblyName}
+ISymbol: M (Method)";
+                    break;
+
+                case AnalyzerWithInvalidDiagnosticLocation.ActionKind.Compilation:
+                case AnalyzerWithInvalidDiagnosticLocation.ActionKind.CompilationEnd:
+                    contextDetail = $@"Compilation: {compilation.AssemblyName}";
+                    break;
+
+                case AnalyzerWithInvalidDiagnosticLocation.ActionKind.SyntaxTree:
+                    contextDetail = $@"Compilation: {compilation.AssemblyName}
+SyntaxTree: ";
+                    break;
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+
+            IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, contextDetail)}
+
+{new LazyToString(() => analyzerException)}
+-----
+
+{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ID")}";
+
+            EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
+            {
+                if (e.Exception is ArgumentException
+                    && e.Exception.Message == message)
+                {
+                    analyzerException = e.Exception;
+                }
+            };
+
+            try
+            {
+                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
+
                 compilation
                     .VerifyAnalyzerDiagnostics(analyzers, null, null, expected:
                         Diagnostic("AD0001")
-                            .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticLocation", "System.ArgumentException", message)
+                            .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticLocation", "System.ArgumentException", message, context)
                             .WithLocation(1, 1)
                     );
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
             }
         }
 
@@ -964,17 +1100,24 @@ public class B
 
             var badSpan = new Text.TextSpan(100000, 10000);
 
+            var analyzer = new AnalyzerWithInvalidDiagnosticSpan(badSpan);
             string message = new ArgumentException(
                 string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, AnalyzerWithInvalidDiagnosticSpan.Descriptor.Id, badSpan, treeInAnotherCompilation.FilePath), "diagnostic").Message;
+            IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: {compilation.AssemblyName}
+SyntaxTree: ")}
+
+{new LazyToString(() => analyzer.ThrownException)}
+-----
+
+{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ID")}";
 
             compilation.VerifyDiagnostics();
 
-            var analyzer = new AnalyzerWithInvalidDiagnosticSpan(badSpan);
             var analyzers = new DiagnosticAnalyzer[] { analyzer };
             compilation
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, expected:
                     Diagnostic("AD0001")
-                        .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticSpan", "System.ArgumentException", message)
+                        .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticSpan", "System.ArgumentException", message, context)
                         .WithLocation(1, 1)
                 );
         }
@@ -985,12 +1128,35 @@ public class B
             string source = @"";
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithAsyncMethodRegistration() };
             string message = new ArgumentException(string.Format(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered), "action").Message;
+            Exception analyzerException = null;
+            IFormattable context = $@"{new LazyToString(() => analyzerException)}
+-----
 
-            CreateCompilationWithMscorlib45(source)
-                .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
-                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithAsyncMethodRegistration", "System.ArgumentException", message)
-                     .WithLocation(1, 1));
+{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ID")}";
+
+            EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
+            {
+                if (e.Exception is ArgumentException
+                    && e.Exception.Message == message)
+                {
+                    analyzerException = e.Exception;
+                }
+            };
+
+            try
+            {
+                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
+
+                CreateCompilationWithMscorlib45(source)
+                    .VerifyDiagnostics()
+                    .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
+                         .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithAsyncMethodRegistration", "System.ArgumentException", message, context)
+                         .WithLocation(1, 1));
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
+            }
         }
 
         [Fact, WorkItem(13120, "https://github.com/dotnet/roslyn/issues/13120")]
@@ -999,12 +1165,35 @@ public class B
             string source = @"";
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithAsyncLambdaRegistration() };
             string message = new ArgumentException(string.Format(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered), "action").Message;
+            Exception analyzerException = null;
+            IFormattable context = $@"{new LazyToString(() => analyzerException)}
+-----
 
-            CreateCompilationWithMscorlib45(source)
-                .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
-                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithAsyncLambdaRegistration", "System.ArgumentException", message)
-                     .WithLocation(1, 1));
+{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ID")}";
+
+            EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
+            {
+                if (e.Exception is ArgumentException
+                    && e.Exception.Message == message)
+                {
+                    analyzerException = e.Exception;
+                }
+            };
+
+            try
+            {
+                AppDomain.CurrentDomain.FirstChanceException += firstChanceException;
+
+                CreateCompilationWithMscorlib45(source)
+                    .VerifyDiagnostics()
+                    .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
+                         .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithAsyncLambdaRegistration", "System.ArgumentException", message, context)
+                         .WithLocation(1, 1));
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.FirstChanceException -= firstChanceException;
+            }
         }
 
         [Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")]
@@ -3203,6 +3392,37 @@ class C
             Assert.True(first.Concurrent);
             Assert.False(second.Concurrent);
             Assert.True(second.Append(first).Concurrent);
+        }
+
+        [Fact, WorkItem(41402, "https://github.com/dotnet/roslyn/issues/41402")]
+        public async Task TestRegisterOperationBlockAndOperationActionOnSameContext()
+        {
+            string source = @"
+internal class A
+{
+    public void M() { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            // Verify analyzer execution from command line
+            // 'VerifyAnalyzerDiagnostics' helper executes the analyzers on the entire compilation without any state-based analysis.
+            var analyzers = new DiagnosticAnalyzer[] { new RegisterOperationBlockAndOperationActionAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID0001", "M").WithLocation(4, 17));
+
+            // Now verify analyzer execution for a single file.
+            // 'GetAnalyzerSemanticDiagnosticsAsync' executes the analyzers on the given file with state-based analysis.
+            var model = compilation.GetSemanticModel(tree);
+            var compWithAnalyzers = new CompilationWithAnalyzers(
+                compilation,
+                analyzers.ToImmutableArray(),
+                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                CancellationToken.None);
+            var diagnostics = await compWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
+            diagnostics.Verify(Diagnostic("ID0001", "M").WithLocation(4, 17));
         }
     }
 }

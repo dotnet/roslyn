@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -18,6 +20,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
+    [ExportCompletionProvider(nameof(CSharpSuggestionModeCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(ObjectInitializerCompletionProvider))]
+    [Shared]
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
@@ -123,8 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             // A lambda that is being typed may be parsed as a tuple without names
             // For example, "(a, b" could be the start of either a tuple or lambda
             // But "(a: b, c" cannot be a lambda
-            if (token.SyntaxTree.IsPossibleTupleContext(token, position) && token.Parent.IsKind(SyntaxKind.TupleExpression) &&
-               !((TupleExpressionSyntax)token.Parent).HasNames())
+            if (token.SyntaxTree.IsPossibleTupleContext(token, position) &&
+                token.Parent.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression) &&
+                !tupleExpression.HasNames())
             {
                 position = token.Parent.SpanStart;
             }

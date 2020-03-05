@@ -4743,7 +4743,7 @@ class C
         }
 
         [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/41280")]
         public void TestUnicodeAttributeArgumentsStrings()
         {
             string HighSurrogateCharacter = "\uD800";

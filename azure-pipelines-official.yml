@@ -10,6 +10,7 @@ resources:
 #  SkipApplyOptimizationData: false
 #  IbcSourceBranchName: 'default'
 #  IbcDropId: 'default'
+#  PRNumber: 'default'
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
@@ -36,6 +37,22 @@ stages:
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
+
+    - powershell: Write-Host "##vso[task.setvariable variable=IsPRValidationBuild]($(PRNumber) -ne '') -and ($(PRNumber) -ne 'default')"
+      displayName: Setting IsPRValidationBuild variable
+
+    - task: tagBuildOrRelease@0
+      displayName: Tag build
+      inputs:
+        type: 'Build'
+        tags: if (variables['IsPRValidationBuild']) { 'PRValidationBuild' } else { "OfficialBuild" }
+
+    - task: PowerShell@2
+      displayName: Setup branch for insertion validation
+      inputs:
+        filePath: 'eng\setup-pr-validation.ps1'
+        arguments: '-sourceBranchName $(SourceBranchName) -prNumber $(PRNumber)'
+      condition: and(succeeded(), variables['IsPRValidationBuild'])
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
@@ -245,7 +262,7 @@ stages:
       queue:
         name: Hosted VS2017
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['IsPRValidationBuild'], false)) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
       # Symbol validation is not entirely reliable as of yet, so should be turned off until

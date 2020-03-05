@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -13,6 +14,9 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(OverrideCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(CompletionListTagCompletionProvider))>
+    <[Shared]>
     Friend Class OverrideCompletionProvider
         Inherits AbstractOverrideCompletionProvider
 

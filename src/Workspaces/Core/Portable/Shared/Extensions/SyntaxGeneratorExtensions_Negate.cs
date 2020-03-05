@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var syntaxFacts = generator.SyntaxFacts;
             if (syntaxFacts.IsParenthesizedExpression(expression))
             {
-                return syntaxFacts.Parenthesize(
+                return generator.AddParentheses(
                     generator.Negate(
                         syntaxFacts.GetExpressionOfParenthesizedExpression(expression),
                         semanticModel,
@@ -109,11 +109,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 //Workaround for https://github.com/dotnet/roslyn/issues/23956
                 //Issue to remove this when above is merged
-                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsConditionalOr(expressionNode))
+                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsLogicalOrExpression(expressionNode))
                 {
                     negatedKind = BinaryOperatorKind.ConditionalAnd;
                 }
-                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsConditionalAnd(expressionNode))
+                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsLogicalAndExpression(expressionNode))
                 {
                     negatedKind = BinaryOperatorKind.ConditionalOr;
                 }
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode GetNegationOfLogicalNotExpression(
             SyntaxNode expression,
-            ISyntaxFactsService syntaxFacts)
+            ISyntaxFacts syntaxFacts)
         {
             var operatorToken = syntaxFacts.GetOperatorTokenOfPrefixUnaryExpression(expression);
             var operand = syntaxFacts.GetOperandOfPrefixUnaryExpression(expression);

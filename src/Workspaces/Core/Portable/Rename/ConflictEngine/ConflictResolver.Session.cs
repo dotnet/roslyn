@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 try
                 {
-                    await FindDocumentsAndPossibleNameConflicts().ConfigureAwait(false);
+                    await FindDocumentsAndPossibleNameConflictsAsync().ConfigureAwait(false);
                     var baseSolution = _renameLocationSet.Solution;
 
                     // Process rename one project at a time to improve caching and reduce syntax tree serialization.
@@ -246,13 +246,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             // At the moment, only single document renaming is allowed
                             conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
                         }
-                    }
-
-                    // Step 6: Drop changes made in unchangeable documents
-                    var (containsDisallowedChange, updatedSolution) = await conflictResolution.NewSolution.ExcludeDisallowedDocumentTextChangesAsync(conflictResolution.OldSolution, _cancellationToken).ConfigureAwait(false);
-                    if (containsDisallowedChange)
-                    {
-                        conflictResolution.UpdateCurrentSolution(updatedSolution);
                     }
 
                     return conflictResolution;
@@ -670,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// The method determines the set of documents that need to be processed for Rename and also determines
             ///  the possible set of names that need to be checked for conflicts.
             /// </summary>
-            private async Task FindDocumentsAndPossibleNameConflicts()
+            private async Task FindDocumentsAndPossibleNameConflictsAsync()
             {
                 try
                 {
@@ -689,7 +682,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             ?.TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
                     }
 
-                    await AddDocumentsWithPotentialConflicts(documentsFromAffectedProjects).ConfigureAwait(false);
+                    await AddDocumentsWithPotentialConflictsAsync(documentsFromAffectedProjects).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
@@ -697,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
-            private async Task AddDocumentsWithPotentialConflicts(IEnumerable<Document> documents)
+            private async Task AddDocumentsWithPotentialConflictsAsync(IEnumerable<Document> documents)
             {
                 try
                 {

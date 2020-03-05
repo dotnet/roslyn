@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.IO;
 using Microsoft.Build.Framework;
@@ -25,6 +27,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public CopyRefAssembly()
         {
             TaskResources = ErrorString.ResourceManager;
+
+            // These required properties will all be assigned by MSBuild. Suppress warnings about leaving them with
+            // their default values.
+            SourcePath = null!;
+            DestinationPath = null!;
         }
 
         public override bool Execute()
