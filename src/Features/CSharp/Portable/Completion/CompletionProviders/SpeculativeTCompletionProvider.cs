@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -17,6 +18,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(SpeculativeTCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
+    [Shared]
     internal class SpeculativeTCompletionProvider : CommonCompletionProvider
     {
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)

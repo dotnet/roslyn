@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(ExplicitInterfaceTypeCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(ExplicitInterfaceMemberCompletionProvider))]
+    [Shared]
     internal partial class ExplicitInterfaceTypeCompletionProvider : AbstractSymbolCompletionProvider
     {
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)

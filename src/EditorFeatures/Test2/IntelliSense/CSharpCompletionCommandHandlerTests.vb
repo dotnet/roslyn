@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
@@ -10,6 +11,7 @@ Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Tags
@@ -2862,10 +2864,18 @@ class C
             End Using
         End Function
 
+        <ExportCompletionProvider(NameOf(SlowProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
         Private Class SlowProvider
             Inherits CommonCompletionProvider
 
             Public checkpoint As Checkpoint = New Checkpoint()
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
 
             Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 Await checkpoint.Task.ConfigureAwait(False)
@@ -2879,7 +2889,6 @@ class C
         <WorkItem(1015893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015893")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function BackspaceDismissesIfComputationIsIncomplete() As Task
-            Dim slowProvider = New SlowProvider()
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 class C
@@ -2888,7 +2897,8 @@ class C
     {
         goo($$
     }
-}]]></Document>, {slowProvider})
+}]]></Document>,
+                extraExportedTypes:={GetType(SlowProvider)}.ToList())
 
                 state.SendTypeChars("f")
                 state.SendBackspace()
@@ -2897,6 +2907,9 @@ class C
                 ' before the model computation has finished. Then, allow the
                 ' computation to complete. There should still be no session.
                 state.SendBackspace()
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim slowProvider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of SlowProvider)().Single()
                 slowProvider.checkpoint.Release()
                 Await state.AssertNoCompletionSession()
             End Using
@@ -3722,11 +3735,14 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems1() As Task
-            Dim tcs = New TaskCompletionSource(Of Boolean)
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
                                   using $$
-                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+                              </Document>,
+                              extraExportedTypes:={GetType(BooleanTaskControlledCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
@@ -3736,7 +3752,7 @@ class C
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("Sys.", state.GetLineTextFromCaretPosition())
 
-                tcs.SetResult(True)
+                provider.completionSource.SetResult(True)
             End Using
         End Function
 
@@ -3745,7 +3761,8 @@ class C
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
                                   using $$
-                              </Document>, {New TaskControlledCompletionProvider(Task.FromResult(True))})
+                              </Document>,
+                              extraExportedTypes:={GetType(CompletedTaskControlledCompletionProvider)}.ToList())
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
@@ -3771,12 +3788,14 @@ class C
             ' 5. Check that the commit is not yet provided: there is 'Sys' but no 'System'
             ' 6. Simulate unblocking the provider.
             ' 7. Verify that the completion completes CommitIfUnique.
-            Dim tcs = New TaskCompletionSource(Of Boolean)
-            Dim provider = New TaskControlledCompletionProvider(tcs.Task)
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
                                   using $$
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(BooleanTaskControlledCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
@@ -3800,7 +3819,7 @@ class C
                                 ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
                             Finally
                                 ' 4. Unblock the first task and the main thread.
-                                tcs.SetResult(True)
+                                provider.completionSource.SetResult(True)
                             End Try
                         End Sub)
 
@@ -3846,12 +3865,14 @@ class C
             ' 8. Verify that
             ' 8.a. The old completion adds 'a' to 'Sys' and displays 'Sysa'. CommitIfUnique is canceled because it was interrupted by typing 'a'.
             ' 8.b. The new completion completes CommitIfUnique and then adds 'a'.
-            Dim tcs = New TaskCompletionSource(Of Boolean)
-            Dim provider = New TaskControlledCompletionProvider(tcs.Task)
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
                                   using $$
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(BooleanTaskControlledCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
@@ -3874,7 +3895,7 @@ class C
                                     ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
                                 Finally
                                     ' 4. Unblock the first task and the main thread.
-                                    tcs.SetResult(True)
+                                    provider.completionSource.SetResult(True)
                                 End Try
                             End Sub)
 
@@ -3911,17 +3932,19 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSwitchBetweenBlockingAndNoBlockOnCompletion() As Task
-            Dim tcs = New TaskCompletionSource(Of Boolean)
-            Dim provider = New TaskControlledCompletionProvider(tcs.Task)
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
                                   using $$
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(BooleanTaskControlledCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
 #Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
                 Task.Run(Function()
                              Task.Delay(TimeSpan.FromSeconds(10))
-                             tcs.SetResult(True)
+                             provider.completionSource.SetResult(True)
                              Return True
                          End Function)
 #Enable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
@@ -3938,8 +3961,7 @@ class C
                 Await state.WaitForAsynchronousOperationsAsync()
 
                 ' reset the task
-                tcs = New TaskCompletionSource(Of Boolean)
-                provider.UpdateTask(tcs.Task)
+                provider.Reset()
 
                 ' Switch to the non-blocking mode
                 Dim workspace = state.Workspace
@@ -3950,7 +3972,7 @@ class C
                 state.SendTypeChars("Sys.")
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("Sys.", state.GetLineTextFromCaretPosition())
-                tcs.SetResult(True)
+                provider.completionSource.SetResult(True)
 
                 For i As Integer = 1 To "Sys.".Length
                     state.SendBackspace()
@@ -3960,8 +3982,7 @@ class C
                 Await state.WaitForAsynchronousOperationsAsync()
 
                 ' reset the task
-                tcs = New TaskCompletionSource(Of Boolean)
-                provider.UpdateTask(tcs.Task)
+                provider.Reset()
 
                 ' Switch to the blocking mode
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
@@ -3970,7 +3991,7 @@ class C
 #Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
                 Task.Run(Function()
                              Task.Delay(TimeSpan.FromSeconds(10))
-                             tcs.SetResult(True)
+                             provider.completionSource.SetResult(True)
                              Return True
                          End Function)
 #Enable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
@@ -3981,7 +4002,7 @@ class C
             End Using
         End Function
 
-        Private Class TaskControlledCompletionProvider
+        Private MustInherit Class TaskControlledCompletionProvider
             Inherits CompletionProvider
 
             Private _task As Task
@@ -4000,6 +4021,44 @@ class C
                 RaiseEvent ProviderCalled()
                 Return _task
             End Function
+        End Class
+
+        <ExportCompletionProvider(NameOf(CompletedTaskControlledCompletionProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class CompletedTaskControlledCompletionProvider
+            Inherits TaskControlledCompletionProvider
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+                MyBase.New(Task.FromResult(True))
+            End Sub
+        End Class
+
+        <ExportCompletionProvider(NameOf(BooleanTaskControlledCompletionProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class BooleanTaskControlledCompletionProvider
+            Inherits TaskControlledCompletionProvider
+
+            Public completionSource As TaskCompletionSource(Of Boolean)
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+                MyClass.New(New TaskCompletionSource(Of Boolean))
+            End Sub
+
+            Private Sub New(completionSource As TaskCompletionSource(Of Boolean))
+                MyBase.New(completionSource.Task)
+                Me.completionSource = completionSource
+            End Sub
+
+            Public Sub Reset()
+                completionSource = New TaskCompletionSource(Of Boolean)
+                UpdateTask(completionSource.Task)
+            End Sub
         End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -4290,8 +4349,6 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestLargeChangeBrokenUpIntoSmallTextChanges()
-            Dim provider = New MultipleChangeCompletionProvider()
-
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -4300,7 +4357,11 @@ class C
     void goo() {
         return $$
     }
-}]]></Document>, {provider})
+}]]></Document>,
+                extraExportedTypes:={GetType(MultipleChangeCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of MultipleChangeCompletionProvider)().Single()
 
                 Dim testDocument = state.Workspace.Documents(0)
                 Dim textBuffer = testDocument.GetTextBuffer()
@@ -4355,8 +4416,6 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestLargeChangeBrokenUpIntoSmallTextChanges2()
-            Dim provider = New MultipleChangeCompletionProvider()
-
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -4365,7 +4424,11 @@ class C
     void goo() {
         return Custom$$
     }
-}]]></Document>, {provider})
+}]]></Document>,
+                extraExportedTypes:={GetType(MultipleChangeCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of MultipleChangeCompletionProvider)().Single()
 
                 Dim testDocument = state.Workspace.Documents(0)
                 Dim textBuffer = testDocument.GetTextBuffer()
@@ -4970,7 +5033,6 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSendCommitIfUniqueWithIntelliCode() As Task
-            Dim provider = New IntelliCodeMockProvider()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -4981,7 +5043,11 @@ class C
         s.Len$$
     }
 }
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(IntelliCodeMockProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
@@ -4991,7 +5057,6 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSendCommitIfUniqueInInsertionSessionWithIntelliCode() As Task
-            Dim provider = New IntelliCodeMockProvider()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -5002,7 +5067,11 @@ class C
         s$$
     }
 }
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(IntelliCodeMockProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 state.SendTypeChars(".len")
                 Await state.AssertCompletionItemsContainAll("Length", "★ Length")
@@ -5017,7 +5086,6 @@ class C
             ' We explicitly use a weak matching on Delete.
             ' It matches by the first letter. Therefore, if backspace in s.Length, it matches s.Length and s.LastIndexOf.
             ' In this case, CommitIfUnique is not applied.
-            Dim provider = New IntelliCodeMockProvider()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -5028,7 +5096,11 @@ class C
         s.Normalize$$
     }
 }
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(IntelliCodeMockProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
@@ -5044,7 +5116,6 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAutomationTextPassedToEditor() As Task
-            Dim provider = New IntelliCodeMockProvider()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -5055,7 +5126,11 @@ class C
         s.Len$$
     }
 }
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(IntelliCodeMockProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 state.SendInvokeCompletionList()
                 state.SendSelectCompletionItem("★ Length")
@@ -5065,7 +5140,6 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSendCommitIfUniqueWithIntelliCodeAndDuplicateItemsFromIntelliCode() As Task
-            Dim provider = New IntelliCodeMockWeirdProvider()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -5076,7 +5150,11 @@ class C
         s.Len$$
     }
 }
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(IntelliCodeMockWeirdProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockWeirdProvider)().Single()
 
                 Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
@@ -5086,7 +5164,6 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSendCommitIfUniqueInInsertionSessionWithIntelliCodeAndDuplicateItemsFromIntelliCode() As Task
-            Dim provider = New IntelliCodeMockWeirdProvider()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -5097,7 +5174,11 @@ class C
         s$$
     }
 }
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(IntelliCodeMockWeirdProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockWeirdProvider)().Single()
 
                 state.SendTypeChars(".len")
                 Await state.AssertCompletionItemsContainAll("Length", "★ Length", "★ Length2")
@@ -5109,7 +5190,6 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function IntelliCodeItemPreferredAfterCommitingIntelliCodeItem() As Task
-            Dim provider = New IntelliCodeMockProvider()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -5120,7 +5200,11 @@ class C
         s$$
     }
 }
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(IntelliCodeMockProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
@@ -5155,7 +5239,6 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function IntelliCodeItemPreferredAfterCommitingNonIntelliCodeItem() As Task
-            Dim provider = New IntelliCodeMockProvider()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -5166,7 +5249,11 @@ class C
         s$$
     }
 }
-                              </Document>, {provider})
+                              </Document>,
+                              extraExportedTypes:={GetType(IntelliCodeMockProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
@@ -6226,11 +6313,19 @@ namespace NS
             End Using
         End Function
 
+        <ExportCompletionProvider(NameOf(MultipleChangeCompletionProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
             Private _text As String
             Private _caretPosition As Integer
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
 
             Public Sub SetInfo(text As String, caretPosition As Integer)
                 _text = text
@@ -6263,10 +6358,18 @@ class C
             End Function
         End Class
 
+        <ExportCompletionProvider(NameOf(IntelliCodeMockProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
         Private Class IntelliCodeMockProvider
             Inherits CompletionProvider
 
             Public AutomationTextString As String = "Hello from IntelliCode: Length"
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
 
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 Dim intelliCodeItem = CompletionItem.Create(displayText:="★ Length", filterText:="Length")
@@ -6299,8 +6402,17 @@ class C
         ' Simulates a situation where IntelliCode provides items not included into the Rolsyn original list.
         ' We want to ignore these items in CommitIfUnique.
         ' This situation should not happen. Tests with this provider were added to cover protective scenarios.
+        <ExportCompletionProvider(NameOf(IntelliCodeMockWeirdProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
         Private Class IntelliCodeMockWeirdProvider
             Inherits IntelliCodeMockProvider
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+                MyBase.New()
+            End Sub
 
             Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 Await MyBase.ProvideCompletionsAsync(context).ConfigureAwait(False)

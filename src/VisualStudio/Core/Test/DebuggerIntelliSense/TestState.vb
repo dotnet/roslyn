@@ -28,7 +28,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             MyBase.New(
                 workspaceElement,
-                extraCompletionProviders:=Nothing,
                 excludedTypes:=Nothing,
                 extraExportedTypes:=Nothing,
                 workspaceKind:=WorkspaceKind.Debugger,

@@ -2,14 +2,19 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(ObjectInitializerCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(SymbolCompletionProvider))>
+    <[Shared]>
     Friend Class ObjectInitializerCompletionProvider
         Inherits AbstractObjectInitializerCompletionProvider
 
