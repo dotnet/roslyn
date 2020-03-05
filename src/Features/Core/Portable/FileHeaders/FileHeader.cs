@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 return Location.Create(syntaxTree, new TextSpan(_fileHeaderStart, 0));
             }
 
-            return Location.Create(syntaxTree, TextSpan.FromBounds(_fileHeaderStart, _fileHeaderStart + _commentPrefixLength));
+            return Location.Create(syntaxTree, new TextSpan(_fileHeaderStart, _commentPrefixLength));
         }
     }
 }

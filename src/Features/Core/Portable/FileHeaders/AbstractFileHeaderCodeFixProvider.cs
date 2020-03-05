@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 triviaList = triviaList.RemoveAt(removalList[i]);
             }
 
-            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language)!;
+            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language);
             var newLineTrivia = SyntaxGenerator.GetGenerator(document).EndOfLine(newLineText);
 
             var newHeaderTrivia = CreateNewHeader(leadingSpaces + FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText);
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private SyntaxNode AddHeader(Document document, SyntaxNode root, string expectedFileHeader)
         {
-            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language)!;
+            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language);
             var newLineTrivia = SyntaxGenerator.GetGenerator(document).EndOfLine(newLineText);
             var newTrivia = CreateNewHeader(FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText).Add(newLineTrivia).Add(newLineTrivia);
 

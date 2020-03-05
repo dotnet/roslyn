@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxTreeAction(HandleSyntaxTree);
 
-        public void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
         {
             var tree = context.Tree;
             var root = tree.GetRoot(context.CancellationToken);
