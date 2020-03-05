@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     {
                         var convType = potentialConversionTypes[i];
                         actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToMinimalDisplayString(semanticModel, context.Span.Start)),
-                            c => ApplyFixAsync(context.Document, root, targetNode, convType)));
+                            c => Task.FromResult(document.WithSyntaxRoot(ApplyFix(root, targetNode, convType)))));
                     }
 
                     if (potentialConversionTypes.Length > MaximumConversionOptions)
@@ -105,11 +105,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
         }
 
-        private static Task<Document> ApplyFixAsync(Document document, SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
+        private static SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
         {
-            var castExpression = targetNode.Cast(conversionType);
-            var newRoot = currentRoot.ReplaceNode(targetNode, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            // TODO: castExpression.WithAdditionalAnnotations(Simplifier.Annotation) 
+            // - the Simplifier doesn't remove the redundant cast from the expression
+            // Issue link: https://github.com/dotnet/roslyn/issues/41500
+            var castExpression = targetNode.Cast(conversionType).WithAdditionalAnnotations(Simplifier.Annotation);
+            var newRoot = currentRoot.ReplaceNode(targetNode, castExpression);
+            return newRoot;
         }
 
         /// <summary>
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             // The error happens either on an assignement operation or on an invocation expression.
             // If the error happens on assignment operation, "ConvertedType" is different from the current "Type"
             var mutablePotentialConversionTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
-            if (targetNodeInfo.ConvertedType != null && targetNodeType != targetNodeInfo.ConvertedType)
+            if (targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
             {
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
             }
@@ -332,17 +335,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 (semanticModel, currentRoot, targetNode) =>
                 {
                     if (TryGetTargetTypeInfo(semanticModel, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes)
-                        && potentialConversionTypes.Length == 1
-                        && nodeType != null
-                        && !nodeType.Equals(potentialConversionTypes[0]))
+                        && potentialConversionTypes.Length == 1)
                     {
-                        var conversionType = potentialConversionTypes[0];
-                        var castExpression = targetNode.Cast(conversionType);
-
-                        // TODO: castExpression.WithAdditionalAnnotations(Simplifier.Annotation) 
-                        // - the Simplifier doesn't remove the redundant cast from the expression
-                        // Issue link: https://github.com/dotnet/roslyn/issues/41500
-                        return currentRoot.ReplaceNode(targetNode, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
+                        return ApplyFix(currentRoot, targetNode, potentialConversionTypes[0]);
                     }
 
                     return currentRoot;

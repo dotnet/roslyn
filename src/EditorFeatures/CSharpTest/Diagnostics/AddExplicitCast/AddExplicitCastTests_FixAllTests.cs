@@ -1236,7 +1236,7 @@ public class Program2
 	void Foo4(int i, string j, Derived1 d) { }
 	void Foo4(string j, int i, Derived1 d) { }
 
-	void Foo5(string j, int i, Derived1 d, int x = 1) { }
+	void Foo5(string j, int i, Derived2 d, int x = 1) { }
 
 	void Foo5(string j, int i, Derived1 d, params Derived2[] d2list) { }
 
@@ -1254,7 +1254,7 @@ public class Program2
 		Foo4(1, """", b1);
 		Foo4(i: 1, j: """", b1); // one operation, fix
 
-		Foo5(1, """", b1); // multiple operations, no fix-all
+		Foo5("""", 1, b1); // multiple operations, no fix-all
 
 		Foo5(d: b1, i: 1, j: """", x: 1); // all arguments out of order - match
 		Foo5(1, """", x: 1, d: b1); // part of arguments out of order - mismatch
@@ -1402,7 +1402,7 @@ public class Program2
 	void Foo4(int i, string j, Derived1 d) { }
 	void Foo4(string j, int i, Derived1 d) { }
 
-	void Foo5(string j, int i, Derived1 d, int x = 1) { }
+	void Foo5(string j, int i, Derived2 d, int x = 1) { }
 
 	void Foo5(string j, int i, Derived1 d, params Derived2[] d2list) { }
 
@@ -1420,9 +1420,9 @@ public class Program2
 		Foo4(1, """", (Derived1)b1);
 		Foo4(i: 1, j: """", (Derived1)b1); // one operation, fix
 
-		Foo5(1, """", b1); // multiple operations, no fix-all
+		Foo5("""", 1, b1); // multiple operations, no fix-all
 
-		Foo5(d: (Derived1)b1, i: 1, j: """", x: 1); // all arguments out of order - match
+		Foo5(d: (Derived2)b1, i: 1, j: """", x: 1); // all arguments out of order - match
 		Foo5(1, """", x: 1, d: b1); // part of arguments out of order - mismatch
 
 		Foo5(1, """", d: b1, b2, b3, d1); // part of arguments out of order - mismatch
