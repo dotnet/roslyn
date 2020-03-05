@@ -4,7 +4,11 @@
 
 #nullable enable
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
     /// <summary>
     /// Specifies that the option should be stored into the user's local registry hive.

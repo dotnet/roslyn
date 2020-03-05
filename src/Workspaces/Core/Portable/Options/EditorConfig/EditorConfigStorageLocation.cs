@@ -7,7 +7,11 @@
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
     internal static class EditorConfigStorageLocation
     {

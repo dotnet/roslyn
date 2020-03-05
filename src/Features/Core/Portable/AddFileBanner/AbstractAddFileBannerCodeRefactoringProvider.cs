@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-            if (options.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, out var fileHeaderTemplate)
+            if (options.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, out string fileHeaderTemplate)
                 && !string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 // If we have a defined file header template, allow the analyzer and code fix to handle it

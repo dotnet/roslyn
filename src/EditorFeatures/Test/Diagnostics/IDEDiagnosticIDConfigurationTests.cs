@@ -257,6 +257,9 @@ dotnet_diagnostic.IDE0036.severity = %value%
 # IDE0037
 dotnet_diagnostic.IDE0037.severity = %value%
 
+# IDE0038
+dotnet_diagnostic.IDE0038.severity = %value%
+
 # IDE0039
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 
@@ -738,6 +741,9 @@ dotnet_style_prefer_inferred_tuple_names = true:suggestion
 
 # IDE0037, PreferInferredAnonymousTypeMemberNames
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
+
+# IDE0038
+No editorconfig based code style option
 
 # IDE0039, PreferLocalOverAnonymousFunction
 csharp_style_pattern_local_over_anonymous_function = true:suggestion

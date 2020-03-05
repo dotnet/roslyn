@@ -12,4 +12,7 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicAnalyzersResources.resx" GenerateSource="true" Link="VisualBasicAnalyzersResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)VisualBasicAnalyzersResources.resx" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />
+  </ItemGroup>
 </Project>

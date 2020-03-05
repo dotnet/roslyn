@@ -9,10 +9,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -81,7 +87,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-#if !CODE_STYLE
         public static (SourceText? analyzerConfig, IEnumerable<KeyValuePair<OptionKey, object?>> options) ConvertOptionsToAnalyzerConfig(string defaultFileExtension, OptionsCollection options)
         {
             if (options.Count == 0)
@@ -119,6 +124,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 _options = options;
             }
 
+#if CODE_STYLE
+            public override bool TryGetValue(string key, out string value)
+            {
+                throw new NotImplementedException();
+            }
+#else
             public override object? GetOption(OptionKey optionKey)
             {
                 if (!_options.TryGetValue(optionKey, out var value))
@@ -134,7 +145,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
                 => SpecializedCollections.EmptyEnumerable<OptionKey>();
-        }
+
 #endif
+        }
     }
 }
