@@ -110,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 symbol.Language == LanguageNames.VisualBasic &&
                 triggerToken.ToString().Equals("New", StringComparison.OrdinalIgnoreCase))
             {
-                var originalSymbol = await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, triggerToken.SpanStart, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var originalSymbol = await SymbolFinder.FindSymbolAtPositionAsync(
+                    semanticModel, triggerToken.SpanStart, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 if (originalSymbol != null && originalSymbol.IsConstructor())
                 {
@@ -177,11 +178,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         {
                             return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_from_previous_submissions);
                         }
-                        else
-                        {
-                            // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
-                            documentSpans.Add(new DocumentSpan(document, location.SourceSpan));
-                        }
+                    }
+                    else
+                    {
+                        // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
+                        documentSpans.Add(new DocumentSpan(document, location.SourceSpan));
                     }
                 }
                 else
