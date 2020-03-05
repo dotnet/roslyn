@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 }
             }
 
-            return Array.TrueForAll(matchedTypes, (item => item));
+            return matchedTypes.All(a => a);
         }
 
         protected override async Task FixAllAsync(
