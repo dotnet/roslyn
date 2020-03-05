@@ -158,12 +158,12 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
+                : base(CSharpAnalyzersResources.Use_explicit_type_instead_of_var,
                        createChangedDocument,
-                       CSharpFeaturesResources.Use_explicit_type_instead_of_var)
+                       CSharpAnalyzersResources.Use_explicit_type_instead_of_var)
             {
             }
         }
