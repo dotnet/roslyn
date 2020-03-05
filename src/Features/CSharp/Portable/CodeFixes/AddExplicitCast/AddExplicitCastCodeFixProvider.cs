@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 .GetAncestorsOrThis<ExpressionSyntax>().FirstOrDefault();
             if (targetNode != null)
             {
-                var hasSolution = TryGetTargetTypeInfo(semanticModel, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes);
+                var hasSolution = TryGetTargetTypeInfo(semanticModel, diagnostic.Id, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes);
                 if (!hasSolution)
                 {
                     return;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// True, if the target node has at least one potential conversion type, and they are assigned to "potentialConversionTypes"
         /// False, if the target node has no conversion type.
         /// </returns>
-        private static bool TryGetTargetTypeInfo(SemanticModel semanticModel, SyntaxNode targetNode, CancellationToken cancellationToken,
+        private static bool TryGetTargetTypeInfo(SemanticModel semanticModel, string diagnosticId, SyntaxNode targetNode, CancellationToken cancellationToken,
             [NotNullWhen(true)]  out ITypeSymbol? targetNodeType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
         {
             potentialConversionTypes = ImmutableArray<ITypeSymbol>.Empty;
@@ -147,11 +147,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             // The error happens either on an assignement operation or on an invocation expression.
             // If the error happens on assignment operation, "ConvertedType" is different from the current "Type"
             var mutablePotentialConversionTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
-            if (targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
+            if (diagnosticId == "CS0266" && targetNodeInfo.ConvertedType != null && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
             {
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
             }
-            else if (targetNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
+            else if (diagnosticId == "CS1503" && targetNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
                 && targetArgument.Parent is ArgumentListSyntax argumentList
                 && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
@@ -334,7 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 (semanticModel, targetNode) => true,
                 (semanticModel, currentRoot, targetNode) =>
                 {
-                    if (TryGetTargetTypeInfo(semanticModel, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes)
+                    // All diagnostics have the same error code
+                    if (TryGetTargetTypeInfo(semanticModel, diagnostics[0].Id, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes)
                         && potentialConversionTypes.Length == 1)
                     {
                         return ApplyFix(currentRoot, targetNode, potentialConversionTypes[0]);
