@@ -38,7 +38,7 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
 
-    - powershell: Write-Host "##vso[task.setvariable variable=IsPRValidationBuild]$(($(PRNumber) -ne '') -and ($(PRNumber) -ne 'default'))"
+    - powershell: Write-Host "##vso[task.setvariable variable=IsPRValidationBuild]$(('$(PRNumber)' -ne '') -and ('$(PRNumber)' -ne 'default'))"
       displayName: Setting IsPRValidationBuild variable
 
     - task: tagBuildOrRelease@0
