@@ -4820,5 +4820,24 @@ class Program
     }
 }");
         }
+
+        [WorkItem(22804, "https://github.com/dotnet/roslyn/issues/22804")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromNullableToUnderlyingType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System.Text;
+
+class C
+{
+    private void M()
+    {
+        StringBuilder numbers = new StringBuilder();
+        int?[] position = new int?[2];
+        numbers[[|(int)position[1]|]] = 'x';
+    }
+}");
+        }
     }
 }

@@ -304,8 +304,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
         {
             // PERF: Don't query descriptors for compiler analyzer or file content load analyzer, always execute them.
-            if (DiagnosticAnalyzerInfoCache.IsCompilerDiagnosticAnalyzer(project.Language, analyzer) ||
-                analyzer == FileContentLoadAnalyzer.Instance)
+            if (analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
             {
                 return true;
             }

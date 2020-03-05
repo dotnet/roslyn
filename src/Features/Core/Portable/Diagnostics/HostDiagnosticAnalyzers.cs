@@ -9,24 +9,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    /// <summary>
-    /// Provides and caches information about diagnostic analyzers such as <see cref="AnalyzerReference"/>, 
-    /// <see cref="DiagnosticAnalyzer"/> instance, <see cref="DiagnosticDescriptor"/>s.
-    /// Thread-safe.
-    /// </summary>
-    internal sealed partial class DiagnosticAnalyzerInfoCache
+    internal sealed class HostDiagnosticAnalyzers
     {
         /// <summary>
-        /// Key is analyzer reference identity <see cref="GetAnalyzerReferenceIdentity(AnalyzerReference)"/>.
+        /// Key is <see cref="AnalyzerReference.Id"/>.
         /// 
         /// We use the key to de-duplicate analyzer references if they are referenced from multiple places.
         /// </summary>
@@ -41,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConcurrentDictionary<string, ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>> _hostDiagnosticAnalyzersPerLanguageMap;
 
         /// <summary>
-        /// Key is analyzer reference identity <see cref="GetAnalyzerReferenceIdentity(AnalyzerReference)"/>.
+        /// Key is <see cref="AnalyzerReference.Id"/>.
         /// 
         /// Value is set of <see cref="DiagnosticAnalyzer"/> that belong to the <see cref="AnalyzerReference"/>.
         /// 
@@ -54,135 +46,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private ImmutableDictionary<string, DiagnosticAnalyzer> _compilerDiagnosticAnalyzerMap;
 
-        /// <summary>
-        /// Set of diagnostic ids supported by a given compiler diagnostic analyzer.
-        /// Allows us to quickly determine whether a diagnostic is a compiler diagnostic.
-        /// </summary>
-        private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
-
-        /// <summary>
-        /// Supported descriptors of each <see cref="DiagnosticAnalyzer"/>. 
-        /// </summary>
-        /// <remarks>
-        /// Holds on <see cref="DiagnosticAnalyzer"/> instances weakly so that we don't keep analyzers coming from package references alive.
-        /// They need to be released when the project stops referencing the analyzer.
-        /// 
-        /// The purpose of this map is to avoid multiple calls to <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> that might return different values
-        /// (they should not but we need a guarantee to function correctly).
-        /// </remarks>
-        private readonly ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo> _descriptorsInfo;
-
-        private sealed class DiagnosticDescriptorsInfo
-        {
-            public readonly ImmutableArray<DiagnosticDescriptor> SupportedDescriptors;
-            public readonly bool TelemetryAllowed;
-
-            public DiagnosticDescriptorsInfo(ImmutableArray<DiagnosticDescriptor> supportedDescriptors, bool telemetryAllowed)
-            {
-                SupportedDescriptors = supportedDescriptors;
-                TelemetryAllowed = telemetryAllowed;
-            }
-        }
-
-        public DiagnosticAnalyzerInfoCache(Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages, IAnalyzerAssemblyLoader? hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource, PrimaryWorkspace primaryWorkspace)
+        public HostDiagnosticAnalyzers(Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages, IAnalyzerAssemblyLoader? hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource, PrimaryWorkspace primaryWorkspace)
             : this(new Lazy<ImmutableArray<AnalyzerReference>>(() => CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages.Value, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource, primaryWorkspace), hostAnalyzerAssemblyLoader), isThreadSafe: true))
         {
         }
 
-        internal DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference> hostAnalyzerReferences)
+        internal HostDiagnosticAnalyzers(ImmutableArray<AnalyzerReference> hostAnalyzerReferences)
             : this(new Lazy<ImmutableArray<AnalyzerReference>>(() => hostAnalyzerReferences))
         {
         }
 
-        private DiagnosticAnalyzerInfoCache(Lazy<ImmutableArray<AnalyzerReference>> hostAnalyzerReferences)
+        private HostDiagnosticAnalyzers(Lazy<ImmutableArray<AnalyzerReference>> hostAnalyzerReferences)
         {
             _hostAnalyzerReferencesMap = new Lazy<ImmutableDictionary<object, AnalyzerReference>>(() => hostAnalyzerReferences.Value.IsDefaultOrEmpty ? ImmutableDictionary<object, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences.Value), isThreadSafe: true);
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap.Value), isThreadSafe: true);
 
             _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
-            _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
-            _descriptorsInfo = new ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo>();
         }
-
-        /// <summary>
-        /// It returns a string that can be used as a way to de-duplicate <see cref="AnalyzerReference"/>s.
-        /// </summary>
-        public object GetAnalyzerReferenceIdentity(AnalyzerReference reference)
-            => reference.Id;
 
         /// <summary>
         /// It returns a map with <see cref="AnalyzerReference.Id"/> as key and <see cref="AnalyzerReference"/> as value
         /// </summary>
         public ImmutableDictionary<object, AnalyzerReference> GetHostAnalyzerReferencesMap()
             => _hostAnalyzerReferencesMap.Value;
-
-        /// <summary>
-        /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
-        /// </summary>
-        public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
-            => GetOrCreateDescriptorsInfo(analyzer).SupportedDescriptors;
-
-        /// <summary>
-        /// Determine whether collection of telemetry is allowed for given <paramref name="analyzer"/>.
-        /// </summary>
-        public bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer)
-            => GetOrCreateDescriptorsInfo(analyzer).TelemetryAllowed;
-
-        private DiagnosticDescriptorsInfo GetOrCreateDescriptorsInfo(DiagnosticAnalyzer analyzer)
-            => _descriptorsInfo.GetValue(analyzer, CalculateDescriptorsInfo);
-
-        private DiagnosticDescriptorsInfo CalculateDescriptorsInfo(DiagnosticAnalyzer analyzer)
-        {
-            ImmutableArray<DiagnosticDescriptor> descriptors;
-            try
-            {
-                // SupportedDiagnostics is user code and can throw an exception.
-                descriptors = analyzer.SupportedDiagnostics.NullToEmpty();
-            }
-            catch
-            {
-                // No need to report the exception to the user.
-                // Eventually, when the analyzer runs the compiler analyzer driver will report a diagnostic.
-                descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
-            }
-
-            bool telemetryAllowed = IsTelemetryCollectionAllowed(analyzer, descriptors);
-            return new DiagnosticDescriptorsInfo(descriptors, telemetryAllowed);
-        }
-
-        private static bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticDescriptor> descriptors)
-            => analyzer.IsCompilerAnalyzer() ||
-               analyzer is IBuiltInAnalyzer ||
-               descriptors.Length > 0 && descriptors[0].CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry);
-
-        /// <summary>
-        /// Return true if the given <paramref name="analyzer"/> is suppressed for the given project.
-        /// NOTE: This API is intended to be used only for performance optimization.
-        /// </summary>
-        public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
-        {
-            var options = project.CompilationOptions;
-            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
-            {
-                return false;
-            }
-
-            // If user has disabled analyzer execution for this project, we only want to execute required analyzers
-            // that report diagnostics with category "Compiler".
-            if (!project.State.RunAnalyzers &&
-                GetDiagnosticDescriptors(analyzer).All(d => d.Category != DiagnosticCategory.Compiler))
-            {
-                return true;
-            }
-
-            // NOTE: Previously we used to return "CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(options)"
-            //       on this code path, which returns true if analyzer is suppressed through compilation options.
-            //       However, this check is no longer correct as analyzers can be enabled/disabled for individual
-            //       documents through .editorconfig files. So we pessimistically assume analyzer is not suppressed
-            //       and let the core analyzer driver in the compiler layer handle skipping redundant analysis callbacks.
-            return false;
-        }
 
         /// <summary>
         /// Get <see cref="AnalyzerReference"/> identity and <see cref="DiagnosticAnalyzer"/>s map for given <paramref name="language"/>
@@ -192,16 +79,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _hostDiagnosticAnalyzersPerLanguageMap.GetOrAdd(language, CreateHostDiagnosticAnalyzersAndBuildMap);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference()
+        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache infoCache)
         {
             return ConvertReferenceIdentityToName(
-                CreateDiagnosticDescriptorsPerReference(_lazyHostDiagnosticAnalyzersPerReferenceMap.Value),
+                CreateDiagnosticDescriptorsPerReference(infoCache, _lazyHostDiagnosticAnalyzersPerReferenceMap.Value),
                 _hostAnalyzerReferencesMap.Value);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Project project)
+        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache infoCache, Project project)
         {
-            var descriptorPerReference = CreateDiagnosticDescriptorsPerReference(CreateDiagnosticAnalyzersPerReference(project));
+            var descriptorPerReference = CreateDiagnosticDescriptorsPerReference(infoCache, CreateDiagnosticAnalyzersPerReference(project));
             var map = _hostAnalyzerReferencesMap.Value.AddRange(CreateProjectAnalyzerReferencesMap(project));
             return ConvertReferenceIdentityToName(descriptorPerReference, map);
         }
@@ -256,22 +143,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Check whether given <see cref="DiagnosticData"/> belong to compiler diagnostic analyzer
-        /// </summary>
-        public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
-        {
-            _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
-            if (_compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer) &&
-                _compilerDiagnosticAnalyzerDescriptorMap.TryGetValue(compilerAnalyzer, out var idMap) &&
-                idMap.Contains(diagnostic.Id))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Return compiler <see cref="DiagnosticAnalyzer"/> for the given language.
         /// </summary>
         public DiagnosticAnalyzer? GetCompilerDiagnosticAnalyzer(string language)
@@ -285,37 +156,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return null;
         }
 
-        /// <summary>
-        /// Check whether given <see cref="DiagnosticAnalyzer"/> is compiler analyzer for the language or not.
-        /// </summary>
-        public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
-        {
-            _ = GetOrCreateHostDiagnosticAnalyzersPerReference(language);
-            return _compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer) && compilerAnalyzer == analyzer;
-        }
-
-        public bool SupportAnalysisKind(DiagnosticAnalyzer analyzer, string language, AnalysisKind kind)
-        {
-            // compiler diagnostic analyzer always supports all kinds:
-            if (IsCompilerDiagnosticAnalyzer(language, analyzer))
-            {
-                return true;
-            }
-
-            return kind switch
-            {
-                AnalysisKind.Syntax => analyzer.SupportsSyntaxDiagnosticAnalysis(),
-                AnalysisKind.Semantic => analyzer.SupportsSemanticDiagnosticAnalysis(),
-                _ => throw ExceptionUtilities.UnexpectedValue(kind)
-            };
-        }
-
         private ImmutableDictionary<object, AnalyzerReference> CreateProjectAnalyzerReferencesMap(Project project)
         {
             return CreateAnalyzerReferencesMap(project.AnalyzerReferences.Where(reference => !_hostAnalyzerReferencesMap.Value.ContainsKey(reference.Id)));
         }
 
         private ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(
+            DiagnosticAnalyzerInfoCache infoCache,
             ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
         {
             var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticDescriptor>>();
@@ -325,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var analyzer in analyzers)
                 {
                     // given map should be in good shape. no duplication. no null and etc
-                    descriptors.AddRange(GetDiagnosticDescriptors(analyzer));
+                    descriptors.AddRange(infoCache.GetDiagnosticDescriptors(analyzer));
                 }
 
                 // there can't be duplication since _hostAnalyzerReferenceMap is already de-duplicated.
@@ -368,7 +215,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (analyzer.IsCompilerAnalyzer())
                 {
-                    ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerDescriptorMap, analyzer, a => new HashSet<string>(GetDiagnosticDescriptors(a).Select(d => d.Id)));
                     ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerMap, language, analyzer);
                     return;
                 }

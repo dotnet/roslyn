@@ -81,7 +81,7 @@ End Class
 
     Private Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
         Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, analyzer)
-        diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference()
+        diagnosticService.GetDiagnosticDescriptorsPerReference()
     End Sub
 
     <Fact>
