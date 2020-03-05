@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -54,21 +56,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public abstract Task<Solution> GetModifiedSolutionAsync();
 
             public static Editor GetEditor(MoveTypeOperationKind operationKind, TService service, State state, string fileName, CancellationToken cancellationToken)
-            {
-                switch (operationKind)
+                => operationKind switch
                 {
-                    case MoveTypeOperationKind.MoveType:
-                        return new MoveTypeEditor(service, state, fileName, cancellationToken);
-                    case MoveTypeOperationKind.RenameType:
-                        return new RenameTypeEditor(service, state, fileName, cancellationToken);
-                    case MoveTypeOperationKind.RenameFile:
-                        return new RenameFileEditor(service, state, fileName, cancellationToken);
-                    case MoveTypeOperationKind.MoveTypeNamespaceScope:
-                        return new MoveTypeNamespaceScopeEditor(service, state, fileName, cancellationToken);
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(operationKind);
-                }
-            }
+                    MoveTypeOperationKind.MoveType => (Editor)new MoveTypeEditor(service, state, fileName, cancellationToken),
+                    MoveTypeOperationKind.RenameType => new RenameTypeEditor(service, state, fileName, cancellationToken),
+                    MoveTypeOperationKind.RenameFile => new RenameFileEditor(service, state, fileName, cancellationToken),
+                    MoveTypeOperationKind.MoveTypeNamespaceScope => new MoveTypeNamespaceScopeEditor(service, state, fileName, cancellationToken),
+                    _ => throw ExceptionUtilities.UnexpectedValue(operationKind),
+                };
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -56,17 +58,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var accessorLists = new HashSet<AccessorListSyntax>();
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(semanticModel, editor, diagnostic, options, accessorLists, cancellationToken);
+                AddEdits(semanticModel, editor, diagnostic, accessorLists, cancellationToken);
             }
 
             // Ensure that if we changed any accessors that the accessor lists they're contained
-            // in are formatted properly as well.  Do this as a last pass so that we see all 
+            // in are formatted properly as well.  Do this as a last pass so that we see all
             // individual changes made to the child accessors if we're doing a fix-all.
             foreach (var accessorList in accessorLists)
             {
@@ -76,16 +77,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private void AddEdits(
             SemanticModel semanticModel, SyntaxEditor editor, Diagnostic diagnostic,
-            OptionSet options, HashSet<AccessorListSyntax> accessorLists,
+            HashSet<AccessorListSyntax> accessorLists,
             CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
             var declaration = declarationLocation.FindNode(cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
-            var parseOptions = declaration.SyntaxTree.Options;
 
-            var updatedDeclaration = helper.Update(semanticModel, declaration, options, parseOptions, useExpressionBody)
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody)
                                            .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);

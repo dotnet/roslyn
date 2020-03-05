@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -331,12 +333,18 @@ End Class")
 
         <WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
-        Public Async Function TestMissingOnTuple() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestOnTuple() As Task
+            Await TestInRegularAndScript1Async(
 "Imports System.Linq
 Class C
     Sub M(arr as Integer())
         arr.Zip(arr, Function(p1, p2) ([||]p1, p2))
+    End Sub
+End Class",
+"Imports System.Linq
+Class C
+    Sub M(arr as Integer())
+        arr.Zip(arr, resultSelector:=Function(p1, p2) (p1, p2))
     End Sub
 End Class")
         End Function

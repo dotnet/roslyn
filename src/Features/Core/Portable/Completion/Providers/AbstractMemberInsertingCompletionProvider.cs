@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Attempt to find the inserted node and move the caret appropriately
             if (newRoot != null)
             {
-                var caretTarget = newRoot.GetAnnotatedNodesAndTokens(_annotation).FirstOrNullable();
+                var caretTarget = newRoot.GetAnnotatedNodesAndTokens(_annotation).FirstOrNull();
                 if (caretTarget != null)
                 {
                     var targetPosition = GetTargetCaretPosition(caretTarget.Value.AsNode());
@@ -82,10 +83,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return document;
             }
 
-            var insertionRoot = await PrepareTreeForMemberInsertionAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
+            var insertionRoot = await GetTreeWithAddedSyntaxNodeRemovedAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
             var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
 
-            var destinationSpan = ComputeDestinationSpan(insertionRoot, insertionText);
+            var destinationSpan = ComputeDestinationSpan(insertionRoot);
 
             var finalText = insertionRoot.GetText(text.Encoding)
                 .Replace(destinationSpan, insertionText.Trim());
@@ -104,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             TextLine line,
             CancellationToken cancellationToken)
         {
-            var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
             var codeGenService = document.GetLanguageService<ICodeGenerationService>();
 
             // Resolve member and type in our new, forked, solution
@@ -142,32 +142,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return memberContainingDocument;
         }
 
-        private ISymbol GetResolvedSymbol(SymbolKeyResolution resolution, TextSpan span)
+        private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
         {
-            if (resolution.CandidateReason == CandidateReason.Ambiguous)
-            {
-                // In order to produce to correct undo stack, completion lets the commit
-                // character enter the buffer. That means we can get ambiguity.
-                // partial class C { partial void goo() }
-                // partial class C { partial goo($$
-                // Committing with the open paren will create a second, ambiguous goo.
-                // We'll try to prefer the symbol whose declaration doesn't intersect our position
-                var nonIntersectingMember = resolution.CandidateSymbols.First(s => s.DeclaringSyntaxReferences.Any(d => !d.Span.IntersectsWith(span)));
-                if (nonIntersectingMember != null)
-                {
-                    return nonIntersectingMember;
-                }
-
-                // The user has ambiguous definitions, just take the first one.
-                return resolution.CandidateSymbols.First();
-            }
-
-            return resolution.Symbol;
-        }
-
-        private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot, string insertionText)
-        {
-            var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNullable();
+            var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNull();
             var text = insertionRoot.GetText();
             var line = text.Lines.GetLineFromPosition(targetToken.Value.Span.End);
 
@@ -195,12 +172,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             memberContainingDocument = await Formatter.FormatAsync(memberContainingDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var root = await memberContainingDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var members = root.GetAnnotatedNodesAndTokens(_annotation).AsImmutable().Select(nOrT => nOrT.AsNode().ToString().Trim());
-
-            return string.Join("\r\n", members);
+            return root.GetAnnotatedNodesAndTokens(_annotation).Single().AsNode().ToString().Trim();
         }
 
-        private async Task<SyntaxNode> PrepareTreeForMemberInsertionAsync(
+        private async Task<SyntaxNode> GetTreeWithAddedSyntaxNodeRemovedAsync(
             Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

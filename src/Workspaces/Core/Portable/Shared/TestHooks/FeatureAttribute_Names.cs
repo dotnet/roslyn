@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string Snippets = nameof(Snippets);
         public const string SolutionCrawler = nameof(SolutionCrawler);
         public const string TodoCommentList = nameof(TodoCommentList);
+        public const string LanguageServer = nameof(LanguageServer);
         public const string Workspace = nameof(Workspace);
     }
 }

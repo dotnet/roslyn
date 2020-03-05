@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -17,19 +20,24 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
+    [Shared]
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        public SymbolCompletionProvider()
+        {
+        }
+
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
                 context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
 
         protected override bool IsInstrinsic(ISymbol s)
-        {
-            var ts = s as ITypeSymbol;
-            return ts != null && ts.IsIntrinsicType();
-        }
+            => s is ITypeSymbol ts && ts.IsIntrinsicType();
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -66,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.Kind() != SyntaxKind.NumericLiteralToken;
         }
 
-        protected override async Task<SyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
             var span = new TextSpan(position, 0);
@@ -79,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
-            cachedRules.TryGetValue(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext), out var rule);
+            cachedRules.TryGetValue(ValueTuple.Create(((CSharpSyntaxContext)context).IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
             return rule ?? CompletionItemRules.Default;
         }

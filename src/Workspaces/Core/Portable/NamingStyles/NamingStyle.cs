@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -214,7 +216,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             string resourceId, out string reason)
         {
             reason = null;
-            var violations = ArrayBuilder<string>.GetInstance();
+            using var _ = ArrayBuilder<string>.GetInstance(out var violations);
 
             foreach (var wordSpan in GetWordSpans(name, nameSpan))
             {
@@ -228,8 +230,6 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             {
                 reason = string.Format(resourceId, string.Join(", ", violations));
             }
-
-            violations.Free();
 
             return reason == null;
         }
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             out string reason)
         {
             reason = null;
-            var violations = ArrayBuilder<string>.GetInstance();
+            using var _ = ArrayBuilder<string>.GetInstance(out var violations);
 
             var first = true;
 
@@ -290,7 +290,6 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                     : reason + Environment.NewLine + restString;
             }
 
-            violations.Free();
             return reason == null;
         }
 

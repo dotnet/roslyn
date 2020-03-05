@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -26,12 +28,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(OptionSet options)
         {
-            var qualifyFieldAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyFieldAccess, GetLanguageName()).Notification;
-            var qualifyPropertyAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyPropertyAccess, GetLanguageName()).Notification;
-            var qualifyMethodAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyMethodAccess, GetLanguageName()).Notification;
-            var qualifyEventAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyEventAccess, GetLanguageName()).Notification;
+            var qualifyFieldAccessOption = options.GetOption(CodeStyleOptions.QualifyFieldAccess, GetLanguageName()).Notification;
+            var qualifyPropertyAccessOption = options.GetOption(CodeStyleOptions.QualifyPropertyAccess, GetLanguageName()).Notification;
+            var qualifyMethodAccessOption = options.GetOption(CodeStyleOptions.QualifyMethodAccess, GetLanguageName()).Notification;
+            var qualifyEventAccessOption = options.GetOption(CodeStyleOptions.QualifyEventAccess, GetLanguageName()).Notification;
 
             return !(qualifyFieldAccessOption == NotificationOption.Warning || qualifyFieldAccessOption == NotificationOption.Error ||
                      qualifyPropertyAccessOption == NotificationOption.Warning || qualifyPropertyAccessOption == NotificationOption.Error ||
@@ -92,6 +94,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
+            // We shouldn't qualify if it is inside a property pattern
+            if (context.Operation.Parent.Kind == OperationKind.PropertySubpattern)
+            {
+                return;
+            }
+
             // Initializer lists are IInvocationOperation which if passed to GetApplicableOptionFromSymbolKind
             // will incorrectly fetch the options for method call.
             // We still want to handle InstanceReferenceKind.ContainingTypeInstance
@@ -108,27 +116,18 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             // if we can't find a member then we can't do anything.  Also, we shouldn't qualify
             // accesses to static members.  
-            if (IsStaticMemberOrTargetMethod(operation))
+            if (IsStaticMemberOrIsLocalFunction(operation))
             {
                 return;
             }
 
-            var simpleName = instanceOperation.Syntax as TSimpleNameSyntax;
-            if (simpleName == null)
-            {
-                return;
-            }
-
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
+            if (!(instanceOperation.Syntax is TSimpleNameSyntax simpleName))
             {
                 return;
             }
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(operation);
-            var optionValue = optionSet.GetOption(applicableOption, context.Operation.Syntax.Language);
+            var optionValue = context.GetOption(applicableOption, context.Operation.Syntax.Language);
 
             var shouldOptionBePresent = optionValue.Value;
             var severity = optionValue.Notification.Severity;
@@ -148,16 +147,21 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
         }
 
-        private bool IsStaticMemberOrTargetMethod(IOperation operation)
+        private bool IsStaticMemberOrIsLocalFunction(IOperation operation)
         {
             switch (operation)
             {
                 case IMemberReferenceOperation memberReferenceOperation:
-                    return memberReferenceOperation.Member == null || memberReferenceOperation.Member.IsStatic;
+                    return IsStaticMemberOrIsLocalFunctionHelper(memberReferenceOperation.Member);
                 case IInvocationOperation invocationOperation:
-                    return invocationOperation.TargetMethod == null || invocationOperation.TargetMethod.IsStatic;
+                    return IsStaticMemberOrIsLocalFunctionHelper(invocationOperation.TargetMethod);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(operation);
+            }
+
+            static bool IsStaticMemberOrIsLocalFunctionHelper(ISymbol symbol)
+            {
+                return symbol == null || symbol.IsStatic || symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction };
             }
         }
     }

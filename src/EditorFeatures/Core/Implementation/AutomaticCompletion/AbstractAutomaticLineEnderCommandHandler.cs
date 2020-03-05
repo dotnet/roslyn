@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -11,7 +13,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
@@ -51,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// </summary>
         protected abstract bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken);
 
-        public VSCommanding.CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextHandler)
         {
-            return VSCommanding.CommandState.Available;
+            return CommandState.Available;
         }
 
         public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextHandler, CommandExecutionContext context)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -30,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 //                                        tagOpen                                  textBeforeCaret       $$  textAfterCaret                            tagClose
                 { ExceptionElementName,              ($"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null) },
                 { IncludeElementName,                ($"<{IncludeElementName}",                $" {FileAttributeName}=\'", $"\' {PathAttributeName}=\'[@name=\"\"]\'", "/>") },
+                { InheritdocElementName,             ($"<{InheritdocElementName}",             $"",                         "",                                        "/>") },
                 { PermissionElementName,             ($"<{PermissionElementName}",             $" {CrefAttributeName}=\"",  "\"",                                      null) },
                 { SeeElementName,                    ($"<{SeeElementName}",                    $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
                 { SeeAlsoElementName,                ($"<{SeeAlsoElementName}",                $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
@@ -53,7 +56,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 new[] { TypeParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
                 new[] { TypeParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
                 new[] { IncludeElementName, FileAttributeName, $"{FileAttributeName}=\"", "\"" },
-                new[] { IncludeElementName, PathAttributeName, $"{PathAttributeName}=\"", "\"" }
+                new[] { IncludeElementName, PathAttributeName, $"{PathAttributeName}=\"", "\"" },
+                new[] { InheritdocElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { InheritdocElementName, PathAttributeName, $"{PathAttributeName}=\"", "\"" },
             };
 
         private static readonly ImmutableArray<string> s_listTypeValues = ImmutableArray.Create("bullet", "number", "table");
@@ -107,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
         {
-            return new[] { GetCDataItem(), GetCommentItem(), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
+            return new[] { GetCDataItem(), GetCommentItem(), GetItem(InheritdocElementName), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
         }
 
         private CompletionItem GetCommentItem()

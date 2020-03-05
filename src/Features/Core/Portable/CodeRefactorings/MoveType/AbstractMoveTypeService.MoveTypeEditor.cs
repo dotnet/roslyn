@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
 
                 var modifiedRoot = documentEditor.GetChangedRoot();
-                modifiedRoot = await AddFinalNewLineIfDesired(document, modifiedRoot).ConfigureAwait(false);
+                modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
                 // add an empty document to solution, so that we'll have options from the right context.
                 var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// Add a trailing newline if we don't already have one if that's what the user's 
             /// preference is.
             /// </summary>
-            private async Task<SyntaxNode> AddFinalNewLineIfDesired(Document document, SyntaxNode modifiedRoot)
+            private async Task<SyntaxNode> AddFinalNewLineIfDesiredAsync(Document document, SyntaxNode modifiedRoot)
             {
                 var options = await document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
                 var insertFinalNewLine = options.GetOption(FormattingOptions.InsertFinalNewLine);

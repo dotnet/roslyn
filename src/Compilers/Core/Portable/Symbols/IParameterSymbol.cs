@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
@@ -34,6 +38,11 @@ namespace Microsoft.CodeAnalysis
         /// Returns true if the parameter is the hidden 'this' ('Me' in Visual Basic) parameter.
         /// </summary>
         bool IsThis { get; }
+
+        /// <summary>
+        /// Returns true if the parameter is a discard parameter.
+        /// </summary>
+        bool IsDiscard { get; }
 
         /// <summary>
         /// Gets the type of the parameter.
@@ -76,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         /// is the default value of the struct type.
         /// </remarks>
         /// <exception cref="System.InvalidOperationException">The parameter has no default value.</exception>
-        object ExplicitDefaultValue { get; }
+        object? ExplicitDefaultValue { get; }
 
         /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another

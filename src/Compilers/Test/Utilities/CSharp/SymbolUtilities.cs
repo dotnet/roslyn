@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -98,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var format = SymbolDisplayFormat.TestFormat;
             if (includeNonNullable)
             {
-                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+                format = format.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
+                    .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
             }
 
             return format;
@@ -110,7 +114,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return symbol.ToDisplayString(format);
         }
 
+        public static string[] ToTestDisplayStrings(this IEnumerable<TypeWithAnnotations> symbols)
+        {
+            return symbols.Select(s => s.ToTestDisplayString()).ToArray();
+        }
+
+        public static string[] ToTestDisplayStrings(this IEnumerable<ISymbol> symbols)
+        {
+            return symbols.Select(s => s.ToTestDisplayString()).ToArray();
+        }
+
+        public static string[] ToTestDisplayStrings(this IEnumerable<Symbol> symbols)
+        {
+            return symbols.Select(s => s.ToTestDisplayString()).ToArray();
+        }
+
         public static string ToTestDisplayString(this ISymbol symbol, bool includeNonNullable)
+        {
+            SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
+            return symbol.ToDisplayString(format);
+        }
+
+        public static string ToTestDisplayString(this Symbol symbol, bool includeNonNullable)
         {
             SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
             return symbol.ToDisplayString(format);

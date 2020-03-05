@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -23,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         // 2. Extension method reducer may insert parentheses.  So run it before the parentheses remover.
         private static readonly ImmutableArray<AbstractReducer> s_reducers =
             ImmutableArray.Create<AbstractReducer>(
+                new CSharpVarReducer(),
                 new CSharpNameReducer(),
+                new CSharpNullableAnnotationReducer(),
                 new CSharpCastReducer(),
                 new CSharpExtensionMethodReducer(),
                 new CSharpParenthesesReducer(),
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
 
-                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
+                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent).WithAdditionalAnnotations(Simplifier.Annotation);
                 if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out var rewrittenTokenWithElasticTrivia))
                 {
                     return rewrittenTokenWithElasticTrivia;
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
         }
 
-        public static SyntaxToken TryEscapeIdentifierToken(SyntaxToken syntaxToken, SyntaxNode parentOfToken, SemanticModel semanticModel)
+        public static SyntaxToken TryEscapeIdentifierToken(SyntaxToken syntaxToken, SyntaxNode parentOfToken)
         {
             // do not escape an already escaped identifier
             if (syntaxToken.IsVerbatimIdentifier())

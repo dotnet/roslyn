@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var solution = invocationDocument.Project.Solution;
 
             var referencedSymbols = fixAllReferences
-                ? await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false)
+                ? await FindMethodDeclarationReferencesAsync(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
 
             var anySymbolReferencesNotInSource = referencedSymbols.Any(symbol => !symbol.IsFromSource());
@@ -136,7 +138,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return solution;
         }
 
-        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferences(
+        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(
             Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
         {
             var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
@@ -211,7 +213,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 {
                     // First parameter is on hte same line as the method.  
 
-                    // We want to insert the parameter at the front of the exsiting parameter
+                    // We want to insert the parameter at the front of the existing parameter
                     // list.  That means we need to move the current first parameter to a new
                     // line.  Give the current first parameter the indentation of the second
                     // parameter in the list.
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     // make sure the current first parameter gets a newline so it stays on 
                     // its own line.
 
-                    // We want to insert the parameter at the front of the exsiting parameter
+                    // We want to insert the parameter at the front of the existing parameter
                     // list.  That means we need to move the current first parameter to a new
                     // line.  Give the current first parameter the indentation of the second
                     // parameter in the list.

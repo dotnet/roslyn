@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.Shell;
 using Roslyn.VisualStudio.Setup;
@@ -24,6 +26,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Workspaces.Desktop.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Workspaces.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Workspaces.MSBuild.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.CodeLens.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Implementation.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.VisualBasic.dll")]
@@ -34,15 +37,9 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll")]
 
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Apex.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.CodeLens.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.LiveShare.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Razor.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.TypeScript.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote.dll")]
 
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Elfie.dll")]
@@ -64,7 +61,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll")]
 
-[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.CodeAnalysis.FlowAnalysis.Utilities.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.CodeAnalysis.AnalyzerUtilities.dll")]
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\ICSharpCode.Decompiler.dll")]
 

@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             TestGetDirectoryNameAndCompareToDotnet(null, @"C:");
 
             // dotnet throws on empty argument.  But not on null... go figure.
-            Assert.Equal(
-                null,
-                PathUtilities.TestAccessor.GetDirectoryName(@"", isUnixLike: false));
+            Assert.Null(PathUtilities.TestAccessor.GetDirectoryName(@"", isUnixLike: false));
 
             TestGetDirectoryNameAndCompareToDotnet(null, null);
         }
@@ -69,16 +67,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
                 @"/",
                 PathUtilities.TestAccessor.GetDirectoryName(@"/temp", isUnixLike: true));
 
-            Assert.Equal(
-                null,
+            Assert.Null(
                 PathUtilities.TestAccessor.GetDirectoryName(@"/", isUnixLike: true));
 
-            Assert.Equal(
-                null,
+            Assert.Null(
                 PathUtilities.TestAccessor.GetDirectoryName(@"", isUnixLike: true));
 
-            Assert.Equal(
-                null,
+            Assert.Null(
                 PathUtilities.TestAccessor.GetDirectoryName(null, isUnixLike: true));
         }
 
@@ -109,12 +104,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
                 "",
                 PathUtilities.TestAccessor.GetDirectoryName(@"goo", isUnixLike: true));
 
-            Assert.Equal(
-                null,
+            Assert.Null(
                 PathUtilities.TestAccessor.GetDirectoryName(@"", isUnixLike: true));
 
-            Assert.Equal(
-                null,
+            Assert.Null(
                 PathUtilities.TestAccessor.GetDirectoryName(null, isUnixLike: true));
         }
 
@@ -263,38 +256,38 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [ConditionalFact(typeof(WindowsOnly))]
         public void IsSameDirectoryOrChildOfHandlesDifferentSlashes()
         {
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\", @"C:"));
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\", @"C:\"));
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:", @"C:"));
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:", @"C:\"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\", @"C:"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\", @"C:\"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:", @"C:"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:", @"C:\"));
 
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:"));
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\"));
 
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:"));
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\"));
 
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD"));
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD\"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD\"));
 
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD"));
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD\"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD\"));
 
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD\EFGH"));
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD\EFGH\"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD\EFGH"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD\EFGH\"));
 
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD\EFGH"));
-            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD\EFGH\"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD\EFGH"));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD\EFGH\"));
         }
 
         [Fact]
         public void IsSameDirectoryOrChildOfNegativeTests()
         {
-            Assert.Equal(false, PathUtilities.IsSameDirectoryOrChildOf(@"C:\", @"C:\ABCD"));
-            Assert.Equal(false, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABC", @"C:\ABCD"));
-            Assert.Equal(false, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCDE", @"C:\ABCD"));
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\", @"C:\ABCD"));
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABC", @"C:\ABCD"));
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCDE", @"C:\ABCD"));
 
-            Assert.Equal(false, PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\B\C", @"C:\A\B\C\D"));
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\B\C", @"C:\A\B\C\D"));
         }
 
         [Fact]

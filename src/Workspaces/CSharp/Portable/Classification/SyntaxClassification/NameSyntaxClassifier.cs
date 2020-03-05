@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -101,34 +106,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken)
         {
             // If everything classifies the same way, then just pick that classification.
-            var set = PooledHashSet<ClassifiedSpan>.GetInstance();
-            try
+            using var _ = PooledHashSet<ClassifiedSpan>.GetInstance(out var set);
+            foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                foreach (var symbol in symbolInfo.CandidateSymbols)
+                if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
                 {
-                    if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
-                    {
-                        set.Add(classifiedSpan);
-                    }
+                    set.Add(classifiedSpan);
                 }
-
-                if (set.Count == 1)
-                {
-                    result.Add(set.First());
-                    return true;
-                }
-
-                return false;
             }
-            finally
+
+            if (set.Count == 1)
             {
-                set.Free();
+                result.Add(set.First());
+                return true;
             }
+
+            return false;
         }
 
         private bool TryClassifySymbol(
             NameSyntax name,
-            ISymbol symbol,
+            [NotNullWhen(returnValue: true)] ISymbol? symbol,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
@@ -315,7 +313,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             var identifierName = name as IdentifierNameSyntax;
             if (symbolInfo.Symbol.IsImplicitValueParameter())
             {
+#nullable disable // Can 'identifierName' be null here?
                 result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+#nullable enable
                 return true;
             }
 
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool IsSymbolWithName(ISymbol symbol, string name)
+        private bool IsSymbolWithName([NotNullWhen(returnValue: true)] ISymbol? symbol, string name)
         {
             if (symbol is null || symbol.Name != name)
             {

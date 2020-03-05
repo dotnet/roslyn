@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
@@ -15,6 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
         <ImportingConstructor>
         Public Sub New()
         End Sub
+
+        Public Overrides Function TryGetEscapeCharacter(ch As Char, ByRef escapedChar As Char) As Boolean
+            ' Not needed yet for VB.  Implement when there is an appropriate consumer that needs
+            ' this.
+            Throw New NotImplementedException()
+        End Function
 
         Protected Overrides Function IsStringLiteralToken(token As SyntaxToken) As Boolean
             Return token.Kind() = SyntaxKind.StringLiteralToken

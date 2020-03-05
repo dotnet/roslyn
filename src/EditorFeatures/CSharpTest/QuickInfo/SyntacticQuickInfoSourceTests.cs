@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -329,21 +331,19 @@ if (true)
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
-                var document = workspace.CurrentSolution.Projects.First().Documents.First();
-                var snapshot = testDocument.TextBuffer.CurrentSnapshot;
+            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
+            var testDocument = workspace.Documents.Single();
+            var position = testDocument.CursorPosition.Value;
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+            var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;
 
-                if (string.IsNullOrEmpty(expectedContent))
-                {
-                    await AssertNoContentAsync(workspace, document, position);
-                }
-                else
-                {
-                    await AssertContentIsAsync(workspace, document, snapshot, position, expectedContent, expectedDocumentationComment);
-                }
+            if (string.IsNullOrEmpty(expectedContent))
+            {
+                await AssertNoContentAsync(workspace, document, position);
+            }
+            else
+            {
+                await AssertContentIsAsync(workspace, document, snapshot, position, expectedContent, expectedDocumentationComment);
             }
         }
     }

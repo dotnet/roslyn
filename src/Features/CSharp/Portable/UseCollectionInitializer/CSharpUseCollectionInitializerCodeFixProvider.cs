@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             if (arguments.Count == 1)
             {
                 // Assignment expressions in a collection initializer will cause the compiler to 
-                // report an error.  This is because { a = b } is teh form for an object initializer,
+                // report an error.  This is because { a = b } is the form for an object initializer,
                 // and the two forms are not allowed to mix/match.  Parenthesize the assignment to
                 // avoid the ambiguity.
                 var expression = arguments[0].Expression;

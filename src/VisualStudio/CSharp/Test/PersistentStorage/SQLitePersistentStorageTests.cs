@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.SQLite;
+using Microsoft.CodeAnalysis.Storage;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -15,8 +17,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLitePersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override IChecksummedPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector)
-            => new SQLitePersistentStorageService(_persistentEnabledOptionService, locationService, solutionSizeTracker, faultInjector);
+        internal override AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector)
+            => new SQLitePersistentStorageService(_persistentEnabledOptionService, locationService, faultInjector);
 
         [Fact]
         public void TestCrashInNewConnection()

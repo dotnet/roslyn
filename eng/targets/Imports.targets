@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <Import Project="VisualStudio.targets"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
@@ -11,19 +11,24 @@
       Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
       but gets included in lots of output items like VSIX.
     -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.1' AND '$(TargetFramework)' != 'netcoreapp3.0'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp3.1'">false</GenerateRuntimeConfigurationFiles>
 
-    <!-- 
+    <!--
       When building a .NET Core exe make sure to include the template runtimeconfig.json file 
       which has all of our global settings 
     -->
     <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
 
-    <!-- 
-      Bootstrap compiler should run as a 32 bit process on our 32 bit test runs. This will validate
-      the legacy JIT ability to handle the compiler. 
+    <!--
+      Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
+      This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
+      to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
     -->
-    <PlatformTarget Condition="'$(OutputType)' == 'Exe' AND '$(TargetFramework)' == 'net472' AND '$(BOOTSTRAP32)' == 'true'">x86</PlatformTarget>
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND $(TargetFrameworks.Contains('netcoreapp3.1')) AND '$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp3.1'">true</DisableNullableWarnings>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
+    <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
@@ -44,11 +49,6 @@
     <!-- Bypass a check in msbuild that .NET Framework 3.5 is installed on the machine when targeting .NET < 4.0 -->
     <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
   </PropertyGroup>
-
-  <!-- Add the UnitTestContainer project capability -->
-  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
-    <ProjectCapability Include="UnitTestContainer" />
-  </ItemGroup>
 
   <!-- 
     Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
@@ -93,7 +93,7 @@
   <Target Name="_AddCommitHashAttribute"
           DependsOnTargets="InitializeSourceControlInformation"
           BeforeTargets="GetAssemblyAttributes"
-          Condition="'$(GenerateMicrosoftCodeAnalysisCommitHashAttribute)' == 'true'">
+          Condition="'$(GenerateMicrosoftCodeAnalysisCommitHashAttribute)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
     <ItemGroup>
       <AssemblyAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
         <_Parameter1 Condition="'$(OfficialBuild)' == 'true'">$(SourceRevisionId)</_Parameter1>
@@ -172,13 +172,6 @@
     <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
   </ItemGroup>
 
-  <!-- CPS doesn't show these items by default, but we want to show them. -->
-  <ItemGroup>
-    <!-- XAML pages and resources -->
-    <None Include="@(Page)" />
-    <None Include="@(Resource)" />
-  </ItemGroup>
-
   <!-- 
     Add ThirdPartyNotices.rtf to all shipping NuGet packages.
   -->
@@ -192,7 +185,7 @@
   <Target Name="_AppendCommonPackageDescription" 
           BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec" 
           DependsOnTargets="InitializeSourceControlInformation"
-          Condition="'$(IsPackable)' == 'true'">
+          Condition="'$(IsPackable)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
     <PropertyGroup>
       <PackageDescription>
       $(PackageDescription)
@@ -215,7 +208,6 @@
   <PropertyGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
   
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">

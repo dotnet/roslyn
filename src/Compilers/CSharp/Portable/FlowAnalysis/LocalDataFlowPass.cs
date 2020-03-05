@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -11,8 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Does a data flow analysis for state attached to local variables and fields of struct locals.
     /// </summary>
-    internal abstract partial class LocalDataFlowPass<TLocalState> : AbstractFlowPass<TLocalState>
-        where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
+    internal abstract partial class LocalDataFlowPass<TLocalState, TLocalFunctionState> : AbstractFlowPass<TLocalState, TLocalFunctionState>
+        where TLocalState : AbstractFlowPass<TLocalState, TLocalFunctionState>.ILocalState
+        where TLocalFunctionState : AbstractFlowPass<TLocalState, TLocalFunctionState>.AbstractLocalFunctionState
     {
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.
@@ -23,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A mapping from the local variable slot to the symbol for the local variable itself.  This
         /// is used in the implementation of region analysis (support for extract method) to compute
         /// the set of variables "always assigned" in a region of code.
+        ///
+        /// The first slot, slot 0, is reserved for indicating reachability, so the first tracked variable will
+        /// be given slot 1. When referring to <see cref="VariableIdentifier.ContainingSlot"/>, slot 0 indicates
+        /// that the variable in <see cref="VariableIdentifier.Symbol"/> is a root, i.e. not nested within another
+        /// tracked variable. Slots &lt; 0 are illegal.
         /// </summary>
         protected VariableIdentifier[] variableBySlot = new VariableIdentifier[1];
 
@@ -99,11 +107,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
-        protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
+        protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
+            Debug.Assert(containingSlot >= 0);
+
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
+
+            if (containingSlot < 0)
+            {
+                // Error case. Diagnostics should already have been produced.
+                return -1;
+            }
 
             VariableIdentifier identifier = new VariableIdentifier(symbol, containingSlot);
             int slot;
@@ -171,17 +187,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fieldSymbol = symbol as TupleFieldSymbol;
             if ((object)fieldSymbol != null)
             {
-                TypeSymbol containingType = ((TupleTypeSymbol)symbol.ContainingType).UnderlyingNamedType;
+                TypeSymbol containingType = symbol.ContainingType;
 
                 // for tuple fields the variable identifier represents the underlying field
                 symbol = fieldSymbol.TupleUnderlyingField;
 
                 // descend through Rest fields
                 // force corresponding slots if do not exist
-                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything2))
+                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything))
                 {
-                    var restField = containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
-                    if ((object)restField == null)
+                    var restField = containingType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault() as FieldSymbol;
+                    if (restField is null)
                     {
                         return -1;
                     }
@@ -198,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
+                    containingType = restField.Type;
                 }
             }
 
@@ -212,7 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableIdentifier variableId = variableBySlot[slot];
             while (variableId.ContainingSlot > 0)
             {
-                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property || variableId.Symbol.Kind == SymbolKind.Event);
+                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property || variableId.Symbol.Kind == SymbolKind.Event,
+                    "inconsistent property symbol owner");
                 variableId = variableBySlot[variableId.ContainingSlot];
             }
             return variableId.Symbol;
@@ -253,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected int MakeMemberSlot(BoundExpression receiverOpt, Symbol member)
         {
-            int containingSlot = -1;
+            int containingSlot;
             if (member.RequiresInstanceReceiver())
             {
                 if (receiverOpt is null)
@@ -266,7 +283,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return -1;
                 }
             }
+            else
+            {
+                containingSlot = 0;
+            }
+
             return GetOrCreateSlot(member, containingSlot);
+        }
+
+        protected int RootSlot(int slot)
+        {
+            while (true)
+            {
+                ref var varInfo = ref variableBySlot[slot];
+                if (varInfo.ContainingSlot == 0)
+                {
+                    return slot;
+                }
+                else
+                {
+                    slot = varInfo.ContainingSlot;
+                }
+            }
         }
     }
 }

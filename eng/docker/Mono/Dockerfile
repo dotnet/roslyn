@@ -3,6 +3,16 @@
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 #
 
+FROM ubuntu:16.04 as Info
+
+# install wget
+RUN apt-get update && \
+    apt-get install -y wget
+
+# we always want to download the content of the release file, regardless of cache
+ARG CACHE_BUST=0 
+RUN wget https://download.mono-project.com/repo/ubuntu/dists/nightly-xenial/Release
+
 FROM ubuntu:16.04
 
 # Install the base toolchain we need to build anything
@@ -41,9 +51,10 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E03280
     apt-get clean
 
 
+# Copy will check the hash of the release file. If it's changed it will be copied and everything from this point will re-run regardless of cache status
+COPY --from=Info /Release .
+
 # Update previously installed mono-devel.
-# Cache bust ensures we'll always run the commands following regardless of docker cache status
-ARG CACHE_BUST=0
 RUN apt-get update && apt-get upgrade -y
 
 # Setup User to match Host User, and give superuser permissions

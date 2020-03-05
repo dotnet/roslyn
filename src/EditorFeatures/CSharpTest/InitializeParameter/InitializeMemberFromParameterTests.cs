@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -1465,5 +1467,55 @@ class C
         private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning));
         private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning));
         private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCreateFieldWithTopLevelNullability()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+#nullable enable
+class C
+{
+    public C([||]string? s)
+    {
+    }
+}",
+    @"
+#nullable enable
+class C
+{
+    private readonly string? _s;
+
+    public C(string? s)
+    {
+        _s = s;
+    }
+}", index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCreatePropertyWithTopLevelNullability()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+#nullable enable
+class C
+{
+    public C([||]string? s)
+    {
+    }
+}",
+    @"
+#nullable enable
+class C
+{
+    public C(string? s)
+    {
+        S = s;
+    }
+
+    public string? S { get; }
+}", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+        }
     }
 }

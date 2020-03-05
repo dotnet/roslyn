@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -52,6 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             public void ClearAll()
             {
             }
+
+            public FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+                => _context;
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 textView.TextBuffer), TestCommandExecutionContext.Create());
 
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.FindReferences);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
             AssertResult(context.Result, "C.C()", "class C");
         }
 

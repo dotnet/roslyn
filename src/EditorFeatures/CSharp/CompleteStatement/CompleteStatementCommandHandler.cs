@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -20,21 +22,19 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 {
     /// <summary>
     /// When user types <c>;</c> in a statement, semicolon is added and caret is placed after the semicolon
     /// </summary>
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(CompleteStatementCommandHandler))]
-    [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal sealed class CompleteStatementCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
-        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler) => nextCommandHandler();
+        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler) => nextCommandHandler();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -193,12 +193,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool IsInConditionOfDoStatement(SyntaxNode currentNode, SnapshotPoint caret)
         {
-            if (!currentNode.IsKind(SyntaxKind.DoStatement))
+            if (!currentNode.IsKind(SyntaxKind.DoStatement, out DoStatementSyntax doStatement))
             {
                 return false;
             }
 
-            var condition = ((DoStatementSyntax)currentNode).Condition;
+            var condition = doStatement.Condition;
             return (caret >= condition.Span.Start && caret <= condition.Span.End);
         }
 
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             switch (statementNode.Kind())
             {
                 case SyntaxKind.DoStatement:
-                    //  Move caret after the do statment's closing paren.
+                    //  Move caret after the do statement's closing paren.
                     targetPosition = caret.Snapshot.GetPoint(((DoStatementSyntax)statementNode).CloseParenToken.Span.End);
                     return true;
                 case SyntaxKind.ForStatement:
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// preceding the semicolon. These delimiters are not part of the expression, but they behave like an argument
         /// list for the purposes of identifying relevant places for statement completion:</para>
         /// <list type="bullet">
-        /// <item><description>The closing delimiter is typically inserted by the Automatic Brace Compeltion feature.</description></item>
+        /// <item><description>The closing delimiter is typically inserted by the Automatic Brace Completion feature.</description></item>
         /// <item><description>It is not syntactically valid to place a semicolon <em>directly</em> within the delimiters.</description></item>
         /// </list>
         /// </remarks>

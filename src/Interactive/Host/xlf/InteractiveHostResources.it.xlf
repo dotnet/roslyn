@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
         <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">Il tentativo di connessione al processo {0} non è riuscito. Nuovo tentativo in corso...</target>
+        <target state="translated">Il tentativo di connessione al processo {0} non è riuscito. Verrà effettuato un nuovo tentativo...</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_resolve_reference_0">

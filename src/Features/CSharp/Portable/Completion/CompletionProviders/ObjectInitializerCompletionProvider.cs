@@ -1,14 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -17,8 +20,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(ObjectInitializerCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(ObjectCreationCompletionProvider))]
+    [Shared]
     internal class ObjectInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
     {
+        [ImportingConstructor]
+        public ObjectInitializerCompletionProvider()
+        {
+        }
+
         protected override async Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // We're exclusive if this context could only be an object initializer and not also a
@@ -58,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            var expression = token.Parent.Parent as ExpressionSyntax;
-            if (expression == null)
+            if (!(token.Parent.Parent is ExpressionSyntax expression))
             {
                 return false;
             }
@@ -117,14 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // new Goo { bar = $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
             {
-                var objectCreation = token.Parent.Parent as ObjectCreationExpressionSyntax;
-                if (objectCreation == null)
-                {
-                    return null;
-                }
-
                 var type = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
                 if (type is ITypeParameterSymbol typeParameterSymbol)
                 {

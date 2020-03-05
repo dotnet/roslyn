@@ -96,7 +96,7 @@
       </trans-unit>
       <trans-unit id="General_UnableToReadFile">
         <source>File "{0}" could not be read: {1}</source>
-        <target state="new">File "{0}" could not be read: {1}</target>
+        <target state="translated">Die Datei "{0}" konnte nicht gelesen werden: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="SharedCompilationFallback">

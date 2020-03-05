@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -112,8 +114,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameterAndProjectId, result, cancellationToken).ConfigureAwait(false);
-            CascadeBetweenPropertyAndAccessorParameters(solution, parameterAndProjectId, result);
-            CascadeBetweenDelegateMethodParameters(solution, parameterAndProjectId, result);
+            CascadeBetweenPropertyAndAccessorParameters(parameterAndProjectId, result);
+            CascadeBetweenDelegateMethodParameters(parameterAndProjectId, result);
             CascadeBetweenPartialMethodParameters(parameterAndProjectId, result);
 
             return result.ToImmutableAndFree();
@@ -221,7 +223,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private void CascadeBetweenPropertyAndAccessorParameters(
-            Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             ArrayBuilder<SymbolAndProjectId> results)
         {
@@ -252,7 +253,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private void CascadeBetweenDelegateMethodParameters(
-            Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             ArrayBuilder<SymbolAndProjectId> results)
         {

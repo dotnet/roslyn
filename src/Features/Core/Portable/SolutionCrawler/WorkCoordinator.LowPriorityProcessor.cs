@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -37,6 +41,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Start();
                     }
 
+                    public int WorkItemCount => _workItemQueue.WorkItemCount;
+
                     protected override Task WaitAsync(CancellationToken cancellationToken)
                     {
                         return _workItemQueue.WaitAsync(cancellationToken);
@@ -51,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             // process any available project work, preferring the active project.
                             if (_workItemQueue.TryTakeAnyWork(
-                                Processor.GetActiveProject(), Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
+                                Processor.GetActiveProjectId(), Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
                                 out var workItem, out var projectCancellation))
                             {
                                 await ProcessProjectAsync(Analyzers, workItem, projectCancellation).ConfigureAwait(false);
@@ -91,7 +97,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         UpdateLastAccessTime();
 
                         // Project work
-                        item = item.With(documentId: null, projectId: item.ProjectId, asyncToken: Processor._listener.BeginAsyncOperation("WorkItem"));
+                        item = item.ToProjectWorkItem(Processor._listener.BeginAsyncOperation("WorkItem"));
 
                         var added = _workItemQueue.AddOrReplace(item);
 
@@ -139,7 +145,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                                     using (Processor.EnableCaching(project.Id))
                                     {
-                                        await Processor.RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
+                                        await Processor.RunAnalyzersAsync(analyzers, project, workItem, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
                                     }
                                 }
                                 else

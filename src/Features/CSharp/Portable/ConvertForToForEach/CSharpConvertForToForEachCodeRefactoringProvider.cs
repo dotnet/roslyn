@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Threading;
@@ -67,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
                             memberAccess = (MemberAccessExpressionSyntax)binaryExpression.Right;
 
                             var incrementor = forStatement.Incrementors[0];
-                            return TryGetStepValue(
-                                iterationVariable, incrementor, out stepValueExpressionOpt, cancellationToken);
+                            return TryGetStepValue(iterationVariable, incrementor, out stepValueExpressionOpt);
                         }
                     }
                 }
@@ -82,8 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         }
 
         private static bool TryGetStepValue(
-            SyntaxToken iterationVariable, ExpressionSyntax incrementor,
-            out ExpressionSyntax stepValue, CancellationToken cancellationToken)
+            SyntaxToken iterationVariable, ExpressionSyntax incrementor, out ExpressionSyntax stepValue)
         {
             // support
             //  x++

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     public Task Running => _running;
-
+                    public int WorkItemCount => _workItemQueue.WorkItemCount;
                     public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
                     protected override async Task ExecuteAsync()
@@ -344,8 +346,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     {
                                         var isOpen = document.IsOpen();
 
-                                        await ProcessOpenDocumentIfNeeded(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
-                                        await ProcessCloseDocumentIfNeeded(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
+                                        await ProcessOpenDocumentIfNeededAsync(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
+                                        await ProcessCloseDocumentIfNeededAsync(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
                                     }
 
                                     // check whether we are having special reanalyze request
@@ -388,7 +390,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private async Task ProcessOpenDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
+                    private async Task ProcessOpenDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (!isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentOpened))
                         {
@@ -397,10 +399,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         SolutionCrawlerLogger.LogProcessOpenDocument(Processor._logAggregator, document.Id.Id);
 
-                        await Processor.RunAnalyzersAsync(analyzers, document, (a, d, c) => a.DocumentOpenAsync(d, c), cancellationToken).ConfigureAwait(false);
+                        await Processor.RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.DocumentOpenAsync(d, c), cancellationToken).ConfigureAwait(false);
                     }
 
-                    private async Task ProcessCloseDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
+                    private async Task ProcessCloseDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentClosed))
                         {
@@ -409,7 +411,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         SolutionCrawlerLogger.LogProcessCloseDocument(Processor._logAggregator, document.Id.Id);
 
-                        await Processor.RunAnalyzersAsync(analyzers, document, (a, d, c) => a.DocumentCloseAsync(d, c), cancellationToken).ConfigureAwait(false);
+                        await Processor.RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.DocumentCloseAsync(d, c), cancellationToken).ConfigureAwait(false);
                     }
 
                     private async Task ProcessReanalyzeDocumentAsync(WorkItem workItem, Document document, CancellationToken cancellationToken)
@@ -417,7 +419,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         try
                         {
 #if DEBUG
-                            Debug.Assert(!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.Reanalyze) || workItem.Analyzers.Count > 0);
+                            Debug.Assert(!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.Reanalyze) || workItem.SpecificAnalyzers.Count > 0);
 #endif
 
                             // no-reanalyze request or we already have a request to re-analyze every thing
@@ -427,20 +429,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             }
 
                             // First reset the document state in analyzers.
-                            var reanalyzers = workItem.Analyzers.ToImmutableArray();
-                            await Processor.RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.DocumentResetAsync(d, c), cancellationToken).ConfigureAwait(false);
+                            var reanalyzers = workItem.SpecificAnalyzers.ToImmutableArray();
+                            await Processor.RunAnalyzersAsync(reanalyzers, document, workItem, (a, d, c) => a.DocumentResetAsync(d, c), cancellationToken).ConfigureAwait(false);
 
                             // no request to re-run syntax change analysis. run it here
                             var reasons = workItem.InvocationReasons;
                             if (!reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                             {
-                                await Processor.RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, reasons, c), cancellationToken).ConfigureAwait(false);
+                                await Processor.RunAnalyzersAsync(reanalyzers, document, workItem, (a, d, c) => a.AnalyzeSyntaxAsync(d, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
 
                             // no request to re-run semantic change analysis. run it here
                             if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
                             {
-                                await Processor.RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
+                                await Processor.RunAnalyzersAsync(reanalyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -471,7 +473,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 return;
                             }
 
-                            await Processor.RunAnalyzersAsync(Analyzers, Processor.CurrentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
+                            await Processor.RunAnalyzersAsync(Analyzers, Processor.CurrentSolution, workItem: new WorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
 
                             foreach (var id in Processor.GetOpenDocumentIds())
                             {

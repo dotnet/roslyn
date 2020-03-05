@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -43,14 +45,14 @@ namespace Microsoft.CodeAnalysis.Notification
                 if (_registrations.Count == 1)
                 {
                     Contract.ThrowIfFalse(_operations.Count == 1);
-                    RaiseGlobalOperationStarted();
+                    RaiseGlobalOperationStartedAsync();
                 }
 
                 return registration;
             }
         }
 
-        protected virtual Task RaiseGlobalOperationStarted()
+        protected virtual Task RaiseGlobalOperationStartedAsync()
         {
             var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
             if (ev.HasHandlers)
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Notification
             return Task.CompletedTask;
         }
 
-        protected virtual Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
+        protected virtual Task RaiseGlobalOperationStoppedAsync(IReadOnlyList<string> operations, bool cancelled)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
             if (ev.HasHandlers)
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Notification
 
                     // We don't care if an individual operation has canceled.
                     // We only care whether whole thing has cancelled or not.
-                    RaiseGlobalOperationStopped(operations, cancelled: true);
+                    RaiseGlobalOperationStoppedAsync(operations, cancelled: true);
                 }
             }
         }
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Notification
                     var operations = _operations.AsImmutable();
                     _operations.Clear();
 
-                    RaiseGlobalOperationStopped(operations, cancelled: false);
+                    RaiseGlobalOperationStoppedAsync(operations, cancelled: false);
                 }
             }
         }

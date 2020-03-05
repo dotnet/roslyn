@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             => operation is IPropertyReferenceOperation propertyRef &&
                propertyRef.Instance != null &&
                lengthLikeProperty.Equals(propertyRef.Property) &&
-               CSharpSyntaxFactsService.Instance.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
+               CSharpSyntaxFacts.Instance.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
 
         /// <summary>
         /// Checks if <paramref name="operation"/> is a binary subtraction operator. If so, it
@@ -76,7 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                (method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.Ordinary) &&
                IsPublicInstance(method) &&
                method.Parameters.Length == 1 &&
-               method.Parameters[0].Type.SpecialType == SpecialType.System_Int32;
+               // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+               //
+               // When looking for the pattern members, we look for original definitions, not
+               // constructed members
+               method.OriginalDefinition.Parameters[0].Type.SpecialType == SpecialType.System_Int32;
 
         /// <summary>
         /// Look for methods like "SomeType MyType.Slice(int start, int length)".  Note that the
@@ -87,8 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             => method != null &&
                IsPublicInstance(method) &&
                method.Parameters.Length == 2 &&
-               IsSliceFirstParameter(method.Parameters[0]) &&
-               IsSliceSecondParameter(method.Parameters[1]);
+               // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+               //
+               // When looking for the pattern members, we look for original definitions, not
+               // constructed members
+               IsSliceFirstParameter(method.OriginalDefinition.Parameters[0]) &&
+               IsSliceSecondParameter(method.OriginalDefinition.Parameters[1]);
 
         private static bool IsSliceFirstParameter(IParameterSymbol parameter)
             => parameter.Type.SpecialType == SpecialType.System_Int32 &&

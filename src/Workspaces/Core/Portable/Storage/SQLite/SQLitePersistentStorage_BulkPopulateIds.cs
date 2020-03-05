@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -72,8 +74,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private static readonly ObjectPool<Dictionary<int, string>> s_dictionaryPool =
-            new ObjectPool<Dictionary<int, string>>(() => new Dictionary<int, string>());
+        private static readonly ObjectPool<Dictionary<int, string>> s_dictionaryPool
+            = SharedPools.Default<Dictionary<int, string>>();
 
         /// <summary>
         /// Returns 'true' if the bulk population succeeds, or false if it doesn't.
@@ -126,41 +128,39 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 if (stringsToAdd.Count > 0)
                 {
-                    using (var idToString = s_dictionaryPool.GetPooledObject())
+                    using var idToString = s_dictionaryPool.GetPooledObject();
+                    try
                     {
-                        try
-                        {
-                            connection.RunInTransaction(
-                                state =>
+                        connection.RunInTransaction(
+                            state =>
+                            {
+                                foreach (var value in state.stringsToAdd)
                                 {
-                                    foreach (var value in state.stringsToAdd)
-                                    {
-                                        var id = InsertStringIntoDatabase_MustRunInTransaction(state.connection, value);
-                                        state.idToString.Object.Add(id, value);
-                                    }
-                                },
-                                (stringsToAdd, connection, idToString));
-                        }
-                        catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
-                        {
-                            // Constraint exceptions are possible as we may be trying bulk insert 
-                            // strings while some other thread/process does the same.
-                            return false;
-                        }
-                        catch (Exception ex)
-                        {
-                            // Something failed. Log the issue, and let the caller know we should stop
-                            // with the bulk population.
-                            StorageDatabaseLogger.LogException(ex);
-                            return false;
-                        }
+                                    var id = InsertStringIntoDatabase_MustRunInTransaction(state.connection, value);
+                                    state.idToString.Object.Add(id, value);
+                                }
+                            },
+                            (stringsToAdd, connection, idToString));
+                    }
+                    catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
+                    {
+                        // Constraint exceptions are possible as we may be trying bulk insert 
+                        // strings while some other thread/process does the same.
+                        return false;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Something failed. Log the issue, and let the caller know we should stop
+                        // with the bulk population.
+                        StorageDatabaseLogger.LogException(ex);
+                        return false;
+                    }
 
-                        // We succeeded inserting all the strings.  Ensure our local cache has all the
-                        // values we added.
-                        foreach (var kvp in idToString.Object)
-                        {
-                            _stringToIdMap[kvp.Value] = kvp.Key;
-                        }
+                    // We succeeded inserting all the strings.  Ensure our local cache has all the
+                    // values we added.
+                    foreach (var kvp in idToString.Object)
+                    {
+                        _stringToIdMap[kvp.Value] = kvp.Key;
                     }
                 }
 

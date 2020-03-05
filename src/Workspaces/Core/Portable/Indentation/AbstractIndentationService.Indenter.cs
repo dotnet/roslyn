@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             private readonly AbstractIndentationService<TSyntaxRoot> _service;
 
             public readonly OptionSet OptionSet;
+            public readonly IOptionService OptionService;
             public readonly TextLine LineToBeIndented;
             public readonly CancellationToken CancellationToken;
 
@@ -50,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 this._service = service;
                 this._syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 this.OptionSet = optionSet;
+                this.OptionService = document.Document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
                 this.Root = (TSyntaxRoot)document.Root;
                 this.LineToBeIndented = lineToBeIndented;
                 this._tabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Indentation
 
                 this.Rules = rules;
                 this.Finder = new BottomUpBaseIndentationFinder(
-                    new ChainedFormattingRules(this.Rules, OptionSet),
+                    new ChainedFormattingRules(this.Rules, OptionSet.AsAnalyzerConfigOptions(OptionService, Root.Language)),
                     this._tabSize,
                     this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
                     tokenStream: null);
@@ -126,12 +130,23 @@ namespace Microsoft.CodeAnalysis.Indentation
                     if (LineToBeIndented.LineNumber < updatedSourceText.Lines.Count)
                     {
                         var updatedLine = updatedSourceText.Lines[LineToBeIndented.LineNumber];
-                        var offset = updatedLine.GetFirstNonWhitespaceOffset();
-                        if (offset != null)
+                        var nonWhitespaceOffset = updatedLine.GetFirstNonWhitespaceOffset();
+                        if (nonWhitespaceOffset != null)
                         {
-                            indentationResult = new IndentationResult(
-                                basePosition: LineToBeIndented.Start,
-                                offset: offset.Value);
+                            // 'nonWhitespaceOffset' is simply an int indicating how many
+                            // *characters* of indentation to include.  For example, an indentation
+                            // string of \t\t\t would just count for nonWhitespaceOffset of '3' (one
+                            // for each tab char).
+                            //
+                            // However, what we want is the true columnar offset for the line.
+                            // That's what our caller (normally the editor) needs to determine where
+                            // to actually put the caret and what whitespace needs to proceed it.
+                            //
+                            // This can be computed with GetColumnFromLineOffset which again looks
+                            // at the contents of the line, but this time evaluates how \t characters 
+                            // should translate to column chars.
+                            var offset = updatedLine.GetColumnFromLineOffset(nonWhitespaceOffset.Value, _tabSize);
+                            indentationResult = new IndentationResult(basePosition: LineToBeIndented.Start, offset: offset);
                             return true;
                         }
                     }

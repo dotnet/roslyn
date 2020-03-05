@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -54,8 +56,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
-            var foreachStatement = await context.TryGetSelectedNodeAsync<TForEachStatement>().ConfigureAwait(false);
+            var (document, _, cancellationToken) = context;
+            var foreachStatement = await context.TryGetRelevantNodeAsync<TForEachStatement>().ConfigureAwait(false);
             if (foreachStatement == null || !IsValid(foreachStatement))
             {
                 return;
@@ -74,7 +76,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             context.RegisterRefactoring(
                 new ForEachToForCodeAction(
                     Title,
-                    c => ConvertForeachToForAsync(document, foreachInfo, c)));
+                    c => ConvertForeachToForAsync(document, foreachInfo, c)),
+                foreachStatement.Span);
         }
 
         protected SyntaxToken CreateUniqueName(
@@ -139,8 +142,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             ISemanticFactsService semanticFact, OptionSet options, SemanticModel model,
             TForEachStatement foreachStatement, CancellationToken cancellationToken)
         {
-            var operation = model.GetOperation(foreachStatement, cancellationToken) as IForEachLoopOperation;
-            if (operation == null || operation.Locals.Length != 1)
+            if (!(model.GetOperation(foreachStatement, cancellationToken) is IForEachLoopOperation operation) || operation.Locals.Length != 1)
             {
                 return null;
             }
@@ -294,10 +296,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 {
                     continue;
                 }
-
-                var countImpl = collectionType.FindImplementationForInterfaceMember(countSymbol) as IMethodSymbol;
-                var indexerImpl = collectionType.FindImplementationForInterfaceMember(indexerSymbol) as IMethodSymbol;
-                if (countImpl == null || indexerImpl == null)
+                if (!(collectionType.FindImplementationForInterfaceMember(countSymbol) is IMethodSymbol countImpl) || !(collectionType.FindImplementationForInterfaceMember(indexerSymbol) is IMethodSymbol indexerImpl))
                 {
                     continue;
                 }

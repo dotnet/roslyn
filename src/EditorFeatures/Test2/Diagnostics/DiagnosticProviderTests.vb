@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CSharp
@@ -7,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Utilities
 
@@ -184,9 +187,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                   <Error Code="19" Id="CS0019" MappedFile="Test.cs" MappedLine="6" MappedColumn="56" OriginalFile="Test.cs" OriginalLine="6" OriginalColumn="56"
                                       Message=<%= String.Format(CSharpResources.ERR_BadBinaryOps, "-", "int", "string") %>/>
                                   <Error Code="30026" Id="BC30026" MappedFile="Test.vb" MappedLine="2" MappedColumn="44" OriginalFile="Test.vb" OriginalLine="2" OriginalColumn="44"
-                                      Message=<%= ERR_EndSubExpected %>/>
+                                      Message=<%= VBResources.ERR_EndSubExpected %>/>
                                   <Error Code="30205" Id="BC30205" MappedFile="Test.vb" MappedLine="2" MappedColumn="55" OriginalFile="Test.vb" OriginalLine="2" OriginalColumn="55"
-                                      Message=<%= ERR_ExpectedEOS %>/>
+                                      Message=<%= VBResources.ERR_ExpectedEOS %>/>
                               </Diagnostics>
 
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False)
@@ -277,10 +280,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 ' turn off diagnostic
                 If Not enabled Then
-                    workspace.Options = workspace.Options _
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                                                   .WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
-                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, False) _
-                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, False)
+                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.Default) _
+                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.Default)))
                 End If
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
@@ -373,12 +376,22 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
         Private Function CreateDiagnostic(id As String, message As String, severity As DiagnosticSeverity, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
             originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
-            Return New DiagnosticData(id, "test", message, message, severity, severity, True, 0,
-                                      ImmutableArray(Of String).Empty, ImmutableDictionary(Of String, String).Empty,
-                                      projId, New DiagnosticDataLocation(docId, Nothing,
-                                        originalFile, originalLine, originalColumn, originalLine, originalColumn,
-                                        mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
-                                      Nothing, Nothing, Nothing)
+            Return New DiagnosticData(
+                id:=id,
+                category:="test",
+                message:=message,
+                enuMessageForBingSearch:=message,
+                severity:=severity,
+                defaultSeverity:=severity,
+                isEnabledByDefault:=True,
+                warningLevel:=0,
+                customTags:=ImmutableArray(Of String).Empty,
+                properties:=ImmutableDictionary(Of String, String).Empty,
+                projectId:=projId,
+                location:=New DiagnosticDataLocation(docId, Nothing, originalFile, originalLine, originalColumn, originalLine, originalColumn, mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
+                additionalLocations:=Nothing,
+                language:=LanguageNames.VisualBasic,
+                title:=Nothing)
         End Function
 
         Private Class Comparer

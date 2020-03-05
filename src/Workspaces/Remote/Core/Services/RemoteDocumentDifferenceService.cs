@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Threading;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<DocumentDifferenceResult> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             // in remote workspace, we don't trust any version based on VersionStamp. we only trust content based information such as
-            // checksum or tree comparision and etc.
+            // checksum or tree comparison and etc.
 
             // first check checksum
             var oldTextChecksum = (await oldDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;

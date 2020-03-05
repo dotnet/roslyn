@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -418,7 +420,7 @@ namespace M
             var refsFromVirtual = await SymbolFinder.FindReferencesAsync(baseVirtualMethodSymbol, solution);
             Assert.Equal(2, refsFromVirtual.Count());
 
-            // FAR from the overriden method should find both methods
+            // FAR from the overridden method should find both methods
             var refsFromOverride = await SymbolFinder.FindReferencesAsync(overriddenMethodSymbol, solution);
             Assert.Equal(2, refsFromOverride.Count());
 

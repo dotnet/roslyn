@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports System.ComponentModel.Composition.Hosting
@@ -34,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class TestEnvironment
         Implements IDisposable
 
-        Private Shared ReadOnly s_exportProviderFactory As Lazy(Of IExportProviderFactory) = New Lazy(Of IExportProviderFactory)(
+        Friend Shared ReadOnly s_exportCatalog As Lazy(Of ComposableCatalog) = New Lazy(Of ComposableCatalog)(
             Function()
                 Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 catalog = catalog.WithParts(GetType(FileChangeWatcherProvider),
@@ -49,14 +51,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                                             GetType(VsMetadataServiceFactory),
                                             GetType(VisualStudioMetadataReferenceManagerFactory),
                                             GetType(MockWorkspaceEventListenerProvider))
-                Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
+
+                Return catalog
             End Function)
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
 
-        Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
-            ExportProvider = s_exportProviderFactory.Value.CreateExportProvider()
+        Public Sub New(Optional solutionIsFullyLoaded As Boolean = True, Optional exportProviderFactory As IExportProviderFactory = Nothing)
+
+            If exportProviderFactory Is Nothing Then
+                exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(s_exportCatalog.Value)
+            End If
+
+            ExportProvider = exportProviderFactory.CreateExportProvider()
             _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
             ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
             Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
@@ -81,8 +89,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             <ImportingConstructor>
             Public Sub New(exportProvider As Composition.ExportProvider)
                 MyBase.New(exportProvider,
-                           exportProvider.GetExportedValue(Of MockServiceProvider),
-                           exportProvider.GetExportedValues(Of IDocumentOptionsProviderFactory))
+                           exportProvider.GetExportedValue(Of MockServiceProvider))
             End Sub
 
             Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))

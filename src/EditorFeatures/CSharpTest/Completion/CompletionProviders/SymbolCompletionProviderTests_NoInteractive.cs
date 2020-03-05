@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -20,22 +24,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new SymbolCompletionProvider();
+            return typeof(SymbolCompletionProvider);
         }
 
         private protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription, List<CompletionItemFilter> matchingFilters)
+            string inlineDescription, List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters);
+                inlineDescription, matchingFilters, flags);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -341,25 +345,23 @@ class C
         {
             Console.$$";//, @"Beep"
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var testDocument = workspace.Documents.Single();
+            var position = testDocument.CursorPosition.Value;
 
-                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-                var service = CompletionService.GetService(document);
-                var completions = await service.GetCompletionsAsync(document, position);
+            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var service = CompletionService.GetService(document);
+            var completions = await service.GetCompletionsAsync(document, position);
 
-                var item = completions.Items.First(i => i.DisplayText == "Beep");
-                var edit = testDocument.GetTextBuffer().CreateEdit();
-                edit.Delete(Span.FromBounds(position - 10, position));
-                edit.Apply();
+            var item = completions.Items.First(i => i.DisplayText == "Beep");
+            var edit = testDocument.GetTextBuffer().CreateEdit();
+            edit.Delete(Span.FromBounds(position - 10, position));
+            edit.Apply();
 
-                var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-                Assert.NotEqual(currentDocument, document);
-                var description = service.GetDescriptionAsync(document, item);
-            }
+            Assert.NotEqual(currentDocument, document);
+            var description = service.GetDescriptionAsync(document, item);
         }
     }
 }

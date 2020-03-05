@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     ''' <summary>
@@ -6,14 +8,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     ''' </summary>
     <[UseExportProvider]>
     Public Class FormattingCommandHandlerTests
-        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object()) =
-            TestStateFactory.GetAllCompletionImplementations()
 
         <WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub TypingUsingStatementsProperlyAligns1(completionImplementation As CompletionImplementation)
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub TypingUsingStatementsProperlyAligns1()
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 using System;
 class TestClass
@@ -59,7 +58,7 @@ class TestClass
             End Using
         End Sub
 
-        Private Shared Sub AssertVirtualCaretColumn(state As TestStateBase, expectedCol As Integer)
+        Private Shared Sub AssertVirtualCaretColumn(state As TestState, expectedCol As Integer)
             Dim caretLine = state.GetLineFromCurrentCaretPosition()
             Dim caret = state.GetCaretPoint()
             Assert.Equal(expectedCol, caret.VirtualBufferPosition.VirtualSpaces)

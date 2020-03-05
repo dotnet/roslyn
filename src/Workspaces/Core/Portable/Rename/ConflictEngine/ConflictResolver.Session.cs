@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 try
                 {
-                    await FindDocumentsAndPossibleNameConflicts().ConfigureAwait(false);
+                    await FindDocumentsAndPossibleNameConflictsAsync().ConfigureAwait(false);
                     var baseSolution = _renameLocationSet.Solution;
 
                     // Process rename one project at a time to improve caching and reduce syntax tree serialization.
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         .GroupBy(d => d.ProjectId)
                         .OrderBy(g => _topologicallySortedProjects.IndexOf(g.Key));
 
-                    _replacementTextValid = IsIdentifierValid_Worker(baseSolution, _replacementText, documentsGroupedByTopologicallySortedProjectId.Select(g => g.Key), _cancellationToken);
+                    _replacementTextValid = IsIdentifierValid_Worker(baseSolution, _replacementText, documentsGroupedByTopologicallySortedProjectId.Select(g => g.Key));
                     var renamedSpansTracker = new RenamedSpansTracker();
                     var conflictResolution = new ConflictResolution(baseSolution, renamedSpansTracker, _replacementText, _replacementTextValid);
 
@@ -318,12 +320,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             var syntaxRoot = await newDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
 
                             var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(documentId, syntaxRoot);
-                            foreach (var nodeOrToken in nodesOrTokensWithConflictCheckAnnotations)
+                            foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
                             {
-                                if (nodeOrToken.annotation.IsRenameLocation)
+                                if (annotation.IsRenameLocation)
                                 {
                                     conflictResolution.AddRelatedLocation(new RelatedLocation(
-                                        nodeOrToken.annotation.OriginalSpan, documentId, RelatedLocationType.UnresolvedConflict));
+                                        annotation.OriginalSpan, documentId, RelatedLocationType.UnresolvedConflict));
                                 }
                             }
                         }
@@ -351,10 +353,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             .Where(t => t.DocumentId == documentId)
                             .Select(t => t.OriginalIdentifierSpan).ToSet();
 
-                        foreach (var nodeAndAnnotation in nodesOrTokensWithConflictCheckAnnotations)
+                        foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
                         {
-                            var tokenOrNode = nodeAndAnnotation.syntax;
-                            var conflictAnnotation = nodeAndAnnotation.annotation;
+                            var tokenOrNode = syntax;
+                            var conflictAnnotation = annotation;
                             reverseMappedLocations[tokenOrNode.GetLocation()] = baseSyntaxTree.GetLocation(conflictAnnotation.OriginalSpan);
                             var originalLocation = conflictAnnotation.OriginalSpan;
                             IEnumerable<ISymbol> newReferencedSymbols = null;
@@ -434,10 +436,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             var baseSyntaxTree = await baseDocument.GetSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
 
                             var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(unprocessedDocumentIdWithPotentialDeclarationConflicts, syntaxRoot);
-                            foreach (var nodeAndAnnotation in nodesOrTokensWithConflictCheckAnnotations)
+                            foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
                             {
-                                var tokenOrNode = nodeAndAnnotation.syntax;
-                                var conflictAnnotation = nodeAndAnnotation.annotation;
+                                var tokenOrNode = syntax;
+                                var conflictAnnotation = annotation;
                                 reverseMappedLocations[tokenOrNode.GetLocation()] = baseSyntaxTree.GetLocation(conflictAnnotation.OriginalSpan);
                             }
                         }
@@ -661,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// The method determines the set of documents that need to be processed for Rename and also determines
             ///  the possible set of names that need to be checked for conflicts.
             /// </summary>
-            private async Task FindDocumentsAndPossibleNameConflicts()
+            private async Task FindDocumentsAndPossibleNameConflictsAsync()
             {
                 try
                 {
@@ -680,7 +682,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             ?.TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
                     }
 
-                    await AddDocumentsWithPotentialConflicts(documentsFromAffectedProjects).ConfigureAwait(false);
+                    await AddDocumentsWithPotentialConflictsAsync(documentsFromAffectedProjects).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
@@ -688,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
-            private async Task AddDocumentsWithPotentialConflicts(IEnumerable<Document> documents)
+            private async Task AddDocumentsWithPotentialConflictsAsync(IEnumerable<Document> documents)
             {
                 try
                 {

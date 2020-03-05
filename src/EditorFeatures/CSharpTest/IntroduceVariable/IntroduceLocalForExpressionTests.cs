@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceVariable
@@ -92,6 +95,33 @@ class C
     void M()
     {
         DateTime {|Rename:dateTime|} = new DateTime();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task IntroduceLocal_Inside_Expression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        new TimeSpan() +[||] new TimeSpan();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        TimeSpan {|Rename:timeSpan|} = new TimeSpan() + new TimeSpan();
     }
 }");
         }
@@ -198,6 +228,23 @@ class C
     void M()
     {
         DateTime {|Rename:dateTime|} = new DateTime();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        public async Task MissingOnAssignmentExpressionStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        int a = 42;
+        [||]a = 42;
     }
 }");
         }

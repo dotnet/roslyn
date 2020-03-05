@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -26,9 +28,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ImmutableArray<TaggedText> originationParts,
                 ImmutableArray<DocumentSpan> sourceSpans,
                 ImmutableDictionary<string, string> properties,
+                ImmutableDictionary<string, string> displayableProperties,
                 bool displayIfNoReferences)
                 : base(tags, displayParts, nameDisplayParts, originationParts,
-                       sourceSpans, properties, displayIfNoReferences)
+                       sourceSpans, properties, displayableProperties, displayIfNoReferences)
             {
             }
 

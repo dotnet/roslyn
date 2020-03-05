@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -81,9 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (type.IsDelegateType() &&
                     argument.IsParentKind(SyntaxKind.ArgumentList) &&
-                    argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                    argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreationExpression))
                 {
-                    var objectCreationExpression = (ObjectCreationExpressionSyntax)argument.Parent.Parent;
                     var objectCreationType = _semanticModel.GetTypeInfo(objectCreationExpression).Type;
                     if (objectCreationType.Equals(type))
                     {
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var speculativeSemanticModel = speculativeAnalyzer.SpeculativeSemanticModel;
                 var speculatedExpression = speculativeAnalyzer.ReplacedExpression;
 
-                var result = speculatedExpression.CastIfPossible(targetType, speculatedExpression.SpanStart, speculativeSemanticModel);
+                var result = speculatedExpression.CastIfPossible(targetType, speculatedExpression.SpanStart, speculativeSemanticModel, _cancellationToken);
 
                 if (result != speculatedExpression)
                 {
@@ -265,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (CanMakeNameExplicitInTuple(tuple, inferredName))
                     {
                         var identifier = SyntaxFactory.Identifier(inferredName);
-                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+                        identifier = TryEscapeIdentifierToken(identifier, node);
 
                         newArgument = newArgument
                             .WithoutLeadingTrivia()
@@ -334,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         // Creating identifier without elastic trivia to avoid unexpected line break
                         var identifier = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, inferredName, SyntaxTriviaList.Empty);
-                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+                        identifier = TryEscapeIdentifierToken(identifier, node);
 
                         newDeclarator = newDeclarator
                             .WithoutLeadingTrivia()
@@ -482,9 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                         if (aliasTarget is INamedTypeSymbol typeSymbol && typeSymbol.IsTupleType)
                         {
-                            // ValueTuple type is not allowed in using alias, so when expanding an alias
-                            // of ValueTuple types, always use its underlying type, i.e. `System.ValueTuple<>` instead of `(...)`
-                            aliasTarget = typeSymbol.TupleUnderlyingType;
+                            return rewrittenSimpleName;
                         }
 
                         // the expanded form replaces the current identifier name.
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 break;
 
                             default:
-                                throw new NotImplementedException();
+                                throw ExceptionUtilities.UnexpectedValue(replacement.Kind());
                         }
 
                         replacement = newNode.CopyAnnotationsTo(replacement);
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 ////
                 //// 3. Always try to escape keyword identifiers
                 ////
-                identifier = TryEscapeIdentifierToken(identifier, originalSimpleName, _semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
+                identifier = TryEscapeIdentifierToken(identifier, originalSimpleName).WithAdditionalAnnotations(Simplifier.Annotation);
                 if (identifier != rewrittenSimpleName.Identifier)
                 {
                     switch (newNode.Kind())
@@ -633,8 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var parent = originalSimpleName.Parent;
 
                 // do not complexify further for location where only simple names are allowed
-                if (parent is MemberDeclarationSyntax ||
-                    parent is MemberBindingExpressionSyntax ||
+                if (parent is MemberBindingExpressionSyntax ||
                     originalSimpleName.GetAncestor<NameEqualsSyntax>() != null ||
                     (parent is MemberAccessExpressionSyntax && parent.Kind() != SyntaxKind.SimpleMemberAccessExpression) ||
                     ((parent.Kind() == SyntaxKind.SimpleMemberAccessExpression || parent.Kind() == SyntaxKind.NameMemberCref) && originalSimpleName.IsRightSideOfDot()) ||
@@ -692,7 +691,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                     else
                     {
-                        if (!IsPropertyNameOfObjectInitializer(originalSimpleName))
+                        if (!IsPropertyNameOfObjectInitializer(originalSimpleName) &&
+                            !symbol.IsLocalFunction())
                         {
                             ExpressionSyntax left;
 
@@ -1064,9 +1064,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
-                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
                 {
-                    var memberAccess = (MemberAccessExpressionSyntax)originalNode.Expression;
                     var targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(_semanticModel, memberAccess.Name);
 
                     if (targetSymbol != null && targetSymbol.IsReducedExtension() && memberAccess.Expression != null)

@@ -1,10 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -12,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -30,10 +34,13 @@ namespace Roslyn.Test.Utilities
         {
             var requestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(IRequestHandler).Assembly, typeof(IRequestHandler));
+            var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(LanguageServerProtocol))
-                .WithParts(requestHelperTypes));
+                .WithParts(requestHelperTypes)
+                .WithParts(executeCommandHandlerTypes));
             return exportProviderFactory.CreateExportProvider();
         }
 
@@ -188,7 +195,7 @@ namespace Roslyn.Test.Utilities
 
             foreach (var document in workspace.Documents)
             {
-                var text = document.TextBuffer.AsTextContainer().CurrentText;
+                var text = solution.GetDocument(document.Id).GetTextSynchronously(CancellationToken.None);
                 foreach (var kvp in document.AnnotatedSpans)
                 {
                     locations.GetOrAdd(kvp.Key, CreateLocation)

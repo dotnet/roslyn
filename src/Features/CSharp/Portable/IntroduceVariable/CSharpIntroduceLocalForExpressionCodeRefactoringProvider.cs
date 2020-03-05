@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -16,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpIntroduceLocalForExpressionCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsValid(ExpressionStatementSyntax expressionStatement, TextSpan span)
         {
             // Expression is likely too simple to want to offer to generate a local for.
@@ -23,6 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             if (span.IsEmpty &&
                 expressionStatement.SemicolonToken.IsMissing &&
                 expressionStatement.Expression.IsKind(SyntaxKind.IdentifierName))
+            {
+                return false;
+            }
+
+            // We don't want to offer new local for an assignmentExpression `a = 42` -> `int newA = a = 42`
+            if (expressionStatement.Expression is AssignmentExpressionSyntax)
             {
                 return false;
             }

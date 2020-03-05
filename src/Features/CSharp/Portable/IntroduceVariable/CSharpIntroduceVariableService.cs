@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         protected override bool IsInExpressionBodiedMember(ExpressionSyntax expression)
         {
             // walk up until we find a nearest enclosing block or arrow expression.
-            for (SyntaxNode node = expression; node != null; node = node.GetParent())
+            for (SyntaxNode node = expression; node != null; node = node.Parent)
             {
                 // If we are in an expression bodied member and if the expression has a block body, then,
                 // act as if we're in a block context and not in an expression body context at all.
@@ -144,6 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         protected override bool CanReplace(ExpressionSyntax expression)
         {
             return true;
+        }
+
+        protected override bool IsExpressionInStaticLocalFunction(ExpressionSyntax expression)
+        {
+            var localFunction = expression.GetAncestor<LocalFunctionStatementSyntax>();
+            return localFunction != null && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword);
         }
 
         protected override TNode RewriteCore<TNode>(

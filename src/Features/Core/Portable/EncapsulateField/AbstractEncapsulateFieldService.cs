@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -118,10 +120,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = semanticModel.Compilation;
-                var currentField = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
 
                 // We couldn't resolve this field. skip it
-                if (currentField == null)
+                if (!(field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol is IFieldSymbol currentField))
                 {
                     failedFieldSymbols.Add(field);
                     continue;
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             document = solutionNeedingProperty.GetDocument(document.Id);
 
             var markFieldPrivate = field.DeclaredAccessibility != Accessibility.Private;
-            var rewrittenFieldDeclaration = await RewriteFieldNameAndAccessibility(finalFieldName, markFieldPrivate, document, declarationAnnotation, cancellationToken).ConfigureAwait(false);
+            var rewrittenFieldDeclaration = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, document, declarationAnnotation, cancellationToken).ConfigureAwait(false);
 
             document = await Formatter.FormatAsync(document.WithSyntaxRoot(rewrittenFieldDeclaration), Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
                 var linkedDocument = solution.GetDocument(linkedDocumentId);
-                var updatedLinkedRoot = await RewriteFieldNameAndAccessibility(finalFieldName, markFieldPrivate, linkedDocument, declarationAnnotation, cancellationToken).ConfigureAwait(false);
+                var updatedLinkedRoot = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, linkedDocument, declarationAnnotation, cancellationToken).ConfigureAwait(false);
                 var updatedLinkedDocument = await Formatter.FormatAsync(linkedDocument.WithSyntaxRoot(updatedLinkedRoot), Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
                 solution = updatedLinkedDocument.Project.Solution;
             }
@@ -399,7 +400,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
-        protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
         protected abstract Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
         internal class Result

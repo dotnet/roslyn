@@ -194,7 +194,6 @@
                 case ErrorCode.WRN_NullReferenceReturn:
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_UnboxPossibleNull:
-                case ErrorCode.WRN_NullReferenceIterationVariable:
                 case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
@@ -213,22 +212,29 @@
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
                 case ErrorCode.WRN_NullAsNonNullable:
-                case ErrorCode.WRN_AsOperatorMayReturnNull:
                 case ErrorCode.WRN_NullableValueTypeMayBeNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
-                case ErrorCode.WRN_ConditionalAccessMayReturnNull:
                 case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
                 case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
                 case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
-                case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
-                case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
+                case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
+                case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
+                case ErrorCode.WRN_ShouldNotReturn:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_DoesNotReturnMismatch:
                     return true;
                 default:
                     return false;

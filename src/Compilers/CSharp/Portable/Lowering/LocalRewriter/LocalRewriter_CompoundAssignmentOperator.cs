@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -364,6 +366,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexerAccess.Type);
         }
 
+        private BoundExpression TransformPatternIndexerAccess(
+            BoundIndexOrRangePatternIndexerAccess indexerAccess,
+            ArrayBuilder<BoundExpression> stores,
+            ArrayBuilder<LocalSymbol> temps,
+            bool isDynamicAssignment)
+        {
+            // A pattern indexer is fundamentally a sequence which ends in either
+            // a conventional indexer access or a method call. The lowering of a
+            // pattern indexer already lowers everything we need into temps, so
+            // the only thing we need to do is lift the stores and temps out of
+            // the sequence, and use the final expression as the new argument
+
+            var sequence = VisitIndexOrRangePatternIndexerAccess(indexerAccess, isLeftOfAssignment: true);
+            stores.AddRange(sequence.SideEffects);
+            temps.AddRange(sequence.Locals);
+            return TransformCompoundAssignmentLHS(sequence.Value, stores, temps, isDynamicAssignment);
+        }
+
         /// <summary>
         /// Returns true if the <paramref name="receiver"/> was lowered and transformed.
         /// The <paramref name="receiver"/> is not changed if this function returns false. 
@@ -516,6 +536,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (indexerAccess.Indexer.RefKind == RefKind.None)
                         {
                             return TransformIndexerAccess((BoundIndexerAccess)originalLHS, stores, temps);
+                        }
+                    }
+                    break;
+
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    {
+                        var patternIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)originalLHS;
+                        RefKind refKind = patternIndexerAccess.PatternSymbol switch
+                        {
+                            PropertySymbol p => p.RefKind,
+                            MethodSymbol m => m.RefKind,
+                            var x => throw ExceptionUtilities.UnexpectedValue(x)
+                        };
+                        if (refKind == RefKind.None)
+                        {
+                            return TransformPatternIndexerAccess(patternIndexerAccess, stores, temps, isDynamicAssignment);
                         }
                     }
                     break;

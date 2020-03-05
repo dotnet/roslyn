@@ -1,11 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Indentation
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -14,13 +13,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Partial Friend Class VisualBasicIndentationService
         Protected Overrides Function ShouldUseTokenIndenter(indenter As Indenter, ByRef token As SyntaxToken) As Boolean
             Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionSet, token)
+                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionService, indenter.OptionSet, token)
         End Function
 
         Protected Overrides Function CreateSmartTokenFormatter(indenter As Indenter) As ISmartTokenFormatter
             Dim workspace = indenter.Document.Project.Solution.Workspace
             Dim formattingRuleFactory = workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-            Dim rules = {New SpecialFormattingRule(), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
+            Dim rules = {New SpecialFormattingRule(indenter.OptionSet.GetOption(FormattingOptions.SmartIndent, indenter.Document.Root.Language)), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
 
             Return New VisualBasicSmartTokenFormatter(indenter.OptionSet, rules, indenter.Root)
         End Function

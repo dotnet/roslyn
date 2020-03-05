@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -738,41 +740,6 @@ class [|Program|] : Goo
 #line hidden
 }
 #line default");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestGenerateIntoNonHiddenPart()
-        {
-            await TestAllOptionsOffAsync(
-@"using System;
-
-abstract class Goo { public abstract void F(); }
-
-partial class [|Program|] : Goo
-{
-#line hidden
-}
-#line default
-
-partial class Program ",
-@"using System;
-
-abstract class Goo { public abstract void F(); }
-
-partial class Program : Goo
-{
-#line hidden
-}
-#line default
-
-partial class Program
-{
-    public override void F()
-    {
-        throw new NotImplementedException();
-    }
-}
-");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -1797,7 +1764,7 @@ public class Test : TestParent
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestUnmanagedConstraint()
         {
             await TestInRegularAndScriptAsync(
@@ -1819,6 +1786,30 @@ public class Test : ParentTest
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [Fact]
+        public async Task NothingOfferedWhenInheritanceIsPreventedByInternalAbstractMember()
+        {
+            await TestMissingAsync(
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public abstract class Base
+{
+    internal abstract void Method();
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class [|Derived|] : Base
+{
+    Base inner;
+}
+        </Document>
+    </Project>
+</Workspace>");
         }
     }
 }

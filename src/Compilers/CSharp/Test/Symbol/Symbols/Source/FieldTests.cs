@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -260,7 +262,7 @@ class C
             Assert.Equal("x", mem.Name);
             Assert.True(mem.IsConst);
             Assert.False(mem.HasConstantValue);
-            Assert.Equal(null, mem.ConstantValue);
+            Assert.Null(mem.ConstantValue);
         }
 
         [WorkItem(543538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]
@@ -313,22 +315,19 @@ class A
                 // (5,28): error CS0106: The modifier 'virtual' is not valid for this item
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Finalize").WithArguments("virtual").WithLocation(5, 28),
-                // (5,46): error CS0102: The type 'A' already contains a definition for ''
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
-                // (5,37): error CS0283: The type '(?, ?)' cannot be declared const
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("(?, ?)").WithLocation(5, 37),
                 // (5,43): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 43),
                 // (5,23): error CS0670: Field cannot have void type
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
+                // (5,46): error CS0102: The type 'A' already contains a definition for ''
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
                 // (5,28): warning CS0649: Field 'A.Finalize' is never assigned to, and will always have its default value 
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28)
-    );
+                );
         }
 
         [WorkItem(543538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]
@@ -384,18 +383,15 @@ class A
                 // (5,28): error CS0106: The modifier 'virtual' is not valid for this item
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Finalize").WithArguments("virtual").WithLocation(5, 28),
-                // (5,46): error CS0102: The type 'A' already contains a definition for ''
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
-                // (5,37): error CS0283: The type '(?, ?)' cannot be declared const
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("(?, ?)").WithLocation(5, 37),
                 // (5,43): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 43),
                 // (5,23): error CS0670: Field cannot have void type
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
+                // (5,46): error CS0102: The type 'A' already contains a definition for ''
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
                 // (5,28): warning CS0649: Field 'A.Finalize' is never assigned to, and will always have its default value 
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28)

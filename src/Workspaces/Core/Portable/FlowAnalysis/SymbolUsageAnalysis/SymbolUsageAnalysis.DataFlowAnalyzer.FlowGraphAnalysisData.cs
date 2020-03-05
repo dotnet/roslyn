@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -73,7 +76,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     PooledDictionary<IOperation, PooledHashSet<IOperation>> reachingDelegateCreationTargets,
                     PooledDictionary<IMethodSymbol, ControlFlowGraph> localFunctionTargetsToAccessingCfgMap,
                     PooledDictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph> lambdaTargetsToAccessingCfgMap)
-                    : base(symbolsWriteMap, symbolsRead, lambdaOrLocalFunctionsBeingAnalyzed)
                 {
                     ControlFlowGraph = controlFlowGraph;
                     _parameters = parameters;
@@ -83,12 +85,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     _localFunctionTargetsToAccessingCfgMap = localFunctionTargetsToAccessingCfgMap;
                     _lambdaTargetsToAccessingCfgMap = lambdaTargetsToAccessingCfgMap;
 
+                    SymbolsWriteBuilder = symbolsWriteMap;
+                    SymbolsReadBuilder = symbolsRead;
+                    LambdaOrLocalFunctionsBeingAnalyzed = lambdaOrLocalFunctionsBeingAnalyzed;
+
                     _lValueFlowCapturesMap = PooledDictionary<CaptureId, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                     LValueFlowCapturesInGraph = LValueFlowCapturesProvider.CreateLValueFlowCaptures(controlFlowGraph);
                     Debug.Assert(LValueFlowCapturesInGraph.Values.All(kind => kind == FlowCaptureKind.LValueCapture || kind == FlowCaptureKind.LValueAndRValueCapture));
 
                     _symbolWritesInsideBlockRangeMap = PooledDictionary<(int firstBlockOrdinal, int lastBlockOrdinal), PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                 }
+
+                protected override PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
+
+                protected override PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
+
+                protected override PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
                 public static FlowGraphAnalysisData Create(
                     ControlFlowGraph cfg,
@@ -382,7 +394,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 public void SetBlockAnalysisDataFrom(BasicBlock basicBlock, BasicBlockAnalysisData data, CancellationToken cancellationToken)
                     => GetOrCreateBlockAnalysisData(basicBlock, cancellationToken).SetAnalysisDataFrom(data);
 
-                public void SetAnalysisDataOnExitBlockEnd()
+                public void SetAnalysisDataOnMethodExit()
                 {
                     if (SymbolsWriteBuilder.Count == 0)
                     {
@@ -430,7 +442,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         var mayBeWritten = captures.Count > 1;
                         foreach (var (symbol, write) in captures)
                         {
-                            OnWriteReferenceFound(symbol, write, mayBeWritten);
+                            OnWriteReferenceFound(symbol, write, mayBeWritten, isRef: false);
                         }
                     }
                 }
@@ -548,7 +560,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     return false;
                 }
 
-                protected override void DisposeCoreData()
+                public override void Dispose()
                 {
                     // We share the base analysis data structures between primary method's flow graph analysis
                     // and it's inner lambda/local function flow graph analysis.
@@ -559,13 +571,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     }
 
                     DisposeCommon();
+
+                    base.Dispose();
+
                     return;
 
                     // Local functions.
                     void DisposeForNonLocalFunctionOrLambdaAnalysis()
                     {
-                        base.DisposeCoreData();
-
                         foreach (var creations in _reachingDelegateCreationTargets.Values)
                         {
                             creations.Free();
@@ -575,6 +588,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                         _localFunctionTargetsToAccessingCfgMap.Free();
                         _lambdaTargetsToAccessingCfgMap.Free();
+
+                        SymbolsWriteBuilder.Free();
+                        SymbolsReadBuilder.Free();
+                        LambdaOrLocalFunctionsBeingAnalyzed.Free();
                     }
 
                     void DisposeCommon()

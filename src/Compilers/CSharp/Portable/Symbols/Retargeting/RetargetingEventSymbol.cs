@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -25,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         //we want to compute this lazily since it may be expensive for the underlying symbol
         private ImmutableArray<EventSymbol> _lazyExplicitInterfaceImplementations;
 
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private DiagnosticInfo? _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         public RetargetingEventSymbol(RetargetingModuleSymbol retargetingModule, EventSymbol underlyingEvent)
             : base(underlyingEvent)
         {
-            Debug.Assert((object)retargetingModule != null);
+            RoslynDebug.Assert((object)retargetingModule != null);
             Debug.Assert(!(underlyingEvent is RetargetingEventSymbol));
 
             _retargetingModule = retargetingModule;
@@ -52,31 +56,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override MethodSymbol AddMethod
+        public override MethodSymbol? AddMethod
         {
             get
             {
-                return (object)_underlyingEvent.AddMethod == null
+                return (object?)_underlyingEvent.AddMethod == null
                     ? null
                     : this.RetargetingTranslator.Retarget(_underlyingEvent.AddMethod);
             }
         }
 
-        public override MethodSymbol RemoveMethod
+        public override MethodSymbol? RemoveMethod
         {
             get
             {
-                return (object)_underlyingEvent.RemoveMethod == null
+                return (object?)_underlyingEvent.RemoveMethod == null
                     ? null
                     : this.RetargetingTranslator.Retarget(_underlyingEvent.RemoveMethod);
             }
         }
 
-        internal override FieldSymbol AssociatedField
+        internal override FieldSymbol? AssociatedField
         {
             get
             {
-                return (object)_underlyingEvent.AssociatedField == null
+                return (object?)_underlyingEvent.AssociatedField == null
                     ? null
                     : this.RetargetingTranslator.Retarget(_underlyingEvent.AssociatedField);
             }
@@ -118,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             for (int i = 0; i < impls.Length; i++)
             {
                 var retargeted = this.RetargetingTranslator.Retarget(impls[i]);
-                if ((object)retargeted != null)
+                if ((object?)retargeted != null)
                 {
                     builder.Add(retargeted);
                 }
@@ -127,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -169,11 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
             {
-                DiagnosticInfo result = null;
+                DiagnosticInfo? result = null;
                 CalculateUseSiteDiagnostic(ref result);
                 _lazyUseSiteDiagnostic = result;
             }
@@ -181,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _lazyUseSiteDiagnostic;
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

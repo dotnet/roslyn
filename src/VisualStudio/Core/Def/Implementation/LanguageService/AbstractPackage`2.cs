@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (await IsInIdeModeAsync(this.Workspace, cancellationToken).ConfigureAwait(true))
+            if (await IsInIdeModeAsync(this.Workspace).ConfigureAwait(true))
             {
                 // start remote host
                 EnableRemoteHostClientService();
@@ -136,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 ThreadHelper.JoinableTaskFactory.Run(async () =>
                 {
-                    if (await IsInIdeModeAsync(this.Workspace, CancellationToken.None).ConfigureAwait(true))
+                    if (await IsInIdeModeAsync(this.Workspace).ConfigureAwait(true))
                     {
                         DisableRemoteHostClientService();
 
@@ -171,12 +173,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return Task.CompletedTask;
         }
 
-        private async Task<bool> IsInIdeModeAsync(Workspace workspace, CancellationToken cancellationToken)
+        private async Task<bool> IsInIdeModeAsync(Workspace workspace)
         {
-            return workspace != null && !await IsInCommandLineModeAsync(cancellationToken).ConfigureAwait(true);
+            return workspace != null && !await IsInCommandLineModeAsync().ConfigureAwait(true);
         }
 
-        private async Task<bool> IsInCommandLineModeAsync(CancellationToken cancellationToken)
+        private async Task<bool> IsInCommandLineModeAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 

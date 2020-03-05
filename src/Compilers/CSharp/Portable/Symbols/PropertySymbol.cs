@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a property or indexer.
     /// </summary>
-    internal abstract partial class PropertySymbol : Symbol, IPropertySymbol
+    internal abstract partial class PropertySymbol : Symbol
     {
         /// <summary>
         /// As a performance optimization, cache parameter types and refkinds - overload resolution uses them a lot.
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static.
+        /// Returns true if this symbol requires an instance reference as the implicit receiver. This is false if the symbol is static.
         /// </summary>
         public virtual bool RequiresInstanceReceiver => !IsStatic;
 
@@ -398,113 +400,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        /// <summary>
-        /// Is this a property of a tuple type?
-        /// </summary>
-        public virtual bool IsTupleProperty
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return false;
-            }
+            return new PublicModel.PropertySymbol(this);
         }
-
-        /// <summary>
-        /// If this is a property of a tuple type, return corresponding underlying property from the
-        /// tuple underlying type. Otherwise, null. 
-        /// </summary>
-        public virtual PropertySymbol TupleUnderlyingProperty
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        #region IPropertySymbol Members
-
-        bool IPropertySymbol.IsIndexer
-        {
-            get { return this.IsIndexer; }
-        }
-
-        ITypeSymbol IPropertySymbol.Type
-        {
-            get { return this.Type; }
-        }
-
-        CodeAnalysis.NullableAnnotation IPropertySymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
-
-        ImmutableArray<IParameterSymbol> IPropertySymbol.Parameters
-        {
-            get { return StaticCast<IParameterSymbol>.From(this.Parameters); }
-        }
-
-        IMethodSymbol IPropertySymbol.GetMethod
-        {
-            get { return this.GetMethod; }
-        }
-
-        IMethodSymbol IPropertySymbol.SetMethod
-        {
-            get { return this.SetMethod; }
-        }
-
-        IPropertySymbol IPropertySymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-
-        IPropertySymbol IPropertySymbol.OverriddenProperty
-        {
-            get { return this.OverriddenProperty; }
-        }
-
-        ImmutableArray<IPropertySymbol> IPropertySymbol.ExplicitInterfaceImplementations
-        {
-            get { return this.ExplicitInterfaceImplementations.Cast<PropertySymbol, IPropertySymbol>(); }
-        }
-
-        bool IPropertySymbol.IsReadOnly
-        {
-            get { return this.IsReadOnly; }
-        }
-
-        bool IPropertySymbol.IsWriteOnly
-        {
-            get { return this.IsWriteOnly; }
-        }
-
-        bool IPropertySymbol.IsWithEvents
-        {
-            get { return false; }
-        }
-
-        ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
-        {
-            get { return this.TypeWithAnnotations.CustomModifiers; }
-        }
-
-        ImmutableArray<CustomModifier> IPropertySymbol.RefCustomModifiers
-        {
-            get { return this.RefCustomModifiers; }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitProperty(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitProperty(this);
-        }
-
-        #endregion
 
         #region Equality
 

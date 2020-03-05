@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool IsEffectivelyPublicOrInternal(Symbol symbol, out bool isInternal)
         {
-            Debug.Assert(!(symbol is null));
+            Debug.Assert(symbol is object);
 
             switch (symbol.Kind)
             {
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 symbol = symbol.ContainingType;
             }
-            while (!(symbol is null));
+            while (symbol is object);
 
             return true;
         }
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return IsSymbolAccessibleCore(((AliasSymbol)symbol).Target, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.Discard:
-                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).TypeWithAnnotations.Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.ErrorType:
                     // Always assume that error types are accessible.
@@ -286,11 +288,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)containingType != null);
 
             failedThroughTypeCheck = false;
-
-            if (containingType.IsTupleType)
-            {
-                containingType = containingType.TupleUnderlyingType;
-            }
 
             // easy case - members of containing type are accessible.
             if ((object)containingType == (object)within)

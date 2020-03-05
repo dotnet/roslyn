@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -74,7 +76,7 @@ ISwitchExpressionOperation (0 arms) (OperationKind.SwitchExpression, Type: Syste
   Arms(0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25)
             };
@@ -110,7 +112,7 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25),
                 // file.cs(7,34): error CS8504: Pattern missing
@@ -206,7 +208,7 @@ ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: Syste
             Operand: 
               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Z"") (Syntax: '""Z""')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {};
+            var expectedDiagnostics = new DiagnosticDescription[] { };
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -355,7 +357,7 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { NotFound => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25),
                 // file.cs(7,34): error CS0103: The name 'NotFound' does not exist in the current context
@@ -512,7 +514,7 @@ ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { 1 => 2, _ when false => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25)
             };
@@ -589,7 +591,7 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { _ when NotFound => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25),
                 // file.cs(7,41): error CS0103: The name 'NotFound' does not exist in the current context
@@ -636,7 +638,7 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
           Local_2: System.Int32 z
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { int z when x is int z => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25),
                 // file.cs(7,54): error CS0128: A local variable or function named 'z' is already defined in this scope

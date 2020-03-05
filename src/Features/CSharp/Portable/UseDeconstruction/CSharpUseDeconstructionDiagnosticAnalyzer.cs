@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -6,6 +8,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
     {
         public CSharpUseDeconstructionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
-                   CodeStyleOptions.PreferDeconstructedVariableDeclaration,
+                   CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(FeaturesResources.Deconstruct_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Variable_declaration_can_be_deconstructed), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -38,13 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(context.Node.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferDeconstructedVariableDeclaration, context.Node.Language);
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration, context.Node.SyntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;
@@ -210,32 +208,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
             var variableName = identifier.ValueText;
 
-            var references = ArrayBuilder<MemberAccessExpressionSyntax>.GetInstance();
-            try
-            {
-                // If the user actually uses the tuple local for anything other than accessing 
-                // fields off of it, then we can't deconstruct this tuple into locals.
-                if (!OnlyUsedToAccessTupleFields(
-                        semanticModel, searchScope, local, references, cancellationToken))
-                {
-                    return false;
-                }
+            using var _ = ArrayBuilder<MemberAccessExpressionSyntax>.GetInstance(out var references);
 
-                // Can only deconstruct the tuple if the names we introduce won't collide
-                // with anything else in scope (either outside, or inside the method).
-                if (AnyTupleFieldNamesCollideWithExistingNames(
-                        semanticModel, tupleType, searchScope, cancellationToken))
-                {
-                    return false;
-                }
-
-                memberAccessExpressions = references.ToImmutable();
-                return true;
-            }
-            finally
+            // If the user actually uses the tuple local for anything other than accessing 
+            // fields off of it, then we can't deconstruct this tuple into locals.
+            if (!OnlyUsedToAccessTupleFields(
+                    semanticModel, searchScope, local, references, cancellationToken))
             {
-                references.Free();
+                return false;
             }
+
+            // Can only deconstruct the tuple if the names we introduce won't collide
+            // with anything else in scope (either outside, or inside the method).
+            if (AnyTupleFieldNamesCollideWithExistingNames(
+                    semanticModel, tupleType, searchScope, cancellationToken))
+            {
+                return false;
+            }
+
+            memberAccessExpressions = references.ToImmutable();
+            return true;
         }
 
         private static bool AnyTupleFieldNamesCollideWithExistingNames(
@@ -268,12 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return true;
             }
 
-            if (type.IsKind(SyntaxKind.TupleType))
+            if (type.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleType))
             {
                 // '(int x, int y) t' can be convered to '(int x, int y)'.  So all the elements
                 // need names.
 
-                var tupleType = (TupleTypeSyntax)type;
                 foreach (var element in tupleType.Elements)
                 {
                     if (element.Identifier.IsKind(SyntaxKind.None))

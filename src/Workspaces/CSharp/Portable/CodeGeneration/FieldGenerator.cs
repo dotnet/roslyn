@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -92,9 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
-            var initializerNode = CodeGenerationFieldInfo.GetInitializer(field) as ExpressionSyntax;
 
-            var initializer = initializerNode != null
+            var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
                 : GenerateEqualsValue(field);
 
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), options),
                 GenerateModifiers(field, options),
                 SyntaxFactory.VariableDeclaration(
-                    field.Type.WithNullability(field.NullableAnnotation).GenerateTypeSyntax(),
+                    field.Type.GenerateTypeSyntax(),
                     SyntaxFactory.SingletonSeparatedList(
                         AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
 

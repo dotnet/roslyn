@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class SnapshotService
     {
-        private class JsonRpcAssetSource : AssetSource
+        private sealed class JsonRpcAssetSource : AssetSource
         {
             private readonly SnapshotService _owner;
 
@@ -32,49 +35,34 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public override async Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
             {
-                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, cancellationToken))
+                return await _owner.RunServiceAsync(() =>
                 {
-                    // Surround this with a try/catch to report exceptions because we want to report any crashes here.
-                    try
+                    using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, cancellationToken))
                     {
-                        return await _owner.RunServiceAsync(() =>
-                        {
-                            return _owner.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
-                                new object[] { scopeId, checksums.ToArray() },
-                                (s, c) => ReadAssets(s, scopeId, checksums, serializerService, c), cancellationToken);
-                        }, cancellationToken).ConfigureAwait(false);
+                        return _owner.EndPoint.InvokeAsync(
+                            WellKnownServiceHubServices.AssetService_RequestAssetAsync,
+                            new object[] { scopeId, checksums.ToArray() },
+                            (stream, cancellationToken) => Task.FromResult(ReadAssets(stream, scopeId, checksums, serializerService, cancellationToken)),
+                            cancellationToken);
                     }
-                    catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                }
+                }, cancellationToken).ConfigureAwait(false);
             }
 
             public override async Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
             {
-                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_IsExperimentEnabledAsync, experimentName, cancellationToken))
+                return await _owner.RunServiceAsync(() =>
                 {
-                    return await _owner.RunServiceAsync(() =>
+                    using (RoslynLogger.LogBlock(FunctionId.SnapshotService_IsExperimentEnabledAsync, experimentName, cancellationToken))
                     {
-                        return _owner.InvokeAsync<bool>(WellKnownServiceHubServices.AssetService_IsExperimentEnabledAsync,
-                            new object[] { experimentName }, cancellationToken);
-                    }, cancellationToken).ConfigureAwait(false);
-                }
+                        return _owner.EndPoint.InvokeAsync<bool>(
+                            WellKnownServiceHubServices.AssetService_IsExperimentEnabledAsync,
+                            new object[] { experimentName },
+                            cancellationToken);
+                    }
+                }, cancellationToken).ConfigureAwait(false);
             }
 
-            private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
-            {
-                if (!cancellationToken.IsCancellationRequested && _owner.IsDisposed)
-                {
-                    // kill OOP if snapshot service got disconnected due to this exception.
-                    FailFast.OnFatalException(ex);
-                }
-
-                return false;
-            }
-
-            private IList<(Checksum, object)> ReadAssets(
+            private static IList<(Checksum, object)> ReadAssets(
                 Stream stream,
                 int scopeId,
                 ISet<Checksum> checksums,
@@ -83,11 +71,11 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var results = new List<(Checksum, object)>();
 
-                using var reader = ObjectReader.TryGetReader(stream, cancellationToken);
+                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
 
-                Debug.Assert(reader != null,
-@"We only ge a reader for data transmitted between live processes.
-This data should always be correct as we're never persisting the data between sessions.");
+                // We only get a reader for data transmitted between live processes.
+                // This data should always be correct as we're never persisting the data between sessions.
+                Contract.ThrowIfNull(reader);
 
                 var responseScopeId = reader.ReadInt32();
                 Contract.ThrowIfFalse(scopeId == responseScopeId);
@@ -103,9 +91,9 @@ This data should always be correct as we're never persisting the data between se
                     var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 
                     // in service hub, cancellation means simply closed stream
-                    var @object = serializerService.Deserialize<object>(kind, reader, cancellationToken);
+                    var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
 
-                    results.Add((responseChecksum, @object));
+                    results.Add((responseChecksum, result));
                 }
 
                 return results;

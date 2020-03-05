@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -182,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         }
 
         private void CompareAndAssertCollectionsAndCurrentParameter(
-            IEnumerable<SignatureHelpTestItem> expectedTestItems, SignatureHelpItems actualSignatureHelpItems, ISignatureHelpProvider signatureHelpProvider, Document document, int cursorPosition)
+            IEnumerable<SignatureHelpTestItem> expectedTestItems, SignatureHelpItems actualSignatureHelpItems)
         {
             Assert.Equal(expectedTestItems.Count(), actualSignatureHelpItems.Items.Count());
 
@@ -191,22 +193,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 CompareSigHelpItemsAndCurrentPosition(
                     actualSignatureHelpItems,
                     actualSignatureHelpItems.Items.ElementAt(i),
-                    expectedTestItems.ElementAt(i),
-                    signatureHelpProvider,
-                    document,
-                    cursorPosition,
-                    actualSignatureHelpItems.ApplicableSpan);
+                    expectedTestItems.ElementAt(i));
             }
         }
 
         private void CompareSigHelpItemsAndCurrentPosition(
             SignatureHelpItems items,
             SignatureHelpItem actualSignatureHelpItem,
-            SignatureHelpTestItem expectedTestItem,
-            ISignatureHelpProvider signatureHelpProvider,
-            Document document,
-            int cursorPosition,
-            TextSpan applicableSpan)
+            SignatureHelpTestItem expectedTestItem)
         {
             var currentParameterIndex = -1;
             if (expectedTestItem.CurrentParameterIndex != null)
@@ -347,31 +341,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         protected async Task VerifyItemWithReferenceWorkerAsync(string xmlString, IEnumerable<SignatureHelpTestItem> expectedOrderedItems, bool hideAdvancedMembers)
         {
-            using (var testWorkspace = TestWorkspace.Create(xmlString))
+            using var testWorkspace = TestWorkspace.Create(xmlString);
+
+            var cursorPosition = testWorkspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
+            var documentId = testWorkspace.Documents.First(d => d.Name == "SourceDocument").Id;
+            var document = testWorkspace.CurrentSolution.GetDocument(documentId);
+
+            testWorkspace.TryApplyChanges(testWorkspace.CurrentSolution.WithOptions(testWorkspace.Options
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers)));
+
+            document = testWorkspace.CurrentSolution.GetDocument(documentId);
+            var code = (await document.GetTextAsync()).ToString();
+
+            IList<TextSpan> textSpans = null;
+
+            var selectedSpans = testWorkspace.Documents.First(d => d.Name == "SourceDocument").SelectedSpans;
+            if (selectedSpans.Any())
             {
-                var cursorPosition = testWorkspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
-                var documentId = testWorkspace.Documents.First(d => d.Name == "SourceDocument").Id;
-                var document = testWorkspace.CurrentSolution.GetDocument(documentId);
-                var code = (await document.GetTextAsync()).ToString();
-
-                testWorkspace.Options = testWorkspace.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers);
-
-                IList<TextSpan> textSpans = null;
-
-                var selectedSpans = testWorkspace.Documents.First(d => d.Name == "SourceDocument").SelectedSpans;
-                if (selectedSpans.Any())
-                {
-                    textSpans = selectedSpans;
-                }
-
-                TextSpan? textSpan = null;
-                if (textSpans != null && textSpans.Any())
-                {
-                    textSpan = textSpans.First();
-                }
-
-                await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, SourceCodeKind.Regular, document, textSpan, expectedOrderedItems);
+                textSpans = selectedSpans;
             }
+
+            TextSpan? textSpan = null;
+            if (textSpans != null && textSpans.Any())
+            {
+                textSpan = textSpans.First();
+            }
+
+            await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, SourceCodeKind.Regular, document, textSpan, expectedOrderedItems);
         }
 
         private async Task TestSignatureHelpWorkerSharedAsync(
@@ -416,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
             if (expectedOrderedItemsOrNull != null)
             {
-                CompareAndAssertCollectionsAndCurrentParameter(expectedOrderedItemsOrNull, items, signatureHelpProvider, document, cursorPosition);
+                CompareAndAssertCollectionsAndCurrentParameter(expectedOrderedItemsOrNull, items);
                 CompareSelectedIndex(expectedOrderedItemsOrNull, items.SelectedItemIndex);
             }
         }
@@ -464,29 +460,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup));
 
-            using (var testWorkspace = TestWorkspace.Create(xmlString))
+            using var testWorkspace = TestWorkspace.Create(xmlString);
+
+            var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
+            var documentId = testWorkspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
+            var document = testWorkspace.CurrentSolution.GetDocument(documentId);
+            var code = (await document.GetTextAsync()).ToString();
+
+            IList<TextSpan> textSpans = null;
+
+            var selectedSpans = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").SelectedSpans;
+            if (selectedSpans.Any())
             {
-                var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
-                var documentId = testWorkspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
-                var document = testWorkspace.CurrentSolution.GetDocument(documentId);
-                var code = (await document.GetTextAsync()).ToString();
-
-                IList<TextSpan> textSpans = null;
-
-                var selectedSpans = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").SelectedSpans;
-                if (selectedSpans.Any())
-                {
-                    textSpans = selectedSpans;
-                }
-
-                TextSpan? textSpan = null;
-                if (textSpans != null && textSpans.Any())
-                {
-                    textSpan = textSpans.First();
-                }
-
-                await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, SourceCodeKind.Regular, document, textSpan, expectedOrderedItems);
+                textSpans = selectedSpans;
             }
+
+            TextSpan? textSpan = null;
+            if (textSpans != null && textSpans.Any())
+            {
+                textSpan = textSpans.First();
+            }
+
+            await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, SourceCodeKind.Regular, document, textSpan, expectedOrderedItems);
         }
     }
 }

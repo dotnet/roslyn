@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -212,8 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var constraintClauses = default(SyntaxList<TypeParameterConstraintClauseSyntax>);
 
-            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block)
-                ? (BlockSyntax)anonymousFunction.Body
+            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block, out BlockSyntax block)
+                ? block
                 : null;
 
             var expressionBody = anonymousFunction.Body is ExpressionSyntax expression
@@ -247,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
                 if (parameterNode.Type == null)
                 {
-                    parameterNode = parameterNode.WithType(delegateParameter?.Type.WithNullability(delegateParameter.NullableAnnotation).GenerateTypeSyntax() ?? s_objectType);
+                    parameterNode = parameterNode.WithType(delegateParameter?.Type.GenerateTypeSyntax() ?? s_objectType);
                 }
 
                 if (delegateParameter?.HasExplicitDefaultValue == true)

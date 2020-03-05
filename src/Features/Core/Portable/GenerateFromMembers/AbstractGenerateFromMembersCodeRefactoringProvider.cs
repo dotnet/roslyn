@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -22,45 +24,20 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
         }
 
-        /// <summary>
-        /// Gets the enclosing named type for the specified position.  We can't use
-        /// <see cref="SemanticModel.GetEnclosingSymbol"/> because that doesn't return
-        /// the type you're current on if you're on the header of a class/interface.
-        /// </summary>
-        internal static INamedTypeSymbol GetEnclosingNamedType(
-            SemanticModel semanticModel, SyntaxNode root, int start, CancellationToken cancellationToken)
-        {
-            var token = root.FindToken(start);
-            if (token == ((ICompilationUnitSyntax)root).EndOfFileToken)
-            {
-                token = token.GetPreviousToken();
-            }
-
-            for (var node = token.Parent; node != null; node = node.Parent)
-            {
-                if (semanticModel.GetDeclaredSymbol(node) is INamedTypeSymbol declaration)
-                {
-                    return declaration;
-                }
-            }
-
-            return null;
-        }
-
         protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
             Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedDeclarations = syntaxFacts.GetSelectedFieldsAndProperties(root, textSpan, allowPartialSelection);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var selectedDeclarations = await syntaxFacts.GetSelectedFieldsAndPropertiesAsync(
+                tree, textSpan, allowPartialSelection, cancellationToken).ConfigureAwait(false);
 
             if (selectedDeclarations.Length > 0)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var selectedMembers = selectedDeclarations.SelectMany(
-                    d => semanticFacts.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToImmutableArray();
+                var selectedMembers = selectedDeclarations.Select(
+                    d => semanticModel.GetDeclaredSymbol(d, cancellationToken)).WhereNotNull().ToImmutableArray();
                 if (selectedMembers.Length > 0)
                 {
                     var containingType = selectedMembers.First().ContainingType;
@@ -121,9 +98,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
             foreach (var symbol in selectedMembers)
             {
-                var type = symbol is IFieldSymbol
-                    ? ((IFieldSymbol)symbol).Type
-                    : ((IPropertySymbol)symbol).Type;
+                var type = symbol.GetMemberType();
 
                 var identifierNameParts = IdentifierNameParts.CreateIdentifierNameParts(symbol, rules);
                 if (identifierNameParts.BaseName == "")

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -210,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                             If nameOrMemberAccessExpression.Parent IsNot Nothing AndAlso TypeOf nameOrMemberAccessExpression.Parent Is QualifiedNameSyntax Then
                                 Return True
                             Else
-                                Contract.Fail("Cannot reach this point")
+                                throw ExceptionUtilities.Unreachable
                             End If
                         Else
                             ' Case : NSOrSomething.GenType
@@ -360,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             End If
 
             Dim memberGroup = semanticModel.GetMemberGroup(expression, cancellationToken)
-            If memberGroup.Count <> 0 Then
+            If memberGroup.Length <> 0 Then
                 Return If(memberGroup.ElementAt(0).IsKind(SymbolKind.Method), DirectCast(memberGroup.ElementAt(0), IMethodSymbol), Nothing)
             End If
 

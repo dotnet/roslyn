@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -16,6 +18,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Imports Microsoft.VisualStudio.Shell.TableControl
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities
@@ -468,7 +471,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Sub TestBingHelpLink()
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = TestWorkspace.CreateVisualBasic(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
@@ -491,7 +494,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim helpLink As Object = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.HelpLink, helpLink))
 
-                Assert.True(helpLink.ToString().IndexOf("https://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText=test%20format&mainLanguage=C%23&projectType=%7BFAE04EC0-301F-11D3-BF4B-00C04F79EFBC%7D") = 0)
+                Assert.Equal($"https://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText=test%20format&mainLanguage=Visual%20Basic&requestId={BrowserHelper.EscapedRequestId}&errorCode=test", helpLink.ToString())
             End Using
         End Sub
 
@@ -500,14 +503,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp("class A { int 111a; }")
                 Dim diagnostic = (Await workspace.CurrentSolution.Projects.First().GetCompilationAsync()).GetDiagnostics().First(Function(d) d.Id = "CS1519")
 
-                Dim helpMessage = diagnostic.GetBingHelpMessage(workspace)
+                Dim helpMessage = diagnostic.GetBingHelpMessage(workspace.Options)
                 Assert.Equal("Invalid token '111' in class, struct, or interface member declaration", helpMessage)
 
                 ' turn off custom type search
                 Dim optionServices = workspace.Services.GetService(Of IOptionService)()
                 optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch, False))
 
-                Dim helpMessage2 = diagnostic.GetBingHelpMessage(workspace)
+                Dim helpMessage2 = diagnostic.GetBingHelpMessage(optionServices.GetOptions())
                 Assert.Equal("Invalid token '{0}' in class, struct, or interface member declaration", helpMessage2)
             End Using
         End Function
@@ -625,7 +628,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
                 RunCompilerAnalyzer(workspace, service, listener)
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
+                Await DirectCast(listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
@@ -709,6 +712,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic1.DataLocation.MappedEndLine,
                             diagnostic1.DataLocation.MappedEndColumn),
                         diagnostic1.AdditionalLocations,
+                        diagnostic1.Language,
                         diagnostic1.Title,
                         diagnostic1.Description,
                         diagnostic1.HelpLink,
@@ -742,6 +746,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic2.DataLocation.MappedEndLine,
                             diagnostic2.DataLocation.MappedEndColumn),
                         diagnostic2.AdditionalLocations,
+                        diagnostic2.Language,
                         diagnostic2.Title,
                         diagnostic2.Description,
                         diagnostic2.HelpLink,
@@ -749,7 +754,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 updateSource.OnSolutionBuildCompleted()
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
+                Await DirectCast(listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
@@ -798,6 +803,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId,
                 location:=If(documentId Is Nothing, Nothing, New DiagnosticDataLocation(documentId, TextSpan.FromBounds(0, 10), "test", 20, 20, 20, 20)),
+                language:=LanguageNames.VisualBasic,
                 title:="Title",
                 description:="Description",
                 helpLink:=link)
@@ -810,10 +816,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     analyzersMap As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)),
                     registrationService As IDiagnosticUpdateSourceRegistrationService,
                     listener As IAsynchronousOperationListener)
-                MyBase.New(New HostAnalyzerManager(ImmutableArray.Create(Of AnalyzerReference)(New TestAnalyzerReferenceByLanguage(analyzersMap)), hostDiagnosticUpdateSource:=Nothing),
-                      hostDiagnosticUpdateSource:=Nothing,
-                      registrationService:=registrationService,
-                      listener:=listener)
+                MyBase.New(New DiagnosticAnalyzerInfoCache(),
+                           New HostDiagnosticAnalyzers(ImmutableArray.Create(Of AnalyzerReference)(New TestAnalyzerReferenceByLanguage(analyzersMap))),
+                           hostDiagnosticUpdateSource:=Nothing,
+                           registrationService:=registrationService,
+                           listener:=listener)
             End Sub
         End Class
 

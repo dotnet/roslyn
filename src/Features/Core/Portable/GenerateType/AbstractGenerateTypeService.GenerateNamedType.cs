@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // caller.
                 if (_state.IsException &&
                     _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Any(
-                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, AllNullabilityIgnoringSymbolComparer.Instance)))
+                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, SymbolEqualityComparer.Default)))
                 {
                     return;
                 }
@@ -207,7 +209,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var availableTypeParameters = _service.GetAvailableTypeParameters(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
                 var parameterTypes = GetArgumentTypes(argumentList);
                 var parameterNames = _service.GenerateParameterNames(_semanticDocument.SemanticModel, argumentList, _cancellationToken);
-                var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
+                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
                 var parameterToNewFieldMap = new Dictionary<string, string>();
@@ -249,8 +251,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     members.AddRange(fields);
                     members.Add(constructor);
                 }
-
-                parameters.Free();
             }
 
             private void AddExceptionConstructors(ArrayBuilder<ISymbol> members)

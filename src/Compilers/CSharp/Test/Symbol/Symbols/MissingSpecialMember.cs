@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -612,6 +614,7 @@ namespace System
 
                 switch (wkt)
                 {
+                    case WellKnownType.System_ValueTuple:
                     case WellKnownType.System_ValueTuple_T1:
                     case WellKnownType.System_ValueTuple_T2:
                     case WellKnownType.System_ValueTuple_T3:
@@ -1279,9 +1282,6 @@ class MyClass
             compilation.VerifyEmitDiagnostics(
                 // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         MyClass b = (int?)1;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21),
-                // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //         MyClass b = (int?)1;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21)
                 );
         }
@@ -1730,9 +1730,6 @@ class C
             compilation.VerifyEmitDiagnostics(
                 // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //     c++;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5),
-                // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //     c++;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5)
                 );
         }
@@ -1961,10 +1958,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "bt").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 21),
                 // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         T(1, true & bnt);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14),
-                // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //         T(1, true & bnt);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true & bnt").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
                 );
         }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -8,7 +10,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Storage
@@ -21,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Storage
     {
         private readonly IOptionService _optionService;
         private readonly IPersistentStorageLocationService _locationService;
-        private readonly ISolutionSizeTracker _solutionSizeTracker;
 
         /// <summary>
         /// This lock guards all mutable fields in this type.
@@ -29,16 +29,13 @@ namespace Microsoft.CodeAnalysis.Storage
         private readonly object _lock = new object();
         private ReferenceCountedDisposable<IChecksummedPersistentStorage> _currentPersistentStorage;
         private SolutionId _currentPersistentStorageSolutionId;
-        private bool _subscribedToLocationServiceChangeEvents;
 
         protected AbstractPersistentStorageService(
             IOptionService optionService,
-            IPersistentStorageLocationService locationService,
-            ISolutionSizeTracker solutionSizeTracker)
+            IPersistentStorageLocationService locationService)
         {
             _optionService = optionService;
             _locationService = locationService;
-            _solutionSizeTracker = solutionSizeTracker;
         }
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
@@ -61,6 +58,11 @@ namespace Microsoft.CodeAnalysis.Storage
                 return NoOpPersistentStorage.Instance;
             }
 
+            return GetStorageWorker(solution);
+        }
+
+        internal IChecksummedPersistentStorage GetStorageWorker(Solution solution)
+        {
             lock (_lock)
             {
                 // Do we already have storage for this?
@@ -70,22 +72,10 @@ namespace Microsoft.CodeAnalysis.Storage
                     return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
                 }
 
-                if (!SolutionSizeAboveThreshold(solution))
-                {
-                    return NoOpPersistentStorage.Instance;
-                }
-
-                var workingFolder = _locationService.TryGetStorageLocation(solution.Id);
-
+                var workingFolder = _locationService.TryGetStorageLocation(solution);
                 if (workingFolder == null)
                 {
                     return NoOpPersistentStorage.Instance;
-                }
-
-                if (!_subscribedToLocationServiceChangeEvents)
-                {
-                    _locationService.StorageLocationChanging += LocationServiceStorageLocationChanging;
-                    _subscribedToLocationServiceChangeEvents = true;
                 }
 
                 // If we already had some previous cached service, let's let it start cleaning up
@@ -126,26 +116,6 @@ namespace Microsoft.CodeAnalysis.Storage
             }
 
             return true;
-        }
-
-        private bool SolutionSizeAboveThreshold(Solution solution)
-        {
-            var workspace = solution.Workspace;
-            if (workspace.Kind == WorkspaceKind.RemoteWorkspace ||
-                workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace)
-            {
-                // Storage is always available in the remote server.
-                return true;
-            }
-
-            if (_solutionSizeTracker == null)
-            {
-                return false;
-            }
-
-            var size = _solutionSizeTracker.GetSolutionSize(solution.Workspace, solution.Id);
-            var threshold = this._optionService.GetOption(StorageOptions.SolutionSizeThreshold);
-            return size >= threshold;
         }
 
         private ReferenceCountedDisposable<IChecksummedPersistentStorage> TryCreatePersistentStorage(Solution solution, string workingFolderPath)
@@ -198,17 +168,12 @@ namespace Microsoft.CodeAnalysis.Storage
             }
         }
 
-        private void LocationServiceStorageLocationChanging(object sender, PersistentStorageLocationChangingEventArgs e)
+        private void Shutdown()
         {
             ReferenceCountedDisposable<IChecksummedPersistentStorage> storage = null;
 
             lock (_lock)
             {
-                if (e.SolutionId != _currentPersistentStorageSolutionId)
-                {
-                    return;
-                }
-
                 // We will transfer ownership in a thread-safe way out so we can dispose outside the lock
                 storage = _currentPersistentStorage;
                 _currentPersistentStorage = null;
@@ -217,18 +182,24 @@ namespace Microsoft.CodeAnalysis.Storage
 
             if (storage != null)
             {
-                if (e.MustUseNewStorageLocationImmediately)
-                {
-                    // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
-                    // using this will still be holding a reference count.
-                    storage.Dispose();
-                }
-                else
-                {
-                    // make it to shutdown asynchronously
-                    Task.Run(() => storage.Dispose());
-                }
+                // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
+                // using this will still be holding a reference count.
+                storage.Dispose();
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractPersistentStorageService _service;
+
+            public TestAccessor(AbstractPersistentStorageService service)
+                => _service = service;
+
+            public void Shutdown()
+                => _service.Shutdown();
         }
 
         /// <summary>

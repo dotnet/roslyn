@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -6,8 +8,8 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
@@ -33,12 +35,16 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected AbstractUseThrowExpressionDiagnosticAnalyzer()
+        private readonly Option<CodeStyleOption<bool>> _preferThrowExpressionOption;
+
+        protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option<CodeStyleOption<bool>> preferThrowExpressionOption, string language)
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
-                   CodeStyleOptions.PreferThrowExpression,
+                   preferThrowExpressionOption,
+                   language,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
+            _preferThrowExpressionOption = preferThrowExpressionOption;
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -87,14 +93,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            var options = context.Options;
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferThrowExpression, throwStatementSyntax.Language);
+            var option = context.GetOption(_preferThrowExpressionOption);
             if (!option.Value)
             {
                 return;
@@ -106,8 +105,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            var containingBlock = semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) as IBlockOperation;
-            if (containingBlock == null)
+            if (!(semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) is IBlockOperation containingBlock))
             {
                 return;
             }
@@ -145,27 +143,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(Descriptor, throwStatementSyntax.GetLocation(), option.Notification.Severity, additionalLocations: allLocations, properties: null));
-
-            // Fade out the rest of the if that surrounds the 'throw' exception.
-
-            var tokenBeforeThrow = throwStatementSyntax.GetFirstToken().GetPreviousToken();
-            var tokenAfterThrow = throwStatementSyntax.GetLastToken().GetNextToken();
-            context.ReportDiagnostic(
-                Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
-                    Location.Create(syntaxTree, TextSpan.FromBounds(
-                        ifOperation.Syntax.SpanStart,
-                        tokenBeforeThrow.Span.End)),
-                    additionalLocations: allLocations));
-
-            if (ifOperation.Syntax.Span.End > tokenAfterThrow.Span.Start)
-            {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
-                        Location.Create(syntaxTree, TextSpan.FromBounds(
-                            tokenAfterThrow.Span.Start,
-                            ifOperation.Syntax.Span.End)),
-                        additionalLocations: allLocations));
-            }
         }
 
         private static bool ValueIsAccessed(SemanticModel semanticModel, IConditionalOperation ifOperation, IBlockOperation containingBlock, ISymbol localOrParameter, IExpressionStatementOperation expressionStatement, IAssignmentOperation assignmentExpression)
@@ -196,7 +173,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                    exprDataFlow.WrittenInside.Contains(localOrParameter);
         }
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract ISemanticFactsService GetSemanticFactsService();
 
         private bool TryFindAssignmentExpression(

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -130,7 +132,7 @@ class B
                 default,
                 null);
             var members = compilation1.GetMember<NamedTypeSymbol>("A.B").GetMembers("M");
-            Assert.Equal(members.Length, 2);
+            Assert.Equal(2, members.Length);
             foreach (var member in members)
             {
                 var other = matcher.MapDefinition((Cci.IMethodDefinition)member);
@@ -185,8 +187,8 @@ class C
             var compilation1 = compilation0.WithSource(source);
 
             var member1 = compilation1.GetMember<MethodSymbol>("B.F");
-            Assert.Equal(((PointerTypeSymbol)member1.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length, 1);
-            Assert.Equal(((ArrayTypeSymbol)member1.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length, 1);
+            Assert.Equal(1, ((PointerTypeSymbol)member1.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length);
+            Assert.Equal(1, ((ArrayTypeSymbol)member1.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
@@ -198,8 +200,8 @@ class C
 
             var other = (MethodSymbol)matcher.MapDefinition(member1);
             Assert.NotNull(other);
-            Assert.Equal(((PointerTypeSymbol)other.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length, 1);
-            Assert.Equal(((ArrayTypeSymbol)other.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length, 1);
+            Assert.Equal(1, ((PointerTypeSymbol)other.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length);
+            Assert.Equal(1, ((ArrayTypeSymbol)other.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length);
         }
 
         [Fact]

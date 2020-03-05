@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -56,15 +59,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {
             // Get all the liveshare request handlers in this assembly.
             var liveShareRequestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(LoadHandler).Assembly, typeof(ILspRequestHandler));
+                    typeof(LiveShareConstants).Assembly, typeof(ILspRequestHandler));
             // Get all of the roslyn request helpers in M.CA.LanguageServer
             var roslynRequestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(RoslynHandlers.IRequestHandler).Assembly, typeof(RoslynHandlers.IRequestHandler));
+            // Get all of the execute workspace command handlers in M.CA.LanguageServer
+            var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(MockDocumentNavigationServiceFactory))
                 .WithParts(liveShareRequestHelperTypes)
-                .WithParts(roslynRequestHelperTypes));
+                .WithParts(roslynRequestHelperTypes)
+                .WithParts(executeCommandHandlerTypes));
             return exportProviderFactory.CreateExportProvider();
         }
 

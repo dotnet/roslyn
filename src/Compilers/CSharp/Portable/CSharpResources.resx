@@ -126,6 +126,12 @@
   <data name="IDS_FeatureSwitchExpression" xml:space="preserve">
     <value>&lt;switch expression&gt;</value>
   </data>
+  <data name="IDS_FeatureLocalFunctionAttributes" xml:space="preserve">
+    <value>local function attributes</value>
+  </data>
+  <data name="IDS_FeatureExternLocalFunctions" xml:space="preserve">
+    <value>extern local functions</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -440,6 +446,9 @@
   </data>
   <data name="ERR_BadBinaryOps" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'</value>
+  </data>
+  <data name="ERR_AmbigBinaryOpsOnUnconstrainedDefault" xml:space="preserve">
+    <value>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</value>
   </data>
   <data name="ERR_IntDivByZero" xml:space="preserve">
     <value>Division by constant zero</value>
@@ -1019,6 +1028,9 @@
   </data>
   <data name="ERR_ConditionalOnOverride" xml:space="preserve">
     <value>The Conditional attribute is not valid on '{0}' because it is an override method</value>
+  </data>
+  <data name="ERR_ConditionalOnLocalFunction" xml:space="preserve">
+    <value>Local function '{0}' must be 'static' in order to use the Conditional attribute</value>
   </data>
   <data name="ERR_PointerInAsOrIs" xml:space="preserve">
     <value>Neither 'is' nor 'as' is valid on pointer types</value>
@@ -1710,7 +1722,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
   </data>
   <data name="ERR_DllImportOnGenericMethod" xml:space="preserve">
-    <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</value>
+    <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</value>
   </data>
   <data name="ERR_FieldCantBeRefAny" xml:space="preserve">
     <value>Field or property cannot be of type '{0}'</value>
@@ -2569,6 +2581,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_OutputNeedsName" xml:space="preserve">
     <value>Outputs without source must have the /out option specified</value>
   </data>
+  <data name="ERR_NoOutputDirectory" xml:space="preserve">
+    <value>Output directory could not be determined</value>
+  </data>
   <data name="ERR_CantHaveWin32ResAndManifest" xml:space="preserve">
     <value>Conflicting options specified: Win32 resource file; Win32 manifest</value>
   </data>
@@ -2876,7 +2891,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Members of readonly field '{0}' cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_AssgReadonly" xml:space="preserve">
-    <value>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</value>
+    <value>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</value>
   </data>
   <data name="ERR_AssgReadonly2" xml:space="preserve">
     <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>
@@ -2978,16 +2993,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
   </data>
   <data name="ERR_NoConvToIDisp" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</value>
   </data>
   <data name="ERR_NoConvToIDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</value>
   </data>
   <data name="ERR_NoConvToIAsyncDisp" xml:space="preserve">
-    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</value>
+    <value>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</value>
   </data>
   <data name="ERR_NoConvToIAsyncDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</value>
+    <value>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</value>
   </data>
   <data name="ERR_BadParamRef" xml:space="preserve">
     <value>Parameter {0} must be declared with the '{1}' keyword</value>
@@ -4002,7 +4017,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Command line switch is not yet implemented</value>
   </data>
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
-    <value>Failed to emit module '{0}'.</value>
+    <value>Failed to emit module '{0}': {1}</value>
   </data>
   <data name="ERR_FixedLocalInLambda" xml:space="preserve">
     <value>Cannot use fixed local '{0}' inside an anonymous method, lambda expression, or query expression</value>
@@ -4597,16 +4612,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
-
+ 
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
 -warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Specify a file to log all compiler and analyzer
                               diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
 
@@ -4856,7 +4876,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Alignment value has a magnitude that may result in a large formatted string</value>
   </data>
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
-    <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
+    <value>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</value>
   </data>
   <data name="ERR_TupleTooFewElements" xml:space="preserve">
     <value>Tuple must contain at least two elements.</value>
@@ -5075,6 +5095,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchCaseSubsumed" xml:space="preserve">
     <value>The switch case has already been handled by a previous case.</value>
   </data>
+  <data name="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected" xml:space="preserve">
+    <value>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</value>
+  </data>
   <data name="ERR_SwitchArmSubsumed" xml:space="preserve">
     <value>The pattern has already been handled by a previous arm of the switch expression.</value>
   </data>
@@ -5216,9 +5239,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternDynamicType" xml:space="preserve">
     <value>It is not legal to use the type 'dynamic' in a pattern.</value>
   </data>
-  <data name="ERR_BadDynamicMethodArgDefaultLiteral" xml:space="preserve">
-    <value>Cannot use a default literal as an argument to a dynamically dispatched operation.</value>
-  </data>
   <data name="ERR_BadDocumentationMode" xml:space="preserve">
     <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
   </data>
@@ -5272,9 +5292,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_AttributesOnBackingFieldsNotAvailable_Title" xml:space="preserve">
     <value>Field-targeted attributes on auto-properties are not supported in this version of the language.</value>
-  </data>
-  <data name="ERR_DefaultInSwitch" xml:space="preserve">
-    <value>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</value>
   </data>
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
@@ -5339,11 +5356,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInReturnTypeOnOverride_Title" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match overridden member.</value>
   </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes" xml:space="preserve">
+    <value>Return type doesn't match overridden member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Return type doesn't match overridden member because of nullability attributes.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnOverride" xml:space="preserve">
     <value>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnOverride_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes" xml:space="preserve">
+    <value>Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Type of parameter doesn't match overridden member because of nullability attributes.</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnPartial" xml:space="preserve">
     <value>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</value>
@@ -5369,6 +5398,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</value>
   </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInTypeOnExplicitImplementation" xml:space="preserve">
     <value>Nullability of reference types in type doesn't match implemented member '{0}'.</value>
   </data>
@@ -5387,6 +5428,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implemented member.</value>
   </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</value>
+  </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
     <value>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</value>
   </data>
@@ -5398,30 +5451,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_NullabilityMismatchInAssignment_Title" xml:space="preserve">
     <value>Nullability of reference types in value doesn't match target type.</value>
-  </data>
-  <data name="WRN_ConditionalAccessMayReturnNull" xml:space="preserve">
-    <value>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</value>
-  </data>
-  <data name="WRN_ConditionalAccessMayReturnNull_Title" xml:space="preserve">
-    <value>Conditional access may produce a null value for a type parameter.</value>
-  </data>
-  <data name="WRN_AsOperatorMayReturnNull" xml:space="preserve">
-    <value>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</value>
-  </data>
-  <data name="WRN_AsOperatorMayReturnNull_Title" xml:space="preserve">
-    <value>The 'as' operator may produce a null value for a type parameter.</value>
-  </data>
-  <data name="WRN_DefaultExpressionMayIntroduceNullT" xml:space="preserve">
-    <value>A default expression introduces a null value when '{0}' is a non-nullable reference type.</value>
-  </data>
-  <data name="WRN_DefaultExpressionMayIntroduceNullT_Title" xml:space="preserve">
-    <value>A default expression introduces a null value for a type parameter.</value>
-  </data>
-  <data name="WRN_NullLiteralMayIntroduceNullT" xml:space="preserve">
-    <value>A null literal introduces a null value when '{0}' is a non-nullable reference type.</value>
-  </data>
-  <data name="WRN_NullLiteralMayIntroduceNullT_Title" xml:space="preserve">
-    <value>A null literal introduces a null value for a type parameter.</value>
   </data>
   <data name="WRN_ImplicitCopyInReadOnlyMember" xml:space="preserve">
     <value>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</value>
@@ -5466,10 +5495,28 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment" xml:space="preserve">
-    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+    <value>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</value>
   </data>
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title" xml:space="preserve">
-    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+    <value>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</value>
+  </data>
+  <data name="WRN_ParameterConditionallyDisallowsNull" xml:space="preserve">
+    <value>Parameter '{0}' may not have a null value when exiting with '{1}'.</value>
+  </data>
+  <data name="WRN_ParameterConditionallyDisallowsNull_Title" xml:space="preserve">
+    <value>Parameter may not have a null value when exiting in some condition.</value>
+  </data>
+  <data name="WRN_ShouldNotReturn" xml:space="preserve">
+    <value>A method marked [DoesNotReturn] should not return.</value>
+  </data>
+  <data name="WRN_ShouldNotReturn_Title" xml:space="preserve">
+    <value>A method marked [DoesNotReturn] should not return.</value>
+  </data>
+  <data name="WRN_DoesNotReturnMismatch" xml:space="preserve">
+    <value>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</value>
+  </data>
+  <data name="WRN_DoesNotReturnMismatch_Title" xml:space="preserve">
+    <value>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
@@ -5532,7 +5579,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Local function is declared but never used</value>
   </data>
   <data name="ERR_LocalFunctionMissingBody" xml:space="preserve">
-    <value>'{0}' is a local function and must therefore always have a body.</value>
+    <value>Local function '{0}' must declare a body because it is not marked 'static extern'.</value>
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>
@@ -5654,6 +5701,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchExpressionNoBestType" xml:space="preserve">
     <value>No best type was found for the switch expression.</value>
   </data>
+  <data name="ERR_DefaultLiteralNoTargetType" xml:space="preserve">
+    <value>There is no target type for the default literal.</value>
+  </data>
   <data name="ERR_SingleElementPositionalPatternRequiresDisambiguation" xml:space="preserve">
     <value>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</value>
   </data>
@@ -5661,10 +5711,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustive" xml:space="preserve">
-    <value>The switch expression does not handle all possible inputs (it is not exhaustive).</value>
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustive_Title" xml:space="preserve">
-    <value>The switch expression does not handle all possible inputs (it is not exhaustive).</value>
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
   </data>
   <data name="WRN_CaseConstantNamedUnderscore" xml:space="preserve">
     <value>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</value>
@@ -5738,6 +5788,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNameShadowingInNestedFunctions" xml:space="preserve">
     <value>name shadowing in nested functions</value>
   </data>
+  <data name="IDS_FeatureLambdaDiscardParameters" xml:space="preserve">
+    <value>lambda discard parameters</value>
+  </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
@@ -5746,6 +5799,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NullableDirectiveTargetExpected" xml:space="preserve">
     <value>Expected 'warnings', 'annotations', or end of directive</value>
+  </data>
+  <data name="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode" xml:space="preserve">
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</value>
+  </data>
+  <data name="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title" xml:space="preserve">
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</value>
+  </data>
+  <data name="WRN_NullReferenceInitializer" xml:space="preserve">
+    <value>Object or collection initializer implicitly dereferences possibly null member '{0}'.</value>
+  </data>
+  <data name="WRN_NullReferenceInitializer_Title" xml:space="preserve">
+    <value>Object or collection initializer implicitly dereferences possibly null member.</value>
   </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
@@ -5870,12 +5935,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureObsoleteOnPropertyAccessor" xml:space="preserve">
     <value>obsolete on property accessor</value>
   </data>
-  <data name="WRN_NullReferenceIterationVariable" xml:space="preserve">
-	<value>Possible null reference assignment to iteration variable</value>
-  </data>
-  <data name="WRN_NullReferenceIterationVariable_Title" xml:space="preserve">
-	<value>Possible null reference assignment to iteration variable</value>
-  </data>
   <data name="WRN_UnconsumedEnumeratorCancellationAttributeUsage" xml:space="preserve">
     <value>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</value>
   </data>
@@ -5883,10 +5942,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</value>
   </data>
   <data name="WRN_UndecoratedCancellationTokenParameter" xml:space="preserve">
-    <value>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;>.GetAsyncEnumerator' will be unconsumed</value>
+    <value>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</value>
   </data>
   <data name="WRN_UndecoratedCancellationTokenParameter_Title" xml:space="preserve">
-    <value>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;>.GetAsyncEnumerator' will be unconsumed</value>
+    <value>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</value>
   </data>
   <data name="ERR_MultipleEnumeratorCancellationAttributes" xml:space="preserve">
     <value>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</value>
@@ -5923,5 +5982,38 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DuplicateNullSuppression" xml:space="preserve">
     <value>Duplicate null suppression operator ('!')</value>
+  </data>
+  <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
+  <data name="ERR_BadSwitchValue" xml:space="preserve">
+    <value>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</value>
+  </data>
+  <data name="ERR_InternalError" xml:space="preserve">
+    <value>Internal error in the C# compiler.</value>
+  </data>
+  <data name="IDS_FeatureAsyncUsing" xml:space="preserve">
+    <value>asynchronous using</value>
+  </data>
+  <data name="ERR_VarianceInterfaceNesting" xml:space="preserve">
+    <value>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</value>
+  </data>
+  <data name="ERR_ExternEventInitializer" xml:space="preserve">
+    <value>'{0}': extern event cannot have initializer</value>
+  </data>
+  <data name="ERR_ImplicitIndexIndexerWithName" xml:space="preserve">
+    <value>Invocation of implicit Index Indexer cannot name the argument.</value>
+  </data>
+  <data name="ERR_ImplicitRangeIndexerWithName" xml:space="preserve">
+    <value>Invocation of implicit Range Indexer cannot name the argument.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer" xml:space="preserve">
+    <value>An expression tree may not contain a pattern System.Index or System.Range indexer access</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsFromEndIndexExpression" xml:space="preserve">
+    <value>An expression tree may not contain a from-end index ('^') expression.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsRangeExpression" xml:space="preserve">
+    <value>An expression tree may not contain a range ('..') expression.</value>
   </data>
 </root>

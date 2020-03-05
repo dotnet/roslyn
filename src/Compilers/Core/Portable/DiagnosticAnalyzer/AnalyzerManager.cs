@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -47,7 +49,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalyzerExecutionContext GetAnalyzerExecutionContext(DiagnosticAnalyzer analyzer) => _analyzerExecutionContextMap[analyzer];
 
-        private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
@@ -56,7 +61,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
-        private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor,
             AnalyzerExecutionContext analyzerExecutionContext)
@@ -123,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
-                var task = analyzerExecutionContext.GetSessionAnalysisScopeTask(analyzerExecutor);
+                var task = analyzerExecutionContext.GetSessionAnalysisScopeAsync(analyzerExecutor);
                 return await task.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -146,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async ValueTask<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            if (sessionScope.GetAnalyzerActions(analyzer).CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
+            if (sessionScope.GetAnalyzerActions(analyzer).CompilationStartActionsCount > 0 && analyzerExecutor.Compilation != null)
             {
                 var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
                 return compilationScope.GetAnalyzerActions(analyzer);
@@ -173,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return null;
+            return AnalyzerActions.Empty;
 
             ImmutableArray<SymbolStartAnalyzerAction> getFilteredActionsByKind(ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions)
             {
@@ -308,10 +316,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
 
-                // If the user said something about it, that overrides the author.
+                // Compilation wide user settings from ruleset/nowarn/warnaserror overrides the analyzer author.
                 if (diagnosticOptions.TryGetValue(diag.Id, out var severity))
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
+                }
+
+                // Editorconfig user settings override compilation wide settings.
+                if (isSuppressed &&
+                    isEnabledWithAnalyzerConfigOptions(diag.Id, analyzerExecutor.Compilation))
+                {
+                    isSuppressed = false;
                 }
 
                 if (!isSuppressed)
@@ -332,6 +347,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
+
+            static bool isEnabledWithAnalyzerConfigOptions(string diagnosticId, Compilation compilation)
+            {
+                if (compilation != null)
+                {
+                    foreach (var tree in compilation.SyntaxTrees)
+                    {
+                        if (tree.DiagnosticOptions.TryGetValue(diagnosticId, out var configuredValue) &&
+                            configuredValue != ReportDiagnostic.Suppress)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         internal static bool HasNotConfigurableTag(IEnumerable<string> customTags)

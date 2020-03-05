@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -106,14 +108,12 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
         public void ExecuteCommand(string command, bool throwOnError = true)
         {
-            using (var resettableStatement = GetResettableStatement(command))
+            using var resettableStatement = GetResettableStatement(command);
+            var statement = resettableStatement.Statement;
+            var result = statement.Step(throwOnError);
+            if (result != Result.DONE && throwOnError)
             {
-                var statement = resettableStatement.Statement;
-                var result = statement.Step(throwOnError);
-                if (result != Result.DONE && throwOnError)
-                {
-                    Throw(result);
-                }
+                Throw(result);
             }
         }
 

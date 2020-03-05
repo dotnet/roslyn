@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddFileBanner
@@ -19,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddFileBanner
         End Function
 
         Protected Overrides Function CreateTrivia(trivia As SyntaxTrivia, text As String) As SyntaxTrivia
-            Return If(trivia.Kind() = SyntaxKind.CommentTrivia,
+            Return If(trivia.Kind() = SyntaxKind.CommentTrivia OrElse trivia.Kind() = SyntaxKind.DocumentationCommentTrivia,
                       SyntaxFactory.CommentTrivia(text),
                       trivia)
         End Function

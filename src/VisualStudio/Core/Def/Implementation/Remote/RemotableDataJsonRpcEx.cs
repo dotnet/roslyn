@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -6,6 +10,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -25,79 +30,84 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// 
     /// all connection will share one remotable data channel
     /// </summary>
-    internal sealed class RemotableDataJsonRpc : JsonRpcEx
+    internal sealed class RemotableDataJsonRpc : IDisposable
     {
+        private readonly Workspace _workspace;
         private readonly IRemotableDataService _remotableDataService;
         private readonly CancellationTokenSource _shutdownCancellationSource;
+        private readonly RemoteEndPoint _endPoint;
 
-        public RemotableDataJsonRpc(Workspace workspace, TraceSource logger, Stream stream)
-            : base(workspace, logger, stream, callbackTarget: null, useThisAsCallback: true)
+        public RemotableDataJsonRpc(Workspace workspace, TraceSource logger, Stream snapshotServiceStream)
         {
-            _remotableDataService = workspace.Services.GetService<IRemotableDataService>();
+            _workspace = workspace;
+            _remotableDataService = workspace.Services.GetRequiredService<IRemotableDataService>();
 
             _shutdownCancellationSource = new CancellationTokenSource();
 
-            StartListening();
+            _endPoint = new RemoteEndPoint(snapshotServiceStream, logger, incomingCallTarget: this);
+            _endPoint.UnexpectedExceptionThrown += UnexpectedExceptionThrown;
+            _endPoint.Disconnected += OnDisconnected;
+            _endPoint.StartListening();
+        }
+
+        private void UnexpectedExceptionThrown(Exception exception)
+            => RemoteHostCrashInfoBar.ShowInfoBar(_workspace, exception);
+
+        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
+        {
+            _shutdownCancellationSource.Cancel();
+        }
+
+        public void Dispose()
+        {
+            _endPoint.Disconnected -= OnDisconnected;
+            _endPoint.UnexpectedExceptionThrown -= UnexpectedExceptionThrown;
+            _endPoint.Dispose();
         }
 
         /// <summary>
-        /// this is callback from remote host side to get asset associated with checksum from VS.
+        /// Called remotely: <see cref="WellKnownServiceHubServices.AssetService_RequestAssetAsync"/>.
         /// </summary>
-        public async Task RequestAssetAsync(int scopeId, Checksum[] checksums, string streamName, CancellationToken cancellationToken)
+        public async Task RequestAssetAsync(int scopeId, Checksum[] checksums, string pipeName, CancellationToken cancellationToken)
         {
             try
             {
-                using (var combinedCancellationToken = _shutdownCancellationSource.Token.CombineWith(cancellationToken))
-                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, combinedCancellationToken.Token))
-                using (var stream = await DirectStream.GetAsync(streamName, combinedCancellationToken.Token).ConfigureAwait(false))
+                using var combinedCancellationToken = _shutdownCancellationSource.Token.CombineWith(cancellationToken);
+
+                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, pipeName, combinedCancellationToken.Token))
                 {
-                    using (var writer = new ObjectWriter(stream, combinedCancellationToken.Token))
-                    {
-                        writer.WriteInt32(scopeId);
-
-                        await WriteAssetAsync(writer, scopeId, checksums, combinedCancellationToken.Token).ConfigureAwait(false);
-                    }
-
-                    await stream.FlushAsync(combinedCancellationToken.Token).ConfigureAwait(false);
+                    await RemoteEndPoint.WriteDataToNamedPipeAsync(
+                        pipeName,
+                        (scopeId, checksums),
+                        (writer, data, ct) => WriteAssetAsync(writer, data.scopeId, data.checksums, ct),
+                        combinedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
-                // only expected exception will be catched. otherwise, NFW and let it propagate
-                Debug.Assert(cancellationToken.IsCancellationRequested || ex is IOException);
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
+        /// <summary>
+        /// Called remotely: <see cref="WellKnownServiceHubServices.AssetService_IsExperimentEnabledAsync"/>.
+        /// </summary>
         public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
         {
-            return Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
-        }
-
-        private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
-        {
-            if (cancellationToken.IsCancellationRequested)
+            try
             {
-                // any exception can happen if things are cancelled.
-                return true;
+                return Task.FromResult(_workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
             }
-
-            if (ex is IOException)
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
-                // direct connection can be disconnected before cancellation token from remote host have
-                // passed to us
-                return true;
+                throw ExceptionUtilities.Unreachable;
             }
-
-            // log the exception
-            LogError("unexpected exception from RequestAsset: " + ex.ToString());
-
-            // report NFW
-            ex.ReportServiceHubNFW("RequestAssetFailed");
-            return false;
         }
 
         private async Task WriteAssetAsync(ObjectWriter writer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
+            writer.WriteInt32(scopeId);
+
             // special case
             if (checksums.Length == 0)
             {
@@ -122,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private async Task WriteOneAssetAsync(ObjectWriter writer, int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
-            var remotableData = _remotableDataService.GetRemotableData(scopeId, checksum, cancellationToken) ?? RemotableData.Null;
+            var remotableData = (await _remotableDataService.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false)) ?? RemotableData.Null;
             writer.WriteInt32(1);
 
             checksum.WriteTo(writer);
@@ -133,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private async Task WriteMultipleAssetsAsync(ObjectWriter writer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
-            var remotableDataMap = _remotableDataService.GetRemotableData(scopeId, checksums, cancellationToken);
+            var remotableDataMap = await _remotableDataService.GetRemotableDataAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
             writer.WriteInt32(remotableDataMap.Count);
 
             foreach (var (checksum, remotableData) in remotableDataMap)
@@ -143,25 +153,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 await remotableData.WriteObjectToAsync(writer, cancellationToken).ConfigureAwait(false);
             }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            Contract.ThrowIfFalse(disposing);
-            Disconnect();
-        }
-
-        protected override void Disconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            // we don't expect OOP side to disconnect the connection. 
-            // Host (VS) always initiate or disconnect the connection.
-            if (e.Reason != DisconnectedReason.LocallyDisposed)
-            {
-                // log when this happens
-                LogDisconnectInfo(e, new StackTrace().ToString());
-            }
-
-            _shutdownCancellationSource.Cancel();
         }
     }
 }

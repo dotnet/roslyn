@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -9,24 +11,26 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
         Inherits MethodExtractor
 
         Public Sub New(result As VisualBasicSelectionResult)
-            MyBase.New(result)
+            MyBase.New(result, localFunction:=False)
         End Sub
 
-        Protected Overrides Function AnalyzeAsync(selectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
+        Protected Overrides Function AnalyzeAsync(selectionResult As SelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
             Return VisualBasicAnalyzer.AnalyzeResultAsync(selectionResult, cancellationToken)
         End Function
 
-        Protected Overrides Async Function GetInsertionPointAsync(document As SemanticDocument, position As Integer, cancellationToken As CancellationToken) As Task(Of InsertionPoint)
-            Contract.ThrowIfFalse(position >= 0)
+        Protected Overrides Async Function GetInsertionPointAsync(document As SemanticDocument, cancellationToken As CancellationToken) As Task(Of InsertionPoint)
+            Dim originalSpanStart = OriginalSelectionResult.OriginalSpan.Start
+            Contract.ThrowIfFalse(originalSpanStart >= 0)
 
             Dim root = Await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim basePosition = root.FindToken(position)
+            Dim basePosition = root.FindToken(originalSpanStart)
 
             Dim enclosingTopLevelNode As SyntaxNode = basePosition.GetAncestor(Of PropertyBlockSyntax)()
             If enclosingTopLevelNode Is Nothing Then
@@ -63,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return Await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newStatement), cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As OptionSet, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken)
         End Function
 
@@ -101,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim symbolInfo = binding.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
 
-                If Not Equals(currentType, vbType) Then
+                If Not SymbolEqualityComparer.Default.Equals(currentType, typeParameter) Then
                     Return New OperationStatus(OperationStatusFlag.BestEffort,
                         String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
@@ -115,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Private Class FormattingRule
             Inherits CompatAbstractFormattingRule
 
-            Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+            Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
                 If Not previousToken.IsLastTokenOfStatement() Then
                     Return nextOperation.Invoke()
                 End If
@@ -150,5 +154,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End Function
         End Class
+
+        Protected Overrides Function InsertNewLineBeforeLocalFunctionIfNecessaryAsync(document As Document,
+                                                                                      methodName As SyntaxToken,
+                                                                                      methodDefinition As SyntaxNode,
+                                                                                      cancellationToken As CancellationToken) As Task(Of (document As Document, methodName As SyntaxToken, methodDefinition As SyntaxNode))
+            ' VB doesn't need to do any correction, so we just return the values untouched
+            Return Task.FromResult((document, methodName, methodDefinition))
+        End Function
     End Class
 End Namespace

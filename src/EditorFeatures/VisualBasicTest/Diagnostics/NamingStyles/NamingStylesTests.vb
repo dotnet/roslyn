@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.NamingStyles
@@ -466,6 +468,28 @@ end module",
     end sub
 end module",
                 options:=options.LocalsAreCamelCaseConstantsAreUpperCase)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        <WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")>
+        Public Async Function TestInterfaceNamesStartWithI() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface [|test|]
+End Interface",
+"Interface ITest
+End Interface",
+                options:=options.InterfaceNamesStartWithI)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        <WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")>
+        Public Async Function TestTypeParameterNamesStartWithT() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class classHolder(Of [|type|])
+End Class",
+"Public Class classHolder(Of TType)
+End Class",
+                options:=options.TypeParameterNamesStartWithT)
         End Function
 
     End Class

@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.OrderModifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
@@ -11,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Inherits AbstractOrderModifiersDiagnosticAnalyzer
 
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance,
+            MyBase.New(VisualBasicSyntaxFacts.Instance,
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,
                        VisualBasicOrderModifiersHelper.Instance,
                        LanguageNames.VisualBasic)
@@ -42,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
             If modifiers.Count >= 2 Then
                 ' We'll see modifiers twice in some circumstances.  First, on a VB block
                 ' construct, and then on the VB begin statement for that block.  In order
-                ' to not double report, only check the statement that teh modifier actually
+                ' to not double report, only check the statement that the modifier actually
                 ' belongs to.
                 Return modifiers.First().Parent Is statement
             End If

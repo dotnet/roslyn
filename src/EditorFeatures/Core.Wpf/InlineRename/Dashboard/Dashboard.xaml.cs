@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -142,6 +144,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _focusedElement = _tabNavigableChildren[current];
             }
 
+            // We have found the next control in _tabNavigableChildren, but not all controls are
+            // visible in all sessions. For example, "Rename Overloads" only applies if there the
+            // symbol has overloads. Therefore, continue searching for the next control in
+            // _tabNavigableChildren that's actually valid in this session.
+            while (!_focusedElement.IsVisible)
+            {
+                var current = _tabNavigableChildren.IndexOf(_focusedElement);
+                current = selector(current);
+                _focusedElement = _tabNavigableChildren[current];
+            }
+
             _focusedElement.Focus();
             ShowCaret();
         }
@@ -240,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         protected override AutomationPeer OnCreateAutomationPeer()
         {
-            return new DashboardAutomationPeer(this);
+            return new DashboardAutomationPeer(this, _model.OriginalName);
         }
 
         private void DisconnectFromPresentationSource()
@@ -271,6 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SearchInComments => EditorFeaturesResources.Include_comments;
         public string SearchInStrings => EditorFeaturesResources.Include_strings;
         public string ApplyRename => EditorFeaturesResources.Apply1;
+        public string CancelRename => EditorFeaturesResources.Cancel;
         public string PreviewChanges => EditorFeaturesResources.Preview_changes1;
         public string RenameInstructions => EditorFeaturesResources.Modify_any_highlighted_location_to_begin_renaming;
         public string ApplyToolTip { get { return EditorFeaturesResources.Apply3 + " (Enter)"; } }

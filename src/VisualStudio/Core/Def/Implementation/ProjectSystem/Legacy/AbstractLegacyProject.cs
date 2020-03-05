@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -43,8 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         #region Mutable fields that should only be used from the UI thread
 
-        private readonly VsENCRebuildableProjectImpl _editAndContinueProject;
-
         private readonly SolutionEventsBatchScopeCreator _batchScopeCreator;
 
         #endregion
@@ -58,12 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             string externalErrorReportingPrefix,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
             ICommandLineParserService commandLineParserServiceOpt)
-            : base(threadingContext)
+            : base(threadingContext, assertIsForeground: true)
         {
             Contract.ThrowIfNull(hierarchy);
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             Workspace = componentModel.GetService<VisualStudioWorkspace>();
+            var workspaceImpl = (VisualStudioWorkspaceImpl)Workspace;
 
             var projectFilePath = hierarchy.TryGetProjectFilePath();
 
@@ -91,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     ProjectGuid = GetProjectIDGuid(hierarchy),
                 });
 
-            ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
+            workspaceImpl.AddProjectRuleSetFileToInternalMaps(
                 VisualStudioProject,
                 () => VisualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
 
@@ -102,20 +104,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // (e.g. through a <defaultnamespace> msbuild property)
             VisualStudioProject.DefaultNamespace = GetRootNamespacePropertyValue(hierarchy);
 
+            if (TryGetPropertyValue(hierarchy, AdditionalPropertyNames.MaxSupportedLangVersion, out var maxLangVer))
+            {
+                VisualStudioProject.MaxLangVersion = maxLangVer;
+            }
+
+            if (TryGetBoolPropertyValue(hierarchy, AdditionalPropertyNames.RunAnalyzers, out var runAnayzers))
+            {
+                VisualStudioProject.RunAnalyzers = runAnayzers;
+            }
+
+            if (TryGetBoolPropertyValue(hierarchy, AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis, out var runAnayzersDuringLiveAnalysis))
+            {
+                VisualStudioProject.RunAnalyzersDuringLiveAnalysis = runAnayzersDuringLiveAnalysis;
+            }
+
             Hierarchy = hierarchy;
             ConnectHierarchyEvents();
             RefreshBinOutputPath();
 
-            // TODO: remove this terrible hack, which is working around shims throwing in not-good ways
-            try
-            {
-                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, (VisualStudioWorkspaceImpl)Workspace);
-                _editAndContinueProject = new VsENCRebuildableProjectImpl(Workspace, VisualStudioProject, serviceProvider);
-            }
-            catch (Exception)
-            {
-            }
+            workspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
 
+            _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, language, workspaceImpl);
             _batchScopeCreator = componentModel.GetService<SolutionEventsBatchScopeCreator>();
             _batchScopeCreator.StartTrackingProject(VisualStudioProject, Hierarchy);
         }
@@ -388,7 +398,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // declared in the compilation.
             // 
             // Unfortunately, although being different concepts, default namespace and root namespace are almost
-            // used interchangebly in VS. For example, (1) the value is define in "rootnamespace" property in project 
+            // used interchangeably in VS. For example, (1) the value is define in "rootnamespace" property in project 
             // files and, (2) the property name we use to call into hierarchy below to retrieve the value is 
             // called "DefaultNamespace".
 
@@ -398,6 +408,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             return null;
+        }
+
+        private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, out string propertyValue)
+        {
+            if (!(hierarchy is IVsBuildPropertyStorage storage))
+            {
+                propertyValue = null;
+                return false;
+            }
+
+            return ErrorHandler.Succeeded(storage.GetPropertyValue(propertyName, null, (uint)_PersistStorageType.PST_PROJECT_FILE, out propertyValue));
+        }
+
+        private static bool TryGetBoolPropertyValue(IVsHierarchy hierarchy, string propertyName, out bool? propertyValue)
+        {
+            if (!TryGetPropertyValue(hierarchy, propertyName, out var stringPropertyValue))
+            {
+                propertyValue = null;
+                return false;
+            }
+
+            propertyValue = bool.TryParse(stringPropertyValue, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+            return true;
         }
     }
 }

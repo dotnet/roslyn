@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         {
             var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
-            if (state == null || !state.IsSelectionOnTypeHeader)
+            if (state == null)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
@@ -71,26 +73,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return modifiedSolution ?? document.Project.Solution;
         }
 
+        protected abstract Task<TTypeDeclarationSyntax> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+
         private async Task<State> CreateStateAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            if (!textSpan.IsEmpty)
-            {
-                return null;
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var nodeToAnalyze = root.FindToken(textSpan.Start).GetAncestor<TTypeDeclarationSyntax>();
-
+            var nodeToAnalyze = await GetRelevantNodeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (nodeToAnalyze == null)
             {
                 return null;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var isOnTypeHeader = syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out _);
-
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            return State.Generate(semanticDocument, nodeToAnalyze, isOnTypeHeader, cancellationToken);
+            return State.Generate(semanticDocument, nodeToAnalyze, cancellationToken);
         }
 
         private ImmutableArray<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
@@ -152,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
             }
 
-            Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
+            Debug.Assert(actions.Count != 0, "No code actions found for MoveType Refactoring");
 
             return actions.ToImmutableArray();
         }
@@ -173,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             TopLevelTypeDeclarations(root).Skip(1).Any();
 
         private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root) =>
-            root.DescendantNodes(n => (n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax))
+            root.DescendantNodes(n => n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax)
                 .OfType<TTypeDeclarationSyntax>();
 
         private bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)

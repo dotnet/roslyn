@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -27,15 +29,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static INamedTypeSymbol GetNamedType(ITypeSymbol type)
-        {
-            switch (type)
+            => type switch
             {
-                case INamedTypeSymbol namedType: return namedType;
-                case IArrayTypeSymbol arrayType: return GetNamedType(arrayType.ElementType);
-                case IPointerTypeSymbol pointerType: return GetNamedType(pointerType.PointedAtType);
-                default: return null;
-            }
-        }
+                INamedTypeSymbol namedType => namedType,
+                IArrayTypeSymbol arrayType => GetNamedType(arrayType.ElementType),
+                IPointerTypeSymbol pointerType => GetNamedType(pointerType.PointedAtType),
+                _ => null,
+            };
 
         private static int CompareParameters(
             ImmutableArray<IParameterSymbol> xParameters, string[] xTypeNames,
@@ -184,8 +184,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     : s1.Kind == SymbolKind.Event ? -1 : 1;
             }
 
-            return Contract.FailWithReturn<int>(
-                string.Format("Comparing unexpected symbol kinds: {0} and {1}.", s1.Kind, s2.Kind));
+            throw ExceptionUtilities.UnexpectedValue((s1.Kind, s2.Kind));
         }
     }
 }

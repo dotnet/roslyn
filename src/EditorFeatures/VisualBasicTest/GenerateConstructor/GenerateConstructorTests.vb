@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -1918,6 +1920,27 @@ End Class",
         Dim obj As New C(x)
     End Sub
 End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.VisualBasic))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(23807, "https://github.com/dotnet/roslyn/issues/23807")>
+        Public Async Function TestAsNewClause() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class Test
+    Private field As New Test([|1|])
+End Class
+",
+"
+Class Test
+    Private field As New Test(1)
+    Private v As Integer
+
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+End Class
+")
         End Function
     End Class
 End Namespace

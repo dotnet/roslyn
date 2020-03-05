@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -18,10 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
 
-        // TODO - this should not be liveshare.
-        protected const string RemoteCommandNamePrefix = "_liveshare.remotecommand";
         protected const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
-        protected const string ProviderName = "Roslyn";
 
         public CodeActionsHandlerBase(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
         {
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var codeRefactorings = await _codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
             var codeActions = codeFixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).Concat(
-                                codeRefactorings.SelectMany(r => r.Actions));
+                                codeRefactorings.SelectMany(r => r.CodeActions.Select(ca => ca.action)));
 
             // Flatten out the nested codeactions.
             var nestedCodeActions = codeActions.Where(c => c is CodeAction.CodeActionWithNestedActions nc && nc.IsInlinable).SelectMany(nc => nc.NestedCodeActions);

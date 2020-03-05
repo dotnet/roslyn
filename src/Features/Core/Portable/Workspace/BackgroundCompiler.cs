@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -71,7 +75,17 @@ namespace Microsoft.CodeAnalysis.Host
 
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    Rebuild(args.NewSolution);
+                    if (args.NewSolution.ProjectIds.Count == 0)
+                    {
+                        // Close solution no longer triggers a SolutionRemoved event,
+                        // so we need to make an explicitly check for ProjectRemoved event.
+                        CancelBuild(releasePreviousCompilations: true);
+                    }
+                    else
+                    {
+                        Rebuild(args.NewSolution);
+                    }
+
                     break;
 
                 default:
@@ -93,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Host
                 // don't even get started if there is nothing to do
                 if (allProjects.Count > 0)
                 {
-                    BuildCompilationsAsync(solution, initialProject, allProjects);
+                    _ = BuildCompilationsAsync(solution, initialProject, allProjects);
                 }
             }
         }
@@ -111,13 +125,13 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private void BuildCompilationsAsync(
+        private Task BuildCompilationsAsync(
             Solution solution,
             ProjectId initialProject,
             ISet<ProjectId> allProjects)
         {
             var cancellationToken = _cancellationSource.Token;
-            _compilationScheduler.ScheduleTask(
+            return _compilationScheduler.ScheduleTask(
                 () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
                 "BackgroundCompiler.BuildCompilationsAsync",
                 cancellationToken);
@@ -139,7 +153,13 @@ namespace Microsoft.CodeAnalysis.Host
 
             var logger = Logger.LogBlock(FunctionId.BackgroundCompiler_BuildCompilationsAsync, cancellationToken);
 
-            var compilationTasks = allProjectIds.Select(solution.GetProject).Where(p => p != null).Select(p => p.GetCompilationAsync(cancellationToken)).ToArray();
+            // Skip performing any background compilation for projects where user has explicitly
+            // set the background analysis scope to only analyze active files.
+            var compilationTasks = allProjectIds
+                .Select(solution.GetProject)
+                .Where(p => p != null && SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) != BackgroundAnalysisScope.ActiveFile)
+                .Select(p => p.GetCompilationAsync(cancellationToken))
+                .ToArray();
             return Task.WhenAll(compilationTasks).SafeContinueWith(t =>
                 {
                     logger.Dispose();

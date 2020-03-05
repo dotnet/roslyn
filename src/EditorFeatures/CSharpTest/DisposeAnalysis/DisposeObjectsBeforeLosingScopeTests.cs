@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DisposeAnalysis;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisposeAnalysis
     public sealed class DisposeObjectsBeforeLosingScopeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer(), null);
+            => (new DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer(isEnabledByDefault: true), null);
 
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, parseOptions: null, expectedDiagnostics);

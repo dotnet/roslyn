@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -245,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.YieldReturnStatement:
                     case SyntaxKind.ReturnStatement:
                     case SyntaxKind.ThrowStatement:
+                    case SyntaxKind.GotoCaseStatement:
                         ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder);
                         break;
 
@@ -509,6 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(false, "what else can be declared inside a local scope?");
+            diagnostics.Add(ErrorCode.ERR_InternalError, newLocation);
             return false;
         }
 

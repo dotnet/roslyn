@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -41,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
                 // NOTE: no overload resolution candidates.
+                left = BindToTypeForErrorRecovery(left);
+                right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
                     Conversion.NoConversion, Conversion.NoConversion, LookupResultKind.Empty, CreateErrorType(), hasErrors: true);
             }
@@ -76,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
 
                     // error: operator can't be applied on dynamic and a type that is not convertible to dynamic:
+                    left = BindToTypeForErrorRecovery(left);
+                    right = BindToTypeForErrorRecovery(right);
                     return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
                         Conversion.NoConversion, Conversion.NoConversion, LookupResultKind.Empty, CreateErrorType(), hasErrors: true);
                 }
@@ -88,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // be used here.
 
                 // NOTE: no overload resolution candidates.
+                left = BindToTypeForErrorRecovery(left);
+                right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
                     Conversion.NoConversion, Conversion.NoConversion, LookupResultKind.NotAVariable, CreateErrorType(), hasErrors: true);
             }
@@ -107,6 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!best.HasValue)
             {
                 ReportAssignmentOperatorError(node, diagnostics, left, right, resultKind);
+                left = BindToTypeForErrorRecovery(left);
+                right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
                     Conversion.NoConversion, Conversion.NoConversion, resultKind, originalUserDefinedOperators, CreateErrorType(), hasErrors: true);
             }
@@ -428,8 +438,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 current = binOp.Left;
             }
 
-            int compoundStringLength = 0;
-
             BoundExpression result = BindExpression(current, diagnostics);
 
             if (node.IsKind(SyntaxKind.SubtractExpression)
@@ -458,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind());
                 BoundExpression left = CheckValue(result, bindValueKind, diagnostics);
                 BoundExpression right = BindValue(syntaxNode.Right, diagnostics, BindValueKind.RValue);
-                BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right, ref compoundStringLength);
+                BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right);
                 result = boundOp;
             }
 
@@ -467,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindSimpleBinaryOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics,
-            BoundExpression left, BoundExpression right, ref int compoundStringLength)
+            BoundExpression left, BoundExpression right)
         {
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
@@ -477,6 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
                 // NOTE: no user-defined conversion candidates
+                left = BindToTypeForErrorRecovery(left);
+                right = BindToTypeForErrorRecovery(right);
                 return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, null, LookupResultKind.Empty, left, right, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
             }
 
@@ -573,12 +583,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
                 resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
-                resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics, ref compoundStringLength);
+                resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics);
             }
             else
             {
-                resultLeft = BindToNaturalType(resultLeft, diagnostics);
-                resultRight = BindToNaturalType(resultRight, diagnostics);
+                // If we found an operator, we'll have given the `default` literal a type.
+                // Otherwise, we'll have reported the problem in ReportBinaryOperatorError.
+                resultLeft = BindToNaturalType(resultLeft, diagnostics, reportDefaultMissingType: false);
+                resultRight = BindToNaturalType(resultRight, diagnostics, reportDefaultMissingType: false);
             }
 
             hasErrors = hasErrors || resultConstant != null && resultConstant.IsBad;
@@ -604,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
 
             // However, as an implementation detail, we never "fail to find an applicable
-            // operator" during overload resolution if we have x == null, etc. We always
+            // operator" during overload resolution if we have x == null, x == default, etc. We always
             // find at least the reference conversion object == object; the overload resolution
             // code does not reject that.  Therefore what we should do is only bind
             // "x == null" as a nullable-to-null comparison if overload resolution chooses
@@ -645,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool leftDefault = left.IsLiteralDefault();
                     bool rightDefault = right.IsLiteralDefault();
-                    foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull || leftDefault, rightType, rightNull || rightDefault, ref useSiteDiagnostics);
+                    foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, leftDefault, rightType, rightNull, rightDefault, ref useSiteDiagnostics);
                     diagnostics.Add(node, useSiteDiagnostics);
                 }
             }
@@ -654,6 +666,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportUnaryOperatorError(CSharpSyntaxNode node, DiagnosticBag diagnostics, string operatorName, BoundExpression operand, LookupResultKind resultKind)
         {
+            if (operand.IsLiteralDefault())
+            {
+                // We'll have reported an error for not being able to target-type `default` so we can avoid a cascading diagnostic
+                return;
+            }
+
             ErrorCode errorCode = resultKind == LookupResultKind.Ambiguous ?
                 ErrorCode.ERR_AmbigUnaryOp : // Operator '{0}' is ambiguous on an operand of type '{1}'
                 ErrorCode.ERR_BadUnaryOp;    // Operator '{0}' cannot be applied to operand of type '{1}'
@@ -688,6 +706,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (leftDefault && rightDefault)
                 {
                     Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefault, node, operatorToken.Text);
+                    return;
+                }
+                else if (leftDefault && right.Type is TypeParameterSymbol)
+                {
+                    Debug.Assert(!right.Type.IsReferenceType);
+                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, right.Type);
+                    return;
+                }
+                else if (rightDefault && left.Type is TypeParameterSymbol)
+                {
+                    Debug.Assert(!left.Type.IsReferenceType);
+                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Type);
                     return;
                 }
             }
@@ -1511,20 +1541,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SpecialType resultType,
             DiagnosticBag diagnostics)
         {
-            int compoundStringLength = 0;
-            return FoldBinaryOperator(syntax, kind, left, right, resultType, diagnostics, ref compoundStringLength);
-        }
-
-        // Returns null if the operator can't be evaluated at compile time.
-        private ConstantValue FoldBinaryOperator(
-            CSharpSyntaxNode syntax,
-            BinaryOperatorKind kind,
-            BoundExpression left,
-            BoundExpression right,
-            SpecialType resultType,
-            DiagnosticBag diagnostics,
-            ref int compoundStringLength)
-        {
             Debug.Assert(left != null);
             Debug.Assert(right != null);
 
@@ -1578,12 +1594,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConstantValue.Create(newValue, resultType);
             }
 
-            ConstantValue concatResult = FoldStringConcatenation(kind, valueLeft, valueRight, ref compoundStringLength);
+            ConstantValue concatResult = FoldStringConcatenation(kind, valueLeft, valueRight);
             if (concatResult != null)
             {
                 if (concatResult.IsBad)
                 {
-                    Error(diagnostics, ErrorCode.ERR_ConstantStringTooLong, syntax);
+                    Error(diagnostics, ErrorCode.ERR_ConstantStringTooLong, right.Syntax);
                 }
 
                 return concatResult;
@@ -1886,49 +1902,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns ConstantValue.Bad if, and only if, compound string length is out of supported limit.
-        /// The <paramref name="compoundStringLength"/> parameter contains value corresponding to the
-        /// left node, or zero, which will trigger inference. Upon return, it will
-        /// be adjusted to correspond future result node.
+        /// Returns ConstantValue.Bad if, and only if, the resulting string length exceeds <see cref="int.MaxValue"/>.
         /// </summary>
-        private static ConstantValue FoldStringConcatenation(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight, ref int compoundStringLength)
+        private static ConstantValue FoldStringConcatenation(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
         {
             Debug.Assert(valueLeft != null);
             Debug.Assert(valueRight != null);
 
             if (kind == BinaryOperatorKind.StringConcatenation)
             {
-                string leftValue = valueLeft.StringValue ?? string.Empty;
-                string rightValue = valueRight.StringValue ?? string.Empty;
+                Rope leftValue = valueLeft.RopeValue ?? Rope.Empty;
+                Rope rightValue = valueRight.RopeValue ?? Rope.Empty;
 
-                if (compoundStringLength == 0)
-                {
-                    // Infer. Keep it simple for now.
-                    compoundStringLength = leftValue.Length;
-                }
-
-                Debug.Assert(compoundStringLength >= leftValue.Length);
-
-                long newCompoundLength = (long)compoundStringLength + (long)leftValue.Length + (long)rightValue.Length;
-
-                if (newCompoundLength > int.MaxValue)
-                {
-                    return ConstantValue.Bad;
-                }
-
-                ConstantValue result;
-
-                try
-                {
-                    result = ConstantValue.Create(String.Concat(leftValue, rightValue));
-                    compoundStringLength = (int)newCompoundLength;
-                }
-                catch (System.OutOfMemoryException)
-                {
-                    return ConstantValue.Bad;
-                }
-
-                return result;
+                long newLength = (long)leftValue.Length + (long)rightValue.Length;
+                return (newLength > int.MaxValue) ? ConstantValue.Bad : ConstantValue.CreateFromRope(Rope.Concat(leftValue, rightValue));
             }
 
             return null;
@@ -2168,7 +2155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!hasErrors)
                 {
-                    hasErrors = CheckManagedAddr(operandType, node, diagnostics);
+                    hasErrors = CheckManagedAddr(Compilation, operandType, node.Location, diagnostics);
                 }
 
                 if (!hasErrors)
@@ -2330,11 +2317,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private BoundExpression BindUnaryOperatorCore(CSharpSyntaxNode node, string operatorText, BoundExpression operand, DiagnosticBag diagnostics)
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
-            bool isOperandTypeNull = operand.IsLiteralNull() || operand.IsLiteralDefault();
+            bool isOperandTypeNull = operand.IsLiteralNull();
             if (isOperandTypeNull)
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
@@ -2343,7 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If the operand is bad, avoid generating cascading errors.
-            if (operand.HasAnyErrors || isOperandTypeNull)
+            if (isOperandTypeNull || operand.Type?.IsErrorType() == true)
             {
                 // Note: no candidate user-defined operators.
                 return new BoundUnaryOperator(node, kind, operand, ConstantValue.NotAvailable,
@@ -2369,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constantValueOpt: ConstantValue.NotAvailable,
                     methodOpt: null,
                     resultKind: LookupResultKind.Viable,
-                    type: operand.Type);
+                    type: operand.Type!);
             }
 
             LookupResultKind resultKind;
@@ -2407,6 +2395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind,
                 resultType);
         }
+#nullable restore
 
         private ConstantValue FoldEnumUnaryOperator(
             CSharpSyntaxNode syntax,
@@ -2783,7 +2772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations targetTypeWithAnnotations = BindType(node.Right, isTypeDiagnostics, out alias);
             TypeSymbol targetType = targetTypeWithAnnotations.Type;
 
-            bool wasUnderscore = node.Right is IdentifierNameSyntax name && name.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken;
+            bool wasUnderscore = node.Right is IdentifierNameSyntax name && name.Identifier.IsUnderscoreToken();
             if (!wasUnderscore && targetType?.IsErrorType() == true && isTypeDiagnostics.HasAnyResolvedErrors() &&
                 ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
             {
@@ -3175,7 +3164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.IntegerToPointer:
                 case ConversionKind.NullToPointer:
                 case ConversionKind.AnonymousFunction:
-                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultLiteral:
                 case ConversionKind.MethodGroup:
                     // We've either replaced Dynamic with Object, or already bailed out with an error.
                     throw ExceptionUtilities.UnexpectedValue(conversionKind);
@@ -3274,17 +3264,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We do not want to warn for the case "null as TYPE" where the null
                 // is a literal, because the user might be saying it to cause overload resolution
                 // to pick a particular method
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.DefaultOrNullLiteral, resultType);
+                return new BoundAsOperator(node, operand, typeExpression, Conversion.NullLiteral, resultType);
             }
 
             if (operand.IsLiteralDefault())
             {
-                var defaultLiteral = (BoundDefaultExpression)operand;
-                Debug.Assert((object)defaultLiteral.TargetType == null);
-                Debug.Assert((object)defaultLiteral.Type == null);
-                Debug.Assert((object)defaultLiteral.ConstantValueOpt == null);
-
-                operand = new BoundDefaultExpression(defaultLiteral.Syntax, targetType: null, constantValueOpt: ConstantValue.Null,
+                operand = new BoundDefaultExpression(operand.Syntax, targetType: null, constantValueOpt: ConstantValue.Null,
                     type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
             }
 
@@ -3324,7 +3309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool ReportAsOperatorConversionDiagnostics(
             CSharpSyntaxNode node,
             DiagnosticBag diagnostics,
-            Compilation compilation,
+            CSharpCompilation compilation,
             TypeSymbol operandType,
             TypeSymbol targetType,
             ConversionKind conversionKind,
@@ -3425,6 +3410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
 
+            leftOperand = BindToTypeForErrorRecovery(leftOperand);
+            rightOperand = BindToTypeForErrorRecovery(rightOperand);
             return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                 leftConversion, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
         }
@@ -3438,6 +3425,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If either operand is bad, bail out preventing more cascading errors
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
+                leftOperand = BindToTypeForErrorRecovery(leftOperand);
+                rightOperand = BindToTypeForErrorRecovery(rightOperand);
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                     Conversion.NoConversion, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
             }
@@ -3626,6 +3615,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If either operand is bad, bail out preventing more cascading errors
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
+                leftOperand = BindToTypeForErrorRecovery(leftOperand);
+                rightOperand = BindToTypeForErrorRecovery(rightOperand);
                 return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
             }
 
@@ -3677,6 +3668,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GenerateNullCoalescingAssignmentBadBinaryOpsError(AssignmentExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, DiagnosticBag diagnostics)
         {
             Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
+            leftOperand = BindToTypeForErrorRecovery(leftOperand);
+            rightOperand = BindToTypeForErrorRecovery(rightOperand);
             return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
         }
 

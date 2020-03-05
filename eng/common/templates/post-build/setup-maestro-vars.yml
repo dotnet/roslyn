@@ -1,11 +1,20 @@
 jobs:
 - job: setupMaestroVars
   displayName: Setup Maestro Vars
+  variables:
+    - template: common-variables.yml
+    - name: BuildId
+      value: $[ coalesce(variables.BARBuildId, 0) ]
+    - name: PromoteToChannelId
+      value: $[ coalesce(variables.PromoteToMaestroChannelId, 0) ]
   pool:
     vmImage: 'windows-2019'
   steps:
+    - checkout: none
+
     - task: DownloadBuildArtifacts@0
       displayName: Download Release Configs
+      condition: eq(variables.PromoteToChannelId, 0)
       inputs:
         buildType: current
         artifactName: ReleaseConfigs
@@ -16,20 +25,57 @@ jobs:
       inputs:
         targetType: inline
         script: |
-          # This is needed to make Write-PipelineSetVariable works in this context
-          $ci = $true
+          try {
+            if ($Env:PromoteToChannelId -eq 0) {
+              $Content = Get-Content $(Build.StagingDirectory)/ReleaseConfigs/ReleaseConfigs.txt
 
-          . "$(Build.SourcesDirectory)/eng/common/tools.ps1"
+              $BarId = $Content | Select -Index 0
 
-          $Content = Get-Content "$(Build.StagingDirectory)/ReleaseConfigs/ReleaseConfigs.txt"
+              $Channels = ""
+              $Content | Select -Index 1 | ForEach-Object { $Channels += "$_ ," }
+              
+              $IsStableBuild = $Content | Select -Index 2
 
-          $BarId = $Content | Select -Index 0
+              $AzureDevOpsProject = $Env:System_TeamProject
+              $AzureDevOpsBuildDefinitionId = $Env:System_DefinitionId
+              $AzureDevOpsBuildId = $Env:Build_BuildId
+              $PromoteToMaestroChannelId = 0
+            }
+            else {
+              $buildApiEndpoint = "${Env:MaestroApiEndPoint}/api/builds/${Env:BARBuildId}?api-version=${Env:MaestroApiVersion}"
 
-          $Channels = ""            
-          $Content | Select -Index 1 | ForEach-Object { $Channels += "$_ ," }
-            
-          $IsStableBuild = $Content | Select -Index 2
+              $apiHeaders = New-Object 'System.Collections.Generic.Dictionary[[String],[String]]'
+              $apiHeaders.Add('Accept', 'application/json')
+              $apiHeaders.Add('Authorization',"Bearer ${Env:MAESTRO_API_TOKEN}")
 
-          Write-PipelineSetVariable -Name 'BARBuildId' -Value $BarId
-          Write-PipelineSetVariable -Name 'InitialChannels' -Value "$Channels"
-          Write-PipelineSetVariable -Name 'IsStableBuild' -Value $IsStableBuild
+              $buildInfo = try { Invoke-WebRequest -Method Get -Uri $buildApiEndpoint -Headers $apiHeaders | ConvertFrom-Json } catch { Write-Host "Error: $_" }
+             
+              $BarId = $Env:BARBuildId
+              $Channels = 'None'
+
+              #TODO: Fix this once this issue is done: https://github.com/dotnet/arcade/issues/3834
+              $IsStableBuild = 'False'
+
+              $AzureDevOpsProject = $buildInfo.azureDevOpsProject
+              $AzureDevOpsBuildDefinitionId = $buildInfo.azureDevOpsBuildDefinitionId
+              $AzureDevOpsBuildId = $buildInfo.azureDevOpsBuildId
+              $PromoteToMaestroChannelId = $Env:PromoteToMaestroChannelId
+            }
+
+            Write-Host "##vso[task.setvariable variable=BARBuildId;isOutput=true]$BarId"
+            Write-Host "##vso[task.setvariable variable=InitialChannels;isOutput=true]$Channels"
+            Write-Host "##vso[task.setvariable variable=IsStableBuild;isOutput=true]$IsStableBuild"
+
+            Write-Host "##vso[task.setvariable variable=AzDOProjectName;isOutput=true]$AzureDevOpsProject"
+            Write-Host "##vso[task.setvariable variable=AzDOPipelineId;isOutput=true]$AzureDevOpsBuildDefinitionId"
+            Write-Host "##vso[task.setvariable variable=AzDOBuildId;isOutput=true]$AzureDevOpsBuildId"
+            Write-Host "##vso[task.setvariable variable=PromoteToMaestroChannelId;isOutput=true]$PromoteToMaestroChannelId"
+          }
+          catch {
+            Write-Host $_
+            Write-Host $_.Exception
+            Write-Host $_.ScriptStackTrace
+            exit 1
+          }
+      env:
+        MAESTRO_API_TOKEN: $(MaestroApiAccessToken)

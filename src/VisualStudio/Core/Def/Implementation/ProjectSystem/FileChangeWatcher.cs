@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     if (!directoryFilePath.EndsWith("\\"))
                     {
-                        directoryFilePath = directoryFilePath + "\\";
+                        directoryFilePath += "\\";
                     }
 
                     _directoryFilePathOpt = directoryFilePath;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -23,7 +25,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using __VSHPROPID8 = Microsoft.VisualStudio.Shell.Interop.__VSHPROPID8;
 using IVsHierarchyItemManager = Microsoft.VisualStudio.Shell.IVsHierarchyItemManager;
@@ -31,7 +32,7 @@ using IVsHierarchyItemManager = Microsoft.VisualStudio.Shell.IVsHierarchyItemMan
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
     [Export(typeof(CodeCleanUpFixer))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
     internal partial class CSharpCodeCleanUpFixer : CodeCleanUpFixer
     {
         private const string RemoveUnusedImportsFixId = "RemoveUnusedImportsFixId";
@@ -199,8 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             ICodeCleanUpExecutionContext context,
             string contextName)
         {
-            var description = string.Format(EditorFeaturesResources.Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail, contextName);
-            using (var scope = context.OperationContext.AddScope(allowCancellation: true, description))
+            using (var scope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
             {
                 var workspaceStatusService = workspace.Services.GetService<IWorkspaceStatusService>();
                 if (workspaceStatusService != null)
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     if (scope != null)
                     {
                         scope.Description = description;
-                        scope.Progress.Report(new ProgressInfo(completed, total));
+                        scope.Progress.Report(new VisualStudio.Utilities.ProgressInfo(completed, total));
                     }
                 });
 

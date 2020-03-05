@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -1273,6 +1275,94 @@ class C
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task MethodWithNullableReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+using System.Threading.Tasks;
+class C
+{
+    string? M()
+    {
+        [|await Task.Delay(1);|]
+        return null;
+    }
+}",
+@"#nullable enable
+using System.Threading.Tasks;
+class C
+{
+    async Task<string?> MAsync()
+    {
+        await Task.Delay(1);
+        return null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task EnumerableMethodWithNullableType()
+        {
+            var initial =
+@"#nullable enable
+using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    IEnumerable<string?> Test()
+    {
+        yield return string.Empty;
+        [|await Task.Delay(1);|]
+    }
+}" + IAsyncEnumerable;
+
+            var expected =
+@"#nullable enable
+using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    async IAsyncEnumerable<string?> TestAsync()
+    {
+        yield return string.Empty;
+        await Task.Delay(1);
+    }
+}" + IAsyncEnumerable;
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task EnumeratorMethodWithNullableType()
+        {
+            var initial =
+@"#nullable enable
+using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    IEnumerator<string?> Test()
+    {
+        yield return string.Empty;
+        [|await Task.Delay(1);|]
+    }
+}" + IAsyncEnumerable;
+
+            var expected =
+@"#nullable enable
+using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    async IAsyncEnumerator<string?> TestAsync()
+    {
+        yield return string.Empty;
+        await Task.Delay(1);
+    }
+}" + IAsyncEnumerable;
+            await TestInRegularAndScriptAsync(initial, expected);
         }
     }
 }

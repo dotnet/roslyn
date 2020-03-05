@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -44,8 +48,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), symbol),
                 cancellationToken).ConfigureAwait(false);
 
+            document = await RemoveSimplifierAnnotationsFromImportsAsync(document, cancellationToken).ConfigureAwait(false);
+
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
-            var docWithDocComments = await ConvertDocCommentsToRegularComments(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
+            var docWithDocComments = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
             var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
             var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -54,6 +60,27 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             var reducers = GetReducers();
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// <see cref="ImportAdderService"/> adds <see cref="Simplifier.Annotation"/> to Import Directives it adds,
+        /// which causes the <see cref="Simplifier"/> to remove import directives when thety are only used by attributes.
+        /// Presumably this is because MetadataAsSource isn't actually semantically valid code.
+        /// 
+        /// To fix this we remove these annotations.
+        /// </summary>
+        private static async Task<Document> RemoveSimplifierAnnotationsFromImportsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            var importDirectives = (await document.GetSyntaxRootAsync().ConfigureAwait(false))
+                .DescendantNodesAndSelf()
+                .Where(syntaxFacts.IsUsingOrExternOrImport);
+
+            return await document.ReplaceNodesAsync(
+                importDirectives,
+                (o, c) => c.WithoutAnnotations(Simplifier.Annotation),
+                cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -75,7 +102,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <returns>The updated document</returns>
         protected abstract Task<Document> AddAssemblyInfoRegionAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken);
 
-        protected abstract Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
+        protected abstract Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
 
         protected abstract ImmutableArray<AbstractReducer> GetReducers();
 

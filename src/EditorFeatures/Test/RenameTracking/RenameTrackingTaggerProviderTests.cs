@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -636,7 +638,7 @@ class CustomAttribute : Attribute
 {
 }
 ";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
         [WpfFact]
@@ -661,7 +663,7 @@ Public Class CustomAttribute
         Inherits Attribute
 End Class
 ";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
         [WpfFact]
@@ -686,7 +688,7 @@ Public Class CustomATTRIBUTE
         Inherits Attribute
 End Class
 ";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
         [WpfFact]
@@ -711,7 +713,7 @@ Public Class Customattribute
         Inherits Attribute
 End Class
 ";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
         [WpfFact]
@@ -738,7 +740,7 @@ class Cats
     {
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
 
             state.AssertNoNotificationMessage();
             await state.AssertNoTag();
@@ -771,7 +773,7 @@ class Cat
     {
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
 
             state.AssertNotificationMessage();
         }
@@ -803,7 +805,7 @@ class Cats
     {
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
             await state.AssertNoTag();
         }
 
@@ -1010,7 +1012,7 @@ class C
     {
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
             await state.AssertNoTag();
         }
 
@@ -1040,7 +1042,7 @@ class C
         nameof(Mat).ToString();
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
             await state.AssertNoTag();
         }
 
@@ -1078,7 +1080,7 @@ class C
     {
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
             await state.AssertNoTag();
         }
 
@@ -1525,7 +1527,7 @@ interface myunmanaged
 class C<T> where T : myunmanaged
 {
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
             await state.AssertNoTag();
         }
     }

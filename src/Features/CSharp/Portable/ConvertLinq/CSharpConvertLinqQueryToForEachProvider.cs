@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -40,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 => new Converter(semanticModel, semanticFacts, queryExpression, cancellationToken).TryConvert(out documentUpdateInfo);
 
         /// <summary>
-        /// Finds a node for the span and checks that it is either a QueryExpressionSyntax or a QueryExpressionSyntax argument within ArgumentSyntax.
+        /// Finds a QueryExpressionSyntax node for the span.
         /// </summary>
         protected override Task<QueryExpressionSyntax> FindNodeToRefactorAsync(CodeRefactoringContext context)
-            => context.TryGetSelectedNodeAsync<QueryExpressionSyntax>();
+            => context.TryGetRelevantNodeAsync<QueryExpressionSyntax>();
 
         private sealed class Converter
         {
@@ -744,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     return false;
                 }
 
-                // if there are more than one return in the method, convert to local funciton.
+                // if there are more than one return in the method, convert to local function.
                 if (memberDeclarationNode.DescendantNodes().OfType<ReturnStatementSyntax>().Count() == 1)
                 {
                     // before: return from a in b select a;

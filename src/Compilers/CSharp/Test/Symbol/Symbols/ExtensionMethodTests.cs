@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -35,19 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 var method = type.GetMember<MethodSymbol>("M1");
                 Assert.False(method.IsExtensionMethod);
                 var parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Object);
+                Assert.Equal(SpecialType.System_Object, parameter.Type.SpecialType);
 
                 // Extension method.
                 method = type.GetMember<MethodSymbol>("M2");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Object);
+                Assert.Equal(SpecialType.System_Object, parameter.Type.SpecialType);
 
                 // Extension method with type parameters.
                 method = type.GetMember<MethodSymbol>("M3");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.TypeKind, TypeKind.TypeParameter);
+                Assert.Equal(TypeKind.TypeParameter, parameter.Type.TypeKind);
             };
             CompileAndVerify(source, validator: validator, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
@@ -218,7 +220,7 @@ static class S
 }";
             var compilation = CreateCompilation(source);
             var syntaxTree = compilation.SyntaxTrees.Single();
-            var gooSymbol = (MethodSymbol)compilation.GetSemanticModel(syntaxTree).GetSymbolInfo(
+            var gooSymbol = (IMethodSymbol)compilation.GetSemanticModel(syntaxTree).GetSymbolInfo(
                 syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single()).Symbol;
             Assert.True(gooSymbol.IsExtensionMethod);
             Assert.Equal(MethodKind.ReducedExtension, gooSymbol.MethodKind);
@@ -2420,7 +2422,7 @@ B");
             var info = model.GetSymbolInfo(expr);
             Assert.NotNull(info.Symbol);
             var symbol = info.Symbol;
-            Utils.CheckSymbol((Symbol)symbol, "IEnumerable<string> IEnumerable<string>.Take<string>(int count)");
+            Utils.CheckSymbol(symbol, "IEnumerable<string> IEnumerable<string>.Take<string>(int count)");
         }
 
         [ClrOnlyFact]
@@ -2581,7 +2583,7 @@ internal static class C
             {
                 var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PEMethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
-                Assert.Equal(method.Parameters.Single().Type.SpecialType, SpecialType.System_Object);
+                Assert.Equal(SpecialType.System_Object, method.Parameters.Single().Type.SpecialType);
 
                 var attr = ((PEModuleSymbol)module).GetCustomAttributesForToken(method.Handle).Single();
                 Assert.Equal("System.Runtime.CompilerServices.ExtensionAttribute", attr.AttributeClass.ToTestDisplayString());
@@ -2683,10 +2685,10 @@ S");
                 var genericExtension = type.GetMember<MethodSymbol>("Generic");
 
                 Assert.True(nonGenericExtension.IsExtensionMethod);
-                Assert.Throws<ArgumentNullException>(() => nonGenericExtension.ReduceExtensionMethod(receiverType: null));
+                Assert.Throws<ArgumentNullException>(() => nonGenericExtension.ReduceExtensionMethod(receiverType: null, compilation: null!));
 
                 Assert.True(genericExtension.IsExtensionMethod);
-                Assert.Throws<ArgumentNullException>(() => genericExtension.ReduceExtensionMethod(receiverType: null));
+                Assert.Throws<ArgumentNullException>(() => genericExtension.ReduceExtensionMethod(receiverType: null, compilation: null!));
             });
         }
 
@@ -2713,7 +2715,7 @@ class Program
 
             var node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("GetHashCode", StringComparison.Ordinal)).Parent;
             var symbolInfo = model.GetSymbolInfo((SimpleNameSyntax)node);
-            var methodSymbol = (MethodSymbol)symbolInfo.Symbol;
+            var methodSymbol = symbolInfo.Symbol.GetSymbol<MethodSymbol>();
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
             var parameter = methodSymbol.ThisParameter;
@@ -2723,7 +2725,7 @@ class Program
             // Get the GenericNameSyntax node Cast<T1> for binding
             node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("Cast<T1>", StringComparison.Ordinal)).Parent;
             symbolInfo = model.GetSymbolInfo((GenericNameSyntax)node);
-            methodSymbol = (MethodSymbol)symbolInfo.Symbol;
+            methodSymbol = (MethodSymbol)symbolInfo.Symbol.GetSymbol<MethodSymbol>();
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
             // 9341 is resolved as Won't Fix since ThisParameter property is internal.
@@ -2791,11 +2793,83 @@ class Program
 
             var int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
 
-            var reducedWithReceiver = extensionMethod.ReduceExtensionMethod(int32Type);
+            var reducedWithReceiver = extensionMethod.ReduceExtensionMethod(int32Type, null!);
             Assert.True(reduced.IsExtensionMethod);
             Assert.Equal(reduced, reducedWithReceiver);
 
-            Assert.Null(reducedWithReceiver.ReduceExtensionMethod(int32Type));
+            Assert.Null(reducedWithReceiver.ReduceExtensionMethod(int32Type, null!));
+        }
+
+        [WorkItem(37780, "https://github.com/dotnet/roslyn/issues/37780")]
+        [Fact]
+        public void ReducedExtensionMethodVsUnmanagedConstraint()
+        {
+            var source1 =
+@"public static class C
+{
+    public static void M<T>(this T self) where T : unmanaged
+    {
+    }
+}";
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"public class D
+{
+    static void M(MyStruct<int> s)
+    {
+        s.M();
+    }
+}
+public struct MyStruct<T>
+{
+    public T field;
+}
+";
+
+            var compilation2 = CreateCompilation(source2, references: new[] { new CSharpCompilationReference(compilation1) }, parseOptions: TestOptions.Regular8);
+            compilation2.VerifyDiagnostics();
+
+            var extensionMethod = compilation2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.True(extensionMethod.IsExtensionMethod);
+
+            var myStruct = (NamedTypeSymbol)compilation2.GlobalNamespace.GetMember<NamedTypeSymbol>("MyStruct");
+            var int32Type = compilation2.GetSpecialType(SpecialType.System_Int32);
+            var msi = myStruct.Construct(int32Type);
+
+            object reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, compilation2);
+            Assert.NotNull(reducedWithReceiver);
+
+            reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, null!);
+            Assert.NotNull(reducedWithReceiver);
+
+            reducedWithReceiver = extensionMethod.GetPublicSymbol().ReduceExtensionMethod(msi.GetPublicSymbol());
+            Assert.NotNull(reducedWithReceiver);
+
+
+            compilation2 = CreateCompilation(source2, references: new[] { new CSharpCompilationReference(compilation1) }, parseOptions: TestOptions.Regular7);
+            compilation2.VerifyDiagnostics(
+                // (5,9): error CS8107: Feature 'unmanaged constructed types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         s.M();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "s.M").WithArguments("unmanaged constructed types", "8.0").WithLocation(5, 9)
+                );
+
+            extensionMethod = compilation2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.True(extensionMethod.IsExtensionMethod);
+
+            myStruct = (NamedTypeSymbol)compilation2.GlobalNamespace.GetMember<NamedTypeSymbol>("MyStruct");
+            int32Type = compilation2.GetSpecialType(SpecialType.System_Int32);
+            msi = myStruct.Construct(int32Type);
+
+            reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, compilation2);
+            Assert.Null(reducedWithReceiver);
+
+            reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, null!);
+            Assert.NotNull(reducedWithReceiver);
+
+            reducedWithReceiver = extensionMethod.GetPublicSymbol().ReduceExtensionMethod(msi.GetPublicSymbol());
+            Assert.NotNull(reducedWithReceiver);
         }
 
         /// <summary>
@@ -2860,9 +2934,9 @@ static class Extensions
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(source);
             var globalNamespace = compilation.GlobalNamespace;
-            var type = globalNamespace.GetMember<NamedTypeSymbol>("C");
+            var type = globalNamespace.GetMember<INamedTypeSymbol>("C");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var memberAccess = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
@@ -2872,7 +2946,7 @@ static class Extensions
                 container: null,
                 name: "Test",
                 includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(lookupResult,
+            Utils.CheckISymbols(lookupResult,
                 "void C.Test(float f)");
 
             lookupResult = model.LookupSymbols(
@@ -2880,11 +2954,11 @@ static class Extensions
                 container: type,
                 name: "Test",
                 includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(lookupResult,
+            Utils.CheckISymbols(lookupResult,
                 "void C.Test(float f)"); // Extension methods not found.
 
             var memberGroup = model.GetMemberGroup(memberAccess);
-            Utils.CheckSymbols(memberGroup,
+            Utils.CheckISymbols(memberGroup,
                 "void C.Test(float f)");
 
             compilation.VerifyDiagnostics(
@@ -2918,9 +2992,9 @@ static class Extensions
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(source);
             var globalNamespace = compilation.GlobalNamespace;
-            var type = globalNamespace.GetMember<NamedTypeSymbol>("C");
+            var type = globalNamespace.GetMember<INamedTypeSymbol>("C");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var memberAccess = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
@@ -2932,7 +3006,7 @@ static class Extensions
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             // Definitely want the extension method here for quick fix.
-            Utils.CheckSymbols(info.CandidateSymbols,
+            Utils.CheckISymbols(info.CandidateSymbols,
                 "void C.Test(float f)");
         }
 
@@ -3831,9 +3905,8 @@ public class BaseClass<TMember>
             var baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
-            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
-            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
-            Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
         }
 
         [Fact]
@@ -3927,9 +4000,8 @@ public class BaseClass<TMember> : I1<TMember>
             var baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
-            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
-            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
-            Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
         }
 
         [Fact]
@@ -3949,13 +4021,13 @@ public static class C
                 var method = type.GetMember<MethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
                 var parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, parameter.Type.SpecialType);
                 Assert.Equal(RefKind.In, parameter.RefKind);
 
                 method = type.GetMember<MethodSymbol>("M2");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, parameter.Type.SpecialType);
                 Assert.Equal(RefKind.In, parameter.RefKind);
             }
 
@@ -3979,13 +4051,13 @@ public static class C
                 var method = type.GetMember<MethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
                 var parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, parameter.Type.SpecialType);
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
 
                 method = type.GetMember<MethodSymbol>("M2");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, parameter.Type.SpecialType);
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
             }
 

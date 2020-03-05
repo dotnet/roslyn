@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 foreach (var document in project.Documents)
                 {
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
-                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvoke(
+                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
                         symbolAndProjectId, document, cancellationToken).ConfigureAwait(false));
                 }
             }
@@ -104,8 +106,22 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
 
             return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
-                n => new FinderLocation(n, new ReferenceLocation(document, null, n.GetLocation(), isImplicit: false,
-                    symbolUsageInfo: GetSymbolUsageInfo(n, semanticModel, syntaxFactsService, semanticFactsService, cancellationToken), candidateReason: CandidateReason.None)));
+                  node => new FinderLocation(
+                      node,
+                      new ReferenceLocation(
+                          document,
+                          alias: null,
+                          node.GetLocation(),
+                          isImplicit: false,
+                          symbolUsageInfo: GetSymbolUsageInfo(
+                              node,
+                              semanticModel,
+                              syntaxFactsService,
+                              semanticFactsService,
+                              cancellationToken),
+                          additionalProperties: GetAdditionalFindUsagesProperties(
+                              node, semanticModel, syntaxFactsService),
+                          candidateReason: CandidateReason.None)));
         }
     }
 }

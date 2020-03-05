@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
                 properties.Add(NewTextKey, textChange.NewText);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(EmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
+                properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
 
                 if (change.NewPosition != null)
                 {
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             // We added no items, but the user explicitly asked for completion.  Add all the
             // items we can to help them out.
-            var virtualChar = context.Tree.Text.FirstOrNullable(vc => vc.Span.Contains(context.Position));
+            var virtualChar = context.Tree.Text.FirstOrNull(vc => vc.Span.Contains(context.Position));
             var inCharacterClass = virtualChar != null && IsInCharacterClass(context.Tree.Root, virtualChar.Value);
 
             ProvideBackslashCompletions(context, inCharacterClass, parentOpt: null);
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         /// </summary>
         private void ProvideCompletionsBasedOffOfPrecedingCharacter(EmbeddedCompletionContext context)
         {
-            var previousVirtualCharOpt = context.Tree.Text.FirstOrNullable(vc => vc.Span.Contains(context.Position - 1));
+            var previousVirtualCharOpt = context.Tree.Text.FirstOrNull(vc => vc.Span.Contains(context.Position - 1));
             if (previousVirtualCharOpt == null)
             {
                 // We didn't have a previous character.  Can't determine the set of 
@@ -477,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         {
             if (!item.Properties.TryGetValue(DescriptionKey, out var description))
             {
-                return SpecializedTasks.Default<CompletionDescription>();
+                return SpecializedTasks.Null<CompletionDescription>();
             }
 
             return Task.FromResult(CompletionDescription.Create(

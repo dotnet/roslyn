@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -288,13 +291,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.ErrorCodeToolTip:
-                            content = GetHelpLinkToolTipText(item.Workspace, data);
+                            content = BrowserHelper.GetHelpLinkToolTip(data);
                             return content != null;
                         case StandardTableKeyNames.HelpKeyword:
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.HelpLink:
-                            content = GetHelpLink(item.Workspace, data);
+                            content = BrowserHelper.GetHelpLink(data)?.AbsoluteUri;
                             return content != null;
                         case StandardTableKeyNames.ErrorCategory:
                             content = data.Category;
@@ -331,8 +334,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             var guids = item.ProjectGuids;
                             content = guids;
                             return guids.Length > 0;
-                        case SuppressionStateColumnDefinition.ColumnName:
-                            content = data.IsSuppressed ? ServicesVSResources.Suppressed : ServicesVSResources.Active;
+                        case StandardTableKeyNames.SuppressionState:
+                            content = data.IsSuppressed ? SuppressionState.Suppressed : SuppressionState.Active;
                             return true;
                         default:
                             content = null;

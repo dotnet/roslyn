@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -32,14 +34,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("42");
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
         public void VerifyCodeActionsNotAvailableInPreviousSubmission()
         {
             VisualStudio.InteractiveWindow.InsertCode("Console.WriteLine(42);");
             VisualStudio.InteractiveWindow.Verify.CodeActionsNotShowing();
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
         public void VerifyQuickInfoOnStringDocCommentsFromMetadata()
         {
             VisualStudio.InteractiveWindow.InsertCode("static void Goo(string[] args) { }");
@@ -49,7 +51,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Equal("class System.String", s);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
         public void International()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"delegate void العربية();
@@ -60,7 +62,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Equal("(field) العربية func", s);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
         public void HighlightRefsSingleSubmissionVerifyRenameTagsShowUpWhenInvokedOnUnsubmittedText()
         {
             VisualStudio.InteractiveWindow.InsertCode("int someint; someint = 22; someint = 23;");
@@ -71,7 +73,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
         public void HighlightRefsSingleSubmissionVerifyRenameTagsGoAway()
         {
             VisualStudio.InteractiveWindow.InsertCode("int someint; someint = 22; someint = 23;");
@@ -159,7 +161,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
         public void DisabledCommandsPart1()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"public class Class
@@ -194,7 +196,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.False(VisualStudio.IsCommandAvailable(WellKnownCommandNames.Refactor_ReorderParameters));
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
         public void AddUsing()
         {
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");
@@ -210,7 +212,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 typeof(ArrayList)");
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
         public void QualifyName()
         {
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");

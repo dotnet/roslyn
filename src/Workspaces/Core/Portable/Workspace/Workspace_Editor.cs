@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -399,7 +403,7 @@ namespace Microsoft.CodeAnalysis
                     //
                     // Note: we pass along the newText here so that clients can easily get the text
                     // of an opened document just by calling TryGetText without any blocking.
-                    currentSolution = oldSolution.WithDocumentTextLoader(documentId,
+                    currentSolution = oldSolution.UpdateDocumentTextLoader(documentId,
                         new ReuseVersionLoader((DocumentState)oldDocument.State, newText), newText, PreservationMode.PreserveIdentity);
                 }
 
@@ -753,6 +757,19 @@ namespace Microsoft.CodeAnalysis
                 var newSolution = this.SetCurrentSolution(oldSolution.WithProjectOptionsChanged(projectId));
 
                 RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
+
+        internal void RegisterDocumentOptionProviders(IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> documentOptionsProviderFactories)
+        {
+            foreach (var providerFactory in ExtensionOrderer.Order(documentOptionsProviderFactories))
+            {
+                var optionsProvider = providerFactory.Value.TryCreate(this);
+
+                if (optionsProvider != null)
+                {
+                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
+                }
             }
         }
     }

@@ -1,24 +1,31 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
@@ -36,16 +43,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IList<TestHostDocument> AnalyzerConfigDocuments { get; }
         public IList<TestHostDocument> ProjectionDocuments { get; }
 
+        internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
+
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+
+        private readonly Dictionary<string, ITextBuffer> _createdTextBuffers = new Dictionary<string, ITextBuffer>();
 
         public TestWorkspace()
             : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
         {
         }
 
-        public TestWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
+        public TestWorkspace(ExportProvider exportProvider, string? workspaceKind = null, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
             : base(VisualStudioMefHostServices.Create(exportProvider), workspaceKind ?? WorkspaceKind.Test)
         {
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
@@ -57,12 +68,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.ProjectionDocuments = new List<TestHostDocument>();
 
             this.CanApplyChangeDocument = true;
+            this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
 
             _backgroundCompiler = new BackgroundCompiler(this);
             _backgroundParser = new BackgroundParser(this);
             _backgroundParser.Start();
 
             _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
+
+            RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
         }
 
         protected internal override bool PartialSemanticsEnabled
@@ -132,17 +146,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             base.Dispose(finalize);
         }
-
-        private static IList<Exception> Flatten(ICollection<Exception> exceptions)
-        {
-            var aggregate = new AggregateException(exceptions);
-            return aggregate.Flatten().InnerExceptions
-                .Select(UnwrapException)
-                .ToList();
-        }
-
-        private static Exception UnwrapException(Exception ex)
-            => ex is TargetInvocationException targetEx ? (targetEx.InnerException ?? targetEx) : ex;
 
         internal void AddTestSolution(TestHostSolution solution)
         {
@@ -214,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             base.OnDocumentSourceCodeKindChanged(documentId, sourceCodeKind);
         }
 
-        public DocumentId GetDocumentId(TestHostDocument hostDocument)
+        public DocumentId? GetDocumentId(TestHostDocument hostDocument)
         {
             if (!Documents.Contains(hostDocument) &&
                 !AdditionalDocuments.Contains(hostDocument) &&
@@ -338,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
-            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id);
+            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders);
             hostProject.AddAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentAdded(hostDocument.ToDocumentInfo());
         }
@@ -349,6 +352,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostDocument = this.GetTestAnalyzerConfigDocument(documentId);
             hostProject.RemoveAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentRemoved(documentId);
+        }
+
+        protected override void ApplyProjectChanges(ProjectChanges projectChanges)
+        {
+            if (projectChanges.OldProject.FilePath != projectChanges.NewProject.FilePath)
+            {
+                var hostProject = this.GetTestProject(projectChanges.NewProject.Id);
+                hostProject.OnProjectFilePathChanged(projectChanges.NewProject.FilePath);
+                base.OnProjectNameChanged(projectChanges.NewProject.Id, projectChanges.NewProject.Name, projectChanges.NewProject.FilePath);
+            }
+
+            base.ApplyProjectChanges(projectChanges);
         }
 
         internal override void SetDocumentContext(DocumentId documentId)
@@ -410,10 +425,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public TestHostDocument CreateProjectionBufferDocument(
             string markup,
             IList<TestHostDocument> baseDocuments,
-            string languageName,
             string path = "projectionbufferdocumentpath",
             ProjectionBufferOptions options = ProjectionBufferOptions.None,
-            IProjectionEditResolver editResolver = null)
+            IProjectionEditResolver? editResolver = null)
         {
             GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
                 out var projectionBufferSpans, out var mappedSpans, out var mappedCaretLocation);
@@ -429,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     : ImmutableArray<TextSpan>.Empty;
                 foreach (var span in document.SelectedSpans)
                 {
-                    var snapshotSpan = span.ToSnapshotSpan(document.TextBuffer.CurrentSnapshot);
+                    var snapshotSpan = span.ToSnapshotSpan(document.GetTextBuffer().CurrentSnapshot);
                     var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Single();
                     mappedSpans[string.Empty] = mappedSpans[string.Empty].Add(mappedSpan.ToTextSpan());
                 }
@@ -446,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     foreach (var span in kvp.Value)
                     {
-                        var snapshotSpan = span.ToSnapshotSpan(document.TextBuffer.CurrentSnapshot);
+                        var snapshotSpan = span.ToSnapshotSpan(document.GetTextBuffer().CurrentSnapshot);
                         var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Cast<Span?>().SingleOrDefault();
                         if (mappedSpan == null)
                         {
@@ -460,15 +474,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            var languageServices = this.Services.GetLanguageServices(languageName);
-
             var projectionDocument = new TestHostDocument(
                 ExportProvider,
-                languageServices,
-                projectionBuffer,
+                languageServiceProvider: null,
+                projectionBuffer.CurrentSnapshot.GetText(),
                 path,
                 mappedCaretLocation,
-                mappedSpans);
+                mappedSpans,
+                textBuffer: projectionBuffer);
 
             this.ProjectionDocuments.Add(projectionDocument);
             return projectionDocument;
@@ -533,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 var matchingSpan = documentWithSpan.AnnotatedSpans[spanName].Single();
                 var span = new Span(matchingSpan.Start, matchingSpan.Length);
-                var trackingSpan = documentWithSpan.TextBuffer.CurrentSnapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeExclusive);
+                var trackingSpan = documentWithSpan.GetTextBuffer().CurrentSnapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeExclusive);
 
                 projectionBufferSpans.Add(trackingSpan);
                 projectionBufferSpanStartingPositions.Add(currentPositionInProjectionBuffer);
@@ -576,11 +589,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans,
             IList<object> projectionBufferSpans, IList<int> projectionBufferSpanStartingPositions)
         {
-            var tempMappedMarkupSpans = new Dictionary<string, ArrayBuilder<TextSpan>>();
+            var tempMappedMarkupSpans = new Dictionary<string, PooledObjects.ArrayBuilder<TextSpan>>();
 
             foreach (var key in markupSpans.Keys)
             {
-                tempMappedMarkupSpans[key] = ArrayBuilder<TextSpan>.GetInstance();
+                tempMappedMarkupSpans[key] = PooledObjects.ArrayBuilder<TextSpan>.GetInstance();
                 foreach (var markupSpan in markupSpans[key])
                 {
                     var positionInMarkup = 0;
@@ -616,7 +629,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         spanIndex++;
                     }
 
-                    tempMappedMarkupSpans[key].Add(new TextSpan(spanStartLocation.Value, spanEndLocationExclusive.Value - spanStartLocation.Value));
+                    tempMappedMarkupSpans[key].Add(new TextSpan(spanStartLocation!.Value, spanEndLocationExclusive!.Value - spanStartLocation.Value));
                 }
             }
 
@@ -626,8 +639,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
-            var testDocument = this.GetTestDocument(documentId);
-            OnDocumentOpened(documentId, testDocument.GetOpenTextContainer());
+            // Fetching the open SourceTextContanier implicitly opens the document.
+            GetTestDocument(documentId).GetOpenTextContainer();
         }
 
         public override void CloseDocument(DocumentId documentId)
@@ -679,6 +692,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var newSolution = this.SetCurrentSolution(solution);
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+        }
+
+        public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
+            => true;
+
+        internal ITextBuffer GetOrCreateBufferForPath(string? filePath, IContentType contentType, string languageName, string initialText)
+        {
+            // If we don't have a file path we'll just make something up for the purpose of this dictionary so all
+            // buffers are still held onto. This isn't a file name used in the workspace itself so it's unobservable.
+            if (RoslynString.IsNullOrEmpty(filePath))
+            {
+                filePath = Guid.NewGuid().ToString();
+            }
+
+            return _createdTextBuffers.GetOrAdd(filePath, _ =>
+            {
+                var textBuffer = EditorFactory.CreateBuffer(ExportProvider, contentType, initialText);
+
+                // Ensure that the editor options on the text buffer matches that of the options that can be directly set in the workspace
+                var editorOptions = ExportProvider.GetExportedValue<IEditorOptionsFactoryService>().GetOptions(textBuffer);
+                var workspaceOptions = this.Options;
+
+                editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !workspaceOptions.GetOption(FormattingOptions.UseTabs, languageName));
+                editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, workspaceOptions.GetOption(FormattingOptions.TabSize, languageName));
+                editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, workspaceOptions.GetOption(FormattingOptions.IndentationSize, languageName));
+
+                return textBuffer;
+            });
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -560,21 +562,21 @@ class C : B<string>
             {
                 // Non-generic type.
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-                Assert.Equal(type.TypeParameters.Length, 0);
+                Assert.Equal(0, type.TypeParameters.Length);
                 Assert.Same(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));
 
                 // Generic type.
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-                Assert.Equal(type.TypeParameters.Length, 1);
+                Assert.Equal(1, type.TypeParameters.Length);
                 Assert.Same(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));
 
                 // Generic type with parameter substitution.
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").BaseType();
-                Assert.Equal(type.TypeParameters.Length, 1);
+                Assert.Equal(1, type.TypeParameters.Length);
                 Assert.NotSame(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));
@@ -706,7 +708,7 @@ class Program
   IL_001a:  ret       
 }
 ");
-            var type = (PENamedTypeSymbol)verifier.Compilation.GlobalNamespace.GetMembers("Signatures").Single();
+            var type = (PENamedTypeSymbol)verifier.Compilation.GlobalNamespace.GetMembers("Signatures").Single().GetSymbol();
 
             // Valid static property, property with signature that does not match accessors,
             // and property with accessors that do not match each other.

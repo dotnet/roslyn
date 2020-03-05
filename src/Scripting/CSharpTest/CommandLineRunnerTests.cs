@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -168,8 +170,7 @@ $@"{ logoOutput }
 >", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
-        // https://github.com/dotnet/roslyn/issues/33564: Was [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30924")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30924")]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture2()
@@ -563,6 +564,31 @@ $@"{LogoAndHelpPrompt}
                 runner.RunInteractive();
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("3", runner.Console.Out.ToString());
             }
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(null, null)]
+        [InlineData("c:", null)]
+        [InlineData("c:\\", null)]
+        [InlineData("c:\\first", "c:\\")]
+        [InlineData("c:\\first\\", "c:\\first")]
+        [InlineData("c:\\first\\second", "c:\\first")]
+        [InlineData("c:\\first\\second\\", "c:\\first\\second")]
+        [InlineData("c:\\first\\second\\third", "c:\\first\\second")]
+        [InlineData("\\", null)]
+        [InlineData("\\first", "\\")]
+        [InlineData("\\first\\", "\\first")]
+        [InlineData("\\first\\second", "\\first")]
+        [InlineData("\\first\\second\\", "\\first\\second")]
+        [InlineData("\\first\\second\\third", "\\first\\second")]
+        [InlineData("first", "")]
+        [InlineData("first\\", "first")]
+        [InlineData("first\\second", "first")]
+        [InlineData("first\\second\\", "first\\second")]
+        [InlineData("first\\second\\third", "first\\second")]
+        public void TestGetDirectoryName_Windows(string path, string expectedOutput)
+        {
+            Assert.Equal(expectedOutput, PathUtilities.GetDirectoryName(path, isUnixLike: false));
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]

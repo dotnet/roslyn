@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,9 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     /// <remarks>
     /// This includes data such an source file counts, project, metadata, and analyzer reference counts, and so on.
     /// </remarks>
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
+    [ExportIncrementalAnalyzerProvider(nameof(ProjectTelemetryIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host }), Shared]
     internal sealed class ProjectTelemetryIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         [ImportingConstructor]

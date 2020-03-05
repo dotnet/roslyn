@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -97,7 +99,7 @@ my_PROP = my_VAL");
             var properties = config.GlobalSection.Properties;
 
             Assert.True(properties.TryGetValue("my_PrOp", out var val));
-            Assert.Equal(val, "my_VAL");
+            Assert.Equal("my_VAL", val);
             Assert.Equal("my_prop", properties.Keys.Single());
         }
 
@@ -1092,7 +1094,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
             {
                 if (expected[i] is null)
                 {
-                    Assert.Null(options[i]);
+                    Assert.NotEqual(default, options[i]);
                 }
                 else
                 {
@@ -1113,7 +1115,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
             {
                 if (expected[i] is null)
                 {
-                    Assert.Null(options[i]);
+                    Assert.NotEqual(default, options[i]);
                 }
                 else
                 {
@@ -1427,6 +1429,45 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
                     ("cs000", ReportDiagnostic.Warn)),
                 SyntaxTree.EmptyDiagnosticOptions
             }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
+        public void DiagnosticIdInstancesAreSharedBetweenMultipleTrees()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/a.cs", "/b.cs", "/c.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal("cs000", options[0].TreeOptions.Keys.Single());
+
+            Assert.Same(options[0].TreeOptions.Keys.First(), options[1].TreeOptions.Keys.First());
+            Assert.Same(options[1].TreeOptions.Keys.First(), options[2].TreeOptions.Keys.First());
+        }
+
+        [Fact]
+        public void TreesShareOptionsInstances()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/a.cs", "/b.cs", "/c.cs" },
+                configs);
+            configs.Free();
+            Assert.Equal(KeyValuePair.Create("cs000", ReportDiagnostic.Warn), options[0].TreeOptions.Single());
+
+            Assert.Same(options[0].TreeOptions, options[1].TreeOptions);
+            Assert.Same(options[0].AnalyzerOptions, options[1].AnalyzerOptions);
+            Assert.Same(options[1].TreeOptions, options[2].TreeOptions);
+            Assert.Same(options[1].AnalyzerOptions, options[2].AnalyzerOptions);
         }
 
         #endregion

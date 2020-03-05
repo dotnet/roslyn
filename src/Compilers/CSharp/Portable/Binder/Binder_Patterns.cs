@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -150,15 +152,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool wasExpression)
         {
-            BoundExpression expression = BindRValueWithoutTargetType(patternExpression, diagnostics);
+            BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
-            if (!convertedExpression.HasErrors && constantValueOpt == null)
+            if (!convertedExpression.HasErrors && !hasErrors)
             {
-                diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
-                hasErrors = true;
+                if (constantValueOpt == null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
+                    hasErrors = true;
+                }
+                else if (inputType.IsPointerType() == true && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+                {
+                    // before C# 8 we did not permit `pointer is null`
+                    diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, patternExpression.Location);
+                    hasErrors = true;
+                }
             }
 
             if (convertedExpression.Type is null && constantValueOpt != ConstantValue.Null)
@@ -425,11 +436,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
                         if (!hasErrors)
-                            hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax ?? (SyntaxNode)designation);
+                            hasErrors = CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax ?? (SyntaxNode)designation);
 
                         variableSymbol = localSymbol;
                         variableAccess = new BoundLocal(
-                            syntax: designation, localSymbol: localSymbol, constantValueOpt: null, type: declType.Type);
+                            syntax: designation, localSymbol: localSymbol, localSymbol.IsVar ? BoundLocalDeclarationKind.WithInferredType : BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.Type);
                         return;
                     }
                     else
@@ -570,10 +581,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindPatternDesignation(
                 node.Designation, declTypeWithAnnotations, inputValEscape, typeSyntax, diagnostics,
                 ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
+            bool isExplicitNotNullTest =
+                node.Designation is null &&
+                boundDeclType is null &&
+                properties.IsDefaultOrEmpty &&
+                deconstructMethod is null &&
+                deconstructionSubpatterns.IsDefault;
             return new BoundRecursivePattern(
-                syntax: node, declaredType: boundDeclType, inputType: inputType, deconstructMethod: deconstructMethod,
+                syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol,
-                variableAccess: variableAccess, hasErrors: hasErrors);
+                variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType, hasErrors: hasErrors);
         }
 
         private MethodSymbol BindDeconstructSubpatterns(
@@ -820,7 +837,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindVarPattern(VarPatternSyntax node, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)
         {
-            if (inputType.IsPointerType() && node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
+            if (inputType.IsPointerType() &&
+                (node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation ||
+                 // before C# 8 we did not permit `pointer is var x`
+                 Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
                 hasErrors = true;
@@ -921,8 +941,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return new BoundRecursivePattern(
-                            syntax: node, declaredType: null, inputType: inputType, deconstructMethod: deconstructMethod,
-                            deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null, hasErrors: hasErrors);
+                            syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
+                            deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
+                            isExplicitNotNullTest: false, inputType: inputType, hasErrors: hasErrors);
 
                         void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes)
                         {

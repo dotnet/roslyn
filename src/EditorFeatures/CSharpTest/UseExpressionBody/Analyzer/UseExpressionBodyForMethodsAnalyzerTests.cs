@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -52,13 +54,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             var serialized = option.ToXElement();
             var deserialized = CodeStyleOption<bool>.FromXElement(serialized);
 
-            Assert.Equal(false, deserialized.Value);
+            Assert.False(deserialized.Value);
 
             option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent);
             serialized = option.ToXElement();
             deserialized = CodeStyleOption<bool>.FromXElement(serialized);
 
-            Assert.Equal(true, deserialized.Value);
+            Assert.True(deserialized.Value);
 
             // This new values can't actually translate back to a bool.  So we'll just get the default
             // value for this option.

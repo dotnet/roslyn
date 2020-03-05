@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Threading;
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
                 return true;
             }
 
-            // for now, we don't support converting in embeded statement if 
+            // for now, we don't support converting in embedded statement if 
             // new local declaration for collection is required.
             // we can support this by using Introduce local variable service
             // but the service is not currently written in a way that can be

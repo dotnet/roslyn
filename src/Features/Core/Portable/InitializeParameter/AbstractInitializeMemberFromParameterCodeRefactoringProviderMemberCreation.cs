@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,10 +12,10 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
@@ -35,7 +37,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
 
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
+        protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
+        }
+
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
@@ -265,8 +272,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Attempt to place the initialization in a good location in the constructor
             // We'll want to keep initialization statements in the same order as we see
             // parameters for the constructor.
-            var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(
-                parameter, blockStatementOpt, cancellationToken);
+            var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(parameter, blockStatementOpt);
 
             InsertStatement(editor, functionDeclaration, method, statementToAddAfterOpt, initializationStatement);
 
@@ -321,9 +327,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private SyntaxNode TryGetStatementToAddInitializationAfter(
-            IParameterSymbol parameter,
-            IBlockOperation blockStatementOpt,
-            CancellationToken cancellationToken)
+            IParameterSymbol parameter, IBlockOperation blockStatementOpt)
         {
             var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
             var parameterIndex = methodSymbol.Parameters.IndexOf(parameter);

@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
-using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+using EditorAsyncCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using EditorAsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -21,44 +25,57 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// We retrieve this character from triggerLocation.
         /// </param>
         /// <returns>Roslyn completion trigger</returns>
-        internal static RoslynTrigger GetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
+        internal static RoslynTrigger GetRoslynTrigger(EditorAsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
         {
-            switch (trigger.Reason)
+            var completionTriggerKind = GetRoslynTriggerKind(trigger);
+            if (completionTriggerKind == CompletionTriggerKind.Deletion)
             {
-                case AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
-                    return new RoslynTrigger(CompletionTriggerKind.InvokeAndCommitIfUnique);
-                case AsyncCompletionData.CompletionTriggerReason.Insertion:
-                    return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
-                case AsyncCompletionData.CompletionTriggerReason.Deletion:
-                case AsyncCompletionData.CompletionTriggerReason.Backspace:
-                    var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
-                    char characterRemoved;
-                    if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
-                    {
-                        // If multiple characters were removed (selection), this finds the first character from the left. 
-                        characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
-                    }
-                    else
-                    {
-                        characterRemoved = (char)0;
-                    }
+                var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
+                char characterRemoved;
+                if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
+                {
+                    // If multiple characters were removed (selection), this finds the first character from the left. 
+                    characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
+                }
+                else
+                {
+                    characterRemoved = (char)0;
+                }
 
-                    return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
-                case AsyncCompletionData.CompletionTriggerReason.SnippetsMode:
-                    return new RoslynTrigger(CompletionTriggerKind.Snippets);
-                default:
-                    return RoslynTrigger.Invoke;
+                return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
+            }
+            else
+            {
+                return new RoslynTrigger(completionTriggerKind, trigger.Character);
             }
         }
 
-        internal static CompletionFilterReason GetFilterReason(AsyncCompletionData.CompletionTrigger trigger)
+        internal static CompletionTriggerKind GetRoslynTriggerKind(EditorAsyncCompletionData.CompletionTrigger trigger)
         {
             switch (trigger.Reason)
             {
-                case AsyncCompletionData.CompletionTriggerReason.Insertion:
+                case EditorAsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
+                    return CompletionTriggerKind.InvokeAndCommitIfUnique;
+                case EditorAsyncCompletionData.CompletionTriggerReason.Insertion:
+                    return CompletionTriggerKind.Insertion;
+                case EditorAsyncCompletionData.CompletionTriggerReason.Deletion:
+                case EditorAsyncCompletionData.CompletionTriggerReason.Backspace:
+                    return CompletionTriggerKind.Deletion;
+                case EditorAsyncCompletionData.CompletionTriggerReason.SnippetsMode:
+                    return CompletionTriggerKind.Snippets;
+                default:
+                    return CompletionTriggerKind.Invoke;
+            }
+        }
+
+        internal static CompletionFilterReason GetFilterReason(EditorAsyncCompletionData.CompletionTrigger trigger)
+        {
+            switch (trigger.Reason)
+            {
+                case EditorAsyncCompletionData.CompletionTriggerReason.Insertion:
                     return CompletionFilterReason.Insertion;
-                case AsyncCompletionData.CompletionTriggerReason.Deletion:
-                case AsyncCompletionData.CompletionTriggerReason.Backspace:
+                case EditorAsyncCompletionData.CompletionTriggerReason.Deletion:
+                case EditorAsyncCompletionData.CompletionTriggerReason.Backspace:
                     return CompletionFilterReason.Deletion;
                 default:
                     return CompletionFilterReason.Other;
@@ -67,6 +84,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static bool IsFilterCharacter(RoslynCompletionItem item, char ch, string textTypedSoFar)
         {
+            // Exclude standard commit character upfront because TextTypedSoFarMatchesItem can miss them on non-Windows platforms.
+            if (IsStandardCommitCharacter(ch))
+            {
+                return false;
+            }
+
             // First see if the item has any specific filter rules it wants followed.
             foreach (var rule in item.Rules.FilterCharacterRules)
             {
@@ -92,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (CommitManager.TextTypedSoFarMatchesItem(item, textTypedSoFar))
+            if (TextTypedSoFarMatchesItem(item, textTypedSoFar))
             {
                 return true;
             }
@@ -100,13 +123,54 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return false;
         }
 
-        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
-        // We expect that Editor will intorduce this support and we will get rid of relying on the "★" then.
-        internal static bool IsPreferredItem(this RoslynCompletionItem completionItem)
-            => completionItem.DisplayText.StartsWith("★");
+        internal static bool TextTypedSoFarMatchesItem(RoslynCompletionItem item, string textTypedSoFar)
+        {
+            if (textTypedSoFar.Length > 0)
+            {
+                // Note that StartsWith ignores \0 at the end of textTypedSoFar on VS Mac and Mono.
+                return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
+                       item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase);
+            }
+
+            return false;
+        }
+
+        // Tab, Enter and Null (call invoke commit) are always commit characters. 
+        internal static bool IsStandardCommitCharacter(char c)
+            => c == '\t' || c == '\n' || c == '\0';
+
+        internal static bool TryGetInitialTriggerLocation(EditorAsyncCompletion.IAsyncCompletionSession session, out SnapshotPoint initialTriggerLocation)
+        {
+            if (session is EditorAsyncCompletion.IAsyncCompletionSessionOperations sessionOperations)
+            {
+                initialTriggerLocation = sessionOperations.InitialTriggerLocation;
+                return true;
+            }
+
+            initialTriggerLocation = default;
+            return false;
+        }
+
+        internal static bool TryGetInitialTriggerLocation(VSCompletionItem item, out SnapshotPoint initialTriggerLocation)
+        {
+            if (item.Properties.TryGetProperty(CompletionSource.TriggerLocation, out initialTriggerLocation))
+            {
+                return true;
+            }
+
+            initialTriggerLocation = default;
+            return false;
+        }
 
         // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
-        // We expect that Editor will intorduce this support and we will get rid of relying on the "★" then.
+        // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
+        // We check both the display text and the display text prefix to account for IntelliCode item providers
+        // that may be using the prefix to include the ★.
+        internal static bool IsPreferredItem(this RoslynCompletionItem completionItem)
+            => completionItem.DisplayText.StartsWith("★") || completionItem.DisplayTextPrefix.StartsWith("★");
+
+        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
+        // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
         internal static bool IsPreferredItem(this VSCompletionItem completionItem)
             => completionItem.DisplayText.StartsWith("★");
     }

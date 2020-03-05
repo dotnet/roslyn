@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -4688,7 +4690,7 @@ class MyAttrAttribute : Attribute
 {
 }
 
-[MyAttr(123, [|Version|] = 1)]
+[MyAttr(123, [|Value|] = 1)]
 class D
 {
 }",
@@ -4697,10 +4699,10 @@ class D
 [AttributeUsage(AttributeTargets.Class)]
 class MyAttrAttribute : Attribute
 {
-    public int Version { get; set; }
+    public int Value { get; set; }
 }
 
-[MyAttr(123, Version = 1)]
+[MyAttr(123, Value = 1)]
 class D
 {
 }");
@@ -8798,7 +8800,8 @@ class C
     class Blah
     {
     }
-}",
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"
 class C
 {
@@ -8814,7 +8817,8 @@ class C
     {
         public (int y, int z) X { get; internal set; }
     }
-}");
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
@@ -8927,6 +8931,48 @@ class C
     class Blah
     {
         public object X { get; internal set; }
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPatternWithNullablePattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    void M2()
+    {
+        object? o = null;
+        object? zToMatch = null;
+        if (o is Blah { [|X|]: (y: 1, z: zToMatch) })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    void M2()
+    {
+        object? o = null;
+        object? zToMatch = null;
+        if (o is Blah { X: (y: 1, z: zToMatch) })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public (int y, object? z) X { get; internal set; }
     }
 }");
         }

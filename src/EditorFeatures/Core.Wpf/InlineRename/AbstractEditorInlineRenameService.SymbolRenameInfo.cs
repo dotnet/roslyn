@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -216,10 +218,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
                 }
 
-                return GetLocationSet(renameTask, optionSet, cancellationToken);
+                return GetLocationSetAsync(renameTask, optionSet, cancellationToken);
             }
 
-            private async Task<IInlineRenameLocationSet> GetLocationSet(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
+            private async Task<IInlineRenameLocationSet> GetLocationSetAsync(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var locationSet = await renameTask.ConfigureAwait(false);
                 if (optionSet != null)
@@ -244,7 +246,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public InlineRenameFileRenameInfo GetFileRenameInfo()
             {
-                if (RenameSymbol.Kind == SymbolKind.NamedType)
+                if (RenameSymbol.Kind == SymbolKind.NamedType &&
+                    _document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
                 {
                     if (RenameSymbol.Locations.Length > 1)
                     {

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Option Strict Off
 Imports System.Collections.Immutable
@@ -66,9 +68,9 @@ End Class]]>
 Imports System
 Class C
     Sub Method()
-#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
+#Disable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
         Dim x As Integer
-#Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
+#Enable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
     End Sub
 End Class"
 
@@ -103,10 +105,10 @@ End Class]]>
 Imports System
 Class C
     Sub Method()
-#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
+#Disable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
         Dim x _
             As Integer
-#Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
+#Enable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
     End Sub
 End Class"
 
@@ -144,10 +146,10 @@ End Class]]>
 Imports System
 Class C
     Sub Method(i As Integer, j As Short)
-#Disable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
+#Disable Warning BC42025 ' {VBResources.WRN_SharedMemberThroughInstance_Title}
         If i < j.MaxValue AndAlso
             i > 0 Then
-#Enable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
+#Enable Warning BC42025 ' {VBResources.WRN_SharedMemberThroughInstance_Title}
             Console.WriteLine(i)
         End If
     End Sub
@@ -189,10 +191,10 @@ End Class]]>
 Imports System
 Class C
     Sub Method(i As Integer, j As Short)
-#Disable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
+#Disable Warning BC42025 ' {VBResources.WRN_SharedMemberThroughInstance_Title}
         If i > 0 AndAlso
             i < j.MaxValue Then
-#Enable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
+#Enable Warning BC42025 ' {VBResources.WRN_SharedMemberThroughInstance_Title}
             Console.WriteLine(i)
         End If
     End Sub
@@ -232,10 +234,10 @@ End Class]]>
 Imports System
 Class C
     Sub Method()
-#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
+#Disable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
         Dim x As Integer,
             y As Integer
-#Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
+#Enable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
     End Sub
 End Class"
 
@@ -271,10 +273,10 @@ End Class]]>
 Imports System
 Class C
     Sub Method()
-#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
+#Disable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
         Dim x As Integer,
             y As Integer
-#Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
+#Enable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
     End Sub
 End Class"
 
@@ -311,11 +313,11 @@ End Class]]>
 Imports System
 Class C
     Sub Method(i As Integer, j As Short)
-#Disable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
+#Disable Warning BC42025 ' {VBResources.WRN_SharedMemberThroughInstance_Title}
         Dim x = <root>
                     <condition value=<%= i < j.MaxValue %>/>
                 </root>
-#Enable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
+#Enable Warning BC42025 ' {VBResources.WRN_SharedMemberThroughInstance_Title}
     End Sub
 End Class"
 
@@ -353,11 +355,11 @@ End Class]]>
 Imports System
 Class C
     Sub Method(j As Short)
-#Disable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
+#Disable Warning BC42025 ' {VBResources.WRN_SharedMemberThroughInstance_Title}
         Dim x = From i As Integer In {{}}
                 Where i < j.MaxValue
                 Select i
-#Enable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
+#Enable Warning BC42025 ' {VBResources.WRN_SharedMemberThroughInstance_Title}
     End Sub
 End Class"
 
@@ -396,9 +398,9 @@ Imports System
 Class C
     Sub Method()
         ' Trivia previous line
-#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
+#Disable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
         Dim x As Integer    ' Trivia same line
-#Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
+#Enable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
         ' Trivia next line
     End Sub
 End Class"
@@ -443,9 +445,9 @@ End Class
 
 Module Module1
     Sub Main
-#Disable Warning BC40008 ' {WRN_UseOfObsoleteSymbolNoMessage1_Title}
+#Disable Warning BC40008 ' {VBResources.WRN_UseOfObsoleteSymbolNoMessage1_Title}
         C
-#Enable Warning BC40008 ' {WRN_UseOfObsoleteSymbolNoMessage1_Title}
+#Enable Warning BC40008 ' {VBResources.WRN_UseOfObsoleteSymbolNoMessage1_Title}
     End Sub
 End Module"
 
@@ -487,10 +489,10 @@ Class C
 
     ' Comment
     ' Comment
-#Disable Warning BC42309 ' {WRN_XMLDocCrefAttributeNotFound1_Title}
+#Disable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
     ''' <summary><see cref=""abc""/></summary>
     Sub M() ' Comment  
-#Enable Warning BC42309 ' {WRN_XMLDocCrefAttributeNotFound1_Title}
+#Enable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
 
     End Sub
 End Class"
@@ -504,10 +506,10 @@ Class C
 
     ' Comment
     ' Comment
-#Disable Warning BC42309 ' {WRN_XMLDocCrefAttributeNotFound1_Title}
+#Disable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
     ''' <summary><see [|cref=""abc""|]/></summary>
     Sub M() ' Comment  
-#Enable Warning BC42309 ' {WRN_XMLDocCrefAttributeNotFound1_Title}
+#Enable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
 
     End Sub
 End Class"
@@ -520,9 +522,9 @@ End Class"
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia2() As Task
                     Dim source = <![CDATA['''[|<summary></summary>|]]]>
-                    Dim expected = $"#Disable Warning BC42312 ' {WRN_XMLDocWithoutLanguageElement_Title}
+                    Dim expected = $"#Disable Warning BC42312 ' {VBResources.WRN_XMLDocWithoutLanguageElement_Title}
 '''<summary></summary>
-#Enable Warning BC42312 ' {WRN_XMLDocWithoutLanguageElement_Title}"
+#Enable Warning BC42312 ' {VBResources.WRN_XMLDocWithoutLanguageElement_Title}"
 
                     Await TestAsync(source.Value, expected, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
                 End Function
@@ -531,9 +533,9 @@ End Class"
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia3() As Task
                     Dim source = <![CDATA[   '''[|<summary></summary>|]   ]]>
-                    Dim expected = $"#Disable Warning BC42312 ' {WRN_XMLDocWithoutLanguageElement_Title}
+                    Dim expected = $"#Disable Warning BC42312 ' {VBResources.WRN_XMLDocWithoutLanguageElement_Title}
 '''<summary></summary>   
-#Enable Warning BC42312 ' {WRN_XMLDocWithoutLanguageElement_Title}"
+#Enable Warning BC42312 ' {VBResources.WRN_XMLDocWithoutLanguageElement_Title}"
 
                     Await TestAsync(source.Value, expected, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
                 End Function
@@ -549,10 +551,10 @@ Class C : End Class
 ]]>
                     Dim expected = $"
 
-#Disable Warning BC42309 ' {WRN_XMLDocCrefAttributeNotFound1_Title}
+#Disable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
 '''<summary><see cref=""abc""/></summary>
 Class C : End Class
-#Enable Warning BC42309 ' {WRN_XMLDocCrefAttributeNotFound1_Title}
+#Enable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
 
 "
 
@@ -567,10 +569,10 @@ Class C : End Class
 Class C2 : End Class
 Class C3 : End Class]]>
                     Dim expected = $"class C1 : End Class
-#Disable Warning BC42309 ' {WRN_XMLDocCrefAttributeNotFound1_Title}
+#Disable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
 '''<summary><see cref=""abc""/></summary>
 Class C2 : End Class
-#Enable Warning BC42309 ' {WRN_XMLDocCrefAttributeNotFound1_Title}
+#Enable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
 Class C3 : End Class"
 
                     Await TestAsync(source.Value, expected, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
@@ -583,9 +585,9 @@ Class C3 : End Class"
 Class C2 : End Class [|'''|]
 Class C3 : End Class]]>
                     Dim expected = $"class C1 : End Class
-#Disable Warning BC42302 ' {WRN_XMLDocNotFirstOnLine_Title}
+#Disable Warning BC42302 ' {VBResources.WRN_XMLDocNotFirstOnLine_Title}
 Class C2 : End Class '''
-#Enable Warning BC42302 ' {WRN_XMLDocNotFirstOnLine_Title}
+#Enable Warning BC42302 ' {VBResources.WRN_XMLDocNotFirstOnLine_Title}
 
 Class C3 : End Class"
 
@@ -980,13 +982,15 @@ Imports System
         Dim x
     End Sub
 End Class]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class1"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class1"")>
 "
 
                     Await TestAsync(source.Value, expected)
@@ -1018,13 +1022,15 @@ Imports System
         End Sub
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""namespace"", Target:=""~N:N"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""namespace"", Target:=""~N:N"")>
 "
 
                     Await TestInRegularAndScriptAsync(source.Value, expected, index:=1)
@@ -1060,13 +1066,15 @@ Namespace N1
         End Class
     End Namespace
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:N1.N2.Class1"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:N1.N2.Class1"")>
 "
 
                     Await TestAsync(source.Value, expected)
@@ -1104,13 +1112,15 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:N.Generic`1.Class1"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:N.Generic`1.Class1"")>
 "
 
                     Await TestAsync(source.Value, expected)
@@ -1148,13 +1158,15 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method"")>
 "
 
                     Await TestAsync(source.Value, expected)
@@ -1196,13 +1208,15 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method(System.Int32,System.Int32@)"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method(System.Int32,System.Int32@)"")>
 "
 
                     Await TestAsync(source.Value, expected)
@@ -1248,13 +1262,15 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method``1(``0,System.Int32@)"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method``1(``0,System.Int32@)"")>
 "
 
                     Await TestAsync(source.Value, expected)
@@ -1298,13 +1314,15 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~P:N.Generic.C.P"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~P:N.Generic.C.P"")>
 "
 
                     Await TestAsync(source.Value, expected)
@@ -1338,13 +1356,15 @@ Imports System
 Class C
 	[|Private ReadOnly F As Integer|]
 End Class]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~F:C.F"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~F:C.F"")>
 "
 
                     Await TestAsync(source.Value, expected)
@@ -1394,13 +1414,15 @@ Class C
 		End RemoveHandler
 	End Event
 End Class]]>
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~E:C.SampleEvent"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~E:C.SampleEvent"")>
 "
 
                     Await TestAsync(source.Value, expected)
@@ -1456,26 +1478,27 @@ End Class
 [|Class Class2|]
 End Class]]>
                             </Document>
-                            <Document FilePath="GlobalSuppressions.vb"><![CDATA[
-' This file is used by Code Analysis to maintain SuppressMessage 
+                            <Document FilePath="GlobalSuppressions.vb"><![CDATA[' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
 ]]>
                             </Document>
                         </Project>
                     </Workspace>
 
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
                     Await TestAsync(source.ToString(), expected)
@@ -1505,13 +1528,15 @@ End Class
                         </Project>
                     </Workspace>
 
-                    Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
                     Await TestAsync(source.ToString(), expected)
@@ -1538,26 +1563,60 @@ Class Class3
 End Class
 ]]>
                             </Document>
-                            <Document FilePath="GlobalSuppressions2.vb"><![CDATA[
-' This file is used by Code Analysis to maintain SuppressMessage 
+                            <Document FilePath="GlobalSuppressions2.vb"><![CDATA[' This file is used by Code Analysis to maintain SuppressMessage
 ' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
+' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>
+
+                    Dim expected =
+$"' This file is used by Code Analysis to maintain SuppressMessage
+' attributes that are applied to this project.
+' Project-level suppressions either have no target or are given
+' a specific target and scoped to a namespace, type, member, etc.
+
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
+"
+
+                    Await TestAsync(source.ToString(), expected)
+                End Function
+
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                Public Async Function TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument() As Task
+                    Dim source =
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="CurrentDocument.vb"><![CDATA[
+Imports System
+
+Class Class1
+End Class
+
+[|Class Class2|]
+End Class]]>
+                            </Document>
+                            <Document FilePath="GlobalSuppressions.vb"><![CDATA[
+Imports System.Diagnostics.CodeAnalysis
+
+<Assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
 ]]>
                             </Document>
                         </Project>
                     </Workspace>
 
                     Dim expected = $"
-' This file is used by Code Analysis to maintain SuppressMessage 
-' attributes that are applied to this project.
-' Project-level suppressions either have no target or are given 
-' a specific target and scoped to a namespace, type, member, etc.
+Imports System.Diagnostics.CodeAnalysis
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
+<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
                     Await TestAsync(source.ToString(), expected)
@@ -1645,7 +1704,7 @@ End Class
 Imports System
 
 ' Some Trivia
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
 Class C
     Sub Method()
         Dim x
@@ -1668,7 +1727,7 @@ End Class
 Imports System
 
 ' Some Trivia
-<System.Diagnostics.CodeAnalysis.SuppressMessage("SomeOtherDiagnostic", "SomeOtherDiagnostic:Title", Justification:="<Pending>")>
+<Diagnostics.CodeAnalysis.SuppressMessage("SomeOtherDiagnostic", "SomeOtherDiagnostic:Title", Justification:="<Pending>")>
 [|Class C|]
     Sub Method()
         Dim x
@@ -1679,8 +1738,8 @@ End Class
 Imports System
 
 ' Some Trivia
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification:=""<Pending>"")>
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification:=""<Pending>"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
 Class C
     Sub Method()
         Dim x
@@ -1719,7 +1778,7 @@ Imports System
 ''' <summary>
 ''' My custom type
 ''' </summary>
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
 Class C
     Sub Method()
         Dim x
@@ -1760,7 +1819,7 @@ Imports System
 ''' My custom type
 ''' </summary>
 <Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification:=""<Pending>"")>
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
 Class C
     Sub Method()
         Dim x
@@ -1794,7 +1853,7 @@ Imports System
 
 Namespace N
     ' Some Trivia
-    <System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+    <Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
     Class C
         Sub Method()
             Dim x
@@ -1828,7 +1887,7 @@ Imports System
 
 Class Generic(Of T)
     ' Some Trivia
-    <System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+    <Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
     Class C
         Sub Method()
             Dim x
@@ -1863,7 +1922,7 @@ Imports System
 Class Generic(Of T)
     Class C
         ' Some Trivia
-        <System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
+        <Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"")>
         Sub Method()
             Dim x
         End Sub

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -270,7 +272,6 @@ class X
                         case ErrorCode.WRN_NullReferenceReturn:
                         case ErrorCode.WRN_NullReferenceArgument:
                         case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
-                        case ErrorCode.WRN_NullReferenceIterationVariable:
                         case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
@@ -295,19 +296,26 @@ class X
                         case ErrorCode.WRN_NullableValueTypeMayBeNull:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                         case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
+                        case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
                         case ErrorCode.ERR_FeatureInPreview:
                         case ErrorCode.WRN_ThrowPossibleNull:
                         case ErrorCode.WRN_UnboxPossibleNull:
-                        case ErrorCode.WRN_ConditionalAccessMayReturnNull:
-                        case ErrorCode.WRN_AsOperatorMayReturnNull:
-                        case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
-                        case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                        case ErrorCode.WRN_NullReferenceInitializer:
+                        case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
+                        case ErrorCode.WRN_ShouldNotReturn:
+                        case ErrorCode.WRN_DoesNotReturnMismatch:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -348,6 +356,7 @@ class X
                 var nullableUnrelatedWarnings = new[]
                 {
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
+                    ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
                 };
 
@@ -2243,6 +2252,35 @@ public class Test
 
             Assert.Equal(1, compilation.GetDiagnostics().Length);
             Assert.Equal(1, compilation.GetDiagnostics().Length);
+        }
+
+        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
+        [Fact]
+        public void GetDiagnosticsCalledTwice_GetEmitDiagnostics()
+        {
+            var text = @"
+interface IMyEnumerator { }
+
+public class Test
+{
+    static IMyEnumerator Goo()
+    {
+        yield break;
+    }
+
+    public static int Main()
+    {
+        return 1;
+    }
+}";
+            var compilation = CreateCompilation(text);
+            var expected = new DiagnosticDescription[] {
+                // (6,26): error CS1624: The body of 'Test.Goo()' cannot be an iterator block because 'IMyEnumerator' is not an iterator interface type
+                //     static IMyEnumerator Goo()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "Goo").WithArguments("Test.Goo()", "IMyEnumerator").WithLocation(6, 26)
+            };
+            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -69,6 +71,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
         public IDictionary<OptionKey, object> InterfaceNamesStartWithI =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), InterfaceNamesStartWithIOption());
+
+        public IDictionary<OptionKey, object> TypeParameterNamesStartWithT =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), TypeParameterNamesStartWithTOption());
 
         public IDictionary<OptionKey, object> ConstantsAreUpperCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ConstantsAreUpperCaseOption());
@@ -584,6 +589,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 capitalizationScheme: Capitalization.PascalCase,
                 name: "Name",
                 prefix: "I",
+                suffix: "",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
+
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            return info;
+        }
+
+        private static NamingStylePreferences TypeParameterNamesStartWithTOption()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.TypeParameter)),
+                accessibilityList: default,
+                modifiers: default);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "T",
                 suffix: "",
                 wordSeparator: "");
 

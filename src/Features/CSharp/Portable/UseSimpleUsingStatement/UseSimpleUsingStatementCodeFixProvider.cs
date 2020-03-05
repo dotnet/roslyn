@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -47,9 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
             var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
 
+            // Process blocks in reverse order so we rewrite from inside-to-outside with nested
+            // usings.
             var root = editor.OriginalRoot;
             var updatedRoot = root.ReplaceNodes(
-                blocks,
+                blocks.OrderByDescending(b => b.SpanStart),
                 (original, current) => RewriteBlock(original, current, topmostUsingStatements));
 
             editor.ReplaceNode(root, updatedRoot);
@@ -82,7 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         private static IEnumerable<StatementSyntax> Expand(UsingStatementSyntax usingStatement)
         {
             var result = new List<StatementSyntax>();
-            Expand(result, usingStatement);
+            var remainingTrivia = Expand(result, usingStatement);
+
+            if (remainingTrivia.Any(t => t.IsSingleOrMultiLineComment() || t.IsDirective))
+            {
+                var lastStatement = result[result.Count - 1];
+                result[result.Count - 1] = lastStatement.WithAppendedTrailingTrivia(
+                    remainingTrivia.Insert(0, CSharpSyntaxFacts.Instance.ElasticCarriageReturnLineFeed));
+            }
 
             for (int i = 0, n = result.Count; i < n; i++)
             {
@@ -92,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             return result;
         }
 
-        private static void Expand(List<StatementSyntax> result, UsingStatementSyntax usingStatement)
+        private static SyntaxTriviaList Expand(List<StatementSyntax> result, UsingStatementSyntax usingStatement)
         {
             // First, convert the using-statement into a using-declaration.
             result.Add(Convert(usingStatement));
@@ -102,18 +115,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                     // if we hit a block, then inline all the statements in the block into
                     // the final list of statements.
                     result.AddRange(blockSyntax.Statements);
-                    return;
+                    return blockSyntax.CloseBraceToken.LeadingTrivia;
                 case UsingStatementSyntax childUsing when childUsing.Declaration != null:
                     // If we have a directly nested using-statement, then recurse into that
                     // expanding it and handle its children as well.
-                    Expand(result, childUsing);
-                    return;
+                    return Expand(result, childUsing);
                 case StatementSyntax anythingElse:
                     // Any other statement should be untouched and just be placed next in the
                     // final list of statements.
                     result.Add(anythingElse);
-                    return;
+                    return default;
             }
+            return default;
         }
 
         private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)

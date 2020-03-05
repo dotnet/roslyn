@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [UseExportProvider]
     public class TextFactoryTests
     {
-        private byte[] _nonUTF8StringBytes = new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF };
+        private readonly byte[] _nonUTF8StringBytes = new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF };
 
         [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018"), WorkItem(1041792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041792")]
         public void TestCreateTextFallsBackToSystemDefaultEncoding()
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             Assert.NotSame(text, text2);
             Assert.Equal(text.ToString(), text2.ToString());
-            Assert.Equal(text2.Encoding, null);
+            Assert.Null(text2.Encoding);
         }
 
         [Fact]

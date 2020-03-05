@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,19 +17,19 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteAddImportFeatureService
     {
         public Task<IList<AddImportFixData>> GetFixesAsync(
-            DocumentId documentId, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var service = document.GetLanguageService<IAddImportFeatureService>();
 
-                    var symbolSearchService = new SymbolSearchService(this);
+                    var symbolSearchService = new SymbolSearchService(EndPoint);
 
                     var result = await service.GetFixesAsync(
                         document, span, diagnosticId, maxResults, placeSystemNamespaceFirst,
@@ -49,40 +51,40 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// Ideally we would not need to bounce back to the host for this.
         /// </summary>
-        private class SymbolSearchService : ISymbolSearchService
+        private sealed class SymbolSearchService : ISymbolSearchService
         {
-            private readonly CodeAnalysisService codeAnalysisService;
+            private readonly RemoteEndPoint _endPoint;
 
-            public SymbolSearchService(CodeAnalysisService codeAnalysisService)
+            public SymbolSearchService(RemoteEndPoint endPoint)
             {
-                this.codeAnalysisService = codeAnalysisService;
+                _endPoint = endPoint;
             }
 
             public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.InvokeAsync<IList<PackageWithTypeResult>>(
-                    nameof(FindPackagesWithTypeAsync), new object[] { source, name, arity }, cancellationToken).ConfigureAwait(false);
-
-                return result;
+                return await _endPoint.InvokeAsync<IList<PackageWithTypeResult>>(
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
+                    new object[] { source, name, arity },
+                    cancellationToken).ConfigureAwait(false);
             }
 
             public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.InvokeAsync<IList<PackageWithAssemblyResult>>(
-                    nameof(FindPackagesWithAssemblyAsync), new object[] { source, assemblyName }, cancellationToken).ConfigureAwait(false);
-
-                return result;
+                return await _endPoint.InvokeAsync<IList<PackageWithAssemblyResult>>(
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
+                    new object[] { source, assemblyName },
+                    cancellationToken).ConfigureAwait(false);
             }
 
             public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.InvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
-                    nameof(FindReferenceAssembliesWithTypeAsync), new object[] { name, arity }, cancellationToken).ConfigureAwait(false);
-
-                return result;
+                return await _endPoint.InvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
+                    new object[] { name, arity },
+                    cancellationToken).ConfigureAwait(false);
             }
         }
     }

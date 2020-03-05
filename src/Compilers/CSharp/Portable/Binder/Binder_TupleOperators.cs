@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -37,13 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (convertedType is null)
             {
+                // Note: issues with default will already have been reported by BindSimpleBinaryOperator (ie. we couldn't find a suitable element-wise operator)
                 if (@operator.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr is BoundTupleLiteral tuple)
                 {
                     // Although the tuple will remain typeless, we'll give elements converted types as possible
                     var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
                     if (multiple.Operators.Length == 0)
                     {
-                        return BindToNaturalType(expr, diagnostics);
+                        return BindToNaturalType(expr, diagnostics, reportDefaultMissingType: false);
                     }
 
                     ImmutableArray<BoundExpression> arguments = tuple.Arguments;
@@ -57,11 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return new BoundConvertedTupleLiteral(
-                        tuple.Syntax, tuple, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
+                        tuple.Syntax, tuple, wasTargetTyped: false, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
                 }
 
                 // This element isn't getting a converted type
-                return BindToNaturalType(expr, diagnostics);
+                return BindToNaturalType(expr, diagnostics, reportDefaultMissingType: false);
             }
 
             // We were able to determine a converted type (for this tuple literal or element), we can just convert to it
@@ -90,8 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
             }
 
-            int ignored = 0;
-            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right, ref ignored);
+            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right);
             switch (comparison)
             {
                 case BoundLiteral _:
@@ -394,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Location> elementLocations = elements.SelectAsArray(e => e.Syntax.Location);
 
-            var tuple = TupleTypeSymbol.Create(locationOpt: null,
+            var tuple = NamedTypeSymbol.CreateTuple(locationOpt: null,
                 elementTypesWithAnnotations: convertedTypes.SelectAsArray(t => TypeWithAnnotations.Create(t)),
                 elementLocations, elementNames: names, compilation,
                 shouldCheckConstraints: true, includeNullability: false, errorPositions: default, syntax, diagnostics);

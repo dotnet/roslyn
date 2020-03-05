@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,9 +15,7 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -98,38 +97,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public bool IsUseSuggestionModeOn()
         {
-            var asyncCompletionService = (AsyncCompletionService)GetComponentModelService<IAsyncCompletionService>();
             return ExecuteOnActiveView(textView =>
             {
                 var featureServiceFactory = GetComponentModelService<IFeatureServiceFactory>();
                 var subjectBuffer = GetBufferContainingCaret(textView);
-                if (asyncCompletionService.GetTestAccessor().UseLegacyCompletion(featureServiceFactory, textView, subjectBuffer))
+
+                var options = textView.Options.GlobalOptions;
+                EditorOptionKey<bool> optionKey;
+                Option<bool> roslynOption;
+                if (IsDebuggerTextView(textView))
                 {
-                    return GetComponentModelService<VisualStudioWorkspace>().Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
+                    optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
+                    roslynOption = EditorCompletionOptions.UseSuggestionMode_Debugger;
                 }
                 else
                 {
-                    var options = textView.Options.GlobalOptions;
-                    EditorOptionKey<bool> optionKey;
-                    Option<bool> roslynOption;
-                    if (IsDebuggerTextView(textView))
-                    {
-                        optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
-                        roslynOption = EditorCompletionOptions.UseSuggestionMode_Debugger;
-                    }
-                    else
-                    {
-                        optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInCompletionOptionName);
-                        roslynOption = EditorCompletionOptions.UseSuggestionMode;
-                    }
-
-                    if (!options.IsOptionDefined(optionKey, localScopeOnly: false))
-                    {
-                        return roslynOption.DefaultValue;
-                    }
-
-                    return options.GetOptionValue(optionKey);
+                    optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInCompletionOptionName);
+                    roslynOption = EditorCompletionOptions.UseSuggestionMode;
                 }
+
+                if (!options.IsOptionDefined(optionKey, localScopeOnly: false))
+                {
+                    return roslynOption.DefaultValue;
+                }
+
+                return options.GetOptionValue(optionKey);
             });
 
             bool IsDebuggerTextView(IWpfTextView textView)

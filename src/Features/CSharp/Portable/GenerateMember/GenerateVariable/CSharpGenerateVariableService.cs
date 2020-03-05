@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Linq;
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
 
             // In order to figure this out (without writing our own parser), we just try to parse out a
             // type name here.  If we get a generic name back, without any errors, then we'll assume the
-            // user realy is typing a generic name, and thus should not get recommendations to create a
+            // user really is typing a generic name, and thus should not get recommendations to create a
             // variable.
             var localText = localRoot.ToString();
             var startIndex = identifierName.Span.Start - localRoot.Span.Start;

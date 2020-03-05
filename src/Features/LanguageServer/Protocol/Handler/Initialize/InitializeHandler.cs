@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Threading;
@@ -16,22 +18,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Capabilities = new ServerCapabilities
             {
                 DefinitionProvider = true,
-                ReferencesProvider = true,
                 ImplementationProvider = true,
                 CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
-                HoverProvider = true,
                 SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
-                CodeActionProvider = true,
                 DocumentSymbolProvider = true,
                 WorkspaceSymbolProvider = true,
                 DocumentFormattingProvider = true,
                 DocumentRangeFormattingProvider = true,
                 DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
                 DocumentHighlightProvider = true,
-                RenameProvider = true,
-                ExecuteCommandProvider = new ExecuteCommandOptions()
             }
         };
+
+        [ImportingConstructor]
+        public InitializeHandler()
+        {
+        }
 
         public Task<InitializeResult> HandleRequestAsync(Solution solution, InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => Task.FromResult(s_initializeResult);

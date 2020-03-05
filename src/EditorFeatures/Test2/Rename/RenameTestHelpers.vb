@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Threading
@@ -50,13 +52,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return Tuple.Create(solution.GetDocument(hostdoc.Id), token.Span)
         End Function
 
-        Public Function StartSession(workspace As TestWorkspace, Optional fileRenameEnabled As Boolean = True) As InlineRenameSession
+        Public Function StartSession(workspace As TestWorkspace) As InlineRenameSession
             Dim renameService = workspace.GetService(Of IInlineRenameService)()
-
-            Dim experiment = workspace.Services.GetRequiredService(Of IExperimentationService)()
-            Dim fileExperiment = DirectCast(experiment, TestExperimentationService)
-            fileExperiment.SetExperimentOption(WellKnownExperimentNames.RoslynInlineRenameFile, fileRenameEnabled)
-
             Dim sessionInfo = GetSessionInfo(workspace)
 
             Return DirectCast(renameService.StartInlineSession(sessionInfo.Item1, sessionInfo.Item2).Session, InlineRenameSession)
@@ -87,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             For Each document In workspace.Documents
                 For Each selectedSpan In document.SelectedSpans
                     Dim trackingSpan = document.InitialTextSnapshot.CreateTrackingSpan(selectedSpan.ToSpan(), SpanTrackingMode.EdgeInclusive)
-                    Assert.Equal(newIdentifierName, trackingSpan.GetText(document.TextBuffer.CurrentSnapshot).Trim)
+                    Assert.Equal(newIdentifierName, trackingSpan.GetText(document.GetTextBuffer().CurrentSnapshot).Trim)
                 Next
             Next
 
@@ -98,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     If expectedReplacementText <> "CONFLICT" Then
                         For Each annotatedSpan In annotations.Value
                             Dim trackingSpan = document.InitialTextSnapshot.CreateTrackingSpan(annotatedSpan.ToSpan(), SpanTrackingMode.EdgeInclusive)
-                            Assert.Equal(expectedReplacementText, trackingSpan.GetText(document.TextBuffer.CurrentSnapshot))
+                            Assert.Equal(expectedReplacementText, trackingSpan.GetText(document.GetTextBuffer().CurrentSnapshot))
                         Next
                     End If
                 Next

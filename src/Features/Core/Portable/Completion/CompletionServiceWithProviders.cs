@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -33,21 +35,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private readonly Workspace _workspace;
 
-        private readonly ImmutableArray<CompletionProvider>? _exclusiveProviders;
-
         private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
 
         protected CompletionServiceWithProviders(Workspace workspace)
-            : this(workspace, exclusiveProviders: null)
-        {
-        }
-
-        internal CompletionServiceWithProviders(
-            Workspace workspace,
-            ImmutableArray<CompletionProvider>? exclusiveProviders = null)
         {
             _workspace = workspace;
-            _exclusiveProviders = exclusiveProviders;
             _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
             _createRoleProviders = CreateRoleProviders;
             _getProviderByName = GetProviderByName;
@@ -62,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Returns the providers always available to the service.
         /// This does not included providers imported via MEF composition.
         /// </summary>
+        [Obsolete("This method is no longer used.", error: true)]
         protected virtual ImmutableArray<CompletionProvider> GetBuiltInProviders()
         {
             return ImmutableArray<CompletionProvider>.Empty;
@@ -85,18 +78,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return _importedProviders;
         }
 
-        private ImmutableArray<CompletionProvider> _testProviders = ImmutableArray<CompletionProvider>.Empty;
-
-        internal void SetTestProviders(IEnumerable<CompletionProvider> testProviders)
-        {
-            lock (_gate)
-            {
-                _testProviders = testProviders != null ? testProviders.ToImmutableArray() : ImmutableArray<CompletionProvider>.Empty;
-                _rolesToProviders.Clear();
-                _nameToProvider.Clear();
-            }
-        }
-
         private ImmutableArray<CompletionProvider> CreateRoleProviders(ImmutableHashSet<string> roles)
         {
             var providers = GetAllProviders(roles);
@@ -111,18 +92,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
         {
-            if (_exclusiveProviders.HasValue)
-            {
-                return _exclusiveProviders.Value;
-            }
-
-            var builtin = GetBuiltInProviders();
             var imported = GetImportedProviders()
                 .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
                 .Select(lz => lz.Value);
 
-            var providers = builtin.Concat(imported).Concat(_testProviders);
-            return providers.ToImmutableArray();
+            return imported.ToImmutableArray();
         }
 
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles)
@@ -152,6 +126,11 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionTrigger trigger,
             OptionSet options)
         {
+            if (options.GetOption(CompletionServiceOptions.IsExpandedCompletion))
+            {
+                providers = providers.WhereAsArray(p => p.IsExpandItemProvider);
+            }
+
             // If the caller passed along specific options that affect snippets,
             // then defer to those.  Otherwise if the caller just wants the default
             // behavior, then get the snippets behavior from our own rules.
@@ -213,6 +192,18 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
+            var (completionList, _) = await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
+            return completionList;
+        }
+
+        private protected async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
+            Document document,
+            int caretPosition,
+            CompletionTrigger trigger,
+            ImmutableHashSet<string> roles,
+            OptionSet options,
+            CancellationToken cancellationToken)
+        {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
@@ -242,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Now, ask all the triggered providers, in parallel, to populate a completion context.
             // Note: we keep any context with items *or* with a suggested item.  
-            var triggeredCompletionContexts = await ComputeNonEmptyCompletionContextsAsync(
+            var (triggeredCompletionContexts, expandItemsAvailableFromTriggeredProviders) = await ComputeNonEmptyCompletionContextsAsync(
                 document, caretPosition, trigger, options,
                 defaultItemSpan, triggeredProviders,
                 cancellationToken).ConfigureAwait(false);
@@ -252,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // want to show any completion.
             if (!triggeredCompletionContexts.Any(cc => cc.Items.Count > 0))
             {
-                return null;
+                return (null, expandItemsAvailableFromTriggeredProviders);
             }
 
             // All the contexts should be non-empty or have a suggestion item.
@@ -264,10 +255,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (exclusiveContexts.Any())
             {
-                return MergeAndPruneCompletionLists(
-                    exclusiveContexts,
-                    defaultItemSpan,
-                    isExclusive: true);
+                return (MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, isExclusive: true),
+                    expandItemsAvailableFromTriggeredProviders);
             }
 
             // Shouldn't be any exclusive completion contexts at this point.
@@ -279,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // we'll want to augment the list with all the regular symbol completion items.
             var augmentingProviders = providers.Except(triggeredProviders).ToImmutableArray();
 
-            var augmentingCompletionContexts = await ComputeNonEmptyCompletionContextsAsync(
+            var (augmentingCompletionContexts, expandItemsAvailableFromAugmentingProviders) = await ComputeNonEmptyCompletionContextsAsync(
                 document, caretPosition, trigger, options, defaultItemSpan,
                 augmentingProviders, cancellationToken).ConfigureAwait(false);
 
@@ -290,7 +279,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // groups are properly ordered based on the original providers.
             allContexts = allContexts.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
-            return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, isExclusive: false);
+            return (MergeAndPruneCompletionLists(allContexts, defaultItemSpan, isExclusive: false),
+                (expandItemsAvailableFromTriggeredProviders || expandItemsAvailableFromAugmentingProviders));
         }
 
         private static bool HasAnyItems(CompletionContext cc)
@@ -298,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return cc.Items.Count > 0 || cc.SuggestionModeItem != null;
         }
 
-        private async Task<ImmutableArray<CompletionContext>> ComputeNonEmptyCompletionContextsAsync(
+        private async Task<(ImmutableArray<CompletionContext>, bool)> ComputeNonEmptyCompletionContextsAsync(
             Document document, int caretPosition, CompletionTrigger trigger,
             OptionSet options, TextSpan defaultItemSpan,
             ImmutableArray<CompletionProvider> providers,
@@ -314,7 +304,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
             var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
             var nonEmptyContexts = completionContexts.Where(HasAnyItems).ToImmutableArray();
-            return nonEmptyContexts;
+            var shouldShowExpander = completionContexts.Any(context => context.ExpandItemsAvailable);
+            return (nonEmptyContexts, shouldShowExpander);
         }
 
         private CompletionList MergeAndPruneCompletionLists(
@@ -542,8 +533,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 _completionServiceWithProviders = completionServiceWithProviders;
             }
 
-            internal ImmutableArray<CompletionProvider>? ExclusiveProviders
-                => _completionServiceWithProviders._exclusiveProviders;
+            internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
+                => _completionServiceWithProviders.GetAllProviders(roles);
 
             internal Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,

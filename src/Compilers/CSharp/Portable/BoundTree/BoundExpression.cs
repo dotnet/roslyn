@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -54,11 +56,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.TupleLiteral:
                 case BoundKind.UnconvertedSwitchExpression:
+                    return true;
+                case BoundKind.StackAllocArrayCreation:
+                    // A BoundStackAllocArrayCreation is given a null type when it is in a
+                    // syntactic context where it could be either a pointer or a span, and
+                    // in that case it requires conversion to one or the other.
+                    return this.Type is null;
 #if DEBUG
                 case BoundKind.Local when !WasConverted:
                 case BoundKind.Parameter when !WasConverted:
+                    return !WasCompilerGenerated;
 #endif
-                    return true;
                 default:
                     return false;
             }
@@ -137,17 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Method;
             }
         }
-
-        /// <summary>
-        /// The set of method symbols from which this call's method was chosen.
-        /// Only kept in the tree if the call was an error and overload resolution
-        /// was unable to choose a best method.
-        /// </summary>
-        // (Note that this property is not automatically generated; we typically
-        // will not be visiting or rewriting this error-recovery information.)
-        //
-        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalMethodsOpt { get; private set; }
     }
 
     internal partial class BoundTypeExpression
@@ -229,44 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Indexer; }
         }
 
-        /// <summary>
-        /// The set of indexer symbols from which this call's indexer was chosen.
-        /// Only kept in the tree if the call was an error and overload resolution
-        /// was unable to choose a best indexer.
-        /// </summary>
-        // (Note that this property is not automatically generated; we typically
-        // will not be visiting or rewriting this error-recovery information.)
-        //
-        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<PropertySymbol> OriginalIndexersOpt { get; private set; }
-
-        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration)
-        {
-            if (useSetterForDefaultArgumentGeneration != this.UseSetterForDefaultArgumentGeneration)
-            {
-                var result = new BoundIndexerAccess(
-                   this.Syntax,
-                   this.ReceiverOpt,
-                   this.Indexer,
-                   this.Arguments,
-                   this.ArgumentNamesOpt,
-                   this.ArgumentRefKindsOpt,
-                   this.Expanded,
-                   this.ArgsToParamsOpt,
-                   this.BinderOpt,
-                   useSetterForDefaultArgumentGeneration,
-                   this.Type,
-                   this.HasErrors)
-                {
-                    WasCompilerGenerated = this.WasCompilerGenerated,
-                    OriginalIndexersOpt = this.OriginalIndexersOpt
-                };
-
-                return result;
-            }
-
-            return this;
-        }
+        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration) =>
+            Update(ReceiverOpt, Indexer, Arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, Expanded, ArgsToParamsOpt, BinderOpt, useSetterForDefaultArgumentGeneration, OriginalIndexersOpt, Type);
 
         public override LookupResultKind ResultKind
         {
@@ -320,17 +281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.MethodOpt; }
         }
-
-        /// <summary>
-        /// The set of method symbols from which this operator's method was chosen.
-        /// Only kept in the tree if the operator was an error and overload resolution
-        /// was unable to choose a best method.
-        /// </summary>
-        // (Note that this property is not automatically generated; we typically
-        // will not be visiting or rewriting this error-recovery information.)
-        //
-        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundUserDefinedConditionalLogicalOperator
@@ -339,17 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.LogicalOperator; }
         }
-
-        /// <summary>
-        /// The set of method symbols from which this operator's method was chosen.
-        /// Only kept in the tree if the operator was an error and overload resolution
-        /// was unable to choose a best method.
-        /// </summary>
-        // (Note that this property is not automatically generated; we typically
-        // will not be visiting or rewriting this error-recovery information.)
-        //
-        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundUnaryOperator
@@ -363,17 +302,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.MethodOpt; }
         }
-
-        /// <summary>
-        /// The set of method symbols from which this operator's method was chosen.
-        /// Only kept in the tree if the operator was an error and overload resolution
-        /// was unable to choose a best method.
-        /// </summary>
-        // (Note that this property is not automatically generated; we typically
-        // will not be visiting or rewriting this error-recovery information.)
-        //
-        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundIncrementOperator
@@ -382,17 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.MethodOpt; }
         }
-
-        /// <summary>
-        /// The set of method symbols from which this operator's method was chosen.
-        /// Only kept in the tree if the operator was an error and overload resolution
-        /// was unable to choose a best method.
-        /// </summary>
-        // (Note that this property is not automatically generated; we typically
-        // will not be visiting or rewriting this error-recovery information.)
-        //
-        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundCompoundAssignmentOperator
@@ -401,17 +318,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.Operator.Method; }
         }
-
-        /// <summary>
-        /// The set of method symbols from which this operator's method was chosen.
-        /// Only kept in the tree if the operator was an error and overload resolution
-        /// was unable to choose a best method.
-        /// </summary>
-        // (Note that this property is not automatically generated; we typically
-        // will not be visiting or rewriting this error-recovery information.)
-        //
-        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundLiteral
@@ -449,17 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.SymbolOpt; }
         }
 
-        /// <summary>
-        /// The set of method symbols from which this conversion's method was chosen.
-        /// Only kept in the tree if the conversion was an error and overload resolution
-        /// was unable to choose a best method.
-        /// </summary>
-        // (Note that this property is not automatically generated; we typically
-        // will not be visiting or rewriting this error-recovery information.)
-        //
-        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedConversionsOpt { get; }
-
         public override bool SuppressVirtualCalls
         {
             get { return this.IsBaseConversion; }
@@ -467,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConversion UpdateOperand(BoundExpression operand)
         {
-            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValue, this.ConversionGroupOpt, this.Type);
+            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValue, this.ConversionGroupOpt, this.OriginalUserDefinedConversionsOpt, this.Type);
         }
 
         /// <summary>
@@ -568,11 +463,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultExpression
+    internal partial class BoundDefaultLiteral
     {
         public override ConstantValue ConstantValue
         {
-            get { return this.ConstantValueOpt; }
+            get { return null; }
         }
     }
 

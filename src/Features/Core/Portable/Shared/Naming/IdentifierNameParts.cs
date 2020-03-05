@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -69,13 +71,13 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
 
         private static ImmutableArray<string> CreateWords(ArrayBuilder<TextSpan> parts, string name)
         {
-            var result = ArrayBuilder<string>.GetInstance(parts.Count);
+            using var resultDisposer = ArrayBuilder<string>.GetInstance(parts.Count, out var result);
             foreach (var part in parts)
             {
                 result.Add(name.Substring(part.Start, part.Length));
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
     }
 }

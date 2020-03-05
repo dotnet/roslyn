@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Wrapping
@@ -64,35 +67,19 @@ namespace Microsoft.CodeAnalysis.Wrapping
         {
             // make a local so this array can't change out from under us.
             var mruTitles = s_mruTitles;
-            return codeActions.Sort((ca1, ca2) =>
-            {
-                var titleIndex1 = mruTitles.IndexOf(GetSortTitle(ca1));
-                var titleIndex2 = mruTitles.IndexOf(GetSortTitle(ca2));
+            return codeActions.Sort((d1, d2) => ComparerWithState.CompareTo(d1, d2, (mruTitles, codeActions), s_comparers));
+        }
 
-                if (titleIndex1 >= 0 && titleIndex2 >= 0)
-                {
-                    // we've invoked both of these before.  Order by how recently it was invoked.
-                    return titleIndex1 - titleIndex2;
-                }
-
+        private static readonly ImmutableArray<Func<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>), IComparable>> s_comparers =
+            ImmutableArray.Create<Func<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>), IComparable>>(
                 // one of these has never been invoked.  It's always after an item that has been
                 // invoked.
-                if (titleIndex1 >= 0)
-                {
-                    return -1;
-                }
-
-                if (titleIndex2 >= 0)
-                {
-                    return 1;
-                }
-
+                // we've invoked both of these before.  Order by how recently it was invoked.
+                (ca, tuple) => tuple.Item1.IndexOf(GetSortTitle(ca)),
                 // Neither of these has been invoked.   Keep it in the same order we found it in the
                 // array.  Note: we cannot return 0 here as ImmutableArray/Array are not guaranteed
                 // to sort stably.
-                return codeActions.IndexOf(ca1) - codeActions.IndexOf(ca2);
-            });
-        }
+                (ca, tuple) => tuple.Item2.IndexOf(ca));
 
         private static string GetSortTitle(CodeAction codeAction)
             => (codeAction as WrapItemsAction)?.SortTitle ?? codeAction.Title;

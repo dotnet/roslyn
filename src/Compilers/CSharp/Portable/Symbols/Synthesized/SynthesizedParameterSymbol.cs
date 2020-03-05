@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -26,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name = "")
         {
-            Debug.Assert(type.HasType);
-            Debug.Assert(name != null);
-            Debug.Assert(ordinal >= 0);
+            RoslynDebug.Assert(type.HasType);
+            RoslynDebug.Assert(name != null);
+            RoslynDebug.Assert(ordinal >= 0);
 
             _container = container;
             _type = type;
@@ -37,24 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = name;
         }
 
-        public override TypeWithAnnotations TypeWithAnnotations
-        {
-            get { return _type; }
-        }
+        public override TypeWithAnnotations TypeWithAnnotations => _type;
 
-        public override RefKind RefKind
-        {
-            get { return _refKind; }
-        }
+        public override RefKind RefKind => _refKind;
+
+        public sealed override bool IsDiscard => false;
 
         internal override bool IsMetadataIn => RefKind == RefKind.In;
 
         internal override bool IsMetadataOut => RefKind == RefKind.Out;
-
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
-        {
-            get { return null; }
-        }
 
         public override string Name
         {
@@ -83,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return null; }
         }
@@ -192,14 +188,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             string name = "",
-            ImmutableArray<CustomModifier> refCustomModifiers = default(ImmutableArray<CustomModifier>))
+            ImmutableArray<CustomModifier> refCustomModifiers = default,
+            SourceComplexParameterSymbol? baseParameterForAttributes = null)
         {
-            if (refCustomModifiers.IsDefaultOrEmpty)
+            if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null)
             {
                 return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name);
             }
 
-            return new SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, refKind, name, refCustomModifiers);
+            return new SynthesizedComplexParameterSymbol(
+                container,
+                type,
+                ordinal,
+                refKind,
+                name,
+                refCustomModifiers.NullToEmpty(),
+                baseParameterForAttributes);
         }
 
         /// <summary>
@@ -215,9 +219,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var oldParam in sourceMethod.Parameters)
             {
+                Debug.Assert(!(oldParam is SynthesizedComplexParameterSymbol));
                 //same properties as the old one, just change the owner
-                builder.Add(SynthesizedParameterSymbol.Create(destinationMethod, oldParam.TypeWithAnnotations, oldParam.Ordinal,
-                    oldParam.RefKind, oldParam.Name, oldParam.RefCustomModifiers));
+                builder.Add(Create(
+                    destinationMethod,
+                    oldParam.TypeWithAnnotations,
+                    oldParam.Ordinal,
+                    oldParam.RefKind,
+                    oldParam.Name,
+                    oldParam.RefCustomModifiers,
+                    baseParameterForAttributes: null));
             }
 
             return builder.ToImmutableAndFree();
@@ -228,26 +239,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        private sealed class SynthesizedParameterSymbolWithCustomModifiers : SynthesizedParameterSymbolBase
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
-            private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
-
-            public SynthesizedParameterSymbolWithCustomModifiers(
-                MethodSymbol container,
-                TypeWithAnnotations type,
-                int ordinal,
-                RefKind refKind,
-                string name,
-                ImmutableArray<CustomModifier> refCustomModifiers)
-                : base(container, type, ordinal, refKind, name)
-            {
-                _refCustomModifiers = refCustomModifiers.NullToEmpty();
-            }
-
-            public override ImmutableArray<CustomModifier> RefCustomModifiers
-            {
-                get { return _refCustomModifiers; }
-            }
+            get { return null; }
         }
+    }
+
+    internal sealed class SynthesizedComplexParameterSymbol : SynthesizedParameterSymbolBase
+    {
+        private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
+
+        // The parameter containing attributes to inherit into this synthesized parameter, if any.
+        private readonly SourceComplexParameterSymbol? _baseParameterForAttributes;
+
+        public SynthesizedComplexParameterSymbol(
+            MethodSymbol container,
+            TypeWithAnnotations type,
+            int ordinal,
+            RefKind refKind,
+            string name,
+            ImmutableArray<CustomModifier> refCustomModifiers,
+            SourceComplexParameterSymbol? baseParameterForAttributes)
+            : base(container, type, ordinal, refKind, name)
+        {
+            Debug.Assert(!refCustomModifiers.IsDefault);
+            Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object);
+
+            _refCustomModifiers = refCustomModifiers;
+            _baseParameterForAttributes = baseParameterForAttributes;
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return _refCustomModifiers; }
+        }
+
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            return _baseParameterForAttributes?.GetAttributes() ?? ImmutableArray<CSharpAttributeData>.Empty;
+        }
+
+        public bool HasEnumeratorCancellationAttribute => _baseParameterForAttributes?.HasEnumeratorCancellationAttribute ?? false;
+
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
     }
 }

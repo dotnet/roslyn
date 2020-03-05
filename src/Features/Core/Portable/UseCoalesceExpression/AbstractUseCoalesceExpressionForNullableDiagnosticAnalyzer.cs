@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -32,31 +36,28 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
+        {
+            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
+                syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
+        }
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
+            var option = context.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
             if (!option.Value)
             {
                 return;
             }
 
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 
@@ -71,8 +72,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 conditionNode = syntaxFacts.GetOperandOfPrefixUnaryExpression(conditionNode);
             }
 
-            var conditionMemberAccess = conditionNode as TMemberAccessExpression;
-            if (conditionMemberAccess == null)
+            if (!(conditionNode is TMemberAccessExpression conditionMemberAccess))
             {
                 return;
             }
@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             var whenPartToCheck = notHasValueExpression ? whenFalseNodeLow : whenTrueNodeLow;
-            var whenPartMemberAccess = whenPartToCheck as TMemberAccessExpression;
-            if (whenPartMemberAccess == null)
+            if (!(whenPartToCheck is TMemberAccessExpression whenPartMemberAccess))
             {
                 return;
             }

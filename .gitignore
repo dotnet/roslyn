@@ -186,9 +186,6 @@ $RECYCLE.BIN/
 # Mac desktop service store files
 .DS_Store
 
-# Visual Studio Code
-.vscode/
-
 # JetBrains Rider
 .idea/
 

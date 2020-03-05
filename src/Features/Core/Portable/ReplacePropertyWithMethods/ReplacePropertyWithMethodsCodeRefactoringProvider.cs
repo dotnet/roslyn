@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var service = document.GetLanguageService<IReplacePropertyWithMethodsService>();
             if (service == null)
             {
@@ -59,10 +61,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 ? FeaturesResources.Replace_0_with_method
                 : FeaturesResources.Replace_0_with_methods;
 
-            context.RegisterRefactoring(new ReplacePropertyWithMethodsCodeAction(
-                string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
-                propertyName));
+            context.RegisterRefactoring(
+                new ReplacePropertyWithMethodsCodeAction(
+                    string.Format(resourceString, propertyName),
+                    c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
+                    propertyName),
+                propertyDeclaration.Span);
         }
 
         private async Task<Solution> ReplacePropertyWithMethodsAsync(

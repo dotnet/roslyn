@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,6 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generate return statements from the state machine method body.
         /// </summary>
         protected abstract BoundStatement GenerateReturn(bool finished);
+
+        /// <summary>
+        /// Signal the transition from `try`/`catch` blocks to the `finally` block.
+        /// </summary>
+        protected virtual void CloseTryCatchBlocks()
+        {
+        }
 
         protected readonly SyntheticBoundNodeFactory F;
 
@@ -273,8 +282,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                Debug.Assert(local.SynthesizedKind.IsLongLived());
-
                 CapturedSymbolReplacement proxy;
                 bool reused = false;
                 if (!proxies.TryGetValue(local, out proxy))
@@ -414,9 +421,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, out bool reused, LocalSymbol local = null)
         {
-            // In debug builds we don't reuse any hoisted variable.
-            Debug.Assert(F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release);
-
             ArrayBuilder<StateMachineFieldSymbol> fields;
             if (_lazyAvailableReusableHoistedFields != null && _lazyAvailableReusableHoistedFields.TryGetValue(type, out fields) && fields.Count > 0)
             {
@@ -445,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyAvailableReusableHoistedFields == null)
                 {
-                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
                 }
 
                 _lazyAvailableReusableHoistedFields.Add(field.Type, fields = new ArrayBuilder<StateMachineFieldSymbol>());
@@ -846,6 +850,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dispatches = oldDispatches;
 
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);
+
+            CloseTryCatchBlocks();
             BoundBlock finallyBlockOpt = node.FinallyBlockOpt == null ? null : F.Block(
                 F.HiddenSequencePoint(),
                 F.If(

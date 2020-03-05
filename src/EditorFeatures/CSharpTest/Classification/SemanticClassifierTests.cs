@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -15,6 +17,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -29,14 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, bool outOfProcess)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, options))
-            {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            using var workspace = CreateWorkspace(code, span, options, outOfProcess);
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-                return GetSemanticClassificationsAsync(document, span);
-            }
+            return GetSemanticClassificationsAsync(document, span);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2342,73 +2343,63 @@ struct Type<T>
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
-            using (var workspace = TestWorkspace.CreateCSharp(""))
+            using var workspace = TestWorkspace.CreateCSharp("");
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+
+            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
+            var contentType = contentTypeService.GetDefaultContentType();
+            var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
+
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
+            using var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer);
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+
+            var provider = new SemanticClassificationViewTaggerProvider(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
+                workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
+                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                listenerProvider);
+
+            using var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
+            using (var edit = extraBuffer.CreateEdit())
             {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-
-                var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
-                var contentType = contentTypeService.GetDefaultContentType();
-                var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
-
-                WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
-                using (var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer))
-                {
-                    var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-
-                    var provider = new SemanticClassificationViewTaggerProvider(
-                        workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                        workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                        workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
-                        workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                        listenerProvider);
-
-                    using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer))
-                    {
-                        using (var edit = extraBuffer.CreateEdit())
-                        {
-                            edit.Insert(0, "class A { }");
-                            edit.Apply();
-                        }
-
-                        var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-                        await waiter.CreateExpeditedWaitTask();
-                    }
-                }
+                edit.Insert(0, "class A { }");
+                edit.Apply();
             }
+
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
+            await waiter.ExpeditedWaitAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestGetTagsOnBufferTagger()
         {
             // don't crash
-            using (var workspace = TestWorkspace.CreateCSharp("class C { C c; }"))
-            {
-                var document = workspace.Documents.First();
+            using var workspace = TestWorkspace.CreateCSharp("class C { C c; }");
+            var document = workspace.Documents.First();
 
-                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
-                var provider = new SemanticClassificationBufferTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                    workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                    workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
-                    workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                    listenerProvider);
+            var provider = new SemanticClassificationBufferTaggerProvider(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
+                workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
+                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                listenerProvider);
 
-                var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
-                using (var disposable = (IDisposable)tagger)
-                {
-                    var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-                    await waiter.CreateExpeditedWaitTask();
+            var tagger = provider.CreateTagger<IClassificationTag>(document.GetTextBuffer());
+            using var disposable = (IDisposable)tagger;
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
+            await waiter.ExpeditedWaitAsync();
 
-                    var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
-                    var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
+            var tags = tagger.GetTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection());
+            var allTags = tagger.GetAllTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
 
-                    Assert.Empty(tags);
-                    Assert.NotEmpty(allTags);
+            Assert.Empty(tags);
+            Assert.NotEmpty(allTags);
 
-                    Assert.Equal(allTags.Count(), 1);
-                }
-            }
+            Assert.Equal(1, allTags.Count());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -3623,6 +3614,232 @@ class X
                 Namespace("OtherScope"),
                 TypeParameter("T"),
                 Keyword("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NonDiscardVariableDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        var _ = int.Parse("""");
+    }
+}",
+            Keyword("var"),
+            Static("Parse"),
+            Method("Parse"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NonDiscardVariableDeclarationMultipleDeclarators()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int i = 1, _ = 1;
+        int _ = 2, j = 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        _ = int.Parse("""");
+    }
+}",
+            Keyword("_"),
+            Static("Parse"),
+            Method("Parse"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInOutDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int.TryParse("""", out var _);
+    }
+}",
+            Method("TryParse"),
+            Static("TryParse"),
+            Keyword("var"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInOutAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int.TryParse("""", out _);
+    }
+}",
+            Method("TryParse"),
+            Static("TryParse"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInDeconstructionAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        (x, _) = (0, 0);
+    }
+}",
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInDeconstructionDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        (int x, int _) = (0, 0);
+    }
+}",
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInPatternMatch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        return x is int _;
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInSwitch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        switch(x)
+        {
+            case int _:
+                return true;
+            default:
+                return false;
+        }
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInSwitchPatternMatch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        return x switch
+        {
+            _ => return true;
+        };
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task UnusedUnderscoreParameterInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int> a = (int _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task UsedUnderscoreParameterInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int> a = (int _) => _;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Parameter("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardsInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int, int> a = (int _, int _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Keyword("_"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardsInLambdaWithInferredType()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int, int> a = (_, _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Keyword("_"),
+            Keyword("_"));
         }
     }
 }

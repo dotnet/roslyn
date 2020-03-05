@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -35,29 +37,20 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var syntaxTree = context.Node.SyntaxTree;
-            var options = (CSharpParseOptions)syntaxTree.Options;
-            if (options.LanguageVersion < LanguageVersion.CSharp8)
+            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(syntaxTree))
             {
                 return;
             }
 
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction);
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;
             }
 
             var semanticModel = context.SemanticModel;
-            var analysis = semanticModel.AnalyzeDataFlow(localFunction);
-            var captures = analysis.CapturedInside;
-            if (analysis.Succeeded && captures.Length == 0)
+            if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbols(localFunction, semanticModel, out var captures) && captures.Length == 0)
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,

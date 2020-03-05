@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -63,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             parseOptions,
                             scriptParseOptions,
                             analyzerConfigOptions.IsDefault
-                                ? null
-                                : analyzerConfigOptions[i].TreeOptions,
+                                ? (AnalyzerConfigOptionsResult?)null
+                                : analyzerConfigOptions[i],
                             ref hadErrors,
                             sourceFiles[i],
                             diagnosticBag,
@@ -85,8 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parseOptions,
                         scriptParseOptions,
                         analyzerConfigOptions.IsDefault
-                            ? null
-                            : analyzerConfigOptions[i].TreeOptions,
+                            ? (AnalyzerConfigOptionsResult?)null
+                            : analyzerConfigOptions[i],
                         ref hadErrors,
                         sourceFiles[i],
                         diagnosticBag,
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var normalizedFilePath = normalizedFilePaths[i];
                 Debug.Assert(normalizedFilePath != null);
-                Debug.Assert(PathUtilities.IsAbsolute(normalizedFilePath));
+                Debug.Assert(sourceFiles[i].IsInputRedirected || PathUtilities.IsAbsolute(normalizedFilePath));
 
                 if (!uniqueFilePaths.Add(normalizedFilePath))
                 {
@@ -176,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SyntaxTree ParseFile(
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+            AnalyzerConfigOptionsResult? analyzerConfigOptionsResult,
             ref bool addedDiagnostics,
             CommandLineSourceFile file,
             DiagnosticBag diagnostics,
@@ -198,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(fileDiagnostics.Count == 0);
-                return ParseFile(parseOptions, scriptParseOptions, content, file, diagnosticOptions);
+                return ParseFile(parseOptions, scriptParseOptions, content, file, analyzerConfigOptionsResult);
             }
         }
 
@@ -207,13 +209,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpParseOptions scriptParseOptions,
             SourceText content,
             CommandLineSourceFile file,
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
+            AnalyzerConfigOptionsResult? analyzerConfigOptionsResult)
         {
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions;
+            bool? isUserConfiguredGeneratedCode;
+            if (analyzerConfigOptionsResult.HasValue)
+            {
+                diagnosticOptions = analyzerConfigOptionsResult.Value.TreeOptions;
+                isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(analyzerConfigOptionsResult.Value.AnalyzerOptions);
+            }
+            else
+            {
+                diagnosticOptions = null;
+                isUserConfiguredGeneratedCode = null;
+            }
+
             var tree = SyntaxFactory.ParseSyntaxTree(
                 content,
                 file.IsScript ? scriptParseOptions : parseOptions,
                 file.Path,
-                diagnosticOptions);
+                diagnosticOptions,
+                isUserConfiguredGeneratedCode);
 
             // prepopulate line tables.
             // we will need line tables anyways and it is better to not wait until we are in emit

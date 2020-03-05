@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -181,7 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceMemberContainerTypeSymbol(
             NamespaceOrTypeSymbol containingSymbol,
             MergedTypeDeclaration declaration,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            TupleExtraData tupleData = null)
+            : base(tupleData)
         {
             _containingSymbol = containingSymbol;
             this.declaration = declaration;
@@ -1079,7 +1083,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IEnumerable<string> MemberNames
         {
-            get { return this.declaration.MemberNames; }
+            get
+            {
+                return IsTupleType ? GetMembers().Select(m => m.Name).Distinct() : this.declaration.MemberNames;
+            }
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
@@ -1427,6 +1434,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            var baseType = BaseTypeNoUseSiteDiagnostics;
+            var interfaces = GetInterfacesToEmit();
             if (compilation.ShouldEmitNullableAttributes(this))
             {
                 if (ShouldEmitNullableContextValue(out _))
@@ -1435,13 +1444,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-                var baseType = BaseTypeNoUseSiteDiagnostics;
-                var interfaces = InterfacesNoUseSiteDiagnostics();
                 if (baseType?.NeedsNullableAttribute() == true ||
-                    interfaces.Any(t => t.NeedsNullableAttribute()))
+                     interfaces.Any(t => t.NeedsNullableAttribute()))
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
+            }
+
+            if (interfaces.Any(t => needsTupleElementNamesAttribute(t)))
+            {
+                // Note: we don't need to check base type or directly implemented interfaces (which will be reported during binding)
+                // so the checking of all interfaces here involves some redundancy.
+                Binder.ReportMissingTupleElementNamesAttributesIfNeeded(compilation, location, diagnostics);
+            }
+
+            static bool needsTupleElementNamesAttribute(TypeSymbol type)
+            {
+                if (type is null)
+                {
+                    return false;
+                }
+
+                var resultType = type.VisitType(
+                    predicate: (t, a, b) => !t.TupleElementNames.IsDefaultOrEmpty && !t.IsErrorType(),
+                    arg: (object)null);
+                return resultType is object;
             }
         }
 
@@ -2224,7 +2251,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Most types don't have indexers.  If this is one of those types,
             // just reuse the dictionary we build for early attribute decoding.
-            if (membersAndInitializers.IndexerDeclarations.Length == 0)
+            // For tuples, we also need to take the slow path.
+            if (membersAndInitializers.IndexerDeclarations.Length == 0 && !this.IsTupleType)
             {
                 return GetEarlyAttributeDecodingMembersDictionary();
             }
@@ -2252,58 +2280,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddAccessorIfAvailable(indexerMembers, indexer.SetMethod, diagnostics, checkName: true);
             }
 
-            var membersByName = MergeIndexersAndNonIndexers(membersAndInitializers.NonTypeNonIndexerMembers, indexerMembers);
+            var membersByName = mergeIndexersAndNonIndexers(membersAndInitializers.NonTypeNonIndexerMembers, indexerMembers);
             indexerMembers.Free();
 
             // Merge types into the member dictionary
             AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());
 
             return membersByName;
-        }
 
-        /// <summary>
-        /// Merge (already ordered) non-type, non-indexer members with (already ordered) indexer members.
-        /// </summary>
-        private static Dictionary<string, ImmutableArray<Symbol>> MergeIndexersAndNonIndexers(ImmutableArray<Symbol> nonIndexerMembers, ArrayBuilder<Symbol> indexerMembers)
-        {
-            int nonIndexerCount = nonIndexerMembers.Length;
-            int indexerCount = indexerMembers.Count;
-
-            var merged = ArrayBuilder<Symbol>.GetInstance(nonIndexerCount + indexerCount);
-
-            int nonIndexerPos = 0;
-            int indexerPos = 0;
-
-            while (nonIndexerPos < nonIndexerCount && indexerPos < indexerCount)
+            // Merge (already ordered) non-type, non-indexer members with (already ordered) indexer members.
+            static Dictionary<string, ImmutableArray<Symbol>> mergeIndexersAndNonIndexers(ImmutableArray<Symbol> nonIndexerMembers, ArrayBuilder<Symbol> indexerMembers)
             {
-                var nonIndexer = nonIndexerMembers[nonIndexerPos];
-                var indexer = indexerMembers[indexerPos];
-                if (LexicalOrderSymbolComparer.Instance.Compare(nonIndexer, indexer) < 0)
+                int nonIndexerCount = nonIndexerMembers.Length;
+                int indexerCount = indexerMembers.Count;
+
+                var merged = ArrayBuilder<Symbol>.GetInstance(nonIndexerCount + indexerCount);
+
+                int nonIndexerPos = 0;
+                int indexerPos = 0;
+
+                while (nonIndexerPos < nonIndexerCount && indexerPos < indexerCount)
                 {
-                    merged.Add(nonIndexer);
-                    nonIndexerPos++;
+                    var nonIndexer = nonIndexerMembers[nonIndexerPos];
+                    var indexer = indexerMembers[indexerPos];
+                    if (LexicalOrderSymbolComparer.Instance.Compare(nonIndexer, indexer) < 0)
+                    {
+                        merged.Add(nonIndexer);
+                        nonIndexerPos++;
+                    }
+                    else
+                    {
+                        merged.Add(indexer);
+                        indexerPos++;
+                    }
                 }
-                else
+
+                for (; nonIndexerPos < nonIndexerCount; nonIndexerPos++)
                 {
-                    merged.Add(indexer);
-                    indexerPos++;
+                    merged.Add(nonIndexerMembers[nonIndexerPos]);
                 }
+
+                for (; indexerPos < indexerCount; indexerPos++)
+                {
+                    merged.Add(indexerMembers[indexerPos]);
+                }
+
+                var membersByName = merged.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
+                merged.Free();
+
+                return membersByName;
             }
-
-            for (; nonIndexerPos < nonIndexerCount; nonIndexerPos++)
-            {
-                merged.Add(nonIndexerMembers[nonIndexerPos]);
-            }
-
-            for (; indexerPos < indexerCount; indexerPos++)
-            {
-                merged.Add(indexerMembers[indexerPos]);
-            }
-
-            var membersByName = merged.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
-            merged.Free();
-
-            return membersByName;
         }
 
         private static void AddNestedTypesToDictionary(Dictionary<string, ImmutableArray<Symbol>> membersByName, Dictionary<string, ImmutableArray<NamedTypeSymbol>> typesByName)
@@ -2328,7 +2354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private class MembersAndInitializersBuilder
         {
-            public readonly ArrayBuilder<Symbol> NonTypeNonIndexerMembers = ArrayBuilder<Symbol>.GetInstance();
+            public ArrayBuilder<Symbol> NonTypeNonIndexerMembers { get; private set; } = ArrayBuilder<Symbol>.GetInstance();
             public readonly ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
             public readonly ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
             public readonly ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
@@ -2353,6 +2379,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 StaticInitializers.Free();
                 InstanceInitializers.Free();
                 IndexerDeclarations.Free();
+            }
+
+            internal void AddOrWrapTupleMembers(SourceMemberContainerTypeSymbol type)
+            {
+                this.NonTypeNonIndexerMembers = type.AddOrWrapTupleMembers(this.NonTypeNonIndexerMembers.ToImmutableAndFree());
             }
         }
 
@@ -2383,6 +2414,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default:
                     break;
+            }
+
+            if (IsTupleType)
+            {
+                builder.AddOrWrapTupleMembers(this);
             }
 
             // We already built the members and initializers on another thread, we might have detected that condition
@@ -3339,7 +3375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var builder = new MostCommonNullableValueBuilder();
             var baseType = BaseTypeNoUseSiteDiagnostics;
-            if (!(baseType is null))
+            if (baseType is object)
             {
                 builder.AddValue(TypeWithAnnotations.Create(baseType));
             }
@@ -3366,7 +3402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = DeclaringCompilation;
             NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
 
-            if (!(baseType is null))
+            if (baseType is object)
             {
                 if (baseType.ContainsDynamic())
                 {
@@ -3386,7 +3422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
                 }
 
-                if (!(baseType is null))
+                if (baseType is object)
                 {
                     AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, nullableContextValue, TypeWithAnnotations.Create(baseType)));
                 }

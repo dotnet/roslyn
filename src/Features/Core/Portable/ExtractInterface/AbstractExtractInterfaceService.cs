@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -414,7 +416,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
                 var typeDeclaration = currentRoot.GetAnnotatedNodes(typeNodeAnnotation).SingleOrDefault();
 
-                if (typeDeclaration == default)
+                if (typeDeclaration == null)
                 {
                     continue;
                 }
@@ -616,7 +618,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return false;
             }
 
-            if (type == typeParameter ||
+            // We want to ignore nullability when comparing as T and T? both are references to the type parameter
+            if (type.Equals(typeParameter, SymbolEqualityComparer.Default) ||
                 type.GetTypeArguments().Any(t => DoesTypeReferenceTypeParameter(t, typeParameter, checkedTypes)))
             {
                 return true;

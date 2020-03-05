@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the standard ??= case because it only uses lhsRead once.
                 if (lhsRead.Kind == BoundKind.Call)
                 {
-                    var lhsTemp = _factory.StoreToTemp(lhsRead, out var store, kind: SynthesizedLocalKind.Spill);
+                    var lhsTemp = _factory.StoreToTemp(lhsRead, out var store);
                     stores.Add(store);
                     temps.Add(lhsTemp.LocalSymbol);
                     lhsRead = lhsTemp;
@@ -94,8 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // tmp = lhsRead.GetValueOrDefault();
                 var tmp = _factory.StoreToTemp(BoundCall.Synthesized(leftOperand.Syntax, lhsRead, getValueOrDefault),
-                                               out var getValueOrDefaultStore,
-                                               kind: SynthesizedLocalKind.Spill);
+                                               out var getValueOrDefaultStore);
 
                 stores.Add(getValueOrDefaultStore);
                 temps.Add(tmp.LocalSymbol);

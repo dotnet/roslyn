@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -26,11 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// but only for code cases where the user has provided an appropriate variable name in
     /// code that can be used).
     /// </summary>
-    //
-    // disabled for preview 1 due to some perf issue. 
-    // we will re-enable it once the issue is addressed.
-    // https://devdiv.visualstudio.com/DevDiv/_workitems?id=504089&_a=edit&triage=true 
-    // [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
@@ -74,12 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
+            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
             if (!styleOption.Value)
             {
@@ -250,9 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // Don't bother recursing down nodes that are before the type in the is-expression.
             if (node.Span.End >= type.Span.End)
             {
-                if (node.IsKind(SyntaxKind.CastExpression))
+                if (node.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression))
                 {
-                    var castExpression = (CastExpressionSyntax)node;
                     if (SyntaxFactory.AreEquivalent(castExpression.Type, type) &&
                         SyntaxFactory.AreEquivalent(castExpression.Expression.WalkDownParentheses(), expr))
                     {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -78,14 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
             {
                 typeSyntax = declarationExpression.Type;
-                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
+                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax variableDesignation))
                 {
-                    parensDesignation = (ParenthesizedVariableDesignationSyntax)declarationExpression.Designation;
+                    parensDesignation = variableDesignation;
                 }
             }
             else
             {
-                Contract.Fail($"unhandled kind {declarationContext.Kind().ToString()}");
+                throw ExceptionUtilities.UnexpectedValue(declarationContext.Kind());
             }
 
             if (parensDesignation is null)
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             var elements = ((INamedTypeSymbol)typeSymbol).TupleElements;
             Debug.Assert(elements.Length == parensDesignation.Variables.Count);
 
-            var builder = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length);
+            using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length, out var builder);
             for (var i = 0; i < elements.Length; i++)
             {
                 var designation = parensDesignation.Variables[i];
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 {
                     case SyntaxKind.SingleVariableDesignation:
                     case SyntaxKind.DiscardDesignation:
-                        var typeName = type.GenerateTypeSyntax();
+                        var typeName = type.GenerateTypeSyntax(allowVar: false);
                         newDeclaration = SyntaxFactory.DeclarationExpression(typeName, designation);
                         break;
                     case SyntaxKind.ParenthesizedVariableDesignation:
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             return SyntaxFactory.TupleExpression(
                 SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTrailingTrivia(),
-                SyntaxFactory.SeparatedList(builder.ToImmutableAndFree(), separatorBuilder.ToImmutableAndFree()),
+                SyntaxFactory.SeparatedList(builder.ToImmutable(), separatorBuilder.ToImmutableAndFree()),
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken))
                 .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }

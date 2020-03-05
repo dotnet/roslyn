@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -25,6 +27,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.PatternMatching;
 using Roslyn.Test.EditorUtilities.NavigateTo;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
@@ -109,7 +112,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         {
             using (var workspace = SetupWorkspace(content, createTrackingService))
             {
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)));
                 await body(workspace);
             }
         }
@@ -208,28 +212,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         // For ordering of NavigateToItems, see
         // http://msdn.microsoft.com/en-us/library/microsoft.visualstudio.language.navigateto.interfaces.navigatetoitem.aspx
         protected static int CompareNavigateToItems(NavigateToItem a, NavigateToItem b)
-        {
-            var result = ((int)a.PatternMatch.Kind) - ((int)b.PatternMatch.Kind);
-            if (result != 0)
-            {
-                return result;
-            }
+            => ComparerWithState.CompareTo(a, b, s_comparisonComponents);
 
-            result = a.Name.CompareTo(b.Name);
-            if (result != 0)
-            {
-                return result;
-            }
-
-            result = a.Kind.CompareTo(b.Kind);
-            if (result != 0)
-            {
-                return result;
-            }
-
-            result = a.SecondarySort.CompareTo(b.SecondarySort);
-            return result;
-        }
+        private readonly static ImmutableArray<Func<NavigateToItem, IComparable>> s_comparisonComponents =
+            ImmutableArray.Create<Func<NavigateToItem, IComparable>>(
+                item => (int)item.PatternMatch.Kind,
+                item => item.Name,
+                item => item.Kind,
+                item => item.SecondarySort);
 
         private class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
         {

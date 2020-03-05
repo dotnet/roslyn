@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
@@ -44,19 +46,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var variableDeclarator = await context.TryGetSelectedNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
-            if (variableDeclarator == default)
+            var variableDeclarator = await context.TryGetRelevantNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
+            if (variableDeclarator == null)
             {
                 return;
             }
 
-            if (!variableDeclarator.IsParentKind(SyntaxKind.VariableDeclaration) ||
-                !variableDeclarator.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
+            if (!variableDeclarator.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) ||
+                !variableDeclaration.IsParentKind(SyntaxKind.LocalDeclarationStatement))
             {
                 return;
             }
 
-            var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
             if (variableDeclarator.Initializer == null ||
                 variableDeclarator.Initializer.Value.IsMissing ||
                 variableDeclarator.Initializer.Value.IsKind(SyntaxKind.StackAllocArrayCreationExpression))
@@ -87,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Inline_temporary_variable,
-                    c => this.InlineTemporaryAsync(document, variableDeclarator, c)));
+                    c => this.InlineTemporaryAsync(document, variableDeclarator, c)),
+                variableDeclarator.Span);
         }
 
         private async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
@@ -129,9 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 identifierNode = identifier;
             }
 
-            if (identifierNode.IsParentKind(SyntaxKind.Argument))
+            if (identifierNode.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
             {
-                var argument = (ArgumentSyntax)identifierNode.Parent;
                 if (argument.RefOrOutKeyword.Kind() != SyntaxKind.None)
                 {
                     return true;
@@ -200,12 +201,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var topmostParentingExpressions = nonConflictingIdentifierNodes
                 .Select(ident => GetTopMostParentingExpression(ident))
-                .Distinct();
+                .Distinct().ToList();
 
             var originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.Initializer.Value, cancellationToken);
 
             // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
-            updatedDocument = await updatedDocument.ReplaceNodesAsync(topmostParentingExpressions, (o, n) => Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
+            updatedDocument = await updatedDocument.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>
+            {
+                var node = Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken);
+
+                // warn when inlining into a conditional expression, as the inlined expression will not be executed.
+                if (semanticModel.GetSymbolInfo(o).Symbol is IMethodSymbol { IsConditional: true })
+                {
+                    node = node.WithAdditionalAnnotations(
+                        WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));
+                }
+                return node;
+            }, cancellationToken).ConfigureAwait(false);
+
             semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticModelBeforeInline = semanticModel;
 
@@ -227,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             if (conflicts.Count() == declaratorConflicts.Count())
             {
                 // Certain semantic conflicts can be detected only after the reference rewriter has inlined the expression
-                var newDocument = await DetectSemanticConflicts(updatedDocument,
+                var newDocument = await DetectSemanticConflictsAsync(updatedDocument,
                                                                 semanticModel,
                                                                 semanticModelBeforeInline,
                                                                 originalInitializerSymbolInfo,
@@ -279,9 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var annotatedNodesAndTokens = root.GetAnnotatedNodesAndTokens(ReferenceAnnotation);
             foreach (var nodeOrToken in annotatedNodesAndTokens)
             {
-                if (nodeOrToken.IsNode && nodeOrToken.AsNode().IsKind(SyntaxKind.IdentifierName))
+                if (nodeOrToken.IsNode && nodeOrToken.AsNode().IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                 {
-                    yield return (IdentifierNameSyntax)nodeOrToken.AsNode();
+                    yield return identifierName;
                 }
             }
         }
@@ -370,11 +383,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             // If the local is parented by a label statement, we can't remove this statement. Instead,
             // we'll replace the local declaration with an empty expression statement.
-            if (newLocalDeclaration.IsParentKind(SyntaxKind.LabeledStatement))
+            if (newLocalDeclaration.IsParentKind(SyntaxKind.LabeledStatement, out LabeledStatementSyntax labeledStatement))
             {
-                var labeledStatement = (LabeledStatementSyntax)newLocalDeclaration.Parent;
                 var newLabeledStatement = labeledStatement.ReplaceNode(newLocalDeclaration, SyntaxFactory.ParseStatement(""));
-
                 return newScope.ReplaceNode(labeledStatement, newLabeledStatement);
             }
 
@@ -383,9 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private ExpressionSyntax SkipRedundantExteriorParentheses(ExpressionSyntax expression)
         {
-            while (expression.IsKind(SyntaxKind.ParenthesizedExpression))
+            while (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesized))
             {
-                var parenthesized = (ParenthesizedExpressionSyntax)expression;
                 if (parenthesized.Expression == null ||
                     parenthesized.Expression.IsMissing)
                 {
@@ -447,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var newVariableDeclarator = await FindDeclaratorAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
             localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(newVariableDeclarator, cancellationToken);
 
-            var explicitCastExpression = newExpression.CastIfPossible(localSymbol.Type, newVariableDeclarator.SpanStart, semanticModel);
+            var explicitCastExpression = newExpression.CastIfPossible(localSymbol.Type, newVariableDeclarator.SpanStart, semanticModel, cancellationToken);
             if (explicitCastExpression != newExpression)
             {
                 updatedDocument = await updatedDocument.ReplaceNodeAsync(newExpression, explicitCastExpression, cancellationToken).ConfigureAwait(false);
@@ -466,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return expression.AncestorsAndSelf().OfType<ExpressionSyntax>().Last();
         }
 
-        private static async Task<Document> DetectSemanticConflicts(
+        private static async Task<Document> DetectSemanticConflictsAsync(
             Document inlinedDocument,
             SemanticModel newSemanticModelForInlinedDocument,
             SemanticModel semanticModelBeforeInline,
@@ -567,9 +577,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 {
                     return false;
                 }
-                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
+                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax assignment))
                 {
-                    return ((AssignmentExpressionSyntax)parent.Parent).Left == parent;
+                    return assignment.Left == parent;
                 }
 
                 parent = parent.Parent;

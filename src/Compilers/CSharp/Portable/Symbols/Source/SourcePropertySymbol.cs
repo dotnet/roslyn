@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,6 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : PropertySymbol, IAttributeTargetSymbol
     {
+        /// <summary>
+        /// Condensed flags storing useful information about the <see cref="SourcePropertySymbol"/> 
+        /// so that we do not have to go back to source to compute this data.
+        /// </summary>
+        [Flags]
+        private enum Flags : byte
+        {
+            IsExpressionBodied = 1 << 0,
+            IsAutoProperty = 1 << 1,
+            IsExplicitInterfaceImplementation = 1 << 2,
+        }
+
         private const string DefaultIndexerName = "Item";
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -31,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SynthesizedBackingFieldSymbol _backingField;
         private readonly TypeSymbol _explicitInterfaceType;
         private readonly ImmutableArray<PropertySymbol> _explicitInterfaceImplementations;
-        private readonly bool _isExpressionBodied;
-        private readonly bool _isAutoProperty;
+        private readonly Flags _propertyFlags;
         private readonly RefKind _refKind;
 
         private SymbolCompletionState _state;
@@ -63,7 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // This has the value that IsIndexer will ultimately have, once we've populated the fields of this object.
             bool isIndexer = syntax.Kind() == SyntaxKind.IndexerDeclaration;
             var interfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
-            bool isExplicitInterfaceImplementation = (interfaceSpecifier != null);
+            bool isExplicitInterfaceImplementation = interfaceSpecifier != null;
+            if (isExplicitInterfaceImplementation)
+            {
+                _propertyFlags |= Flags.IsExplicitInterfaceImplementation;
+            }
 
             _location = location;
             _containingType = containingType;
@@ -132,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
             _sourceName = _sourceName ?? memberName; //sourceName may have been set while loading attributes
             _name = isIndexer ? ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, _explicitInterfaceType, aliasQualifierOpt) : _sourceName;
-            _isExpressionBodied = false;
 
             if (hasInitializer)
             {
@@ -142,10 +159,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isAutoProperty || hasInitializer)
             {
                 var hasGetSyntax = getSyntax != null;
-                _isAutoProperty = isAutoProperty && hasGetSyntax;
+                var isAutoPropertyWithGetSyntax = isAutoProperty && hasGetSyntax;
+                if (isAutoPropertyWithGetSyntax)
+                {
+                    _propertyFlags |= Flags.IsAutoProperty;
+                }
+
                 bool isGetterOnly = hasGetSyntax && setSyntax == null;
 
-                if (_isAutoProperty && !IsStatic && !isGetterOnly)
+                if (isAutoPropertyWithGetSyntax && !IsStatic && !isGetterOnly)
                 {
                     if (ContainingType.IsReadOnly)
                     {
@@ -157,9 +179,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (_isAutoProperty || hasInitializer)
+                if (isAutoPropertyWithGetSyntax || hasInitializer)
                 {
-                    if (_isAutoProperty)
+                    if (isAutoPropertyWithGetSyntax)
                     {
                         //issue a diagnostic if the compiler generated attribute ctor is not found.
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(bodyBinder.Compilation,
@@ -267,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (hasExpressionBody)
                 {
-                    _isExpressionBodied = true;
+                    _propertyFlags |= Flags.IsExpressionBodied;
                     _getMethod = SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                         containingType,
                         this,
@@ -375,13 +397,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create(explicitlyImplementedProperty);
 
             // get-only auto property should not override settable properties
-            if (_isAutoProperty && (object)_setMethod == null && !this.IsReadOnly)
+            if ((_propertyFlags & Flags.IsAutoProperty) != 0)
             {
-                diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, location, this);
-            }
+                if (_setMethod is null && !this.IsReadOnly)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, location, this);
+                }
 
-            if (_isAutoProperty)
-            {
                 CheckForFieldTargetedAttribute(syntax, diagnostics);
             }
 
@@ -470,12 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
-            }
-        }
+            => (_propertyFlags & Flags.IsExpressionBodied) != 0;
 
         private void CheckInitializer(
             bool isAutoProperty,
@@ -705,9 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsExplicitInterfaceImplementation
-        {
-            get { return this.CSharpSyntaxNode.ExplicitInterfaceSpecifier != null; }
-        }
+            => (_propertyFlags & Flags.IsExplicitInterfaceImplementation) != 0;
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
         {
@@ -727,10 +742,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsAutoProperty
+        public bool HasSkipLocalsInitAttribute
         {
-            get { return _isAutoProperty; }
+            get
+            {
+                var data = this.GetDecodedWellKnownAttributeData();
+                return data?.HasSkipLocalsInitAttribute == true;
+            }
         }
+
+        internal bool IsAutoProperty
+            => (_propertyFlags & Flags.IsAutoProperty) != 0;
 
         /// <summary>
         /// Backing field for automatically implemented property, or
@@ -1144,14 +1166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-        {
-            get
-            {
-                return _isAutoProperty
-                    ? AttributeLocation.Property | AttributeLocation.Field
-                    : AttributeLocation.Property;
-            }
-        }
+            => (_propertyFlags & Flags.IsAutoProperty) != 0
+                ? AttributeLocation.Property | AttributeLocation.Field
+                : AttributeLocation.Property;
 
         /// <summary>
         /// Returns a bag of custom attributes applied on the property and data decoded from well-known attributes. Returns null if there are no attributes.
@@ -1351,6 +1368,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
                 arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            {
+                attribute.DecodeSkipLocalsInitAttribute<PropertyWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {

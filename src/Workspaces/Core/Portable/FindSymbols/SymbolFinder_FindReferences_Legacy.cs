@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,14 +22,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="symbol">The symbol to find references to.</param>
         /// <param name="solution">The solution to find references within.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
+            Solution solution,
+            CancellationToken cancellationToken = default)
+        {
+            return FindReferencesAsync(new SymbolAndProjectId(symbol, projectId: null), solution, cancellationToken);
+        }
+
+        internal static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken = default)
         {
             var progressCollector = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
             await FindReferencesAsync(
-                SymbolAndProjectId.Create(symbol, projectId: null),
+                symbolAndProjectId,
                 solution, progress: progressCollector, documents: null,
                 options: FindReferencesSearchOptions.Default,
                 cancellationToken: cancellationToken).ConfigureAwait(false);

@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
             await TestAsync(
 string.Empty,
 @"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-
 ");
         }
 
@@ -71,7 +70,6 @@ string.Empty,
 @"[assembly: System.Reflection.AssemblyName(""Test"")]",
 @"[assembly: System.Reflection.AssemblyName(""Test"")]
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-
 ");
         }
     }

@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -14,15 +20,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// this contains all states regarding a <see cref="DiagnosticAnalyzer"/>
         /// </summary>
-        private class StateSet
+        private sealed class StateSet
         {
-            private readonly string _language;
-            private readonly DiagnosticAnalyzer _analyzer;
-            private readonly string _errorSourceName;
+            public readonly string Language;
+            public readonly DiagnosticAnalyzer Analyzer;
+            public readonly string ErrorSourceName;
 
             // analyzer version this state belong to
-            private readonly VersionStamp _analyzerVersion;
-            private readonly AnalyzerStateNames _analyzerStateNames;
+            public readonly VersionStamp AnalyzerVersion;
+            private readonly PersistentNames _persistentNames;
 
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
@@ -33,46 +39,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public StateSet(string language, DiagnosticAnalyzer analyzer, string errorSourceName)
             {
-                _language = language;
-                _analyzer = analyzer;
-                _errorSourceName = errorSourceName;
+                Language = language;
+                Analyzer = analyzer;
+                ErrorSourceName = errorSourceName;
 
-                var (_, version) = _analyzer.GetAnalyzerIdAndVersion();
-                _analyzerVersion = version;
+                var (_, version) = Analyzer.GetAnalyzerIdAndVersion();
+                AnalyzerVersion = version;
 
-                _analyzerStateNames = AnalyzerStateNames.For(_analyzer);
+                _persistentNames = PersistentNames.Create(Analyzer);
 
                 _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
-            public string StateName => _analyzerStateNames.StateName;
-            public string SyntaxStateName => _analyzerStateNames.SyntaxStateName;
-            public string SemanticStateName => _analyzerStateNames.SemanticStateName;
-            public string NonLocalStateName => _analyzerStateNames.NonLocalStateName;
+            public string StateName => _persistentNames.StateName;
+            public string SyntaxStateName => _persistentNames.SyntaxStateName;
+            public string SemanticStateName => _persistentNames.SemanticStateName;
+            public string NonLocalStateName => _persistentNames.NonLocalStateName;
 
-            public string Language => _language;
-            public string ErrorSourceName => _errorSourceName;
-
-            public DiagnosticAnalyzer Analyzer => _analyzer;
-            public VersionStamp AnalyzerVersion => _analyzerVersion;
-
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
             public bool ContainsAnyDocumentOrProjectDiagnostics(ProjectId projectId)
             {
-                foreach (var state in GetActiveFileStates(projectId))
+                foreach (var (documentId, state) in _activeFileStates)
                 {
-                    if (!state.IsEmpty)
+                    if (documentId.ProjectId == projectId && !state.IsEmpty)
                     {
                         return true;
                     }
                 }
 
-                if (!_projectStates.TryGetValue(projectId, out var projectState))
-                {
-                    return false;
-                }
-
-                return !projectState.IsEmpty();
+                return _projectStates.TryGetValue(projectId, out var projectState) && !projectState.IsEmpty();
             }
 
             public IEnumerable<ProjectId> GetProjectsWithDiagnostics()
@@ -86,14 +82,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (_activeFileStates.Count == 1 && _projectStates.IsEmpty)
                 {
                     // see whether we actually have diagnostics
-                    var kv = _activeFileStates.First();
-                    if (kv.Value.IsEmpty)
+                    var (documentId, state) = _activeFileStates.First();
+                    if (state.IsEmpty)
                     {
                         return SpecializedCollections.EmptyEnumerable<ProjectId>();
                     }
 
                     // we do have diagnostics
-                    return SpecializedCollections.SingletonEnumerable(kv.Key.ProjectId);
+                    return SpecializedCollections.SingletonEnumerable(documentId.ProjectId);
                 }
 
                 return new HashSet<ProjectId>(
@@ -103,67 +99,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                                            .Select(kv => kv.Key)));
             }
 
-            public IEnumerable<DocumentId> GetDocumentsWithDiagnostics(ProjectId projectId)
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
+            public void CollectDocumentsWithDiagnostics(ProjectId projectId, HashSet<DocumentId> set)
             {
-                HashSet<DocumentId> set = null;
-                foreach (var state in GetActiveFileStates(projectId))
+                RoslynDebug.Assert(set != null);
+
+                // Collect active documents with diagnostics
+
+                foreach (var (documentId, state) in _activeFileStates)
                 {
-                    set ??= new HashSet<DocumentId>();
-                    set.Add(state.DocumentId);
+                    if (documentId.ProjectId == projectId && !state.IsEmpty)
+                    {
+                        set.Add(documentId);
+                    }
                 }
 
-                if (!_projectStates.TryGetValue(projectId, out var projectState) || projectState.IsEmpty())
+                if (_projectStates.TryGetValue(projectId, out var projectState) && !projectState.IsEmpty())
                 {
-                    return set ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
+                    set.UnionWith(projectState.GetDocumentsWithDiagnostics());
                 }
-
-                set ??= new HashSet<DocumentId>();
-                set.UnionWith(projectState.GetDocumentsWithDiagnostics());
-
-                return set;
-            }
-
-            private IEnumerable<ActiveFileState> GetActiveFileStates(ProjectId projectId)
-            {
-                return _activeFileStates.Where(kv => kv.Key.ProjectId == projectId).Select(kv => kv.Value);
             }
 
             public bool IsActiveFile(DocumentId documentId)
-            {
-                return _activeFileStates.ContainsKey(documentId);
-            }
+                => _activeFileStates.ContainsKey(documentId);
 
             public bool FromBuild(ProjectId projectId)
-            {
-                if (!_projectStates.TryGetValue(projectId, out var projectState))
-                {
-                    return false;
-                }
-
-                return projectState.FromBuild;
-            }
+                => _projectStates.TryGetValue(projectId, out var projectState) && projectState.FromBuild;
 
             public bool TryGetActiveFileState(DocumentId documentId, out ActiveFileState state)
-            {
-                return _activeFileStates.TryGetValue(documentId, out state);
-            }
+                => _activeFileStates.TryGetValue(documentId, out state);
 
             public bool TryGetProjectState(ProjectId projectId, out ProjectState state)
-            {
-                return _projectStates.TryGetValue(projectId, out state);
-            }
+                => _projectStates.TryGetValue(projectId, out state);
 
-            public ActiveFileState GetActiveFileState(DocumentId documentId)
-            {
-                return _activeFileStates.GetOrAdd(documentId, id => new ActiveFileState(id));
-            }
+            public ActiveFileState GetOrCreateActiveFileState(DocumentId documentId)
+                => _activeFileStates.GetOrAdd(documentId, id => new ActiveFileState(id));
 
-            public ProjectState GetProjectState(ProjectId projectId)
-            {
-                return _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
-            }
+            public ProjectState GetOrCreateProjectState(ProjectId projectId)
+                => _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
 
-            public async Task<bool> OnDocumentOpenedAsync(Document document)
+            public async Task<bool> OnDocumentOpenedAsync(IPersistentStorageService persistentStorageService, Document document)
             {
                 // can not be cancelled
                 if (!TryGetProjectState(document.Project.Id, out var projectState) ||
@@ -173,20 +148,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return false;
                 }
 
-                // always load data
-                var avoidLoadingData = false;
-                var result = await projectState.GetAnalysisDataAsync(document, avoidLoadingData, CancellationToken.None).ConfigureAwait(false);
+                var result = await projectState.GetAnalysisDataAsync(persistentStorageService, document, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
 
-                // put project state to active file state
-                var activeFileState = GetActiveFileState(document.Id);
+                // store analysis result to active file state:
+                var activeFileState = GetOrCreateActiveFileState(document.Id);
 
-                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, result.GetResultOrEmpty(result.SyntaxLocals, document.Id)));
-                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, result.GetResultOrEmpty(result.SemanticLocals, document.Id)));
+                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)));
+                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)));
 
                 return true;
             }
 
-            public async Task<bool> OnDocumentClosedAsync(Document document)
+            public async Task<bool> OnDocumentClosedAsync(IPersistentStorageService persistentStorageService, Document document)
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
@@ -196,8 +169,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // active file exist, put it in the project state
-                var projectState = GetProjectState(document.Project.Id);
-                await projectState.MergeAsync(activeFileState, document).ConfigureAwait(false);
+                var projectState = GetOrCreateProjectState(document.Project.Id);
+                await projectState.MergeAsync(persistentStorageService, activeFileState, document).ConfigureAwait(false);
                 return true;
             }
 
@@ -225,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // remove active file state for removed document
                 var removed = false;
-                if (_activeFileStates.TryRemove(id, out var activeFileState))
+                if (_activeFileStates.TryRemove(id, out _))
                 {
                     removed = true;
                 }
@@ -257,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.DropCache(Analyzer);
             }
 
-            public void ComputeCompilationEndAnalyzer(Project project, Compilation compilation)
+            public void ComputeCompilationEndAnalyzer(Project project, Compilation? compilation)
             {
                 if (_compilationEndAnalyzer != -1)
                 {
@@ -265,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // running this multiple time is fine
-                var result = _analyzer.IsCompilationEndAnalyzer(project, compilation);
+                var result = Analyzer.IsCompilationEndAnalyzer(project, compilation);
                 if (!result.HasValue)
                 {
                     // try again next time.
@@ -282,14 +255,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return _compilationEndAnalyzer == 1;
             }
 
-            private sealed class AnalyzerStateNames
+            private sealed class PersistentNames
             {
                 private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
 
-                private static readonly ConcurrentDictionary<string, AnalyzerStateNames> s_analyzerStateNameCache
-                    = new ConcurrentDictionary<string, AnalyzerStateNames>(concurrencyLevel: 2, capacity: 10);
+                private static readonly ConcurrentDictionary<string, PersistentNames> s_analyzerStateNameCache
+                    = new ConcurrentDictionary<string, PersistentNames>(concurrencyLevel: 2, capacity: 10);
 
-                private AnalyzerStateNames(string assemblyQualifiedName)
+                private PersistentNames(string assemblyQualifiedName)
                 {
                     StateName = UserDiagnosticsPrefixTableName + "_" + assemblyQualifiedName;
                     SyntaxStateName = StateName + ".Syntax";
@@ -307,9 +280,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 public string SemanticStateName { get; }
                 public string NonLocalStateName { get; }
 
-                public static AnalyzerStateNames For(DiagnosticAnalyzer diagnosticAnalyzer)
+                public static PersistentNames Create(DiagnosticAnalyzer diagnosticAnalyzer)
                 {
-                    return s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new AnalyzerStateNames(t));
+                    return s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new PersistentNames(t));
                 }
             }
         }

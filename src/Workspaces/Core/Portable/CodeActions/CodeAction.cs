@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -224,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // process changed projects
             foreach (var projectChanges in solutionChanges.GetProjectChanges())
             {
-                var documentsToProcess = projectChanges.GetChangedDocuments(true).Concat(
+                var documentsToProcess = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(
                     projectChanges.GetAddedDocuments());
 
                 foreach (var documentId in documentsToProcess)
@@ -267,6 +270,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (document.SupportsSyntaxTree)
             {
+                document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
+                    document, Simplifier.AddImportsAnnotation, safe: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
                 document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any node with explicit formatter annotation

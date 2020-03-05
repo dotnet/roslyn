@@ -35,10 +35,6 @@ indent_size = 2
 end_of_line = lf
 indent_size = 2
 
-# Dotnet diagnostic settings
-[*.{cs,vb}]
-dotnet_diagnostic.xUnit2018.severity = none # "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now
-
 # Dotnet code style settings:
 [*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first
@@ -209,3 +205,10 @@ csharp_space_between_square_brackets = false
 csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
+
+# warning RS0037: PublicAPI.txt is missing '#nullable enable'
+dotnet_diagnostic.RS0037.severity = none
+
+[src/CodeStyle/**.{cs,vb}]
+# warning RS0005: Do not use generic CodeAction.Create to create CodeAction
+dotnet_diagnostic.RS0005.severity = none

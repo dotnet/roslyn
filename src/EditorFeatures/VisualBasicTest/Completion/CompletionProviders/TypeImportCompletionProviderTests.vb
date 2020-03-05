@@ -1,9 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Experiments
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Composition
 
@@ -19,16 +20,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
 
-        Protected Overrides Sub SetWorkspaceOptions(workspace As TestWorkspace)
-            workspace.Options = workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue)
-        End Sub
+        Private Property IsExpandedCompletion As Boolean = True
 
-        Protected Overrides Function GetExportProvider() As ExportProvider
-            Return ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestExperimentationService))).CreateExportProvider()
+        Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
+            Return options _
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New TypeImportCompletionProvider()
+        Protected Overrides Function GetExportCatalog() As ComposableCatalog
+            Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))
+        End Function
+
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(TypeImportCompletionProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -163,6 +168,46 @@ End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyItemExistsAsync(markup, "MyGenericClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", displayTextSuffix:="(Of ...)", expectedDescriptionOrNull:="Class Foo.MyGenericClass(Of T)")
+        End Function
+
+        <InlineData(SourceCodeKind.Regular)>
+        <InlineData(SourceCodeKind.Script)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
+        Public Async Function CommitTypeInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
+
+            Dim file1 = <Text>
+Namespace Foo
+    Public Class Bar
+    End Class
+End Namespace</Text>.Value
+
+            Dim file2 = "Imports BarAlias = $$"
+
+            Dim expectedCodeAfterCommit = "Imports BarAlias = Foo.Bar$$"
+
+            Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
+            Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)
+        End Function
+
+        <InlineData(SourceCodeKind.Regular)>
+        <InlineData(SourceCodeKind.Script)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")>
+        Public Async Function CommitGenericTypeParameterInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
+
+            Dim file1 = <Text>
+Namespace Foo
+    Public Class Bar
+    End Class
+End Namespace</Text>.Value
+
+            Dim file2 = "Imports BarAlias = System.Collections.Generic.List(Of $$)"
+
+            Dim expectedCodeAfterCommit = "Imports BarAlias = System.Collections.Generic.List(Of Foo.Bar$$)"
+
+            Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
+            Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)
         End Function
     End Class
 End Namespace

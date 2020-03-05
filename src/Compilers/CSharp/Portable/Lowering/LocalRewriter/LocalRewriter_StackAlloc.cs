@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Collections.Immutable;
@@ -12,10 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression stackAllocNode)
         {
-            return VisitStackAllocArrayCreation(stackAllocNode);
+            return VisitStackAllocArrayCreationBase(stackAllocNode);
         }
 
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation stackAllocNode)
+        {
+            return VisitStackAllocArrayCreationBase(stackAllocNode);
+        }
+
+        private BoundNode VisitStackAllocArrayCreationBase(BoundStackAllocArrayCreationBase stackAllocNode)
         {
             var rewrittenCount = VisitExpression(stackAllocNode.Count);
             var type = stackAllocNode.Type;
@@ -64,12 +71,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: ErrorTypeSymbol.UnknownResultType);
                 }
 
+                // The stackalloc instruction requires that the evaluation stack contains only its parameter when executed.
+                // We arrange to clear the stack by wrapping it in a SpillSequence, which will cause pending computations
+                // to be spilled, and also by storing the result in a temporary local, so that the result does not get
+                // hoisted/spilled into some state machine.  If that temp local needs to be spilled that will result in an
+                // error.
                 _needsSpilling = true;
+                var tempAccess = _factory.StoreToTemp(constructorCall, out BoundAssignmentOperator tempAssignment, syntaxOpt: stackAllocNode.Syntax);
+                sideEffects.Add(tempAssignment);
+                locals.Add(tempAccess.LocalSymbol);
                 return new BoundSpillSequence(
                     syntax: stackAllocNode.Syntax,
                     locals: locals.ToImmutableAndFree(),
                     sideEffects: sideEffects.ToImmutableAndFree(),
-                    value: constructorCall,
+                    value: tempAccess,
                     type: spanType);
             }
             else

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
@@ -83,16 +86,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option<int> UseEnhancedColors = new Option<int>(
             nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
-
-        /// <summary>
-        /// Feature to enable <see cref="CompilerFeatureFlags.RunNullableAnalysis"/> in the compiler flags for all csharp projects.
-        /// 0 = default, which leaves the flag unset.
-        /// 1 = set to true
-        /// -1 = set to false
-        /// </summary>
-        public static readonly Option<int> UseNullableReferenceTypeAnalysis = new Option<int>(
-            nameof(FeatureOnOffOptions), nameof(UseNullableReferenceTypeAnalysis), defaultValue: 0,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.{nameof(UseNullableReferenceTypeAnalysis)}"));
 
         // Note: no storage location since this is intentionally a session variable
         public static readonly Option<bool> AcceptedDecompilerDisclaimer = new Option<bool>(

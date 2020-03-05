@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -107,25 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             string bodySource,
             MethodKind kind = MethodKind.Regular)
         {
-            string source;
-            switch (kind)
+            var source = kind switch
             {
-                case MethodKind.Iterator:
-                    source = "class C { IEnumerable<int> F() { " + bodySource + " } }";
-                    break;
-
-                case MethodKind.Async:
-                    source = "class C { async Task<int> F() { " + bodySource + " } }";
-                    break;
-
-                case MethodKind.ConstructorWithParameters:
-                    source = "class C { C" + bodySource + " }";
-                    break;
-
-                default:
-                    source = "class C { void F() { " + bodySource + " } }";
-                    break;
-            }
+                MethodKind.Iterator => "class C { IEnumerable<int> F() { " + bodySource + " } }",
+                MethodKind.Async => "class C { async Task<int> F() { " + bodySource + " } }",
+                MethodKind.ConstructorWithParameters => "class C { C" + bodySource + " }",
+                _ => "class C { void F() { " + bodySource + " } }",
+            };
 
             var tree = ParseSource(source);
             var root = tree.GetRoot();

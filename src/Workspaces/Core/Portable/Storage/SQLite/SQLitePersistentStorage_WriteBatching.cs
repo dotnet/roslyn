@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -56,15 +58,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             TKey key,
             CancellationToken cancellationToken)
         {
-            var writesToProcess = ArrayBuilder<Action<SqlConnection>>.GetInstance();
-            try
-            {
-                await FlushSpecificWritesAsync(keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                writesToProcess.Free();
-            }
+            using var _ = ArrayBuilder<Action<SqlConnection>>.GetInstance(out var writesToProcess);
+            await FlushSpecificWritesAsync(keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
@@ -98,10 +93,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // would be losing data.
                 Debug.Assert(taskCompletionSource != null);
 
-                using (var pooledConnection = GetPooledConnection())
-                {
-                    ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
-                }
+                using var pooledConnection = GetPooledConnection();
+                ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
             }
             catch (OperationCanceledException ex)
             {
@@ -174,37 +167,28 @@ namespace Microsoft.CodeAnalysis.SQLite
         private async Task FlushAllPendingWritesAsync(CancellationToken cancellationToken)
         {
             // Copy the work from _writeQueue to a local list that we can process.
-            var writesToProcess = ArrayBuilder<Action<SqlConnection>>.GetInstance();
-            try
+            using var _ = ArrayBuilder<Action<SqlConnection>>.GetInstance(out var writesToProcess);
+            using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                // Copy the pending work the accessors have to the local copy.
+                _solutionAccessor.AddAndClearAllPendingWrites(writesToProcess);
+                _projectAccessor.AddAndClearAllPendingWrites(writesToProcess);
+                _documentAccessor.AddAndClearAllPendingWrites(writesToProcess);
+
+                // Indicate that there is no outstanding write task.  The next request to 
+                // write will cause one to be kicked off.
+                _flushAllTask = null;
+
+                // Note: we keep the lock while we're writing all.  That way if any reads come
+                // in and want to wait for the respective keys to be written, they will see the
+                // results of our writes after the lock is released.  Note: this is slightly
+                // heavyweight.  But as we're only doing these writes in bulk a couple of times
+                // a second max, this should not be an area of contention.
+                if (writesToProcess.Count > 0)
                 {
-                    // Copy the pending work the accessors have to the local copy.
-                    _solutionAccessor.AddAndClearAllPendingWrites(writesToProcess);
-                    _projectAccessor.AddAndClearAllPendingWrites(writesToProcess);
-                    _documentAccessor.AddAndClearAllPendingWrites(writesToProcess);
-
-                    // Indicate that there is no outstanding write task.  The next request to 
-                    // write will cause one to be kicked off.
-                    _flushAllTask = null;
-
-                    // Note: we keep the lock while we're writing all.  That way if any reads come
-                    // in and want to wait for the respective keys to be written, they will see the
-                    // results of our writes after the lock is released.  Note: this is slightly
-                    // heavyweight.  But as we're only doing these writes in bulk a couple of times
-                    // a second max, this should not be an area of contention.
-                    if (writesToProcess.Count > 0)
-                    {
-                        using (var pooledConnection = GetPooledConnection())
-                        {
-                            ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
-                        }
-                    }
+                    using var pooledConnection = GetPooledConnection();
+                    ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
                 }
-            }
-            finally
-            {
-                writesToProcess.Free();
             }
         }
 

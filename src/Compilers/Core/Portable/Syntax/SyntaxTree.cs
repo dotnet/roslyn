@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -121,10 +124,12 @@ namespace Microsoft.CodeAnalysis
             return TryGetRootCore(out root);
         }
 
+#nullable enable
         /// <summary>
         /// Gets the root of the syntax tree if it is available.
         /// </summary>
-        protected abstract bool TryGetRootCore(out SyntaxNode root);
+        protected abstract bool TryGetRootCore([NotNullWhen(true)] out SyntaxNode? root);
+#nullable restore
 
         /// <summary>
         /// Gets the root node of the syntax tree, causing computation if necessary.
@@ -150,6 +155,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the root node of the syntax tree asynchronously.
         /// </summary>
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Public API.")]
         protected abstract Task<SyntaxNode> GetRootAsyncCore(CancellationToken cancellationToken);
 
         /// <summary>
@@ -360,7 +366,7 @@ namespace Microsoft.CodeAnalysis
         public abstract SyntaxTree WithFilePath(string path);
 
         /// <summary>
-        /// Returns a new tree whose <see cref="DiagnosticOptions" /> are the specifed value and other properties are copied
+        /// Returns a new tree whose <see cref="DiagnosticOptions" /> are the specified value and other properties are copied
         /// from the current tree.
         /// </summary>
         /// <param name="options">

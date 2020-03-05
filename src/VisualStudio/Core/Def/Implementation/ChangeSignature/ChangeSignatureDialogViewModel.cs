@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,10 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly ISymbol _symbol;
 
         private readonly ParameterViewModel _thisParameter;
-        private List<ParameterViewModel> _parameterGroup1;
-        private List<ParameterViewModel> _parameterGroup2;
+        private readonly List<ParameterViewModel> _parameterGroup1;
+        private readonly List<ParameterViewModel> _parameterGroup2;
         private readonly ParameterViewModel _paramsParameter;
-        private HashSet<IParameterSymbol> _disabledParameters = new HashSet<IParameterSymbol>();
+        private readonly HashSet<IParameterSymbol> _disabledParameters = new HashSet<IParameterSymbol>();
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
 
@@ -158,9 +160,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 selectedIndex: -1);
         }
 
-        private static SymbolDisplayFormat s_symbolDeclarationDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_symbolDeclarationDisplayFormat = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+            miscellaneousOptions:
+                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
             extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
             memberOptions:
                 SymbolDisplayMemberOptions.IncludeType |
@@ -169,9 +174,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 SymbolDisplayMemberOptions.IncludeModifiers |
                 SymbolDisplayMemberOptions.IncludeRef);
 
-        private static SymbolDisplayFormat s_parameterDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_parameterDisplayFormat = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+            miscellaneousOptions:
+                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
             parameterOptions:
                 SymbolDisplayParameterOptions.IncludeType |
                 SymbolDisplayParameterOptions.IncludeParamsRefOut |
@@ -439,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public class ParameterViewModel
         {
-            private ChangeSignatureDialogViewModel _changeSignatureDialogViewModel;
+            private readonly ChangeSignatureDialogViewModel _changeSignatureDialogViewModel;
 
             public IParameterSymbol ParameterSymbol { get; }
 

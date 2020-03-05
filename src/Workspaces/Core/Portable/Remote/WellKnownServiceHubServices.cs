@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -11,11 +13,13 @@ namespace Microsoft.CodeAnalysis.Remote
             SnapshotService = "roslynSnapshot" + bit;
             CodeAnalysisService = "roslynCodeAnalysis" + bit;
             RemoteSymbolSearchUpdateEngine = "roslynRemoteSymbolSearchUpdateEngine" + bit;
+            LanguageServer = "roslynLanguageServer" + bit;
         }
 
         public static string SnapshotService { get; private set; } = "roslynSnapshot";
         public static string CodeAnalysisService { get; private set; } = "roslynCodeAnalysis";
         public static string RemoteSymbolSearchUpdateEngine { get; private set; } = "roslynRemoteSymbolSearchUpdateEngine";
+        public static string LanguageServer { get; private set; } = "roslynLanguageServer";
 
         // these are OOP implementation itself should care. not features that consume OOP care
         public const string ServiceHubServiceBase_Initialize = "Initialize";

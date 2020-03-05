@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// "\\clrmain\tools\managed\etw\eventRegister\bin\Debug\eventRegister.exe" Microsoft.CodeAnalysis.Workspaces.dll
     /// </summary>
     [EventSource(Name = "RoslynEventSource")]
-    internal sealed class RoslynEventSource : EventSource
+    internal sealed partial class RoslynEventSource : EventSource
     {
         // might not "enabled" but we always have this singleton alive
         public static readonly RoslynEventSource Instance = new RoslynEventSource();
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 if (!_initialized)
                 {
                     // We're still in the constructor, need to defer sending until we've finished initializing
-                    Task.Yield().GetAwaiter().OnCompleted(SendFunctionDefinitionsAsync);
+                    Task.Yield().GetAwaiter().OnCompleted(() => Task.Run(SendFunctionDefinitions));
                     return;
                 }
 
@@ -96,12 +98,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
             return command.Arguments != null &&
                    command.Arguments.Keys.FirstOrDefault() == "SendFunctionDefinitions";
-        }
-
-        [NonEvent]
-        private void SendFunctionDefinitionsAsync()
-        {
-            Task.Run((Action)SendFunctionDefinitions);
         }
 
         [NonEvent]
