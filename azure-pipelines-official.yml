@@ -48,9 +48,9 @@ stages:
       displayName: Tag build
       inputs:
         type: 'Build'
-        ${{ if variables['IsPRValidationBuild'] }}:
+        ${{ if eq(variables['IsPRValidationBuild'], 'false') }}:
           tags: 'PRValidationBuild'
-        ${{ if not(variables['IsPRValidationBuild']) }}:
+        ${{ if eq(variables['IsPRValidationBuild'], 'true') }}:
           tags: 'OfficialBuild'
 
     - task: PowerShell@2
