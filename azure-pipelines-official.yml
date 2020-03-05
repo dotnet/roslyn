@@ -271,8 +271,6 @@ stages:
 # the runtime variable 'PRNumber', thus this dummy stage.
 - stage: SetValidateDependency
   displayName: Setup the dependency for post-build stages
-  dependsOn:
-  - build
   condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
