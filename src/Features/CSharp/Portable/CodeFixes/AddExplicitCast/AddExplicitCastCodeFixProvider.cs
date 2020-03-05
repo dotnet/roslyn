@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             // For cases like object creation expression. for example:
             // Derived d = [||]new Base();
             // It is always invalid except the target node has explicit conversion operator.
-            var validPotentialConversionTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
+            using var  = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
             foreach (var targetNodeConversionType in mutablePotentialConversionTypes)
             {
                 var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(targetNodeType, targetNodeConversionType);
