@@ -45,7 +45,10 @@ stages:
       displayName: Tag build
       inputs:
         type: 'Build'
-        tags: ${{ if (variables['IsPRValidationBuild']) { 'PRValidationBuild' } else { "OfficialBuild" } }}
+        $[ if variables['IsPRValidationBuild'] ]:
+          tags: 'PRValidationBuild'
+        $[ if not(variables['IsPRValidationBuild']) ]:
+          tags: 'OfficialBuild'
 
     - task: PowerShell@2
       displayName: Setup branch for insertion validation
@@ -262,7 +265,7 @@ stages:
       queue:
         name: Hosted VS2017
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['IsPRValidationBuild'], false)) }}:
+- $[ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['IsPRValidationBuild'], false)) ]:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
       # Symbol validation is not entirely reliable as of yet, so should be turned off until
