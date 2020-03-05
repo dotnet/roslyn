@@ -1588,11 +1588,6 @@ Möchten Sie fortfahren?</target>
 "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Nicht erforderliche Umwandlung entfernen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Namen vereinfachen</target>
