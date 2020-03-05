@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentRenameName), Shared]
     internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit>
     {
+        [ImportingConstructor]
+        public RenameHandler(IThreadingContext threadingContext)
+        {
+        }
+
         public async Task<WorkspaceEdit> HandleRequestAsync(Solution solution, RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             WorkspaceEdit workspaceEdit = null;
