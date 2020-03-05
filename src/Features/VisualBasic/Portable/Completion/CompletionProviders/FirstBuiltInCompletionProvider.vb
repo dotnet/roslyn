@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class FirstBuiltInCompletionProvider
         Inherits CompletionProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Return Task.CompletedTask
         End Function

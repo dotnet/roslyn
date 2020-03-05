@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
     {
+        [ImportingConstructor]
         public XmlDocCommentCompletionProvider() : base(s_defaultRules)
         {
         }

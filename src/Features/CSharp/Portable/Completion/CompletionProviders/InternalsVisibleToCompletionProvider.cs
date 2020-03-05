@@ -15,6 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class InternalsVisibleToCompletionProvider : AbstractInternalsVisibleToCompletionProvider
     {
+        [ImportingConstructor]
+        public InternalsVisibleToCompletionProvider()
+        {
+        }
 
         protected override IImmutableList<SyntaxNode> GetAssemblyScopedAttributeSyntaxNodesOfDocument(SyntaxNode documentRoot)
         {

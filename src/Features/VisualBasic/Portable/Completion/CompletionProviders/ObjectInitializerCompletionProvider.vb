@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class ObjectInitializerCompletionProvider
         Inherits AbstractObjectInitializerCompletionProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetInitializedMembers(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As HashSet(Of String)
             Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
             token = token.GetPreviousTokenIfTouchingWord(position)

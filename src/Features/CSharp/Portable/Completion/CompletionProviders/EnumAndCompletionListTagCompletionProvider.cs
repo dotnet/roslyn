@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal partial class EnumAndCompletionListTagCompletionProvider : CommonCompletionProvider
     {
+        [ImportingConstructor]
+        public EnumAndCompletionListTagCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             // Bring up on space or at the start of a word, or after a ( or [.

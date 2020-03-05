@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal class SpeculativeTCompletionProvider : CommonCompletionProvider
     {
+        [ImportingConstructor]
+        public SpeculativeTCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);

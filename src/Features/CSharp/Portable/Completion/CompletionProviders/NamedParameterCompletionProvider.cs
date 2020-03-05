@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Default
             .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
+        [ImportingConstructor]
+        public NamedParameterCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);

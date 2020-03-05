@@ -20,6 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class EnumCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetPreselectedSymbolsAsync(
                 context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
 

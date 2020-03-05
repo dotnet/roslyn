@@ -981,23 +981,21 @@ End Class
         Friend Class TriggeredCompletionProvider
             Inherits MockCompletionProvider
 
-            Public e As ManualResetEvent
+            Public ReadOnly e As ManualResetEvent = New ManualResetEvent(False)
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
-                MyClass.New(New ManualResetEvent(False))
-            End Sub
-
-            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Private Sub New(e As ManualResetEvent)
                 MyBase.New(getItems:=Function(t, p, c)
-                                         e.WaitOne()
                                          Return Nothing
                                      End Function,
                        isTriggerCharacter:=Function(t, p) True)
-                Me.e = e
             End Sub
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                e.WaitOne()
+                Return MyBase.ProvideCompletionsAsync(context)
+            End Function
         End Class
 
         <WorkItem(544297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544297")>

@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend NotInheritable Class InternalsVisibleToCompletionProvider
         Inherits AbstractInternalsVisibleToCompletionProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetAssemblyScopedAttributeSyntaxNodesOfDocument(documentRoot As SyntaxNode) As IImmutableList(Of SyntaxNode)
             Dim builder As ImmutableList(Of SyntaxNode).Builder = Nothing
             Dim compilationUnit = TryCast(documentRoot, CompilationUnitSyntax)

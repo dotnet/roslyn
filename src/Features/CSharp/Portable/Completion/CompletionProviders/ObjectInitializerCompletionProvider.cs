@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal class ObjectInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
     {
+        [ImportingConstructor]
+        public ObjectInitializerCompletionProvider()
+        {
+        }
+
         protected override async Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // We're exclusive if this context could only be an object initializer and not also a

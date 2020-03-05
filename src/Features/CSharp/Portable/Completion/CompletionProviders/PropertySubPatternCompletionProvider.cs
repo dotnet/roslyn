@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal class PropertySubpatternCompletionProvider : CommonCompletionProvider
     {
+        [ImportingConstructor]
+        public PropertySubpatternCompletionProvider()
+        {
+        }
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;

@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
     Friend Class VisualBasicSuggestionModeCompletionProvider
         Inherits SuggestionModeCompletionProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Async Function GetSuggestionModeItemAsync(document As Document, position As Integer, itemSpan As TextSpan, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of CompletionItem)
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 

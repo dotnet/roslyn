@@ -57,6 +57,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Class TestCompletionProvider
             Inherits CompletionProvider
 
+            <ImportingConstructor>
+            Public Sub New()
+            End Sub
+
             Public Overrides Function ShouldTriggerCompletion(text As SourceText, position As Int32, trigger As CompletionTrigger, options As OptionSet) As [Boolean]
                 Return True
             End Function
