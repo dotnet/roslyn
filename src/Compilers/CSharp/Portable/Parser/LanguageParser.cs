@@ -2231,15 +2231,16 @@ tryAgain:
 
 parse_member_name:;
                     // If we've seen the ref keyword, we know we must have an indexer, method, property, or local.
+                    bool typeIsRef = type.IsRef;
 
                     // Check here for operators
                     // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
-                    if (!type.IsRef && IsOperatorKeyword())
+                    if (!typeIsRef && IsOperatorKeyword())
                     {
                         return this.ParseOperatorDeclaration(attributes, modifiers, type);
                     }
 
-                    if ((!type.IsRef || !IsScript) && IsFieldDeclaration(isEvent: false))
+                    if ((!typeIsRef || !IsScript) && IsFieldDeclaration(isEvent: false))
                     {
                         saveTerm = _termState;
 
@@ -2260,7 +2261,7 @@ parse_member_name:;
                             }
                         }
 
-                        if (!type.IsRef)
+                        if (!typeIsRef)
                         {
                             return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
                         }
@@ -6779,13 +6780,13 @@ done:;
                     case SyntaxKind.SemicolonToken:
                         return _syntaxFactory.EmptyStatement(attributes, this.EatToken());
                     case SyntaxKind.IdentifierToken:
-                        result = TryParseStatementStartingWithIdentifier(attributes, isGlobal && IsScript);
+                        result = TryParseStatementStartingWithIdentifier(attributes, isGlobal);
                         if (result != null)
                             return result;
                         break;
                 }
 
-                return ParseStatementCoreRest(attributes, isGlobal && IsScript, ref resetPointBeforeStatement);
+                return ParseStatementCoreRest(attributes, isGlobal, ref resetPointBeforeStatement);
             }
             finally
             {
@@ -6803,14 +6804,16 @@ done:;
             }
         }
 
-        private StatementSyntax ParseStatementCoreRest(SyntaxList<AttributeListSyntax> attributes, bool isGlobalScriptLevel, ref ResetPoint resetPointBeforeStatement)
+        private StatementSyntax ParseStatementCoreRest(SyntaxList<AttributeListSyntax> attributes, bool isGlobal, ref ResetPoint resetPointBeforeStatement)
         {
-            if (!this.IsPossibleLocalDeclarationStatement(isGlobalScriptLevel))
+            isGlobal = isGlobal && IsScript;
+
+            if (!this.IsPossibleLocalDeclarationStatement(isGlobal))
             {
                 return this.ParseExpressionStatement(attributes);
             }
 
-            if (isGlobalScriptLevel)
+            if (isGlobal)
             {
                 // if we're at the global script level, then we don't support local-decls or
                 // local-funcs. The caller instead will look for those and parse them as
@@ -6852,7 +6855,7 @@ done:;
             return result;
         }
 
-        private StatementSyntax TryParseStatementStartingWithIdentifier(SyntaxList<AttributeListSyntax> attributes, bool isGlobalScriptLevel)
+        private StatementSyntax TryParseStatementStartingWithIdentifier(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
                 this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword)
@@ -6879,7 +6882,7 @@ done:;
             {
                 return this.ParseExpressionStatement(attributes);
             }
-            else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: isGlobalScriptLevel))
+            else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: isGlobal && IsScript))
             {
                 return this.ParseExpressionStatement(attributes, this.ParseQueryExpression(0));
             }
