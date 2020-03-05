@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property SkippedTokensTrivia As Integer = SyntaxKind.SkippedTokensTrivia Implements ISyntaxKinds.SkippedTokensTrivia
         Public ReadOnly Property WhitespaceTrivia As Integer = SyntaxKind.WhitespaceTrivia Implements ISyntaxKinds.WhitespaceTrivia
         Public ReadOnly Property SingleLineCommentTrivia As Integer = SyntaxKind.CommentTrivia Implements ISyntaxKinds.SingleLineCommentTrivia
-        Public ReadOnly Property MultiLineCommentTrivia As Integer = SyntaxKind.None Implements ISyntaxKinds.MultiLineCommentTrivia
+        Private ReadOnly Property MultiLineCommentTrivia As Integer? = Nothing Implements ISyntaxKinds.MultiLineCommentTrivia
 
         Public ReadOnly Property CharacterLiteralToken As Integer = SyntaxKind.CharacterLiteralToken Implements ISyntaxKinds.CharacterLiteralToken
         Public ReadOnly Property DotToken As Integer = SyntaxKind.DotToken Implements ISyntaxKinds.DotToken

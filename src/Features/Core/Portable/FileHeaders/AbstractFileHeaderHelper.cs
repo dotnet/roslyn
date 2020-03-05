@@ -21,13 +21,23 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             EndOfLineTriviaKind = syntaxKinds.EndOfLineTrivia;
         }
 
+        /// <summary>
+        /// Gets the text prefix indicating a single-line comment.
+        /// </summary>
         public abstract string CommentPrefix { get; }
 
         protected abstract string GetTextContextOfComment(SyntaxTrivia commentTrivia);
 
+        /// <inheritdoc cref="ISyntaxKinds.SingleLineCommentTrivia"/>
         private int SingleLineCommentTriviaKind { get; }
-        private int MultiLineCommentTriviaKind { get; }
+
+        /// <inheritdoc cref="ISyntaxKinds.MultiLineCommentTrivia"/>
+        private int? MultiLineCommentTriviaKind { get; }
+
+        /// <inheritdoc cref="ISyntaxKinds.WhitespaceTrivia"/>
         private int WhitespaceTriviaKind { get; }
+
+        /// <inheritdoc cref="ISyntaxKinds.EndOfLineTrivia"/>
         private int EndOfLineTriviaKind { get; }
 
         public FileHeader ParseFileHeader(SyntaxNode root)
