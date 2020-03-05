@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             // Skip single line comments, whitespace, and end of line trivia until a blank line is encountered.
             var triviaList = root.GetLeadingTrivia();
             var onBlankLine = false;
-            var inCopyright = true;
             var removalList = new List<int>();
             var leadingSpaces = string.Empty;
             var possibleLeadingSpaces = string.Empty;
@@ -111,19 +110,12 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                         possibleLeadingSpaces = triviaLine.ToFullString();
                     }
 
-                    if (inCopyright)
-                    {
-                        removalList.Add(i);
-                    }
+                    removalList.Add(i);
                 }
                 else if (triviaLine.RawKind == SyntaxKinds.EndOfLineTrivia)
                 {
                     possibleLeadingSpaces = string.Empty;
-
-                    if (inCopyright)
-                    {
-                        removalList.Add(i);
-                    }
+                    removalList.Add(i);
 
                     if (onBlankLine)
                     {

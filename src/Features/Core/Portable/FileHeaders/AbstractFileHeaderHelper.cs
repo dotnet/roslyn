@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         public FileHeader ParseFileHeader(SyntaxNode root)
         {
             var firstToken = root.GetFirstToken(includeZeroWidth: true);
-            var firstNonWhitespaceTrivia = IndexOfFirstNonWhitespaceTrivia(firstToken.LeadingTrivia, true);
+            var firstNonWhitespaceTrivia = IndexOfFirstNonWhitespaceTrivia(firstToken.LeadingTrivia);
 
             if (firstNonWhitespaceTrivia == -1)
             {
@@ -132,24 +132,16 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// Returns the index of the first non-whitespace trivia in the given trivia list.
         /// </summary>
         /// <param name="triviaList">The trivia list to process.</param>
-        /// <param name="endOfLineIsWhitespace"><see langword="true"/> to treat <see cref="EndOfLineTriviaKind"/>
-        /// as whitespace; otherwise, <see langword="false"/>.</param>
         /// <typeparam name="T">The type of the trivia list.</typeparam>
         /// <returns>The index where the non-whitespace starts, or -1 if there is no non-whitespace trivia.</returns>
-        private int IndexOfFirstNonWhitespaceTrivia<T>(T triviaList, bool endOfLineIsWhitespace = true)
+        private int IndexOfFirstNonWhitespaceTrivia<T>(T triviaList)
             where T : IReadOnlyList<SyntaxTrivia>
         {
             for (var index = 0; index < triviaList.Count; index++)
             {
                 var currentTrivia = triviaList[index];
-                if (currentTrivia.RawKind == EndOfLineTriviaKind)
-                {
-                    if (!endOfLineIsWhitespace)
-                    {
-                        return index;
-                    }
-                }
-                else if (currentTrivia.RawKind != WhitespaceTriviaKind)
+                if (currentTrivia.RawKind != EndOfLineTriviaKind
+                    && currentTrivia.RawKind != WhitespaceTriviaKind)
                 {
                     // encountered non-whitespace trivia -> the search is done.
                     return index;
