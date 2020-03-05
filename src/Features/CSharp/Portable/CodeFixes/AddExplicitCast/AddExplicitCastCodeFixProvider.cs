@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// <summary>
         /// Output the current type information of the target node and the conversion type(s) that the target node is going to be cast by.
         /// Implicit downcast can appear on Variable Declaration, Return Statement, and Function Invocation
-        /// </summary>
+        /// <para/>
         /// For example:
         /// Base b; Derived d = [||]b;       
         /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by is {Derived}
@@ -133,8 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// True, if the target node has at least one potential conversion type, and they are assigned to "potentialConversionTypes"
         /// False, if the target node has no conversion type.
         /// </returns>
-        private static bool TryGetTargetTypeInfo(SemanticModel semanticModel, string diagnosticId, SyntaxNode targetNode, CancellationToken cancellationToken,
-            [NotNullWhen(true)]  out ITypeSymbol? targetNodeType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
+        private static bool TryGetTargetTypeInfo(
+            SemanticModel semanticModel, string diagnosticId, SyntaxNode targetNode, CancellationToken cancellationToken,
+            [NotNullWhen(true)] out ITypeSymbol? targetNodeType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
         {
             potentialConversionTypes = ImmutableArray<ITypeSymbol>.Empty;
 
