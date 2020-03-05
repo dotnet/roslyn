@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -238,21 +240,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected virtual TextSpan GetBodyDiagnosticSpan(SyntaxNode node, EditKind editKind)
         {
-            var initialNode = node;
-
+            var current = node.Parent;
             while (true)
             {
-                node = node.Parent;
-                if (node == null)
+                if (current == null)
                 {
-                    return initialNode.Span;
+                    return node.Span;
                 }
 
-                var span = TryGetDiagnosticSpan(node, editKind);
+                var span = TryGetDiagnosticSpan(current, editKind);
                 if (span != null)
                 {
                     return span.Value;
                 }
+
+                current = current.Parent;
             }
         }
 
@@ -267,20 +269,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         protected virtual string GetBodyDisplayName(SyntaxNode node, EditKind editKind = EditKind.Update)
         {
-            var initialNode = node;
+            var current = node.Parent;
             while (true)
             {
-                node = node.Parent;
-                if (node == null)
+                if (current == null)
                 {
-                    throw ExceptionUtilities.UnexpectedValue(initialNode.GetType().Name);
+                    throw ExceptionUtilities.UnexpectedValue(node.GetType().Name);
                 }
 
-                var displayName = TryGetDisplayName(node, editKind);
+                var displayName = TryGetDisplayName(current, editKind);
                 if (displayName != null)
                 {
                     return displayName;
                 }
+
+                current = current.Parent;
             }
         }
 
@@ -314,7 +317,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool ContainsLambda(SyntaxNode declaration);
         internal abstract SyntaxNode GetLambda(SyntaxNode lambdaBody);
         internal abstract IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken);
-        internal abstract SyntaxNode GetContainingQueryExpression(SyntaxNode node);
+        internal abstract SyntaxNode? GetContainingQueryExpression(SyntaxNode node);
         internal abstract bool QueryClauseLambdasTypeEquivalent(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken);
 
         /// <summary>
@@ -591,6 +594,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // so we stash them here in plain array (can't use immutable, see the bug) just before we report NFW.
         private static ActiveStatement[]? s_fatalErrorBaseActiveStatements;
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "'AnalyzeDocumentAsync' is the name of the method where an error occurred.")]
         private static bool ReportFatalErrorAnalyzeDocumentAsync(ImmutableArray<ActiveStatement> baseActiveStatements, Exception e)
         {
             if (!(e is OperationCanceledException))
@@ -644,7 +648,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
             Debug.Assert(updatedMethods.Count == 0);
 
-            var updatedTrackingSpans = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance();
+            using var _ = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance(out var updatedTrackingSpans);
 
             for (var i = 0; i < script.Edits.Length; i++)
             {
@@ -662,8 +666,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 trackingService!.UpdateActiveStatementSpans(newText, updatedTrackingSpans);
             }
-
-            updatedTrackingSpans.Free();
         }
 
         private void UpdateUneditedSpans(
@@ -743,7 +745,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         // The tracking span might have been moved outside of lambda.
                         // It is not an error to move the statement - we just ignore it.
-                        var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldMember.FindToken(adjustedOldStatementStart).Parent);
+                        var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldMember.FindToken(adjustedOldStatementStart).Parent!);
                         var newEnclosingLambdaBody = FindEnclosingLambdaBody(newBody, trackedStatement);
                         if (oldEnclosingLambdaBody == newEnclosingLambdaBody)
                         {
@@ -793,7 +795,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(newExceptionRegions == null || oldActiveStatements.Length == newExceptionRegions.Length);
 
-            var updatedTrackingSpans = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance();
+            using var _ = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance(out var updatedTrackingSpans);
 
             // Active statements in methods that were not updated 
             // are not changed but their spans might have been. 
@@ -839,8 +841,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 trackingService!.UpdateActiveStatementSpans(newText, updatedTrackingSpans);
             }
-
-            updatedTrackingSpans.Free();
         }
 
         internal readonly struct ActiveNode
@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var oldAncestors = GetExceptionHandlingAncestors(oldStatementSyntax, isNonLeaf);
-            var newAncestors = GetExceptionHandlingAncestors(newStatementSyntax, isNonLeaf);
+            var newAncestors = GetExceptionHandlingAncestors(newStatementSyntax!, isNonLeaf);
 
             if (oldAncestors.Count > 0 || newAncestors.Count > 0)
             {
@@ -1567,7 +1567,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var textSpan = text.Lines.GetTextSpanSafe(activeStatementSpan);
             var token = syntaxRoot.FindToken(textSpan.Start);
-            var ancestors = GetExceptionHandlingAncestors(token.Parent, isNonLeaf);
+            var ancestors = GetExceptionHandlingAncestors(token.Parent!, isNonLeaf);
             return GetExceptionRegions(ancestors, text, out isCovered);
         }
 
@@ -1680,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Finds the inner-most ancestor of the specified node that has a matching node in the new tree.
         /// </summary>
-        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode oldNode, [NotNullWhen(true)]out SyntaxNode? newAncestor)
+        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode? oldNode, [NotNullWhen(true)]out SyntaxNode? newAncestor)
         {
             while (oldNode != null)
             {
@@ -1753,9 +1753,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return HasEdit(editMap, node.Parent, edit.Kind);
         }
 
-        protected static bool HasEdit(Dictionary<SyntaxNode, EditKind> editMap, SyntaxNode node, EditKind editKind)
+        protected static bool HasEdit(Dictionary<SyntaxNode, EditKind> editMap, SyntaxNode? node, EditKind editKind)
         {
-            return editMap.TryGetValue(node, out var parentEdit) && parentEdit == editKind;
+            return
+                node is object &&
+                editMap.TryGetValue(node, out var parentEdit) &&
+                parentEdit == editKind;
         }
 
         #endregion
@@ -1954,16 +1957,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static List<SyntaxNode?>? GetAncestors(SyntaxNode? root, SyntaxNode node, Func<SyntaxNode, bool> nodeSelector)
         {
             List<SyntaxNode?>? list = null;
+            SyntaxNode? current = node;
 
-            while (node != root)
+            while (current is object && current != root)
             {
-                if (nodeSelector(node))
+                if (nodeSelector(current))
                 {
                     list ??= new List<SyntaxNode?>();
-                    list.Add(node);
+                    list.Add(current);
                 }
 
-                node = node.Parent;
+                current = current.Parent;
             }
 
             list?.Reverse();
@@ -3166,8 +3170,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // - Lambda methods are generated to the same frame as before, so they can be updated in-place.
             // - "Parent" links between closure scopes are preserved.
 
-            var oldCapturesIndex = PooledDictionary<ISymbol, int>.GetInstance();
-            var newCapturesIndex = PooledDictionary<ISymbol, int>.GetInstance();
+            using var _1 = PooledDictionary<ISymbol, int>.GetInstance(out var oldCapturesIndex);
+            using var _2 = PooledDictionary<ISymbol, int>.GetInstance(out var newCapturesIndex);
 
             BuildIndex(oldCapturesIndex, oldCaptures);
             BuildIndex(newCapturesIndex, newCaptures);
@@ -3302,8 +3306,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             reverseCapturesMap.Free();
             newCapturesToClosureScopes.Free();
             oldCapturesToClosureScopes.Free();
-            oldCapturesIndex.Free();
-            newCapturesIndex.Free();
         }
 
         private void ReportMultiScopeCaptures(
@@ -3505,8 +3507,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             //   the closure tree of the previous version and then map 
             //   closure scopes in the new version to the previous ones, keeping empty closures around.
 
-            var oldLocalCapturesBySyntax = PooledDictionary<SyntaxNode, int>.GetInstance();
-            var oldParameterCapturesByLambdaAndOrdinal = PooledDictionary<(SyntaxNode? Node, int Ordinal), int>.GetInstance();
+            using var _1 = PooledDictionary<SyntaxNode, int>.GetInstance(out var oldLocalCapturesBySyntax);
+            using var _2 = PooledDictionary<(SyntaxNode? Node, int Ordinal), int>.GetInstance(out var oldParameterCapturesByLambdaAndOrdinal);
 
             for (var i = 0; i < oldCaptures.Length; i++)
             {
@@ -3725,8 +3727,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 hasErrors = true;
             }
-
-            oldLocalCapturesBySyntax.Free();
         }
 
         protected virtual void ReportLambdaSignatureRudeEdits(
@@ -3812,9 +3812,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return memberBody;
             }
 
-            var node = GetSymbolSyntax(localOrParameter, cancellationToken);
+            SyntaxNode? node = GetSymbolSyntax(localOrParameter, cancellationToken);
             while (true)
             {
+                RoslynDebug.Assert(node is object);
                 if (IsClosureScope(node))
                 {
                     return node;

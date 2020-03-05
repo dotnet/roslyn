@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case CodeAnalysis.NullableAnnotation.NotAnnotated:
-                    if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+                    if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier) &&
                         !type.IsValueType &&
                         (type as Symbols.PublicModel.TypeSymbol)?.UnderlyingTypeSymbol.IsTypeParameterDisallowingAnnotation() != true)
                     {
@@ -448,13 +450,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         private bool CanUseTupleSyntax(INamedTypeSymbol tupleSymbol)
         {
-            INamedTypeSymbol currentUnderlying = tupleSymbol.TupleUnderlyingType;
             if (containsModopt(tupleSymbol))
             {
                 return false;
             }
 
-            if (currentUnderlying.Arity == 1)
+            INamedTypeSymbol currentUnderlying = GetTupleUnderlyingTypeOrSelf(tupleSymbol);
+            if (currentUnderlying.Arity <= 1)
             {
                 return false;
             }
@@ -471,11 +473,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                currentUnderlying = tupleSymbol.TupleUnderlyingType;
+                currentUnderlying = GetTupleUnderlyingTypeOrSelf(tupleSymbol);
             }
 
             return true;
-
 
             bool containsModopt(INamedTypeSymbol symbol)
             {
@@ -488,6 +489,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return modifiers.Any(m => !m.IsEmpty);
             }
+        }
+
+        private static INamedTypeSymbol GetTupleUnderlyingTypeOrSelf(INamedTypeSymbol type)
+        {
+            return type.TupleUnderlyingType ?? type;
         }
 
         private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
@@ -805,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         break;
 
                                     case CodeAnalysis.NullableAnnotation.NotAnnotated:
-                                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
+                                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier))
                                         {
                                             AddPunctuation(SyntaxKind.ExclamationToken);
                                         }

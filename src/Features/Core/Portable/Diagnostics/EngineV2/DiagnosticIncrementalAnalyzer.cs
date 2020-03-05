@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
     {
         private readonly int _correlationId;
-
+        private readonly DiagnosticAnalyzerTelemetry _telemetry;
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers;
@@ -41,12 +43,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal IPersistentStorageService PersistentStorageService { get; }
         internal AbstractHostDiagnosticUpdateSource? HostDiagnosticUpdateSource { get; }
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache { get; }
-        internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
+        internal HostDiagnosticAnalyzers HostAnalyzers { get; }
 
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService analyzerService,
             int correlationId,
             Workspace workspace,
+            HostDiagnosticAnalyzers hostAnalyzers,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource)
         {
@@ -54,17 +57,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
+            HostAnalyzers = hostAnalyzers;
             DiagnosticAnalyzerInfoCache = analyzerInfoCache;
             HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            DiagnosticLogAggregator = new DiagnosticLogAggregator(analyzerService);
             PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(analyzerInfoCache, PersistentStorageService);
+            _stateManager = new StateManager(hostAnalyzers, PersistentStorageService);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
+            _telemetry = new DiagnosticAnalyzerTelemetry();
 
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(AnalyzerService, HostDiagnosticUpdateSource);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerService.Listener, analyzerInfoCache, HostDiagnosticUpdateSource);
             _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 
@@ -125,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 var handleActiveFile = true;
-                var documentSet = PooledHashSet<DocumentId>.GetInstance();
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -137,8 +141,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         documentSet.Clear();
                     }
                 }
-
-                documentSet.Free();
             });
         }
 
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
-                var documentSet = PooledHashSet<DocumentId>.GetInstance();
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -161,8 +163,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         documentSet.Clear();
                     }
                 }
-
-                documentSet.Free();
             });
         }
 
@@ -243,16 +243,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public void LogAnalyzerCountSummary()
         {
-            DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, DiagnosticLogAggregator);
-            DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(_correlationId, DiagnosticLogAggregator);
-
-            // reset the log aggregator
-            ResetDiagnosticLogAggregator();
-        }
-
-        private void ResetDiagnosticLogAggregator()
-        {
-            DiagnosticLogAggregator = new DiagnosticLogAggregator(AnalyzerService);
+            _telemetry.ReportAndClear(_correlationId);
         }
 
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
@@ -262,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)
         {
-            return $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer.ToString()})";
+            return $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";
         }
 
         private static string GetProjectLogMessage(Project project, IEnumerable<StateSet> stateSets)

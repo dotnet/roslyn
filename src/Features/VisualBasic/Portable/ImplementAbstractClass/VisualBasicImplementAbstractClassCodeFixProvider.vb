@@ -1,9 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.CodeFixes
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.CodeFixes.ImplementAbstractClass
+Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.ImplementAbstractClass
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
     <ExportCodeFixProvider(LanguageNames.VisualBasic,
@@ -18,5 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
         Public Sub New()
             MyBase.New(BC30610)
         End Sub
+
+        Protected Overrides Function GetClassIdentifier(classNode As ClassBlockSyntax) As SyntaxToken
+            Return classNode.ClassStatement.Identifier
+        End Function
     End Class
 End Namespace

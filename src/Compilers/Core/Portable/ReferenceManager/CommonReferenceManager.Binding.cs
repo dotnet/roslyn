@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1002,6 +1004,8 @@ namespace Microsoft.CodeAnalysis
             return !assembly.GetInternalsVisibleToPublicKeys(compilationName).IsEmpty();
         }
 
+#nullable enable
+        // https://github.com/dotnet/roslyn/issues/40751 It should not be necessary to annotate this method to annotate overrides
         /// <summary>
         /// Return AssemblySymbols referenced by the input AssemblySymbol. The AssemblySymbols must correspond 
         /// to the AssemblyNames returned by AssemblyData.AssemblyReferences property. If reference is not 
@@ -1013,7 +1017,8 @@ namespace Microsoft.CodeAnalysis
         /// An array of AssemblySymbols referenced by the input AssemblySymbol.
         /// Implementers may return cached array, Binder does not mutate it.
         /// </returns>
-        protected abstract TAssemblySymbol[] GetActualBoundReferencesUsedBy(TAssemblySymbol assemblySymbol);
+        protected abstract TAssemblySymbol?[] GetActualBoundReferencesUsedBy(TAssemblySymbol assemblySymbol);
+#nullable restore
 
         /// <summary>
         /// Return collection of assemblies involved in canonical type resolution of
@@ -1027,9 +1032,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract bool IsLinked(TAssemblySymbol candidateAssembly);
 
+#nullable enable
         /// <summary>
         /// Get Assembly used as COR library for the candidate.
         /// </summary>
-        protected abstract TAssemblySymbol GetCorLibrary(TAssemblySymbol candidateAssembly);
+        protected abstract TAssemblySymbol? GetCorLibrary(TAssemblySymbol candidateAssembly);
+#nullable restore
     }
 }

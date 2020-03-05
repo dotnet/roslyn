@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
         <source>Removal of document not supported</source>
-        <target state="new">Removal of document not supported</target>
+        <target state="translated">지원되지 않는 문서 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file">

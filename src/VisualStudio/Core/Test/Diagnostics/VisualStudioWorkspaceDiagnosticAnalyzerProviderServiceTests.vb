@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -52,11 +54,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim analyzerPackage = New HostDiagnosticAnalyzerPackage("MyPackage", ImmutableArray.Create(analyzerFile.Path))
                 Dim analyzerPackages = ImmutableArray.Create(analyzerPackage)
                 Dim analyzerLoader = VisualStudioDiagnosticAnalyzerProvider.GetLoader()
-                Dim hostAnalyzerManager = New DiagnosticAnalyzerInfoCache(New Lazy(Of ImmutableArray(Of HostDiagnosticAnalyzerPackage))(
-                                                                  Function() analyzerPackages), analyzerLoader,
-                                                                  hostDiagnosticUpdateSource:=Nothing,
-                                                                  primaryWorkspace:=Nothing)
-                Dim analyzerReferenceMap = hostAnalyzerManager.GetOrCreateHostDiagnosticAnalyzersPerReference(LanguageNames.CSharp)
+                Dim hostAnalyzers = New HostDiagnosticAnalyzers(New Lazy(Of ImmutableArray(Of HostDiagnosticAnalyzerPackage))(Function() analyzerPackages),
+                                                                analyzerLoader,
+                                                                hostDiagnosticUpdateSource:=Nothing,
+                                                                primaryWorkspace:=Nothing)
+                Dim analyzerReferenceMap = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(LanguageNames.CSharp)
                 Assert.Single(analyzerReferenceMap)
                 Dim analyzers = analyzerReferenceMap.Single().Value
                 Assert.Single(analyzers)

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -682,6 +684,61 @@ Class Goo
         End Select
     End Sub
 End Class
+</File>
+
+            Await TestAsync(markup, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")>
+        Public Async Function TestAddMissingCasesForNullableEnum As Task
+            Dim markup =
+<File>
+Module Program
+    Sub Main(args As String())
+        Dim bar As Bar? = Program.Bar.Option1
+
+        [||]Select Case bar
+            Case Program.Bar.Option1
+                Exit Select
+            Case Program.Bar.Option2
+                Exit Select
+            Case vbNull
+                Exit Select
+        End Select
+    End Sub
+
+    Enum Bar
+        Option1 = 1
+        Option2 = 2
+        Option3 = 3
+    End Enum
+End Module
+</File>
+            Dim expected =
+<File>
+Module Program
+    Sub Main(args As String())
+        Dim bar As Bar? = Program.Bar.Option1
+
+        Select Case bar
+            Case Program.Bar.Option1
+                Exit Select
+            Case Program.Bar.Option2
+                Exit Select
+            Case vbNull
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+    End Sub
+
+    Enum Bar
+        Option1 = 1
+        Option2 = 2
+        Option3 = 3
+    End Enum
+End Module
 </File>
 
             Await TestAsync(markup, expected)

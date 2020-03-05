@@ -72,24 +72,29 @@
         <target state="translated">'out' 매개 변수 할당(시작 시)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Convert_switch_statement_to_expression">
-        <source>Convert switch statement to expression</source>
-        <target state="translated">switch 문을 식으로 변환</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">메서드로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_regular_string">
+        <source>Convert to regular string</source>
+        <target state="new">Convert to regular string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
         <source>Convert to 'switch' expression</source>
-        <target state="new">Convert to 'switch' expression</target>
+        <target state="translated">'switch' 식으로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_statement">
         <source>Convert to 'switch' statement</source>
-        <target state="new">Convert to 'switch' statement</target>
+        <target state="translated">'switch' 문으로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_verbatim_string">
+        <source>Convert to verbatim string</source>
+        <target state="new">Convert to verbatim string</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -139,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
-        <target state="new">Reverse 'for' statement</target>
+        <target state="translated">역 'for' 문</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
@@ -165,11 +170,6 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">'{0}' 클래스 봉인 해제</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_switch_expression">
-        <source>Use 'switch' expression</source>
-        <target state="translated">'switch' 식 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">

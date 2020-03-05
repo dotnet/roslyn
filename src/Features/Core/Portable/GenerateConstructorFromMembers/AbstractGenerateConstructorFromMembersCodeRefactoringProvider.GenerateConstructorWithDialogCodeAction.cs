@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,6 +24,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly TextSpan _textSpan;
             private readonly ImmutableArray<ISymbol> _viableMembers;
             private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
+
+            private bool? _addNullCheckOptionValue;
 
             public override string Title => FeaturesResources.Generate_constructor;
 
@@ -65,11 +69,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     // If we presented the 'Add null check' option, then persist whatever value
                     // the user chose.  That way we'll keep that as the default for the next time
                     // the user opens the dialog.
-                    var workspace = _document.Project.Solution.Workspace;
-                    workspace.Options = workspace.Options.WithChangedOption(
-                        GenerateConstructorFromMembersOptions.AddNullChecks,
-                        _document.Project.Language,
-                        addNullChecksOption.Value);
+                    _addNullCheckOptionValue = addNullChecksOption.Value;
                 }
 
                 var addNullChecks = (addNullChecksOption?.Value).GetValueOrDefault();
@@ -108,6 +108,21 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                     return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 }
+            }
+
+            protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            {
+                var solution = await base.GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+
+                if (_addNullCheckOptionValue.HasValue)
+                {
+                    solution = solution.WithOptions(solution.Options.WithChangedOption(
+                        GenerateConstructorFromMembersOptions.AddNullChecks,
+                        _document.Project.Language,
+                        _addNullCheckOptionValue.Value));
+                }
+
+                return solution;
             }
         }
     }

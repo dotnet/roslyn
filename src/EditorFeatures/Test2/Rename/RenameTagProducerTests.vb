@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
 Imports System.Threading.Tasks
@@ -106,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Next
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ValidTagsDuringSimpleRename() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -482,7 +484,7 @@ public class Class1
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(812789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812789")>
         Public Async Function RenamingEscapedIdentifiers() As Task
@@ -699,7 +701,7 @@ class C
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NonReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -770,7 +772,7 @@ class C
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -842,7 +844,7 @@ class Goo
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38247")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -909,7 +911,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_NeedsEscaping() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1355,7 +1357,7 @@ namespace N
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans() As Task

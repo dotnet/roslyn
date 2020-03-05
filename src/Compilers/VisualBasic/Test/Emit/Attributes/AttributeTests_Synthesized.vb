@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -232,6 +234,112 @@ End Class
                                                         ' constructors that contain user code 
                                                         Assert.Empty(bAttrs)
                                                         Assert.Empty(cAttrs)
+                                                    End Sub)
+        End Sub
+
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub BaseMethodWrapper_DoNotInheritAttributes(optimizationLevel As OptimizationLevel)
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Public Class Attr
+    Inherits Attribute
+End Class
+
+Public Class C
+    <Attr>
+    Public Overridable Async Function GetIntAsync() As <Attr> Task(Of Integer)
+        Return 0
+    End Function
+End Class
+
+Public Class D
+    Inherits C
+
+    <Attr>
+    Public Overrides Async Function GetIntAsync() As <Attr> Task(Of Integer)
+        Return Await MyBase.GetIntAsync()
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=
+                                                     New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                                                     WithOptimizationLevel(optimizationLevel).
+                                                     WithMetadataImportOptions(MetadataImportOptions.All))
+
+            CompileAndVerify(comp, symbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim baseWrapper = m.ContainingAssembly.GetTypeByMetadataName("D").GetMethod("$VB$ClosureStub_GetIntAsync_MyBase")
+
+                                                        Dim expectedNames = If(optimizationLevel = OptimizationLevel.Release,
+                                                                               {"CompilerGeneratedAttribute", "CompilerGeneratedAttribute"},
+                                                                               {"CompilerGeneratedAttribute", "CompilerGeneratedAttribute", "DebuggerHiddenAttribute"})
+
+                                                        AssertEx.SetEqual(expectedNames, GetAttributeNames(baseWrapper.GetAttributes()))
+                                                        Assert.Empty(baseWrapper.GetReturnTypeAttributes())
+                                                    End Sub)
+        End Sub
+
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub BaseMethodWrapper_DoNotInheritAttributes_TypeParameter(optimizationLevel As OptimizationLevel)
+            Dim csCompilation = CreateCSharpCompilation("
+using System;
+using System.Threading.Tasks;
+
+public class Attr : Attribute { }
+
+[Attr]
+[return: Attr]
+public class Base
+{
+    public virtual Task<T> GetAsync<[Attr] T>([Attr] T t1)
+    {
+        return null;
+    }
+}
+")
+
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Public Class Derived
+    Inherits Base
+
+    <Attr>
+    Public Overrides Async Function GetAsync(Of T)(<Attr> t1 As T) As <Attr> Task(Of T)
+        Return Await MyBase.GetAsync(t1)
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+                source,
+                references:={csCompilation.EmitToImageReference()},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                    WithOptimizationLevel(optimizationLevel).
+                    WithMetadataImportOptions(MetadataImportOptions.All))
+
+            CompileAndVerify(comp, symbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim baseWrapper = m.ContainingAssembly.GetTypeByMetadataName("Derived").GetMethod("$VB$ClosureStub_GetAsync_MyBase")
+
+                                                        Dim expectedNames = If(optimizationLevel = OptimizationLevel.Release,
+                                                                               {"CompilerGeneratedAttribute", "CompilerGeneratedAttribute"},
+                                                                               {"CompilerGeneratedAttribute", "CompilerGeneratedAttribute", "DebuggerHiddenAttribute"})
+
+                                                        AssertEx.SetEqual(expectedNames, GetAttributeNames(baseWrapper.GetAttributes()))
+                                                        Assert.Empty(baseWrapper.GetReturnTypeAttributes())
+                                                        Assert.Empty(baseWrapper.Parameters.Single().GetAttributes())
+                                                        Assert.Empty(baseWrapper.TypeParameters.Single().GetAttributes())
                                                     End Sub)
         End Sub
 

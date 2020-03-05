@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static readonly SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
 
         public static bool CanConvert(
-            ISyntaxFactsService syntaxFacts, IConditionalOperation ifOperation,
+            ISyntaxFacts syntaxFacts, IConditionalOperation ifOperation,
             IOperation whenTrue, IOperation whenFalse)
         {
             // Will likely screw things up if the if directive spans any preprocessor directives. So
@@ -76,11 +78,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return removeOptions;
         }
 
-        private static bool HasRegularComments(ISyntaxFactsService syntaxFacts, SyntaxNode syntax)
+        private static bool HasRegularComments(ISyntaxFacts syntaxFacts, SyntaxNode syntax)
             => HasRegularCommentTrivia(syntaxFacts, syntax.GetLeadingTrivia()) ||
                HasRegularCommentTrivia(syntaxFacts, syntax.GetTrailingTrivia());
 
-        private static bool HasRegularCommentTrivia(ISyntaxFactsService syntaxFacts, SyntaxTriviaList triviaList)
+        private static bool HasRegularCommentTrivia(ISyntaxFacts syntaxFacts, SyntaxTriviaList triviaList)
         {
             foreach (var trivia in triviaList)
             {

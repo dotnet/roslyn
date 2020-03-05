@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             return string.Empty;
         }
 
-        protected ImmutableArray<CodeAction> GetActions(Document document, State state, CancellationToken cancellationToken)
+        protected async ValueTask<ImmutableArray<CodeAction>> GetActionsAsync(Document document, State state, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<CodeAction>.GetInstance();
             result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, isAbstract: false, generateProperty: false));
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 state.InvocationExpressionOpt != null)
             {
                 var typeParameters = state.SignatureInfo.DetermineTypeParameters(cancellationToken);
-                var returnType = state.SignatureInfo.DetermineReturnType(cancellationToken);
+                var returnType = await state.SignatureInfo.DetermineReturnTypeAsync(cancellationToken).ConfigureAwait(false);
 
                 if (typeParameters.Length == 0 && returnType.SpecialType != SpecialType.System_Void)
                 {

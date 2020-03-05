@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -4846,6 +4848,110 @@ class C
     }
 
     object Helper(CancellationToken ct) { return null; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(18322, "https://github.com/dotnet/roslyn/issues/18322")]
+        public async Task TestInlineIntoExtensionMethodInvokedOnThis()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Class1
+{
+    void M()
+    {
+        var [|c|] = 8;
+        this.DoStuff(c);
+    }
+}
+
+public static class Class1Extensions { public static void DoStuff(this Class1 c, int x) { } }",
+@"public class Class1
+{
+    void M()
+    {
+        this.DoStuff(8);
+    }
+}
+
+public static class Class1Extensions { public static void DoStuff(this Class1 c, int x) { } }");
+        }
+
+        [WorkItem(8716, "https://github.com/dotnet/roslyn/issues/8716")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotQualifyInlinedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System;
+class C
+{
+    void Main()
+    {
+        void LocalFunc()
+        {
+            Console.Write(2);
+        }
+        var [||]local = new Action(LocalFunc);
+        local();
+    }
+}",
+@"
+using System;
+class C
+{
+    void Main()
+    {
+        void LocalFunc()
+        {
+            Console.Write(2);
+        }
+        new Action(LocalFunc)();
+    }
+}");
+        }
+
+        [WorkItem(22540, "https://github.com/dotnet/roslyn/issues/22540")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotQualifyWhenInliningIntoPattern()
+        {
+            await TestInRegularAndScriptAsync(@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+        ExpressionSyntax [||]expression = awaitExpression.Expression;
+
+        if (!(expression is ParenthesizedExpressionSyntax parenthesizedExpression))
+            return;
+    }
+}",
+@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+
+        if (!(awaitExpression.Expression is ParenthesizedExpressionSyntax parenthesizedExpression))
+            return;
+    }
 }");
         }
     }

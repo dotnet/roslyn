@@ -119,7 +119,7 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
     }
   }
   finally {
-    # If we didn't finish then an error occured or the user hit ctrl-c.  Either
+    # If we didn't finish then an error occurred or the user hit ctrl-c.  Either
     # way kill the process
     if (-not $finished) {
       $process.Kill()

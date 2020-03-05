@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 #nullable enable
 
 using System;
@@ -486,21 +488,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        public static SpecialType GetSpecialTypeSafe(this TypeSymbol type)
+        public static SpecialType GetSpecialTypeSafe(this TypeSymbol? type)
         {
-            return (object)type != null ? type.SpecialType : SpecialType.None;
+            return type is object ? type.SpecialType : SpecialType.None;
         }
 
-        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
-            HashSet<DiagnosticInfo> localUseSiteDiagnostics = useSiteDiagnostics;
+            HashSet<DiagnosticInfo>? localUseSiteDiagnostics = useSiteDiagnostics;
             var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym,
                                         canDigThroughNullable: true); // System.Nullable is public
             useSiteDiagnostics = localUseSiteDiagnostics;
             return result is null;
         }
 
-        private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             switch (type.TypeKind)
             {
@@ -664,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -930,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TypeSymbol? GetNonErrorGuess(this TypeSymbol type)
         {
             var result = ExtendedErrorTypeSymbol.ExtractNonErrorType(type);
-            RoslynDebug.Assert((object)result == null || !result.IsErrorType());
+            RoslynDebug.Assert((object?)result == null || !result.IsErrorType());
             return result;
         }
 
@@ -1473,7 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         && attr.CommonConstructorArguments.Length == 1
                         && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                     {
-                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal;
+                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
                         return true;
                     }
                 }
@@ -1628,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type.Type.ContainsTupleNames())
                 {
-                    SynthesizedAttributeData attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
+                    SynthesizedAttributeData? attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
                     if (attr != null)
                     {
                         builder.Add(attr);
@@ -1637,14 +1639,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
                 {
-                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    SynthesizedAttributeData? attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
                     if (attr != null)
                     {
                         builder.Add(attr);
                     }
                 }
             }
-
 
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -186,46 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public IEnumerable<T> GetExportedValues<T>()
         {
             return Workspace.ExportProvider.GetExportedValues<T>();
-        }
-
-        protected static IEnumerable<Lazy<TProvider, OrderableLanguageMetadata>> CreateLazyProviders<TProvider>(
-            TProvider[] providers,
-            string languageName)
-        {
-            if (providers == null)
-            {
-                return Array.Empty<Lazy<TProvider, OrderableLanguageMetadata>>();
-            }
-
-            return providers.Select(p =>
-                new Lazy<TProvider, OrderableLanguageMetadata>(
-                    () => p,
-                    new OrderableLanguageMetadata(
-                        new Dictionary<string, object> {
-                            {"Language", languageName },
-                            {"Name", string.Empty }}),
-                    true));
-        }
-
-        protected static IEnumerable<Lazy<TProvider, OrderableLanguageAndRoleMetadata>> CreateLazyProviders<TProvider>(
-            TProvider[] providers,
-            string languageName,
-            string[] roles)
-        {
-            if (providers == null)
-            {
-                return Array.Empty<Lazy<TProvider, OrderableLanguageAndRoleMetadata>>();
-            }
-
-            return providers.Select(p =>
-                new Lazy<TProvider, OrderableLanguageAndRoleMetadata>(
-                    () => p,
-                    new OrderableLanguageAndRoleMetadata(
-                        new Dictionary<string, object> {
-                            {"Language", languageName },
-                            {"Name", string.Empty },
-                            {"Roles", roles }}),
-                    true));
         }
         #endregion
 

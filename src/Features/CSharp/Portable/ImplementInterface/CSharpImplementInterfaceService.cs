@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -30,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                if (node is TypeSyntax interfaceNode && interfaceNode.Parent is BaseTypeSyntax &&
-                    interfaceNode.Parent.IsParentKind(SyntaxKind.BaseList) &&
-                    ((BaseTypeSyntax)interfaceNode.Parent).Type == interfaceNode)
+                if (node is TypeSyntax interfaceNode && interfaceNode.Parent is BaseTypeSyntax baseType &&
+                    baseType.IsParentKind(SyntaxKind.BaseList) &&
+                    baseType.Type == interfaceNode)
                 {
                     if (interfaceNode.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration) ||
                         interfaceNode.Parent.Parent.IsParentKind(SyntaxKind.StructDeclaration))
@@ -76,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // The dispose pattern is only applicable if the implementing type is a class that does not already declare any conflicting
             // members named 'disposedValue' or 'Dispose' (because we will be generating a 'disposedValue' field and a couple of methods
             // named 'Dispose' as part of implementing the dispose pattern).
-            return (classDecl != null) &&
+            return classDecl != null &&
                    classDecl.IsKind(SyntaxKind.ClassDeclaration) &&
-                   (symbol != null) &&
+                   symbol != null &&
                    !symbol.GetMembers().Any(m => (m.MetadataName == "Dispose") || (m.MetadataName == "disposedValue"));
         }
 

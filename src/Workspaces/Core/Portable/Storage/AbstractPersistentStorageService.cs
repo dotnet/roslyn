@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -8,7 +10,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Storage
@@ -21,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Storage
     {
         private readonly IOptionService _optionService;
         private readonly IPersistentStorageLocationService _locationService;
-        private readonly ISolutionSizeTracker _solutionSizeTracker;
 
         /// <summary>
         /// This lock guards all mutable fields in this type.
@@ -32,12 +32,10 @@ namespace Microsoft.CodeAnalysis.Storage
 
         protected AbstractPersistentStorageService(
             IOptionService optionService,
-            IPersistentStorageLocationService locationService,
-            ISolutionSizeTracker solutionSizeTracker)
+            IPersistentStorageLocationService locationService)
         {
             _optionService = optionService;
             _locationService = locationService;
-            _solutionSizeTracker = solutionSizeTracker;
         }
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
@@ -72,11 +70,6 @@ namespace Microsoft.CodeAnalysis.Storage
                 {
                     // We do, great
                     return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
-                }
-
-                if (!SolutionSizeAboveThreshold(solution))
-                {
-                    return NoOpPersistentStorage.Instance;
                 }
 
                 var workingFolder = _locationService.TryGetStorageLocation(solution);
@@ -123,26 +116,6 @@ namespace Microsoft.CodeAnalysis.Storage
             }
 
             return true;
-        }
-
-        private bool SolutionSizeAboveThreshold(Solution solution)
-        {
-            var workspace = solution.Workspace;
-            if (workspace.Kind == WorkspaceKind.RemoteWorkspace ||
-                workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace)
-            {
-                // Storage is always available in the remote server.
-                return true;
-            }
-
-            if (_solutionSizeTracker == null)
-            {
-                return false;
-            }
-
-            var size = _solutionSizeTracker.GetSolutionSize(solution.Workspace, solution.Id);
-            var threshold = this._optionService.GetOption(StorageOptions.SolutionSizeThreshold);
-            return size >= threshold;
         }
 
         private ReferenceCountedDisposable<IChecksummedPersistentStorage> TryCreatePersistentStorage(Solution solution, string workingFolderPath)

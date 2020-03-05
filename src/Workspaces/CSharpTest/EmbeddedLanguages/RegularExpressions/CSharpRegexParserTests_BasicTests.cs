@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Text.RegularExpressions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
@@ -2073,6 +2076,90 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <Capture Name=""0"" Span=""[9..16)"" Text=""a{0,1 }"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
+        }
+
+        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        public void TestLegalOpenCloseBrace1()
+        {
+            Test(@"@""{}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>{}</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..12)"" Text=""{}"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        public void TestLegalOpenCloseBrace2()
+        {
+            Test(@"@""{1, 2}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>{1, 2}</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..16)"" Text=""{1, 2}"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        public void TestDanglingNumericQuantifier1()
+        {
+            Test(@"@""{1}""", $@"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>{{</TextToken>
+      </Text>
+      <Text>
+        <TextToken>1}}</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""{{"" />
+  </Diagnostics>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..13)"" Text=""{{1}}"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        public void TestDanglingNumericQuantifier2()
+        {
+            Test(@"@""{1,2}""", $@"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>{{</TextToken>
+      </Text>
+      <Text>
+        <TextToken>1,2}}</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""{{"" />
+  </Diagnostics>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..15)"" Text=""{{1,2}}"" />
+  </Captures>
+</Tree>", RegexOptions.None);
         }
 
         [Fact]
@@ -11946,7 +12033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void TestCharacterClassRange7()
         {
-            Test(@"@""[a-\-]""", @"<Tree>
+            Test(@"@""[a-\-]""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -11957,12 +12044,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <TextToken>a</TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <Sequence>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-            </Sequence>
+            <SimpleEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>-</TextToken>
+            </SimpleEscape>
           </CharacterClassRange>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
@@ -11970,10 +12055,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""{WorkspacesResources.x_y_range_in_reverse_order}"" Span=""[12..13)"" Text=""-"" />
+  </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..16)"" Text=""[a-\-]"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
@@ -13523,7 +13611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void TestCharacterClassRange54()
         {
-            Test(@"@""[a-\-]""", @"<Tree>
+            Test(@"@""[a-\-]""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -13534,12 +13622,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <TextToken>a</TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <Sequence>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-            </Sequence>
+            <SimpleEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>-</TextToken>
+            </SimpleEscape>
           </CharacterClassRange>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
@@ -13547,16 +13633,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""{WorkspacesResources.x_y_range_in_reverse_order}"" Span=""[12..13)"" Text=""-"" />
+  </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..16)"" Text=""[a-\-]"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
         public void TestCharacterClassRange55()
         {
-            Test(@"@""[a-\-b]""", @"<Tree>
+            Test(@"@""[a-\-b]""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -13567,32 +13656,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <TextToken>a</TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <Sequence>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <Text>
-                <TextToken>b</TextToken>
-              </Text>
-            </Sequence>
+            <SimpleEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>-</TextToken>
+            </SimpleEscape>
           </CharacterClassRange>
+          <Text>
+            <TextToken>b</TextToken>
+          </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""{WorkspacesResources.x_y_range_in_reverse_order}"" Span=""[12..13)"" Text=""-"" />
+  </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" Text=""[a-\-b]"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
         public void TestCharacterClassRange56()
         {
-            Test(@"@""[a-\-\-b]""", @"<Tree>
+            Test(@"@""[a-\-\-b]""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -13603,30 +13693,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <TextToken>a</TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <Sequence>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <Text>
-                <TextToken>b</TextToken>
-              </Text>
-            </Sequence>
+            <SimpleEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>-</TextToken>
+            </SimpleEscape>
           </CharacterClassRange>
+          <SimpleEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>-</TextToken>
+          </SimpleEscape>
+          <Text>
+            <TextToken>b</TextToken>
+          </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""{WorkspacesResources.x_y_range_in_reverse_order}"" Span=""[12..13)"" Text=""-"" />
+  </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..19)"" Text=""[a-\-\-b]"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
@@ -13643,16 +13734,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <TextToken>b</TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <Sequence>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <Text>
-                <TextToken>a</TextToken>
-              </Text>
-            </Sequence>
+            <SimpleEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>-</TextToken>
+            </SimpleEscape>
           </CharacterClassRange>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
@@ -13665,7 +13754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" Text=""[b-\-a]"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
@@ -13682,20 +13771,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <TextToken>b</TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <Sequence>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <Text>
-                <TextToken>a</TextToken>
-              </Text>
-            </Sequence>
+            <SimpleEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>-</TextToken>
+            </SimpleEscape>
           </CharacterClassRange>
+          <SimpleEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>-</TextToken>
+          </SimpleEscape>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
@@ -13708,7 +13795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..19)"" Text=""[b-\-\-a]"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
@@ -13725,17 +13812,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <TextToken>a</TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <Sequence>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <CharacterClassEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>D</TextToken>
-              </CharacterClassEscape>
-            </Sequence>
+            <SimpleEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>-</TextToken>
+            </SimpleEscape>
           </CharacterClassRange>
+          <CharacterClassEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>D</TextToken>
+          </CharacterClassEscape>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
@@ -13743,12 +13828,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""{string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, "D")}"" Span=""[15..17)"" Text=""\D"" />
+    <Diagnostic Message=""{WorkspacesResources.x_y_range_in_reverse_order}"" Span=""[12..13)"" Text=""-"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..18)"" Text=""[a-\-\D]"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
@@ -13765,21 +13850,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <TextToken>a</TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <Sequence>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <CharacterClassEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>D</TextToken>
-              </CharacterClassEscape>
-            </Sequence>
+            <SimpleEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>-</TextToken>
+            </SimpleEscape>
           </CharacterClassRange>
+          <SimpleEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>-</TextToken>
+          </SimpleEscape>
+          <CharacterClassEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>D</TextToken>
+          </CharacterClassEscape>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
@@ -13787,12 +13870,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""{string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, "D")}"" Span=""[17..19)"" Text=""\D"" />
+    <Diagnostic Message=""{WorkspacesResources.x_y_range_in_reverse_order}"" Span=""[12..13)"" Text=""-"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..20)"" Text=""[a-\-\-\D]"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
@@ -13812,30 +13895,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <TextToken> </TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <Sequence>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>b</TextToken>
-              </SimpleEscape>
-            </Sequence>
+            <SimpleEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>-</TextToken>
+            </SimpleEscape>
           </CharacterClassRange>
+          <SimpleEscape>
+            <BackslashToken>\</BackslashToken>
+            <TextToken>b</TextToken>
+          </SimpleEscape>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
-  <Diagnostics>
-    <Diagnostic Message=""{WorkspacesResources.x_y_range_in_reverse_order}"" Span=""[13..14)"" Text=""-"" />
-  </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..19)"" Text=""[a -\-\b]"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
@@ -13855,16 +13933,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <TextToken>b</TextToken>
             </Text>
             <MinusToken>-</MinusToken>
-            <Sequence>
-              <SimpleEscape>
-                <BackslashToken>\</BackslashToken>
-                <TextToken>-</TextToken>
-              </SimpleEscape>
-              <Text>
-                <TextToken>a</TextToken>
-              </Text>
-            </Sequence>
+            <SimpleEscape>
+              <BackslashToken>\</BackslashToken>
+              <TextToken>-</TextToken>
+            </SimpleEscape>
           </CharacterClassRange>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </CharacterClass>
@@ -13877,7 +13953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..18)"" Text=""[ab-\-a]"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]

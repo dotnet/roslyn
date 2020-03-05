@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -872,6 +874,58 @@ public class C
     {
         var hello = ""hello"";
         var str = $""{hello} world"";
+    }
+}");
+        }
+
+        [WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithConstMember()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    const string Hello = ""Hello"";
+    const string World = ""World"";
+    const string Message = Hello + "" "" + [||]World;
+}");
+        }
+
+        [WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithConstDeclaration()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    void M() {
+        const string Hello = ""Hello"";
+        const string World = ""World"";
+        const string Message = Hello + "" "" + [||]World;
+    }
+}");
+        }
+
+        [WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithInlineString()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    void M() {
+        const string Hello = ""Hello"";
+        const string World = ""World"";
+        Console.WriteLine(Hello + "" "" + [||]World);
+    }
+}",
+@"
+class C
+{
+    void M() {
+        const string Hello = ""Hello"";
+        const string World = ""World"";
+        Console.WriteLine($""{Hello} {World}"");
     }
 }");
         }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -569,12 +571,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved: basesBeingResolved);
-            bool isClass = (typeKind == TypeKind.Class);
+            bool isInterface = (typeKind == TypeKind.Interface);
 
-            ArrayBuilder<NamedTypeSymbol> result = isClass ? null : ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            ArrayBuilder<NamedTypeSymbol> result = isInterface ? ArrayBuilder<NamedTypeSymbol>.GetInstance() : null;
             foreach (var t in declaredInterfaces)
             {
-                if (!isClass)
+                if (isInterface)
                 {
                     if (BaseTypeAnalysis.TypeDependsOn(depends: t, on: this))
                     {
@@ -609,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return isClass ? declaredInterfaces : result.ToImmutableAndFree();
+            return isInterface ? result.ToImmutableAndFree() : declaredInterfaces;
         }
 
         private NamedTypeSymbol MakeAcyclicBaseType(DiagnosticBag diagnostics)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
         private readonly DiagnosticBag _diagnostics;
-        private readonly Instrumenter _instrumenter;
+        private Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
 
         private Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderReplacementMapDoNotUseDirectly;
@@ -58,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _diagnostics = diagnostics;
 
             Debug.Assert(instrumenter != null);
+#if DEBUG
+            // Ensure that only expected kinds of instrumenters are in use
+            _ = RemoveDynamicAnalysisInjectors(instrumenter);
+#endif
+
             _instrumenter = instrumenter;
             _rootStatement = rootStatement;
         }
@@ -276,14 +283,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var oldContainingSymbol = _factory.CurrentFunction;
+            var oldInstrumenter = _instrumenter;
             try
             {
                 _factory.CurrentFunction = localFunction;
+                if (localFunction.IsDirectlyExcludedFromCodeCoverage)
+                {
+                    _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
+                }
                 return base.VisitLocalFunctionStatement(node);
             }
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
+                _instrumenter = oldInstrumenter;
+            }
+        }
+
+        private static Instrumenter RemoveDynamicAnalysisInjectors(Instrumenter instrumenter)
+        {
+            switch (instrumenter)
+            {
+                case DynamicAnalysisInjector { Previous: var previous }:
+                    return RemoveDynamicAnalysisInjectors(previous);
+                case DebugInfoInjector { Previous: var previous } injector:
+                    var newPrevious = RemoveDynamicAnalysisInjectors(previous);
+                    if ((object)newPrevious == previous)
+                    {
+                        return injector;
+                    }
+                    else if ((object)newPrevious == Instrumenter.NoOp)
+                    {
+                        return DebugInfoInjector.Singleton;
+                    }
+                    else
+                    {
+                        return new DebugInfoInjector(previous);
+                    }
+                case CompoundInstrumenter compound:
+                    // If we hit this it means a new kind of compound instrumenter is in use.
+                    // Either add a new case or add an abstraction that lets us
+                    // filter out the unwanted injectors in a more generalized way.
+                    throw ExceptionUtilities.UnexpectedValue(compound);
+                default:
+                    Debug.Assert((object)instrumenter == Instrumenter.NoOp);
+                    return instrumenter;
             }
         }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -87,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             var result = new List<StatementSyntax>();
             var remainingTrivia = Expand(result, usingStatement);
 
-            if (remainingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+            if (remainingTrivia.Any(t => t.IsSingleOrMultiLineComment() || t.IsDirective))
             {
                 var lastStatement = result[result.Count - 1];
                 result[result.Count - 1] = lastStatement.WithAppendedTrailingTrivia(
-                    remainingTrivia.Insert(0, CSharpSyntaxFactsService.Instance.ElasticCarriageReturnLineFeed));
+                    remainingTrivia.Insert(0, CSharpSyntaxFacts.Instance.ElasticCarriageReturnLineFeed));
             }
 
             for (int i = 0, n = result.Count; i < n; i++)

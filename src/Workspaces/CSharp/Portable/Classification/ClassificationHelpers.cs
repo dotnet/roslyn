@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -191,11 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return GetClassificationForTypeDeclarationIdentifier(token);
             }
-            else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration) && ((DelegateDeclarationSyntax)token.Parent).Identifier == token)
+            else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax? delegateDecl) && delegateDecl.Identifier == token)
             {
                 return ClassificationTypeNames.DelegateName;
             }
-            else if (token.Parent.IsKind(SyntaxKind.TypeParameter) && ((TypeParameterSyntax)token.Parent).Identifier == token)
+            else if (token.Parent.IsKind(SyntaxKind.TypeParameter, out TypeParameterSyntax? typeParameter) && typeParameter.Identifier == token)
             {
                 return ClassificationTypeNames.TypeParameterName;
             }
@@ -315,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         public static bool IsStaticallyDeclared(SyntaxToken token)
         {
-            var parentNode = token.Parent;
+            SyntaxNode? parentNode = token.Parent;
 
             if (parentNode.IsKind(SyntaxKind.EnumMemberDeclaration))
             {
@@ -328,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 // The parent of a VariableDeclarator is a VariableDeclarationSyntax node.
                 // It's parent will be the declaration syntax node.
-                parentNode = parentNode.Parent.Parent;
+                parentNode = parentNode!.Parent!.Parent;
 
                 // Check if this is a field constant declaration 
                 if (parentNode.GetModifiers().Any(SyntaxKind.ConstKeyword))
@@ -346,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private static string? GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
-            => identifier.Parent.Kind() switch
+            => identifier.Parent!.Kind() switch
             {
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
                 SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
@@ -451,13 +453,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool IsActualContextualKeyword(SyntaxToken token)
         {
-            if (token.Parent.IsKind(SyntaxKind.LabeledStatement))
+            if (token.Parent.IsKind(SyntaxKind.LabeledStatement, out LabeledStatementSyntax? statement) &&
+                statement.Identifier == token)
             {
-                var statement = (LabeledStatementSyntax)token.Parent;
-                if (statement.Identifier == token)
-                {
-                    return false;
-                }
+                return false;
             }
 
             // Ensure that the text and value text are the same. Otherwise, the identifier might

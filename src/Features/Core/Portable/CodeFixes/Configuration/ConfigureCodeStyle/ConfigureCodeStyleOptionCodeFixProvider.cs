@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 // For each code style option, create a top level code action with nested code actions for every valid option value.
                 // For example, if the option value is CodeStyleOption<bool>, we will have two nested actions, one for 'true' setting and one
                 // for 'false' setting. If the option value is CodeStyleOption<SomeEnum>, we will have a nested action for each enum field.
-                var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
                 var optionSet = project.Solution.Workspace.Options;
                 var hasMultipleOptions = codeStyleOptions.Length > 1;
                 foreach (var (optionKey, codeStyleOption, editorConfigLocation, perLanguageOption) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
@@ -95,8 +97,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 
                     result.Add(new CodeFix(project, resultCodeAction, diagnostic));
                 }
-
-                nestedActions.Free();
             }
 
             return result.ToImmutableAndFree();
@@ -109,12 +109,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 Diagnostic diagnostic,
                 bool isPerLanguage,
                 OptionSet optionSet,
-                bool hasMultiplOptions)
+                bool hasMultipleOptions)
             {
                 // Add a code action for every valid value of the given code style option.
                 // We only support light-bulb configuration of code style options with boolean or enum values.
 
-                var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
 
                 var severity = codeStyleOption.Notification.ToEditorConfigString();
                 string optionName = null;
@@ -138,12 +138,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                     // If this is not a unique code style option for the diagnostic, use the optionName as the code action title.
                     // In that case, we will already have a containing top level action for the diagnostic.
                     // Otherwise, use the diagnostic information in the title.
-                    return hasMultiplOptions
-                        ? new TopLevelConfigureCodeStyleOptionCodeAction(optionName, nestedActions.ToImmutableAndFree())
-                        : new TopLevelConfigureCodeStyleOptionCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
+                    return hasMultipleOptions
+                        ? new TopLevelConfigureCodeStyleOptionCodeAction(optionName, nestedActions.ToImmutable())
+                        : new TopLevelConfigureCodeStyleOptionCodeAction(diagnostic, nestedActions.ToImmutable());
                 }
 
-                nestedActions.Free();
                 return null;
 
                 // Local functions

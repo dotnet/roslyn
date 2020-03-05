@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
 {
@@ -69,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
             if (textView == null)
             {
                 var currentSnapshot = subjectBuffer.CurrentSnapshot;
-                return new[] { new SnapshotSpan(currentSnapshot, Span.FromBounds(0, currentSnapshot.Length)) };
+                return SpecializedCollections.SingletonEnumerable(new SnapshotSpan(currentSnapshot, Span.FromBounds(0, currentSnapshot.Length)));
             }
 
             // Determine the range of text that is visible in the view.  Then map this down to our
@@ -86,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 // are no visible spans in the buffer return the full snapshot.
                 // This can occur in an HTML file with script blocks when the user
                 // scrolls down and the script blocks are no longer visible in view.
-                return new[] { new SnapshotSpan(snapshot, 0, snapshot.Length) };
+                return SpecializedCollections.SingletonEnumerable(new SnapshotSpan(snapshot, 0, snapshot.Length));
             }
 
             var visibleStart = visibleSpansInBuffer.First().Start;
@@ -105,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
 
             var span = new SnapshotSpan(snapshot, Span.FromBounds(start, end));
 
-            return new[] { span };
+            return SpecializedCollections.SingletonEnumerable(span);
         }
     }
 }

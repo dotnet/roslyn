@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7305,6 +7307,39 @@ class Program
                 { SpaceWithinSquareBrackets, true },
                 { SpaceBeforeComma, true },
                 { SpaceAfterComma, true },
+            };
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
+        }
+
+        [WorkItem(14128, "https://github.com/dotnet/roslyn/issues/14128")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpaceBeforeCommasInLocalFunctionParameters()
+        {
+            var code = @"
+class Program
+{
+    void Goo()
+    {
+        void LocalFunction(int i, string s)
+        {
+        }
+    }
+}";
+
+            var expected = @"
+class Program
+{
+    void Goo()
+    {
+        void LocalFunction(int i , string s)
+        {
+        }
+    }
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBeforeComma, true },
             };
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }

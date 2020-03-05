@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -78,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
             {
                 typeSyntax = declarationExpression.Type;
-                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
+                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax variableDesignation))
                 {
-                    parensDesignation = (ParenthesizedVariableDesignationSyntax)declarationExpression.Designation;
+                    parensDesignation = variableDesignation;
                 }
             }
             else
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 {
                     case SyntaxKind.SingleVariableDesignation:
                     case SyntaxKind.DiscardDesignation:
-                        var typeName = type.GenerateTypeSyntax();
+                        var typeName = type.GenerateTypeSyntax(allowVar: false);
                         newDeclaration = SyntaxFactory.DeclarationExpression(typeName, designation);
                         break;
                     case SyntaxKind.ParenthesizedVariableDesignation:

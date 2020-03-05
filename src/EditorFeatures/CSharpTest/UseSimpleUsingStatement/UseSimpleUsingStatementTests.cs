@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -1021,6 +1023,282 @@ class C
         // comment1
         // comment2
     }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCopyCompilerDirectiveTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static void M()
+    {
+        [||]using (var obj = Dummy())
+        {
+#pragma warning disable CS0618, CS0612
+#if !FOO
+            LegacyMethod();
+#endif
+#pragma warning restore CS0618, CS0612
+        }
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+@"class C
+{
+    static void M()
+    {
+        using var obj = Dummy();
+#pragma warning disable CS0618, CS0612
+#if !FOO
+        LegacyMethod();
+#endif
+#pragma warning restore CS0618, CS0612
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCopyCompilerDirectiveAndCommentTrivia_AfterRestore()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static void M()
+    {
+        [||]using (var obj = Dummy())
+        {
+#pragma warning disable CS0618, CS0612
+#if !FOO
+            LegacyMethod();
+#endif
+#pragma warning restore CS0618, CS0612
+        // comment
+        }
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+@"class C
+{
+    static void M()
+    {
+        using var obj = Dummy();
+#pragma warning disable CS0618, CS0612
+#if !FOO
+        LegacyMethod();
+#endif
+#pragma warning restore CS0618, CS0612
+        // comment
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeRestore()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static void M()
+    {
+        [||]using (var obj = Dummy())
+        {
+#pragma warning disable CS0618, CS0612
+#if !FOO
+            LegacyMethod();
+            // comment
+#endif
+#pragma warning restore CS0618, CS0612
+        }
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+@"class C
+{
+    static void M()
+    {
+        using var obj = Dummy();
+#pragma warning disable CS0618, CS0612
+#if !FOO
+        LegacyMethod();
+        // comment
+#endif
+#pragma warning restore CS0618, CS0612
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCopyCompilerDirectiveAndCommentTrivia_AfterDisable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static void M()
+    {
+        [||]using (var obj = Dummy())
+        {
+#pragma warning disable CS0618, CS0612
+#if !FOO
+            // comment
+            LegacyMethod();
+#endif
+#pragma warning restore CS0618, CS0612
+        }
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+@"class C
+{
+    static void M()
+    {
+        using var obj = Dummy();
+#pragma warning disable CS0618, CS0612
+#if !FOO
+        // comment
+        LegacyMethod();
+#endif
+#pragma warning restore CS0618, CS0612
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeDisable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static void M()
+    {
+        [||]using (var obj = Dummy())
+        {
+            // comment
+#pragma warning disable CS0618, CS0612
+#if !FOO
+            LegacyMethod();
+#endif
+#pragma warning restore CS0618, CS0612
+        }
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+@"class C
+{
+    static void M()
+    {
+        using var obj = Dummy();
+        // comment
+#pragma warning disable CS0618, CS0612
+#if !FOO
+        LegacyMethod();
+#endif
+#pragma warning restore CS0618, CS0612
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCopyCompilerDirectiveTrivia_PreserveCodeBeforeAndAfterDirective()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static void M()
+    {
+        [||]using (var obj = Dummy())
+        {
+            LegacyMethod();
+#pragma warning disable CS0618, CS0612
+#if !FOO
+            LegacyMethod();
+#endif
+#pragma warning restore CS0618, CS0612
+            LegacyMethod();
+        }
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
+}",
+@"class C
+{
+    static void M()
+    {
+        using var obj = Dummy();
+        LegacyMethod();
+#pragma warning disable CS0618, CS0612
+#if !FOO
+        LegacyMethod();
+#endif
+#pragma warning restore CS0618, CS0612
+        LegacyMethod();
+    }
+
+    static IDisposable Dummy() => throw new NotImplementedException();
+
+    [Obsolete]
+    static void LegacyMethod() => throw new NotImplementedException();
 }",
 parseOptions: CSharp8ParseOptions);
         }

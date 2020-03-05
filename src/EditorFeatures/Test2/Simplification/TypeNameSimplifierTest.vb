@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -1470,7 +1471,6 @@ class C1
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarLocalDeclaration() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
-                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
@@ -1509,7 +1509,6 @@ class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarForeachDecl() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
-                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
@@ -1550,7 +1549,6 @@ class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
-                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
@@ -1621,7 +1619,6 @@ class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
-                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
@@ -1671,7 +1668,7 @@ class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarDontSimplify() As Task
 
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
 <Workspace>
@@ -2027,8 +2024,8 @@ class E
 
         <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestDoSimplifyToGenericName() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToGenericType, True}}
+        Public Async Function TestDoNotSimplifyToGenericName() As Task
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
         <Workspace>
@@ -2079,7 +2076,7 @@ class E
 {
     public static void Main()
     {
-        C<int>.D.F();
+        C.D.F();
     }
 }]]>
               </text>
@@ -2089,7 +2086,7 @@ class E
 
         <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyAllNodes_SimplifyNestedType() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToBaseType, False}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
         <Workspace>
@@ -2142,7 +2139,7 @@ static class M
 {
 	public static void Main()
 	{
-		int k = Z<float>.X.Y;
+		int k = Preserve.X.Y;
 	}
 }]]></text>
 
@@ -4831,8 +4828,8 @@ End Class
 
         <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestVisualBasic_DoSimplifyToGenericName() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToGenericType, True}}
+        Public Async Function TestVisualBasic_DoNotSimplifyToGenericName() As Task
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
         <Workspace>
@@ -4865,7 +4862,7 @@ Imports System
 
 Class Program
     Sub Main(args As String())
-        C(OfInteger).D.F()
+        C.D.F()
     End Sub
 End Class
 Public Class C(Of T)
@@ -4885,7 +4882,7 @@ End Class
 
         <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestDontSimplifyAllNodes_SimplifyNestedType() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToBaseType, False}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
         <Workspace>
@@ -4926,7 +4923,7 @@ End Class
 
 NotInheritable Class M
 	Public Shared Sub Main()
-        ReDim Z(Of Integer).X.Y(1)
+        ReDim [Preserve].X.Y(1)
 	End Sub
 End Class]]></text>
 
@@ -5910,6 +5907,46 @@ End Class
 ]]></text>
 
             Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestSharedMemberOffOfMe() As Task
+            ' even if the user prefers qualified member access, we will strip off 'Me' when calling
+            ' a static method through it.
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+                    <![CDATA[
+Imports System
+Class Class1
+    Sub Main()
+        {|SimplifyParent:Me.Goo|}()
+    End Sub
+
+    Shared Sub Goo()
+    End Sub
+End Class
+]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                  <![CDATA[
+Imports System
+Class Class1
+    Sub Main()
+        Goo()
+    End Sub
+
+    Shared Sub Goo()
+    End Sub
+End Class
+]]></text>
+
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
         End Function
 
 #End Region

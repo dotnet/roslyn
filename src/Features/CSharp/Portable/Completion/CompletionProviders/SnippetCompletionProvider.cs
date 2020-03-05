@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,16 +24,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(SnippetCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(CrefCompletionProvider))]
+    [Shared]
     internal sealed class SnippetCompletionProvider : CommonCompletionProvider
     {
-        // If null, the document's language service will be used.
-        private readonly ISnippetInfoService _snippetInfoService;
-
         internal override bool IsSnippetProvider => true;
 
-        public SnippetCompletionProvider(ISnippetInfoService snippetInfoService = null)
+        [ImportingConstructor]
+        public SnippetCompletionProvider()
         {
-            _snippetInfoService = snippetInfoService;
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
@@ -139,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(
             Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, bool isTupleContext, CancellationToken cancellationToken)
         {
-            var service = _snippetInfoService ?? workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
+            var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
             {
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();
