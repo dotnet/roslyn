@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// For example:
         /// Base b; Derived d = [||]b;       
         /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by is {Derived}
-        /// 
+        /// </summary>
         /// <param name="diagnosticId"> The ID of the diagnostic.</param>
         /// <param name="targetNode"> The node to be cast.</param>
         /// <param name="targetNodeType"> Output the type of "targetNode".</param>
@@ -191,24 +191,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     }
                 }
 
-                // Sort the potential conversion types by inheritance distance
+                // Sort the potential conversion types by inheritance distance, so that
+                // operations are in order and user can choose least specific types(more accurate)
                 var comparer = new InheritanceDistanceComparer(semanticModel, targetNodeType);
                 mutablePotentialConversionTypes.Sort(comparer);
             }
 
-            // For cases like object creation expression. for example:
-            // Derived d = [||]new Base();
-            // It is always invalid except the target node has explicit conversion operator.
             using var __ = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
             foreach (var targetNodeConversionType in mutablePotentialConversionTypes)
             {
                 var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(
                     targetNodeType, targetNodeConversionType);
+
+                // For cases like object creation expression. for example:
+                // Derived d = [||]new Base();
+                // It is always invalid except the target node has explicit conversion operator or is numeric.
                 if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression)
                     && !(commonConversion.IsUserDefined || commonConversion.IsNumeric))
                 {
                     continue;
                 }
+
                 if (commonConversion.Exists)
                 {
                     validPotentialConversionTypes.Add(targetNodeConversionType);
@@ -255,6 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             CancellationToken cancellationToken, out int targetParamIndex)
         {
             targetParamIndex = -1; // return invalid index if it is not a perfect match
+            if (parameters.Length == 0)
+                return false;
 
             var matchedTypes = new bool[parameters.Length]; // default value is false
             var paramsMatchedByArray = false; // the parameter with keyword params can be either matched by an array type or a variable number of arguments
@@ -290,7 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 // The argument is either in order with parameters, or have a matched name with parameters
                 var argType = semanticModel.GetTypeInfo(arguments[i].Expression, cancellationToken);
-                if (argType.Type != null && (inOrder || nameSyntax is object))
+                if (argType.Type == null)
+                    return false;
+                if (inOrder || nameSyntax is object)
                 {
                     // The type of argument must be convertible to the type of parameter
                     if (!parameters[parameterIndex].IsParams
