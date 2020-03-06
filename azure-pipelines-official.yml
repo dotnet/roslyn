@@ -38,21 +38,26 @@ stages:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
 
-    - powershell: Write-Host "##vso[task.setvariable variable=IsPRValidationBuild]($(PRNumber) -ne '') -and ($(PRNumber) -ne 'default')"
-      displayName: Setting IsPRValidationBuild variable
-
     - task: tagBuildOrRelease@0
-      displayName: Tag build
+      displayName: Tag official build
       inputs:
         type: 'Build'
-        tags: if (variables['IsPRValidationBuild']) { 'PRValidationBuild' } else { "OfficialBuild" }
+        tags: 'OfficialBuild'
+      condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
+          
+    - task: tagBuildOrRelease@0
+      displayName: Tag PR validation build
+      inputs:
+        type: 'Build'
+        tags: 'PRValidationBuild'
+      condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
     - task: PowerShell@2
       displayName: Setup branch for insertion validation
       inputs:
         filePath: 'eng\setup-pr-validation.ps1'
         arguments: '-sourceBranchName $(SourceBranchName) -prNumber $(PRNumber)'
-      condition: and(succeeded(), variables['IsPRValidationBuild'])
+      condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
@@ -262,10 +267,25 @@ stages:
       queue:
         name: Hosted VS2017
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), eq(variables['IsPRValidationBuild'], false)) }}:
+# We need to skip post-build stages for PR validation build, but it can only be identified by 
+# the runtime variable 'PRNumber', thus this dummy stage. Also the dummy job is required
+# otherwise AzDO would just repeat jobs from previous stage.
+- stage: SetValidateDependency
+  displayName: Setup the dependency for post-build stages
+  condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
+  jobs:
+  - job: Log
+    displayName: Log
+    steps:
+    - powershell: Write-Host "Setup the dependency for post-build stages."
+      displayName: Log
+
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
       # Symbol validation is not entirely reliable as of yet, so should be turned off until
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false
       enableSourceLinkValidation: false
+      validateDependsOn:
+        - SetValidateDependency
