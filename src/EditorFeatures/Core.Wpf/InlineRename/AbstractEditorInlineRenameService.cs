@@ -192,11 +192,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var triggerTextSpan = await GetSpanTextAsync(document, triggerToken.Span, cancellationToken).ConfigureAwait(false);
+            var triggerSpanText = await GetSpanTextAsync(document, triggerToken.Span, cancellationToken).ConfigureAwait(false);
 
             return new SymbolInlineRenameInfo(
                 refactorNotifyServices, document, triggerToken.Span,
-                symbolAndProjectId, forceRenameOverloads, documentSpans.ToImmutableAndFree(), triggerTextSpan, cancellationToken);
+                symbolAndProjectId, forceRenameOverloads, documentSpans.ToImmutableAndFree(), triggerSpanText, cancellationToken);
 
             static async Task<string> GetSpanTextAsync(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
             {

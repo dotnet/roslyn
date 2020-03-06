@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private Task<RenameLocations> _underlyingFindRenameLocationsTask;
 
-            private readonly string _triggerTextSpan;
+            private readonly string _triggerSpanText;
 
             /// <summary>
             /// Whether or not we shortened the trigger span (say because we were renaming an attribute,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 SymbolAndProjectId renameSymbolAndProjectId,
                 bool forceRenameOverloads,
                 ImmutableArray<DocumentSpan> definitionLocations,
-                string triggerTextSpan,
+                string triggerSpanText,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
 
                 this.DefinitionLocations = definitionLocations;
-                _triggerTextSpan = triggerTextSpan;
+                _triggerSpanText = triggerSpanText;
             }
 
             private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // we need to rename the entire attribute).
                 var nameWithoutAttribute = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
 
-                return _triggerTextSpan.StartsWith(_triggerTextSpan); // TODO: Always true? What was it supposed to do?
+                return _triggerSpanText.StartsWith(_triggerSpanText); // TODO: Always true? What was it supposed to do?
             }
 
             /// <summary>
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     searchName = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
                 }
 
-                var index = _triggerTextSpan.LastIndexOf(searchName, StringComparison.Ordinal);
+                var index = _triggerSpanText.LastIndexOf(searchName, StringComparison.Ordinal);
 
                 if (index < 0)
                 {
@@ -140,13 +140,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
             {
-                var position = _triggerTextSpan.LastIndexOf(replacementText, StringComparison.Ordinal);
+                var position = _triggerSpanText.LastIndexOf(replacementText, StringComparison.Ordinal);
 
                 if (_isRenamingAttributePrefix)
                 {
                     // We're only renaming the attribute prefix part.  We want to adjust the span of 
                     // the reference we've found to only update the prefix portion.
-                    var index = _triggerTextSpan.LastIndexOf(replacementText + AttributeSuffix, StringComparison.Ordinal);
+                    var index = _triggerSpanText.LastIndexOf(replacementText + AttributeSuffix, StringComparison.Ordinal);
                     position = index >= 0 ? index : position;
                 }
 
