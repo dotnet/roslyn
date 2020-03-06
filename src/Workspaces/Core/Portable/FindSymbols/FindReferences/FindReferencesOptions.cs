@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal class FindReferencesOptions
+    internal sealed class FindReferencesOptions
     {
         public static readonly FindReferencesOptions Default = new FindReferencesOptions(
             cascade: true);
