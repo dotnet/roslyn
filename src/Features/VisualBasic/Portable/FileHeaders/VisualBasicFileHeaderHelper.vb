@@ -21,12 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
             End Get
         End Property
 
-        Protected Overrides Function GetTextContextOfComment(commentTrivia As SyntaxTrivia) As String
+        Protected Overrides Function GetTextContextOfComment(commentTrivia As SyntaxTrivia) As ReadOnlyMemory(Of Char)
             If Not commentTrivia.IsKind(SyntaxKind.CommentTrivia) Then
                 Throw ExceptionUtilities.UnexpectedValue(commentTrivia.Kind())
             End If
 
-            Return commentTrivia.ToFullString().Substring(1)
+            Return commentTrivia.ToFullString().AsMemory().Slice(1)
         End Function
     End Class
 End Namespace

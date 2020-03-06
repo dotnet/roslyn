@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
 
         public override string CommentPrefix => "//";
 
-        protected override string GetTextContextOfComment(SyntaxTrivia commentTrivia)
+        protected override ReadOnlyMemory<char> GetTextContextOfComment(SyntaxTrivia commentTrivia)
         {
             if (commentTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
             {
-                return commentTrivia.ToFullString().Substring(2);
+                return commentTrivia.ToFullString().AsMemory()[2..];
             }
             else if (commentTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
             {
@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
                 if (endIndex < startIndex)
                 {
                     // While editing, it is possible to have a multiline comment trivia that does not contain the closing '*/' yet.
-                    return triviaString.Substring(startIndex);
+                    return triviaString.AsMemory()[startIndex..];
                 }
 
-                return triviaString.Substring(startIndex, endIndex - startIndex);
+                return triviaString.AsMemory()[startIndex..endIndex];
             }
             else
             {

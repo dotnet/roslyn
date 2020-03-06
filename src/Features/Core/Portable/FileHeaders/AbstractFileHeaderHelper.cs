@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// </summary>
         public abstract string CommentPrefix { get; }
 
-        protected abstract string GetTextContextOfComment(SyntaxTrivia commentTrivia);
+        protected abstract ReadOnlyMemory<char> GetTextContextOfComment(SyntaxTrivia commentTrivia);
 
         /// <inheritdoc cref="ISyntaxKinds.SingleLineCommentTrivia"/>
         private int SingleLineCommentTriviaKind { get; }
@@ -69,12 +69,16 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 {
                     endOfLineCount = 0;
 
-                    var commentText = GetTextContextOfComment(trivia);
+                    var commentText = GetTextContextOfComment(trivia).Span.Trim();
 
                     fileHeaderStart = Math.Min(trivia.FullSpan.Start, fileHeaderStart);
                     fileHeaderEnd = trivia.FullSpan.End;
 
-                    sb.AppendLine(commentText.Trim());
+#if NETCOREAPP
+                    sb.Append(commentText).AppendLine();
+#else
+                    sb.AppendLine(commentText.ToString());
+#endif
                 }
                 else if (trivia.RawKind == MultiLineCommentTriviaKind)
                 {
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                     if (sb.Length == 0)
                     {
                         var commentText = GetTextContextOfComment(trivia);
-                        var triviaStringParts = commentText.Trim().Replace("\r\n", "\n").Split('\n');
+                        var triviaStringParts = commentText.Span.Trim().ToString().Replace("\r\n", "\n").Split('\n');
 
                         foreach (var part in triviaStringParts)
                         {
