@@ -25,9 +25,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class AnalyzerHelper
     {
-        private const string CSharpCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
-        private const string VisualBasicCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer";
-
         // These are the error codes of the compiler warnings. 
         // Keep the ids the same so that de-duplication against compiler errors
         // works in the error list (after a build).
@@ -63,23 +60,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return options == null
                 ? descriptor.DefaultSeverity.ToReportDiagnostic()
                 : descriptor.GetEffectiveSeverity(options);
-        }
-
-        public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
-        {
-            // TODO: find better way.
-            var typeString = analyzer.GetType().FullName;
-            if (typeString == CSharpCompilerAnalyzerTypeName)
-            {
-                return true;
-            }
-
-            if (typeString == VisualBasicCompilerAnalyzerTypeName)
-            {
-                return true;
-            }
-
-            return false;
         }
 
         public static (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)

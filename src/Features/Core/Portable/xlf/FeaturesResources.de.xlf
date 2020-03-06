@@ -1552,11 +1552,6 @@
         <target state="translated">Das Symbol hat kein Symbolbild.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown">
-        <source>Unknown</source>
-        <target state="translated">Unbekannt</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket">
         <source>Asynchronous method cannot have ref/out parameters : [{0}]</source>
         <target state="translated">Asynchrone Methode darf keine ref/out-Parameter aufweisen : [{0}]</target>
