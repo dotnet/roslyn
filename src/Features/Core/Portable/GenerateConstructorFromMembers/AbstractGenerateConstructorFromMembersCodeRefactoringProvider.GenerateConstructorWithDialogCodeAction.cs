@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _viableMembers, _pickMembersOptions);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
                 object options, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 if (state == null)
                 {
-                    return null;
+                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
                 }
 
                 // There was an existing constructor that matched what the user wants to create.

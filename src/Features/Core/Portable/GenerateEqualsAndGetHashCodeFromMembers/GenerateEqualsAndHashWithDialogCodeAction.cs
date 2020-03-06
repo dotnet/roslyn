@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     _viableMembers, _pickMembersOptions);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)

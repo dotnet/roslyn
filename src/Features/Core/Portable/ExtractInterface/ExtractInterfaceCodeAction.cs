@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            IEnumerable<CodeActionOperation>? operations = null;
+            var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 
             if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
             {

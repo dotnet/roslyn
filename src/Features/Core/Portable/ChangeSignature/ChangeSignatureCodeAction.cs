@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return _changeSignatureService.GetChangeSignatureOptions(_context);
         }
 
-        protected override Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
             if (options is ChangeSignatureOptionsResult changeSignatureOptions && !changeSignatureOptions.IsCancelled)
             {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            return SpecializedTasks.EmptyEnumerable<CodeActionOperation>().AsNullable();
+            return SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
         }
     }
 }

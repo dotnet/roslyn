@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 return service.PickMembers(FeaturesResources.Pick_members_to_override, _viableMembers);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled || result.Members.Length == 0)

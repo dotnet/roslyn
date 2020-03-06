@@ -115,12 +115,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see cref="CodeActionOperation"/>'s.
         /// </summary>
-        protected virtual async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(CancellationToken cancellationToken)
+        protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
             var changedSolution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
             if (changedSolution == null)
             {
-                return null;
+                return Array.Empty<CodeActionOperation>();
             }
 
             return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// Override this method if you want to implement a <see cref="CodeAction"/> that has a set of preview operations that are different
         /// than the operations produced by <see cref="ComputeOperationsAsync(CancellationToken)"/>.
         /// </summary>
-        protected virtual Task<IEnumerable<CodeActionOperation>?> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        protected virtual Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
             return ComputeOperationsAsync(cancellationToken);
         }
@@ -164,10 +164,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         /// <summary>
-        /// Computes changes for a single document.
-        /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that changes a single document.
+        /// Computes changes for a single document. Override this method if you want to implement a
+        /// <see cref="CodeAction"/> subclass that changes a single document.
         /// </summary>
-        protected virtual Task<Document?> GetChangedDocumentAsync(CancellationToken cancellationToken)
+        /// <remarks>
+        /// All code actions are expected to operate on solutions. This method is a helper to simplify the
+        /// implementation of <see cref="GetChangedSolutionAsync(CancellationToken)"/> for code actions that only need
+        /// to change one document.
+        /// </remarks>
+        /// <exception cref="NotImplementedException">If this code action does not support changing a single document.</exception>
+        protected virtual Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -186,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 
-        internal Task<Document?> GetChangedDocumentInternalAsync(CancellationToken cancellation)
+        internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
         {
             return GetChangedDocumentAsync(cancellation);
         }
@@ -383,11 +389,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             public sealed override string Title { get; }
             public sealed override string? EquivalenceKey { get; }
-
-            protected override Task<Document?> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return Task.FromResult<Document?>(null);
-            }
         }
 
         internal class CodeActionWithNestedActions : SimpleCodeAction
@@ -438,9 +439,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 _createChangedDocument = createChangedDocument;
             }
 
-            protected sealed override Task<Document?> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                return _createChangedDocument(cancellationToken).AsNullable();
+                return _createChangedDocument(cancellationToken);
             }
         }
 
@@ -465,11 +466,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public NoChangeAction(string title, string? equivalenceKey = null)
                 : base(title, equivalenceKey)
             {
-            }
-
-            protected sealed override Task<Document?> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.Null<Document>();
             }
 
             protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)

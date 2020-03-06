@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType
 {
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
 
@@ -182,9 +183,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return false;
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
-                IEnumerable<CodeActionOperation>? operations = null;
+                var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 
                 if (options is GenerateTypeOptionsResult generateTypeOptions && !generateTypeOptions.IsCancelled)
                 {

@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         /// <param name="options">An object instance returned from a call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        protected abstract Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(object options, CancellationToken cancellationToken);
+        protected abstract Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken);
 
-        protected override Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(CancellationToken cancellationToken)
+        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyEnumerable<CodeActionOperation>().AsNullable();
+            return SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
         }
     }
 }
