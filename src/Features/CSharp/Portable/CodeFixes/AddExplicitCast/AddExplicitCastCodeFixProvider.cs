@@ -149,9 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             targetNodeType = targetNodeInfo.Type;
 
             if (targetNodeType == null)
-            {
                 return false;
-            }
 
             // The error happens either on an assignement operation or on an invocation expression.
             // If the error happens on assignment operation, "ConvertedType" is different from the current "Type"
@@ -257,13 +255,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument,
             CancellationToken cancellationToken, out int targetParamIndex)
         {
-            targetParamIndex = -1; // return invalid index if it is not a perfect match
+            // return invalid index if not all argument types can be converted to corresponding parameter types
+            targetParamIndex = -1;
             if (parameters.Length == 0)
                 return false;
 
+            // We have analyzed every argument and tried to make it correspond to a particular parameter. 
+            // We must now answer the following questions:
+            //
+            // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
+            // (2) Is there any argument without a corresponding parameter?
+            // (3) Was there any named argument that specified a parameter that was already
+            //     supplied with a positional parameter?
+            // (4) Is there any non-optional parameter without a corresponding argument?
+            // (5) Is there any named argument that were specified twice?
+            //
+            // If the answer to any of there questions is "yes" then the method is not applicable.
+            // The answer to (5) is always "No" since if there are named argument that were specified
+            // twice, it wouldn't report error CS1503, and it cannot trigger this code fixer
+
             var matchedTypes = new bool[parameters.Length]; // default value is false
             var paramsMatchedByArray = false; // the parameter with keyword params can be either matched by an array type or a variable number of arguments
-            var inOrder = true; // assume the arguments are in order in default
+            var inOrder = true; // assume the arguments are in order by default
 
             for (var i = 0; i < arguments.Count; i++)
             {
@@ -289,6 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                             break;
                         }
                     }
+
+                    // rule (2)
                     if (!found)
                         return false;
                 }
@@ -297,50 +312,55 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 var argType = semanticModel.GetTypeInfo(arguments[i].Expression, cancellationToken);
                 if (argType.Type == null)
                     return false;
-                if (inOrder || nameSyntax is object)
-                {
-                    // The type of argument must be convertible to the type of parameter
-                    if (!parameters[parameterIndex].IsParams
-                        && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
-                    {
-                        if (matchedTypes[parameterIndex])
-                            return false;
-                        matchedTypes[parameterIndex] = true;
-                    }
-                    else if (parameters[parameterIndex].IsParams
-                        && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
-                    {
-                        // The parameter with keyword params takes an array type, then it cannot be matched more than once
-                        if (matchedTypes[parameterIndex])
-                            return false;
-                        matchedTypes[parameterIndex] = true;
-                        paramsMatchedByArray = true;
-                    }
-                    else if (parameters[parameterIndex].IsParams
-                             && parameters.Last().Type is IArrayTypeSymbol paramsType
-                             && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, paramsType.ElementType).Exists)
-                    {
-                        // The parameter with keyword params takes a variable number of arguments, compare its element type with the argument's type.
-                        if (matchedTypes[parameterIndex] && paramsMatchedByArray)
-                            return false;
-                        matchedTypes[parameterIndex] = true;
-                        paramsMatchedByArray = false;
-                    }
-                    else
-                    {
-                        return false;
-                    }
 
-                    if (targetArgument.Equals(arguments[i]))
-                        targetParamIndex = parameterIndex;
+                // rule (1)
+                if (!inOrder && nameSyntax is null)
+                    return false;
+
+                // The type of argument must be convertible to the type of parameter
+                if (!parameters[parameterIndex].IsParams
+                    && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
+                {
+                    // rule (3)
+                    if (matchedTypes[parameterIndex])
+                        return false;
+                    matchedTypes[parameterIndex] = true;
+                }
+                else if (parameters[parameterIndex].IsParams
+                    && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
+                {
+                    // The parameter with keyword params takes an array type, then it cannot be matched more than once
+                    // rule (3)
+                    if (matchedTypes[parameterIndex])
+                        return false;
+                    matchedTypes[parameterIndex] = true;
+                    paramsMatchedByArray = true;
+                }
+                else if (parameters[parameterIndex].IsParams
+                         && parameters.Last().Type is IArrayTypeSymbol paramsType
+                         && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, paramsType.ElementType).Exists)
+                {
+                    // The parameter with keyword params can take a *variable* number of arguments,
+                    // compare its element type with the argument's type.
+
+                    // rule (3)
+                    if (matchedTypes[parameterIndex] && paramsMatchedByArray)
+                        return false;
+                    matchedTypes[parameterIndex] = true;
+                    paramsMatchedByArray = false;
                 }
                 else
                 {
+                    // rule (2)
                     return false;
                 }
+
+                if (targetArgument.Equals(arguments[i]))
+                    targetParamIndex = parameterIndex;
             }
 
             // mark all optional parameters as matched
+            // rule (4)
             for (var i = 0; i < parameters.Length; i++)
             {
                 if (parameters[i].IsOptional || parameters[i].IsParams)
