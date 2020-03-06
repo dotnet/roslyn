@@ -273,6 +273,14 @@ stages:
   displayName: Setup the dependency for post-build stages
   condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
+  jobs:
+  - job: Log
+    displayName: Log
+
+    steps:
+    - powershell: Write-Host "Setup the dependency for post-build stages."
+      displayName: Log
+
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
