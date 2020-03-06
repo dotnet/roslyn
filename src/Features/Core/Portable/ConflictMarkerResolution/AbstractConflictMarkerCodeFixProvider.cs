@@ -192,94 +192,6 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             return true;
         }
 
-        //private (SyntaxTrivia equalsTrivia, SyntaxTrivia endTrivia)? TryGetConflictTrivia(SourceText text, SyntaxTrivia startTrivia)
-        //{
-        //    var token = startTrivia.Token;
-
-        //    while (true)
-        //    {
-        //        var index = GetEqualsConflictMarkerIndex(text, token, afterPosition: startTrivia.SpanStart);
-        //        if (index >= 0)
-        //        {
-        //            var leadingTrivia = token.LeadingTrivia;
-
-        //            if (index + 3 < token.LeadingTrivia.Count)
-        //            {
-        //                // normal case where there us =====, then dead code, then >>>>>>
-
-        //                var equalsTrivia = leadingTrivia[index];
-        //                var endOfLineTrivia = leadingTrivia[index + 1];
-        //                var disabledTrivia = leadingTrivia[index + 2];
-        //                var endTrivia = leadingTrivia[index + 3];
-
-        //                if (_syntaxKinds.EndOfLineTrivia == endOfLineTrivia.RawKind &&
-        //                    _syntaxKinds.DisabledTextTrivia == disabledTrivia.RawKind &&
-        //                    IsConflictMarker(text, endTrivia, '>'))
-        //                {
-        //                    return (equalsTrivia, endTrivia);
-        //                }
-        //            }
-
-        //            if (index + 2 < token.LeadingTrivia.Count)
-        //            {
-        //                // case where there is ===== followed by >>>>>>  on the next line.
-
-        //                var equalsTrivia = leadingTrivia[index];
-        //                var endOfLineTrivia = leadingTrivia[index + 1];
-        //                var endTrivia = leadingTrivia[index + 2];
-
-        //                if (_syntaxKinds.EndOfLineTrivia == endOfLineTrivia.RawKind &&
-        //                    IsConflictMarker(text, endTrivia, '>'))
-        //                {
-        //                    return (equalsTrivia, endTrivia);
-        //                }
-        //            }
-        //        }
-
-        //        token = token.GetNextToken(includeZeroWidth: true);
-        //        if (token.RawKind == 0)
-        //        {
-        //            return null;
-        //        }
-        //    }
-        //}
-
-        //private void RegisterCodeFixes(
-        //    CodeFixContext context, SyntaxTrivia startTrivia, SyntaxTrivia equalsTrivia, SyntaxTrivia endTrivia)
-        //{
-        //    var document = context.Document;
-
-        //    var topText = startTrivia.ToString().Substring(s_mergeConflictLength).Trim();
-        //    var takeTopText = string.IsNullOrWhiteSpace(topText)
-        //        ? FeaturesResources.Take_top
-        //        : string.Format(FeaturesResources.Take_0, topText);
-
-        //    var bottomText = endTrivia.ToString().Substring(s_mergeConflictLength).Trim();
-        //    var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
-        //        ? FeaturesResources.Take_bottom
-        //        : string.Format(FeaturesResources.Take_0, bottomText);
-
-        //    var startPos = startTrivia.SpanStart;
-        //    var equalsPos = equalsTrivia.SpanStart;
-        //    var endPos = endTrivia.SpanStart;
-
-        //    context.RegisterCodeFix(
-        //        new MyCodeAction(takeTopText,
-        //            c => TakeTopAsync(document, startPos, equalsPos, endPos, c),
-        //            TakeTopEquivalenceKey),
-        //        context.Diagnostics);
-        //    context.RegisterCodeFix(
-        //        new MyCodeAction(takeBottomText,
-        //            c => TakeBottomAsync(document, startPos, equalsPos, endPos, c),
-        //            TakeBottomEquivalenceKey),
-        //        context.Diagnostics);
-        //    context.RegisterCodeFix(
-        //        new MyCodeAction(FeaturesResources.Take_both,
-        //            c => TakeBothAsync(document, startPos, equalsPos, endPos, c),
-        //            TakeBothEquivalenceKey),
-        //        context.Diagnostics);
-        //}
-
         private void RegisterCodeFixes(
             CodeFixContext context, TextLine startLine, TextLine middleLine, TextLine endLine)
         {
@@ -385,34 +297,6 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private static int GetEndIncludingLineBreak(SourceText text, int position)
             => text.Lines.GetLineFromPosition(position).SpanIncludingLineBreak.End;
-
-        //private int GetEqualsConflictMarkerIndex(SourceText text, SyntaxToken token, int afterPosition)
-        //{
-        //    if (token.HasLeadingTrivia)
-        //    {
-        //        var i = 0;
-        //        foreach (var trivia in token.LeadingTrivia)
-        //        {
-        //            if (trivia.SpanStart >= afterPosition &&
-        //                IsConflictMarker(text, trivia, '='))
-        //            {
-        //                return i;
-        //            }
-
-        //            i++;
-        //        }
-        //    }
-
-        //    return -1;
-        //}
-
-        private bool IsConflictMarker(SourceText text, SyntaxTrivia trivia, char ch)
-        {
-            return
-                _syntaxKinds.ConflictMarkerTrivia == trivia.RawKind &&
-                trivia.Span.Length > 0 &&
-                text[trivia.SpanStart] == ch;
-        }
 
         private async Task<SyntaxNode> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
