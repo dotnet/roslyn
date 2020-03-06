@@ -5,15 +5,21 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
+#else
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
 {
@@ -469,6 +475,9 @@ struct Program
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
+
+#if !CODE_STYLE // TODO: Skipped tests in CodeStyle layer depend on new Nullable APIs that are not available in CodeStyle layer.
+        // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
@@ -963,6 +972,8 @@ class Program
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
+
+#endif
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]

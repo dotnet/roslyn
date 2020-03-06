@@ -16,11 +16,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\UseVarPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AssignmentExpressionSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\AttributeArgumentSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CastExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveSyntaxEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ForEachStatementSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.DeclarationFinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.LocalDeclarationMap.cs" />
@@ -38,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions.Parsers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingService.cs" />
@@ -75,9 +79,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\CastSimplifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\FormattingRangeHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TokenComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpTypeStyleHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpTypeStyleHelper.State.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpUseExplicitTypeHelper.cs" />
