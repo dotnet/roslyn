@@ -3328,7 +3328,7 @@ $@"{{
 
             incrementOps("++", "nint", "nint nint.op_Increment(nint value)", useChecked: false,
                 values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
-                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? intMinValue : "2147483648")}",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}",
 @"{
   // Code size        7 (0x7)
   .maxstack  2
@@ -3402,7 +3402,7 @@ $@"{{
             //incrementOps("++", "System.UIntPtr"); // PROTOTYPE: Not handled.
             incrementOps("--", "nint", "nint nint.op_Decrement(nint value)", useChecked: false,
                 values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
-                expectedResult: $"{(IntPtr.Size == 4 ? intMaxValue : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+                expectedResult: $"{(IntPtr.Size == 4 ? "2147483647" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
 @"{
   // Code size        7 (0x7)
   .maxstack  2
@@ -3699,7 +3699,7 @@ class Program
 
             incrementOps("++", "nint", "nint nint.op_Increment(nint value)",
                 values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
-                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? intMinValue : "2147483648")}",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}",
 @"{
   // Code size        7 (0x7)
   .maxstack  3
@@ -3775,7 +3775,7 @@ class Program
 }");
             incrementOps("--", "nint", "nint nint.op_Decrement(nint value)",
                 values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
-                expectedResult: $"{(IntPtr.Size == 4 ? intMaxValue : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+                expectedResult: $"{(IntPtr.Size == 4 ? "2147483647" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
 @"{
   // Code size        7 (0x7)
   .maxstack  3
@@ -3979,7 +3979,7 @@ $@"-2147483647
 -2147483648
 0
 2147483647
-{(IntPtr.Size == 4 ? intMinValue : "2147483648")}
+{(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}
 0
 -2147483647
 2147483647
@@ -4130,7 +4130,7 @@ $@"1
 4294967294
 0
 4294967295
-{(IntPtr.Size == 4 ? uintMaxValue : "18446744073709551615")}
+{(IntPtr.Size == 4 ? "4294967295" : "18446744073709551615")}
 {(IntPtr.Size == 4 ? "0" : "18446744069414584320")}";
             // PEVerify fails with "MyInt::ToString][mdToken=0x6000007][offset 0x00000001] Cannot change initonly field outside its .ctor."
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Skipped);
@@ -4283,7 +4283,7 @@ $@"-2147483647
 -2147483648
 0
 2147483647
-{(IntPtr.Size == 4 ? intMinValue : "2147483648")}
+{(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}
 0
 -2147483647
 2147483647
@@ -4524,7 +4524,7 @@ $@"1
 4294967294
 0
 4294967295
-{(IntPtr.Size == 4 ? uintMaxValue : "18446744073709551615")}
+{(IntPtr.Size == 4 ? "4294967295" : "18446744073709551615")}
 {(IntPtr.Size == 4 ? "0" : "18446744069414584320")}";
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
             verifier.VerifyIL("Program.PrefixIncrement",
