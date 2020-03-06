@@ -4,12 +4,19 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
@@ -50,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
 
             var semanticModel = context.SemanticModel;
             var declaredType = Helper.FindAnalyzableType(declarationStatement, semanticModel, cancellationToken);

@@ -17,5 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.Rewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\CSharpRemoveUnnecessaryCastCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseExplicitTypeCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseImplicitTypeCodeFixProvider.cs" />
   </ItemGroup>
 </Project>
