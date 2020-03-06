@@ -3328,7 +3328,7 @@ $@"{{
 
             incrementOps("++", "nint", "nint nint.op_Increment(nint value)", useChecked: false,
                 values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
-                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? intMinValue : "2147483648")}",
 @"{
   // Code size        7 (0x7)
   .maxstack  2
@@ -3402,7 +3402,7 @@ $@"{{
             //incrementOps("++", "System.UIntPtr"); // PROTOTYPE: Not handled.
             incrementOps("--", "nint", "nint nint.op_Decrement(nint value)", useChecked: false,
                 values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
-                expectedResult: $"{(IntPtr.Size == 4 ? "2147483647" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+                expectedResult: $"{(IntPtr.Size == 4 ? intMaxValue : "-2147483649")}, -2147483648, -1, 0, 2147483646",
 @"{
   // Code size        7 (0x7)
   .maxstack  2
@@ -3699,7 +3699,7 @@ class Program
 
             incrementOps("++", "nint", "nint nint.op_Increment(nint value)",
                 values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
-                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? intMinValue : "2147483648")}",
 @"{
   // Code size        7 (0x7)
   .maxstack  3
@@ -3775,7 +3775,7 @@ class Program
 }");
             incrementOps("--", "nint", "nint nint.op_Decrement(nint value)",
                 values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
-                expectedResult: $"{(IntPtr.Size == 4 ? "2147483647" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+                expectedResult: $"{(IntPtr.Size == 4 ? intMaxValue : "-2147483649")}, -2147483648, -1, 0, 2147483646",
 @"{
   // Code size        7 (0x7)
   .maxstack  3
@@ -3979,7 +3979,7 @@ $@"-2147483647
 -2147483648
 0
 2147483647
-{(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}
+{(IntPtr.Size == 4 ? intMinValue : "2147483648")}
 0
 -2147483647
 2147483647
@@ -4130,7 +4130,7 @@ $@"1
 4294967294
 0
 4294967295
-{(IntPtr.Size == 4 ? "4294967295" : "18446744073709551615")}
+{(IntPtr.Size == 4 ? uintMaxValue : "18446744073709551615")}
 {(IntPtr.Size == 4 ? "0" : "18446744069414584320")}";
             // PEVerify fails with "MyInt::ToString][mdToken=0x6000007][offset 0x00000001] Cannot change initonly field outside its .ctor."
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Skipped);
@@ -4283,7 +4283,7 @@ $@"-2147483647
 -2147483648
 0
 2147483647
-{(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}
+{(IntPtr.Size == 4 ? intMinValue : "2147483648")}
 0
 -2147483647
 2147483647
@@ -4524,7 +4524,7 @@ $@"1
 4294967294
 0
 4294967295
-{(IntPtr.Size == 4 ? "4294967295" : "18446744073709551615")}
+{(IntPtr.Size == 4 ? uintMaxValue : "18446744073709551615")}
 {(IntPtr.Size == 4 ? "0" : "18446744069414584320")}";
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
             verifier.VerifyIL("Program.PrefixIncrement",
@@ -6255,142 +6255,146 @@ class Program
         [Fact]
         public void ConstantFolding()
         {
-            unaryOperator("nint", "+", "-2147483648", "-2147483648");
-            unaryOperator("nint", "+", "2147483647", "2147483647");
-            unaryOperator("nuint", "+", "0", "0");
-            unaryOperator("nuint", "+", "4294967295", "4294967295");
+            const string intMinValue = "-2147483648";
+            const string intMaxValue = "2147483647";
+            const string uintMaxValue = "4294967295";
 
-            unaryOperator("nint", "-", "-2147483648", null, getOverflowDiagnostics);
-            unaryOperator("nint", "-", "-2147483647", "2147483647");
-            unaryOperator("nint", "-", "2147483647", "-2147483647");
+            unaryOperator("nint", "+", intMinValue, intMinValue);
+            unaryOperator("nint", "+", intMaxValue, intMaxValue);
+            unaryOperator("nuint", "+", "0", "0");
+            unaryOperator("nuint", "+", uintMaxValue, uintMaxValue);
+
+            unaryOperator("nint", "-", intMinValue, null, getOverflowDiagnostics);
+            unaryOperator("nint", "-", "-2147483647", intMaxValue);
+            unaryOperator("nint", "-", intMaxValue, "-2147483647");
             unaryOperator("nuint", "-", "0", null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
             unaryOperator("nuint", "-", "1", null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
-            unaryOperator("nuint", "-", "4294967295", null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
+            unaryOperator("nuint", "-", uintMaxValue, null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
 
             unaryOperator("nint", "~", "0", null, getOverflowDiagnostics);
-            unaryOperator("nint", "~", "-2147483648", null, getOverflowDiagnostics);
-            unaryOperator("nint", "~", "2147483647", null, getOverflowDiagnostics);
+            unaryOperator("nint", "~", intMinValue, null, getOverflowDiagnostics);
+            unaryOperator("nint", "~", intMaxValue, null, getOverflowDiagnostics);
             unaryOperator("nuint", "~", "0", null, getOverflowDiagnostics);
-            unaryOperator("nuint", "~", "4294967295", null, getOverflowDiagnostics);
+            unaryOperator("nuint", "~", uintMaxValue, null, getOverflowDiagnostics);
 
-            binaryOperator("nint", "+", "nint", "-2147483648", "nint", "-1", null, getOverflowDiagnostics);
-            binaryOperator("nint", "+", "nint", "-2147483647", "nint", "-1", "-2147483648");
-            binaryOperator("nint", "+", "nint", "1", "nint", "2147483647", null, getOverflowDiagnostics);
-            binaryOperator("nint", "+", "nint", "1", "nint", "2147483646", "2147483647");
-            binaryOperator("nuint", "+", "nuint", "1", "nuint", "4294967295", null, getOverflowDiagnostics);
-            binaryOperator("nuint", "+", "nuint", "1", "nuint", "4294967294", "4294967295");
+            binaryOperator("nint", "+", "nint", intMinValue, "nint", "-1", null, getOverflowDiagnostics);
+            binaryOperator("nint", "+", "nint", "-2147483647", "nint", "-1", intMinValue);
+            binaryOperator("nint", "+", "nint", "1", "nint", intMaxValue, null, getOverflowDiagnostics);
+            binaryOperator("nint", "+", "nint", "1", "nint", "2147483646", intMaxValue);
+            binaryOperator("nuint", "+", "nuint", "1", "nuint", uintMaxValue, null, getOverflowDiagnostics);
+            binaryOperator("nuint", "+", "nuint", "1", "nuint", "4294967294", uintMaxValue);
 
-            binaryOperator("nint", "-", "nint", "-2147483648", "nint", "1", null, getOverflowDiagnostics);
-            binaryOperator("nint", "-", "nint", "-2147483648", "nint", "-1", "-2147483647");
-            binaryOperator("nint", "-", "nint", "-1", "nint", "2147483647", "-2147483648");
-            binaryOperator("nint", "-", "nint", "-2", "nint", "2147483647", null, getOverflowDiagnostics);
+            binaryOperator("nint", "-", "nint", intMinValue, "nint", "1", null, getOverflowDiagnostics);
+            binaryOperator("nint", "-", "nint", intMinValue, "nint", "-1", "-2147483647");
+            binaryOperator("nint", "-", "nint", "-1", "nint", intMaxValue, intMinValue);
+            binaryOperator("nint", "-", "nint", "-2", "nint", intMaxValue, null, getOverflowDiagnostics);
             binaryOperator("nuint", "-", "nuint", "0", "nuint", "1", null, getOverflowDiagnostics);
-            binaryOperator("nuint", "-", "nuint", "4294967295", "nuint", "4294967295", "0");
+            binaryOperator("nuint", "-", "nuint", uintMaxValue, "nuint", uintMaxValue, "0");
 
-            binaryOperator("nint", "*", "nint", "-2147483648", "nint", "2", null, getOverflowDiagnostics);
-            binaryOperator("nint", "*", "nint", "-2147483648", "nint", "-1", null, getOverflowDiagnostics);
-            binaryOperator("nint", "*", "nint", "-1", "nint", "2147483647", "-2147483647");
-            binaryOperator("nint", "*", "nint", "2", "nint", "2147483647", null, getOverflowDiagnostics);
-            binaryOperator("nuint", "*", "nuint", "4294967295", "nuint", "2", null, getOverflowDiagnostics);
-            binaryOperator("nuint", "*", "nuint", "2147483647", "nuint", "2", "4294967294");
+            binaryOperator("nint", "*", "nint", intMinValue, "nint", "2", null, getOverflowDiagnostics);
+            binaryOperator("nint", "*", "nint", intMinValue, "nint", "-1", null, getOverflowDiagnostics);
+            binaryOperator("nint", "*", "nint", "-1", "nint", intMaxValue, "-2147483647");
+            binaryOperator("nint", "*", "nint", "2", "nint", intMaxValue, null, getOverflowDiagnostics);
+            binaryOperator("nuint", "*", "nuint", uintMaxValue, "nuint", "2", null, getOverflowDiagnostics);
+            binaryOperator("nuint", "*", "nuint", intMaxValue, "nuint", "2", "4294967294");
 
-            binaryOperator("nint", "/", "nint", "-2147483648", "nint", "1", "-2147483648");
-            binaryOperator("nint", "/", "nint", "-2147483648", "nint", "-1", null, getOverflowDiagnostics);
+            binaryOperator("nint", "/", "nint", intMinValue, "nint", "1", intMinValue);
+            binaryOperator("nint", "/", "nint", intMinValue, "nint", "-1", null, getOverflowDiagnostics);
             binaryOperator("nint", "/", "nint", "1", "nint", "0", null, getIntDivByZeroDiagnostics);
             binaryOperator("nint", "/", "nint", "0", "nint", "0", null, getIntDivByZeroDiagnostics);
-            binaryOperator("nuint", "/", "nuint", "4294967295", "nuint", "2", "2147483647");
+            binaryOperator("nuint", "/", "nuint", uintMaxValue, "nuint", "2", intMaxValue);
             binaryOperator("nuint", "/", "nuint", "1", "nuint", "0", null, getIntDivByZeroDiagnostics);
             binaryOperator("nuint", "/", "nuint", "0", "nuint", "0", null, getIntDivByZeroDiagnostics);
 
-            binaryOperator("nint", "%", "nint", "-2147483648", "nint", "2", "0");
-            binaryOperator("nint", "%", "nint", "-2147483648", "nint", "-2", "0");
-            binaryOperator("nint", "%", "nint", "-2147483648", "nint", "-1", "0");
+            binaryOperator("nint", "%", "nint", intMinValue, "nint", "2", "0");
+            binaryOperator("nint", "%", "nint", intMinValue, "nint", "-2", "0");
+            binaryOperator("nint", "%", "nint", intMinValue, "nint", "-1", "0");
             binaryOperator("nint", "%", "nint", "1", "nint", "0", null, getIntDivByZeroDiagnostics);
             binaryOperator("nint", "%", "nint", "0", "nint", "0", null, getIntDivByZeroDiagnostics);
-            binaryOperator("nuint", "%", "nuint", "4294967295", "nuint", "2", "1");
+            binaryOperator("nuint", "%", "nuint", uintMaxValue, "nuint", "2", "1");
             binaryOperator("nuint", "%", "nuint", "1", "nuint", "0", null, getIntDivByZeroDiagnostics);
             binaryOperator("nuint", "%", "nuint", "0", "nuint", "0", null, getIntDivByZeroDiagnostics);
 
-            binaryOperator("bool", "<", "nint", "-2147483648", "nint", "-2147483648", "False");
-            binaryOperator("bool", "<", "nint", "-2147483648", "nint", "2147483647", "True");
-            binaryOperator("bool", "<", "nint", "2147483647", "nint", "2147483647", "False");
+            binaryOperator("bool", "<", "nint", intMinValue, "nint", intMinValue, "False");
+            binaryOperator("bool", "<", "nint", intMinValue, "nint", intMaxValue, "True");
+            binaryOperator("bool", "<", "nint", intMaxValue, "nint", intMaxValue, "False");
             binaryOperator("bool", "<", "nuint", "0", "nuint", "0", "False");
-            binaryOperator("bool", "<", "nuint", "0", "nuint", "4294967295", "True");
-            binaryOperator("bool", "<", "nuint", "4294967295", "nuint", "4294967295", "False");
+            binaryOperator("bool", "<", "nuint", "0", "nuint", uintMaxValue, "True");
+            binaryOperator("bool", "<", "nuint", uintMaxValue, "nuint", uintMaxValue, "False");
 
-            binaryOperator("bool", "<=", "nint", "-2147483648", "nint", "-2147483648", "True");
-            binaryOperator("bool", "<=", "nint", "2147483647", "nint", "-2147483648", "False");
-            binaryOperator("bool", "<=", "nint", "2147483647", "nint", "2147483647", "True");
+            binaryOperator("bool", "<=", "nint", intMinValue, "nint", intMinValue, "True");
+            binaryOperator("bool", "<=", "nint", intMaxValue, "nint", intMinValue, "False");
+            binaryOperator("bool", "<=", "nint", intMaxValue, "nint", intMaxValue, "True");
             binaryOperator("bool", "<=", "nuint", "0", "nuint", "0", "True");
-            binaryOperator("bool", "<=", "nuint", "4294967295", "nuint", "0", "False");
-            binaryOperator("bool", "<=", "nuint", "4294967295", "nuint", "4294967295", "True");
+            binaryOperator("bool", "<=", "nuint", uintMaxValue, "nuint", "0", "False");
+            binaryOperator("bool", "<=", "nuint", uintMaxValue, "nuint", uintMaxValue, "True");
 
-            binaryOperator("bool", ">", "nint", "-2147483648", "nint", "-2147483648", "False");
-            binaryOperator("bool", ">", "nint", "2147483647", "nint", "-2147483648", "True");
-            binaryOperator("bool", ">", "nint", "2147483647", "nint", "2147483647", "False");
+            binaryOperator("bool", ">", "nint", intMinValue, "nint", intMinValue, "False");
+            binaryOperator("bool", ">", "nint", intMaxValue, "nint", intMinValue, "True");
+            binaryOperator("bool", ">", "nint", intMaxValue, "nint", intMaxValue, "False");
             binaryOperator("bool", ">", "nuint", "0", "nuint", "0", "False");
-            binaryOperator("bool", ">", "nuint", "4294967295", "nuint", "0", "True");
-            binaryOperator("bool", ">", "nuint", "4294967295", "nuint", "4294967295", "False");
+            binaryOperator("bool", ">", "nuint", uintMaxValue, "nuint", "0", "True");
+            binaryOperator("bool", ">", "nuint", uintMaxValue, "nuint", uintMaxValue, "False");
 
-            binaryOperator("bool", ">=", "nint", "-2147483648", "nint", "-2147483648", "True");
-            binaryOperator("bool", ">=", "nint", "-2147483648", "nint", "2147483647", "False");
-            binaryOperator("bool", ">=", "nint", "2147483647", "nint", "2147483647", "True");
+            binaryOperator("bool", ">=", "nint", intMinValue, "nint", intMinValue, "True");
+            binaryOperator("bool", ">=", "nint", intMinValue, "nint", intMaxValue, "False");
+            binaryOperator("bool", ">=", "nint", intMaxValue, "nint", intMaxValue, "True");
             binaryOperator("bool", ">=", "nuint", "0", "nuint", "0", "True");
-            binaryOperator("bool", ">=", "nuint", "0", "nuint", "4294967295", "False");
-            binaryOperator("bool", ">=", "nuint", "4294967295", "nuint", "4294967295", "True");
+            binaryOperator("bool", ">=", "nuint", "0", "nuint", uintMaxValue, "False");
+            binaryOperator("bool", ">=", "nuint", uintMaxValue, "nuint", uintMaxValue, "True");
 
-            binaryOperator("bool", "==", "nint", "-2147483648", "nint", "-2147483648", "True");
-            binaryOperator("bool", "==", "nint", "-2147483648", "nint", "2147483647", "False");
-            binaryOperator("bool", "==", "nint", "2147483647", "nint", "2147483647", "True");
+            binaryOperator("bool", "==", "nint", intMinValue, "nint", intMinValue, "True");
+            binaryOperator("bool", "==", "nint", intMinValue, "nint", intMaxValue, "False");
+            binaryOperator("bool", "==", "nint", intMaxValue, "nint", intMaxValue, "True");
             binaryOperator("bool", "==", "nuint", "0", "nuint", "0", "True");
-            binaryOperator("bool", "==", "nuint", "0", "nuint", "4294967295", "False");
-            binaryOperator("bool", "==", "nuint", "4294967295", "nuint", "4294967295", "True");
+            binaryOperator("bool", "==", "nuint", "0", "nuint", uintMaxValue, "False");
+            binaryOperator("bool", "==", "nuint", uintMaxValue, "nuint", uintMaxValue, "True");
 
-            binaryOperator("bool", "!=", "nint", "-2147483648", "nint", "-2147483648", "False");
-            binaryOperator("bool", "!=", "nint", "-2147483648", "nint", "2147483647", "True");
-            binaryOperator("bool", "!=", "nint", "2147483647", "nint", "2147483647", "False");
+            binaryOperator("bool", "!=", "nint", intMinValue, "nint", intMinValue, "False");
+            binaryOperator("bool", "!=", "nint", intMinValue, "nint", intMaxValue, "True");
+            binaryOperator("bool", "!=", "nint", intMaxValue, "nint", intMaxValue, "False");
             binaryOperator("bool", "!=", "nuint", "0", "nuint", "0", "False");
-            binaryOperator("bool", "!=", "nuint", "0", "nuint", "4294967295", "True");
-            binaryOperator("bool", "!=", "nuint", "4294967295", "nuint", "4294967295", "False");
+            binaryOperator("bool", "!=", "nuint", "0", "nuint", uintMaxValue, "True");
+            binaryOperator("bool", "!=", "nuint", uintMaxValue, "nuint", uintMaxValue, "False");
 
-            binaryOperator("nint", "<<", "nint", "-2147483648", "int", "0", "-2147483648");
-            binaryOperator("nint", "<<", "nint", "-2147483648", "int", "1", "0");
-            binaryOperator("nint", "<<", "nint", "-1", "int", "31", "-2147483648");
+            binaryOperator("nint", "<<", "nint", intMinValue, "int", "0", intMinValue);
+            binaryOperator("nint", "<<", "nint", intMinValue, "int", "1", "0");
+            binaryOperator("nint", "<<", "nint", "-1", "int", "31", intMinValue);
             binaryOperator("nint", "<<", "nint", "-1", "int", "32", "-1");
             binaryOperator("nuint", "<<", "nuint", "0", "int", "1", "0");
-            binaryOperator("nuint", "<<", "nuint", "4294967295", "int", "1", "4294967294");
+            binaryOperator("nuint", "<<", "nuint", uintMaxValue, "int", "1", "4294967294");
             binaryOperator("nuint", "<<", "nuint", "1", "int", "31", "2147483648");
             binaryOperator("nuint", "<<", "nuint", "1", "int", "32", "1");
 
-            binaryOperator("nint", ">>", "nint", "-2147483648", "int", "0", "-2147483648");
-            binaryOperator("nint", ">>", "nint", "-2147483648", "int", "1", "-1073741824");
+            binaryOperator("nint", ">>", "nint", intMinValue, "int", "0", intMinValue);
+            binaryOperator("nint", ">>", "nint", intMinValue, "int", "1", "-1073741824");
             binaryOperator("nint", ">>", "nint", "-1", "int", "31", "-1");
             binaryOperator("nint", ">>", "nint", "-1", "int", "32", "-1");
             binaryOperator("nuint", ">>", "nuint", "0", "int", "1", "0");
-            binaryOperator("nuint", ">>", "nuint", "4294967295", "int", "1", "2147483647");
+            binaryOperator("nuint", ">>", "nuint", uintMaxValue, "int", "1", intMaxValue);
             binaryOperator("nuint", ">>", "nuint", "1", "int", "31", "0");
             binaryOperator("nuint", ">>", "nuint", "1", "int", "32", "1");
 
-            binaryOperator("nint", "&", "nint", "-2147483648", "nint", "0", "0");
-            binaryOperator("nint", "&", "nint", "-2147483648", "nint", "-1", "-2147483648");
-            binaryOperator("nint", "&", "nint", "-2147483648", "nint", "2147483647", "0");
-            binaryOperator("nuint", "&", "nuint", "0", "nuint", "4294967295", "0");
-            binaryOperator("nuint", "&", "nuint", "2147483647", "nuint", "4294967295", "2147483647");
-            binaryOperator("nuint", "&", "nuint", "2147483647", "nuint", "2147483648", "0");
+            binaryOperator("nint", "&", "nint", intMinValue, "nint", "0", "0");
+            binaryOperator("nint", "&", "nint", intMinValue, "nint", "-1", intMinValue);
+            binaryOperator("nint", "&", "nint", intMinValue, "nint", intMaxValue, "0");
+            binaryOperator("nuint", "&", "nuint", "0", "nuint", uintMaxValue, "0");
+            binaryOperator("nuint", "&", "nuint", intMaxValue, "nuint", uintMaxValue, intMaxValue);
+            binaryOperator("nuint", "&", "nuint", intMaxValue, "nuint", "2147483648", "0");
 
-            binaryOperator("nint", "|", "nint", "-2147483648", "nint", "0", "-2147483648");
-            binaryOperator("nint", "|", "nint", "-2147483648", "nint", "-1", "-1");
-            binaryOperator("nint", "|", "nint", "2147483647", "nint", "2147483647", "2147483647");
-            binaryOperator("nuint", "|", "nuint", "0", "nuint", "4294967295", "4294967295");
-            binaryOperator("nuint", "|", "nuint", "2147483647", "nuint", "2147483647", "2147483647");
-            binaryOperator("nuint", "|", "nuint", "2147483647", "nuint", "2147483648", "4294967295");
+            binaryOperator("nint", "|", "nint", intMinValue, "nint", "0", intMinValue);
+            binaryOperator("nint", "|", "nint", intMinValue, "nint", "-1", "-1");
+            binaryOperator("nint", "|", "nint", intMaxValue, "nint", intMaxValue, intMaxValue);
+            binaryOperator("nuint", "|", "nuint", "0", "nuint", uintMaxValue, uintMaxValue);
+            binaryOperator("nuint", "|", "nuint", intMaxValue, "nuint", intMaxValue, intMaxValue);
+            binaryOperator("nuint", "|", "nuint", intMaxValue, "nuint", "2147483648", uintMaxValue);
 
-            binaryOperator("nint", "^", "nint", "-2147483648", "nint", "0", "-2147483648");
-            binaryOperator("nint", "^", "nint", "-2147483648", "nint", "-1", "2147483647");
-            binaryOperator("nint", "^", "nint", "2147483647", "nint", "2147483647", "0");
-            binaryOperator("nuint", "^", "nuint", "0", "nuint", "4294967295", "4294967295");
-            binaryOperator("nuint", "^", "nuint", "2147483647", "nuint", "2147483647", "0");
-            binaryOperator("nuint", "^", "nuint", "2147483647", "nuint", "2147483648", "4294967295");
+            binaryOperator("nint", "^", "nint", intMinValue, "nint", "0", intMinValue);
+            binaryOperator("nint", "^", "nint", intMinValue, "nint", "-1", intMaxValue);
+            binaryOperator("nint", "^", "nint", intMaxValue, "nint", intMaxValue, "0");
+            binaryOperator("nuint", "^", "nuint", "0", "nuint", uintMaxValue, uintMaxValue);
+            binaryOperator("nuint", "^", "nuint", intMaxValue, "nuint", intMaxValue, "0");
+            binaryOperator("nuint", "^", "nuint", intMaxValue, "nuint", "2147483648", uintMaxValue);
 
             static DiagnosticDescription[] getNoDiagnostics(string opType, string op, string operand) => Array.Empty<DiagnosticDescription>();
             static DiagnosticDescription[] getOverflowDiagnostics(string opType, string op, string operand) => new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, operand) };
