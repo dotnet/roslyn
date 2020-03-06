@@ -589,8 +589,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If we found an operator, we'll have given the `default` literal a type.
                 // Otherwise, we'll have reported the problem in ReportBinaryOperatorError.
-                resultLeft = BindToNaturalType(resultLeft, diagnostics, reportDefaultMissingType: false);
-                resultRight = BindToNaturalType(resultRight, diagnostics, reportDefaultMissingType: false);
+                resultLeft = BindToNaturalType(resultLeft, diagnostics, reportNoTargetType: false);
+                resultRight = BindToNaturalType(resultRight, diagnostics, reportNoTargetType: false);
             }
 
             hasErrors = hasErrors || resultConstant != null && resultConstant.IsBad;
@@ -655,8 +655,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     resultSignature = signature;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    bool leftDefault = left.IsLiteralDefault();
-                    bool rightDefault = right.IsLiteralDefault();
+                    bool leftDefault = left.IsLiteralDefaultOrTypelessNew();
+                    bool rightDefault = right.IsLiteralDefaultOrTypelessNew();
                     foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, leftDefault, rightType, rightNull, rightDefault, ref useSiteDiagnostics);
                     diagnostics.Add(node, useSiteDiagnostics);
                 }
@@ -701,30 +701,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool leftDefault = left.IsLiteralDefault();
             bool rightDefault = right.IsLiteralDefault();
-            if ((operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken))
+            if (operatorToken.Kind() != SyntaxKind.EqualsEqualsToken && operatorToken.Kind() != SyntaxKind.ExclamationEqualsToken)
             {
-                if (leftDefault && rightDefault)
+                if (leftDefault || rightDefault)
                 {
-                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefault, node, operatorToken.Text);
-                    return;
-                }
-                else if (leftDefault && right.Type is TypeParameterSymbol)
-                {
-                    Debug.Assert(!right.Type.IsReferenceType);
-                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, right.Type);
-                    return;
-                }
-                else if (rightDefault && left.Type is TypeParameterSymbol)
-                {
-                    Debug.Assert(!left.Type.IsReferenceType);
-                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Type);
+                    // other than == and !=, binary operators are disallowed on `default` literal
+                    Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorToken.Text, "default");
                     return;
                 }
             }
-            else if (leftDefault || rightDefault)
+
+            if ((leftDefault || left.IsTypelessNew()) &&
+                (rightDefault || right.IsTypelessNew()))
             {
-                // other than == and !=, binary operators are disallowed on `default` literal
-                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, operatorToken.Text, "default");
+                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, node, operatorToken.Text, left.Display, right.Display);
+                return;
+            }
+            else if (leftDefault && right.Type is TypeParameterSymbol)
+            {
+                Debug.Assert(!right.Type.IsReferenceType);
+                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, right.Type);
+                return;
+            }
+            else if (rightDefault && left.Type is TypeParameterSymbol)
+            {
+                Debug.Assert(!left.Type.IsReferenceType);
+                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Type);
                 return;
             }
 
@@ -1127,7 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BinaryOperatorAnalysisResult BinaryOperatorOverloadResolution(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, CSharpSyntaxNode node, DiagnosticBag diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
         {
-            if (!IsDefaultLiteralAllowedInBinaryOperator(kind, left, right))
+            if (!IsTypelessExpressionAllowedInBinaryOperator(kind, left, right))
             {
                 resultKind = LookupResultKind.OverloadResolutionFailure;
                 originalUserDefinedOperators = default(ImmutableArray<MethodSymbol>);
@@ -1196,8 +1198,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsDefaultLiteralAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
+        private bool IsTypelessExpressionAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
         {
+            // The default literal is only allowed with equality operators and both operands cannot be typeless at the same time.
+            // Note: we only need to restrict expressions that can be converted to *any* type, in which case the resolution could always succeed.
+
+            if (left.IsTypelessNew())
+            {
+                return !right.IsLiteralDefaultOrTypelessNew();
+            }
+
+            if (right.IsTypelessNew())
+            {
+                return !left.IsLiteralDefault();
+            }
+
             bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
             if (isEquality)
             {
@@ -2327,7 +2342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
                 // (or other typeless expressions).
-                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, operatorText, operand.Display);
+                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorText, operand.Display);
             }
 
             // If the operand is bad, avoid generating cascading errors.
@@ -3434,7 +3449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The specification does not permit the left hand side to be a default literal
             if (leftOperand.IsLiteralDefault())
             {
-                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
+                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, node.OperatorToken.Text, "default");
 
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                     Conversion.NoConversion, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
@@ -3876,6 +3891,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = constantValue != null && constantValue.IsBad;
             }
 
+            trueExpr = BindToNaturalType(trueExpr, diagnostics, reportNoTargetType: false);
+            falseExpr = BindToNaturalType(falseExpr, diagnostics, reportNoTargetType: false);
             return new BoundConditionalOperator(node, isRef, condition, trueExpr, falseExpr, constantValue, type, hasErrors);
         }
 

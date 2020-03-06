@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
                     if (multiple.Operators.Length == 0)
                     {
-                        return BindToNaturalType(expr, diagnostics, reportDefaultMissingType: false);
+                        return BindToNaturalType(expr, diagnostics, reportNoTargetType: false);
                     }
 
                     ImmutableArray<BoundExpression> arguments = tuple.Arguments;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // This element isn't getting a converted type
-                return BindToNaturalType(expr, diagnostics, reportDefaultMissingType: false);
+                return BindToNaturalType(expr, diagnostics, reportNoTargetType: false);
             }
 
             // We were able to determine a converted type (for this tuple literal or element), we can just convert to it
@@ -193,11 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TupleBinaryOperatorInfo.Multiple BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            left = GiveTupleTypeToDefaultLiteralIfNeeded(left, right.Type);
-            right = GiveTupleTypeToDefaultLiteralIfNeeded(right, left.Type);
+            left = GiveTupleTypeToTypelessExpressionIfNeeded(left, right.Type, diagnostics);
+            right = GiveTupleTypeToTypelessExpressionIfNeeded(right, left.Type, diagnostics);
 
-            if ((left.Type is null && left.IsLiteralDefault()) ||
-                (right.Type is null && right.IsLiteralDefault()))
+            if ((left.Type is null && left.IsLiteralDefaultOrTypelessNew()) ||
+                (right.Type is null && right.IsLiteralDefaultOrTypelessNew()))
             {
                 Error(diagnostics, ErrorCode.ERR_AmbigBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
                 return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
@@ -313,27 +313,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundExpression GiveTupleTypeToDefaultLiteralIfNeeded(BoundExpression expr, TypeSymbol targetType)
+        internal BoundExpression GiveTupleTypeToTypelessExpressionIfNeeded(BoundExpression expr, TypeSymbol targetType, DiagnosticBag diagnostics)
         {
-            if (!expr.IsLiteralDefault() || targetType is null)
+            if (targetType is object)
             {
-                return expr;
+                if (expr.IsLiteralDefault())
+                {
+                    Debug.Assert(targetType.StrippedType().IsTupleType);
+                    return new BoundDefaultExpression(expr.Syntax, targetType);
+                }
+
+                if (expr is BoundUnconvertedObjectCreationExpression objectCreation)
+                {
+                    return ConvertObjectCreationExpression(expr.Syntax, objectCreation, isCast: false, targetType, diagnostics);
+                }
             }
 
-            Debug.Assert(targetType.StrippedType().IsTupleType);
-            return new BoundDefaultExpression(expr.Syntax, targetType);
+            return expr;
         }
 
         private static bool IsTupleBinaryOperation(BoundExpression left, BoundExpression right)
         {
-            bool leftDefault = left.IsLiteralDefault();
-            bool rightDefault = right.IsLiteralDefault();
-            if (leftDefault && rightDefault)
+            bool leftDefaultOrNew = left.IsLiteralDefaultOrTypelessNew();
+            bool rightDefaultOrNew = right.IsLiteralDefaultOrTypelessNew();
+            if (leftDefaultOrNew && rightDefaultOrNew)
             {
                 return false;
             }
 
-            return (GetTupleCardinality(left) > 1 || leftDefault) && (GetTupleCardinality(right) > 1 || rightDefault);
+            return (GetTupleCardinality(left) > 1 || leftDefaultOrNew) &&
+                   (GetTupleCardinality(right) > 1 || rightDefaultOrNew);
         }
 
         private static int GetTupleCardinality(BoundExpression expr)

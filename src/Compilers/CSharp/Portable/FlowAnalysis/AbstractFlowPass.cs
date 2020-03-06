@@ -2738,6 +2738,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
         {
             VisitTypeExpression(node.SourceType);

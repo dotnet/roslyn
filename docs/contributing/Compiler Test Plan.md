@@ -209,6 +209,7 @@ a[e]
 x++ 
 x-- 
 new X() 
+new() 
 typeof(T) 
 default(T)
 default 
