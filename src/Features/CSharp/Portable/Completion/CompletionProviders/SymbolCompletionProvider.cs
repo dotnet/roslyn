@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,12 +28,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
 
+        internal async override Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+        {
+            var sourceText = document.GetTextSynchronously(CancellationToken.None);
+            if (ShouldTriggerInArgumentLists(sourceText, options))
+            {
+                if (completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
+                    await IsTriggerInArgumentListAsync(document, position - 1, CancellationToken.None).ConfigureAwait(false) == true)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         protected override bool IsInstrinsic(ISymbol s)
             => s is ITypeSymbol ts && ts.IsIntrinsicType();
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+            return ShouldTriggerInArgumentLists(text, options)
+                ? CompletionUtilities.IsTriggerCharacterOrArgumentListCharacter(text, characterPosition, options)
+                : CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+        }
+
+        internal async override Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
+        {
+            if (trigger.Kind == CompletionTriggerKind.Insertion)
+            {
+                var result = await IsTriggerOnDotAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
+
+                if (ShouldTriggerInArgumentLists(document.Project.Solution.Workspace, await document.GetOptionsAsync().ConfigureAwait(false)))
+                {
+                    result = await IsTriggerInArgumentListAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
+                    if (result.HasValue)
+                    {
+                        return result.Value;
+                    }
+                }
+            }
+
+            return true;
         }
 
         protected override async Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
@@ -44,6 +85,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return true;
+        }
+
+        private bool ShouldTriggerInArgumentLists(SourceText text, OptionSet options)
+        {
+            if (Workspace.TryGetWorkspace(text.Container, out var workspace))
+            {
+                return ShouldTriggerInArgumentLists(workspace, options);
+            }
+
+            return false;
+        }
+
+        private bool ShouldTriggerInArgumentLists(Workspace workspace, OptionSet options)
+        {
+            var isTriggerInArgumentListOptionEnabled = options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
+            if (isTriggerInArgumentListOptionEnabled != null)
+            {
+                return isTriggerInArgumentListOptionEnabled.Value;
+            }
+
+            var experimentationService = workspace.Services.GetService<IExperimentationService>();
+            return experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TriggerCompletionInArgumentLists);
         }
 
         private async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
@@ -63,6 +126,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return token.Kind() != SyntaxKind.NumericLiteralToken;
+        }
+
+        private async Task<bool?> IsTriggerInArgumentListAsync(Document document, int characterPosition, CancellationToken cancellationToken)
+        {
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (!CompletionUtilities.IsArgumentListCharacter(text[characterPosition]))
+            {
+                return null;
+            }
+
+            var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = tree.FindToken(characterPosition);
+            if (token.Parent.IsKind(SyntaxKind.ArgumentList))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)

@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isPossibleTupleContext,
             bool isPatternContext,
             bool isRightSideOfNumericType,
+            bool isInArgumentList,
             CancellationToken cancellationToken)
         {
             this.Workspace = workspace;
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsPatternContext = isPatternContext;
             this.InferredTypes = ComputeInferredTypes(workspace, semanticModel, position, cancellationToken);
             this.IsRightSideOfNumericType = isRightSideOfNumericType;
+            this.IsInArgumentList = isInArgumentList;
         }
 
         public Workspace Workspace { get; }
@@ -93,6 +95,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsPatternContext { get; }
 
         public bool IsRightSideOfNumericType { get; }
+        public bool IsInArgumentList { get; }
 
         public ImmutableArray<ITypeSymbol> InferredTypes { get; }
 

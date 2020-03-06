@@ -334,6 +334,7 @@ class C
                 state.SendTypeChars("1, ")
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
 
+                ' TODO: Split into two tests
                 state.SendDownKey()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
 

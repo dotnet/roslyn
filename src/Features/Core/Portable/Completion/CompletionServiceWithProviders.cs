@@ -259,6 +259,20 @@ namespace Microsoft.CodeAnalysis.Completion
                     break;
             }
 
+            var additionalAugmentingProviders = new List<CompletionProvider>();
+            foreach (var provider in triggeredProviders)
+            {
+                if (trigger.Kind == CompletionTriggerKind.Insertion)
+                {
+                    if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
+                    {
+                        additionalAugmentingProviders.Add(provider);
+                    }
+                }
+            }
+
+            triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
+
             // Now, ask all the triggered providers, in parallel, to populate a completion context.
             // Note: we keep any context with items *or* with a suggested item.  
             var (triggeredCompletionContexts, expandItemsAvailableFromTriggeredProviders) = await ComputeNonEmptyCompletionContextsAsync(

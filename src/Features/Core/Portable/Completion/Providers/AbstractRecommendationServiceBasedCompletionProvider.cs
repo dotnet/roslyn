@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.GetSymbolType();
         }
 
-        protected override CompletionItem CreateItem(
+        protected override CompletionItem CreateItem(CompletionContext completionContext,
             string displayText, string displayTextSuffix, string insertionText,
             List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
         {
@@ -70,7 +70,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
             rules = rules.WithMatchPriority(matchPriority);
 
-            if (context.IsRightSideOfNumericType)
+            if (!preselect &&
+                completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
+                context.IsInArgumentList &&
+                (completionContext.Trigger.Character == ' ' || completionContext.Trigger.Character == '(' || completionContext.Trigger.Character == '['))
+            {
+                rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection);
+            }
+            else if (context.IsRightSideOfNumericType)
             {
                 rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection);
             }
