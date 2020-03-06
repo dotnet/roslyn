@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal sealed class DiagnosticData : IEquatable<DiagnosticData>
+    internal sealed class DiagnosticData : IEquatable<DiagnosticData?>
     {
         public readonly string Id;
         public readonly string Category;
@@ -112,10 +112,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return DataLocation.SourceSpan.Value;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is DiagnosticData data && Equals(data);
 
-        public bool Equals(DiagnosticData other)
+        public bool Equals(DiagnosticData? other)
         {
             if (ReferenceEquals(this, other))
             {
