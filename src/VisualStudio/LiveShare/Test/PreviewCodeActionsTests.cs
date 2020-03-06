@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var expected = CreateTextEdit("var", locations["edit"].First().Range);
 
             var results = await TestHandleAsync<RunCodeActionParams, LSP.TextEdit[]>(solution,
-                CreateRunCodeActionParams(CSharpFeaturesResources.Use_implicit_type, locations["caret"].First()),
+                CreateRunCodeActionParams(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].First()),
                 RoslynMethods.CodeActionPreviewName);
             AssertJsonEquals(new LSP.TextEdit[] { expected }, results);
         }

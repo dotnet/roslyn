@@ -13,7 +13,10 @@
     <None Include="$(MSBuildThisFileDirectory)VisualBasicAnalyzersResources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderHelper.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />
   </ItemGroup>
 </Project>

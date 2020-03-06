@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Inherits AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
 
         Private Shared ReadOnly s_TitleAndMessageFormat As LocalizableString =
-            New LocalizableResourceString(NameOf(VBFeaturesResources.Imports_statement_is_unnecessary), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources))
+            New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.Imports_statement_is_unnecessary), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources))
 
         Protected Overrides Function GetTitleAndMessageFormatForClassificationIdDescriptor() As LocalizableString
             Return s_TitleAndMessageFormat

@@ -1295,9 +1295,6 @@ This version used in: {2}</value>
   <data name="Remove_unnecessary_parentheses" xml:space="preserve">
     <value>Remove unnecessary parentheses</value>
   </data>
-  <data name="Add_file_banner" xml:space="preserve">
-    <value>Add file banner</value>
-  </data>
   <data name="Warning_Method_overrides_symbol_from_metadata" xml:space="preserve">
     <value>Warning: Method overrides symbol from metadata</value>
   </data>
@@ -1747,17 +1744,5 @@ This version used in: {2}</value>
   </data>
   <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
     <value>Base classes contain inaccessible unimplemented members</value>
-  </data>
-  <data name="A_source_file_is_missing_a_required_header" xml:space="preserve">
-    <value>A source file is missing a required header.</value>
-  </data>
-  <data name="The_file_header_is_missing_or_not_located_at_the_top_of_the_file" xml:space="preserve">
-    <value>The file header is missing or not located at the top of the file</value>
-  </data>
-  <data name="A_source_file_contains_a_header_that_does_not_match_the_required_text" xml:space="preserve">
-    <value>A source file contains a header that does not match the required text</value>
-  </data>
-  <data name="The_file_header_does_not_match_the_required_text" xml:space="preserve">
-    <value>The file header does not match the required text</value>
   </data>
 </root>

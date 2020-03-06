@@ -15,11 +15,14 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using CodeStyleOptions = Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions;
+#endif
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
@@ -28,6 +31,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract ISyntaxKinds SyntaxKinds { get; }
+
+        protected abstract SyntaxTrivia EndOfLine(string text);
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
@@ -153,8 +158,12 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 triviaList = triviaList.RemoveAt(removalList[i]);
             }
 
+#if CODE_STYLE
+            var newLineText = Environment.NewLine;
+#else
             var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language);
-            var newLineTrivia = SyntaxGenerator.GetGenerator(document).EndOfLine(newLineText);
+#endif
+            var newLineTrivia = EndOfLine(newLineText);
 
             var newHeaderTrivia = CreateNewHeader(leadingSpaces + FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText);
 
@@ -167,8 +176,12 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private SyntaxNode AddHeader(Document document, SyntaxNode root, string expectedFileHeader)
         {
+#if CODE_STYLE
+            var newLineText = Environment.NewLine;
+#else
             var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language);
-            var newLineTrivia = SyntaxGenerator.GetGenerator(document).EndOfLine(newLineText);
+#endif
+            var newLineTrivia = EndOfLine(newLineText);
             var newTrivia = CreateNewHeader(FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText).Add(newLineTrivia).Add(newLineTrivia);
 
             // Skip blank lines already at the beginning of the document, since we add our own
@@ -220,10 +233,10 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }));
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_file_banner, createChangedDocument, nameof(AbstractFileHeaderCodeFixProvider))
+                : base(CodeFixesResources.Add_file_banner, createChangedDocument, nameof(AbstractFileHeaderCodeFixProvider))
             {
             }
         }
@@ -237,7 +250,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 _codeFixProvider = codeFixProvider;
             }
 
-            protected override string CodeActionTitle => FeaturesResources.Add_file_banner;
+            protected override string CodeActionTitle => CodeFixesResources.Add_file_banner;
 
             protected override Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {

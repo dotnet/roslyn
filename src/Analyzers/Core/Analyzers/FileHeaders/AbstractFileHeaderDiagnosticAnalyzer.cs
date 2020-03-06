@@ -9,6 +9,10 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#endif
+
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
@@ -18,13 +22,13 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 IDEDiagnosticIds.FileHeaderMismatch,
                 CodeStyleOptions.FileHeaderTemplate,
                 language,
-                new LocalizableResourceString(nameof(FeaturesResources.The_file_header_is_missing_or_not_located_at_the_top_of_the_file), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                new LocalizableResourceString(nameof(FeaturesResources.A_source_file_is_missing_a_required_header), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                new LocalizableResourceString(nameof(AnalyzersResources.The_file_header_is_missing_or_not_located_at_the_top_of_the_file), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                new LocalizableResourceString(nameof(AnalyzersResources.A_source_file_is_missing_a_required_header), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             RoslynDebug.AssertNotNull(DescriptorId);
 
-            var invalidHeaderTitle = new LocalizableResourceString(nameof(FeaturesResources.The_file_header_does_not_match_the_required_text), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-            var invalidHeaderMessage = new LocalizableResourceString(nameof(FeaturesResources.A_source_file_contains_a_header_that_does_not_match_the_required_text), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            var invalidHeaderTitle = new LocalizableResourceString(nameof(AnalyzersResources.The_file_header_does_not_match_the_required_text), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+            var invalidHeaderMessage = new LocalizableResourceString(nameof(AnalyzersResources.A_source_file_contains_a_header_that_does_not_match_the_required_text), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
             InvalidHeaderDescriptor = CreateDescriptorWithId(DescriptorId, invalidHeaderTitle, invalidHeaderMessage);
         }
 
