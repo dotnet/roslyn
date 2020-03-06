@@ -60,6 +60,18 @@ namespace Analyzer.Utilities.Extensions
                         innerOperation = exprStatement.Operation;
                     }
 
+                    // Special case for methods with a return type and using arrowed expression where the throw-statement
+                    // is wrapped.
+                    // For example: public int GetSomething(int val) => throw new NotImplementedException();
+                    if (innerOperation.Kind == OperationKind.Return &&
+                        innerOperation is IReturnOperation @return &&
+                        @return.ReturnedValue.Kind == OperationKind.Conversion &&
+                        @return.ReturnedValue is IConversionOperation conversion &&
+                        conversion.Operand.Kind == OperationKind.Throw)
+                    {
+                        innerOperation = conversion.Operand;
+                    }
+
                     if (innerOperation.Kind == OperationKind.Throw &&
                         innerOperation is IThrowOperation throwOperation &&
                         throwOperation.GetThrownExceptionType() is ITypeSymbol createdExceptionType)
