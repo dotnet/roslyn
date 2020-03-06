@@ -1517,5 +1517,29 @@ class C
     public string? S { get; }
 }", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
         }
+
+        [WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSingleLineBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+@"
+class C
+{
+    public C(string s)
+    {
+        S = s;
+    }
+
+    public string S { get; }
+}");
+        }
     }
 }
