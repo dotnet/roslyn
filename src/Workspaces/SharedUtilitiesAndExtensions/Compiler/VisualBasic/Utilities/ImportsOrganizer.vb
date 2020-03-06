@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return [imports]
         End Function
 
-        Private Shared Function NeedsGrouping(import1 As ImportsStatementSyntax,
+        Public Shared Function NeedsGrouping(import1 As ImportsStatementSyntax,
                                               import2 As ImportsStatementSyntax) As Boolean
             If import1.ImportsClauses.Count = 0 OrElse import2.ImportsClauses.Count = 0 Then
                 Return False

@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
-    public class FormattingEngineTests : FormattingEngineTestBase
+    public class FormattingEngineTests : CSharpFormattingEngineTestBase
     {
         private static Dictionary<OptionKey, object> SmartIndentButDoNotFormatWhileTyping()
         {
