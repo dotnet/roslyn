@@ -450,6 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             EnforceDoesNotReturn(syntaxOpt: null);
             enforceMemberNotNull(syntaxOpt: null, this.State);
+            // Note: we don't enforce NotNull attribute on parameters at exit points, but rather on assignments
 
             foreach (var pendingReturn in pendingReturns)
             {
@@ -457,19 +458,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (pendingReturn.Branch is BoundReturnStatement { ExpressionOpt: BoundExpression expr } returnStatement)
                 {
-                    if (pendingReturn.IsConditionalState)
-                    {
-                        if (!IsConstantFalse(expr))
-                        {
-                            // don't check MemberNotWhenTrue state on a 'return false;'
-                            enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
-                        }
-                        if (!IsConstantTrue(expr))
-                        {
-                            // don't check MemberNotWhenFalse state on a 'return true;'
-                            enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
-                        }
-                    }
+                    enforceNotNullWhenForPendingReturn(pendingReturn, expr, returnStatement);
+                    enforceMemberNotNullWhenForPendingReturn(pendingReturn, expr, returnStatement);
                 }
             }
 
@@ -501,6 +491,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Member '{name}' may not have a null value when exiting.
                         Diagnostics.Add(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
                     }
+                }
+            }
+
+            void enforceMemberNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundExpression expr, BoundReturnStatement returnStatement)
+            {
+                if (pendingReturn.IsConditionalState)
+                {
+                    if (!IsConstantFalse(expr))
+                    {
+                        // don't check MemberNotWhenTrue state on a 'return false;'
+                        enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
+                    }
+                    if (!IsConstantTrue(expr))
+                    {
+                        // don't check MemberNotWhenFalse state on a 'return true;'
+                        enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
+                    }
+                }
+                else
+                {
+                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.State);
+                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.State);
                 }
             }
 
@@ -582,6 +594,82 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.State[memberSlot] = NullableFlowState.MaybeNull;
                     }
                 }
+            }
+
+            void enforceNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundExpression expr, BoundReturnStatement returnStatement)
+            {
+                var parameters = this.MethodParameters;
+
+                if (!parameters.IsEmpty)
+                {
+                    if (pendingReturn.IsConditionalState)
+                    {
+                        if (!IsConstantFalse(expr))
+                        {
+                            // don't check WhenTrue state on a 'return false;'
+                            enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.StateWhenTrue);
+                        }
+                        if (!IsConstantTrue(expr))
+                        {
+                            // don't check WhenFalse state on a 'return true;'
+                            enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.StateWhenFalse);
+                        }
+                    }
+                    else
+                    {
+                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.State);
+                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.State);
+                    }
+                }
+            }
+
+            void enforceParameterNotNullWhen(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense, LocalState stateWhen)
+            {
+                foreach (var parameter in parameters)
+                {
+                    if (parameterHasBadState(parameter, sense, stateWhen))
+                    {
+                        // Parameter '{name}' may not have a null value when exiting with '{sense}'.
+                        ReportDiagnostic(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
+                    }
+                }
+            }
+
+            bool parameterHasBadState(ParameterSymbol parameter, bool sense, LocalState stateWhen)
+            {
+                var refKind = parameter.RefKind;
+                if (refKind != RefKind.Out && refKind != RefKind.Ref)
+                {
+                    return false;
+                }
+
+                var slot = GetOrCreateSlot(parameter);
+                if (slot > 0)
+                {
+                    var parameterState = stateWhen[slot];
+
+                    // On a parameter marked with MaybeNullWhen, we would have not reported an assignment warning.
+                    // We should only check if an assignment warning would have been warranted ignoring the MaybeNullWhen.
+                    FlowAnalysisAnnotations annotations = parameter.FlowAnalysisAnnotations;
+                    if (sense)
+                    {
+                        bool hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenTrue;
+                        bool hasMaybeNullWhenFalse = (annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNullWhenFalse;
+
+                        return (hasNotNullWhenTrue && parameterState.MayBeNull()) ||
+                            (hasMaybeNullWhenFalse && ShouldReportNullableAssignment(parameter.TypeWithAnnotations, parameterState));
+                    }
+                    else
+                    {
+                        bool hasNotNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenFalse;
+                        bool hasMaybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNullWhenTrue;
+
+                        return (hasNotNullWhenFalse && parameterState.MayBeNull()) ||
+                            (hasMaybeNullWhenTrue && ShouldReportNullableAssignment(parameter.TypeWithAnnotations, parameterState));
+                    }
+                }
+
+                return false;
             }
         }
 
@@ -1802,29 +1890,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // visit the expression without unsplitting, then check parameters marked with flow analysis attributes
                     Visit(expr);
-
-                    var parameters = this.MethodParameters;
-                    if (!parameters.IsEmpty)
-                    {
-                        if (this.IsConditionalState)
-                        {
-                            if (!IsConstantFalse(expr))
-                            {
-                                // don't check WhenTrue state on a 'return false;'
-                                checkConditionalParameterState(node.Syntax, parameters, sense: true);
-                            }
-                            if (!IsConstantTrue(expr))
-                            {
-                                // don't check WhenFalse state on a 'return true;'
-                                checkConditionalParameterState(node.Syntax, parameters, sense: false);
-                            }
-                        }
-                        else
-                        {
-                            checkConditionalParameterState(node.Syntax, parameters, sense: true);
-                            checkConditionalParameterState(node.Syntax, parameters, sense: false);
-                        }
-                    }
                 }
                 else
                 {
@@ -1869,59 +1934,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetUnreachable();
 
             return null;
-
-            void checkConditionalParameterState(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense)
-            {
-                LocalState stateWhen =
-                    !IsConditionalState ? State :
-                    sense ? StateWhenTrue :
-                    StateWhenFalse;
-                foreach (var parameter in parameters)
-                {
-                    if (badConditionalParameterState(parameter, stateWhen, sense))
-                    {
-                        // Parameter '{name}' may not have a null value when exiting with '{sense}'.
-                        ReportDiagnostic(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
-                    }
-                }
-            }
-
-            bool badConditionalParameterState(ParameterSymbol parameter, LocalState stateWhen, bool sense)
-            {
-                var refKind = parameter.RefKind;
-                if (refKind != RefKind.Out && refKind != RefKind.Ref)
-                {
-                    return false;
-                }
-
-                var slot = GetOrCreateSlot(parameter);
-                if (slot > 0)
-                {
-                    var parameterState = stateWhen[slot];
-
-                    // On a parameter marked with MaybeNullWhen, we would have not reported an assignment warning.
-                    // We should only check if an assignment warning would have been warranted ignoring the MaybeNullWhen.
-                    FlowAnalysisAnnotations annotations = parameter.FlowAnalysisAnnotations;
-                    if (sense)
-                    {
-                        bool hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenTrue;
-                        bool hasMaybeNullWhenFalse = (annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNullWhenFalse;
-
-                        return (hasNotNullWhenTrue && parameterState.MayBeNull()) ||
-                            (hasMaybeNullWhenFalse && ShouldReportNullableAssignment(parameter.TypeWithAnnotations, parameterState));
-                    }
-                    else
-                    {
-                        bool hasNotNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenFalse;
-                        bool hasMaybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNullWhenTrue;
-
-                        return (hasNotNullWhenFalse && parameterState.MayBeNull()) ||
-                            (hasMaybeNullWhenTrue && ShouldReportNullableAssignment(parameter.TypeWithAnnotations, parameterState));
-                    }
-                }
-
-                return false;
-            }
         }
 
         private TypeWithState VisitRefExpression(BoundExpression expr, TypeWithAnnotations destinationType)
@@ -4381,6 +4393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (notNullWhenTrueMembers.IsEmpty && notNullWhenFalseMembers.IsEmpty)
                 {
+                    // TODO2 apply in conditional state too?
                     applyMemberPostConditions(type, notNullMembers, ref State);
                 }
                 else

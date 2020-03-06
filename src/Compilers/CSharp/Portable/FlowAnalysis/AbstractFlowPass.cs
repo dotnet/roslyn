@@ -1589,10 +1589,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
                     {
-                        Meet(ref pend.State, ref this.State);
-                        if (_nonMonotonicTransfer)
+                        updatePendingBranchState(ref pend.State, ref stateMovedUpInFinally);
+
+                        if (pend.IsConditionalState)
                         {
-                            Join(ref pend.State, ref stateMovedUpInFinally);
+                            updatePendingBranchState(ref pend.StateWhenTrue, ref stateMovedUpInFinally);
+                            updatePendingBranchState(ref pend.StateWhenFalse, ref stateMovedUpInFinally);
                         }
                     }
                 }
@@ -1608,6 +1610,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(endState);
             RestorePending(oldPending);
             return null;
+
+            void updatePendingBranchState(ref TLocalState stateToUpdate, ref TLocalState stateMovedUpInFinally)
+            {
+                Meet(ref stateToUpdate, ref this.State);
+                if (_nonMonotonicTransfer)
+                {
+                    Join(ref stateToUpdate, ref stateMovedUpInFinally);
+                }
+            }
         }
 
         protected Optional<TLocalState> NonMonotonicState;
