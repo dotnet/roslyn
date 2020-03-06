@@ -1311,49 +1311,71 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        private static object FoldNativeIntegerBinaryOperator(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
+        {
+            Debug.Assert(valueLeft != null);
+            Debug.Assert(valueRight != null);
+
+            checked
+            {
+                switch (kind)
+                {
+                    case BinaryOperatorKind.NIntAddition:
+                        return valueLeft.Int32Value + valueRight.Int32Value;
+                    case BinaryOperatorKind.NUIntAddition:
+                        return valueLeft.UInt32Value + valueRight.UInt32Value;
+                    case BinaryOperatorKind.NIntSubtraction:
+                        return valueLeft.Int32Value - valueRight.Int32Value;
+                    case BinaryOperatorKind.NUIntSubtraction:
+                        return valueLeft.UInt32Value - valueRight.UInt32Value;
+                    case BinaryOperatorKind.NIntMultiplication:
+                        return valueLeft.Int32Value * valueRight.Int32Value;
+                    case BinaryOperatorKind.NUIntMultiplication:
+                        return valueLeft.UInt32Value * valueRight.UInt32Value;
+                    case BinaryOperatorKind.NIntDivision:
+                        return valueLeft.Int32Value / valueRight.Int32Value;
+                }
+
+                return null;
+            }
+        }
+
         private static object FoldUncheckedIntegralBinaryOperator(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
         {
+            Debug.Assert(valueLeft != null);
+            Debug.Assert(valueRight != null);
+
             unchecked
             {
-                Debug.Assert(valueLeft != null);
-                Debug.Assert(valueRight != null);
-
                 switch (kind)
                 {
                     case BinaryOperatorKind.IntAddition:
-                    case BinaryOperatorKind.NIntAddition:
                         return valueLeft.Int32Value + valueRight.Int32Value;
                     case BinaryOperatorKind.LongAddition:
                         return valueLeft.Int64Value + valueRight.Int64Value;
                     case BinaryOperatorKind.UIntAddition:
-                    case BinaryOperatorKind.NUIntAddition:
                         return valueLeft.UInt32Value + valueRight.UInt32Value;
                     case BinaryOperatorKind.ULongAddition:
                         return valueLeft.UInt64Value + valueRight.UInt64Value;
                     case BinaryOperatorKind.IntSubtraction:
-                    case BinaryOperatorKind.NIntSubtraction:
                         return valueLeft.Int32Value - valueRight.Int32Value;
                     case BinaryOperatorKind.LongSubtraction:
                         return valueLeft.Int64Value - valueRight.Int64Value;
                     case BinaryOperatorKind.UIntSubtraction:
-                    case BinaryOperatorKind.NUIntSubtraction:
                         return valueLeft.UInt32Value - valueRight.UInt32Value;
                     case BinaryOperatorKind.ULongSubtraction:
                         return valueLeft.UInt64Value - valueRight.UInt64Value;
                     case BinaryOperatorKind.IntMultiplication:
-                    case BinaryOperatorKind.NIntMultiplication:
                         return valueLeft.Int32Value * valueRight.Int32Value;
                     case BinaryOperatorKind.LongMultiplication:
                         return valueLeft.Int64Value * valueRight.Int64Value;
                     case BinaryOperatorKind.UIntMultiplication:
-                    case BinaryOperatorKind.NUIntMultiplication:
                         return valueLeft.UInt32Value * valueRight.UInt32Value;
                     case BinaryOperatorKind.ULongMultiplication:
                         return valueLeft.UInt64Value * valueRight.UInt64Value;
 
                     // even in unchecked context division may overflow:
                     case BinaryOperatorKind.IntDivision:
-                    case BinaryOperatorKind.NIntDivision:
                         if (valueLeft.Int32Value == int.MinValue && valueRight.Int32Value == -1)
                         {
                             return int.MinValue;
@@ -1376,45 +1398,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static object FoldCheckedIntegralBinaryOperator(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
         {
+            Debug.Assert(valueLeft != null);
+            Debug.Assert(valueRight != null);
+
             checked
             {
-                Debug.Assert(valueLeft != null);
-                Debug.Assert(valueRight != null);
-
                 switch (kind)
                 {
                     case BinaryOperatorKind.IntAddition:
-                    case BinaryOperatorKind.NIntAddition:
                         return valueLeft.Int32Value + valueRight.Int32Value;
                     case BinaryOperatorKind.LongAddition:
                         return valueLeft.Int64Value + valueRight.Int64Value;
                     case BinaryOperatorKind.UIntAddition:
-                    case BinaryOperatorKind.NUIntAddition:
                         return valueLeft.UInt32Value + valueRight.UInt32Value;
                     case BinaryOperatorKind.ULongAddition:
                         return valueLeft.UInt64Value + valueRight.UInt64Value;
                     case BinaryOperatorKind.IntSubtraction:
-                    case BinaryOperatorKind.NIntSubtraction:
                         return valueLeft.Int32Value - valueRight.Int32Value;
                     case BinaryOperatorKind.LongSubtraction:
                         return valueLeft.Int64Value - valueRight.Int64Value;
                     case BinaryOperatorKind.UIntSubtraction:
-                    case BinaryOperatorKind.NUIntSubtraction:
                         return valueLeft.UInt32Value - valueRight.UInt32Value;
                     case BinaryOperatorKind.ULongSubtraction:
                         return valueLeft.UInt64Value - valueRight.UInt64Value;
                     case BinaryOperatorKind.IntMultiplication:
-                    case BinaryOperatorKind.NIntMultiplication:
                         return valueLeft.Int32Value * valueRight.Int32Value;
                     case BinaryOperatorKind.LongMultiplication:
                         return valueLeft.Int64Value * valueRight.Int64Value;
                     case BinaryOperatorKind.UIntMultiplication:
-                    case BinaryOperatorKind.NUIntMultiplication:
                         return valueLeft.UInt32Value * valueRight.UInt32Value;
                     case BinaryOperatorKind.ULongMultiplication:
                         return valueLeft.UInt64Value * valueRight.UInt64Value;
                     case BinaryOperatorKind.IntDivision:
-                    case BinaryOperatorKind.NIntDivision:
                         return valueLeft.Int32Value / valueRight.Int32Value;
                     case BinaryOperatorKind.LongDivision:
                         return valueLeft.Int64Value / valueRight.Int64Value;
@@ -1629,6 +1644,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (OverflowException)
             {
                 Error(diagnostics, ErrorCode.ERR_DecConstError, syntax);
+                return ConstantValue.Bad;
+            }
+
+            if (newValue != null)
+            {
+                return ConstantValue.Create(newValue, resultType);
+            }
+
+            try
+            {
+                newValue = FoldNativeIntegerBinaryOperator(kind, valueLeft, valueRight);
+            }
+            catch (OverflowException)
+            {
+                Error(diagnostics, ErrorCode.ERR_CheckedOverflow, syntax);
                 return ConstantValue.Bad;
             }
 
@@ -2503,6 +2533,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConstantValue.Create(newValue, resultType);
             }
 
+            try
+            {
+                newValue = FoldNativeIntegerUnaryOperator(kind, value);
+            }
+            catch (OverflowException)
+            {
+                Error(diagnostics, ErrorCode.ERR_CheckedOverflow, syntax);
+                return ConstantValue.Bad;
+            }
+
+            if (newValue != null)
+            {
+                return ConstantValue.Create(newValue, resultType);
+            }
+
             if (CheckOverflowAtCompileTime)
             {
                 try
@@ -2577,7 +2622,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case UnaryOperatorKind.LongUnaryMinus:
                         return -value.Int64Value;
                     case UnaryOperatorKind.IntUnaryMinus:
-                    case UnaryOperatorKind.NIntUnaryMinus:
                         return -value.Int32Value;
                 }
             }
@@ -2594,8 +2638,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case UnaryOperatorKind.LongUnaryMinus:
                         return -value.Int64Value;
                     case UnaryOperatorKind.IntUnaryMinus:
+                        return -value.Int32Value;
+                }
+            }
+
+            return null;
+        }
+
+        private static object FoldNativeIntegerUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
+        {
+            checked
+            {
+                switch (kind)
+                {
                     case UnaryOperatorKind.NIntUnaryMinus:
                         return -value.Int32Value;
+                    case UnaryOperatorKind.NIntBitwiseComplement:
+                    case UnaryOperatorKind.NUIntBitwiseComplement:
+                        throw new OverflowException();
                 }
             }
 

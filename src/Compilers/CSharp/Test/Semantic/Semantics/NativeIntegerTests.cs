@@ -6255,163 +6255,185 @@ class Program
         [Fact]
         public void ConstantFolding()
         {
-            constantFolding("nint", "const nint A = -2147483648;", "+A", "-2147483648");
-            constantFolding("nint", "const nint A = 2147483647;", "+A", "2147483647");
-            constantFolding("nuint", "const nuint A = 0;", "+A", "0");
-            constantFolding("nuint", "const nuint A = 4294967295;", "+A", "4294967295");
+            unaryOperator("nint", "+", "-2147483648", "-2147483648");
+            unaryOperator("nint", "+", "2147483647", "2147483647");
+            unaryOperator("nuint", "+", "0", "0");
+            unaryOperator("nuint", "+", "4294967295", "4294967295");
 
-            constantFolding("nint", "const nint A = -2147483648;", "-A", null);
-            constantFolding("nint", "const nint A = -2147483647;", "-A", "2147483647");
-            constantFolding("nint", "const nint A = 2147483647;", "-A", "-2147483647");
-            constantFolding("nuint", "const nuint A = 0;", "-A", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-A").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_NoImplicitConvCast
-            constantFolding("nuint", "const nuint A = 1;", "-A", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-A").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_NoImplicitConvCast
-            constantFolding("nuint", "const nuint A = 4294967295;", "-A", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-A").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_NoImplicitConvCast
+            unaryOperator("nint", "-", "-2147483648", null, getOverflowDiagnostics);
+            unaryOperator("nint", "-", "-2147483647", "2147483647");
+            unaryOperator("nint", "-", "2147483647", "-2147483647");
+            unaryOperator("nuint", "-", "0", null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
+            unaryOperator("nuint", "-", "1", null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
+            unaryOperator("nuint", "-", "4294967295", null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
 
-            constantFoldingBitwiseComplement("nint", "const nint A = 0;", "~A");
-            constantFoldingBitwiseComplement("nint", "const nint A = -2147483648;", "~A");
-            constantFoldingBitwiseComplement("nint", "const nint A = 2147483647;", "~A");
-            constantFoldingBitwiseComplement("nuint", "const nuint A = 0;", "~A");
-            constantFoldingBitwiseComplement("nuint", "const nuint A = 4294967295;", "~A");
+            unaryOperator("nint", "~", "0", null, getOverflowDiagnostics);
+            unaryOperator("nint", "~", "-2147483648", null, getOverflowDiagnostics);
+            unaryOperator("nint", "~", "2147483647", null, getOverflowDiagnostics);
+            unaryOperator("nuint", "~", "0", null, getOverflowDiagnostics);
+            unaryOperator("nuint", "~", "4294967295", null, getOverflowDiagnostics);
 
-            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A + B", null);
-            constantFolding("nint", "const nint A = -2147483647; const nint B = -1;", "A + B", "-2147483648");
-            constantFolding("nint", "const nint A = 1; const nint B = 2147483647;", "A + B", null);
-            constantFolding("nint", "const nint A = 1; const nint B = 2147483646;", "A + B", "2147483647");
-            constantFolding("nuint", "const nuint A = 1; const nuint B = 4294967295;", "A + B", null);
-            constantFolding("nuint", "const nuint A = 1; const nuint B = 4294967294;", "A + B", "4294967295");
+            binaryOperator("nint", "+", "nint", "-2147483648", "nint", "-1", null, getOverflowDiagnostics);
+            binaryOperator("nint", "+", "nint", "-2147483647", "nint", "-1", "-2147483648");
+            binaryOperator("nint", "+", "nint", "1", "nint", "2147483647", null, getOverflowDiagnostics);
+            binaryOperator("nint", "+", "nint", "1", "nint", "2147483646", "2147483647");
+            binaryOperator("nuint", "+", "nuint", "1", "nuint", "4294967295", null, getOverflowDiagnostics);
+            binaryOperator("nuint", "+", "nuint", "1", "nuint", "4294967294", "4294967295");
 
-            constantFolding("nint", "const nint A = -2147483648; const nint B = 1;", "A - B", null);
-            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A - B", "-2147483647");
-            constantFolding("nint", "const nint A = -1; const nint B = 2147483647;", "A - B", "-2147483648");
-            constantFolding("nint", "const nint A = -2; const nint B = 2147483647;", "A - B", null);
-            constantFolding("nuint", "const nuint A = 0; const nuint B = 1;", "A - B", null);
-            constantFolding("nuint", "const nuint A = 4294967295; const nuint B = 4294967295;", "A - B", "0");
+            binaryOperator("nint", "-", "nint", "-2147483648", "nint", "1", null, getOverflowDiagnostics);
+            binaryOperator("nint", "-", "nint", "-2147483648", "nint", "-1", "-2147483647");
+            binaryOperator("nint", "-", "nint", "-1", "nint", "2147483647", "-2147483648");
+            binaryOperator("nint", "-", "nint", "-2", "nint", "2147483647", null, getOverflowDiagnostics);
+            binaryOperator("nuint", "-", "nuint", "0", "nuint", "1", null, getOverflowDiagnostics);
+            binaryOperator("nuint", "-", "nuint", "4294967295", "nuint", "4294967295", "0");
 
-            constantFolding("nint", "const nint A = -2147483648; const nint B = 2;", "A * B", null);
-            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A * B", null);
-            constantFolding("nint", "const nint A = -1; const nint B = 2147483647;", "A * B", "-2147483647");
-            constantFolding("nint", "const nint A = 2; const nint B = 2147483647;", "A * B", null);
-            constantFolding("nuint", "const nuint A = 4294967295; const nuint B = 2;", "A * B", null);
-            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2;", "A * B", "4294967294");
+            binaryOperator("nint", "*", "nint", "-2147483648", "nint", "2", null, getOverflowDiagnostics);
+            binaryOperator("nint", "*", "nint", "-2147483648", "nint", "-1", null, getOverflowDiagnostics);
+            binaryOperator("nint", "*", "nint", "-1", "nint", "2147483647", "-2147483647");
+            binaryOperator("nint", "*", "nint", "2", "nint", "2147483647", null, getOverflowDiagnostics);
+            binaryOperator("nuint", "*", "nuint", "4294967295", "nuint", "2", null, getOverflowDiagnostics);
+            binaryOperator("nuint", "*", "nuint", "2147483647", "nuint", "2", "4294967294");
 
-            constantFolding("nint", "const nint A = -2147483648; const nint B = 1;", "A / B", "-2147483648");
-            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A / B", null);
-            constantFolding("nint", "const nint A = 1; const nint B = 0;", "A / B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A / B"));
-            constantFolding("nint", "const nint A = 0; const nint B = 0;", "A / B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A / B"));
-            constantFolding("nuint", "const nuint A = 4294967295; const nuint B = 2;", "A / B", "2147483647");
-            constantFolding("nuint", "const nuint A = 1; const nuint B = 0;", "A / B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A / B"));
-            constantFolding("nuint", "const nuint A = 0; const nuint B = 0;", "A / B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A / B"));
+            binaryOperator("nint", "/", "nint", "-2147483648", "nint", "1", "-2147483648");
+            binaryOperator("nint", "/", "nint", "-2147483648", "nint", "-1", null, getOverflowDiagnostics);
+            binaryOperator("nint", "/", "nint", "1", "nint", "0", null, getIntDivByZeroDiagnostics);
+            binaryOperator("nint", "/", "nint", "0", "nint", "0", null, getIntDivByZeroDiagnostics);
+            binaryOperator("nuint", "/", "nuint", "4294967295", "nuint", "2", "2147483647");
+            binaryOperator("nuint", "/", "nuint", "1", "nuint", "0", null, getIntDivByZeroDiagnostics);
+            binaryOperator("nuint", "/", "nuint", "0", "nuint", "0", null, getIntDivByZeroDiagnostics);
 
-            constantFolding("nint", "const nint A = -2147483648; const nint B = 2;", "A % B", "0");
-            constantFolding("nint", "const nint A = -2147483648; const nint B = -2;", "A % B", "0");
-            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A % B", "0");
-            constantFolding("nint", "const nint A = 1; const nint B = 0;", "A % B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A % B"));
-            constantFolding("nint", "const nint A = 0; const nint B = 0;", "A % B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A % B"));
-            constantFolding("nuint", "const nuint A = 4294967295; const nuint B = 2;", "A % B", "1");
-            constantFolding("nuint", "const nuint A = 1; const nuint B = 0;", "A % B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A % B"));
-            constantFolding("nuint", "const nuint A = 0; const nuint B = 0;", "A % B", null, Diagnostic(ErrorCode.ERR_IntDivByZero, "A % B"));
+            binaryOperator("nint", "%", "nint", "-2147483648", "nint", "2", "0");
+            binaryOperator("nint", "%", "nint", "-2147483648", "nint", "-2", "0");
+            binaryOperator("nint", "%", "nint", "-2147483648", "nint", "-1", "0");
+            binaryOperator("nint", "%", "nint", "1", "nint", "0", null, getIntDivByZeroDiagnostics);
+            binaryOperator("nint", "%", "nint", "0", "nint", "0", null, getIntDivByZeroDiagnostics);
+            binaryOperator("nuint", "%", "nuint", "4294967295", "nuint", "2", "1");
+            binaryOperator("nuint", "%", "nuint", "1", "nuint", "0", null, getIntDivByZeroDiagnostics);
+            binaryOperator("nuint", "%", "nuint", "0", "nuint", "0", null, getIntDivByZeroDiagnostics);
 
-            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A < B", "False");
-            constantFolding("bool", "const nint A = -2147483648; const nint B = 2147483647;", "A < B", "True");
-            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A < B", "False");
-            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A < B", "False");
-            constantFolding("bool", "const nuint A = 0; const nuint B = 4294967295;", "A < B", "True");
-            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A < B", "False");
+            binaryOperator("bool", "<", "nint", "-2147483648", "nint", "-2147483648", "False");
+            binaryOperator("bool", "<", "nint", "-2147483648", "nint", "2147483647", "True");
+            binaryOperator("bool", "<", "nint", "2147483647", "nint", "2147483647", "False");
+            binaryOperator("bool", "<", "nuint", "0", "nuint", "0", "False");
+            binaryOperator("bool", "<", "nuint", "0", "nuint", "4294967295", "True");
+            binaryOperator("bool", "<", "nuint", "4294967295", "nuint", "4294967295", "False");
 
-            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A <= B", "True");
-            constantFolding("bool", "const nint A = 2147483647; const nint B = -2147483648;", "A <= B", "False");
-            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A <= B", "True");
-            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A <= B", "True");
-            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 0;", "A <= B", "False");
-            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A <= B", "True");
+            binaryOperator("bool", "<=", "nint", "-2147483648", "nint", "-2147483648", "True");
+            binaryOperator("bool", "<=", "nint", "2147483647", "nint", "-2147483648", "False");
+            binaryOperator("bool", "<=", "nint", "2147483647", "nint", "2147483647", "True");
+            binaryOperator("bool", "<=", "nuint", "0", "nuint", "0", "True");
+            binaryOperator("bool", "<=", "nuint", "4294967295", "nuint", "0", "False");
+            binaryOperator("bool", "<=", "nuint", "4294967295", "nuint", "4294967295", "True");
 
-            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A > B", "False");
-            constantFolding("bool", "const nint A = 2147483647; const nint B = -2147483648;", "A > B", "True");
-            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A > B", "False");
-            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A > B", "False");
-            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 0;", "A > B", "True");
-            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A > B", "False");
+            binaryOperator("bool", ">", "nint", "-2147483648", "nint", "-2147483648", "False");
+            binaryOperator("bool", ">", "nint", "2147483647", "nint", "-2147483648", "True");
+            binaryOperator("bool", ">", "nint", "2147483647", "nint", "2147483647", "False");
+            binaryOperator("bool", ">", "nuint", "0", "nuint", "0", "False");
+            binaryOperator("bool", ">", "nuint", "4294967295", "nuint", "0", "True");
+            binaryOperator("bool", ">", "nuint", "4294967295", "nuint", "4294967295", "False");
 
-            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A >= B", "True");
-            constantFolding("bool", "const nint A = -2147483648; const nint B = 2147483647;", "A >= B", "False");
-            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A >= B", "True");
-            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A >= B", "True");
-            constantFolding("bool", "const nuint A = 0; const nuint B = 4294967295;", "A >= B", "False");
-            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A >= B", "True");
+            binaryOperator("bool", ">=", "nint", "-2147483648", "nint", "-2147483648", "True");
+            binaryOperator("bool", ">=", "nint", "-2147483648", "nint", "2147483647", "False");
+            binaryOperator("bool", ">=", "nint", "2147483647", "nint", "2147483647", "True");
+            binaryOperator("bool", ">=", "nuint", "0", "nuint", "0", "True");
+            binaryOperator("bool", ">=", "nuint", "0", "nuint", "4294967295", "False");
+            binaryOperator("bool", ">=", "nuint", "4294967295", "nuint", "4294967295", "True");
 
-            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A == B", "True");
-            constantFolding("bool", "const nint A = -2147483648; const nint B = 2147483647;", "A == B", "False");
-            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A == B", "True");
-            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A == B", "True");
-            constantFolding("bool", "const nuint A = 0; const nuint B = 4294967295;", "A == B", "False");
-            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A == B", "True");
+            binaryOperator("bool", "==", "nint", "-2147483648", "nint", "-2147483648", "True");
+            binaryOperator("bool", "==", "nint", "-2147483648", "nint", "2147483647", "False");
+            binaryOperator("bool", "==", "nint", "2147483647", "nint", "2147483647", "True");
+            binaryOperator("bool", "==", "nuint", "0", "nuint", "0", "True");
+            binaryOperator("bool", "==", "nuint", "0", "nuint", "4294967295", "False");
+            binaryOperator("bool", "==", "nuint", "4294967295", "nuint", "4294967295", "True");
 
-            constantFolding("bool", "const nint A = -2147483648; const nint B = -2147483648;", "A != B", "False");
-            constantFolding("bool", "const nint A = -2147483648; const nint B = 2147483647;", "A != B", "True");
-            constantFolding("bool", "const nint A = 2147483647; const nint B = 2147483647;", "A != B", "False");
-            constantFolding("bool", "const nuint A = 0; const nuint B = 0;", "A != B", "False");
-            constantFolding("bool", "const nuint A = 0; const nuint B = 4294967295;", "A != B", "True");
-            constantFolding("bool", "const nuint A = 4294967295; const nuint B = 4294967295;", "A != B", "False");
+            binaryOperator("bool", "!=", "nint", "-2147483648", "nint", "-2147483648", "False");
+            binaryOperator("bool", "!=", "nint", "-2147483648", "nint", "2147483647", "True");
+            binaryOperator("bool", "!=", "nint", "2147483647", "nint", "2147483647", "False");
+            binaryOperator("bool", "!=", "nuint", "0", "nuint", "0", "False");
+            binaryOperator("bool", "!=", "nuint", "0", "nuint", "4294967295", "True");
+            binaryOperator("bool", "!=", "nuint", "4294967295", "nuint", "4294967295", "False");
 
-            constantFolding("nint", "const nint A = -2147483648; const int B = 0;", "A << B", "-2147483648");
-            constantFolding("nint", "const nint A = -2147483648; const int B = 1;", "A << B", "0");
-            constantFolding("nint", "const nint A = -1; const int B = 31;", "A << B", "-2147483648");
-            constantFolding("nint", "const nint A = -1; const int B = 32;", "A << B", "-1");
-            constantFolding("nuint", "const nuint A = 0; const int B = 1;", "A << B", "0");
-            constantFolding("nuint", "const nuint A = 4294967295; const int B = 1;", "A << B", "4294967294");
-            constantFolding("nuint", "const nuint A = 1; const int B = 31;", "A << B", "2147483648");
-            constantFolding("nuint", "const nuint A = 1; const int B = 32;", "A << B", "1");
+            binaryOperator("nint", "<<", "nint", "-2147483648", "int", "0", "-2147483648");
+            binaryOperator("nint", "<<", "nint", "-2147483648", "int", "1", "0");
+            binaryOperator("nint", "<<", "nint", "-1", "int", "31", "-2147483648");
+            binaryOperator("nint", "<<", "nint", "-1", "int", "32", "-1");
+            binaryOperator("nuint", "<<", "nuint", "0", "int", "1", "0");
+            binaryOperator("nuint", "<<", "nuint", "4294967295", "int", "1", "4294967294");
+            binaryOperator("nuint", "<<", "nuint", "1", "int", "31", "2147483648");
+            binaryOperator("nuint", "<<", "nuint", "1", "int", "32", "1");
 
-            constantFolding("nint", "const nint A = -2147483648; const int B = 0;", "A >> B", "-2147483648");
-            constantFolding("nint", "const nint A = -2147483648; const int B = 1;", "A >> B", "-1073741824");
-            constantFolding("nint", "const nint A = -1; const int B = 31;", "A >> B", "-1");
-            constantFolding("nint", "const nint A = -1; const int B = 32;", "A >> B", "-1");
-            constantFolding("nuint", "const nuint A = 0; const int B = 1;", "A >> B", "0");
-            constantFolding("nuint", "const nuint A = 4294967295; const int B = 1;", "A >> B", "2147483647");
-            constantFolding("nuint", "const nuint A = 1; const int B = 31;", "A >> B", "0");
-            constantFolding("nuint", "const nuint A = 1; const int B = 32;", "A >> B", "1");
+            binaryOperator("nint", ">>", "nint", "-2147483648", "int", "0", "-2147483648");
+            binaryOperator("nint", ">>", "nint", "-2147483648", "int", "1", "-1073741824");
+            binaryOperator("nint", ">>", "nint", "-1", "int", "31", "-1");
+            binaryOperator("nint", ">>", "nint", "-1", "int", "32", "-1");
+            binaryOperator("nuint", ">>", "nuint", "0", "int", "1", "0");
+            binaryOperator("nuint", ">>", "nuint", "4294967295", "int", "1", "2147483647");
+            binaryOperator("nuint", ">>", "nuint", "1", "int", "31", "0");
+            binaryOperator("nuint", ">>", "nuint", "1", "int", "32", "1");
 
-            constantFolding("nint", "const nint A = -2147483648; const nint B = 0;", "A & B", "0");
-            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A & B", "-2147483648");
-            constantFolding("nint", "const nint A = -2147483648; const nint B = 2147483647;", "A & B", "0");
-            constantFolding("nuint", "const nuint A = 0; const nuint B = 4294967295;", "A & B", "0");
-            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 4294967295;", "A & B", "2147483647");
-            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2147483648;", "A & B", "0");
+            binaryOperator("nint", "&", "nint", "-2147483648", "nint", "0", "0");
+            binaryOperator("nint", "&", "nint", "-2147483648", "nint", "-1", "-2147483648");
+            binaryOperator("nint", "&", "nint", "-2147483648", "nint", "2147483647", "0");
+            binaryOperator("nuint", "&", "nuint", "0", "nuint", "4294967295", "0");
+            binaryOperator("nuint", "&", "nuint", "2147483647", "nuint", "4294967295", "2147483647");
+            binaryOperator("nuint", "&", "nuint", "2147483647", "nuint", "2147483648", "0");
 
-            constantFolding("nint", "const nint A = -2147483648; const nint B = 0;", "A | B", "-2147483648");
-            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A | B", "-1");
-            constantFolding("nint", "const nint A = 2147483647; const nint B = 2147483647;", "A | B", "2147483647");
-            constantFolding("nuint", "const nuint A = 0; const nuint B = 4294967295;", "A | B", "4294967295");
-            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2147483647;", "A | B", "2147483647");
-            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2147483648;", "A | B", "4294967295");
+            binaryOperator("nint", "|", "nint", "-2147483648", "nint", "0", "-2147483648");
+            binaryOperator("nint", "|", "nint", "-2147483648", "nint", "-1", "-1");
+            binaryOperator("nint", "|", "nint", "2147483647", "nint", "2147483647", "2147483647");
+            binaryOperator("nuint", "|", "nuint", "0", "nuint", "4294967295", "4294967295");
+            binaryOperator("nuint", "|", "nuint", "2147483647", "nuint", "2147483647", "2147483647");
+            binaryOperator("nuint", "|", "nuint", "2147483647", "nuint", "2147483648", "4294967295");
 
-            constantFolding("nint", "const nint A = -2147483648; const nint B = 0;", "A ^ B", "-2147483648");
-            constantFolding("nint", "const nint A = -2147483648; const nint B = -1;", "A ^ B", "2147483647");
-            constantFolding("nint", "const nint A = 2147483647; const nint B = 2147483647;", "A ^ B", "0");
-            constantFolding("nuint", "const nuint A = 0; const nuint B = 4294967295;", "A ^ B", "4294967295");
-            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2147483647;", "A ^ B", "0");
-            constantFolding("nuint", "const nuint A = 2147483647; const nuint B = 2147483648;", "A ^ B", "4294967295");
+            binaryOperator("nint", "^", "nint", "-2147483648", "nint", "0", "-2147483648");
+            binaryOperator("nint", "^", "nint", "-2147483648", "nint", "-1", "2147483647");
+            binaryOperator("nint", "^", "nint", "2147483647", "nint", "2147483647", "0");
+            binaryOperator("nuint", "^", "nuint", "0", "nuint", "4294967295", "4294967295");
+            binaryOperator("nuint", "^", "nuint", "2147483647", "nuint", "2147483647", "0");
+            binaryOperator("nuint", "^", "nuint", "2147483647", "nuint", "2147483648", "4294967295");
 
-            void constantFolding(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription diagnostic = null)
+            static DiagnosticDescription[] getNoDiagnostics(string opType, string op, string operand) => Array.Empty<DiagnosticDescription>();
+            static DiagnosticDescription[] getOverflowDiagnostics(string opType, string op, string operand) => new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, operand) };
+            static DiagnosticDescription[] getAmbigUnaryOpDiagnostics(string opType, string op, string operand) => new[] { Diagnostic(ErrorCode.ERR_AmbigUnaryOp, operand).WithArguments(op, opType) };
+            static DiagnosticDescription[] getIntDivByZeroDiagnostics(string opType, string op, string operand) => new[] { Diagnostic(ErrorCode.ERR_IntDivByZero, operand) };
+
+            void unaryOperator(string opType, string op, string operand, string expectedResult, Func<string, string, string, DiagnosticDescription[]> getDiagnostics = null)
             {
-                var diagnostics = (diagnostic is null) ?
-                    (expectedResult is null) ?
-                        new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) } :
-                        Array.Empty<DiagnosticDescription>() :
-                    new[] { diagnostic };
-                verify(opType, declarations, expr, expectedResult, diagnostics);
-                verify(opType, declarations, $"checked ({expr})", expectedResult, diagnostics);
-                verify(opType, declarations, $"unchecked ({expr})", expectedResult, (diagnostic is null) ? Array.Empty<DiagnosticDescription>() : diagnostics);
+                getDiagnostics ??= getNoDiagnostics;
+
+                var declarations = $"const {opType} A = {operand};";
+                var expr = $"{op}A";
+                var diagnostics = getDiagnostics(opType, op, expr);
+                constantDeclaration(opType, declarations, expr, expectedResult, diagnostics);
+                constantDeclaration(opType, declarations, $"checked({expr})", expectedResult, diagnostics);
+                constantDeclaration(opType, declarations, $"unchecked({expr})", expectedResult, diagnostics);
+
+                expr = $"{op}({opType})({operand})";
+                diagnostics = getDiagnostics(opType, op, expr);
+                constantExpression(opType, expr, expectedResult, diagnostics);
+                constantExpression(opType, $"checked({expr})", expectedResult, diagnostics);
+                constantExpression(opType, $"unchecked({expr})", expectedResult, diagnostics);
             }
 
-            void constantFoldingBitwiseComplement(string opType, string declarations, string expr)
+            void binaryOperator(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResult, Func<string, string, string, DiagnosticDescription[]> getDiagnostics = null)
             {
-                verify(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, "~A").WithArguments("Library.F") });
-                verify(opType, declarations, $"checked ({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, "checked (~A)").WithArguments("Library.F") });
-                verify(opType, declarations, $"unchecked ({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, "unchecked (~A)").WithArguments("Library.F") });
+                getDiagnostics ??= getNoDiagnostics;
+
+                var declarations = $"const {leftType} A = {leftOperand}; const {rightType} B = {rightOperand};";
+                var expr = $"A {op} B";
+                var diagnostics = getDiagnostics(opType, op, expr);
+                constantDeclaration(opType, declarations, expr, expectedResult, diagnostics);
+                constantDeclaration(opType, declarations, $"checked({expr})", expectedResult, diagnostics);
+                constantDeclaration(opType, declarations, $"unchecked({expr})", expectedResult, diagnostics);
+
+                expr = $"(({leftType})({leftOperand})) {op} (({rightType})({rightOperand}))";
+                diagnostics = getDiagnostics(opType, op, expr);
+                constantExpression(opType, expr, expectedResult, diagnostics);
+                constantExpression(opType, $"checked({expr})", expectedResult, diagnostics);
+                constantExpression(opType, $"unchecked({expr})", expectedResult, diagnostics);
             }
 
-            void verify(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
+            void constantDeclaration(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
             {
                 string sourceA =
 $@"public class Library
@@ -6434,6 +6456,25 @@ $@"public class Library
 }";
                 var refA = comp.EmitToImageReference();
                 comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                CompileAndVerify(comp, expectedOutput: expectedResult);
+            }
+
+            void constantExpression(string opType, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
+            {
+                string source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        {opType} value = {expr};
+        System.Console.WriteLine(value);
+    }}
+}}";
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                if (expectedDiagnostics.Length > 0) return;
+
                 CompileAndVerify(comp, expectedOutput: expectedResult);
             }
         }
