@@ -52,12 +52,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             using var _ = PooledStringBuilder.GetInstance(out var sb);
             var endOfLineCount = 0;
-            var done = false;
             var missingHeaderOffset = 0;
             var fileHeaderStart = int.MaxValue;
             var fileHeaderEnd = int.MinValue;
 
-            for (var i = firstNonWhitespaceTrivia; !done && (i < firstToken.LeadingTrivia.Count); i++)
+            for (var i = firstNonWhitespaceTrivia; i < firstToken.LeadingTrivia.Count; i++)
             {
                 var trivia = firstToken.LeadingTrivia[i];
 
@@ -98,12 +97,15 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                         fileHeaderEnd = trivia.FullSpan.End;
                     }
 
-                    done = true;
+                    break;
                 }
                 else if (trivia.RawKind == EndOfLineTriviaKind)
                 {
                     endOfLineCount++;
-                    done = endOfLineCount > 1;
+                    if (endOfLineCount > 1)
+                    {
+                        break;
+                    }
                 }
                 else
                 {
@@ -112,7 +114,10 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                         missingHeaderOffset = trivia.FullSpan.End;
                     }
 
-                    done = (fileHeaderStart < fileHeaderEnd) || !trivia.IsDirective;
+                    if ((fileHeaderStart < fileHeaderEnd) || !trivia.IsDirective)
+                    {
+                        break;
+                    }
                 }
             }
 

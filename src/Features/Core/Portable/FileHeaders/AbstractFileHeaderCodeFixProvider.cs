@@ -84,9 +84,22 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         {
             // Skip single line comments, whitespace, and end of line trivia until a blank line is encountered.
             var triviaList = root.GetLeadingTrivia();
+
+            // True if the current line is blank so far (empty or whitespace); otherwise, false. The first line is
+            // assumed to not be blank, which allows the analysis to detect a file header which follows a blank line at
+            // the top of the file.
             var onBlankLine = false;
+
+            // The set of indexes to remove from 'triviaList'. After removing these indexes, the remaining trivia (if
+            // any) will be preserved in the document along with the replacement header.
             var removalList = new List<int>();
+
+            // The number of spaces to indent the new header. This is expected to match the indentation of the header
+            // which is being replaced.
             var leadingSpaces = string.Empty;
+
+            // The number of spaces found so far on the current line. This will become 'leadingSpaces' if the spaces are
+            // followed by a comment which is considered a header comment.
             var possibleLeadingSpaces = string.Empty;
 
             // Need to do this with index so we get the line endings correct.
@@ -97,6 +110,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 {
                     if (possibleLeadingSpaces != string.Empty)
                     {
+                        // One or more spaces precedes the comment. Keep track of these spaces so we can indent the new
+                        // header by the same amount.
                         leadingSpaces = possibleLeadingSpaces;
                     }
 
@@ -143,11 +158,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             var newHeaderTrivia = CreateNewHeader(leadingSpaces + FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText);
 
-            // Add a blank line after the header.
-            newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia);
+            // Add a blank line and any remaining preserved trivia after the header.
+            newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia).Add(newLineTrivia).AddRange(triviaList);
 
             // Insert header at top of the file.
-            return root.WithLeadingTrivia(newHeaderTrivia.Add(newLineTrivia).AddRange(triviaList));
+            return root.WithLeadingTrivia(newHeaderTrivia);
         }
 
         private SyntaxNode AddHeader(Document document, SyntaxNode root, string expectedFileHeader)
