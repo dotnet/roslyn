@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 if (!_optionService.TryMapEditorConfigKeyToOption(key, _language, out var storageLocation, out var optionKey))
                 {
-                    // Debug.Fail("Failed to find an .editorconfig entry for the requested key.");
+                    Debug.Fail("Failed to find an .editorconfig entry for the requested key.");
                     value = null;
                     return false;
                 }
