@@ -106,11 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration) &&
+            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
                 typeName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
-                var variableDeclaration = (VariableDeclarationSyntax)typeName.Parent;
-
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
@@ -336,9 +334,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     foreach (var arm in ((SwitchExpressionSyntax)initializer).Arms)
                     {
                         var expression = arm.Expression;
-                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression))
+                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpression))
                         {
-                            expression = ((ParenthesizedExpressionSyntax)expression).WalkDownParentheses();
+                            expression = parenExpression.WalkDownParentheses();
                         }
 
                         if (!expression.IsKind(SyntaxKind.ThrowExpression) && !expression.IsKind(SyntaxKind.NullLiteralExpression) && !expression.IsKind(SyntaxKind.DefaultLiteralExpression))

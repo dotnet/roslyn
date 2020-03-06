@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return null;
             }
 
-            public Task<TResult> AsyncExecute(Action<Service, RemoteAsyncOperation<TResult>> action)
+            public Task<TResult> ExecuteAsync(Action<Service, RemoteAsyncOperation<TResult>> action)
             {
                 try
                 {

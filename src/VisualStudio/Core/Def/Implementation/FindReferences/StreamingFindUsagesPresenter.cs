@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             this.AssertIsForeground();
 
-            var newColumns = ArrayBuilder<ColumnState>.GetInstance();
+            using var _ = ArrayBuilder<ColumnState>.GetInstance(out var newColumns);
             var tableControl = (IWpfTableControl2)window.TableControl;
 
             foreach (var columnState in window.TableControl.ColumnStates)
@@ -248,7 +248,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             tableControl.SetColumnStates(newColumns);
-            newColumns.Free();
         }
     }
 }

@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_compilation.Options.ConcurrentBuild)
             {
-                Task worker = CompileNamespaceAsTask(symbol);
+                Task worker = CompileNamespaceAsAsync(symbol);
                 _compilerTasks.Push(worker);
             }
             else
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Task CompileNamespaceAsTask(NamespaceSymbol symbol)
+        private Task CompileNamespaceAsAsync(NamespaceSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_compilation.Options.ConcurrentBuild)
             {
-                Task worker = CompileNamedTypeAsTask(symbol);
+                Task worker = CompileNamedTypeAsync(symbol);
                 _compilerTasks.Push(worker);
             }
             else
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Task CompileNamedTypeAsTask(NamedTypeSymbol symbol)
+        private Task CompileNamedTypeAsync(NamedTypeSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -1344,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement bodyWithoutLambdas = loweredBody;
                 if (sawLambdas || sawLocalFunctions)
                 {
-                    bodyWithoutLambdas = LambdaRewriter.Rewrite(
+                    bodyWithoutLambdas = ClosureConversion.Rewrite(
                         loweredBody,
                         method.ContainingType,
                         method.ThisParameter,

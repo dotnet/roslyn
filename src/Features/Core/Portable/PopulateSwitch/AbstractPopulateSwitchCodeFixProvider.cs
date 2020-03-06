@@ -128,13 +128,13 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
             foreach (var diagnostic in diagnostics)
             {
-                await FixOneDiagnostic(
+                await FixOneDiagnosticAsync(
                     document, editor, diagnostic, addCases, addDefaultCase,
                     diagnostics.Length == 1, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task FixOneDiagnostic(
+        private async Task FixOneDiagnosticAsync(
             Document document, SyntaxEditor editor, Diagnostic diagnostic,
             bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
             CancellationToken cancellationToken)

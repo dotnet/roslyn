@@ -784,31 +784,25 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigSet: newAnalyzerConfigSet);
         }
 
-        public ProjectState RemoveDocument(DocumentId documentId)
+        public ProjectState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            Debug.Assert(this.DocumentStates.ContainsKey(documentId));
-
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                documentIds: _documentIds.Remove(documentId),
-                documentStates: _documentStates.Remove(documentId));
+                documentIds: _documentIds.RemoveRange(documentIds),
+                documentStates: _documentStates.RemoveRange(documentIds));
         }
 
-        public ProjectState RemoveAdditionalDocument(DocumentId documentId)
+        public ProjectState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            Debug.Assert(this.AdditionalDocumentStates.ContainsKey(documentId));
-
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                additionalDocumentIds: _additionalDocumentIds.Remove(documentId),
-                additionalDocumentStates: _additionalDocumentStates.Remove(documentId));
+                additionalDocumentIds: _additionalDocumentIds.RemoveRange(documentIds),
+                additionalDocumentStates: _additionalDocumentStates.RemoveRange(documentIds));
         }
 
-        public ProjectState RemoveAnalyzerConfigDocument(DocumentId documentId)
+        public ProjectState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            Debug.Assert(_analyzerConfigDocumentStates.ContainsKey(documentId));
-
-            var newAnalyzerConfigDocumentStates = _analyzerConfigDocumentStates.Remove(documentId);
+            var newAnalyzerConfigDocumentStates = _analyzerConfigDocumentStates.RemoveRange(documentIds);
 
             return CreateNewStateForChangedAnalyzerConfigDocuments(newAnalyzerConfigDocumentStates);
         }

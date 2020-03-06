@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -33,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
             Dim maxBannerLength = options.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.VisualBasic)
-            Dim bannerText = VisualBasicSyntaxFactsService.Instance.GetBannerText(
+            Dim bannerText = VisualBasicSyntaxFacts.Instance.GetBannerText(
                 documentationComment, maxBannerLength, cancellationToken)
 
             spans.AddIfNotNull(CreateBlockSpan(

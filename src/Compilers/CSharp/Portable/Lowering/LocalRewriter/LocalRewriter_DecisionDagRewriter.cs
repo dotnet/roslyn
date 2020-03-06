@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                      whenFalse.Test is BoundDagValueTest secondTest &&
                      !loweredNodes.Contains(whenFalse) &&
                      !this._dagNodeLabels.ContainsKey(whenFalse) &&
-                     firstTest.Input == secondTest.Input &&
+                     firstTest.Input.Equals(secondTest.Input) &&
                      firstTest.Input.Type.IsValidV6SwitchGoverningType()))
                 {
                     // https://github.com/dotnet/roslyn/issues/12509 Could optimize float, double, decimal value switches. For now use if-then-else
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundTestDecisionDagNode previous = firstTestNode;
                 while (previous.WhenFalse is BoundTestDecisionDagNode p &&
                     p.Test is BoundDagValueTest vd &&
-                    vd.Input == firstTest.Input &&
+                    vd.Input.Equals(firstTest.Input) &&
                     !this._dagNodeLabels.ContainsKey(p) &&
                     !loweredNodes.Contains(p))
                 {

@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 DeclarationModifiers modifiers,
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
-                string memberName,
-                CancellationToken cancellationToken)
+                string memberName)
             {
                 var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
 
@@ -47,36 +46,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             private SyntaxNode CreateStatement(Compilation compilation, IMethodSymbol method)
             {
-                if (ThroughMember == null)
-                {
-                    var factory = Document.GetLanguageService<SyntaxGenerator>();
-                    return factory.CreateThrowNotImplementedStatement(compilation);
-                }
-                else
-                {
-                    return CreateDelegationStatement(method);
-                }
-            }
-
-            private SyntaxNode CreateDelegationStatement(
-                IMethodSymbol method)
-            {
                 var factory = Document.GetLanguageService<SyntaxGenerator>();
-                var through = CreateThroughExpression(factory);
-
-                var memberName = method.IsGenericMethod
-                    ? factory.GenericName(method.Name, method.TypeArguments.OfType<ITypeSymbol>().ToList())
-                    : factory.IdentifierName(method.Name);
-
-                through = factory.MemberAccessExpression(
-                    through, memberName);
-
-                var arguments = factory.CreateArguments(method.Parameters.As<IParameterSymbol>());
-                var invocationExpression = factory.InvocationExpression(through, arguments);
-
-                return method.ReturnsVoid
-                    ? factory.ExpressionStatement(invocationExpression)
-                    : factory.ReturnStatement(invocationExpression);
+                return ThroughMember == null
+                    ? factory.CreateThrowNotImplementedStatement(compilation)
+                    : factory.GenerateDelegateThroughMemberStatement(method, ThroughMember);
             }
         }
     }

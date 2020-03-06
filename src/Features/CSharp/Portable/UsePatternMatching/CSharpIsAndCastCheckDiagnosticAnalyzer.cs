@@ -161,30 +161,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             castExpression = null;
 
             // The is check has to be in an if check: "if (x is Type)
-            if (!isExpression.Parent.IsKind(SyntaxKind.IfStatement))
+            if (!isExpression.Parent.IsKind(SyntaxKind.IfStatement, out ifStatement))
             {
                 return false;
             }
 
-            ifStatement = (IfStatementSyntax)isExpression.Parent;
-            if (!ifStatement.Statement.IsKind(SyntaxKind.Block))
+            if (!ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax ifBlock))
             {
                 return false;
             }
 
-            var ifBlock = (BlockSyntax)ifStatement.Statement;
             if (ifBlock.Statements.Count == 0)
             {
                 return false;
             }
 
             var firstStatement = ifBlock.Statements[0];
-            if (!firstStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
+            if (!firstStatement.IsKind(SyntaxKind.LocalDeclarationStatement, out localDeclarationStatement))
             {
                 return false;
             }
 
-            localDeclarationStatement = (LocalDeclarationStatementSyntax)firstStatement;
             if (localDeclarationStatement.Declaration.Variables.Count != 1)
             {
                 return false;
@@ -197,12 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             var declaratorValue = declarator.Initializer.Value.WalkDownParentheses();
-            if (!declaratorValue.IsKind(SyntaxKind.CastExpression))
+            if (!declaratorValue.IsKind(SyntaxKind.CastExpression, out castExpression))
             {
                 return false;
             }
 
-            castExpression = (CastExpressionSyntax)declaratorValue;
             if (!SyntaxFactory.AreEquivalent(isExpression.Left.WalkDownParentheses(), castExpression.Expression.WalkDownParentheses(), topLevel: false) ||
                 !SyntaxFactory.AreEquivalent(isExpression.Right.WalkDownParentheses(), castExpression.Type, topLevel: false))
             {
