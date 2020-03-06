@@ -5,10 +5,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1520,15 +1520,13 @@ class C
 
         [WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestSingleLineBlock()
+        public async Task TestSingleLineBlock_BraceOnNextLine()
         {
             await TestInRegularAndScript1Async(
 @"
 class C
 {
-    public C([||]string s)
-    {
-    }
+    public C([||]string s) { }
 }",
 @"
 class C
@@ -1540,6 +1538,27 @@ class C
 
     public string S { get; }
 }");
+        }
+
+        [WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSingleLineBlock_BraceOnSameLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C([||]string s) { }
+}",
+@"
+class C
+{
+    public C(string s) {
+        S = s;
+    }
+
+    public string S { get; }
+}", options: this.Option(CSharpFormattingOptions.NewLinesForBracesInMethods, false));
         }
     }
 }
