@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -2053,6 +2053,96 @@ class MyClass
 ";
 
             await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_KeepMultipleLinesBetweenGroups()
+        {
+            var code = @"
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            var expected = @"
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_DoNotGroupIfNotSorted()
+        {
+            var code = @"
+using System.B;
+using System.A;
+using MS.B;
+using MS.A;
+";
+
+            var expected = @"
+using System.B;
+using System.A;
+using MS.B;
+using MS.A;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_GroupIfSorted()
+        {
+            var code = @"
+using System.A;
+using System.B;
+using MS.A;
+using MS.B;
+";
+
+            var expected = @"
+using System.A;
+using System.B;
+
+using MS.A;
+using MS.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst()
+        {
+            var code = @"
+using MS.A;
+using MS.B;
+using System.A;
+using System.B;
+";
+
+            var expected = @"
+using MS.A;
+using MS.B;
+
+using System.A;
+using System.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
         }
 
         private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
