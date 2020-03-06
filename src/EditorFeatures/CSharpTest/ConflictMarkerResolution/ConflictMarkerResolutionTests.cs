@@ -529,6 +529,154 @@ namespace N
             }.RunAsync();
         }
 
+        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestTakeTop_TopCommentedOut()
+        {
+            var source = @"
+public class Class1
+{
+    public void M()
+    {
+        /*
+<<<<<<< dest
+         * a thing
+         */
+{|CS8300:=======|}
+         * another thing
+         */
+{|CS8300:>>>>>>>|} source
+        // */
+    }
+}";
+            var fixedSource = @"
+public class Class1
+{
+    public void M()
+    {
+        /*
+         * a thing
+         */
+        // */
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
+            }.RunAsync();
+        }
+
+        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestTakeTop_MiddleAndBottomCommentedOut()
+        {
+            var source = @"
+public class Class1
+{
+    public void M()
+    {
+{|CS8300:<<<<<<<|} dest
+        /*
+         * a thing
+=======
+         *
+         * another thing
+>>>>>>> source
+         */
+    }
+}";
+            var fixedSource = @"
+public class Class1
+{
+    public void M()
+    {
+        /*
+         * a thing
+         */
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
+            }.RunAsync();
+        }
+
+        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestTakeTop_TopInString()
+        {
+            var source = @"
+class X {
+  void x() {
+    var x = @""
+<<<<<<< working copy
+a"";
+{|CS8300:=======|}
+b"";
+{|CS8300:>>>>>>>|} merge rev
+  }
+}";
+            var fixedSource = @"
+class X {
+  void x() {
+    var x = @""
+a"";
+  }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
+            }.RunAsync();
+        }
+
+        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestTakeBottom_TopInString()
+        {
+            var source = @"
+class X {
+  void x() {
+    var x = @""
+<<<<<<< working copy
+a"";
+{|CS8300:=======|}
+b"";
+{|CS8300:>>>>>>>|} merge rev
+  }
+}";
+            var fixedSource = @"
+class X {
+  void x() {
+    var x = @""
+b"";
+  }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
+            }.RunAsync();
+        }
+
         [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestFixAll1()

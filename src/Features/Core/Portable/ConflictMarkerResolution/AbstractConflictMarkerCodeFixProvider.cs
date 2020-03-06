@@ -45,91 +45,259 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var lines = text.Lines;
 
-            var startTrivia = root.FindTrivia(context.Span.Start);
-            if (!IsConflictMarker(text, startTrivia, '<'))
+            var position = context.Span.Start;
+            var conflictLine = lines.GetLineFromPosition(position);
+            if (position != conflictLine.Start)
+            {
+                Debug.Assert(false, "All conflict markers should start at the beginning of a line.");
+                return;
+            }
+
+            if (!ShouldFix(root, text, position, out var startLine, out var middleLine, out var endLine))
                 return;
 
-            var conflictTrivia = TryGetConflictTrivia(text, startTrivia);
-            if (conflictTrivia == null)
-                return;
-
-            var (equalsTrivia, endTrivia) = conflictTrivia.Value;
-            RegisterCodeFixes(context, startTrivia, equalsTrivia, endTrivia);
+            RegisterCodeFixes(context, startLine, middleLine, endLine);
         }
 
-        private (SyntaxTrivia equalsTrivia, SyntaxTrivia endTrivia)? TryGetConflictTrivia(SourceText text, SyntaxTrivia startTrivia)
+        private bool ShouldFix(
+            SyntaxNode root, SourceText text, int position,
+            out TextLine startLine, out TextLine middleLine, out TextLine endLine)
         {
-            var token = startTrivia.Token;
+            startLine = default;
+            middleLine = default;
+            endLine = default;
 
-            while (true)
+            var lines = text.Lines;
+            var conflictLine = lines.GetLineFromPosition(position);
+            if (position != conflictLine.Start)
             {
-                var index = GetEqualsConflictMarkerIndex(text, token, afterPosition: startTrivia.SpanStart);
-                if (index >= 0)
-                {
-                    var leadingTrivia = token.LeadingTrivia;
+                Debug.Assert(false, "All conflict markers should start at the beginning of a line.");
+                return false;
+            }
 
-                    if (index + 3 < token.LeadingTrivia.Count)
-                    {
-                        // normal case where there us =====, then dead code, then >>>>>>
+            if (!TryGetConflictLines(text, position, out startLine, out middleLine, out endLine))
+                return false;
 
-                        var equalsTrivia = leadingTrivia[index];
-                        var endOfLineTrivia = leadingTrivia[index + 1];
-                        var disabledTrivia = leadingTrivia[index + 2];
-                        var endTrivia = leadingTrivia[index + 3];
+            var startTrivia = root.FindTrivia(startLine.Start);
+            var middleTrivia = root.FindTrivia(middleLine.Start);
 
-                        if (_syntaxKinds.EndOfLineTrivia == endOfLineTrivia.RawKind &&
-                            _syntaxKinds.DisabledTextTrivia == disabledTrivia.RawKind &&
-                            IsConflictMarker(text, endTrivia, '>'))
-                        {
-                            return (equalsTrivia, endTrivia);
-                        }
-                    }
+            if (position == middleLine.Start)
+            {
+                // we were on the ======= lines.  We only want to report here if there was no
+                // conflict trivia on the <<<<<<< line (since we would have already reported the
+                // issue there.
+                if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
+                    return false;
+            }
+            else if (position == endLine.Start)
+            {
+                // we were on the >>>>>>> lines.  We only want to report here if there was no
+                // conflict trivia on the ======= or <<<<<<< line (since we would have already reported the
+                // issue there.
+                if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia ||
+                    middleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
+                    return false;
+            }
 
-                    if (index + 2 < token.LeadingTrivia.Count)
-                    {
-                        // case where there is ===== followed by >>>>>>  on the next line.
+            return true;
+        }
 
-                        var equalsTrivia = leadingTrivia[index];
-                        var endOfLineTrivia = leadingTrivia[index + 1];
-                        var endTrivia = leadingTrivia[index + 2];
+        private bool TryGetConflictLines(
+            SourceText text, int position,
+            out TextLine startLine, out TextLine middleLine, out TextLine endLine)
+        {
+            startLine = default;
+            middleLine = default;
+            endLine = default;
 
-                        if (_syntaxKinds.EndOfLineTrivia == endOfLineTrivia.RawKind &&
-                            IsConflictMarker(text, endTrivia, '>'))
-                        {
-                            return (equalsTrivia, endTrivia);
-                        }
-                    }
-                }
-
-                token = token.GetNextToken(includeZeroWidth: true);
-                if (token.RawKind == 0)
-                {
-                    return null;
-                }
+            var lines = text.Lines;
+            switch (text[position])
+            {
+                case '<':
+                    startLine = lines.GetLineFromPosition(position);
+                    return TryFindLineForwards(startLine, '=', out middleLine) &&
+                           TryFindLineForwards(middleLine, '>', out endLine);
+                case '=':
+                    middleLine = lines.GetLineFromPosition(position);
+                    return TryFindLineBackwards(middleLine, '<', out startLine) &&
+                           TryFindLineForwards(middleLine, '>', out endLine);
+                case '>':
+                    endLine = lines.GetLineFromPosition(position);
+                    return TryFindLineBackwards(endLine, '=', out middleLine) &&
+                           TryFindLineBackwards(middleLine, '<', out startLine);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(text[position]);
             }
         }
 
+        private bool TryFindLineForwards(TextLine startLine, char ch, out TextLine foundLine)
+        {
+            var text = startLine.Text!;
+            var lines = text.Lines;
+            for (var i = startLine.LineNumber + 1; i < lines.Count; i++)
+            {
+                var currentLine = lines[i];
+                if (IsConflictMarker(currentLine, ch))
+                {
+                    foundLine = currentLine;
+                    return true;
+                }
+            }
+
+            foundLine = default;
+            return false;
+        }
+
+        private bool TryFindLineBackwards(TextLine startLine, char ch, out TextLine foundLine)
+        {
+            var text = startLine.Text!;
+            var lines = text.Lines;
+            for (var i = startLine.LineNumber - 1; i >= 0; i--)
+            {
+                var currentLine = lines[i];
+                if (IsConflictMarker(currentLine, ch))
+                {
+                    foundLine = currentLine;
+                    return true;
+                }
+            }
+
+            foundLine = default;
+            return false;
+        }
+
+        private bool IsConflictMarker(TextLine currentLine, char ch)
+        {
+            var text = currentLine.Text!;
+            var currentLineStart = currentLine.Start;
+            var currentLineLength = currentLine.End - currentLine.Start;
+            if (currentLineLength < s_mergeConflictLength)
+            {
+                return false;
+            }
+
+            for (var j = 0; j < s_mergeConflictLength; j++)
+            {
+                if (text[currentLineStart + j] != ch)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        //private (SyntaxTrivia equalsTrivia, SyntaxTrivia endTrivia)? TryGetConflictTrivia(SourceText text, SyntaxTrivia startTrivia)
+        //{
+        //    var token = startTrivia.Token;
+
+        //    while (true)
+        //    {
+        //        var index = GetEqualsConflictMarkerIndex(text, token, afterPosition: startTrivia.SpanStart);
+        //        if (index >= 0)
+        //        {
+        //            var leadingTrivia = token.LeadingTrivia;
+
+        //            if (index + 3 < token.LeadingTrivia.Count)
+        //            {
+        //                // normal case where there us =====, then dead code, then >>>>>>
+
+        //                var equalsTrivia = leadingTrivia[index];
+        //                var endOfLineTrivia = leadingTrivia[index + 1];
+        //                var disabledTrivia = leadingTrivia[index + 2];
+        //                var endTrivia = leadingTrivia[index + 3];
+
+        //                if (_syntaxKinds.EndOfLineTrivia == endOfLineTrivia.RawKind &&
+        //                    _syntaxKinds.DisabledTextTrivia == disabledTrivia.RawKind &&
+        //                    IsConflictMarker(text, endTrivia, '>'))
+        //                {
+        //                    return (equalsTrivia, endTrivia);
+        //                }
+        //            }
+
+        //            if (index + 2 < token.LeadingTrivia.Count)
+        //            {
+        //                // case where there is ===== followed by >>>>>>  on the next line.
+
+        //                var equalsTrivia = leadingTrivia[index];
+        //                var endOfLineTrivia = leadingTrivia[index + 1];
+        //                var endTrivia = leadingTrivia[index + 2];
+
+        //                if (_syntaxKinds.EndOfLineTrivia == endOfLineTrivia.RawKind &&
+        //                    IsConflictMarker(text, endTrivia, '>'))
+        //                {
+        //                    return (equalsTrivia, endTrivia);
+        //                }
+        //            }
+        //        }
+
+        //        token = token.GetNextToken(includeZeroWidth: true);
+        //        if (token.RawKind == 0)
+        //        {
+        //            return null;
+        //        }
+        //    }
+        //}
+
+        //private void RegisterCodeFixes(
+        //    CodeFixContext context, SyntaxTrivia startTrivia, SyntaxTrivia equalsTrivia, SyntaxTrivia endTrivia)
+        //{
+        //    var document = context.Document;
+
+        //    var topText = startTrivia.ToString().Substring(s_mergeConflictLength).Trim();
+        //    var takeTopText = string.IsNullOrWhiteSpace(topText)
+        //        ? FeaturesResources.Take_top
+        //        : string.Format(FeaturesResources.Take_0, topText);
+
+        //    var bottomText = endTrivia.ToString().Substring(s_mergeConflictLength).Trim();
+        //    var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
+        //        ? FeaturesResources.Take_bottom
+        //        : string.Format(FeaturesResources.Take_0, bottomText);
+
+        //    var startPos = startTrivia.SpanStart;
+        //    var equalsPos = equalsTrivia.SpanStart;
+        //    var endPos = endTrivia.SpanStart;
+
+        //    context.RegisterCodeFix(
+        //        new MyCodeAction(takeTopText,
+        //            c => TakeTopAsync(document, startPos, equalsPos, endPos, c),
+        //            TakeTopEquivalenceKey),
+        //        context.Diagnostics);
+        //    context.RegisterCodeFix(
+        //        new MyCodeAction(takeBottomText,
+        //            c => TakeBottomAsync(document, startPos, equalsPos, endPos, c),
+        //            TakeBottomEquivalenceKey),
+        //        context.Diagnostics);
+        //    context.RegisterCodeFix(
+        //        new MyCodeAction(FeaturesResources.Take_both,
+        //            c => TakeBothAsync(document, startPos, equalsPos, endPos, c),
+        //            TakeBothEquivalenceKey),
+        //        context.Diagnostics);
+        //}
+
         private void RegisterCodeFixes(
-            CodeFixContext context, SyntaxTrivia startTrivia, SyntaxTrivia equalsTrivia, SyntaxTrivia endTrivia)
+            CodeFixContext context, TextLine startLine, TextLine middleLine, TextLine endLine)
         {
             var document = context.Document;
 
-            var topText = startTrivia.ToString().Substring(s_mergeConflictLength).Trim();
+            var topText = startLine.ToString().Substring(s_mergeConflictLength).Trim();
             var takeTopText = string.IsNullOrWhiteSpace(topText)
                 ? FeaturesResources.Take_top
                 : string.Format(FeaturesResources.Take_0, topText);
 
-            var bottomText = endTrivia.ToString().Substring(s_mergeConflictLength).Trim();
+            var bottomText = endLine.ToString().Substring(s_mergeConflictLength).Trim();
             var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
                 ? FeaturesResources.Take_bottom
                 : string.Format(FeaturesResources.Take_0, bottomText);
 
-            var startPos = startTrivia.SpanStart;
-            var equalsPos = equalsTrivia.SpanStart;
-            var endPos = endTrivia.SpanStart;
+            var startPos = startLine.Start;
+            var equalsPos = middleLine.Start;
+            var endPos = endLine.Start;
 
             context.RegisterCodeFix(
                 new MyCodeAction(takeTopText,
@@ -147,6 +315,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                     TakeBothEquivalenceKey),
                 context.Diagnostics);
         }
+
 
         private async Task<Document> AddEditsAsync(
             Document document, int startPos, int equalsPos, int endPos,
@@ -217,25 +386,25 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         private static int GetEndIncludingLineBreak(SourceText text, int position)
             => text.Lines.GetLineFromPosition(position).SpanIncludingLineBreak.End;
 
-        private int GetEqualsConflictMarkerIndex(SourceText text, SyntaxToken token, int afterPosition)
-        {
-            if (token.HasLeadingTrivia)
-            {
-                var i = 0;
-                foreach (var trivia in token.LeadingTrivia)
-                {
-                    if (trivia.SpanStart >= afterPosition &&
-                        IsConflictMarker(text, trivia, '='))
-                    {
-                        return i;
-                    }
+        //private int GetEqualsConflictMarkerIndex(SourceText text, SyntaxToken token, int afterPosition)
+        //{
+        //    if (token.HasLeadingTrivia)
+        //    {
+        //        var i = 0;
+        //        foreach (var trivia in token.LeadingTrivia)
+        //        {
+        //            if (trivia.SpanStart >= afterPosition &&
+        //                IsConflictMarker(text, trivia, '='))
+        //            {
+        //                return i;
+        //            }
 
-                    i++;
-                }
-            }
+        //            i++;
+        //        }
+        //    }
 
-            return -1;
-        }
+        //    return -1;
+        //}
 
         private bool IsConflictMarker(SourceText text, SyntaxTrivia trivia, char ch)
         {
@@ -269,21 +438,13 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             foreach (var diagnostic in diagnostics)
             {
-                var startTrivia = root.FindTrivia(diagnostic.Location.SourceSpan.Start);
-
-                // We'll be called on all the conflict marker diagnostics (i.e. for <<<<<<< =======
-                // and >>>>>>>). We only care about the <<<<<<< ones as that controls which chunks
-                // we'll be processing.
-                if (!IsConflictMarker(text, startTrivia, '<'))
+                var position = diagnostic.Location.SourceSpan.Start;
+                if (!ShouldFix(root, text, position, out var startLine, out var middleLine, out var endLine))
                     continue;
 
-                var conflictTrivia = TryGetConflictTrivia(text, startTrivia);
-                if (conflictTrivia == null)
-                    continue;
-
-                var startPos = startTrivia.SpanStart;
-                var equalsPos = conflictTrivia.Value.equalsTrivia.SpanStart;
-                var endPos = conflictTrivia.Value.endTrivia.SpanStart;
+                var startPos = startLine.Start;
+                var equalsPos = middleLine.Start;
+                var endPos = endLine.Start;
 
                 switch (equivalenceKey)
                 {
