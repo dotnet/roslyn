@@ -31,13 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // All compilation units contribute top level declarations to this scope
             foreach (var unit in _entryPoint.GetUnits())
             {
-                var enclosing = (SimpleProgramUnitBinder)GetBinder(unit)!.Next!;
+                var enclosing = GetBinder(unit);
+                var scopeBinder = (SimpleProgramUnitBinder)enclosing!.Next!;
 
                 foreach (var statement in unit.Members)
                 {
                     if (statement is GlobalStatementSyntax topLevelStatement)
                     {
-                        enclosing.BuildLocals(enclosing, topLevelStatement.Statement, locals);
+                        scopeBinder.BuildLocals(enclosing, topLevelStatement.Statement, locals);
                     }
                 }
             }
