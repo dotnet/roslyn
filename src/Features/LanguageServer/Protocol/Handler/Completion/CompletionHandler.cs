@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public CompletionHandler()
         {
         }
-        
+
         public async Task<LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
