@@ -279,12 +279,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
-        private async Task<DifferenceViewerPreview> CreateAddedTextDocumentPreviewViewAsync(
-            TextDocument document,
+        private async Task<DifferenceViewerPreview> CreateAddedTextDocumentPreviewViewAsync<TDocument>(
+            TDocument document,
             double zoomLevel,
-            Func<TextDocument, CancellationToken, ValueTask<ITextBuffer>> createBufferAsync,
+            Func<TDocument, CancellationToken, ValueTask<ITextBuffer>> createBufferAsync,
             Action<Workspace, DocumentId> openTextDocument,
             CancellationToken cancellationToken)
+            where TDocument : TextDocument
         {
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             return CreateAddedTextDocumentPreviewViewAsync(
                 document, zoomLevel,
-                createBufferAsync: (textDocument, cancellationToken) => CreateNewBufferAsync((Document)textDocument, cancellationToken),
+                createBufferAsync: (textDocument, cancellationToken) => CreateNewBufferAsync(textDocument, cancellationToken),
                 openTextDocument: (workspace, documentId) => workspace.OpenDocument(documentId),
                 cancellationToken);
         }
@@ -353,14 +354,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
-        private async Task<DifferenceViewerPreview> CreateRemovedTextDocumentPreviewViewAsync(
-            TextDocument document,
+        private async Task<DifferenceViewerPreview> CreateRemovedTextDocumentPreviewViewAsync<TDocument>(
+            TDocument document,
             double zoomLevel,
-            Func<TextDocument, CancellationToken, ValueTask<ITextBuffer>> createBufferAsync,
+            Func<TDocument, CancellationToken, ValueTask<ITextBuffer>> createBufferAsync,
             Func<Solution, DocumentId, Solution> removeTextDocument,
             Func<Solution, DocumentId, string, SourceText, Solution> addTextDocument,
             Action<Workspace, DocumentId> openTextDocument,
             CancellationToken cancellationToken)
+            where TDocument : TextDocument
         {
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -394,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             return CreateRemovedTextDocumentPreviewViewAsync(
                 document, zoomLevel,
-                createBufferAsync: (textDocument, cancellationToken) => CreateNewBufferAsync((Document)textDocument, cancellationToken),
+                createBufferAsync: (textDocument, cancellationToken) => CreateNewBufferAsync(textDocument, cancellationToken),
                 removeTextDocument: (solution, documentId) => solution.RemoveDocument(documentId),
                 addTextDocument: (solution, documentId, name, text) => solution.AddDocument(documentId, name, text),
                 openTextDocument: (workspace, documentId) => workspace.OpenDocument(documentId),
