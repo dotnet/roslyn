@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis
                     var value = (MethodImplAttributes)namedArg.Value.DecodeValue<int>(SpecialType.System_Enum);
                     if (value < 0 || value > MethodImplAttributes.Runtime)
                     {
-                        Debug.Assert(attribute.AttributeClass is object); // TODO2
+                        Debug.Assert(attribute.AttributeClass is object);
                         messageProvider.ReportInvalidNamedArgument(arguments.Diagnostics, arguments.AttributeSyntaxOpt, position, attribute.AttributeClass, "MethodCodeType");
                     }
                     else
