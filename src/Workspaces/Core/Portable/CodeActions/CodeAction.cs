@@ -172,10 +172,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// implementation of <see cref="GetChangedSolutionAsync(CancellationToken)"/> for code actions that only need
         /// to change one document.
         /// </remarks>
-        /// <exception cref="NotImplementedException">If this code action does not support changing a single document.</exception>
+        /// <exception cref="NotSupportedException">If this code action does not support changing a single document.</exception>
         protected virtual Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         /// <summary>
