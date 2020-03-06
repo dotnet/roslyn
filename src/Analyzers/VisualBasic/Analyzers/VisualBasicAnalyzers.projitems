@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />
   </ItemGroup>
 </Project>

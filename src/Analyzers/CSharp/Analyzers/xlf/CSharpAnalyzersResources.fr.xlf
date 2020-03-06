@@ -32,6 +32,11 @@
         <target state="new">use 'var' instead of explicit type</target>
         <note />
       </trans-unit>
+      <trans-unit id="Using_directive_is_unnecessary">
+        <source>Using directive is unnecessary.</source>
+        <target state="new">Using directive is unnecessary.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
