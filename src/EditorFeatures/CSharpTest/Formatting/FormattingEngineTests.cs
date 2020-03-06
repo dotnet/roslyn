@@ -2059,7 +2059,7 @@ class MyClass
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SeparateGroups_KeepMultipleLinesBetweenGroups()
         {
-            var code = @"
+            var code = @"$$
 using System.A;
 using System.B;
 
@@ -2068,7 +2068,7 @@ using MS.A;
 using MS.B;
 ";
 
-            var expected = @"
+            var expected = @"$$
 using System.A;
 using System.B;
 
@@ -2084,14 +2084,14 @@ using MS.B;
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SeparateGroups_DoNotGroupIfNotSorted()
         {
-            var code = @"
+            var code = @"$$
 using System.B;
 using System.A;
 using MS.B;
 using MS.A;
 ";
 
-            var expected = @"
+            var expected = @"$$
 using System.B;
 using System.A;
 using MS.B;
@@ -2105,14 +2105,14 @@ using MS.A;
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SeparateGroups_GroupIfSorted()
         {
-            var code = @"
+            var code = @"$$
 using System.A;
 using System.B;
 using MS.A;
 using MS.B;
 ";
 
-            var expected = @"
+            var expected = @"$$
 using System.A;
 using System.B;
 
@@ -2127,14 +2127,14 @@ using MS.B;
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst()
         {
-            var code = @"
+            var code = @"$$
 using MS.A;
 using MS.B;
 using System.A;
 using System.B;
 ";
 
-            var expected = @"
+            var expected = @"$$
 using MS.A;
 using MS.B;
 
