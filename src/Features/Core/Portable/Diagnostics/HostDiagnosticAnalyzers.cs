@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                var displayName = reference.Display ?? FeaturesResources.Unknown;
+                var displayName = reference.Display ?? WorkspacesResources.Unknown;
 
                 // if there are duplicates, merge descriptors
                 if (builder.TryGetValue(displayName, out var existing))
