@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             if (!document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, tree, out string fileHeaderTemplate)
                 || string.IsNullOrEmpty(fileHeaderTemplate))
             {
-                // Avoid making changes if we fail to read the expected header
-                return root;
+                // This exception would show up as a gold bar, but as indicated we do not believe this is reachable.
+                throw ExceptionUtilities.Unreachable;
             }
 
             var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(document.FilePath));
