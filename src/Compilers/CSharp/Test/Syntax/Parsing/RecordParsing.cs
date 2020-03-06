@@ -1,0 +1,544 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+{
+    public sealed class RecordParsingTests : ParsingTests
+    {
+        private SyntaxTree UsingTree(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options);
+            UsingNode(text, tree.GetCompilationUnitRoot(), expectedErrors);
+            return tree;
+        }
+
+        private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
+            => UsingTree(text, TestOptions.RegularPreview, expectedErrors);
+
+        private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
+            => UsingExpression(text, TestOptions.RegularPreview, expectedErrors);
+
+        public RecordParsingTests(ITestOutputHelper output) : base(output) { }
+
+        [Fact]
+        public void WithParsingLangVer()
+        {
+            var text = @"
+class C
+{
+    int x = 0 with {};
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular8);
+            tree.GetDiagnostics().Verify(
+                // (4,15): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     int x = 0 with {};
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("records").WithLocation(4, 15)
+            );
+        }
+
+        [Fact]
+        public void WithParsing1()
+        {
+            var text = @"
+class C
+{
+    with { };
+    x with { };
+    int x = with { };
+    int x = 0 with { };
+}";
+            UsingTree(text,
+                // (4,10): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                //     with { };
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(4, 10),
+                // (4,10): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                //     with { };
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(4, 10),
+                // (5,15): error CS1597: Semicolon after method or accessor block is not valid
+                //     x with { };
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(5, 15),
+                // (6,18): error CS1002: ; expected
+                //     int x = with { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 18),
+                // (6,18): error CS1022: Type or namespace definition, or end-of-file expected
+                //     int x = with { };
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(6, 18),
+                // (6,20): error CS1022: Type or namespace definition, or end-of-file expected
+                //     int x = with { };
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 20),
+                // (6,21): error CS1022: Type or namespace definition, or end-of-file expected
+                //     int x = with { };
+                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(6, 21),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1)
+            );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "with");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IdentifierToken, "with");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "with");
+                                }
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.WithExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
+                                    N(SyntaxKind.WithKeyword);
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing2()
+        {
+            var text = @"
+class C
+{
+    int M()
+    {
+        int x = M() with { } + 3;
+    }
+}";
+            UsingTree(text);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.AddExpression);
+                                            {
+                                                N(SyntaxKind.WithExpression);
+                                                {
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "M");
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.WithKeyword);
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                                N(SyntaxKind.PlusToken);
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing3()
+        {
+            var text = "0 with {";
+
+            UsingExpression(text,
+                // (1,9): error CS1513: } expected
+                // 0 with {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 9)
+            );
+
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing4()
+        {
+            var text = "0 with { X";
+
+            UsingExpression(text,
+                // (1,11): error CS1513: } expected
+                // 0 with { X
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 11)
+            );
+
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing5()
+        {
+            var text = "0 with { X 3 =,";
+
+            UsingExpression(text,
+                // (1,12): error CS1003: Syntax error, ',' expected
+                // 0 with { X 3 =,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments(",", "").WithLocation(1, 12),
+                // (1,15): error CS1525: Invalid expression term ','
+                // 0 with { X 3 =,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 15),
+                // (1,16): error CS1513: } expected
+                // 0 with { X 3 =,
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 16)
+            );
+
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                M(SyntaxKind.CommaToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing6()
+        {
+            var text = @"M() with { } switch { }";
+
+            UsingExpression(text);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing7()
+        {
+            var text = @"M() with { } + 3";
+
+            UsingExpression(text);
+
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing8()
+        {
+            var text = @"M() with { }.ToString()";
+
+            UsingExpression(text,
+                // (1,1): error CS1073: Unexpected token '.'
+                // M() with { }.ToString()
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "M() with { }").WithArguments(".").WithLocation(1, 1)
+            );
+
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "M");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing9()
+        {
+            var text = @"M() with { } with { }";
+
+            UsingExpression(text);
+
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing10()
+        {
+            UsingStatement("int x = await with { };", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.WithExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "await");
+                                }
+                                N(SyntaxKind.WithKeyword);
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+    }
+}

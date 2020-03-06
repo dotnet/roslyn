@@ -1109,6 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnderscoreToken:
                 case SyntaxKind.VarKeyword:
                 case SyntaxKind.DataKeyword:
+                case SyntaxKind.WithKeyword:
                     return true;
                 default:
                     return false;
@@ -1214,6 +1215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.VarKeyword;
                 case "data":
                     return SyntaxKind.DataKeyword;
+                case "with":
+                    return SyntaxKind.WithKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1635,6 +1638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "var";
                 case SyntaxKind.DataKeyword:
                     return "data";
+                case SyntaxKind.WithKeyword:
+                    return "with";
                 default:
                     return string.Empty;
             }

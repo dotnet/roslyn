@@ -8892,6 +8892,8 @@ tryAgain:
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.TupleExpression:
+                // PROTOTYPE: Is this the right precedence?
+                case SyntaxKind.WithExpression:
                     return Precedence.Primary;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(op);
@@ -8931,9 +8933,11 @@ tryAgain:
                 // If we see an await followed by a token that cannot follow an identifier, parse await as a unop.
                 // BindAwait() catches the cases where await successfully parses as a unop but is not in an async
                 // function, and reports an appropriate ERR_BadAwaitWithoutAsync* error.
-                switch (this.PeekToken(1).Kind)
+                var next = PeekToken(1);
+                switch (next.Kind)
                 {
                     case SyntaxKind.IdentifierToken:
+                        return next.ContextualKind != SyntaxKind.WithKeyword;
 
                     // Keywords
                     case SyntaxKind.NewKeyword:
@@ -9091,6 +9095,10 @@ tryAgain:
                 {
                     opKind = SyntaxKind.SwitchExpression;
                 }
+                else if (tk == SyntaxKind.WithKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                {
+                    opKind = SyntaxKind.WithExpression;
+                }
                 else
                 {
                     break;
@@ -9188,6 +9196,10 @@ tryAgain:
                 else if (opKind == SyntaxKind.SwitchExpression)
                 {
                     leftOperand = ParseSwitchExpression(leftOperand, opToken);
+                }
+                else if (opKind == SyntaxKind.WithExpression)
+                {
+                    leftOperand = ParseWithExpression(leftOperand, opToken);
                 }
                 else if (tk == SyntaxKind.DotDotToken)
                 {
@@ -10400,6 +10412,24 @@ tryAgain:
             this.ParseAnonymousTypeMemberInitializers(ref openBrace, ref expressions);
             var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
             var result = _syntaxFactory.AnonymousObjectCreationExpression(@new, openBrace, expressions, closeBrace);
+            _pool.Free(expressions);
+
+            return result;
+        }
+
+        private ExpressionSyntax ParseWithExpression(ExpressionSyntax receiverExpression, SyntaxToken withKeyword)
+        {
+            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+            var expressions = _pool.AllocateSeparated<AnonymousObjectMemberDeclaratorSyntax>();
+            this.ParseAnonymousTypeMemberInitializers(ref openBrace, ref expressions);
+            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+            withKeyword = CheckFeatureAvailability(withKeyword, MessageID.IDS_FeatureRecords);
+            var result = _syntaxFactory.WithExpression(
+                receiverExpression,
+                withKeyword,
+                openBrace,
+                expressions,
+                closeBrace);
             _pool.Free(expressions);
 
             return result;

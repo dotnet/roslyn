@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
             var missingSyntaxNodes = new HashSet<SyntaxKind>();
+            // PROTOTYPE: Add to all in one
+            missingSyntaxNodes.Add(SyntaxKind.WithExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular);

@@ -197,6 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AwaitKeyword = 8436,
         WhenKeyword = 8437,
         DataKeyword = 8438,
+        WithKeyword = 8439,
         /// when adding a contextual keyword following functions must be adapted:
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
@@ -597,5 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitStackAllocArrayCreationExpression = 9053,
         SuppressNullableWarningExpression = 9054,
         NullableDirectiveTrivia = 9055,
+
+        WithExpression = 9060,
     }
 }
