@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         // that's the last child.
                         var last = index == 0;
 
-                        // Once we get all the way to the end of hte reversed list, we're actually
+                        // Once we get all the way to the end of the reversed list, we're actually
                         // on the first.
                         var first = index == childCount - 1;
 
