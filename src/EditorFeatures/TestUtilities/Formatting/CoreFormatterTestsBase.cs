@@ -262,7 +262,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
         }
 
-        protected async Task AssertFormatWithBaseIndentAsync(string expected, string markupCode, int baseIndentation)
+        protected async Task AssertFormatWithBaseIndentAsync(
+            string expected, string markupCode, int baseIndentation,
+            Dictionary<OptionKey, object> options = null)
         {
             MarkupTestFile.GetSpan(markupCode, out var code, out var span);
 
@@ -270,6 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 expected,
                 code,
             new List<TextSpan> { span },
+            changedOptionSet: options,
             baseIndentation: baseIndentation);
         }
 

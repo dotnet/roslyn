@@ -3,87 +3,97 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     Public Class VisualBasicFormattingEngineTests
         Inherits VisualBasicFormatterTestBase
 
-        <WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub SeparateGroups_KeepMultipleLinesBetweenGroups()
-            Dim code = "$$
-Imports System.A
-Imports System.B
-
-
-Imports MS.A
-Imports MS.B
-"
-
-            Dim expected = "$$
-Imports System.A
-Imports System.B
-
-
-Imports MS.A
-Imports MS.B
-"
-
-            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, True))
-        End Sub
+        Private Function SeparateImportDirectiveGroups() As Dictionary(Of OptionKey, Object)
+            Return New Dictionary(Of OptionKey, Object) From {
+                {New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic), True}
+            }
+        End Function
 
         <WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub SeparateGroups_DoNotGroupIfNotSorted()
-            Dim code = "$$
-Imports System.B
+        Public Async Function SeparateGroups_KeepMultipleLinesBetweenGroups() As Task
+            Dim code = "[|
 Imports System.A
-Imports MS.B
+Imports System.B
+
+
 Imports MS.A
+Imports MS.B
+|]"
+
+            Dim expected = "
+Imports System.A
+Imports System.B
+
+
+Imports MS.A
+Imports MS.B
 "
 
-            Dim expected = "$$
-Imports System.B
-Imports System.A
-Imports MS.B
-Imports MS.A
-"
-
-            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, True))
-        End Sub
+            Await AssertFormatWithBaseIndentAsync(
+                expected, code, baseIndentation:=0, options:=SeparateImportDirectiveGroups)
+        End Function
 
         <WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub SeparateGroups_GroupIfSorted()
-            Dim code = "$$
-Imports System.A
+        Public Async Function SeparateGroups_DoNotGroupIfNotSorted() As Task
+            Dim code = "[|
 Imports System.B
-Imports MS.A
+Imports System.A
 Imports MS.B
+Imports MS.A
+|]"
+
+            Dim expected = "
+Imports System.B
+Imports System.A
+Imports MS.B
+Imports MS.A
 "
 
-            Dim expected = "$$
-Imports System.A
-Imports System.B
-
-Imports MS.A
-Imports MS.B
-"
-
-            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, True))
-        End Sub
+            Await AssertFormatWithBaseIndentAsync(
+                expected, code, baseIndentation:=0, options:=SeparateImportDirectiveGroups)
+        End Function
 
         <WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst()
-            Dim code = "$$
+        Public Async Function SeparateGroups_GroupIfSorted() As Task
+            Dim code = "[|
+Imports System.A
+Imports System.B
+Imports MS.A
+Imports MS.B
+|]"
+
+            Dim expected = "
+Imports System.A
+Imports System.B
+
+Imports MS.A
+Imports MS.B
+"
+
+            Await AssertFormatWithBaseIndentAsync(
+                expected, code, baseIndentation:=0, options:=SeparateImportDirectiveGroups)
+        End Function
+
+        <WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Async Function SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst() As Task
+            Dim code = "[|
 Imports MS.A
 Imports MS.B
 Imports System.A
 Imports System.B
-"
+|]"
 
-            Dim expected = "$$
+            Dim expected = "
 Imports MS.A
 Imports MS.B
 
@@ -91,7 +101,8 @@ Imports System.A
 Imports System.B
 "
 
-            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, True))
-        End Sub
+            Await AssertFormatWithBaseIndentAsync(
+                expected, code, baseIndentation:=0, options:=SeparateImportDirectiveGroups)
+        End Function
     End Class
 End Namespace
