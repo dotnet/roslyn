@@ -40,8 +40,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //     https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1076759
             // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
             //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
+            // 3.  LSP client should support completion filters / expanders
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var completionOptions = documentOptions.WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false);
+            var completionOptions = documentOptions
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false);
 
             var completionService = document.Project.LanguageServices.GetService<CompletionService>();
             var list = await completionService.GetCompletionsAsync(document, position, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);

@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var (solution, locations) = CreateTestSolution(markup);
 
             // Make sure the unimported types option is on by default.
-            solution = solution.WithOptions(solution.Options.WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, true));
+            solution = solution.WithOptions(solution.Options
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, true));
 
             var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, CreateCompletionParams(locations["caret"].Single()));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
