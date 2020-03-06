@@ -59,28 +59,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
+            var (analyzer, _) = CreateDiagnosticProviderAndFixer(workspace);
 
-            var provider = providerAndFixer.Item1;
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
+            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
             return FilterDiagnostics(diagnostics);
         }
 
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
+            var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
 
-            var provider = providerAndFixer.Item1;
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             string annotation = null;
             if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
             {
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
-            var fixer = providerAndFixer.Item2;
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))
                 .Where(d => fixer.IsFixableDiagnostic(d));
 

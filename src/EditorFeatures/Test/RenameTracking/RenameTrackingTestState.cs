@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -136,7 +137,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
     </Project>
 </Workspace>", languageName, code);
 
-            return TestWorkspace.Create(xml, exportProvider: exportProvider);
+            var workspace = TestWorkspace.Create(xml, exportProvider: exportProvider);
+
+            var analyzer = new RenameTrackingDiagnosticAnalyzer();
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+            return workspace;
         }
 
         public void SendEscape()

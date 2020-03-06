@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -26,8 +27,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var actualDiagnostics = new List<Diagnostic>();
             foreach (var analyzer in analyzers)
             {
+                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
                 actualDiagnostics.AddRange(
-                    await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, span));
+                    await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span));
             }
 
             actualDiagnostics.Verify(expectedDiagnostics);

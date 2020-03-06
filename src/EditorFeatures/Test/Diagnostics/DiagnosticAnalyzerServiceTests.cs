@@ -36,11 +36,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TestHasSuccessfullyLoadedBeingFalse()
         {
             var workspace = new AdhocWorkspace();
+
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new Analyzer()));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             var document = GetDocumentFromIncompleteProject(workspace);
 
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(new Analyzer(), listener);
+            var service = new MyDiagnosticAnalyzerService(listener);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             // listen to events
@@ -58,49 +62,68 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TestHasSuccessfullyLoadedBeingFalseFSAOn()
         {
             var workspace = new AdhocWorkspace();
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)));
+
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new Analyzer()));
+
+            var options = workspace.CurrentSolution.Options
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options).WithAnalyzerReferences(new[] { analyzerReference }));
             var document = GetDocumentFromIncompleteProject(workspace);
 
             // open document
             workspace.OpenDocument(document.Id);
 
-            await TestAnalyzerAsync(workspace, document, new Analyzer(), AnalyzerResultSetter, expectedSyntax: true, expectedSemantic: true);
+            await TestAnalyzerAsync(workspace, document, AnalyzerResultSetter, expectedSyntax: true, expectedSemantic: true);
         }
 
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalseWhenFileOpened()
         {
             var workspace = new AdhocWorkspace();
+
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new Analyzer()));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             var document = GetDocumentFromIncompleteProject(workspace);
 
             // open document
             workspace.OpenDocument(document.Id);
 
-            await TestAnalyzerAsync(workspace, document, new Analyzer(), AnalyzerResultSetter, expectedSyntax: true, expectedSemantic: true);
+            await TestAnalyzerAsync(workspace, document, AnalyzerResultSetter, expectedSyntax: true, expectedSemantic: true);
         }
 
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalseWhenFileOpenedWithCompilerAnalyzer()
         {
             var workspace = new AdhocWorkspace();
+
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             var document = GetDocumentFromIncompleteProject(workspace);
 
             // open document
             workspace.OpenDocument(document.Id);
 
-            await TestAnalyzerAsync(workspace, document, new CSharpCompilerDiagnosticAnalyzer(), CompilerAnalyzerResultSetter, expectedSyntax: true, expectedSemantic: false);
+            await TestAnalyzerAsync(workspace, document, CompilerAnalyzerResultSetter, expectedSyntax: true, expectedSemantic: false);
         }
 
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalseWithCompilerAnalyzerFSAOn()
         {
             var workspace = new AdhocWorkspace();
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)));
+
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
+
+            var options = workspace.CurrentSolution.Options
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options).WithAnalyzerReferences(new[] { analyzerReference }));
+
             var document = GetDocumentFromIncompleteProject(workspace);
 
-            await TestAnalyzerAsync(workspace, document, new CSharpCompilerDiagnosticAnalyzer(), CompilerAnalyzerResultSetter, expectedSyntax: true, expectedSemantic: false);
+            await TestAnalyzerAsync(workspace, document, CompilerAnalyzerResultSetter, expectedSyntax: true, expectedSemantic: false);
         }
 
         [Theory]
@@ -109,8 +132,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TestDisabledByDefaultAnalyzerEnabledWithEditorConfig(bool enabledWithEditorconfig)
         {
             using var workspace = new AdhocWorkspace();
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)));
+
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new DisabledByDefaultAnalyzer()));
+
+            var options = workspace.CurrentSolution.Options
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }).WithOptions(options));
 
             var project = workspace.AddProject(
                 ProjectInfo.Create(
@@ -138,7 +166,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(new DisabledByDefaultAnalyzer(), listener);
+            var service = new MyDiagnosticAnalyzerService(listener);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             // listen to events
@@ -182,13 +210,12 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         private static async Task TestAnalyzerAsync(
             AdhocWorkspace workspace,
             Document document,
-            DiagnosticAnalyzer diagnosticAnalyzer,
             Func<bool, bool, ImmutableArray<DiagnosticData>, (bool, bool)> resultSetter,
             bool expectedSyntax, bool expectedSemantic)
         {
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(diagnosticAnalyzer, listener);
+            var service = new MyDiagnosticAnalyzerService(listener);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             var syntax = false;
@@ -216,6 +243,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         {
             var workspace = new AdhocWorkspace();
 
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new OpenFileOnlyAnalyzer()));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             var project = workspace.AddProject(
                            ProjectInfo.Create(
                                ProjectId.CreateNewId(),
@@ -228,7 +258,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(new OpenFileOnlyAnalyzer(), listener);
+            var service = new MyDiagnosticAnalyzerService(listener);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             // listen to events
@@ -271,6 +301,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         {
             var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic));
 
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new NoNameAnalyzer()));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             var language = NoCompilationConstants.LanguageName;
 
             var project = workspace.AddProject(
@@ -291,7 +324,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(new NoNameAnalyzer(), listener, language);
+            var service = new MyDiagnosticAnalyzerService(listener);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             var syntax = false;
@@ -335,6 +368,18 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         {
             var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic));
 
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
+                new Priority20Analyzer(),
+                new Priority15Analyzer(),
+                new Priority10Analyzer(),
+                new Priority1Analyzer(),
+                new Priority0Analyzer(),
+                new CSharpCompilerDiagnosticAnalyzer(),
+                new Analyzer()
+            ));
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             var project = workspace.AddProject(
                           ProjectInfo.Create(
                               ProjectId.CreateNewId(),
@@ -345,15 +390,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(new DiagnosticAnalyzer[] {
-                new Priority20Analyzer(),
-                new Priority15Analyzer(),
-                new Priority10Analyzer(),
-                new Priority1Analyzer(),
-                new Priority0Analyzer(),
-                new CSharpCompilerDiagnosticAnalyzer(),
-                new Analyzer(),
-            }, listener, project.Language);
+            var service = new MyDiagnosticAnalyzerService(listener);
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
             var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
@@ -376,6 +413,14 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         {
             var workspace = new AdhocWorkspace();
 
+            var solution = workspace.CurrentSolution;
+
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
+                new LeakDocumentAnalyzer(), new LeakProjectAnalyzer()));
+
+            var options = solution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
+            workspace.TryApplyChanges(solution.WithOptions(options).WithAnalyzerReferences(new[] { analyzerReference }));
+
             var projectId = ProjectId.CreateNewId();
             var project = workspace.AddProject(
                           ProjectInfo.Create(
@@ -391,15 +436,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                                       loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A {}"), VersionStamp.Create(), filePath: "test.cs")),
                                       filePath: "test.cs")}));
 
-            var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
-            project = project.WithSolutionOptions(options);
-
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(new DiagnosticAnalyzer[] {
-                new LeakDocumentAnalyzer(),
-                new LeakProjectAnalyzer()
-            }, listener, project.Language);
+            var service = new MyDiagnosticAnalyzerService(listener);
 
             var called = false;
             service.DiagnosticsUpdated += (s, e) =>
@@ -521,16 +560,20 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 analyzers.Add(new DiagnosticSuppressorForId(NamedTypeAnalyzer.DiagnosticId));
             }
 
+            var analyzerReference = new AnalyzerImageReference(analyzers.ToImmutableArray());
+
             using var workspace = TestWorkspace.CreateCSharp("class A {}", exportProvider: EditorServicesUtil.ExportProvider);
             var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.SetOptions(options);
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var project = workspace.CurrentSolution.Projects.Single();
             var document = project.Documents.Single();
 
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(analyzers.ToImmutableAndFree(), listener, project.Language);
+            var service = new MyDiagnosticAnalyzerService(listener);
 
             DiagnosticData diagnostic = null;
             service.DiagnosticsUpdated += (s, e) =>
@@ -626,20 +669,8 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService
         {
-            internal MyDiagnosticAnalyzerService(DiagnosticAnalyzer analyzer, IAsynchronousOperationListener listener, string language = LanguageNames.CSharp)
-                : this(SpecializedCollections.SingletonEnumerable(analyzer), listener, language)
-            {
-            }
-
-            internal MyDiagnosticAnalyzerService(IEnumerable<DiagnosticAnalyzer> analyzers, IAsynchronousOperationListener listener, string language = LanguageNames.CSharp)
-                : base(new DiagnosticAnalyzerInfoCache(),
-                       new HostDiagnosticAnalyzers(
-                            ImmutableArray.Create<AnalyzerReference>(
-                                new TestAnalyzerReferenceByLanguage(
-                                    ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(language, ImmutableArray.CreateRange(analyzers))))),
-                       hostDiagnosticUpdateSource: null,
-                       registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
-                       listener: listener)
+            internal MyDiagnosticAnalyzerService(IAsynchronousOperationListener listener)
+                : base(new MockDiagnosticUpdateSourceRegistrationService(), listener: listener)
             {
             }
         }

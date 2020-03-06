@@ -19,8 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     /// This service provides diagnostic analyzers from the analyzer assets specified in the manifest files of installed VSIX extensions.
     /// These analyzers are used across this workspace session.
     /// </summary>
-    [Export(typeof(IHostDiagnosticAnalyzerPackageProvider))]
-    internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerPackageProvider
+    internal partial class VisualStudioDiagnosticAnalyzerProvider
     {
         public const string MicrosoftCodeAnalysisCSharp = "Microsoft.CodeAnalysis.CSharp.dll";
         public const string MicrosoftCodeAnalysisVisualBasic = "Microsoft.CodeAnalysis.VisualBasic.dll";
@@ -34,10 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         /// </summary>
         private static readonly AnalyzerAssemblyLoader s_analyzerAssemblyLoader = new AnalyzerAssemblyLoader();
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioDiagnosticAnalyzerProvider(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public VisualStudioDiagnosticAnalyzerProvider(IServiceProvider serviceProvider)
         {
             var dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(EnvDTE.DTE));
 

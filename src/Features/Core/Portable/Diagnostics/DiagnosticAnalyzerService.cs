@@ -34,9 +34,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly TaskQueue _eventQueue;
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
-        public HostDiagnosticAnalyzers HostAnalyzers { get; private set; }
-
-        private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
 
         public IAsynchronousOperationListener Listener { get; }
 
@@ -47,52 +44,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            PrimaryWorkspace primaryWorkspace,
-            [Import(AllowDefault = true)]IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService = null,
-            [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource = null)
-            : this(new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => GetHostDiagnosticAnalyzerPackage(diagnosticAnalyzerProviderService), isThreadSafe: true),
-                   diagnosticAnalyzerProviderService?.GetAnalyzerAssemblyLoader(),
-                   hostDiagnosticUpdateSource,
-                   primaryWorkspace,
-                   registrationService, listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : this(registrationService,
+                   listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
         {
-            // diagnosticAnalyzerProviderService and hostDiagnosticUpdateSource can only be null in test harness. Otherwise, it should never be null.
+            // hostDiagnosticUpdateSource can only be null in test harness. Otherwise, it should never be null.
         }
 
         // protected for testing purposes.
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         protected DiagnosticAnalyzerService(
-            Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> workspaceAnalyzerPackages,
-            IAnalyzerAssemblyLoader? hostAnalyzerAssemblyLoader,
-            AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
-            PrimaryWorkspace primaryWorkspace,
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener? listener = null)
-            : this(new DiagnosticAnalyzerInfoCache(),
-                   new HostDiagnosticAnalyzers(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace),
-                   hostDiagnosticUpdateSource,
-                   registrationService,
-                   listener)
+            IAsynchronousOperationListener? listener)
+            : this(registrationService)
         {
-        }
-
-        // protected for testing purposes.
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        protected DiagnosticAnalyzerService(
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
-            HostDiagnosticAnalyzers hostAnalyzers,
-            AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
-            IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener? listener = null)
-        {
-            AnalyzerInfoCache = analyzerInfoCache;
-            HostAnalyzers = hostAnalyzers;
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-
-            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
-            _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
-
+            AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
             _eventMap = new EventMap();
 
@@ -102,9 +68,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             registrationService.Register(this);
         }
-
-        private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService)
-            => diagnosticAnalyzerProviderService?.GetHostDiagnosticAnalyzerPackages() ?? ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty;
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
         {

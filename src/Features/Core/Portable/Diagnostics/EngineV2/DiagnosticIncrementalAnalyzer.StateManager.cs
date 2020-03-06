@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             private readonly IPersistentStorageService _persistentStorageService;
-            private readonly HostDiagnosticAnalyzers _hostAnalyzers;
-            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
@@ -43,9 +41,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(HostDiagnosticAnalyzers hostAnalyzers, IPersistentStorageService persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public StateManager(IPersistentStorageService persistentStorageService)
             {
-                _hostAnalyzers = hostAnalyzers;
                 _persistentStorageService = persistentStorageService;
                 _analyzerInfoCache = analyzerInfoCache;
 
@@ -92,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public IEnumerable<StateSet> GetOrUpdateStateSets(Project project)
             {
                 var projectStateSets = GetOrUpdateProjectStateSets(project);
-                return GetOrCreateHostStateSets(project.Language, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
+                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
             }
 
             /// <summary>
@@ -104,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public IEnumerable<StateSet> GetOrCreateStateSets(Project project)
             {
                 var projectStateSets = GetOrCreateProjectStateSets(project);
-                return GetOrCreateHostStateSets(project.Language, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
+                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
             }
 
             /// <summary>
@@ -121,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return stateSet;
                 }
 
-                var hostStateSetMap = GetOrCreateHostStateSets(project.Language, projectStateSets).StateSetMap;
+                var hostStateSetMap = GetOrCreateHostStateSets(project, projectStateSets).StateSetMap;
                 if (hostStateSetMap.TryGetValue(analyzer, out stateSet))
                 {
                     return stateSet;
@@ -139,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var projectStateSets = project.SupportsCompilation ?
                     GetOrUpdateProjectStateSets(project) :
                     ProjectAnalyzerStateSets.Default;
-                var hostStateSets = GetOrCreateHostStateSets(project.Language, projectStateSets);
+                var hostStateSets = GetOrCreateHostStateSets(project, projectStateSets);
 
                 if (!project.SupportsCompilation)
                 {
@@ -159,7 +156,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // include compiler analyzer in build only state, if available
                 StateSet? compilerStateSet = null;
-                var compilerAnalyzer = _hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
+                var hostAnalyzers = project.Solution.State.Analyzers;
+                var compilerAnalyzer = hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null && hostStateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
                 {
                     stateSets.Add(compilerStateSet);
@@ -169,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 stateSets.AddRange(projectStateSets.StateSetMap.Values);
 
                 // now add analyzers that exist in both host and project
-                var hostAnalyzersById = _hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
+                var hostAnalyzersById = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
                 foreach (var (identity, analyzers) in hostAnalyzersById)
                 {
                     if (!projectAnalyzerReferenceIds.Contains(identity))

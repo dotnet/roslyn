@@ -1456,6 +1456,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
+        /// Applies a solution transformation to the workspace and triggers workspace changed.
+        /// </summary>
+        public void ApplySolutionChangeToWorkspace(Func<CodeAnalysis.Solution, CodeAnalysis.Solution> solutionTransformation)
+        {
+            lock (_gate)
+            {
+                if (SetCurrentSolutionWithLock(solutionTransformation, out var oldSolution, out var newSolution))
+                {
+                    RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                }
+            }
+        }
+
+        /// <summary>
         /// Applies a change to the workspace that can do any number of project changes.
         /// </summary>
         /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This

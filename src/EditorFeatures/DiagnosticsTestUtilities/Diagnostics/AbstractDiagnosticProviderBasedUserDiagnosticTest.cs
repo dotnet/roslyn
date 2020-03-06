@@ -128,11 +128,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
+            var (analyzer, _) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
 
-            var provider = providerAndFixer.Item1;
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
+            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
             AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
             return allDiagnostics;
         }
@@ -140,21 +142,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
+            var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
 
-            var provider = providerAndFixer.Item1;
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             string annotation = null;
             if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
             {
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider);
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project);
             var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
-            var fixer = providerAndFixer.Item2;
             if (fixer == null)
             {
                 return (diagnostics, ImmutableArray<CodeAction>.Empty, null);

@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis
         // Checksums for this solution state
         private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
 
+        private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
+
         private SolutionState(
             BranchId branchId,
             int workspaceVersion,
@@ -65,7 +67,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
-            ProjectDependencyGraph dependencyGraph)
+            ProjectDependencyGraph dependencyGraph,
+            Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
         {
             _branchId = branchId;
             _workspaceVersion = workspaceVersion;
@@ -78,8 +81,9 @@ namespace Microsoft.CodeAnalysis
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
+            _lazyAnalyzers = lazyAnalyzers ?? new Lazy<HostDiagnosticAnalyzers>(() => new HostDiagnosticAnalyzers(analyzerReferences));
 
-            // when solution state is changed, we re-calcuate its checksum
+            // when solution state is changed, we recalcuate its checksum
             _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
 
             CheckInvariants();
@@ -102,7 +106,8 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
-                dependencyGraph: ProjectDependencyGraph.Empty)
+                dependencyGraph: ProjectDependencyGraph.Empty,
+                lazyAnalyzers: null)
         {
         }
 
@@ -116,6 +121,8 @@ namespace Microsoft.CodeAnalysis
             // get locked-in by document states and project states when first constructed.
             return CreatePrimarySolution(branchId: workspace.PrimaryBranchId, workspaceVersion: workspaceVersion, services: services);
         }
+
+        public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
 
         public SolutionInfo.SolutionAttributes SolutionAttributes => _solutionAttributes;
 
@@ -200,11 +207,13 @@ namespace Microsoft.CodeAnalysis
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
 
+            bool analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
+
             if (branchId == _branchId &&
                 solutionAttributes == _solutionAttributes &&
                 projectIds == ProjectIds &&
                 options == Options &&
-                analyzerReferences == AnalyzerReferences &&
+                analyzerReferencesEqual &&
                 idToProjectStateMap == _projectIdToProjectStateMap &&
                 projectIdToTrackerMap == _projectIdToTrackerMap &&
                 filePathToDocumentIdsMap == _filePathToDocumentIdsMap &&
@@ -224,7 +233,8 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap,
                 projectIdToTrackerMap,
                 filePathToDocumentIdsMap,
-                dependencyGraph);
+                dependencyGraph,
+                analyzerReferencesEqual ? _lazyAnalyzers : null);
         }
 
         private SolutionState CreatePrimarySolution(
@@ -250,7 +260,8 @@ namespace Microsoft.CodeAnalysis
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
                 _filePathToDocumentIdsMap,
-                _dependencyGraph);
+                _dependencyGraph,
+                _lazyAnalyzers);
         }
 
         private BranchId GetBranchId()

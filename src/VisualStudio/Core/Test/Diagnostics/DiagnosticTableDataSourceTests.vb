@@ -812,15 +812,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Class MyDiagnosticAnalyzerService
             Inherits DiagnosticAnalyzerService
 
-            Friend Sub New(
-                    analyzersMap As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)),
-                    registrationService As IDiagnosticUpdateSourceRegistrationService,
-                    listener As IAsynchronousOperationListener)
-                MyBase.New(New DiagnosticAnalyzerInfoCache(),
-                           New HostDiagnosticAnalyzers(ImmutableArray.Create(Of AnalyzerReference)(New TestAnalyzerReferenceByLanguage(analyzersMap))),
-                           hostDiagnosticUpdateSource:=Nothing,
-                           registrationService:=registrationService,
-                           listener:=listener)
+            Friend Sub New(registrationService As IDiagnosticUpdateSourceRegistrationService, listener As IAsynchronousOperationListener)
+                MyBase.New(registrationService, listener)
             End Sub
         End Class
 

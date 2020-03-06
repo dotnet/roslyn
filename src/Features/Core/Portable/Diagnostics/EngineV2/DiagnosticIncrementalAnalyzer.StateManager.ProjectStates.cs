@@ -97,14 +97,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Creates a new project state sets.
             /// </summary>
-            private ProjectAnalyzerStateSets CreateProjectStateSets(Project project)
+            private static ProjectAnalyzerStateSets CreateProjectStateSets(Project project)
             {
                 if (project.AnalyzerReferences.Count == 0)
                 {
                     return ProjectAnalyzerStateSets.Default;
                 }
 
-                var analyzersPerReference = _hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
+                var analyzersPerReference = project.Solution.State.Analyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
                 if (analyzersPerReference.Count == 0)
                 {
                     return ProjectAnalyzerStateSets.Default;

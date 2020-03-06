@@ -33,7 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
-            private readonly HostDiagnosticAnalyzers _hostAnalyzers;
 
             private readonly object _gate;
 
@@ -44,15 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public RemoteHostClientService(
                 IThreadingContext threadingContext,
                 IAsynchronousOperationListener listener,
-                Workspace workspace,
-                HostDiagnosticAnalyzers hostAnalyzers)
+                Workspace workspace)
                 : base(threadingContext)
             {
                 _gate = new object();
 
                 _listener = listener;
                 _workspace = workspace;
-                _hostAnalyzers = hostAnalyzers;
             }
 
             public Workspace Workspace => _workspace;
@@ -210,15 +207,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     client.StatusChanged += OnStatusChanged;
 
-                    // set global assets on remote host
-                    var checksums = AddGlobalAssets(cancellationToken);
-
                     // send over global asset
                     var success = await client.TryRunRemoteAsync(
                         WellKnownRemoteHostServices.RemoteHostService,
                         nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                         _workspace.CurrentSolution,
-                        new[] { (object)checksums },
+                        new object[] { },
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
@@ -229,40 +223,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 return null;
-            }
-
-            private Checksum[] AddGlobalAssets(CancellationToken cancellationToken)
-            {
-                var builder = ArrayBuilder<Checksum>.GetInstance();
-
-                using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
-                {
-                    var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
-                    var serializer = _workspace.Services.GetRequiredService<ISerializerService>();
-
-                    foreach (var (_, reference) in _hostAnalyzers.GetHostAnalyzerReferencesMap())
-                    {
-                        var asset = WorkspaceAnalyzerReferenceAsset.Create(reference, serializer, cancellationToken);
-
-                        builder.Add(asset.Checksum);
-                        snapshotService.AddGlobalAsset(reference, asset, cancellationToken);
-                    }
-                }
-
-                return builder.ToArrayAndFree();
-            }
-
-            private void RemoveGlobalAssets()
-            {
-                using (Logger.LogBlock(FunctionId.RemoteHostClientService_RemoveGlobalAssets, CancellationToken.None))
-                {
-                    var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
-
-                    foreach (var (_, reference) in _hostAnalyzers.GetHostAnalyzerReferencesMap())
-                    {
-                        snapshotService.RemoveGlobalAsset(reference, CancellationToken.None);
-                    }
-                }
             }
 
             private void OnStatusChanged(object sender, bool started)

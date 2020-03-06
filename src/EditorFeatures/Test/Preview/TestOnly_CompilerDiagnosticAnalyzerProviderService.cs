@@ -1,4 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿#if DELETE
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,13 +15,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
-    [Export(typeof(IHostDiagnosticAnalyzerPackageProvider))]
-    internal class TestOnly_CompilerDiagnosticAnalyzerProviderService : IHostDiagnosticAnalyzerPackageProvider
-    {
-        private readonly HostDiagnosticAnalyzerPackage _info;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class TestOnly_CompilerDiagnosticAnalyzerProviderService
+    {
         public TestOnly_CompilerDiagnosticAnalyzerProviderService()
             => _info = new HostDiagnosticAnalyzerPackage("Compiler", GetCompilerAnalyzerAssemblies().Distinct().ToImmutableArray());
 
@@ -55,3 +52,4 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
     }
 }
+#endif

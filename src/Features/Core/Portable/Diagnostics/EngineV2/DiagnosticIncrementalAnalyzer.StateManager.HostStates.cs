@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public IEnumerable<StateSet> GetAllHostStateSets()
                 => _hostAnalyzerStateMap.Values.SelectMany(v => v.OrderedStateSets);
 
-            private HostAnalyzerStateSets GetOrCreateHostStateSets(string language, ProjectAnalyzerStateSets projectStateSets)
+            private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
             {
                 var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, language, CreateLanguageSpecificAnalyzerMap, _hostAnalyzers);
                 return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     return new HostAnalyzerStateSets(analyzerMap);
                 }
+
+                return ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, project.Language, CreateLanguageSpecificAnalyzerMap, project.Solution.State.Analyzers);
             }
 
             private sealed class HostAnalyzerStateSets

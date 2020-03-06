@@ -23,34 +23,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class TestDiagnosticAnalyzerDriver
     {
         private readonly TestDiagnosticAnalyzerService _diagnosticAnalyzerService;
-        private readonly TestHostDiagnosticUpdateSource _exceptionDiagnosticsSource;
         private readonly bool _includeSuppressedDiagnostics;
 
-        public TestDiagnosticAnalyzerDriver(
-            Project project,
-            DiagnosticAnalyzer workspaceAnalyzerOpt = null,
-            bool includeSuppressedDiagnostics = false)
+        public TestDiagnosticAnalyzerDriver(Project project, bool includeSuppressedDiagnostics = false)
         {
-            _exceptionDiagnosticsSource = new TestHostDiagnosticUpdateSource(project.Solution.Workspace);
-
-            _diagnosticAnalyzerService = CreateDiagnosticAnalyzerService(project, workspaceAnalyzerOpt);
+            _diagnosticAnalyzerService = new TestDiagnosticAnalyzerService();
             _diagnosticAnalyzerService.CreateIncrementalAnalyzer(project.Solution.Workspace);
-
             _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
-        }
-
-        private TestDiagnosticAnalyzerService CreateDiagnosticAnalyzerService(Project project, DiagnosticAnalyzer workspaceAnalyzerOpt)
-        {
-            if (workspaceAnalyzerOpt != null)
-            {
-                return new TestDiagnosticAnalyzerService(project.Language, workspaceAnalyzerOpt, _exceptionDiagnosticsSource);
-            }
-
-            var analyzer = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language);
-            var loader = new DefaultAnalyzerAssemblyLoader();
-            var analyzerReferences = ImmutableArray.Create<AnalyzerReference>(new AnalyzerFileReference(analyzer.GetType().Assembly.Location, loader));
-
-            return new TestDiagnosticAnalyzerService(analyzerReferences, _exceptionDiagnosticsSource);
         }
 
         private async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
@@ -82,8 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 projectDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => !d.HasTextSpan), project, CancellationToken.None);
             }
 
-            var exceptionDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(_exceptionDiagnosticsSource.GetTestAccessor().GetReportedDiagnostics(), project, CancellationToken.None);
-            var allDiagnostics = documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
+            var allDiagnostics = documentDiagnostics.Concat(projectDiagnostics);
 
             if (!_includeSuppressedDiagnostics)
             {

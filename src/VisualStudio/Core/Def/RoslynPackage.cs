@@ -5,13 +5,16 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Design;
-using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Log;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
@@ -64,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private const string DecompilerEulaOptionKey = "ILSpy-234190A6EE66";
         private const byte DecompilerEulaOptionVersion = 1;
 
-        private VisualStudioWorkspace? _workspace;
+        private VisualStudioWorkspaceImpl? _workspace;
         private IComponentModel? _componentModel;
         private RuleSetEventHandler? _ruleSetEventHandler;
         private ColorSchemeApplier? _colorSchemeApplier;
@@ -127,10 +130,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             _componentModel.GetExtensions<IOptionPersister>();
 
-            _workspace = _componentModel.GetService<VisualStudioWorkspace>();
+            _workspace = (VisualStudioWorkspaceImpl)_componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
 
             RoslynTelemetrySetup.Initialize(this, telemetrySession);
+
+            var provider = new VisualStudioDiagnosticAnalyzerProvider(this);
+
+            // fire and forget
+            _ = Task.Run(() => InitializeHostAnalyzerReferences(provider));
 
             InitializeColors();
 
@@ -140,6 +148,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
 
             TrackBulkFileOperations();
+        }
+
+        private void InitializeHostAnalyzerReferences(VisualStudioDiagnosticAnalyzerProvider provider)
+        {
+            try
+            {
+                var packages = provider.GetHostDiagnosticAnalyzerPackages();
+                var loader = provider.GetAnalyzerAssemblyLoader();
+
+                var references = packages.SelectMany(p => p.Assemblies).Distinct(StringComparer.OrdinalIgnoreCase).SelectAsArray(
+                    path => (AnalyzerReference)new AnalyzerFileReference(path, loader));
+
+                LogWorkspaceAnalyzerCount(references.Length);
+
+                _workspace.ApplySolutionChangeToWorkspace(s => s.WithAnalyzerReferences(references));
+            }
+            catch (Exception e) when (FatalError.Report(e))
+            {
+            }
+        }
+
+        private static void LogWorkspaceAnalyzerCount(int analyzerCount)
+        {
+            Logger.Log(FunctionId.DiagnosticAnalyzerService_Analyzers, KeyValueLogMessage.Create(m => m["AnalyzerCount"] = analyzerCount));
         }
 
         private void InitializeColors()

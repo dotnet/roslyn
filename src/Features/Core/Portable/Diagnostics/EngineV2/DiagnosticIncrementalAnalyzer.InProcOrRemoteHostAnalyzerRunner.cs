@@ -30,16 +30,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             private readonly IAsynchronousOperationListener _asyncOperationListener;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
-            private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
             // TODO: this should be removed once we move options down to compiler layer
             private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>> _lastOptionSetPerLanguage;
 
-            public InProcOrRemoteHostAnalyzerRunner(IAsynchronousOperationListener operationListener, DiagnosticAnalyzerInfoCache analyzerInfoCache, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            public InProcOrRemoteHostAnalyzerRunner(IAsynchronousOperationListener operationListener, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
                 _asyncOperationListener = operationListener;
                 _analyzerInfoCache = analyzerInfoCache;
-                _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
                 // currently option is a bit weird since it is not part of snapshot and 
                 // we can't load all options without loading all language specific dlls.

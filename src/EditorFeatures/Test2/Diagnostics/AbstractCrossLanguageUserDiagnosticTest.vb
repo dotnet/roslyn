@@ -123,8 +123,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Dim providerAndFixer = CreateDiagnosticProviderAndFixer(workspace, hostDocument.Project.Language)
             Dim fixer = providerAndFixer.Item2
 
+            Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(providerAndFixer.Item1))
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+
             Dim result = New List(Of Tuple(Of Diagnostic, CodeFixCollection))
-            Dim docAndDiagnostics = Await GetDocumentAndDiagnosticsAsync(workspace, providerAndFixer.Item1)
+            Dim docAndDiagnostics = Await GetDocumentAndDiagnosticsAsync(workspace)
             Dim _document = docAndDiagnostics.Item1
 
             Dim ids = New HashSet(Of String)(fixer.FixableDiagnosticIds)
@@ -145,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Return result
         End Function
 
-        Private Async Function GetDocumentAndDiagnosticsAsync(workspace As TestWorkspace, provider As DiagnosticAnalyzer) As Task(Of Tuple(Of Document, IEnumerable(Of Diagnostic)))
+        Private Async Function GetDocumentAndDiagnosticsAsync(workspace As TestWorkspace) As Task(Of Tuple(Of Document, IEnumerable(Of Diagnostic)))
             Dim hostDocument = GetHostDocument(workspace)
 
             Dim invocationBuffer = hostDocument.GetTextBuffer()
@@ -157,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Dim root = Await document.GetSyntaxRootAsync()
             Dim start = syntaxFacts.GetContainingMemberDeclaration(root, invocationPoint)
 
-            Dim result = Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, start.FullSpan)
+            Dim result = Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, start.FullSpan)
 
             '' currently, we don't test compilation level user diagnostic
             Return Tuple.Create(document, result.Where(Function(d) d.Location.SourceSpan.IntersectsWith(invocationPoint)))
