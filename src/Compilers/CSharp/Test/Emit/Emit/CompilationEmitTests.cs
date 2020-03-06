@@ -545,13 +545,17 @@ public class C
 
         [Fact]
         [WorkItem(38444, "https://github.com/dotnet/roslyn/issues/38444")]
-        public void EmitRefAssembly_InternalAttributeConstructor_DoesntIncludeMethods()
+        public void EmitRefAssembly_InternalAttributeConstructor_DoesntIncludeMethodsOrStaticConstructors()
         {
             CSharpCompilation comp = CreateCompilation(@"
 using System;
 internal class SomeAttribute : Attribute
 {
     internal SomeAttribute()
+    {
+    }
+
+    static SomeAttribute()
     {
     }
 
@@ -575,7 +579,7 @@ public class C
 
                 VerifyMethods(output, "C", new[] { "C..ctor()" });
                 VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
-                VerifyMethods(output, "SomeAttribute", new[] { "SomeAttribute..ctor()", "void SomeAttribute.F()" });
+                VerifyMethods(output, "SomeAttribute", new[] { "SomeAttribute..ctor()", "SomeAttribute..cctor()", "void SomeAttribute.F()" });
                 VerifyMethods(metadataOutput, "SomeAttribute", new[] { "SomeAttribute..ctor()" });
             }
         }
