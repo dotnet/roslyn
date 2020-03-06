@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static readonly IdentifierNameSyntax s_nameOfIdentifier =
             SyntaxFactory.IdentifierName(SyntaxFactory.ParseToken("nameof"));
 
-
         [ImportingConstructor]
         public CSharpSyntaxGenerator()
         {
