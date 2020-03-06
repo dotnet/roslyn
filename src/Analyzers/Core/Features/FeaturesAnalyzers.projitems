@@ -16,13 +16,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeQualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeStyleDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalyzerCategory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCustomTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\AnalyzerHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DeserializationConstructorCheck.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DiagnosticHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IBuiltInAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIdToOptionMappingHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\AbstractRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
