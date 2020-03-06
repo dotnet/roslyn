@@ -1653,7 +1653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(actualMethodTargetedByTheCall, call.Syntax,
                             actualMethodTargetedByTheCall.IsVararg ? (BoundArgListOperator)call.Arguments[call.Arguments.Length - 1] : null);
 
-            EmitCallOrCalliCleanup(call.Syntax, useKind, method);
+            EmitCallCleanup(call.Syntax, useKind, method);
 
             FreeOptTemp(tempOpt);
         }
@@ -3366,8 +3366,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitCalli(BoundFunctionPointerInvocation ptrInvocation, UseKind useKind)
         {
-            FunctionPointerMethodSymbol method = ptrInvocation.FunctionPointer.Signature;
-
             EmitExpression(ptrInvocation.InvokedExpression, used: true);
             LocalDefinition temp = null;
             if (ptrInvocation.Arguments.Length > 0)
@@ -3376,6 +3374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitLocalStore(temp);
             }
 
+            FunctionPointerMethodSymbol method = ptrInvocation.FunctionPointer.Signature;
             EmitArguments(ptrInvocation.Arguments, method.Parameters, ptrInvocation.ArgumentRefKindsOpt);
             var stackBehavior = GetCallStackBehavior(ptrInvocation.FunctionPointer.Signature, ptrInvocation.Arguments);
 
@@ -3387,10 +3386,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.EmitOpCode(ILOpCode.Calli, stackBehavior);
             EmitSignatureToken(ptrInvocation.FunctionPointer, ptrInvocation.Syntax);
-            EmitCallOrCalliCleanup(ptrInvocation.Syntax, useKind, method);
+            EmitCallCleanup(ptrInvocation.Syntax, useKind, method);
         }
 
-        private void EmitCallOrCalliCleanup(SyntaxNode syntax, UseKind useKind, MethodSymbol method)
+        private void EmitCallCleanup(SyntaxNode syntax, UseKind useKind, MethodSymbol method)
         {
             if (!method.ReturnsVoid)
             {
