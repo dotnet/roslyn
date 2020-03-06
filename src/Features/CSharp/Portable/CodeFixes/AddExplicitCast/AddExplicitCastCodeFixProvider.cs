@@ -86,8 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
                 {
                     var convType = potentialConversionTypes[i];
-                    actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToMinimalDisplayString(semanticModel, context.Span.Start)),
-                        c => Task.FromResult(document.WithSyntaxRoot(ApplyFix(root, targetNode, convType)))));
+                    actions.Add(new MyCodeAction(
+                        string.Format(
+                            CSharpFeaturesResources.Convert_type_to_0,
+                            convType.ToMinimalDisplayString(semanticModel, context.Span.Start)),
+                        _ => ApplySingleConversionToDocumentAsync(document, ApplyFix(root, targetNode, convType))));
                 }
 
                 if (potentialConversionTypes.Length > MaximumConversionOptions)
@@ -117,6 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return newRoot;
         }
 
+        private static Task<Document> ApplySingleConversionToDocumentAsync(Document document, SyntaxNode currentRoot)
+            => Task.FromResult(document.WithSyntaxRoot(currentRoot));
+
         /// <summary>
         /// Output the current type information of the target node and the conversion type(s) that the target node is going to be cast by.
         /// Implicit downcast can appear on Variable Declaration, Return Statement, and Function Invocation
@@ -125,10 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// Base b; Derived d = [||]b;       
         /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by is {Derived}
         /// 
-        /// root: The root of the tree of nodes.
-        /// targetNode: The node to be cast.
-        /// targetNodeType: Output the type of "targetNode".
-        /// potentialConversionTypes: Output the potential conversions types that "targetNode" can be cast to
+        /// <param name="diagnosticId"> The ID of the diagnostic.</param>
+        /// <param name="targetNode"> The node to be cast.</param>
+        /// <param name="targetNodeType"> Output the type of "targetNode".</param>
+        /// <param name="potentialConversionTypes"> Output the potential conversions types that "targetNode" can be cast to</param>
         /// <returns>
         /// True, if the target node has at least one potential conversion type, and they are assigned to "potentialConversionTypes"
         /// False, if the target node has no conversion type.
@@ -157,9 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
             }
             else if (diagnosticId == CS1503
-                     && targetNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
-                     && targetArgument.Parent is ArgumentListSyntax argumentList
-                     && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
+                && targetNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
+                && targetArgument.Parent is ArgumentListSyntax argumentList
+                && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
                 // Implicit downcast appears on the argument of invocation node, get all candidate functions and extract potential conversion types 
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
@@ -173,9 +179,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         var correspondingParameter = candidateSymbol.Parameters[paramIndex];
                         var argumentConversionType = correspondingParameter.Type;
 
-                        if (correspondingParameter.IsParams &&
-                            correspondingParameter.Type is IArrayTypeSymbol arrayType &&
-                            !(targetNodeType is IArrayTypeSymbol))
+                        if (correspondingParameter.IsParams
+                            && correspondingParameter.Type is IArrayTypeSymbol arrayType
+                            && !(targetNodeType is IArrayTypeSymbol))
                         {
                             // target argument is matched to the parameter with keyword params
                             argumentConversionType = arrayType.ElementType;
@@ -196,8 +202,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             using var __ = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
             foreach (var targetNodeConversionType in mutablePotentialConversionTypes)
             {
-                var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(targetNodeType, targetNodeConversionType);
-                if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression) && !(commonConversion.IsUserDefined || commonConversion.IsNumeric))
+                var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(
+                    targetNodeType, targetNodeConversionType);
+                if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression)
+                    && !(commonConversion.IsUserDefined || commonConversion.IsNumeric))
                 {
                     continue;
                 }
@@ -231,18 +239,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// *DoSomething(1, [||]b)* because int and string are not ancestor-descendant relationship. Thus,
         /// Derived2 is not a potential conversion type.
         /// 
-        /// arguments: The arguments of invocation expression
-        /// parameters: The parameters of function
-        /// targetArgument: The target argument that contains target node
-        /// targetParamIndex: Output the corresponding parameter index of the target arugment if function returns true
+        /// <param name="arguments"> The arguments of invocation expression</param>
+        /// <param name="parameters"> The parameters of function</param>
+        /// <param name="targetArgument"> The target argument that contains target node</param>
+        /// <param name="targetParamIndex"> Output the corresponding parameter index of the target arugment if function returns true</param>
         /// <returns>
         /// True, if arguments and parameters match perfectly.
         /// False, otherwise.
         /// </returns>
         // TODO: May need an API to replace this function,
         // link: https://github.com/dotnet/roslyn/issues/42149
-        private static bool CanArgumentTypesBeConvertedToParameterTypes(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
-            ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument, CancellationToken cancellationToken, out int targetParamIndex)
+        private static bool CanArgumentTypesBeConvertedToParameterTypes(
+            SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
+            ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument,
+            CancellationToken cancellationToken, out int targetParamIndex)
         {
             targetParamIndex = -1; // return invalid index if it is not a perfect match
 
