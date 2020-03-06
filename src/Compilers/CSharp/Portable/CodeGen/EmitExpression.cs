@@ -3396,15 +3396,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitCallCleanup(SyntaxNode syntax, UseKind useKind, MethodSymbol method)
         {
-            Debug.Assert(!(method is { MethodKind: MethodKind.Constructor }));
             if (!method.ReturnsVoid)
             {
                 EmitPopIfUnused(useKind != UseKind.Unused);
             }
             else if (_ilEmitStyle == ILEmitStyle.Debug)
             {
-                // The only void methods with usable return values are constructors and we don't call
-                // this method on them.
+                // The only void methods with usable return values are constructors and the only
+                // time we see them here, the return should be unused.
                 Debug.Assert(useKind == UseKind.Unused, "Using the return value of a void method.");
                 Debug.Assert(_method.GenerateDebugInfo, "Implied by this.emitSequencePoints");
 
