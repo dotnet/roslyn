@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
     Friend Class VisualBasicFileHeaderCodeFixProvider
         Inherits AbstractFileHeaderCodeFixProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property FileHeaderHelper As AbstractFileHeaderHelper
             Get
                 Return VisualBasicFileHeaderHelper.Instance

@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
     [Shared]
     internal class CSharpFileHeaderCodeFixProvider : AbstractFileHeaderCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpFileHeaderCodeFixProvider()
+        {
+        }
+
         protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
 
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
