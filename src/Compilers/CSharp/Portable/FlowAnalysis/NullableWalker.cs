@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameterHasBadState(parameter, sense, stateWhen))
                     {
                         // Parameter '{name}' may not have a null value when exiting with '{sense}'.
-                        ReportDiagnostic(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
+                        Diagnostics.Add(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
                     }
                 }
             }
@@ -4394,7 +4394,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (notNullWhenTrueMembers.IsEmpty && notNullWhenFalseMembers.IsEmpty)
                 {
                     // TODO2 apply in conditional state too?
-                    applyMemberPostConditions(type, notNullMembers, ref State);
+                    if (IsConditionalState)
+                    {
+                        applyMemberPostConditions(type, notNullMembers, ref StateWhenTrue);
+                        applyMemberPostConditions(type, notNullMembers, ref StateWhenFalse);
+                    }
+                    else
+                    {
+                        applyMemberPostConditions(type, notNullMembers, ref State);
+                    }
                 }
                 else
                 {
