@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
         }
 
-        private static bool NeedsGrouping(
+        public static bool NeedsGrouping(
             UsingDirectiveSyntax using1,
             UsingDirectiveSyntax using2)
         {

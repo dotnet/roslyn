@@ -185,6 +185,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SimpleIntervalTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SimpleIntervalTree`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TextSpanIntervalIntrospector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editing\GenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AnalyzerConfigOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ChildSyntaxListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticSeverityExtensions.cs" />

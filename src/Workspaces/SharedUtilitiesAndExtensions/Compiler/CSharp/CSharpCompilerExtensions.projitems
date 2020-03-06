@@ -76,10 +76,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\FormattingRangeHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TokenComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpTypeStyleHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpTypeStyleHelper.State.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpUseExplicitTypeHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpUseImplicitTypeHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeSyntaxComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\UsingsAndExternAliasesDirectiveComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\UsingsAndExternAliasesOrganizer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" GenerateSource="true" Link="CSharpCompilerExtensionsResources.resx" />
