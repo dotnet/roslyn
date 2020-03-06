@@ -6463,6 +6463,8 @@ $@"public class Library
                 CompileAndVerify(comp, expectedOutput: expectedResult);
             }
 
+            // PROTOTYPE: Should the ERR_CheckedOverflow cases be evaluated at runtime rather
+            // than compile time to allow operations to succeed on 64-bit platforms?
             void constantExpression(string opType, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
             {
                 string source =
