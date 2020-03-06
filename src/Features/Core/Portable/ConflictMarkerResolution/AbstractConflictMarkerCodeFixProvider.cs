@@ -228,7 +228,6 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 context.Diagnostics);
         }
 
-
         private async Task<Document> AddEditsAsync(
             Document document, int startPos, int equalsPos, int endPos,
             Action<SourceText, ArrayBuilder<TextChange>, int, int, int> addEdits,
