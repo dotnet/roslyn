@@ -149,9 +149,8 @@ static class Type
 
             verifyModel(comp, comp.SyntaxTrees[1], comp.SyntaxTrees[0]);
 
-            // PROTOTYPE(SimplePrograms): Uncomment code below once we figure out caching in MemberSemanticModel.EnsureNullabilityAnalysisPerformedIfNecessary
-            //comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Enable), parseOptions: DefaultParseOptions);
-            //(comp, comp.SyntaxTrees[0], comp.SyntaxTrees[1], nullableEnabled: true);
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Enable), parseOptions: DefaultParseOptions);
+            verifyModel(comp, comp.SyntaxTrees[0], comp.SyntaxTrees[1], nullableEnabled: true);
 
             static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, SyntaxTree tree2, bool nullableEnabled = false)
             {

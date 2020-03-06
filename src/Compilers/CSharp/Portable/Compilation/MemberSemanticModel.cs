@@ -1908,19 +1908,13 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
-            // In DEBUG without nullable analysis enabled, we want to use a temp diagnosticbag
-            // that can't produce any observable side effects
-            DiagnosticBag diagnostics = _ignoredDiagnostics;
-
             // If we're in DEBUG mode, always enable the analysis, but throw away the results
+#if !DEBUG
             if (!Compilation.NullableSemanticAnalysisEnabled)
             {
-#if DEBUG
-                diagnostics = new DiagnosticBag();
-#else
                 return;
-#endif
             }
+#endif
 
             // If we have a snapshot manager, then we've already done
             // all the work necessary and we should avoid taking an
@@ -1951,39 +1945,138 @@ done:
 
             Debug.Assert(Root == bindableRoot);
 
-            var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
+            NullableWalker.SnapshotManager snapshotManager;
+            var remappedSymbols = _parentRemappedSymbolsOpt;
+            SimpleProgramBodySemanticModelMergedBoundNodeCache mergedBoundNodeCache = GetMergedBoundNodeCache();
+            BoundNode boundRoot;
+            Binder binder;
 
-            // PROTOTYPE(SimplePrograms): Figure out the caching needed here. 
-            var boundRoot = Bind(binder, bindableRoot, diagnostics);
-            if (IsSpeculativeSemanticModel)
+            Debug.Assert(mergedBoundNodeCache is null || (remappedSymbols is null && _parentSnapshotManagerOpt is null && !IsSpeculativeSemanticModel));
+
+            if (mergedBoundNodeCache is object
+#if DEBUG
+                // Don't actually cache the results if the nullable analysis is not enabled in debug mode.
+                && Compilation.NullableSemanticAnalysisEnabled
+#endif
+                )
             {
-                // Not all speculative models are created with existing snapshots. Attributes,
-                // TypeSyntaxes, and MethodBodies do not depend on existing state in a member,
-                // and so the SnapshotManager can be null in these cases.
-                if (_parentSnapshotManagerOpt is null)
-                {
-                    rewrite();
-                    return;
-                }
-
-                var remappedSymbols = _parentRemappedSymbolsOpt;
-                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _parentSnapshotManagerOpt, out var newSnapshots, ref remappedSymbols);
-                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, newSnapshots, remappedSymbols);
+                getOrAddToMergedBoundNodeCache();
             }
             else
             {
-                rewrite();
+                bind(bindableRoot, out binder, out boundRoot);
+
+                if (IsSpeculativeSemanticModel)
+                {
+                    // Not all speculative models are created with existing snapshots. Attributes,
+                    // TypeSyntaxes, and MethodBodies do not depend on existing state in a member,
+                    // and so the SnapshotManager can be null in these cases.
+                    if (_parentSnapshotManagerOpt is null)
+                    {
+                        rewriteAndCache();
+                        return;
+                    }
+
+                    boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _parentSnapshotManagerOpt, out var newSnapshots, ref remappedSymbols);
+                    GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, newSnapshots, remappedSymbols);
+                }
+                else
+                {
+                    rewriteAndCache();
+                }
             }
 
-            void rewrite()
+            void bind(CSharpSyntaxNode bindableRoot, out Binder binder, out BoundNode boundRoot)
             {
-                var remappedSymbols = _parentRemappedSymbolsOpt;
-                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots: true, out var snapshotManager, ref remappedSymbols);
+                binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
+                boundRoot = Bind(binder, bindableRoot, getDiagnosticBag());
+            }
+
+            void rewriteAndCache()
+            {
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, getDiagnosticBag(), takeSnapshots: true, out snapshotManager, ref remappedSymbols);
+                cache(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
+            }
+
+            void cache(CSharpSyntaxNode bindableRoot, BoundNode boundRoot, NullableWalker.SnapshotManager snapshotManager, ImmutableDictionary<Symbol, Symbol> remappedSymbols)
+            {
 #if DEBUG
                 // Don't actually cache the results if the nullable analysis is not enabled in debug mode.
                 if (!Compilation.NullableSemanticAnalysisEnabled) return;
 #endif
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
+            }
+
+            DiagnosticBag getDiagnosticBag()
+            {
+                // In DEBUG without nullable analysis enabled, we want to use a temp diagnosticbag
+                // that can't produce any observable side effects
+#if DEBUG
+                if (!Compilation.NullableSemanticAnalysisEnabled)
+                {
+                    return new DiagnosticBag();
+                }
+#endif
+                return _ignoredDiagnostics;
+            }
+
+            void getOrAddToMergedBoundNodeCache()
+            {
+                lock (mergedBoundNodeCache)
+                {
+                    WeakReference<NullableWalker.SnapshotManager> weakSnapshotManager;
+                    WeakReference<ImmutableDictionary<Symbol, Symbol>> weakRemappedSymbols;
+
+                    weakRemappedSymbols = Volatile.Read(ref mergedBoundNodeCache.WeakRemappedSymbols);
+                    weakSnapshotManager = Volatile.Read(ref mergedBoundNodeCache.WeakSnapshotManager);
+
+                    if ((remappedSymbols = weakRemappedSymbols?.GetTarget()) is object &&
+                        (snapshotManager = weakSnapshotManager?.GetTarget()) is object)
+                    {
+                        BoundBlock block;
+                        ref WeakReference<BoundNode> refToWeakReference = ref TryGetNodeFromSimpleProgramCache(mergedBoundNodeCache, Root, out block);
+
+                        if (block is object)
+                        {
+                            // All three parts are alive, use them
+                            boundRoot = block;
+                            cache(Root, block, snapshotManager, remappedSymbols);
+                            return;
+                        }
+                        else
+                        {
+                            // See if we cached node for some other unit
+                            foreach (var unit in ((SynthesizedSimpleProgramEntryPointSymbol)MemberSymbol).GetUnits())
+                            {
+                                if (unit == Root)
+                                {
+                                    continue;
+                                }
+
+                                if (mergedBoundNodeCache.TryGetValue(unit, out boundRoot))
+                                {
+                                    block = (BoundBlock)boundRoot;
+                                    block = new BoundBlock(Root, block.Locals, block.LocalFunctions, block.Statements, block.HasErrors);
+                                    refToWeakReference = new WeakReference<BoundNode>(block);
+
+                                    cache(Root, block, snapshotManager, remappedSymbols);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+
+                    // Cache is obsolete in one way or another
+                    mergedBoundNodeCache.GuardedClear();
+
+                    bind(bindableRoot, out binder, out boundRoot);
+                    rewriteAndCache();
+
+                    mergedBoundNodeCache.WeakRemappedSymbols = new WeakReference<ImmutableDictionary<Symbol, Symbol>>(remappedSymbols);
+                    mergedBoundNodeCache.WeakSnapshotManager = new WeakReference<NullableWalker.SnapshotManager>(snapshotManager);
+                    mergedBoundNodeCache.AddOrUpdate(Root, boundRoot);
+                    return;
+                }
             }
         }
 
@@ -2279,6 +2372,28 @@ foundParent:;
             }
         }
 
+        private SimpleProgramBodySemanticModelMergedBoundNodeCache GetMergedBoundNodeCache()
+        {
+            return (this as MethodBodySemanticModel)?.MergedBoundNodeCache;
+        }
+
+        private static unsafe ref WeakReference<BoundNode> TryGetNodeFromSimpleProgramCache<TBoundNode>(SimpleProgramBodySemanticModelMergedBoundNodeCache mergedBoundNodeCache, SyntaxNode node, out TBoundNode boundNode) where TBoundNode : BoundNode
+        {
+            ref WeakReference<BoundNode> refToWeakReference = ref mergedBoundNodeCache.GetValue(node);
+            WeakReference<BoundNode> weakReference = refToWeakReference;
+            BoundNode cached;
+            if (weakReference is object && weakReference.TryGetTarget(out cached))
+            {
+                boundNode = (TBoundNode)cached;
+            }
+            else
+            {
+                boundNode = null;
+            }
+
+            return ref refToWeakReference;
+        }
+
         /// <summary>
         /// The incremental binder is used when binding statements. Whenever a statement
         /// is bound, it checks the bound node cache to see if that statement was bound, 
@@ -2369,30 +2484,30 @@ foundParent:;
             /// <param name="resultRefIsValid">Indicates whether returned reference represents a valid reference into the cache, i.e. can be used to cache new bound node in the cache.</param>
             private unsafe ref WeakReference<BoundNode> TryGetNodeFromSimpleProgramCache<TBoundNode>(SyntaxNode node, out TBoundNode boundNode, out bool resultRefIsValid) where TBoundNode : BoundNode
             {
-                boundNode = null;
-
                 SimpleProgramBodySemanticModelMergedBoundNodeCache mergedBoundNodeCache = GetMergedBoundNodeCache();
                 if (mergedBoundNodeCache is null)
                 {
                     resultRefIsValid = false;
+                    boundNode = null;
                     return ref System.Runtime.CompilerServices.Unsafe.AsRef<WeakReference<BoundNode>>(null);
                 }
 
-                ref WeakReference<BoundNode> refToWeakReference = ref mergedBoundNodeCache.GetValue(node);
-                WeakReference<BoundNode> weakReference = refToWeakReference;
-                BoundNode cached;
-                if (weakReference is object && weakReference.TryGetTarget(out cached))
-                {
-                    boundNode = (TBoundNode)cached;
-                }
-
                 resultRefIsValid = true;
-                return ref refToWeakReference;
+                return ref MemberSemanticModel.TryGetNodeFromSimpleProgramCache(mergedBoundNodeCache, node, out boundNode);
             }
 
             private SimpleProgramBodySemanticModelMergedBoundNodeCache GetMergedBoundNodeCache()
             {
-                return (_semanticModel as MethodBodySemanticModel)?.MergedBoundNodeCache;
+                var cache = _semanticModel.GetMergedBoundNodeCache();
+
+                // When nullable analysis is enabled, we only chache nullable rewritten root nodes
+                // the cache shouldn't be used for the purpose of the initial binding.
+                if (cache is null || _semanticModel.Compilation.NullableSemanticAnalysisEnabled)
+                {
+                    return null;
+                }
+
+                return cache;
             }
 
             private static TBoundNode TryGetOrSetNodeInSimpleProgramCache<TBoundNode>(ref WeakReference<BoundNode> refToWeakReference, bool refToWeakReferenceIsValid, TBoundNode value) where TBoundNode : BoundNode
@@ -2551,11 +2666,24 @@ foundParent:;
             /// </summary>
             public readonly WeakReference<SimpleProgramBinder> WeakBodyBinder;
 
-            private readonly ConditionalWeakTable<SyntaxNode, WeakReferenceWrapper> _nodeMap = new ConditionalWeakTable<SyntaxNode, WeakReferenceWrapper>();
+            private ConditionalWeakTable<SyntaxNode, WeakReferenceWrapper> _nodeMap = new ConditionalWeakTable<SyntaxNode, WeakReferenceWrapper>();
+
+            public WeakReference<NullableWalker.SnapshotManager>? WeakSnapshotManager;
+            public WeakReference<ImmutableDictionary<Symbol, Symbol>>? WeakRemappedSymbols;
 
             public SimpleProgramBodySemanticModelMergedBoundNodeCache(SimpleProgramBinder binder)
             {
                 WeakBodyBinder = new WeakReference<SimpleProgramBinder>(binder);
+            }
+
+            /// <summary>
+            /// This method should be used only under lock
+            /// </summary>
+            public void GuardedClear()
+            {
+                WeakSnapshotManager = null;
+                WeakRemappedSymbols = null;
+                _nodeMap = new ConditionalWeakTable<SyntaxNode, WeakReferenceWrapper>();
             }
 
             /// <summary>
@@ -2579,6 +2707,11 @@ foundParent:;
 
                 bound = null;
                 return false;
+            }
+
+            public void AddOrUpdate(SyntaxNode key, BoundNode bound)
+            {
+                GetValue(key) = new WeakReference<BoundNode>(bound);
             }
         }
     }
