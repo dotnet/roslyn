@@ -3368,6 +3368,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EmitExpression(ptrInvocation.InvokedExpression, used: true);
             LocalDefinition temp = null;
+            // The function pointer token must be the last thing on the stack before the
+            // calli invocation, but we need to preserve left-to-right semantics of the
+            // actual code. If there are arguments, therefore, we evaluate the code that
+            // produces the function pointer token, store it in a local, evaluate the
+            // arguments, then load that token again.
             if (ptrInvocation.Arguments.Length > 0)
             {
                 temp = AllocateTemp(ptrInvocation.InvokedExpression.Type, ptrInvocation.Syntax);
@@ -3391,14 +3396,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitCallCleanup(SyntaxNode syntax, UseKind useKind, MethodSymbol method)
         {
+            Debug.Assert(!(method is { MethodKind: MethodKind.Constructor }));
             if (!method.ReturnsVoid)
             {
                 EmitPopIfUnused(useKind != UseKind.Unused);
             }
             else if (_ilEmitStyle == ILEmitStyle.Debug)
             {
-                // The only void methods with usable return values are constructors and we represent those
-                // as BoundObjectCreationExpressions, not BoundCalls.
+                // The only void methods with usable return values are constructors and we don't call
+                // this method on them.
                 Debug.Assert(useKind == UseKind.Unused, "Using the return value of a void method.");
                 Debug.Assert(_method.GenerateDebugInfo, "Implied by this.emitSequencePoints");
 
