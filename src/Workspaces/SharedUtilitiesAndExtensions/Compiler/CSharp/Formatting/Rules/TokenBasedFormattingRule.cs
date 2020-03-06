@@ -206,8 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // if the user is separating using-groups, and we're between two usings, and these
             // usings *should* be separated, then do so (if the usings were already properly
             // sorted).
-            if (options.TryGetEditorConfigOptionOrDefault(GenerationOptions.SeparateImportDirectiveGroups, out bool separateGroups) &&
-                separateGroups &&
+            var separateGroups = options.TryGetEditorConfigOptionOrDefault(GenerationOptions.SeparateImportDirectiveGroups, out bool def) && def;
+            if (separateGroups &&
                 currentToken.Parent is UsingDirectiveSyntax currentUsing &&
                 UsingsAndExternAliasesOrganizer.NeedsGrouping(previousUsing, currentUsing))
             {
