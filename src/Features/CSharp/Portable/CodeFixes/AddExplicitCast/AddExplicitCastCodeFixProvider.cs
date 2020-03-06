@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 var nameSyntax = arguments[i].NameColon?.Name;
                 if (nameSyntax != null)
                 {
-                    var name = nameSyntax.ToString();
+                    var name = nameSyntax.Identifier.ValueText;
                     var found = false;
                     for (var j = 0; j < parameters.Length; j++)
                     {
