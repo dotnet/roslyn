@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private Task<RenameLocations> _underlyingFindRenameLocationsTask;
 
+            private readonly string _triggerTextSpan;
+
             /// <summary>
             /// Whether or not we shortened the trigger span (say because we were renaming an attribute,
             /// and we didn't select the 'Attribute' portion of the name).
@@ -64,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 SymbolAndProjectId renameSymbolAndProjectId,
                 bool forceRenameOverloads,
                 ImmutableArray<DocumentSpan> definitionLocations,
+                string triggerTextSpan,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
@@ -79,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
 
                 this.DefinitionLocations = definitionLocations;
+                _triggerTextSpan = triggerTextSpan;
             }
 
             private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
@@ -94,9 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // of the attribute.  If it does, then we can rename just the attribute prefix (otherwise
                 // we need to rename the entire attribute).
                 var nameWithoutAttribute = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
-                var triggerText = GetSpanText(document, triggerSpan, cancellationToken);
 
-                return triggerText.StartsWith(triggerText); // TODO: Always true? What was it supposed to do?
+                return _triggerTextSpan.StartsWith(_triggerTextSpan); // TODO: Always true? What was it supposed to do?
             }
 
             /// <summary>
@@ -122,8 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     searchName = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
                 }
 
-                var spanText = GetSpanText(location.Document, location.TextSpan, cancellationToken);
-                var index = spanText.LastIndexOf(searchName, StringComparison.Ordinal);
+                var index = _triggerTextSpan.LastIndexOf(searchName, StringComparison.Ordinal);
 
                 if (index < 0)
                 {
@@ -138,14 +140,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
             {
-                var spanText = GetSpanText(location.Document, location.TextSpan, cancellationToken);
-                var position = spanText.LastIndexOf(replacementText, StringComparison.Ordinal);
+                var position = _triggerTextSpan.LastIndexOf(replacementText, StringComparison.Ordinal);
 
                 if (_isRenamingAttributePrefix)
                 {
                     // We're only renaming the attribute prefix part.  We want to adjust the span of 
                     // the reference we've found to only update the prefix portion.
-                    var index = spanText.LastIndexOf(replacementText + AttributeSuffix, StringComparison.Ordinal);
+                    var index = _triggerTextSpan.LastIndexOf(replacementText + AttributeSuffix, StringComparison.Ordinal);
                     position = index >= 0 ? index : position;
                 }
 
@@ -162,13 +163,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private bool HasAttributeSuffix(string value)
                 => value.TryGetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive, result: out var _);
-
-            private static string GetSpanText(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
-            {
-                var sourceText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                var triggerText = sourceText.ToString(triggerSpan);
-                return triggerText;
-            }
 
             internal bool IsRenamingAttributeTypeWithAttributeSuffix()
             {
