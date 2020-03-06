@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
@@ -119,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 {
                     editor.ReplaceNode(
                         block,
-                        (currentBlock, _) =>
-                            currentBlock.WithAdditionalAnnotations(Formatter.Annotation));
+                        (currentBlock, _) => currentBlock.WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }
             else
