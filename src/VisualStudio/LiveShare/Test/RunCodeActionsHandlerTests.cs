@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
     }
 }";
             var (solution, ranges) = CreateTestSolution(markup);
-            var codeActionLocation = ranges["caret"].First
+            var codeActionLocation = ranges["caret"].First();
 
             var results = await TestHandleAsync<LSP.ExecuteCommandParams, object>(solution, CreateExecuteCommandParams(codeActionLocation, CSharpAnalyzersResources.Use_implicit_type), Methods.WorkspaceExecuteCommandName);
             Assert.True((bool)results);
