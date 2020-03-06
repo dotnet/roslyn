@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="A_source_file_contains_a_header_that_does_not_match_the_required_text">
+        <source>A source file contains a header that does not match the required text</source>
+        <target state="new">A source file contains a header that does not match the required text</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_source_file_is_missing_a_required_header">
+        <source>A source file is missing a required header.</source>
+        <target state="new">A source file is missing a required header.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">添加成员名称</target>
@@ -560,6 +570,16 @@
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">目标类型匹配</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_file_header_does_not_match_the_required_text">
+        <source>The file header does not match the required text</source>
+        <target state="new">The file header does not match the required text</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_file_header_is_missing_or_not_located_at_the_top_of_the_file">
+        <source>The file header is missing or not located at the top of the file</source>
+        <target state="new">The file header is missing or not located at the top of the file</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -1586,11 +1606,6 @@ Do you want to continue?</source>
 '{1}'.</source>
         <target state="translated">分析器“{0}”引发了以下异常:
 “{1}”。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">删除不必要的转换</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_Names">

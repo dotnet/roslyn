@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
@@ -23,8 +24,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             protected override string CodeActionTitle
                 => FeaturesResources.Resolve_conflict_markers;
 
-            protected override Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
-                => _codeFixProvider.FixAllAsync(document, diagnostics, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken);
+            protected override Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+                => _codeFixProvider.FixAllAsync(document, diagnostics, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).AsNullable();
         }
     }
 }

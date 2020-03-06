@@ -16,7 +16,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionDiagnosticAnalyzer.Analyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\CSharpRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseImplicitTypeDiagnosticAnalyzer.cs" />
   </ItemGroup>
 </Project>

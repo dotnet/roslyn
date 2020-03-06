@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
                 }
                 else
                 {
-                    Contract.Fail($"Unable to find asset for {checksum}");
+                    throw ExceptionUtilities.UnexpectedValue(checksum);
                 }
             }
 

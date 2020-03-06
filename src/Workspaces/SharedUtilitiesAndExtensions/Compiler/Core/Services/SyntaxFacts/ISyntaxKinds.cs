@@ -21,6 +21,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int EndOfLineTrivia { get; }
         int SkippedTokensTrivia { get; }
         int WhitespaceTrivia { get; }
+        int SingleLineCommentTrivia { get; }
+
+        /// <summary>
+        /// Gets the syntax kind for a multi-line comment.
+        /// </summary>
+        /// <value>
+        /// The raw syntax kind for a multi-line comment; otherwise, <see langword="null"/> if the language does not
+        /// support multi-line comments.
+        /// </value>
+        int? MultiLineCommentTrivia { get; }
 
         #endregion
 

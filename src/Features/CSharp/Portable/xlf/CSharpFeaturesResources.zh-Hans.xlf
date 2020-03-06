@@ -667,26 +667,6 @@
         <target state="translated">属性</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_explicit_type_instead_of_var">
-        <source>Use explicit type instead of 'var'</source>
-        <target state="translated">用显式类型代替 "var"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicit_type">
-        <source>Use explicit type</source>
-        <target state="translated">使用显式类型</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="use_var_instead_of_explicit_type">
-        <source>use 'var' instead of explicit type</source>
-        <target state="translated">用 "var" 代替显式类型</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_implicit_type">
-        <source>Use implicit type</source>
-        <target state="translated">使用隐式类型</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
         <source>Autoselect disabled due to namespace declaration.</source>
         <target state="translated">自动选择由于命名空间声明而被禁用。</target>

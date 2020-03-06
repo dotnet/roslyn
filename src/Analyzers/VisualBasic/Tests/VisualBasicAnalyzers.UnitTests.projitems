@@ -9,6 +9,8 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\RemoveUnusedMembersTests.vb" />

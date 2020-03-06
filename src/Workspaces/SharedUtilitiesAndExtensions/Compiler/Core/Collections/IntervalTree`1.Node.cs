@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 }
                 else
                 {
-                    Contract.Fail("We have no MaxEndNode? Huh?");
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 

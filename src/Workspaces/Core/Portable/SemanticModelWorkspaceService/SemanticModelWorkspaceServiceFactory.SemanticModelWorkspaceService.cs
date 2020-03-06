@@ -316,8 +316,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                         break;
                     default:
-                        Contract.Fail("Unknown event");
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
                 }
             }
 

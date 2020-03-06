@@ -4,12 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
@@ -18,25 +13,25 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly int _index;
         private readonly SyntaxNode _node;
-        private readonly OptionSet _optionSet;
+        private readonly AnalyzerConfigOptions _options;
         private readonly List<AlignTokensOperation> _list;
 
         public NextAlignTokensOperationAction(
             ImmutableArray<AbstractFormattingRule> formattingRules,
             int index,
             SyntaxNode node,
-            OptionSet optionSet,
+            AnalyzerConfigOptions options,
             List<AlignTokensOperation> list)
         {
             _formattingRules = formattingRules;
             _index = index;
             _node = node;
-            _optionSet = optionSet;
+            _options = options;
             _list = list;
         }
 
         private NextAlignTokensOperationAction NextAction
-            => new NextAlignTokensOperationAction(_formattingRules, _index + 1, _node, _optionSet, _list);
+            => new NextAlignTokensOperationAction(_formattingRules, _index + 1, _node, _options, _list);
 
         public void Invoke()
         {
@@ -48,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             else
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                _formattingRules[_index].AddAlignTokensOperations(_list, _node, _optionSet, NextAction);
+                _formattingRules[_index].AddAlignTokensOperations(_list, _node, _options, NextAction);
                 return;
             }
         }

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -95,15 +96,18 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the editorconfig string representation for this storage location.
         /// </summary>
-        public string GetEditorConfigString(T value, OptionSet optionSet)
+        public string GetEditorConfigStringValue(T value, OptionSet optionSet)
         {
             var editorConfigStringForValue = _getEditorConfigStringForValue(value, optionSet);
-            Debug.Assert(!string.IsNullOrEmpty(editorConfigStringForValue));
+            RoslynDebug.Assert(!RoslynString.IsNullOrEmpty(editorConfigStringForValue));
             Debug.Assert(editorConfigStringForValue.All(ch => !(char.IsWhiteSpace(ch) || char.IsUpper(ch))));
-            return $"{KeyName} = {editorConfigStringForValue}";
+            return editorConfigStringForValue;
         }
 
         string IEditorConfigStorageLocation2.GetEditorConfigString(object? value, OptionSet optionSet)
-            => GetEditorConfigString((T)value!, optionSet);
+            => $"{KeyName} = {((IEditorConfigStorageLocation2)this).GetEditorConfigStringValue(value, optionSet)}";
+
+        string IEditorConfigStorageLocation2.GetEditorConfigStringValue(object? value, OptionSet optionSet)
+            => GetEditorConfigStringValue((T)value!, optionSet);
     }
 }
