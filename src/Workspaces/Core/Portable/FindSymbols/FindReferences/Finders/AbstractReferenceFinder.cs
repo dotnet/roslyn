@@ -825,12 +825,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
-            if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
+            if (options.Cascade)
             {
-                return DetermineCascadedSymbolsAsync(
-                    symbolAndProjectId.WithSymbol(typedSymbol),
-                    solution, projects, options, cancellationToken);
+                var symbol = symbolAndProjectId.Symbol;
+                if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
+                {
+                    return DetermineCascadedSymbolsAsync(
+                        symbolAndProjectId.WithSymbol(typedSymbol),
+                        solution, projects, options, cancellationToken);
+                }
             }
 
             return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
