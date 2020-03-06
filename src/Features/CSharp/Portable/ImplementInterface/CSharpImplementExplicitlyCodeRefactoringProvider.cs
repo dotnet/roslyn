@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -49,11 +48,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         {
             var solution = project.Solution;
 
+            // We don't need to cascade in this search, we're only explicitly looking for direct
+            // calls to our instance member (and not anyone else already calling through the
+            // interface already).
+            //
+            // This can save a lot of extra time spent finding callers, especially for methods with
+            // high fan-out (like IDisposable.Dispose()).
+            var findRefsOptions = FindReferencesSearchOptions.Default.WithCascade(false);
             var references = await SymbolFinder.FindReferencesAsync(
                 new SymbolAndProjectId(implMember, project.Id),
-                solution, cancellationToken).ConfigureAwait(false);
+                solution, findRefsOptions, cancellationToken).ConfigureAwait(false);
 
-            var implReferences = references.FirstOrDefault(r => implMember.Equals(r.Definition));
+            var implReferences = references.FirstOrDefault();
             if (implReferences == null)
                 return;
 
