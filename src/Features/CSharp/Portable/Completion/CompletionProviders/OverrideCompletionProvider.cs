@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal partial class OverrideCompletionProvider : AbstractOverrideCompletionProvider
     {
+        [ImportingConstructor]
         public OverrideCompletionProvider()
         {
         }

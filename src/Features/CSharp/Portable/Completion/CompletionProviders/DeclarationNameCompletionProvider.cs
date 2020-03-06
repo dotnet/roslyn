@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal partial class DeclarationNameCompletionProvider : CommonCompletionProvider
     {
+        [ImportingConstructor]
+        public DeclarationNameCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);

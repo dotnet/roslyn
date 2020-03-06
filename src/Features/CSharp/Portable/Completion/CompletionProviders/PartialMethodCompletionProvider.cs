@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
     {
+        [ImportingConstructor]
         public PartialMethodCompletionProvider()
         {
         }

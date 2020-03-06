@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class CompletionListTagCompletionProvider
         Inherits EnumCompletionProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetPreselectedSymbolsAsync(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             If context.SyntaxTree.IsObjectCreationTypeContext(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInNonUserCode(position, cancellationToken) Then

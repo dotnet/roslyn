@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class TypeImportCompletionProvider : AbstractTypeImportCompletionProvider
     {
+        [ImportingConstructor]
+        public TypeImportCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 

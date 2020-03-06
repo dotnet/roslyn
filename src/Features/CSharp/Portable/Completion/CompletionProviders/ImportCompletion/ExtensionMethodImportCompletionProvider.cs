@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class ExtensionMethodImportCompletionProvider : AbstractExtensionMethodImportCompletionProvider
     {
+        [ImportingConstructor]
+        public ExtensionMethodImportCompletionProvider()
+        {
+        }
+
         protected override string GenericSuffix => "<>";
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)

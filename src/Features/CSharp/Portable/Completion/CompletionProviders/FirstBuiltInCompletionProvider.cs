@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class FirstBuiltInCompletionProvider : CompletionProvider
     {
+        [ImportingConstructor]
+        public FirstBuiltInCompletionProvider()
+        {
+        }
+
         public override Task ProvideCompletionsAsync(CompletionContext context)
             => Task.CompletedTask;
     }

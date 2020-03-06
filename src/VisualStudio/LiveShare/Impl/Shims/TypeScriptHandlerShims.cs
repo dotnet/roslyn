@@ -28,6 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCompletionName)]
     internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<object, object?, Solution>
     {
+        [ImportingConstructor]
+        public TypeScriptCompletionHandlerShim()
+        {
+        }
+
         public async Task<object?> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             // The VS LSP client supports streaming using IProgress<T> on various requests.
@@ -46,6 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCompletionResolveName)]
     internal class TypeScriptCompletionResolverHandlerShim : CompletionResolveHandler, ILspRequestHandler<CompletionItem, CompletionItem, Solution>
     {
+        [ImportingConstructor]
+        public TypeScriptCompletionResolverHandlerShim()
+        {
+        }
+
         public Task<CompletionItem> HandleAsync(CompletionItem param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
             => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), cancellationToken);
     }
@@ -53,6 +63,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentDocumentHighlightName)]
     internal class TypeScriptDocumentHighlightHandlerShim : DocumentHighlightsHandler, ILspRequestHandler<TextDocumentPositionParams, DocumentHighlight[], Solution>
     {
+        [ImportingConstructor]
+        public TypeScriptDocumentHighlightHandlerShim()
+        {
+        }
+
         public Task<DocumentHighlight[]> HandleAsync(TextDocumentPositionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
             => base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), cancellationToken);
     }
@@ -60,6 +75,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentDocumentSymbolName)]
     internal class TypeScriptDocumentSymbolsHandlerShim : DocumentSymbolsHandler, ILspRequestHandler<DocumentSymbolParams, SymbolInformation[], Solution>
     {
+        [ImportingConstructor]
+        public TypeScriptDocumentSymbolsHandlerShim()
+        {
+        }
+
         public async Task<SymbolInformation[]> HandleAsync(DocumentSymbolParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var clientCapabilities = requestContext.GetClientCapabilities();
@@ -181,6 +201,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.InitializeName)]
     internal class TypeScriptInitializeHandlerShim : InitializeHandler, ILspRequestHandler<InitializeParams, InitializeResult, Solution>
     {
+        [ImportingConstructor]
+        public TypeScriptInitializeHandlerShim()
+        {
+        }
+
         public async Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var initializeResult = await base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), cancellationToken).ConfigureAwait(false);
@@ -204,6 +229,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.WorkspaceSymbolName)]
     internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<object, SymbolInformation[], Solution>
     {
+        [ImportingConstructor]
+        public TypeScriptWorkspaceSymbolsHandlerShim()
+        {
+        }
+
         public Task<SymbolInformation[]> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             // The VS LSP client supports streaming using IProgress<T> on various requests.

@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
     [Shared]
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
+        [ImportingConstructor]
+        public CSharpSuggestionModeCompletionProvider()
+        {
+        }
+
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
             Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
         {

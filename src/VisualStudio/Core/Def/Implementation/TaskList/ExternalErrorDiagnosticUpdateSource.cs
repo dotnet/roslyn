@@ -141,8 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     break;
                 default:
-                    Contract.Fail("Unknown workspace events");
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(e.Kind);
             }
         }
 

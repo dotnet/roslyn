@@ -171,6 +171,11 @@ class C
             internal const string PreProcessorSnippetTitle = "#PreProcessorSnippetTitle";
             internal const string PreProcessorSnippetPath = nameof(PreProcessorSnippetPath);
 
+            [ImportingConstructor]
+            public MockSnippetInfoService()
+            {
+            }
+
             public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
             {
                 return new List<SnippetInfo>

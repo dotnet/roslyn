@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal partial class ExplicitInterfaceTypeCompletionProvider : AbstractSymbolCompletionProvider
     {
+        [ImportingConstructor]
+        public ExplicitInterfaceTypeCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
 

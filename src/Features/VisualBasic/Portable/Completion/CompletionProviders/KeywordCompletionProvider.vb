@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class KeywordCompletionProvider
         Inherits AbstractKeywordCompletionProvider(Of VisualBasicSyntaxContext)
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(GetKeywordRecommenders())
         End Sub

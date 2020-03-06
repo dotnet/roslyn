@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly SymbolDisplayFormat _symbolFormatWithoutGenerics =
             _symbolFormatWithGenerics.WithGenericsOptions(SymbolDisplayGenericsOptions.None);
 
+        [ImportingConstructor]
+        public PartialTypeCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             var ch = text[characterPosition];

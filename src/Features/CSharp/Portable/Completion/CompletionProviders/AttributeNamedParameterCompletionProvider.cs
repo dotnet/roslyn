@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules _spaceItemFilterRule = CompletionItemRules.Default.WithFilterCharacterRule(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' '));
 
+        [ImportingConstructor]
+        public AttributeNamedParameterCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);

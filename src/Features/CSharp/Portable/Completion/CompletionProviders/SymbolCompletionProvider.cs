@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
+        [ImportingConstructor]
+        public SymbolCompletionProvider()
+        {
+        }
+
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(

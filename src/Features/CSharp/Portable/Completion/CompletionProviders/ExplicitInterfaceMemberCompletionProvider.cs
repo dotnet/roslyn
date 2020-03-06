@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        [ImportingConstructor]
+        public ExplicitInterfaceMemberCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return text[characterPosition] == '.';

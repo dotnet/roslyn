@@ -15,5 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal class EmbeddedLanguageCompletionProvider : AbstractEmbeddedLanguageCompletionProvider
     {
+        [ImportingConstructor]
+        public EmbeddedLanguageCompletionProvider()
+        {
+        }
     }
 }

@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?>
     {
+        [ImportingConstructor]
+        public CompletionHandler()
+        {
+        }
+
         public async Task<LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {

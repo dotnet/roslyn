@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
-                FeaturesResources.Remove_Unnecessary_Cast,
+                AnalyzersResources.Remove_Unnecessary_Cast,
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
             return Task.CompletedTask;
@@ -51,11 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var castNodes = diagnostics.SelectAsArray(
-                d => (CastExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
+                d => (ExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, castNodes,
-                (semanticModel, castExpression) => castExpression.IsUnnecessaryCast(semanticModel, cancellationToken),
+                (semanticModel, castExpression) => CastSimplifier.IsUnnecessaryCast(castExpression, semanticModel, cancellationToken),
                 (_, currentRoot, castExpression) =>
                 {
                     var oldParent = castExpression.WalkUpParentheses();
@@ -84,13 +85,18 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
                 return castExpression.Uncast().WithAdditionalAnnotations(Formatter.Annotation)
                                      .Parenthesize();
             }
+            else if (old is BinaryExpressionSyntax binaryExpression)
+            {
+                return binaryExpression.Left.WithTrailingTrivia(binaryExpression.GetTrailingTrivia())
+                                       .WithAdditionalAnnotations(Simplifier.Annotation);
+            }
             else
             {
                 throw ExceptionUtilities.UnexpectedValue(old);
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
