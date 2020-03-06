@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly string _defaultNamingPreferencesString = $@"
 <NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">
   <SymbolSpecifications>
-    <SymbolSpecification ID=""5c545a62-b14d-460a-88d8-e936c0a39316"" Name=""{WorkspacesResources.Class}"">
+    <SymbolSpecification ID=""5c545a62-b14d-460a-88d8-e936c0a39316"" Name=""{CompilerExtensionsResources.Class}"">
       <ApplicableSymbolKindList>
         <TypeKind>Class</TypeKind>
       </ApplicableSymbolKindList>
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""23d856b4-5089-4405-83ce-749aada99153"" Name=""{WorkspacesResources.Interface}"">
+    <SymbolSpecification ID=""23d856b4-5089-4405-83ce-749aada99153"" Name=""{CompilerExtensionsResources.Interface}"">
       <ApplicableSymbolKindList>
         <TypeKind>Interface</TypeKind>
       </ApplicableSymbolKindList>
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""d1796e78-ff66-463f-8576-eb46416060c0"" Name=""{WorkspacesResources.Struct}"">
+    <SymbolSpecification ID=""d1796e78-ff66-463f-8576-eb46416060c0"" Name=""{CompilerExtensionsResources.Struct}"">
       <ApplicableSymbolKindList>
         <TypeKind>Struct</TypeKind>
       </ApplicableSymbolKindList>
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""d8af8dc6-1ade-441d-9947-8946922e198a"" Name=""{WorkspacesResources.Enum}"">
+    <SymbolSpecification ID=""d8af8dc6-1ade-441d-9947-8946922e198a"" Name=""{CompilerExtensionsResources.Enum}"">
       <ApplicableSymbolKindList>
         <TypeKind>Enum</TypeKind>
       </ApplicableSymbolKindList>
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""408a3347-b908-4b54-a954-1355e64c1de3"" Name=""{WorkspacesResources.Delegate}"">
+    <SymbolSpecification ID=""408a3347-b908-4b54-a954-1355e64c1de3"" Name=""{CompilerExtensionsResources.Delegate}"">
       <ApplicableSymbolKindList>
         <TypeKind>Delegate</TypeKind>
       </ApplicableSymbolKindList>
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""830657f6-e7e5-4830-b328-f109d3b6c165"" Name=""{WorkspacesResources.Event}"">
+    <SymbolSpecification ID=""830657f6-e7e5-4830-b328-f109d3b6c165"" Name=""{CompilerExtensionsResources.Event}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Event</SymbolKind>
       </ApplicableSymbolKindList>
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" Name=""{WorkspacesResources.Method}"">
+    <SymbolSpecification ID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" Name=""{CompilerExtensionsResources.Method}"">
       <ApplicableSymbolKindList>
         <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""af410767-f189-47c6-b140-aeccf1ff242e"" Name=""{WorkspacesResources.Private_Method}"">
+    <SymbolSpecification ID=""af410767-f189-47c6-b140-aeccf1ff242e"" Name=""{CompilerExtensionsResources.Private_Method}"">
       <ApplicableSymbolKindList>
         <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""8076757e-6a4a-47f1-9b4b-ae8a3284e987"" Name=""{WorkspacesResources.Abstract_Method}"">
+    <SymbolSpecification ID=""8076757e-6a4a-47f1-9b4b-ae8a3284e987"" Name=""{CompilerExtensionsResources.Abstract_Method}"">
       <ApplicableSymbolKindList>
         <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <ModifierKind>IsAbstract</ModifierKind>
       </RequiredModifierList>
     </SymbolSpecification>
-    <SymbolSpecification ID=""16133061-a8e7-4392-92c3-1d93cd54c218"" Name=""{WorkspacesResources.Static_Method}"">
+    <SymbolSpecification ID=""16133061-a8e7-4392-92c3-1d93cd54c218"" Name=""{CompilerExtensionsResources.Static_Method}"">
       <ApplicableSymbolKindList>
         <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <ModifierKind>IsStatic</ModifierKind>
       </RequiredModifierList>
     </SymbolSpecification>
-    <SymbolSpecification ID=""da6a2919-5aa6-4ad1-a24d-576776ed3974"" Name=""{WorkspacesResources.Property}"">
+    <SymbolSpecification ID=""da6a2919-5aa6-4ad1-a24d-576776ed3974"" Name=""{CompilerExtensionsResources.Property}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Property</SymbolKind>
       </ApplicableSymbolKindList>
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""b24a91ce-3501-4799-b6df-baf044156c83"" Name=""{WorkspacesResources.Public_or_Protected_Field}"">
+    <SymbolSpecification ID=""b24a91ce-3501-4799-b6df-baf044156c83"" Name=""{CompilerExtensionsResources.Public_or_Protected_Field}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Field</SymbolKind>
       </ApplicableSymbolKindList>
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""70af42cb-1741-4027-969c-9edc4877d965"" Name=""{WorkspacesResources.Static_Field}"">
+    <SymbolSpecification ID=""70af42cb-1741-4027-969c-9edc4877d965"" Name=""{CompilerExtensionsResources.Static_Field}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Field</SymbolKind>
       </ApplicableSymbolKindList>
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <ModifierKind>IsStatic</ModifierKind>
       </RequiredModifierList>
     </SymbolSpecification>
-    <SymbolSpecification ID=""10790aa6-0a0b-432d-a52d-d252ca92302b"" Name=""{WorkspacesResources.Private_or_Internal_Field}"">
+    <SymbolSpecification ID=""10790aa6-0a0b-432d-a52d-d252ca92302b"" Name=""{CompilerExtensionsResources.Private_or_Internal_Field}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Field</SymbolKind>
       </ApplicableSymbolKindList>
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""ac995be4-88de-4771-9dcc-a456a7c02d89"" Name=""{WorkspacesResources.Private_or_Internal_Static_Field}"">
+    <SymbolSpecification ID=""ac995be4-88de-4771-9dcc-a456a7c02d89"" Name=""{CompilerExtensionsResources.Private_or_Internal_Static_Field}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Field</SymbolKind>
       </ApplicableSymbolKindList>
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <ModifierKind>IsStatic</ModifierKind>
       </RequiredModifierList>
     </SymbolSpecification>
-    <SymbolSpecification ID=""2c07f5bf-bc81-4c2b-82b4-ae9b3ffd0ba4"" Name=""{WorkspacesResources.Types}"">
+    <SymbolSpecification ID=""2c07f5bf-bc81-4c2b-82b4-ae9b3ffd0ba4"" Name=""{CompilerExtensionsResources.Types}"">
       <ApplicableSymbolKindList>
         <TypeKind>Class</TypeKind>
         <TypeKind>Struct</TypeKind>
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
-    <SymbolSpecification ID=""5f3ddba1-279f-486c-801e-5c097c36dd85"" Name=""{WorkspacesResources.Non_Field_Members}"">
+    <SymbolSpecification ID=""5f3ddba1-279f-486c-801e-5c097c36dd85"" Name=""{CompilerExtensionsResources.Non_Field_Members}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Property</SymbolKind>
         <SymbolKind>Event</SymbolKind>
@@ -342,8 +342,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     </SymbolSpecification>
   </SymbolSpecifications>
   <NamingStyles>
-    <NamingStyle ID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" Name=""{WorkspacesResources.Pascal_Case}"" Prefix="""" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />
-    <NamingStyle ID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" Name=""{WorkspacesResources.Begins_with_I}"" Prefix=""I"" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />
+    <NamingStyle ID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" Name=""{CompilerExtensionsResources.Pascal_Case}"" Prefix="""" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />
+    <NamingStyle ID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" Name=""{CompilerExtensionsResources.Begins_with_I}"" Prefix=""I"" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />
   </NamingStyles>
   <NamingRules>
     <SerializableNamingRule SymbolSpecificationID=""23d856b4-5089-4405-83ce-749aada99153"" NamingStyleID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" EnforcementLevel=""Info"" />

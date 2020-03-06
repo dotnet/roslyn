@@ -129,13 +129,13 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         {
             if (!name.StartsWith(Prefix))
             {
-                failureReason = string.Format(WorkspacesResources.Missing_prefix_colon_0, Prefix);
+                failureReason = string.Format(CompilerExtensionsResources.Missing_prefix_colon_0, Prefix);
                 return false;
             }
 
             if (!name.EndsWith(Suffix))
             {
-                failureReason = string.Format(WorkspacesResources.Missing_suffix_colon_0, Suffix);
+                failureReason = string.Format(CompilerExtensionsResources.Missing_suffix_colon_0, Suffix);
                 return false;
             }
 
@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 // name started with specified prefix, but has at least one additional common prefix 
                 // Example: specified prefix "test_", actual prefix "test_m_"
                 failureReason = Prefix == string.Empty ?
-                    string.Format(WorkspacesResources.Prefix_0_is_not_expected, prefix) :
-                    string.Format(WorkspacesResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
+                    string.Format(CompilerExtensionsResources.Prefix_0_is_not_expected, prefix) :
+                    string.Format(CompilerExtensionsResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
                 return false;
             }
 
@@ -237,17 +237,17 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         private bool CheckPascalCase(string name, TextSpan nameSpan, out string reason)
             => CheckAllWords(
                 name, nameSpan, s_firstCharIsUpperCase,
-                WorkspacesResources.These_words_must_begin_with_upper_case_characters_colon_0, out reason);
+                CompilerExtensionsResources.These_words_must_begin_with_upper_case_characters_colon_0, out reason);
 
         private bool CheckAllUpper(string name, TextSpan nameSpan, out string reason)
             => CheckAllWords(
                 name, nameSpan, s_wordIsAllUpperCase,
-                WorkspacesResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
+                CompilerExtensionsResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
 
         private bool CheckAllLower(string name, TextSpan nameSpan, out string reason)
             => CheckAllWords(
                 name, nameSpan, s_wordIsAllLowerCase,
-                WorkspacesResources.These_words_cannot_contain_upper_case_characters_colon_0, out reason);
+                CompilerExtensionsResources.These_words_cannot_contain_upper_case_characters_colon_0, out reason);
 
         private bool CheckFirstAndRestWords(
             string name, TextSpan nameSpan,
@@ -296,15 +296,15 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         private bool CheckCamelCase(string name, TextSpan nameSpan, out string reason)
             => CheckFirstAndRestWords(
                 name, nameSpan, s_firstCharIsLowerCase, s_firstCharIsUpperCase,
-                WorkspacesResources.The_first_word_0_must_begin_with_a_lower_case_character,
-                WorkspacesResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0,
+                CompilerExtensionsResources.The_first_word_0_must_begin_with_a_lower_case_character,
+                CompilerExtensionsResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0,
                 out reason);
 
         private bool CheckFirstUpper(string name, TextSpan nameSpan, out string reason)
             => CheckFirstAndRestWords(
                 name, nameSpan, s_firstCharIsUpperCase, s_firstCharIsLowerCase,
-                WorkspacesResources.The_first_word_0_must_begin_with_an_upper_case_character,
-                WorkspacesResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0,
+                CompilerExtensionsResources.The_first_word_0_must_begin_with_an_upper_case_character,
+                CompilerExtensionsResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0,
                 out reason);
 
         private static bool DoesCharacterHaveCasing(char c) => char.ToLower(c) != char.ToUpper(c);
