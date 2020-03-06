@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.Options
         public static EditorConfigStorageLocation<int> ForInt32Option(string keyName)
             => new EditorConfigStorageLocation<int>(keyName, s_parseInt32, s_getInt32EditorConfigStringForValue);
 
+        public static EditorConfigStorageLocation<string> ForStringOption(string keyName, string emptyStringRepresentation)
+            => new EditorConfigStorageLocation<string>(keyName, s_parseString, (string value) => string.IsNullOrEmpty(value) ? emptyStringRepresentation : s_getStringEditorConfigStringForValue(value));
+
         public static EditorConfigStorageLocation<CodeStyleOption<bool>> ForBoolCodeStyleOption(string keyName)
             => new EditorConfigStorageLocation<CodeStyleOption<bool>>(keyName, s_parseBoolCodeStyleOption, s_getBoolCodeStyleOptionEditorConfigStringForValue);
 
@@ -36,8 +39,24 @@ namespace Microsoft.CodeAnalysis.Options
         private static readonly Func<string, Optional<int>> s_parseInt32 = ParseInt32;
         private static Optional<int> ParseInt32(string str)
             => int.TryParse(str, out var result) ? result : new Optional<int>();
+
+        private static readonly Func<string, Optional<string>> s_parseString = ParseString;
+        private static Optional<string> ParseString(string str)
+        {
+            if (str.Equals("unset", StringComparison.Ordinal))
+            {
+                return default;
+            }
+
+            str ??= "";
+            return str.Replace("\\r", "\r").Replace("\\n", "\n");
+        }
+
         private static readonly Func<int, string> s_getInt32EditorConfigStringForValue = GetInt32EditorConfigStringForValue;
         private static string GetInt32EditorConfigStringForValue(int value) => value.ToString().ToLowerInvariant();
+
+        private static readonly Func<string, string> s_getStringEditorConfigStringForValue = GetStringEditorConfigStringForValue;
+        private static string GetStringEditorConfigStringForValue(string value) => value.ToString().Replace("\r", "\\r").Replace("\n", "\\n");
 
         private static readonly Func<string, Optional<CodeStyleOption<bool>>> s_parseBoolCodeStyleOption = ParseBoolCodeStyleOption;
         private static Optional<CodeStyleOption<bool>> ParseBoolCodeStyleOption(string str)
