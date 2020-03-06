@@ -261,6 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
         private async Task<DifferenceViewerPreview> CreateAddedDocumentPreviewViewCoreAsync(ITextBuffer newBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
+            // IProjectionBufferFactoryService is a Visual Studio API which is not documented as free-threaded
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var firstLine = string.Format(EditorFeaturesResources.Adding_0_to_1_with_content_colon,
@@ -287,6 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             CancellationToken cancellationToken)
             where TDocument : TextDocument
         {
+            // openTextDocument must be called from the main thread
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var newBuffer = await createBufferAsync(document, cancellationToken);
@@ -336,6 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
         private async Task<DifferenceViewerPreview> CreateRemovedDocumentPreviewViewCoreAsync(ITextBuffer oldBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
+            // IProjectionBufferFactoryService is a Visual Studio API which is not documented as free-threaded
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var firstLine = string.Format(EditorFeaturesResources.Removing_0_from_1_with_content_colon,
@@ -364,6 +367,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             CancellationToken cancellationToken)
             where TDocument : TextDocument
         {
+            // openTextDocument must be called from the main thread
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Note: We don't use the original buffer that is associated with oldDocument
@@ -432,6 +436,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
         public async Task<DifferenceViewerPreview> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, double zoomLevel, CancellationToken cancellationToken)
         {
+            // OpenDocument must be called from the main thread
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Note: We don't use the original buffer that is associated with oldDocument
@@ -532,6 +537,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
 
+            // openTextDocument must be called from the main thread
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Note: We don't use the original buffer that is associated with oldDocument
@@ -616,6 +622,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 return null;
             }
 
+            // IProjectionBufferFactoryService is a Visual Studio API which is not documented as free-threaded
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var originalBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
@@ -661,6 +668,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
         private async ValueTask<ITextBuffer> CreateNewPlainTextBufferAsync(TextDocument document, CancellationToken cancellationToken)
         {
+            // ITextBufferFactoryService is a Visual Studio API which is not documented as free-threaded
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var contentType = _textBufferFactoryService.TextContentType;
@@ -674,6 +682,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IProjectionBuffer originalBuffer, IProjectionBuffer changedBuffer,
             double zoomLevel, CancellationToken cancellationToken)
         {
+            // IWpfDifferenceViewerFactoryService is a Visual Studio API which is not documented as free-threaded
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // leftWorkspace can be null if the change is adding a document.
