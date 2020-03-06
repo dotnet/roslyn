@@ -5,15 +5,17 @@
 # what the build would do. So only set them if they have not already been set.
 
 (& "$PSScriptRoot\_all.ps1").GetEnumerator() |% {
-    if (Test-Path -Path "env:$($_.Key)") {
-        Write-Host "Skipping setting $($_.Key) because variable is already set." -ForegroundColor Cyan
+    # Always use ALL CAPS for env var names since Azure Pipelines converts variable names to all caps and on non-Windows OS, env vars are case sensitive.
+    $keyCaps = $_.Key.ToUpper()
+    if (Test-Path -Path "env:$keyCaps") {
+        Write-Host "Skipping setting $keyCaps because variable is already set." -ForegroundColor Cyan
     } else {
-        Write-Host "$($_.Key)=$($_.Value)" -ForegroundColor Yellow
+        Write-Host "$keyCaps=$($_.Value)" -ForegroundColor Yellow
         if ($env:TF_BUILD) {
-            Write-Host "##vso[task.setvariable variable=$($_.Key);]$($_.Value)"
+            Write-Host "##vso[task.setvariable variable=$keyCaps;]$($_.Value)"
         } elseif ($env:GITHUB_ACTIONS) {
-            Write-Host "::set-env name=$($_.Key)::$($_.Value)"
+            Write-Host "::set-env name=$keyCaps::$($_.Value)"
         }
-        Set-Item -Path "env:$($_.Key)" -Value $_.Value
+        Set-Item -Path "env:$keyCaps" -Value $_.Value
     }
 }

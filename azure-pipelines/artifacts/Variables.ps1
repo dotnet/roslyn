@@ -12,8 +12,11 @@ Get-ChildItem -Path (Join-Path $PSScriptRoot (Join-Path .. variables)) |% {
     $value = $null
     if (-not $_.BaseName.StartsWith('_')) { # Skip trying to interpret special scripts
         # First check the environment variables in case the variable was set in a queued build
-        if (Test-Path env:$($_.BaseName)) {
-            $value = Get-Content "env:$($_.BaseName)"
+        # Always use all caps for env var access because Azure Pipelines converts variables to upper-case for env vars,
+        # and on non-Windows env vars are case sensitive.
+        $envVarName = $_.BaseName.ToUpper()
+        if (Test-Path env:$envVarName) {
+            $value = Get-Content "env:$envVarName"
         }
 
         # If that didn't give us anything, try executing the script right now from its original position
