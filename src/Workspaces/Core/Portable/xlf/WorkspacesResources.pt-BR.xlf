@@ -1512,11 +1512,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Caminho especificado deve ser absoluto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant.</source>
-        <target state="translated">Conversão é redundante.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified.</source>
         <target state="translated">Nome pode ser simplificado.</target>

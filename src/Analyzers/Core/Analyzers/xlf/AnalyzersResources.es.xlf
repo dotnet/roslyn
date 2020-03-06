@@ -22,6 +22,11 @@
         <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Cast">
+        <source>Remove Unnecessary Cast</source>
+        <target state="new">Remove Unnecessary Cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="new">Remove unread private members</target>
