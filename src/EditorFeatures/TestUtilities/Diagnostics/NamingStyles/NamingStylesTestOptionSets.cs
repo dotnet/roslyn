@@ -27,71 +27,71 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         {
             var firstPreferences = (NamingStylePreferences)first.First().Value;
             var secondPreferences = (NamingStylePreferences)second.First().Value;
-            return Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), new NamingStylePreferences(
+            return Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), new NamingStylePreferences(
                 firstPreferences.SymbolSpecifications.AddRange(secondPreferences.SymbolSpecifications),
                 firstPreferences.NamingStyles.AddRange(secondPreferences.NamingStyles),
                 firstPreferences.NamingRules.AddRange(secondPreferences.NamingRules)));
         }
 
         public IDictionary<OptionKey, object> ClassNamesArePascalCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ClassNamesArePascalCaseOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), ClassNamesArePascalCaseOption());
 
         public IDictionary<OptionKey, object> FieldNamesAreCamelCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseOption());
 
         public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithUnderscorePrefix =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithUnderscorePrefixOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithUnderscorePrefixOption());
 
         public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithFieldUnderscorePrefix =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption());
 
         public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption());
 
         public IDictionary<OptionKey, object> MethodNamesArePascalCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), MethodNamesArePascalCaseOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), MethodNamesArePascalCaseOption());
 
         public IDictionary<OptionKey, object> ParameterNamesAreCamelCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseOption());
 
         public IDictionary<OptionKey, object> ParameterNamesAreCamelCaseWithPUnderscorePrefix =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
 
         public IDictionary<OptionKey, object> ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption());
 
         public IDictionary<OptionKey, object> LocalNamesAreCamelCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), LocalNamesAreCamelCaseOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), LocalNamesAreCamelCaseOption());
 
         public IDictionary<OptionKey, object> LocalFunctionNamesAreCamelCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), LocalFunctionNamesAreCamelCaseOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), LocalFunctionNamesAreCamelCaseOption());
 
         public IDictionary<OptionKey, object> PropertyNamesArePascalCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), PropertyNamesArePascalCaseOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), PropertyNamesArePascalCaseOption());
 
         public IDictionary<OptionKey, object> InterfaceNamesStartWithI =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), InterfaceNamesStartWithIOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), InterfaceNamesStartWithIOption());
 
         public IDictionary<OptionKey, object> TypeParameterNamesStartWithT =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), TypeParameterNamesStartWithTOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), TypeParameterNamesStartWithTOption());
 
         public IDictionary<OptionKey, object> ConstantsAreUpperCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ConstantsAreUpperCaseOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), ConstantsAreUpperCaseOption());
 
         public IDictionary<OptionKey, object> LocalsAreCamelCaseConstantsAreUpperCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), LocalsAreCamelCaseConstantsAreUpperCaseOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), LocalsAreCamelCaseConstantsAreUpperCaseOption());
 
         public IDictionary<OptionKey, object> AsyncFunctionNamesEndWithAsync =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), AsyncFunctionNamesEndWithAsyncOption());
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), AsyncFunctionNamesEndWithAsyncOption());
 
         public IDictionary<OptionKey, object> MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), MethodNamesArePascalCaseOption(accessibilities));
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), MethodNamesArePascalCaseOption(accessibilities));
 
         internal IDictionary<OptionKey, object> SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds) =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), SymbolKindsArePascalCaseOption(symbolKinds));
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), SymbolKindsArePascalCaseOption(symbolKinds));
 
         internal IDictionary<OptionKey, object> AccessibilitiesArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), AccessibilitiesArePascalCaseOption(accessibilities));
+            Options(new OptionKey(NamingStyleOptions.NamingPreferences, languageName), AccessibilitiesArePascalCaseOption(accessibilities));
 
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {

@@ -35,6 +35,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\EditorConfigStorageLocation`1.cs" Link="Options\EditorConfigStorageLocation`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\IEditorConfigStorageLocation.cs" Link="Options\IEditorConfigStorageLocation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\IEditorConfigStorageLocation2.cs" Link="Options\IEditorConfigStorageLocation2.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\NamingStylePreferenceEditorConfigStorageLocation.cs" Link="Options\NamingStylePreferenceEditorConfigStorageLocation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\IOption.cs" Link="Options\IOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\IOptionWithGroup.cs" Link="Options\IOptionWithGroup.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\LocalUserProfileStorageLocation.cs" Link="Options\LocalUserProfileStorageLocation.cs" />
@@ -44,6 +45,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\Option`1.cs" Link="Options\Option`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\PerLanguageOption.cs" Link="Options\PerLanguageOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\RoamingProfileStorageLocation.cs" Link="Options\RoamingProfileStorageLocation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\NamingStyleOptions.cs" Link="Options\NamingStyleOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CodeStyleResources.resx" GenerateSource="true" />
