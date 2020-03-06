@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
 
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             context.RegisterCodeFix(New MyCodeAction(
-                FeaturesResources.Remove_Unnecessary_Cast,
+                AnalyzersResources.Remove_Unnecessary_Cast,
                 Function(c) FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics)
             Return Task.CompletedTask
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
         End Function
 
         Private Class MyCodeAction
-            Inherits CodeAction.DocumentChangeAction
+            Inherits CustomCodeActions.DocumentChangeAction
 
             Public Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
                 MyBase.New(title, createChangedDocument)

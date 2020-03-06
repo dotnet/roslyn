@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_nullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
-                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, Options);
+                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
                     if (analyzerConfigSource is object)
                     {
                         foreach (var id in solution.ProjectIds)
@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// using a collection initializer.
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
+
+            public string? EditorConfig { get; set; }
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 

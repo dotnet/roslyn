@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
         protected AbstractRemoveUnnecessaryCastDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
                    option: null,
-                   new LocalizableResourceString(nameof(FeaturesResources.Remove_Unnecessary_Cast), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(WorkspacesResources.Cast_is_redundant), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Remove_Unnecessary_Cast), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(nameof(CompilerExtensionsResources.Cast_is_redundant), CompilerExtensionsResources.ResourceManager, typeof(CompilerExtensionsResources)))
         {
         }
 
