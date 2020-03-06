@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document?>> createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_null_propagation, createChangedDocument)
             {
             }

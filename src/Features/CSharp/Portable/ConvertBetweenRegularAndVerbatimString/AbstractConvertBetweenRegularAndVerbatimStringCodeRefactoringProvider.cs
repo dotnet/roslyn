@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 {
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
                 // always offer to convert from verbatim string to normal string.
                 context.RegisterRefactoring(new MyCodeAction(
                     CSharpFeaturesResources.Convert_to_regular_string,
-                    c => ConvertToRegularStringAsync(document, literalExpression, c).AsNullable()));
+                    c => ConvertToRegularStringAsync(document, literalExpression, c)));
             }
             else if (ContainsSimpleEscape(charService, subStringTokens))
             {
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
                 // escapes that can be directly embedded in the verbatim string.
                 context.RegisterRefactoring(new MyCodeAction(
                     CSharpFeaturesResources.Convert_to_verbatim_string,
-                    c => ConvertToVerbatimStringAsync(document, literalExpression, c).AsNullable()));
+                    c => ConvertToVerbatimStringAsync(document, literalExpression, c)));
             }
         }
 
@@ -193,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             /// </summary>
             internal override CodeActionPriority Priority => CodeActionPriority.Low;
 
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document?>> createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="createChangedDocument">Function to create the <see cref="Document"/>.</param>
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
         [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
-        public static CodeAction Create(string title, Func<CancellationToken, Task<Document?>> createChangedDocument, string? equivalenceKey = null)
+        public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
         {
             if (title == null)
             {
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="createChangedSolution">Function to create the <see cref="Solution"/>.</param>
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
         [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
-        public static CodeAction Create(string title, Func<CancellationToken, Task<Solution?>> createChangedSolution, string? equivalenceKey = null)
+        public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null)
         {
             if (title == null)
             {
@@ -430,33 +430,51 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal class DocumentChangeAction : SimpleCodeAction
         {
-            private readonly Func<CancellationToken, Task<Document?>> _createChangedDocument;
+            private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
-            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document?>> createChangedDocument, string? equivalenceKey = null)
+            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
                 : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
             }
 
-            protected override Task<Document?> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected sealed override Task<Document?> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                return _createChangedDocument(cancellationToken);
+                return _createChangedDocument(cancellationToken).AsNullable();
             }
         }
 
         internal class SolutionChangeAction : SimpleCodeAction
         {
-            private readonly Func<CancellationToken, Task<Solution?>> _createChangedSolution;
+            private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
-            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution?>> createChangedSolution, string? equivalenceKey = null)
+            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null)
                 : base(title, equivalenceKey)
             {
                 _createChangedSolution = createChangedSolution;
             }
 
-            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                return _createChangedSolution(cancellationToken);
+                return _createChangedSolution(cancellationToken).AsNullable();
+            }
+        }
+
+        internal class NoChangeAction : SimpleCodeAction
+        {
+            public NoChangeAction(string title, string? equivalenceKey = null)
+                : base(title, equivalenceKey)
+            {
+            }
+
+            protected sealed override Task<Document?> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            {
+                return SpecializedTasks.Null<Document>();
+            }
+
+            protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            {
+                return SpecializedTasks.Null<Solution>();
             }
         }
 

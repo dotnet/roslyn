@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             context.RegisterCodeFix(
                 new MyCodeAction(
                     FeaturesResources.Implement_abstract_class,
-                    c => data.ImplementAbstractClassAsync(throughMember: null, canDelegateAllMembers: null, c).AsNullable(), id),
+                    c => data.ImplementAbstractClassAsync(throughMember: null, canDelegateAllMembers: null, c), id),
                 context.Diagnostics);
 
             foreach (var (through, canDelegateAllMembers) in data.GetDelegatableMembers())
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 context.RegisterCodeFix(
                     new MyCodeAction(
                         string.Format(FeaturesResources.Implement_through_0, through.Name),
-                        c => data.ImplementAbstractClassAsync(through, canDelegateAllMembers, c).AsNullable(), id),
+                        c => data.ImplementAbstractClassAsync(through, canDelegateAllMembers, c), id),
                     context.Diagnostics);
             }
         }
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document?>> createChangedDocument, string id)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id)
                 : base(title, createChangedDocument, id)
             {
             }

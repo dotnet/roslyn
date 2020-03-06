@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
             if (conditionalExpression != null)
             {
                 var documentChangeAction = new MyCodeAction(
-                    c => GetChangedDocumentAsync(context.Document, conditionalExpression.SpanStart, c).AsNullable());
+                    c => GetChangedDocumentAsync(context.Document, conditionalExpression.SpanStart, c));
                 context.RegisterCodeFix(documentChangeAction, diagnostic);
             }
         }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document?>> createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string,
                        createChangedDocument,
                        CSharpFeaturesResources.Add_parentheses_around_conditional_expression_in_interpolated_string)

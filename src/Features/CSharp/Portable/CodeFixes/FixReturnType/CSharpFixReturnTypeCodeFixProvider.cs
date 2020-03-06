@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document?>> createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(CSharpFeaturesResources.Fix_return_type,
                      createChangedDocument,
                      CSharpFeaturesResources.Fix_return_type)

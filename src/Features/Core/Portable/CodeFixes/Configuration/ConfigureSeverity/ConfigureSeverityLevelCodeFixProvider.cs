@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                 foreach (var (name, value) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
-                        new SolutionChangeAction(name, solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken).AsNullable()));
+                        new SolutionChangeAction(name, solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken)));
                 }
 
                 var codeAction = new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                         new SolutionChangeAction(
                             name,
                             solution => category != null
-                                ? ConfigurationUpdater.BulkConfigureSeverityAsync(value, category, project, cancellationToken).AsNullable()
-                                : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken).AsNullable()));
+                                ? ConfigurationUpdater.BulkConfigureSeverityAsync(value, category, project, cancellationToken)
+                                : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken)));
                 }
 
                 var codeAction = new TopLevelBulkConfigureSeverityCodeAction(nestedActions.ToImmutableAndFree(), category);

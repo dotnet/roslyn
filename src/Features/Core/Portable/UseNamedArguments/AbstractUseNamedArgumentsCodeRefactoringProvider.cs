@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseNamedArguments
 {
@@ -110,13 +109,13 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     context.RegisterRefactoring(
                         new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false).AsNullable()),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false)),
                         argument.Span);
 
                     context.RegisterRefactoring(
                         new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0_including_trailing_arguments, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true).AsNullable()),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)),
                         argument.Span);
                 }
                 else
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     context.RegisterRefactoring(
                         new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true).AsNullable()),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)),
                         argument.Span);
                 }
             }
@@ -211,7 +210,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document?>> createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

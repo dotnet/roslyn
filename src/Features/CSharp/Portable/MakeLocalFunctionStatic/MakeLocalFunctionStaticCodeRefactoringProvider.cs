@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
@@ -45,13 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     FeaturesResources.Make_local_function_static,
-                    c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, c).AsNullable()));
+                    c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, c)));
             }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document?>> createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

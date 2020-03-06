@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document?>> createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_compound_assignment, createChangedDocument, FeaturesResources.Use_compound_assignment)
             {
             }

@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InvertLogical
 {
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitle(syntaxKinds, expression.RawKind),
-                    c => InvertLogicalAsync(document, expression, c).AsNullable()),
+                    c => InvertLogicalAsync(document, expression, c)),
                 expression.Span);
         }
 
@@ -150,7 +149,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document?>> createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

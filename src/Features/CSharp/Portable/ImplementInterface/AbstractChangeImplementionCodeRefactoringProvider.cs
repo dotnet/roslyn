@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             var codeAction = new MyCodeAction(
                 string.Format(Implement_0, member.ExplicitOrImplicitInterfaceImplementations().First().Name),
-                c => ChangeImplementationAsync(project, directlyImplementedMembers, c).AsNullable());
+                c => ChangeImplementationAsync(project, directlyImplementedMembers, c));
 
             var containingType = member.ContainingType;
             var interfaceTypes = directlyImplementedMembers.SelectMany(kvp => kvp.Value).Select(
@@ -106,14 +106,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 var interfaceNames = interfaceTypes.Select(i => i.ToDisplayString(NameAndTypeParametersFormat));
                 nestedActions.Add(new MyCodeAction(
                     string.Format(Implement_0, string.Join(", ", interfaceNames)),
-                    c => ChangeImplementationAsync(project, implementedMembersFromSameInterfaces, c).AsNullable()));
+                    c => ChangeImplementationAsync(project, implementedMembersFromSameInterfaces, c)));
             }
 
             if (offerForAllInterfaces)
             {
                 nestedActions.Add(new MyCodeAction(
                     Implement_all_interfaces,
-                    c => ChangeImplementationAsync(project, implementedMembersFromAllInterfaces, c).AsNullable()));
+                    c => ChangeImplementationAsync(project, implementedMembersFromAllInterfaces, c)));
             }
 
             context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution?>> createChangedSolution)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
                 : base(title, createChangedSolution)
             {
             }
