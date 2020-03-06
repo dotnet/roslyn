@@ -2,13 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
+using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
     public class CodeStyleOptions
     {
@@ -19,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static PerLanguageOption<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
         {
             var option = new PerLanguageOption<T>(nameof(CodeStyleOptions), group, name, defaultValue, storageLocations);
+            s_allOptionsBuilder.Add(option);
+            return option;
+        }
+
+        private static Option<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+        {
+            var option = new Option<T>(nameof(CodeStyleOptions), group, name, defaultValue, storageLocations);
             s_allOptionsBuilder.Add(option);
             return option;
         }
@@ -244,6 +257,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation[]{
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_readonly_field"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferReadonly") });
+
+        internal static readonly Option<string> FileHeaderTemplate = CreateCommonOption(
+            CodeStyleOptionGroups.Usings, nameof(FileHeaderTemplate),
+            defaultValue: "",
+            EditorConfigStorageLocation.ForStringOption("file_header_template", emptyStringRepresentation: "unset"));
 
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new BidirectionalMap<string, AccessibilityModifiersRequired>(new[]

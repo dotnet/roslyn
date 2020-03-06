@@ -122,17 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return (symbol, selectedIndex);
             }
 
-            if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation) &&
+                token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
             {
-                var objectCreation = matchingNode as ObjectCreationExpressionSyntax;
-
-                if (token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
+                var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
+                if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
                 {
-                    var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
-                    if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
-                    {
-                        return (typeSymbol, 0);
-                    }
+                    return (typeSymbol, 0);
                 }
             }
 
@@ -369,10 +365,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return objCreation.WithArgumentList(argumentList.WithArguments(newArguments).WithOpenParenToken(argumentList.OpenParenToken.WithoutTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer) ||
-                updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer))
+            if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax constructorInit) ||
+                updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer, out constructorInit))
             {
-                var constructorInit = (ConstructorInitializerSyntax)updatedNode;
                 var argumentList = constructorInit.ArgumentList;
                 var newArguments = PermuteArgumentList(declarationSymbol, argumentList.Arguments, argumentList.OpenParenToken, signaturePermutation);
                 return constructorInit.WithArgumentList(argumentList.WithArguments(newArguments).WithOpenParenToken(argumentList.OpenParenToken.WithoutTrailingTrivia()).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
@@ -768,13 +763,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 for (var i = 0; i < structuredContent.Count; i++)
                 {
                     var content = structuredContent[i];
-                    if (!content.IsKind(SyntaxKind.XmlElement))
+                    if (!content.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax xmlElement))
                     {
                         updatedNodeList.Add(content);
                         continue;
                     }
 
-                    var xmlElement = content as XmlElementSyntax;
                     if (xmlElement.StartTag.Name.ToString() != DocumentationCommentXmlNames.ParameterElementName)
                     {
                         updatedNodeList.Add(content);
@@ -804,7 +798,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return updatedLeadingTrivia;
         }
 
-        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+        private static List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
+        {
+            var separators = new List<SyntaxToken>();
+            for (var i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
+            {
+                separators.Add(arguments.GetSeparator(i));
+            }
+
+            return separators;
+        }
+
+        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Document document,
             CancellationToken cancellationToken)

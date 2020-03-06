@@ -1231,5 +1231,50 @@ namespace Microsoft.CodeAnalysis.Host
             Assert.Equal("c", symbolRenamedOperation._symbol.Name);
             Assert.Equal("C", symbolRenamedOperation._newName);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
+        public async Task TestRefactorNotifyInterfaceNamesStartWithI()
+        {
+            var markup = @"public interface [|test|] { }";
+            var testParameters = new TestParameters(options: options.InterfaceNamesStartWithI);
+
+            using var workspace = CreateWorkspaceFromOptions(markup, testParameters);
+            var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
+
+            var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
+            Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
+
+            var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
+            Assert.Equal(2, commitOperations.Length);
+
+            var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
+            Assert.Equal("test", symbolRenamedOperation._symbol.Name);
+            Assert.Equal("ITest", symbolRenamedOperation._newName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
+        public async Task TestRefactorNotifyTypeParameterNamesStartWithT()
+        {
+            var markup = @"public class A
+{
+    void DoOtherThing<[|arg|]>() { }
+}";
+            var testParameters = new TestParameters(options: options.TypeParameterNamesStartWithT);
+
+            using var workspace = CreateWorkspaceFromOptions(markup, testParameters);
+            var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
+
+            var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
+            Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
+
+            var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
+            Assert.Equal(2, commitOperations.Length);
+
+            var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
+            Assert.Equal("arg", symbolRenamedOperation._symbol.Name);
+            Assert.Equal("TArg", symbolRenamedOperation._newName);
+        }
     }
 }

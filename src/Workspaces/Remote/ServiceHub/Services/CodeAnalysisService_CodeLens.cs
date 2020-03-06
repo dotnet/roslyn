@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task<string> GetFullyQualifiedName(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        public Task<string> GetFullyQualifiedNameAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var syntaxNode = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)).FindNode(textSpan);
 
-                    return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedName(solution, documentId,
+                    return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(solution, documentId,
                         syntaxNode, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);

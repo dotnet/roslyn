@@ -147,4 +147,7 @@
   <data name="Parameter_preferences" xml:space="preserve">
     <value>Parameter preferences</value>
   </data>
+  <data name="Cast_is_redundant" xml:space="preserve">
+    <value>Cast is redundant.</value>
+  </data>
 </root>

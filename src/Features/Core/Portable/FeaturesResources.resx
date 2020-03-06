@@ -643,9 +643,6 @@ Do you want to continue?</value>
     <value>Analyzer '{0}' threw the following exception:
 '{1}'.</value>
   </data>
-  <data name="Remove_Unnecessary_Cast" xml:space="preserve">
-    <value>Remove Unnecessary Cast</value>
-  </data>
   <data name="Simplify_Names" xml:space="preserve">
     <value>Simplify Names</value>
   </data>
@@ -690,6 +687,12 @@ Do you want to continue?</value>
   </data>
   <data name="Configure_0_code_style" xml:space="preserve">
     <value>Configure {0} code style</value>
+  </data>
+  <data name="Configure_severity_for_all_0_analyzers" xml:space="preserve">
+    <value>Configure severity for all '{0}' analyzers</value>
+  </data>
+  <data name="Configure_severity_for_all_analyzers" xml:space="preserve">
+    <value>Configure severity for all analyzers</value>
   </data>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
@@ -1388,27 +1391,6 @@ This version used in: {2}</value>
   <data name="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</value>
   </data>
-  <data name="Remove_unused_member" xml:space="preserve">
-    <value>Remove unused member</value>
-  </data>
-  <data name="Private_member_0_is_unused" xml:space="preserve">
-    <value>Private member '{0}' is unused.</value>
-  </data>
-  <data name="Remove_unused_private_members" xml:space="preserve">
-    <value>Remove unused private members</value>
-  </data>
-  <data name="Remove_unread_private_members" xml:space="preserve">
-    <value>Remove unread private members</value>
-  </data>
-  <data name="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
-    <value>Private member '{0}' can be removed as the value assigned to it is never read.</value>
-  </data>
-  <data name="Private_method_0_can_be_removed_as_it_is_never_invoked" xml:space="preserve">
-    <value>Private method '{0}' can be removed as it is never invoked.</value>
-  </data>
-  <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
-    <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
-  </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
     <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
   </data>
@@ -1755,5 +1737,27 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
+  </data>
+  <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
+    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>
+    <comment>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</comment>
+  </data>
+  <data name="Resolve_conflict_markers" xml:space="preserve">
+    <value>Resolve conflict markers</value>
+  </data>
+  <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
+    <value>Base classes contain inaccessible unimplemented members</value>
+  </data>
+  <data name="A_source_file_is_missing_a_required_header" xml:space="preserve">
+    <value>A source file is missing a required header.</value>
+  </data>
+  <data name="The_file_header_is_missing_or_not_located_at_the_top_of_the_file" xml:space="preserve">
+    <value>The file header is missing or not located at the top of the file</value>
+  </data>
+  <data name="A_source_file_contains_a_header_that_does_not_match_the_required_text" xml:space="preserve">
+    <value>A source file contains a header that does not match the required text</value>
+  </data>
+  <data name="The_file_header_does_not_match_the_required_text" xml:space="preserve">
+    <value>The file header does not match the required text</value>
   </data>
 </root>

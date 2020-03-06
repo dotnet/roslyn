@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis
                     //
                     // Note: we pass along the newText here so that clients can easily get the text
                     // of an opened document just by calling TryGetText without any blocking.
-                    currentSolution = oldSolution.WithDocumentTextLoader(documentId,
+                    currentSolution = oldSolution.UpdateDocumentTextLoader(documentId,
                         new ReuseVersionLoader((DocumentState)oldDocument.State, newText), newText, PreservationMode.PreserveIdentity);
                 }
 

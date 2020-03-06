@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             // Used by ResetInteractive - consider improving (we should remember the parameters for auto-reset, e.g.)
 
             [OneWay]
-            public void SetPathsAsync(
+            public void SetPaths(
                 RemoteAsyncOperation<RemoteExecutionResult> operation,
                 string[] referenceSearchPaths,
                 string[] sourceSearchPaths,
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 string[] sourceSearchPaths,
                 string baseDirectory)
             {
-                var state = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
+                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
                 try
                 {
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Execution is performed on the UI thread.
             /// </summary>
             [OneWay]
-            public void InitializeContextAsync(RemoteAsyncOperation<RemoteExecutionResult> operation, string initializationFile, bool isRestarting)
+            public void InitializeContext(RemoteAsyncOperation<RemoteExecutionResult> operation, string initializationFile, bool isRestarting)
             {
                 Debug.Assert(operation != null);
 
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Adds an assembly reference to the current session.
             /// </summary>
             [OneWay]
-            public void AddReferenceAsync(RemoteAsyncOperation<bool> operation, string reference)
+            public void AddReference(RemoteAsyncOperation<bool> operation, string reference)
             {
                 Debug.Assert(operation != null);
                 Debug.Assert(reference != null);
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, RemoteAsyncOperation<bool> operation, string reference)
             {
-                var state = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
+                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
                 bool success = false;
 
                 try
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Executes given script snippet on the UI thread in the context of the current session.
             /// </summary>
             [OneWay]
-            public void ExecuteAsync(RemoteAsyncOperation<RemoteExecutionResult> operation, string text)
+            public void Execute(RemoteAsyncOperation<RemoteExecutionResult> operation, string text)
             {
                 Debug.Assert(operation != null);
                 Debug.Assert(text != null);
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private async Task<EvaluationState> ExecuteAsync(Task<EvaluationState> lastTask, RemoteAsyncOperation<RemoteExecutionResult> operation, string text)
             {
-                var state = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
+                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
                 bool success = false;
                 try
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // remove references and imports from the options, they have been applied and will be inherited from now on:
                         state = state.WithOptions(state.ScriptOptions.RemoveImportsAndReferences());
 
-                        var newScriptState = await ExecuteOnUIThread(script, state.ScriptStateOpt, displayResult: true).ConfigureAwait(false);
+                        var newScriptState = await ExecuteOnUIThreadAsync(script, state.ScriptStateOpt, displayResult: true).ConfigureAwait(false);
                         state = state.WithScriptState(newScriptState);
                     }
                 }
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Executes given script file on the UI thread in the context of the current session.
             /// </summary>
             [OneWay]
-            public void ExecuteFileAsync(RemoteAsyncOperation<RemoteExecutionResult> operation, string path)
+            public void ExecuteFile(RemoteAsyncOperation<RemoteExecutionResult> operation, string path)
             {
                 Debug.Assert(operation != null);
                 Debug.Assert(path != null);
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     workingDirectory: newWorkingDirectory);
             }
 
-            private static async Task<EvaluationState> ReportUnhandledExceptionIfAny(Task<EvaluationState> lastTask)
+            private static async Task<EvaluationState> ReportUnhandledExceptionIfAnyAsync(Task<EvaluationState> lastTask)
             {
                 try
                 {
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 Debug.Assert(initializationFileOpt == null || PathUtilities.IsAbsolute(initializationFileOpt));
 
-                var state = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
+                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
                 try
                 {
@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Task<EvaluationState> lastTask,
                 string path)
             {
-                var state = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
+                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
                 string fullPath = ResolveRelativePath(path, state.WorkingDirectory, state.SourceSearchPaths, displayPath: false);
                 if (fullPath != null)
                 {
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     return null;
                 }
 
-                return await ExecuteOnUIThread(script, state.ScriptStateOpt, displayResult: false).ConfigureAwait(false);
+                return await ExecuteOnUIThreadAsync(script, state.ScriptStateOpt, displayResult: false).ConfigureAwait(false);
             }
 
             private static void DisplaySearchPaths(TextWriter writer, List<string> attemptedFilePaths)
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private async Task<ScriptState<object>> ExecuteOnUIThread(Script<object> script, ScriptState<object> stateOpt, bool displayResult)
+            private async Task<ScriptState<object>> ExecuteOnUIThreadAsync(Script<object> script, ScriptState<object> stateOpt, bool displayResult)
             {
                 return await ((Task<ScriptState<object>>)s_control.Invoke(
                     (Func<Task<ScriptState<object>>>)(async () =>

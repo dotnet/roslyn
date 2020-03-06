@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
@@ -32,6 +33,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TaskStatusCenter;
+using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
@@ -52,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private VisualStudioWorkspace _workspace;
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
+        private ColorSchemeApplier _colorSchemeApplier;
         private IDisposable _solutionEventMonitor;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -64,24 +67,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             cancellationToken.ThrowIfCancellationRequested();
             Assumes.Present(_componentModel);
 
-            FatalError.Handler = FailFast.OnFatalException;
-            FatalError.NonFatalHandler = WatsonReporter.Report;
+            // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
+            // the background thread then we will experience hangs like we see in this bug:
+            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
+            // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
+            var telemetrySession = TelemetryService.DefaultSession;
 
-            // We also must set the FailFast handler for the compiler layer as well
-            var compilerAssembly = typeof(Compilation).Assembly;
-            var compilerFatalError = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true);
-            var property = compilerFatalError.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public);
-            var compilerFailFast = compilerAssembly.GetType(typeof(FailFast).FullName, throwOnError: true);
-            var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
-            property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
-
-            _workspace = _componentModel.GetService<VisualStudioWorkspace>();
-            _workspace.Services.GetService<IExperimentationService>();
+            WatsonReporter.InitializeFatalErrorHandlers(telemetrySession);
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             _componentModel.GetExtensions<IOptionPersister>();
 
-            RoslynTelemetrySetup.Initialize(this);
+            _workspace = _componentModel.GetService<VisualStudioWorkspace>();
+            _workspace.Services.GetService<IExperimentationService>();
+
+            RoslynTelemetrySetup.Initialize(this, telemetrySession);
 
             InitializeColors();
 
@@ -102,6 +102,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
             CodeAnalysisColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
+
+            // Initialize ColorScheme support
+            _colorSchemeApplier = _componentModel.GetService<ColorSchemeApplier>();
+            _colorSchemeApplier.Initialize();
         }
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
@@ -274,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                     // so guarding us from them
                     if (localRegistration != null)
                     {
-                        WatsonReporter.Report(new Exception("BulkFileOperation already exist"));
+                        FatalError.ReportWithoutCrash(new InvalidOperationException("BulkFileOperation already exist"));
                         return;
                     }
 

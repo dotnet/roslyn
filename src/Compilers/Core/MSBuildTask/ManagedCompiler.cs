@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // Note: using ToolArguments here (the property) since
                     // commandLineCommands (the parameter) may have been mucked with
                     // (to support using the dotnet cli)
-                    var responseTask = BuildServerConnection.RunServerCompilation(
+                    var responseTask = BuildServerConnection.RunServerCompilationAsync(
                         Language,
                         RoslynString.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
                         GetArguments(ToolArguments, responseFileCommands).ToList(),

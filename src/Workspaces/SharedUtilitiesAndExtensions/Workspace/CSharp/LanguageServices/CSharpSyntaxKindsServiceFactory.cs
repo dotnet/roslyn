@@ -7,11 +7,16 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
     [ExportLanguageServiceFactory(typeof(ISyntaxKindsService), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxKindsServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpSyntaxKindsServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             => CSharpSyntaxKindsService.Instance;
 

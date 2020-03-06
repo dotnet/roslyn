@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="A_source_file_contains_a_header_that_does_not_match_the_required_text">
+        <source>A source file contains a header that does not match the required text</source>
+        <target state="new">A source file contains a header that does not match the required text</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_source_file_is_missing_a_required_header">
+        <source>A source file is missing a required header.</source>
+        <target state="new">A source file is missing a required header.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Membername hinzufügen</target>
@@ -92,6 +102,11 @@
         <target state="translated">Erwartete Aufgabe gibt keinen Wert zurück</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Änderungen können nicht angewendet werden -- unerwarteter Fehler: "{0}"</target>
@@ -135,6 +150,16 @@
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
         <target state="translated">Schweregrad "{0}" konfigurieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_0_analyzers">
+        <source>Configure severity for all '{0}' analyzers</source>
+        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_analyzers">
+        <source>Configure severity for all analyzers</source>
+        <target state="new">Configure severity for all analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -452,29 +477,9 @@
         <target state="translated">Der Parameter "{0}" kann entfernt werden, sein ursprünglicher Wert wird niemals verwendet.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">Der private Member "{0}" kann entfernt werden, da der zugewiesene Wert nie gelesen wird.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">Der private Member "{0}" wird nicht verwendet.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">Durch das Ändern der Quelldatei "{0}" wird verhindert, dass die Debugsitzung aufgrund eines internen Fehlers fortgesetzt wird: {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
-        <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="translated">Die private Methode "{0}" kann entfernt werden, da sie nie aufgerufen wird.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
-        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">Die private Eigenschaft "{0}" kann in eine Methode konvertiert werden, weil ihr get-Accessor niemals aufgerufen wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -502,16 +507,6 @@
         <target state="translated">Überflüssige Zuweisung entfernen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unread_private_members">
-        <source>Remove unread private members</source>
-        <target state="translated">Ungelesene private Member entfernen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">Nicht verwendete Member entfernen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_parameter">
         <source>Remove unused parameter</source>
         <target state="translated">Nicht verwendete Parameter entfernen</target>
@@ -527,14 +522,14 @@
         <target state="translated">Nicht verwendeten Parameter "{0}" entfernen, wenn dieser nicht Bestandteil einer öffentlich verfügbaren API ist</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_private_members">
-        <source>Remove unused private members</source>
-        <target state="translated">Nicht verwendete private Member entfernen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">"{0}" durch "{1}" ersetzen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolve_conflict_markers">
+        <source>Resolve conflict markers</source>
+        <target state="new">Resolve conflict markers</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -562,6 +557,11 @@
         <target state="translated">Stream muss Lese- und Suchvorgänge unterstützen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
+        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0} unterdrücken</target>
@@ -570,6 +570,16 @@
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">Übereinstimmungen mit Zieltyp</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_file_header_does_not_match_the_required_text">
+        <source>The file header does not match the required text</source>
+        <target state="new">The file header does not match the required text</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_file_header_is_missing_or_not_located_at_the_top_of_the_file">
+        <source>The file header is missing or not located at the top of the file</source>
+        <target state="new">The file header is missing or not located at the top of the file</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -1596,11 +1606,6 @@ Möchten Sie fortfahren?</target>
 '{1}'.</source>
         <target state="translated">Das Analysetool "{0}" hat die folgende Ausnahme ausgelöst:
 "{1}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Nicht erforderliche Umwandlung entfernen</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_Names">

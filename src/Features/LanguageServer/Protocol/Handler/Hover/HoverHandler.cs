@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.TextDocumentHoverName)]
     internal class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover>
     {
+        [ImportingConstructor]
+        public HoverHandler()
+        {
+        }
+
         public async Task<Hover> HandleRequestAsync(Solution solution, TextDocumentPositionParams request,
             ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {

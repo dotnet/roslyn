@@ -28,16 +28,16 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedDeclarations = syntaxFacts.GetSelectedFieldsAndProperties(root, textSpan, allowPartialSelection);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var selectedDeclarations = await syntaxFacts.GetSelectedFieldsAndPropertiesAsync(
+                tree, textSpan, allowPartialSelection, cancellationToken).ConfigureAwait(false);
 
             if (selectedDeclarations.Length > 0)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var selectedMembers = selectedDeclarations.SelectMany(
-                    d => semanticFacts.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToImmutableArray();
+                var selectedMembers = selectedDeclarations.Select(
+                    d => semanticModel.GetDeclaredSymbol(d, cancellationToken)).WhereNotNull().ToImmutableArray();
                 if (selectedMembers.Length > 0)
                 {
                     var containingType = selectedMembers.First().ContainingType;

@@ -15,7 +15,11 @@ using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 using Microsoft.CodeAnalysis.Options;
 #endif
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle.TypeStyle
+#else
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
+#endif
 {
     internal static class TypeStyleHelper
     {

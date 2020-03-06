@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
             var objName = generator.IdentifierName("obj");
             if (containingType.IsValueType)
             {
@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var statement = generator.ReturnStatement(
                 expressions.Aggregate(generator.LogicalAndExpression));
 
-            expressions.Free();
             return compilation.CreateEqualsMethod(
                 ImmutableArray.Create(statement));
         }
