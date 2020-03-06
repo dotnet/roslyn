@@ -35,5 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
                 Return VisualBasicSyntaxKinds.Instance
             End Get
         End Property
+
+        Protected Overrides Function EndOfLine(text As String) As SyntaxTrivia
+            Return SyntaxFactory.EndOfLine(text)
+        End Function
     End Class
 End Namespace

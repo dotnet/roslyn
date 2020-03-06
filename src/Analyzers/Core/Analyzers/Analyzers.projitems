@@ -19,6 +19,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalyzerCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCustomTags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\AnalyzerHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DeserializationConstructorCheck.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DiagnosticHelper.cs" />

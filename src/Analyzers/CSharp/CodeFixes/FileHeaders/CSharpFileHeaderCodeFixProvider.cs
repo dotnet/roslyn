@@ -29,5 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
+
+        protected override SyntaxTrivia EndOfLine(string text)
+            => SyntaxFactory.EndOfLine(text);
     }
 }
