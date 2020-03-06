@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Public Shared Function NeedsGrouping(import1 As ImportsStatementSyntax,
-                                              import2 As ImportsStatementSyntax) As Boolean
+                                             import2 As ImportsStatementSyntax) As Boolean
             If import1.ImportsClauses.Count = 0 OrElse import2.ImportsClauses.Count = 0 Then
                 Return False
             End If
