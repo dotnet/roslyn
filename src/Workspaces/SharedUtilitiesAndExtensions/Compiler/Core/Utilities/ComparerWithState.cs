@@ -11,27 +11,11 @@ namespace Roslyn.Utilities
 {
     static internal class ComparerWithState
     {
-        public static int CompareTo<T, S>(T first, T second, S state, ImmutableArray<Func<T, S, IComparable?>> comparableMethods)
+        public static int CompareTo<T, S>(T first, T second, S state, ImmutableArray<Func<T, S, IComparable>> comparableMethods)
         {
             foreach (var comparableMethod in comparableMethods)
             {
-                var comparableFirst = comparableMethod(first, state);
-                var comparableSecond = comparableMethod(second, state);
-                if (comparableFirst is null)
-                {
-                    if (comparableSecond is null)
-                    {
-                        continue;
-                    }
-
-                    return -1;
-                }
-                else if (comparableSecond is null)
-                {
-                    return 1;
-                }
-
-                var comparison = comparableFirst.CompareTo(comparableSecond);
+                var comparison = comparableMethod(first, state).CompareTo(comparableMethod(second, state));
                 if (comparison != 0)
                 {
                     return comparison;
@@ -41,27 +25,11 @@ namespace Roslyn.Utilities
             return 0;
         }
 
-        public static int CompareTo<T>(T first, T second, ImmutableArray<Func<T, IComparable?>> comparableMethods)
+        public static int CompareTo<T>(T first, T second, ImmutableArray<Func<T, IComparable>> comparableMethods)
         {
             foreach (var comparableMethod in comparableMethods)
             {
-                var comparableFirst = comparableMethod(first);
-                var comparableSecond = comparableMethod(second);
-                if (comparableFirst is null)
-                {
-                    if (comparableSecond is null)
-                    {
-                        continue;
-                    }
-
-                    return -1;
-                }
-                else if (comparableSecond is null)
-                {
-                    return 1;
-                }
-
-                var comparison = comparableFirst.CompareTo(comparableSecond);
+                var comparison = comparableMethod(first).CompareTo(comparableMethod(second));
                 if (comparison != 0)
                 {
                     return comparison;

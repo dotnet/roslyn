@@ -109,10 +109,15 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             => PackageName.Equals(other?.PackageName);
 
         public int CompareTo(PackageWithAssemblyResult? other)
-         => ComparerWithState.CompareTo(this, other, s_comparers);
+        {
+            if (other is null)
+                return 1;
 
-        private readonly static ImmutableArray<Func<PackageWithAssemblyResult?, IComparable?>> s_comparers =
-            ImmutableArray.Create<Func<PackageWithAssemblyResult?, IComparable?>>(p => p?.Rank, p => p?.PackageName);
+            return ComparerWithState.CompareTo(this, other, s_comparers);
+        }
+
+        private readonly static ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
+            ImmutableArray.Create<Func<PackageWithAssemblyResult, IComparable>>(p => p.Rank, p => p.PackageName);
     }
 
     internal class ReferenceAssemblyWithTypeResult
