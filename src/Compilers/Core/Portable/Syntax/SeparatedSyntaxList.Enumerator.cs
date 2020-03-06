@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
                 _index = -1;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 throw new NotSupportedException();
             }
