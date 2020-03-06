@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 {
                     editor.ReplaceNode(
                         block,
-                        (currentBlock, _) =>
-                            currentBlock.WithAdditionalAnnotations(Formatter.Annotation));
+                        (currentBlock, _) => currentBlock.WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }
             else
