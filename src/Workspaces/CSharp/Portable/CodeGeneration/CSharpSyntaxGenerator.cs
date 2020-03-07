@@ -25,6 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     [ExportLanguageService(typeof(SyntaxGenerator), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxGenerator : SyntaxGenerator
     {
+        // A bit hacky, but we need to actually run ParseToken on the "nameof" text as there's no
+        // other way to get a token back that has the appropriate internal bit set that indicates
+        // this has the .ContextualKind of SyntaxKind.NameOfKeyword.
+        private static readonly IdentifierNameSyntax s_nameOfIdentifier =
+            SyntaxFactory.IdentifierName(SyntaxFactory.ParseToken("nameof"));
+
         [ImportingConstructor]
         public CSharpSyntaxGenerator()
         {
@@ -3200,11 +3206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode NameOfExpression(SyntaxNode expression)
-        {
-            return this.InvocationExpression(
-                this.IdentifierName(CSharp.SyntaxFacts.GetText(SyntaxKind.NameOfKeyword)),
-                expression);
-        }
+            => this.InvocationExpression(s_nameOfIdentifier, expression);
 
         public override SyntaxNode ReturnStatement(SyntaxNode expressionOpt = null)
             => SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);
