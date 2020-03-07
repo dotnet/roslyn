@@ -128,13 +128,14 @@ Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax.AddAttributeLists(para
 Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxToken yieldKeyword, Microsoft.CodeAnalysis.SyntaxToken returnOrBreakKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.AndKeyword = 8439 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.BinaryPattern = 9031 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.AndPattern = 9032 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.NotKeyword = 8440 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.NotPattern = 9033 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.OrKeyword = 8438 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.OrPattern = 9031 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ParenthesizedPattern = 9028 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RelationalPattern = 9029 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.TypePattern = 9030 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnaryPattern = 9032 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitBinaryPattern(Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -176,7 +177,8 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeStatementSyntax.AttributeLis
 override Microsoft.CodeAnalysis.CSharp.Syntax.UsingStatementSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 override Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 override Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.BinaryPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax leftPattern, Microsoft.CodeAnalysis.SyntaxToken patternOperator, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax rightPattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.BinaryPattern(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax leftPattern, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax rightPattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.BinaryPattern(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax leftPattern, Microsoft.CodeAnalysis.SyntaxToken patternOperator, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax rightPattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Block(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax> statements) -> Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Block(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxToken openBraceToken, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax> statements, Microsoft.CodeAnalysis.SyntaxToken closeBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.BreakStatement(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.BreakStatementSyntax

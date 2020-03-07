@@ -1939,7 +1939,8 @@
     </Field>
   </Node>
   <Node Name="BinaryPatternSyntax" Base="PatternSyntax">
-    <Kind Name="BinaryPattern"/>
+    <Kind Name="OrPattern"/>
+    <Kind Name="AndPattern"/>
     <Field Name="LeftPattern" Type="PatternSyntax" />
     <Field Name="PatternOperator" Type="SyntaxToken">
       <Kind Name="OrKeyword"/>
@@ -1948,7 +1949,7 @@
     <Field Name="RightPattern" Type="PatternSyntax" />
   </Node>
   <Node Name="UnaryPatternSyntax" Base="PatternSyntax">
-    <Kind Name="UnaryPattern"/>
+    <Kind Name="NotPattern"/>
     <Field Name="PatternOperator" Type="SyntaxToken">
       <Kind Name="NotKeyword"/>
     </Field>

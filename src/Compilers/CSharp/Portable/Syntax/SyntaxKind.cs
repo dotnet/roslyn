@@ -595,8 +595,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ParenthesizedPattern = 9028,
         RelationalPattern = 9029,
         TypePattern = 9030,
-        BinaryPattern = 9031,
-        UnaryPattern = 9032,
+        OrPattern = 9031,
+        AndPattern = 9032,
+        NotPattern = 9033,
 
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
 

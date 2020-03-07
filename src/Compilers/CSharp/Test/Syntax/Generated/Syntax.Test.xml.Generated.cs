@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.TypePattern(GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.BinaryPatternSyntax GenerateBinaryPattern()
-            => InternalSyntaxFactory.BinaryPattern(GenerateDiscardPattern(), InternalSyntaxFactory.Token(SyntaxKind.OrKeyword), GenerateDiscardPattern());
+            => InternalSyntaxFactory.BinaryPattern(SyntaxKind.OrPattern, GenerateDiscardPattern(), InternalSyntaxFactory.Token(SyntaxKind.OrKeyword), GenerateDiscardPattern());
 
         private static Syntax.InternalSyntax.UnaryPatternSyntax GenerateUnaryPattern()
             => InternalSyntaxFactory.UnaryPattern(InternalSyntaxFactory.Token(SyntaxKind.NotKeyword), GenerateDiscardPattern());
@@ -9477,7 +9477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.TypePattern(GenerateIdentifierName());
 
         private static BinaryPatternSyntax GenerateBinaryPattern()
-            => SyntaxFactory.BinaryPattern(GenerateDiscardPattern(), SyntaxFactory.Token(SyntaxKind.OrKeyword), GenerateDiscardPattern());
+            => SyntaxFactory.BinaryPattern(SyntaxKind.OrPattern, GenerateDiscardPattern(), SyntaxFactory.Token(SyntaxKind.OrKeyword), GenerateDiscardPattern());
 
         private static UnaryPatternSyntax GenerateUnaryPattern()
             => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), GenerateDiscardPattern());
