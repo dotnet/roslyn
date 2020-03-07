@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 // TODO: https://github.com/dotnet/roslyn/issues/42235
                 // The type of lambda function is null, but it probably can be matched to its corresponding parameter 
-                // Keep an eye on the identifier that is syntax and semantic true but type is null.
+                // Keep an eye on the identifier that is syntax and semantic true but the type is null.
                 if (argType.Type == null)
                     return false;
 
