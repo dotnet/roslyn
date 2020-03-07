@@ -218,10 +218,10 @@ class C
     void M()
     {
         [||]//Test comment
-        {|result:C LocalFunction(C c)
+        C LocalFunction(C c)
         {
             return null;
-        }|}
+        }
     }
 }";
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
@@ -275,10 +275,10 @@ class C
     {
         [||]
 
-        {|result:C LocalFunction(C c)
+        C LocalFunction(C c)
         {
             return null;
-        }|}
+        }
     }
 }";
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
