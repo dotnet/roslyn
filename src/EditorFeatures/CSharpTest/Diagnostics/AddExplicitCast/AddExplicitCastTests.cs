@@ -1176,8 +1176,8 @@ class Program
     class Base { }
     class Derived : Base { }
     class Test
-	{
-		static public explicit operator Derived(Test t) { return new Derived();  }
+    {
+        static public explicit operator Derived(Test t) { return new Derived();  }
     }
     void M() {
         Derived d = [||]new Base();
@@ -1196,8 +1196,8 @@ class Program
     class Base { }
     class Derived : Base { }
     class Test
-	{
-		static public explicit operator Derived(Test t) { return new Derived();  }
+    {
+        static public explicit operator Derived(Test t) { return new Derived();  }
     }
     void M() {
         Derived d = new Base();
@@ -1210,8 +1210,8 @@ class Program
     class Base { }
     class Derived : Base { }
     class Test
-	{
-		static public explicit operator Derived(Test t) { return new Derived();  }
+    {
+        static public explicit operator Derived(Test t) { return new Derived();  }
     }
     void M() {
         Derived d = new Base();
@@ -1230,8 +1230,8 @@ class Program
     class Base { }
     class Derived : Base { }
     class Test
-	{
-		static public explicit operator Derived(Test t) { return new Derived();  }
+    {
+        static public explicit operator Derived(Test t) { return new Derived();  }
     }
     Derived returnDerived() {
         return [||]new Base();
@@ -1249,8 +1249,8 @@ class Program
     class Base { }
     class Derived : Base { }
     class Test
-	{
-		static public explicit operator Derived(Test t) { return new Derived();  }
+    {
+        static public explicit operator Derived(Test t) { return new Derived();  }
     }
     Derived returnDerived() {
         return [||]new Test();
@@ -1262,8 +1262,8 @@ class Program
     class Base { }
     class Derived : Base { }
     class Test
-	{
-		static public explicit operator Derived(Test t) { return new Derived();  }
+    {
+        static public explicit operator Derived(Test t) { return new Derived();  }
     }
     Derived returnDerived() {
         return (Derived)new Test();
@@ -1281,8 +1281,8 @@ class Program
     class Base { }
     class Derived : Base { }
     class Test
-	{
-		static public explicit operator Derived(Test t) { return new Derived();  }
+    {
+        static public explicit operator Derived(Test t) { return new Derived();  }
     }
     void M(Dervied d) { }
     void Foo() {
@@ -1301,8 +1301,8 @@ class Program
     class Base { }
     class Derived : Base { }
     class Test
-	{
-		static public explicit operator Derived(Test t) { return new Derived();  }
+    {
+        static public explicit operator Derived(Test t) { return new Derived();  }
     }
     void M(Derived d) { }
     void Foo() {
@@ -1315,8 +1315,8 @@ class Program
     class Base { }
     class Derived : Base { }
     class Test
-	{
-		static public explicit operator Derived(Test t) { return new Derived();  }
+    {
+        static public explicit operator Derived(Test t) { return new Derived();  }
     }
     void M(Derived d) { }
     void Foo() {
