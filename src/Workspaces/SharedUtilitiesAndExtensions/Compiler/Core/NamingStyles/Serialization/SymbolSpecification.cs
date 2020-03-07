@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     new SymbolKindOrTypeKind(TypeKind.Interface),
                     new SymbolKindOrTypeKind(TypeKind.Delegate),
                     new SymbolKindOrTypeKind(TypeKind.Enum),
+                    new SymbolKindOrTypeKind(TypeKind.Module),
+                    new SymbolKindOrTypeKind(TypeKind.Pointer),
                     new SymbolKindOrTypeKind(SymbolKind.Property),
                     new SymbolKindOrTypeKind(MethodKind.Ordinary),
                     new SymbolKindOrTypeKind(MethodKind.LocalFunction),
