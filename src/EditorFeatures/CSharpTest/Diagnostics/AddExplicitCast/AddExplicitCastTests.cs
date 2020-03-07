@@ -2157,6 +2157,26 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MethodCandidates21_ArgumentsInOrder_Labels()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+
+    void Foo(Derived d, int i) { }
+
+    void M()
+    {
+        Base b = new Base();
+        Foo([||]b, i:1, i:1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task ConstructorCandidates1()
         {
             await TestInRegularAndScriptAsync(

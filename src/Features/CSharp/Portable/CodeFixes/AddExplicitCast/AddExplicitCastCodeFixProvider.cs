@@ -288,28 +288,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 if (nameSyntax != null)
                 {
                     var name = nameSyntax.Identifier.ValueText;
-                    var found = false;
-                    for (var j = 0; j < parameters.Length; j++)
-                    {
-                        if (name.Equals(parameters[j].Name))
-                        {
-                            // Check if the argument is in order with parameters.
-                            // If the argument breaks the order, the rest arguments of matched functions must have names
-                            if (i != j)
-                                inOrder = false;
-                            parameterIndex = j;
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    // rule (2)
-                    if (!found)
+                    if (!FindCorrespondingParameterByName(name, parameters, ref inOrder, ref parameterIndex))
                         return false;
+
+                    bool FindCorrespondingParameterByName(string name, ImmutableArray<IParameterSymbol> parameters, ref bool inOrder, ref int parameterIndex)
+                    {
+                        for (var j = 0; j < parameters.Length; j++)
+                        {
+                            if (name.Equals(parameters[j].Name))
+                            {
+                                // Check if the argument is in order with parameters.
+                                // If the argument breaks the order, the rest arguments of matched functions must have names
+                                if (i != j)
+                                    inOrder = false;
+                                parameterIndex = j;
+                                return true;
+                            }
+                        }
+
+                        // rule (2)
+                        return false;
+                    }
                 }
 
                 // The argument is either in order with parameters, or have a matched name with parameters
                 var argType = semanticModel.GetTypeInfo(arguments[i].Expression, cancellationToken);
+
+                // TODO: https://github.com/dotnet/roslyn/issues/42235
+                // The type of lambda function is null, but it probably can be matched to its corresponding parameter 
+                // Keep an eye on the identifier that is syntax and semantic true but type is null.
                 if (argType.Type == null)
                     return false;
 
@@ -369,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 }
             }
 
+            // rule (4)
             return matchedTypes.All(a => a);
         }
 
