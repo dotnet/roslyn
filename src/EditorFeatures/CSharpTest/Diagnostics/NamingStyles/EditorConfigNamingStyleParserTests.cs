@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Test.Utilities;
@@ -472,6 +473,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("", namingStyle.Suffix);
             Assert.Equal("", namingStyle.WordSeparator);
             Assert.Equal(Capitalization.PascalCase, namingStyle.CapitalizationScheme);
+        }
+
+        [Fact]
+        public static void TestEditorConfigParseForApplicableSymbolKinds()
+        {
+            var symbolSpecifications = CreateDefaultSymbolSpecification();
+            foreach (var applicableSymbolKind in symbolSpecifications.ApplicableSymbolKindList)
+            {
+                var editorConfigString = EditorConfigNamingStyleParser.ToEditorConfigString(ImmutableArray.Create(applicableSymbolKind));
+                Assert.True(!string.IsNullOrEmpty(editorConfigString));
+            }
         }
     }
 }
