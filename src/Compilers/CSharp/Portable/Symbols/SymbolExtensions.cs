@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //       constructed from G.
             // This text is missing in the current version of the spec, but we believe this is accidental.
             NamedTypeSymbol originalSuperType = superType.OriginalDefinition;
-            for (NamedTypeSymbol current = subType;
-                (object)current != null;
+            for (NamedTypeSymbol? current = subType;
+                (object?)current != null;
                 current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
                 if (ReferenceEquals(current.OriginalDefinition, originalSuperType))
