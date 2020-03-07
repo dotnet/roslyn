@@ -3548,9 +3548,20 @@ class C
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "0101");
+            comp.VerifyDiagnostics(
+                // (8,23): error CS0019: Operator '==' cannot be applied to operands of type 'C' and 'new()'
+                //         Console.Write(new C() == new() ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new C() == new()").WithArguments("==", "C", "new()").WithLocation(8, 23),
+                // (9,23): error CS0019: Operator '!=' cannot be applied to operands of type 'C' and 'new()'
+                //         Console.Write(new C() != new() ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new C() != new()").WithArguments("!=", "C", "new()").WithLocation(9, 23),
+                // (10,23): error CS0019: Operator '==' cannot be applied to operands of type 'new()' and 'C'
+                //         Console.Write(new() == new C() ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() == new C()").WithArguments("==", "new()", "C").WithLocation(10, 23),
+                // (11,23): error CS0019: Operator '!=' cannot be applied to operands of type 'new()' and 'C'
+                //         Console.Write(new() != new C() ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() != new C()").WithArguments("!=", "new()", "C").WithLocation(11, 23)
+                );
         }
 
         [Fact]
