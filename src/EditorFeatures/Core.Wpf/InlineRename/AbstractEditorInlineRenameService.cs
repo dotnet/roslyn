@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -192,18 +191,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var triggerSpanText = await GetSpanTextAsync(document, triggerToken.Span, cancellationToken).ConfigureAwait(false);
-
             return new SymbolInlineRenameInfo(
                 refactorNotifyServices, document, triggerToken.Span,
-                symbolAndProjectId, forceRenameOverloads, documentSpans.ToImmutableAndFree(), triggerSpanText, cancellationToken);
-
-            static async Task<string> GetSpanTextAsync(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
-            {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var triggerText = sourceText.ToString(triggerSpan);
-                return triggerText;
-            }
+                symbolAndProjectId, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
         }
 
         private async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)
