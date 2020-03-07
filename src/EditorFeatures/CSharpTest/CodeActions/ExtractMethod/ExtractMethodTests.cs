@@ -2771,7 +2771,7 @@ class C
 {
     public string? M()
     {
-        [|string? x = null;
+        [|string x = null;
         Func<string?> returnNull = () =>
         {
             return null;
