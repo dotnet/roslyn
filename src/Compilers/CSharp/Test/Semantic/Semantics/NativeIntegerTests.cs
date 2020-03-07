@@ -6258,48 +6258,51 @@ class Program
             const string intMinValue = "-2147483648";
             const string intMaxValue = "2147483647";
             const string uintMaxValue = "4294967295";
+            const string ulongMaxValue = "18446744073709551615";
 
             unaryOperator("nint", "+", intMinValue, intMinValue);
             unaryOperator("nint", "+", intMaxValue, intMaxValue);
             unaryOperator("nuint", "+", "0", "0");
             unaryOperator("nuint", "+", uintMaxValue, uintMaxValue);
 
-            unaryOperator("nint", "-", intMinValue, null, getOverflowDiagnostics);
+            unaryOperator("nint", "-", "-1", "1");
+            unaryOperatorWithOverflow("nint", "-", intMinValue, IntPtr.Size == 4 ? "-2147483648" : "2147483648");
             unaryOperator("nint", "-", "-2147483647", intMaxValue);
             unaryOperator("nint", "-", intMaxValue, "-2147483647");
             unaryOperator("nuint", "-", "0", null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
             unaryOperator("nuint", "-", "1", null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
             unaryOperator("nuint", "-", uintMaxValue, null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
 
-            unaryOperator("nint", "~", "0", null, getOverflowDiagnostics);
-            unaryOperator("nint", "~", intMinValue, null, getOverflowDiagnostics);
-            unaryOperator("nint", "~", intMaxValue, null, getOverflowDiagnostics);
-            unaryOperator("nuint", "~", "0", null, getOverflowDiagnostics);
-            unaryOperator("nuint", "~", uintMaxValue, null, getOverflowDiagnostics);
+            unaryOperatorWithOverflow("nint", "~", "0", "-1");
+            unaryOperatorWithOverflow("nint", "~", "-1", "0");
+            unaryOperatorWithOverflow("nint", "~", intMinValue, "2147483647");
+            unaryOperatorWithOverflow("nint", "~", intMaxValue, "-2147483648");
+            unaryOperatorWithOverflow("nuint", "~", "0", IntPtr.Size == 4 ? uintMaxValue : ulongMaxValue);
+            unaryOperatorWithOverflow("nuint", "~", uintMaxValue, IntPtr.Size == 4 ? "0" : "18446744069414584320");
 
-            binaryOperator("nint", "+", "nint", intMinValue, "nint", "-1", null, getOverflowDiagnostics);
+            binaryOperatorWithOverflow("nint", "+", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "2147483647" : "-2147483649");
             binaryOperator("nint", "+", "nint", "-2147483647", "nint", "-1", intMinValue);
-            binaryOperator("nint", "+", "nint", "1", "nint", intMaxValue, null, getOverflowDiagnostics);
+            binaryOperatorWithOverflow("nint", "+", "nint", "1", "nint", intMaxValue, IntPtr.Size == 4 ? "-2147483648" : "2147483648");
             binaryOperator("nint", "+", "nint", "1", "nint", "2147483646", intMaxValue);
-            binaryOperator("nuint", "+", "nuint", "1", "nuint", uintMaxValue, null, getOverflowDiagnostics);
+            binaryOperatorWithOverflow("nuint", "+", "nuint", "1", "nuint", uintMaxValue, IntPtr.Size == 4 ? "0" : "4294967296");
             binaryOperator("nuint", "+", "nuint", "1", "nuint", "4294967294", uintMaxValue);
 
-            binaryOperator("nint", "-", "nint", intMinValue, "nint", "1", null, getOverflowDiagnostics);
+            binaryOperatorWithOverflow("nint", "-", "nint", intMinValue, "nint", "1", IntPtr.Size == 4 ? "2147483647" : "-2147483649");
             binaryOperator("nint", "-", "nint", intMinValue, "nint", "-1", "-2147483647");
             binaryOperator("nint", "-", "nint", "-1", "nint", intMaxValue, intMinValue);
-            binaryOperator("nint", "-", "nint", "-2", "nint", intMaxValue, null, getOverflowDiagnostics);
-            binaryOperator("nuint", "-", "nuint", "0", "nuint", "1", null, getOverflowDiagnostics);
+            binaryOperatorWithOverflow("nint", "-", "nint", "-2", "nint", intMaxValue, IntPtr.Size == 4 ? "2147483647" : "-2147483649");
+            binaryOperatorWithOverflow("nuint", "-", "nuint", "0", "nuint", "1", IntPtr.Size == 4 ? uintMaxValue : ulongMaxValue);
             binaryOperator("nuint", "-", "nuint", uintMaxValue, "nuint", uintMaxValue, "0");
 
-            binaryOperator("nint", "*", "nint", intMinValue, "nint", "2", null, getOverflowDiagnostics);
-            binaryOperator("nint", "*", "nint", intMinValue, "nint", "-1", null, getOverflowDiagnostics);
+            binaryOperatorWithOverflow("nint", "*", "nint", intMinValue, "nint", "2", IntPtr.Size == 4 ? "0" : "-4294967296");
+            binaryOperatorWithOverflow("nint", "*", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "-2147483648" : "2147483648");
             binaryOperator("nint", "*", "nint", "-1", "nint", intMaxValue, "-2147483647");
-            binaryOperator("nint", "*", "nint", "2", "nint", intMaxValue, null, getOverflowDiagnostics);
-            binaryOperator("nuint", "*", "nuint", uintMaxValue, "nuint", "2", null, getOverflowDiagnostics);
+            binaryOperatorWithOverflow("nint", "*", "nint", "2", "nint", intMaxValue, IntPtr.Size == 4 ? "-2" : "4294967294");
+            binaryOperatorWithOverflow("nuint", "*", "nuint", uintMaxValue, "nuint", "2", IntPtr.Size == 4 ? "4294967294" : "8589934590");
             binaryOperator("nuint", "*", "nuint", intMaxValue, "nuint", "2", "4294967294");
 
             binaryOperator("nint", "/", "nint", intMinValue, "nint", "1", intMinValue);
-            binaryOperator("nint", "/", "nint", intMinValue, "nint", "-1", null, getOverflowDiagnostics);
+            binaryOperatorWithOverflow("nint", "/", "nint", intMinValue, "nint", "-1", IntPtr.Size == 4 ? "System.OverflowException" : "2147483648");
             binaryOperator("nint", "/", "nint", "1", "nint", "0", null, getIntDivByZeroDiagnostics);
             binaryOperator("nint", "/", "nint", "0", "nint", "0", null, getIntDivByZeroDiagnostics);
             binaryOperator("nuint", "/", "nuint", uintMaxValue, "nuint", "2", intMaxValue);
@@ -6397,7 +6400,6 @@ class Program
             binaryOperator("nuint", "^", "nuint", intMaxValue, "nuint", "2147483648", uintMaxValue);
 
             static DiagnosticDescription[] getNoDiagnostics(string opType, string op, string operand) => Array.Empty<DiagnosticDescription>();
-            static DiagnosticDescription[] getOverflowDiagnostics(string opType, string op, string operand) => new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, operand) };
             static DiagnosticDescription[] getAmbigUnaryOpDiagnostics(string opType, string op, string operand) => new[] { Diagnostic(ErrorCode.ERR_AmbigUnaryOp, operand).WithArguments(op, opType) };
             static DiagnosticDescription[] getIntDivByZeroDiagnostics(string opType, string op, string operand) => new[] { Diagnostic(ErrorCode.ERR_IntDivByZero, operand) };
 
@@ -6419,6 +6421,20 @@ class Program
                 constantExpression(opType, $"unchecked({expr})", expectedResult, diagnostics);
             }
 
+            void unaryOperatorWithOverflow(string opType, string op, string operand, string expectedResult)
+            {
+                var declarations = $"const {opType} A = {operand};";
+                var expr = $"{op}A";
+                constantDeclaration(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
+                constantDeclaration(opType, declarations, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
+                constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
+
+                expr = $"{op}({opType})({operand})";
+                constantExpression(opType, expr, null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
+                constantExpression(opType, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
+                constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+            }
+
             void binaryOperator(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResult, Func<string, string, string, DiagnosticDescription[]> getDiagnostics = null)
             {
                 getDiagnostics ??= getNoDiagnostics;
@@ -6435,6 +6451,20 @@ class Program
                 constantExpression(opType, expr, expectedResult, diagnostics);
                 constantExpression(opType, $"checked({expr})", expectedResult, diagnostics);
                 constantExpression(opType, $"unchecked({expr})", expectedResult, diagnostics);
+            }
+
+            void binaryOperatorWithOverflow(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResult)
+            {
+                var declarations = $"const {leftType} A = {leftOperand}; const {rightType} B = {rightOperand};";
+                var expr = $"A {op} B";
+                constantDeclaration(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
+                constantDeclaration(opType, declarations, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
+                constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
+
+                expr = $"(({leftType})({leftOperand})) {op} (({rightType})({rightOperand}))";
+                constantExpression(opType, expr, null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
+                constantExpression(opType, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_CheckedOverflow, expr) });
+                constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
             }
 
             void constantDeclaration(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
@@ -6468,12 +6498,22 @@ $@"public class Library
             void constantExpression(string opType, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
             {
                 string source =
-$@"class Program
+$@"using System;
+class Program
 {{
     static void Main()
     {{
-        {opType} value = {expr};
-        System.Console.WriteLine(value);
+        object result;
+        try
+        {{
+            {opType} value = {expr};
+            result = value;
+        }}
+        catch (Exception e)
+        {{
+            result = e.GetType().FullName;
+        }}
+        Console.WriteLine(result);
     }}
 }}";
                 var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
@@ -6483,6 +6523,43 @@ $@"class Program
 
                 CompileAndVerify(comp, expectedOutput: expectedResult);
             }
+        }
+
+        // OverflowException behavior is consistent with unchecked int division.
+        [Fact]
+        public void UncheckedIntegerDivision()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Execute(() => IntDiv(int.MinValue + 1, -1)));
+        Console.WriteLine(Execute(() => IntDiv(int.MinValue, -1)));
+        Console.WriteLine(Execute(() => NativeIntDiv(int.MinValue + 1, -1)));
+        Console.WriteLine(Execute(() => NativeIntDiv(int.MinValue, -1)));
+    }
+    static object Execute(Func<object> f)
+    {
+        try
+        {
+            return f();
+        }
+        catch (Exception e)
+        {
+            return e.GetType().FullName;
+        }
+    }
+    static int IntDiv(int x, int y) => unchecked(x / y);
+    static nint NativeIntDiv(nint x, nint y) => unchecked(x / y);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, expectedOutput:
+$@"2147483647
+System.OverflowException
+2147483647
+{(IntPtr.Size == 4 ? "System.OverflowException" : "2147483648")}");
         }
     }
 }

@@ -1658,8 +1658,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             catch (OverflowException)
             {
-                Error(diagnostics, ErrorCode.ERR_CheckedOverflow, syntax);
-                return ConstantValue.Bad;
+                if (CheckOverflowAtCompileTime)
+                {
+                    Error(diagnostics, ErrorCode.ERR_CheckedOverflow, syntax);
+                    return ConstantValue.Bad;
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             if (newValue != null)
@@ -2539,8 +2546,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             catch (OverflowException)
             {
-                Error(diagnostics, ErrorCode.ERR_CheckedOverflow, syntax);
-                return ConstantValue.Bad;
+                if (CheckOverflowAtCompileTime)
+                {
+                    Error(diagnostics, ErrorCode.ERR_CheckedOverflow, syntax);
+                    return ConstantValue.Bad;
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             if (newValue != null)
