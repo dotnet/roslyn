@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Options
                 AppendOptionsToEditorConfig(optionSet, feature, options, language, editorconfig);
             }
 
-            AppendNamingStylePreferencesToEditorConfig(optionSet, language, editorconfig);
+            var namingStylePreferences = optionSet.GetOption(NamingStyleOptions.NamingPreferences, language);
+            AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, language, editorconfig);
 
             return editorconfig.ToString();
         }
@@ -90,11 +91,10 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        private static void AppendNamingStylePreferencesToEditorConfig(OptionSet optionSet, string language, StringBuilder editorconfig)
+        public static void AppendNamingStylePreferencesToEditorConfig(NamingStylePreferences namingStylePreferences, string language, StringBuilder editorconfig)
         {
             editorconfig.AppendLine($"#### {WorkspacesResources.Naming_styles} ####");
 
-            var namingStylePreferences = optionSet.GetOption(NamingStyleOptions.NamingPreferences, language);
             var serializedNameMap = AssignNamesToNamingStyleElements(namingStylePreferences);
             var ruleNameMap = AssignNamesToNamingStyleRules(namingStylePreferences, serializedNameMap);
             var referencedElements = new HashSet<Guid>();

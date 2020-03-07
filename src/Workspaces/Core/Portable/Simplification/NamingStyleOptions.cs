@@ -5,14 +5,17 @@
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 #if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
+namespace Microsoft.CodeAnalysis.Internal.Options
 #else
 using Microsoft.CodeAnalysis.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.Simplification
+#endif
 {
+#if CODE_STYLE
+    public static class NamingStyleOptions
+#else
     internal static class NamingStyleOptions
+#endif
     {
         // Use 'SimplificationOptions' for back compat as the below option 'NamingPreferences' was defined with feature name 'SimplificationOptions'.
         private const string FeatureName = "SimplificationOptions";
@@ -27,5 +30,8 @@ namespace Microsoft.CodeAnalysis.Simplification
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences5"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences")
             });
+
+        public static OptionKey GetNamingPreferencesOptionKey(string language)
+            => new OptionKey(NamingPreferences, language);
     }
 }
