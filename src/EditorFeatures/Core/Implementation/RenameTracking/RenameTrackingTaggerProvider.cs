@@ -145,8 +145,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             var message = string.Format(
                 EditorFeaturesResources.Rename_0_to_1,
-                diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey],
-                diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey]);
+                diagnostic.Properties[RenameTrackingCodeRefactoringProvider.RenameFromPropertyKey],
+                diagnostic.Properties[RenameTrackingCodeRefactoringProvider.RenameToPropertyKey]);
 
             return new RenameTrackingCodeAction(document, message, refactorNotifyServices, undoHistoryRegistry);
         }
