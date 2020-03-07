@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -9269,6 +9268,52 @@ class Class : Interface
 
     void M1(int a);
 }", index: ParameterAndOverrides);
+        }
+
+        [WorkItem(26502, "https://github.com/dotnet/roslyn/issues/26502")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNoReadOnlyMembersWhenInLambdaInConstructor()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        Action a = () =>
+        {
+            this.[|Field|] = 1;
+        };
+    }
+}", new[]
+{
+    string.Format(FeaturesResources.Generate_property_1_0, "Field", "C"),
+    string.Format(FeaturesResources.Generate_field_1_0, "Field", "C"),
+});
+        }
+
+        [WorkItem(26502, "https://github.com/dotnet/roslyn/issues/26502")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNoReadOnlyMembersWhenInLocalFunctionInConstructor()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        void Goo()
+        {
+            this.[|Field|] = 1;
+        };
+    }
+}", new[]
+{
+    string.Format(FeaturesResources.Generate_property_1_0, "Field", "C"),
+    string.Format(FeaturesResources.Generate_field_1_0, "Field", "C"),
+});
         }
     }
 }

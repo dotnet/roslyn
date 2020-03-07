@@ -431,11 +431,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private bool DetermineIsInConstructor(SemanticDocument semanticDocument)
             {
                 if (!ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition))
-                {
                     return false;
-                }
 
-                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                // If we're in an lambda/local function we're not actually 'in' the constructor.
+                // i.e. we can't actually write to read-only fields here.
+                var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (SimpleNameOpt.AncestorsAndSelf().Any(n => syntaxFacts.IsAnonymousOrLocalFunction(n)))
+                    return false;
+
                 return syntaxFacts.IsInConstructor(SimpleNameOpt);
             }
         }
