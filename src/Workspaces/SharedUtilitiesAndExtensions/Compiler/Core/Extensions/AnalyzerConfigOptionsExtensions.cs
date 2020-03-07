@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis
         {
             if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
             {
+                // There are couple of reasons this assert might fire:
+                //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
+                //  2. Attempting to access an option which is not exposed from any option provider, i.e. IOptionProvider.Options.
                 Debug.Fail("Failed to find a .editorconfig key for the option.");
                 value = option.DefaultValue;
             }
@@ -38,6 +41,9 @@ namespace Microsoft.CodeAnalysis
         {
             if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
             {
+                // There are couple of reasons this assert might fire:
+                //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
+                //  2. Attempting to access an option which is not exposed from any option provider, i.e. IOptionProvider.Options.
                 Debug.Fail("Failed to find a .editorconfig key for the option.");
                 value = option.DefaultValue;
             }

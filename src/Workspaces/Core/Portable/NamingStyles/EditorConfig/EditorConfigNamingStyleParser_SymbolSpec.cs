@@ -333,6 +333,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 case TypeKind.Delegate:
                     return "delegate";
 
+                case TypeKind.Module:
+                    return "module";
+
+                case TypeKind.Pointer:
+                    return "pointer";
+
+                case TypeKind.TypeParameter:
+                    return "type_parameter";
+
                 case null:
                     break;
 

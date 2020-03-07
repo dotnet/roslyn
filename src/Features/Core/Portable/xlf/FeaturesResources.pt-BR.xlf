@@ -1588,11 +1588,6 @@ Deseja continuar?</target>
 '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Remover Conversão Desnecessária</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Simplificar Nomes</target>
@@ -2548,11 +2543,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Generate_constructor_in_0_without_fields">
         <source>Generate constructor in '{0}' (without fields)</source>
         <target state="translated">Gerar construtor em '{0}' (sem campos)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">Adicionar faixa de arquivo</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Method_overrides_symbol_from_metadata">

@@ -1588,11 +1588,6 @@ Do you want to continue?</source>
 '{1}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">移除不必要的 Cast</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">簡化名稱</target>
@@ -2548,11 +2543,6 @@ This version used in: {2}</source>
       <trans-unit id="Generate_constructor_in_0_without_fields">
         <source>Generate constructor in '{0}' (without fields)</source>
         <target state="translated">在 '{0}' 產生建構函式 (不含欄位)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">新增檔案橫幅</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Method_overrides_symbol_from_metadata">

@@ -157,11 +157,6 @@
         <target state="translated">Tüm yinelemeleri basitleştir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">Gereksiz Kullanımları Kaldır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Erişilebilirlik değiştiricilerini sırala</target>
@@ -432,11 +427,6 @@
         <target state="translated">TODO: sonlandırıcı yukarıda geçersiz kılınırsa aşağıdaki satırın açıklamasını kaldırın.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_directive_is_unnecessary">
-        <source>Using directive is unnecessary.</source>
-        <target state="translated">Using yönergesi gerekli değildir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
         <target state="translated">switch deyimi</target>
@@ -675,26 +665,6 @@
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">Özellikler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicit_type_instead_of_var">
-        <source>Use explicit type instead of 'var'</source>
-        <target state="translated">Var' yerine açık tür kullan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicit_type">
-        <source>Use explicit type</source>
-        <target state="translated">Açık tür kullanma</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="use_var_instead_of_explicit_type">
-        <source>use 'var' instead of explicit type</source>
-        <target state="translated">açık tür yerine 'var' kullan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_implicit_type">
-        <source>Use implicit type</source>
-        <target state="translated">Örtük tür kullanma</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">

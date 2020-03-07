@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     var parseOptions = (VisualBasicParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, Options);
+                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
                     if (analyzerConfigSource is object)
                     {
                         foreach (var id in solution.ProjectIds)
@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// using a collection initializer.
             /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
+
+            public string? EditorConfig { get; set; }
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 
