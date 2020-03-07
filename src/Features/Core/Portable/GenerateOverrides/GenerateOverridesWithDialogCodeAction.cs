@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled || result.Members.Length == 0)
                 {
-                    return ImmutableArray<CodeActionOperation>.Empty;
+                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
                 }
 
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

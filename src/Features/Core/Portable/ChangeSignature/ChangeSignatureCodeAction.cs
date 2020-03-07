@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 if (changeSignatureResult.Succeeded)
                 {
-                    return Task.FromResult<IEnumerable<CodeActionOperation>?>(new CodeActionOperation[] { new ApplyChangesOperation(changeSignatureResult.UpdatedSolution) });
+                    return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changeSignatureResult.UpdatedSolution)));
                 }
             }
 

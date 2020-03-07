@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)
                 {
-                    return ImmutableArray<CodeActionOperation>.Empty;
+                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
                 }
 
                 var addNullChecksOption = result.Options.FirstOrDefault(o => o.Id == AddNullChecksId);

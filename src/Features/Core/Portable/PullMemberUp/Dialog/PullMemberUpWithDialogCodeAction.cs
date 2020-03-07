@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.PullMemberUp;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 else
                 {
                     // If user click cancel button, options will be null and hit this branch
-                    return Array.Empty<CodeActionOperation>();
+                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
                 }
             }
         }
