@@ -13,6 +13,7 @@
     <None Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PredefinedCodeFixProviderNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\AbstractRemoveUnusedMembersCodeFixProvider.cs" />
   </ItemGroup>

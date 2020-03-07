@@ -870,16 +870,6 @@ Do you want to continue?</value>
   <data name="Add_this_or_Me_qualification" xml:space="preserve">
     <value>Add 'this' or 'Me' qualification.</value>
   </data>
-  <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
-    <value>Fix Name Violation: {0}</value>
-  </data>
-  <data name="Naming_rule_violation_0" xml:space="preserve">
-    <value>Naming rule violation: {0}</value>
-    <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>
-  </data>
-  <data name="Naming_Styles" xml:space="preserve">
-    <value>Naming Styles</value>
-  </data>
   <data name="from_0" xml:space="preserve">
     <value>from {0}</value>
   </data>
