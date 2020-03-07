@@ -1663,6 +1663,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Function pointer &apos;{0}&apos; does not take {1} arguments.
+        /// </summary>
+        internal static string ERR_BadFuncPointerArgCount {
+            get {
+                return ResourceManager.GetString("ERR_BadFuncPointerArgCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot be used as a modifier on a function pointer parameter..
         /// </summary>
         internal static string ERR_BadFuncPointerParamModifier {

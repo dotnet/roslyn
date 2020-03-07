@@ -785,5 +785,81 @@ class C
             Assert.NotNull(a);
             Assert.Equal("System.Int32 a", a.ToTestDisplayString());
         }
+
+        [Fact]
+        public void IncorrectArguments()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe class C
+{
+    void M(delegate*<void> p1,
+           delegate*<string, void> p2,
+           delegate*<string> p3,
+           delegate*<ref string, void> p4,
+           delegate*<in string, void> p5)
+    {
+        p1(""No arguments allowed"");
+        p2(""Too"", ""many"", ""arguments"");
+        p2(); // Not enough arguments
+        p2(1); // Invalid argument type
+        ref string foo = ref p3();
+        string s = null;
+        p4(s);
+        p4(in s);
+        p5(ref s);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (10,9): error CS8756: Function pointer 'delegate*<void>' does not take 1 arguments
+                //         p1("No arguments allowed");
+                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, @"p1(""No arguments allowed"")").WithArguments("delegate*<void>", "1").WithLocation(10, 9),
+                // (11,9): error CS8756: Function pointer 'delegate*<string,void>' does not take 3 arguments
+                //         p2("Too", "many", "arguments");
+                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, @"p2(""Too"", ""many"", ""arguments"")").WithArguments("delegate*<string,void>", "3").WithLocation(11, 9),
+                // (12,9): error CS8756: Function pointer 'delegate*<string,void>' does not take 0 arguments
+                //         p2(); // Not enough arguments
+                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "p2()").WithArguments("delegate*<string,void>", "0").WithLocation(12, 9),
+                // (13,12): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         p2(1); // Invalid argument type
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(13, 12),
+                // (14,30): error CS1510: A ref or out value must be an assignable variable
+                //         ref string foo = ref p3();
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "p3()").WithLocation(14, 30),
+                // (16,12): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         p4(s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(16, 12),
+                // (17,15): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         p4(in s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(17, 15),
+                // (18,16): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         p5(ref s);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(18, 16));
+        }
+
+        [Fact]
+        public void InaccessibleNestedTypes()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+class C
+{
+    private class D {}
+}
+class E
+{
+    unsafe void M()
+    {
+        delegate*<C.D> d;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                    // (10,21): error CS0122: 'C.D' is inaccessible due to its protection level
+                    //         delegate*<C.D> d;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("C.D").WithLocation(10, 21),
+                    // (10,24): warning CS0168: The variable 'd' is declared but never used
+                    //         delegate*<C.D> d;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "d").WithArguments("d").WithLocation(10, 24));
+        }
     }
 }

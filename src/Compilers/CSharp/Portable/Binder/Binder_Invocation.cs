@@ -268,6 +268,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 result = BindDelegateInvocation(node, expression, methodName, boundExpression, analyzedArguments, diagnostics, queryClause, delegateType);
             }
+            else if (boundExpression.Type?.Kind == SymbolKind.FunctionPointer)
+            {
+                // PROTOTYPE(func-ptr): Test nullable related features
+                ReportSuppressionIfNeeded(boundExpression, diagnostics);
+                result = BindFunctionPointerInvocation(node, boundExpression, analyzedArguments, diagnostics);
+            }
             else
             {
                 if (!boundExpression.HasAnyErrors)
@@ -892,6 +898,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+                case BoundKind.FunctionPointerInvocation:
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
@@ -975,8 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.ReportDiagnostics(
                         binder: this, location: GetLocationForOverloadResolutionDiagnostic(node, expression), nodeOpt: node, diagnostics: diagnostics, name: name,
                         receiver: methodGroup.Receiver, invokedExpression: expression, arguments: analyzedArguments, memberGroup: methodGroup.Methods.ToImmutable(),
-                        typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt,
-                        queryClause: queryClause);
+                        typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt, queryClause: queryClause);
                 }
 
                 return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
@@ -1642,6 +1649,82 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = lookupResult.IsMultiViable;
             lookupResult.Free();
             return result;
+        }
+
+#nullable enable
+        private BoundFunctionPointerInvocation BindFunctionPointerInvocation(SyntaxNode node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        {
+            RoslynDebug.Assert(boundExpression.Type is FunctionPointerTypeSymbol);
+
+            var funcPtr = (FunctionPointerTypeSymbol)boundExpression.Type;
+
+            var overloadResolutionResult = OverloadResolutionResult<FunctionPointerMethodSymbol>.GetInstance();
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            var methodsBuilder = ArrayBuilder<FunctionPointerMethodSymbol>.GetInstance(1);
+            methodsBuilder.Add(funcPtr.Signature);
+            OverloadResolution.FunctionPointerOverloadResolution(
+                methodsBuilder,
+                analyzedArguments,
+                overloadResolutionResult,
+                ref useSiteDiagnostics);
+
+            if (!overloadResolutionResult.Succeeded)
+            {
+                overloadResolutionResult.ReportDiagnostics(
+                    binder: this,
+                    node.Location,
+                    nodeOpt: null,
+                    diagnostics,
+                    name: null,
+                    boundExpression,
+                    boundExpression.Syntax,
+                    analyzedArguments,
+                    methodsBuilder.ToImmutableAndFree(),
+                    typeContainingConstructor: null,
+                    delegateTypeBeingInvoked: null,
+                    returnRefKind: funcPtr.Signature.RefKind);
+
+                return new BoundFunctionPointerInvocation(
+                    node,
+                    boundExpression,
+                    analyzedArguments.Arguments.SelectAsArray((expr, args) => args.binder.BindToNaturalType(expr, args.diagnostics), (binder: this, diagnostics)),
+                    analyzedArguments.RefKinds.ToImmutableOrNull(),
+                    funcPtr.Signature.ReturnType,
+                    hasErrors: true);
+            }
+
+            methodsBuilder.Free();
+
+            MemberResolutionResult<FunctionPointerMethodSymbol> methodResult = overloadResolutionResult.ValidResult;
+            CoerceArguments(
+                methodResult,
+                analyzedArguments.Arguments,
+                diagnostics);
+
+            var args = analyzedArguments.Arguments.ToImmutable();
+            var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+
+            bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
+            if (!hasErrors)
+            {
+                hasErrors = !CheckInvocationArgMixing(
+                    node,
+                    funcPtr.Signature,
+                    receiverOpt: null,
+                    funcPtr.Signature.Parameters,
+                    args,
+                    methodResult.Result.ArgsToParamsOpt,
+                    LocalScopeDepth,
+                    diagnostics);
+            }
+
+            return new BoundFunctionPointerInvocation(
+                node,
+                boundExpression,
+                args,
+                refKinds,
+                funcPtr.Signature.ReturnType,
+                hasErrors);
         }
     }
 }

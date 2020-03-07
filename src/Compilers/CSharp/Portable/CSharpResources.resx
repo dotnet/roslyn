@@ -5963,4 +5963,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadFuncPointerParamModifier" xml:space="preserve">
     <value>'{0}' cannot be used as a modifier on a function pointer parameter.</value>
   </data>
+  <data name="ERR_BadFuncPointerArgCount" xml:space="preserve">
+    <value>Function pointer '{0}' does not take {1} arguments</value>
+  </data>
 </root>

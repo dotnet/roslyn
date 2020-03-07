@@ -1050,6 +1050,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     Debug.Assert(((BoundCall)lhs).Method.RefKind == RefKind.Ref, "only ref returning methods are assignable");
                     return true;
 
+                case BoundKind.FunctionPointerInvocation:
+                    Debug.Assert(((BoundFunctionPointerInvocation)lhs).FunctionPointer.Signature.RefKind == RefKind.Ref, "only ref returning function pointers are assignable");
+                    return true;
+
                 case BoundKind.ConditionalOperator:
                     Debug.Assert(((BoundConditionalOperator)lhs).IsRef, "only ref ternaries are assignable");
                     return true;
