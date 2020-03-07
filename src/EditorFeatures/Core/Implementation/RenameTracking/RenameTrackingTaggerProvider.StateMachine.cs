@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -300,8 +299,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         var textSpan = snapshotSpan.Span.ToTextSpan();
 
                         var builder = ImmutableDictionary.CreateBuilder<string, string>();
-                        builder.Add(RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey, trackingSession.OriginalName);
-                        builder.Add(RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey, snapshotSpan.GetText());
+                        builder.Add(RenameTrackingCodeRefactoringProvider.RenameFromPropertyKey, trackingSession.OriginalName);
+                        builder.Add(RenameTrackingCodeRefactoringProvider.RenameToPropertyKey, snapshotSpan.GetText());
                         var properties = builder.ToImmutable();
 
                         var diagnostic = Diagnostic.Create(diagnosticDescriptor,
