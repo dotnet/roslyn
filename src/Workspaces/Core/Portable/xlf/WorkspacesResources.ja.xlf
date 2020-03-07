@@ -1502,11 +1502,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">絶対パスを指定する必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant.</source>
-        <target state="translated">キャストが冗長です。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified.</source>
         <target state="translated">名前を簡略化できます。</target>

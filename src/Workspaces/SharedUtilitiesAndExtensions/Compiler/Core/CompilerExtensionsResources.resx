@@ -255,4 +255,7 @@
   <data name="The_first_word_0_must_begin_with_a_lower_case_character" xml:space="preserve">
     <value>The first word, '{0}', must begin with a lower case character</value>
   </data>
+  <data name="Cast_is_redundant" xml:space="preserve">
+    <value>Cast is redundant.</value>
+  </data>
 </root>

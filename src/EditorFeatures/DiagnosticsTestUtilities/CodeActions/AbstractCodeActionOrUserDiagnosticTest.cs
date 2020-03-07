@@ -756,6 +756,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected IDictionary<OptionKey, object> Option<T>(PerLanguageOption<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
             => OptionsSet(SingleOption(option, enabled, notification));
 
+        protected IDictionary<OptionKey, object> Option<T>(Option<T> option, T value)
+            => OptionsSet(SingleOption(option, value));
+
         protected IDictionary<OptionKey, object> Option<T>(PerLanguageOption<T> option, T value)
             => OptionsSet(SingleOption(option, value));
 
