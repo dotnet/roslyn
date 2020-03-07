@@ -185,9 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             return actions.SingleOrDefault();
         }
 
-        public async Task AssertTag(
-            string expectedFromName, string expectedToName,
-            bool invokeAction = false)
+        public async Task AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false)
         {
             await WaitForAsyncOperationsAsync();
 
