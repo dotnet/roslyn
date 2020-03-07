@@ -210,7 +210,7 @@ class C
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestBeforeInWhitespace1()
+        public async Task TestNotBeforePrecedingComment()
         {
             var testText = @"
 class C
@@ -224,7 +224,64 @@ class C
         }|}
     }
 }";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace1_OnSameLine()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+[||]    {|result:C LocalFunction(C c)
+        {
+            return null;
+        }|}
+    }
+}";
             await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace1_OnPreviousLine()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        [||]
+        {|result:C LocalFunction(C c)
+        {
+            return null;
+        }|}
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace1_NotOnMultipleLinesPrior()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        [||]
+
+        {|result:C LocalFunction(C c)
+        {
+            return null;
+        }|}
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
         [Fact]
