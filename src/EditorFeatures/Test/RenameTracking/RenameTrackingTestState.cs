@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.VisualStudio.Composition;
@@ -169,10 +171,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             Assert.Equal(0, tags.Count());
         }
 
-        public Task<Diagnostic> TryGetDocumentDiagnosticAsync(Document document = null)
+        /// <param name="textSpan">If <see langword="null"/> the current caret position will be used.</param>
+        public async Task<CodeAction> TryGetCodeActionAsync(TextSpan? textSpan = null)
         {
-            document ??= this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
-            return _codeRefactoringProvider.TryGetDiagnosticAsync(document, CancellationToken.None);
+            var span = textSpan ?? new TextSpan(_view.Caret.Position.BufferPosition, 0);
+
+            var document = this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
+
+            var actions = new List<CodeAction>();
+            var context = new CodeRefactoringContext(
+                document, span, actions.Add, CancellationToken.None);
+            await _codeRefactoringProvider.ComputeRefactoringsAsync(context);
+            return actions.SingleOrDefault();
         }
 
         public async Task AssertTag(
@@ -188,26 +198,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
             var tag = tags.Single();
 
-            var document = this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
-            var diagnostic = await TryGetDocumentDiagnosticAsync(document);
-
-            // There should be a single rename tracking diagnostic
-            Assert.NotNull(diagnostic);
-            Assert.Equal(RenameTrackingCodeRefactoringProvider.DiagnosticId, diagnostic.Id);
-
-            var actions = new List<CodeAction>();
-            var context = new CodeRefactoringContext(
-                document, diagnostic.Location.SourceSpan, actions.Add, CancellationToken.None);
-            await _codeRefactoringProvider.ComputeRefactoringsAsync(context);
-
-            // There should only be one code action
-            Assert.Equal(1, actions.Count);
-
-            Assert.Equal(string.Format(EditorFeaturesResources.Rename_0_to_1, expectedFromName, expectedToName), actions[0].Title);
+            // There should only be one code action for the tag
+            var codeAction = await TryGetCodeActionAsync(tag.Span.Span.ToTextSpan());
+            Assert.NotNull(codeAction);
+            Assert.Equal(string.Format(EditorFeaturesResources.Rename_0_to_1, expectedFromName, expectedToName), codeAction.Title);
 
             if (invokeAction)
             {
-                var operations = (await actions[0].GetOperationsAsync(CancellationToken.None)).ToArray();
+                var operations = (await codeAction.GetOperationsAsync(CancellationToken.None)).ToArray();
                 Assert.Equal(1, operations.Length);
 
                 operations[0].TryApply(this.Workspace, new ProgressTracker(), CancellationToken.None);
