@@ -1588,11 +1588,6 @@ Möchten Sie fortfahren?</target>
 "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Nicht erforderliche Umwandlung entfernen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Namen vereinfachen</target>
@@ -2548,11 +2543,6 @@ Diese Version wird verwendet in: {2}</target>
       <trans-unit id="Generate_constructor_in_0_without_fields">
         <source>Generate constructor in '{0}' (without fields)</source>
         <target state="translated">Konstruktor in "{0}" (ohne Felder) generieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">Dateibanner hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Method_overrides_symbol_from_metadata">

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             using var _ = PooledStringBuilder.GetInstance(out var sb);
 
             var charService = document.GetRequiredLanguageService<IVirtualCharService>();
-            var newStringExpression = convert(charService, sb.Builder, stringExpression).WithTriviaFrom(stringExpression);
+            var newStringExpression = convert(charService, sb, stringExpression).WithTriviaFrom(stringExpression);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             return document.WithSyntaxRoot(root.ReplaceNode(stringExpression, newStringExpression));

@@ -12,6 +12,11 @@
         <target state="new">An element with the same key but a different value already exists.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cast_is_redundant">
+        <source>Cast is redundant.</source>
+        <target state="new">Cast is redundant.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="new">Expression-level preferences</target>

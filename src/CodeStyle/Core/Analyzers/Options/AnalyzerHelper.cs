@@ -30,5 +30,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return GetOption<T>(analyzerOptions, (IOption)option, language, syntaxTree, cancellationToken);
         }
+
+        public static AnalyzerConfigOptions GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            return analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+        }
     }
 }

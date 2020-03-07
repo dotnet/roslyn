@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             get;
         }
 
-        public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
-            CodeAction fixAction;
+            CodeAction? fixAction;
             switch (fixAllContext.Scope)
             {
                 case FixAllScope.Document:
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <para>-or-</para>
         /// <para><see langword="null"/>, if no changes were made to the document.</para>
         /// </returns>
-        protected abstract Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
+        protected abstract Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
 
         private async Task<Document> GetDocumentFixesAsync(FixAllContext fixAllContext)
         {
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTrackerOpt: null).ConfigureAwait(false);
 
-            using var _ = PooledDictionary<DocumentId, Task<SyntaxNode>>.GetInstance(out var documentIdToNewNode);
+            using var _ = PooledDictionary<DocumentId, Task<SyntaxNode?>>.GetInstance(out var documentIdToNewNode);
             foreach (var document in documents)
             {
                 // Don't bother examining any documents that aren't in the list of docs that

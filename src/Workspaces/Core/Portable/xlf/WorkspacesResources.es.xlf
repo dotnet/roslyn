@@ -1512,11 +1512,6 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">La ruta de acceso especificada debe ser absoluta.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant.</source>
-        <target state="translated">La conversión es redundante.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified.</source>
         <target state="translated">El nombre se puede simplificar.</target>
