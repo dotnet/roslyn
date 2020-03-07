@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -32,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var renameValue = "RENAME";
             var expectedEdits = ranges["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
-            var results = await TestHandleAsync<LSP.RenameParams, LSP.WorkspaceEdit>(solution, CreateRenameParams(renameLocation, renameValue));
+            var results = await TestHandleAsync<LSP.RenameParams, LSP.WorkspaceEdit>(solution, CreateRenameParams(renameLocation, renameValue), Methods.TextDocumentRenameName);
             AssertJsonEquals(expectedEdits, results.DocumentChanges.First().Edits);
         }
 
