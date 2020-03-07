@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public string LocalizedErrorMessage { get; }
             public TextSpan TriggerSpan { get; }
             public SymbolAndProjectId RenameSymbolAndProjectId { get; }
-            public bool HasOverloads { get; set; }
+            public bool HasOverloads { get; }
             public bool ForceRenameOverloads { get; }
 
             /// <summary>
