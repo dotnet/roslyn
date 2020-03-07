@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             while (nodes.Count > 0)
             {
-                var currentNode = nodes.First.Value;
+                var currentNode = nodes.First!.Value;
                 nodes.RemoveFirst();
 
                 if (currentNode != null && searchSpan.Contains(currentNode.FullSpan) && predicate(currentNode))

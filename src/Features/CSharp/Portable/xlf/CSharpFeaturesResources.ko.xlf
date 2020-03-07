@@ -157,11 +157,6 @@
         <target state="translated">모든 항목 단순화</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">불필요한 Using 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">접근성 한정자 정렬</target>
@@ -430,11 +425,6 @@
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
         <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
         <target state="translated">TODO: 위의 종료자가 재정의된 경우 다음 코드 줄의 주석 처리를 제거합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_directive_is_unnecessary">
-        <source>Using directive is unnecessary.</source>
-        <target state="translated">Using 지시문은 필요하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

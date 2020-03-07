@@ -157,11 +157,6 @@
         <target state="translated">Упростить все вхождения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">Удалить ненужные директивы using</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Сортировать модификаторы доступности</target>
@@ -430,11 +425,6 @@
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
         <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
         <target state="translated">TODO: раскомментировать следующую строку, если метод завершения переопределен выше.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_directive_is_unnecessary">
-        <source>Using directive is unnecessary.</source>
-        <target state="translated">Директива using не нужна.</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         }
 
         protected override string GetTitle()
-            => CSharpFeaturesResources.Remove_Unnecessary_Usings;
+            => CSharpCodeFixesResources.Remove_Unnecessary_Usings;
     }
 }
