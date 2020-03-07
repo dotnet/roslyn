@@ -157,7 +157,20 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 }
                 else
                 {
-                    content.Add(generator.Interpolation(piece.WithoutTrivia()));
+                    var firstInterpolationToken = piece.GetFirstToken();
+                    var lastInterpolationToken = piece.GetLastToken();
+
+                    if(firstInterpolationToken.RawKind == startToken.RawKind && lastInterpolationToken.RawKind == endToken.RawKind)
+                    {
+                        var text = piece.GetFirstToken().Text;
+                        var textWithEscapedBraces = text.Replace("$", "");
+                        var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, false, false);
+                        content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes)));
+                    }
+                    else
+                    {
+                        content.Add(generator.Interpolation(piece.WithoutTrivia()));
+                    }
                 }
                 // Update this variable to be true every time we encounter a new string literal expression
                 // so we know to concatenate future string literals together if we encounter them.
