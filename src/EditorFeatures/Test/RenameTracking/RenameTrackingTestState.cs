@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private readonly MockRefactorNotifyService _mockRefactorNotifyService;
         public MockRefactorNotifyService RefactorNotifyService { get { return _mockRefactorNotifyService; } }
 
-        private readonly CodeFixProvider _codeFixProvider;
+        private readonly RenameTrackingCodeRefactoringProvider _codeRefactoringProvider;
         private readonly RenameTrackingCancellationCommandHandler _commandHandler = new RenameTrackingCancellationCommandHandler();
 
         public static RenameTrackingTestState Create(
@@ -111,15 +112,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
 
-            if (languageName == LanguageNames.CSharp)
+            if (languageName == LanguageNames.CSharp ||
+                languageName == LanguageNames.VisualBasic)
             {
-                _codeFixProvider = new CSharpRenameTrackingCodeFixProvider(
-                    _historyRegistry,
-                    SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService));
-            }
-            else if (languageName == LanguageNames.VisualBasic)
-            {
-                _codeFixProvider = new VisualBasicRenameTrackingCodeFixProvider(
+                _codeRefactoringProvider = new RenameTrackingCodeRefactoringProvider(
                     _historyRegistry,
                     SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService));
             }
@@ -173,15 +169,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             Assert.Equal(0, tags.Count());
         }
 
-        public async Task<IList<Diagnostic>> GetDocumentDiagnosticsAsync(Document document = null)
+        public Task<Diagnostic> TryGetDocumentDiagnosticAsync(Document document = null)
         {
             document ??= this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
-            var analyzer = new RenameTrackingDiagnosticAnalyzer();
-            return (await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(analyzer, document,
-                (await document.GetSyntaxRootAsync()).FullSpan)).ToList();
+            return _codeRefactoringProvider.TryGetDiagnosticAsync(document, CancellationToken.None);
         }
 
-        public async Task AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false)
+        public async Task AssertTag(
+            string expectedFromName, string expectedToName,
+            bool invokeAction = false)
         {
             await WaitForAsyncOperationsAsync();
 
@@ -193,15 +189,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             var tag = tags.Single();
 
             var document = this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
-            var diagnostics = await GetDocumentDiagnosticsAsync(document);
+            var diagnostic = await TryGetDocumentDiagnosticAsync(document);
 
             // There should be a single rename tracking diagnostic
-            Assert.Equal(1, diagnostics.Count);
-            Assert.Equal(RenameTrackingDiagnosticAnalyzer.DiagnosticId, diagnostics[0].Id);
+            Assert.NotNull(diagnostic);
+            Assert.Equal(RenameTrackingCodeRefactoringProvider.DiagnosticId, diagnostic.Id);
 
             var actions = new List<CodeAction>();
-            var context = new CodeFixContext(document, diagnostics[0], (a, d) => actions.Add(a), CancellationToken.None);
-            await _codeFixProvider.RegisterCodeFixesAsync(context);
+            var context = new CodeRefactoringContext(
+                document, diagnostic.Location.SourceSpan, actions.Add, CancellationToken.None);
+            await _codeRefactoringProvider.ComputeRefactoringsAsync(context);
 
             // There should only be one code action
             Assert.Equal(1, actions.Count);
