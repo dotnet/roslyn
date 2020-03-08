@@ -6,7 +6,11 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Editing
+#else
 namespace Microsoft.CodeAnalysis.Editing
+#endif
 {
     public struct DeclarationModifiers : IEquatable<DeclarationModifiers>
     {

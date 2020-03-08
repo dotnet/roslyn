@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -24,6 +25,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 
 #if CODE_STYLE
+using EditorConfigFileGenerator = Microsoft.CodeAnalysis.Options.EditorConfigFileGenerator;
 using Microsoft.CodeAnalysis.Internal.Options;
 #else
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -204,6 +206,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                             }
 
                             Assert.False(true, "Unexpected non-editorconfig option");
+                        }
+                        else if (value is NamingStylePreferences namingStylePreferences)
+                        {
+                            textBuilder.AppendLine(GetSectionHeader(optionKey));
+                            EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, optionKey.Language, textBuilder);
+                            textBuilder.AppendLine();
+                            break;
                         }
                     }
                 }

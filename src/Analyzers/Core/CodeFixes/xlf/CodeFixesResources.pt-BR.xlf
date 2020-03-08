@@ -7,6 +7,11 @@
         <target state="translated">Adicionar faixa de arquivo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_Name_Violation_colon_0">
+        <source>Fix Name Violation: {0}</source>
+        <target state="new">Fix Name Violation: {0}</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

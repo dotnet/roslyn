@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.NamingStyles;
@@ -19,10 +18,16 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
+#if !CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 removing dependency on WorkspaceServices.
+using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
+#endif
+
 namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 {
+#if !CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks enabling this fixer in CodeStyle layer.
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
+#endif
     internal class NamingStyleCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
@@ -83,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                         solution,
                         symbol,
                         fixedName,
-                        string.Format(FeaturesResources.Fix_Name_Violation_colon_0, fixedName),
+                        string.Format(CodeFixesResources.Fix_Name_Violation_colon_0, fixedName),
                         c => FixAsync(document, symbol, fixedName, c),
                         equivalenceKey: nameof(NamingStyleCodeFixProvider)),
                     diagnostic);
@@ -129,16 +134,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 return SpecializedCollections.SingletonEnumerable(
                     new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
             }
-
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var factory = _startingSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
                 var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+                var codeAction = new ApplyChangesOperation(newSolution);
+
+#if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
+                return SpecializedCollections.SingletonEnumerable(codeAction);
+#else
+                var factory = _startingSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
                 return new CodeActionOperation[]
                 {
-                    new ApplyChangesOperation(newSolution),
+                    codeAction,
                     factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution)
                 }.AsEnumerable();
+#endif
             }
 
             public override string Title => _title;

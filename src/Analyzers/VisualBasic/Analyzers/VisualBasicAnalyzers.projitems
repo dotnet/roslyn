@@ -15,6 +15,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderHelper.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />

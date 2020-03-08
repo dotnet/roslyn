@@ -10,7 +10,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
     internal sealed class NamingStylePreferenceEditorConfigStorageLocation : OptionStorageLocation, IEditorConfigStorageLocation
     {
