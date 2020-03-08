@@ -89,6 +89,38 @@ End Class",
 index:=1)
         End Function
 
+        <WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestStructure() As Task
+            Await TestInRegularAndScriptAsync(
+"Structure Z
+    [|Private a As Integer|]
+End Structure",
+"Imports System
+
+Structure Z
+    Implements IEquatable(Of Z)
+
+    Private a As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Return (TypeOf obj Is Z) AndAlso Equals(DirectCast(obj, Z))
+    End Function
+
+    Public Function Equals(other As Z) As Boolean Implements IEquatable(Of Z).Equals
+        Return a = other.a
+    End Function
+
+    Public Shared Operator =(left As Z, right As Z) As Boolean
+        Return left.Equals(right)
+    End Operator
+
+    Public Shared Operator <>(left As Z, right As Z) As Boolean
+        Return Not left = right
+    End Operator
+End Structure")
+        End Function
+
         <WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestTypeWithNumberInName() As Task
