@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedConditionalExpression),
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                // EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_object_initializer"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer")});
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_simplified_conditionals"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSimplifiedConditionals")});
 
         internal static readonly PerLanguageOption<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping =
             new PerLanguageOption<OperatorPlacementWhenWrappingPreference>(
