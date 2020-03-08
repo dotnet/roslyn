@@ -70,8 +70,9 @@ namespace Microsoft.CodeAnalysis.Options
             ImmutableHashSet<string> languages,
             IOptionService optionService,
             ImmutableHashSet<IOption> serializableOptions,
-            ImmutableDictionary<OptionKey, object?> values)
-            : this(languages, new WorkspaceOptionSet(optionService), serializableOptions, values, changedOptionKeys: ImmutableHashSet<OptionKey>.Empty)
+            ImmutableDictionary<OptionKey, object?> values,
+            ImmutableHashSet<OptionKey> changedOptionKeys)
+            : this(languages, new WorkspaceOptionSet(optionService), serializableOptions, values, changedOptionKeys)
         {
         }
 

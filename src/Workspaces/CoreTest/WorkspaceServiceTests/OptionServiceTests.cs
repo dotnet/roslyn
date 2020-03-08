@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -160,6 +161,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var newOptionSet = optionSet.WithChangedOption(optionKey, false);
             Assert.NotSame(optionSet, newOptionSet);
             Assert.NotEqual(optionSet, newOptionSet);
+        }
+
+        [Fact]
+        public void TestChangedOptions()
+        {
+            var optionService = TestOptionService.GetService();
+            var optionSet = optionService.GetOptions();
+
+            // Apply a changed option to the option service.
+            var option = new PerLanguageOption<bool>("Test Feature", "Test Name", defaultValue: true);
+            var optionKey = new OptionKey(option, LanguageNames.CSharp);
+            var newOptionSet = optionSet.WithChangedOption(optionKey, false);
+            optionService.SetOptions(newOptionSet);
+            var isOptionSet = (bool?)optionService.GetOptions().GetOption(optionKey);
+            Assert.False(isOptionSet);
+
+            // Verify changed option is tracked in the serializable options snapshot fetched from the options service.
+            var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
+            var serializableOptionSet = optionService.GetSerializableOptionsSnapshot(languages);
+            var changedOptionKey = Assert.Single(serializableOptionSet.GetChangedOptions());
+            Assert.Equal(optionKey, changedOptionKey);
         }
     }
 }
