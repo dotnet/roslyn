@@ -120,4 +120,7 @@
   <data name="Add_file_banner" xml:space="preserve">
     <value>Add file banner</value>
   </data>
+  <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
+    <value>Fix Name Violation: {0}</value>
+  </data>
 </root>

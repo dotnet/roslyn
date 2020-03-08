@@ -183,7 +183,7 @@ $@"class C
 $@"class C
 {{
     {camelCaseSymbol}
-}}", new TestParameters(options: options.SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind>.Empty)));
+}}", new TestParameters(options: options.SymbolKindsArePascalCaseEmpty()));
 
             await TestInRegularAndScriptAsync(
 $@"class C
@@ -228,7 +228,7 @@ $@"class C
 $@"class C
 {{
     {camelCaseSymbol}
-}}", new TestParameters(options: options.SymbolKindsArePascalCase(ImmutableArray.Create(EditorConfigNamingStyleParserTests.ToSymbolKindOrTypeKind(alternateSymbolKind)))));
+}}", new TestParameters(options: options.SymbolKindsArePascalCase(alternateSymbolKind)));
 
             // Verify that no diagnostic is reported if the accessibility is wrong
             await TestMissingInRegularAndScriptAsync(
@@ -1211,7 +1211,12 @@ namespace Microsoft.CodeAnalysis.Host
 ", new TestParameters(options: options.InterfaceNamesStartWithI));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+#if CODE_STYLE
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
+#else
+        [Fact]
+#endif
+        [Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
         public async Task TestRefactorNotify()
         {
@@ -1232,7 +1237,12 @@ namespace Microsoft.CodeAnalysis.Host
             Assert.Equal("C", symbolRenamedOperation._newName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+#if CODE_STYLE
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
+#else
+        [Fact]
+#endif
+        [Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
         public async Task TestRefactorNotifyInterfaceNamesStartWithI()
         {
@@ -1253,7 +1263,12 @@ namespace Microsoft.CodeAnalysis.Host
             Assert.Equal("ITest", symbolRenamedOperation._newName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+#if CODE_STYLE
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
+#else
+        [Fact]
+#endif
+        [Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
         public async Task TestRefactorNotifyTypeParameterNamesStartWithT()
         {
