@@ -929,5 +929,26 @@ class C
     }
 }");
         }
+
+        [WorkItem(42195, "https://github.com/dotnet/roslyn/issues/42195")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithExistingInterpolation()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M(string a, string b)
+    {
+        return [|$""Foo {a} goo: "" + b|];
+    }
+}",
+@"public class C
+{
+    void M(string a, string b)
+    {
+        return $""Foo {a} goo: {b}"";
+    }
+}");
+        }
     }
 }
