@@ -427,9 +427,9 @@
         <target state="translated">首选简单的 "using" 语句</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_simplified_conditional_expressions">
-        <source>Prefer simplified conditional expressions</source>
-        <target state="new">Prefer simplified conditional expressions</target>
+      <trans-unit id="Prefer_simplified_conditional_expression">
+        <source>Prefer simplified conditional expression</source>
+        <target state="new">Prefer simplified conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
