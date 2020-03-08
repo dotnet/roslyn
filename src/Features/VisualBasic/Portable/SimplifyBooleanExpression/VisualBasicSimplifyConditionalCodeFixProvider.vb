@@ -4,9 +4,9 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.SimplifyConditional
+Imports Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyConditional
+Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyBooleanExpression
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSimplifyConditionalCodeFixProvider
         Inherits AbstractSimplifyConditionalCodeFixProvider

@@ -8,9 +8,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.SimplifyConditional
+Imports Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyConditional
+Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyBooleanExpression
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicSimplifyConditionalDiagnosticAnalyzer
         Inherits AbstractSimplifyConditionalDiagnosticAnalyzer(Of

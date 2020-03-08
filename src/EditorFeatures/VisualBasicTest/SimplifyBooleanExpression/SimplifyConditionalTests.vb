@@ -5,9 +5,9 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyConditional
+Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyBooleanExpression
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyConditional
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyBooleanExpression
     Partial Public Class SimplifyConditionalTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 

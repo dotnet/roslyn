@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.SimplifyConditional
+namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 {
     internal abstract class AbstractSimplifyConditionalCodeFixProvider :
         SyntaxEditorBasedCodeFixProvider

@@ -4,9 +4,9 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.SimplifyConditional;
+using Microsoft.CodeAnalysis.SimplifyBooleanExpression;
 
-namespace Microsoft.CodeAnalysis.CSharp.SimplifyConditional
+namespace Microsoft.CodeAnalysis.CSharp.SimplifyBooleanExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpSimplifyConditionalCodeFixProvider :

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.SimplifyConditional
+namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 {
     using static AbstractSimplifyConditionalCodeFixProvider;
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SimplifyConditional
 
         protected AbstractSimplifyConditionalDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId,
-                   CodeStyleOptions.PreferSimplifiedConditionalExpression,
+                   CodeStyleOptions.PreferSimplifiedBooleanExpressions,
                    new LocalizableResourceString(nameof(FeaturesResources.Simplify_conditional_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Conditional_expression_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.SimplifyConditional
             var cancellationToken = context.CancellationToken;
 
             var styleOption = options.GetOption(
-                CodeStyleOptions.PreferSimplifiedConditionalExpression,
+                CodeStyleOptions.PreferSimplifiedBooleanExpressions,
                 semanticModel.Language, syntaxTree, cancellationToken);
             if (!styleOption.Value)
             {
