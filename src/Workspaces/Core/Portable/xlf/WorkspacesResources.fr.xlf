@@ -1767,11 +1767,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">L'accès au membre doit être qualifié.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces_to_0_statement">
-        <source>Add braces to '{0}' statement.</source>
-        <target state="translated">Ajouter des accolades à l'instruction '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable">
         <source>Enable</source>
         <target state="translated">Activer</target>

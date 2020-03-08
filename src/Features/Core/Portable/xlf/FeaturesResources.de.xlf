@@ -2020,11 +2020,6 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Variadic-SignatureHelpItem muss mindestens ein Parameter aufweisen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Geschweifte Klammern hinzufügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
         <target state="translated">"{0}" durch Methode ersetzen</target>

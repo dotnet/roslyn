@@ -2020,11 +2020,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Variadické SignatureHelpItem musí mít nejmíň jeden parametr.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Přidat složené závorky</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
         <target state="translated">Nahradit {0} metodou</target>

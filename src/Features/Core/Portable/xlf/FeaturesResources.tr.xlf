@@ -2020,11 +2020,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Bağımsız değişken içeren SignatureHelpItem en az bir parametreye sahip olmalıdır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Küme ayracı ekle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
         <target state="translated">{0}' yerine metot kullan</target>

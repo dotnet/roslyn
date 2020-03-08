@@ -2020,11 +2020,6 @@ This version used in: {2}</source>
         <target state="translated">Variadic SignatureHelpItem 至少必須要有一個參數。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">加入大括號</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
         <target state="translated">以方法取代 '{0}'</target>

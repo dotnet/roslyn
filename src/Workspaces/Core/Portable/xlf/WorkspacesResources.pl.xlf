@@ -1767,11 +1767,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Dostęp do składowej powinien mieć kwalifikator.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces_to_0_statement">
-        <source>Add braces to '{0}' statement.</source>
-        <target state="translated">Dodaj nawiasy klamrowe do instrukcji „{0}”.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable">
         <source>Enable</source>
         <target state="translated">Włącz</target>

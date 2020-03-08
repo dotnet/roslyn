@@ -2020,11 +2020,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">L'élément SignatureHelpItem variadique doit avoir au moins un paramètre.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Ajouter des accolades</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
         <target state="translated">Remplacer '{0}' par une méthode</target>
