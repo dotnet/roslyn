@@ -655,4 +655,10 @@
   <data name="Convert_to_verbatim_string" xml:space="preserve">
     <value>Convert to verbatim string</value>
   </data>
+  <data name="Assign_to_0" xml:space="preserve">
+    <value>Assign to '{0}'</value>
+  </data>
+  <data name="Compare_to_0" xml:space="preserve">
+    <value>Compare to '{0}'</value>
+  </data>
 </root>
