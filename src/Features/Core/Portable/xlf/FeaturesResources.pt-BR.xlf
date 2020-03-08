@@ -132,6 +132,11 @@
         <target state="translated">Alterar '{0}' para '{1}' impedirá a continuação da sessão de depuração porque altera a forma da máquina de estado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurar estilo de código de {0}</target>

@@ -132,6 +132,11 @@
         <target state="translated">Die Änderung von "{0}" in "{1}" verhindert, dass die Debugsitzung fortgesetzt wird, weil sich dadurch die Form des Zustandsautomaten verändert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Codeformat "{0}" konfigurieren</target>

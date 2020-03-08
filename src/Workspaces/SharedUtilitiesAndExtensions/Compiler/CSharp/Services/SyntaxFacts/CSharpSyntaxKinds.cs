@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int BaseExpression => (int)SyntaxKind.BaseExpression;
         public int CharacterLiteralExpression => (int)SyntaxKind.CharacterLiteralExpression;
         public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
+        public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
         public int DefaultLiteralExpression => (int)SyntaxKind.DefaultLiteralExpression;
         public int FalseLiteralExpression => (int)SyntaxKind.FalseLiteralExpression;
         public int InvocationExpression => (int)SyntaxKind.InvocationExpression;
