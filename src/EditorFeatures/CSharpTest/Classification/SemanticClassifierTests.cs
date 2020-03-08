@@ -3324,6 +3324,14 @@ class X
 
         [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape5()
+        {
+            await TestInMethodAsync(@"var goo = '""';",
+                Keyword("var"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestCharEscape4()
         {
             await TestInMethodAsync(@"var goo = '\u000a';",
