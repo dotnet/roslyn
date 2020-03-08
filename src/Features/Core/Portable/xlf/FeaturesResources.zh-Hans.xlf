@@ -2105,11 +2105,6 @@ This version used in: {2}</source>
         <target state="translated">可以简化对象初始化</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">使用 "throw" 表达式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">项目 {0}</target>
@@ -2243,11 +2238,6 @@ This version used in: {2}</source>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">可以内联变量声明</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">可以简化 Null 检查。</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

@@ -2105,11 +2105,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Inicjowanie obiektu można uprościć</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">Użyj wyrażenia „throw“</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">projekt {0}</target>
@@ -2243,11 +2238,6 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">Deklaracja zmiennej może być śródwierszowa</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">Można uprościć test na obecność wartości null</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

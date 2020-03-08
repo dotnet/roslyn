@@ -2105,11 +2105,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">L'initialisation de l'objet peut être simplifiée</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">Utiliser l'expression 'throw'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">projet {0}</target>
@@ -2243,11 +2238,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">La déclaration de variable peut être inlined</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">Le contrôle de valeurs Null peut être simplifié</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
