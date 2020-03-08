@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -868,7 +872,7 @@ No editorconfig based code style option
 # IDE0073, FileHeaderTemplate
 file_header_template = unset
 
-# IDE0074, PreferSimplifiedConditionalExpression
+# IDE0074, PreferSimplifiedBooleanExpressions
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE1005, PreferConditionalDelegateCall
@@ -1041,7 +1045,7 @@ dotnet_style_prefer_simplified_interpolation = true:suggestion
 # IDE0073, FileHeaderTemplate
 file_header_template = unset
 
-# IDE0074, PreferSimplifiedConditionalExpression
+# IDE0074, PreferSimplifiedBooleanExpressions
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE1006
