@@ -427,6 +427,11 @@
         <target state="translated">Preferovat jednoduchý příkaz using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_conditional_expressions">
+        <source>Prefer simplified conditional expressions</source>
+        <target state="new">Prefer simplified conditional expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">Preferovat statické místní funkce</target>

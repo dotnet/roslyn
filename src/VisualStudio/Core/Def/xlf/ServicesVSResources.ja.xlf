@@ -427,6 +427,11 @@
         <target state="translated">単純な 'using' ステートメントを優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_conditional_expressions">
+        <source>Prefer simplified conditional expressions</source>
+        <target state="new">Prefer simplified conditional expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">静的ローカル関数を優先する</target>
