@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             public EquivalenceVisitor(
                 SymbolEquivalenceComparer symbolEquivalenceComparer,
                 bool compareMethodTypeParametersByIndex,
-                bool objectAndDynamicCompareEqually)
+                bool objectAndDynamicCompareEqually,
+                bool tupleNamesMustMatch)
             {
                 _symbolEquivalenceComparer = symbolEquivalenceComparer;
                 _compareMethodTypeParametersByIndex = compareMethodTypeParametersByIndex;

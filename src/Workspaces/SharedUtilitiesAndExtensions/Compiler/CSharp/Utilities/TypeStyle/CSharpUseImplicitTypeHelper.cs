@@ -11,6 +11,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
+using System;
+using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -160,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
             }
             else if (typeName.Parent is DeclarationExpressionSyntax declarationExpression &&
-                     TryAnalyzeDeclarationExpression(declarationExpression, semanticModel, optionSet, cancellationToken))
+                     TryAnalyzeDeclarationExpression(declarationExpression, semanticModel, cancellationToken))
             {
                 return true;
             }
@@ -171,7 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool TryAnalyzeDeclarationExpression(
             DeclarationExpressionSyntax declarationExpression,
             SemanticModel semanticModel,
-            OptionSet optionSet,
             CancellationToken cancellationToken)
         {
             // It's not always safe to convert a decl expression like "Method(out int i)" to
@@ -180,21 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // Note: this is fairly expensive, so we try to avoid this if we can by seeing if
             // there are multiple candidates with the original call.  If not, then we don't
             // have to do anything.
-            if (declarationExpression.Parent is ArgumentSyntax argument &&
-                argument.Parent is ArgumentListSyntax argumentList &&
-                argumentList.Parent is InvocationExpressionSyntax invocationExpression)
+            if (IsMatchingArgToSimpleMethod(declarationExpression, semanticModel, cancellationToken))
             {
-                // If there was only one member in the group, and it was non-generic itself,
-                // then this change is safe to make without doing any complex analysis.
-                // Multiple methods mean that switching to 'var' might remove information
-                // that affects overload resolution.  And if the method is generic, then
-                // switching to 'var' may mean that inference might not work properly.
-                var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
-                if (memberGroup.Length == 1 &&
-                    memberGroup[0].GetTypeParameters().IsEmpty)
-                {
-                    return true;
-                }
+                return true;
             }
 
             if (!semanticModel.SyntaxTree.HasCompilationUnitRoot)
@@ -226,6 +216,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var newDeclarationType = newSemanticModel.GetTypeInfo(newDeclarationTypeNode, cancellationToken).Type;
 
             return SymbolEquivalenceComparer.Instance.Equals(declarationType, newDeclarationType);
+        }
+
+        private bool IsMatchingArgToSimpleMethod(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!(declarationExpression.Parent is ArgumentSyntax argument) ||
+                !(argument.Parent is ArgumentListSyntax argumentList) ||
+                !(argumentList.Parent is InvocationExpressionSyntax invocationExpression))
+                return false;
+
+            // If there was only one member in the group, and it was non-generic itself,
+            // then this change is safe to make without doing any complex analysis.
+            // Multiple methods mean that switching to 'var' might remove information
+            // that affects overload resolution.  And if the method is generic, then
+            // switching to 'var' may mean that inference might not work properly.
+            var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
+            if (memberGroup.Length != 1)
+                return false;
+
+            var method = memberGroup[0] as IMethodSymbol;
+            if (method == null)
+                return false;
+
+            if (!method.GetTypeParameters().IsEmpty)
+                return false;
+
+            var invocationOp = semanticModel.GetOperation(invocationExpression) as IInvocationOperation;
+            if (invocationOp == null)
+                return false;
+
+            var argumentOp = invocationOp.Arguments.FirstOrDefault(a => a.Syntax == argument);
+            if (argumentOp == null)
+                return false;
+
+            if (argumentOp.Value?.Type == null)
+                return false;
+
+            if (argumentOp.Parameter?.Type == null)
+                return false;
+
+            return argumentOp.Value.Type.Equals(argumentOp.Parameter.Type);
         }
 
         /// <summary>
