@@ -1735,4 +1735,7 @@ This version used in: {2}</value>
   <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
     <value>Base classes contain inaccessible unimplemented members</value>
   </data>
+  <data name="Simplify_conditional_expression" xml:space="preserve">
+    <value>Simplify conditional expression</value>
+  </data>
 </root>

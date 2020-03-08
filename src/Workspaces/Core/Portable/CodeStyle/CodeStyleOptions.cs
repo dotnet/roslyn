@@ -131,6 +131,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSimplifiedConditionalExpression = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedConditionalExpression),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                // EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_object_initializer"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer")});
+
         internal static readonly PerLanguageOption<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping =
             new PerLanguageOption<OperatorPlacementWhenWrappingPreference>(
                 nameof(CodeStyleOptions), nameof(OperatorPlacementWhenWrapping),
