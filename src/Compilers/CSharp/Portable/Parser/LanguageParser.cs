@@ -1373,13 +1373,13 @@ tryAgain:
             Debug.Assert(!IsInAsync);
 
             var classOrStructOrInterface = this.EatToken();
+
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
-
-            _termState = saveTerm;
             var baseList = this.ParseBaseList();
+            _termState = saveTerm;
 
             // Parse class body
             bool parseMembers = true;
@@ -5304,9 +5304,7 @@ tryAgain:
         }
 
         private bool IsEndOfTypeArgumentList()
-        {
-            return this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
-        }
+            => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
 
         private bool IsOpenName()
         {
