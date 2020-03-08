@@ -103,7 +103,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
         Public Async Function TestNotWithTrueTrue() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "
 imports System
 
@@ -114,18 +114,148 @@ class C
 
     private function X() as boolean
     private function Y() as boolean
+end class",
+"
+imports System
+
+class C
+    function M() as boolean
+        return X() AndAlso Y() OrElse true
+    end function
+
+    private function X() as boolean
+    private function Y() as boolean
 end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
         Public Async Function TestNotWithFalseFalse() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "
 imports System
 
 class C
     function M() as boolean
         return [|if(X() AndAlso Y(), false, false)|]
+    end function
+
+    private function X() as boolean
+    private function Y() as boolean
+end class",
+"
+imports System
+
+class C
+    function M() as boolean
+        return X() AndAlso Y() AndAlso false
+    end function
+
+    private function X() as boolean
+    private function Y() as boolean
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        Public Async Function TestWhenTrueIsTrueAndWhenFalseIsUnknown() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    function M() as string
+        return [|if(X(), true, Y())|]
+    end function
+
+    private function X() as boolean
+    private function Y() as boolean
+end class",
+"
+Imports System
+
+class C
+    function M() as string
+        return X() OrElse Y()
+    end function
+
+    private function X() as boolean
+    private function Y() as boolean
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        Public Async Function TestWhenTrueIsFalseAndWhenFalseIsUnknown() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    function M() as string
+        return [|if(X(), false, Y())|]
+    end function
+
+    private function X() as boolean
+    private function Y() as boolean
+end class",
+"
+Imports System
+
+class C
+    function M() as string
+        return Not X() AndAlso Y()
+    end function
+
+    private function X() as boolean
+    private function Y() as boolean
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        Public Async Function TestWhenTrueIsUnknownAndWhenFalseIsTrue() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    function M() as string
+        return [|If(X(), Y(), true)|]
+    end function
+
+    private function X() as boolean
+    private function Y() as boolean
+end class",
+"
+Imports System
+
+class C
+    function M() as string
+        return Not X() OrElse Y()
+    end function
+
+    private function X() as boolean
+    private function Y() as boolean
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        Public Async Function TestWhenTrueIsUnknownAndWhenFalseIsFalse() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    function M() as string
+        return [|If(X(), Y(), false)|]
+    end function
+
+    private function X() as boolean
+    private function Y() as boolean
+end class",
+"
+Imports System
+
+class C
+    function M() as string
+        return X() AndAlso Y()
     end function
 
     private function X() as boolean

@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis.SimplifyConditional
         SyntaxEditorBasedCodeFixProvider
     {
         public const string Negate = nameof(Negate);
+        public const string Or = nameof(Or);
+        public const string And = nameof(And);
+        public const string WhenTrue = nameof(WhenTrue);
+        public const string WhenFalse = nameof(WhenFalse);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId);
@@ -49,11 +53,22 @@ namespace Microsoft.CodeAnalysis.SimplifyConditional
             foreach (var diagnostic in diagnostics)
             {
                 var expr = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                syntaxFacts.GetPartsOfConditionalExpression(expr, out var condition, out _, out _);
+                syntaxFacts.GetPartsOfConditionalExpression(expr, out var condition, out var whenTrue, out var whenFalse);
+
+                if (diagnostic.Properties.ContainsKey(Negate))
+                    condition = generator.Negate(condition, semanticModel, cancellationToken);
 
                 var replacement = condition;
-                if (diagnostic.Properties.ContainsKey(Negate))
-                    replacement = generator.Negate(replacement, semanticModel, cancellationToken);
+                if (diagnostic.Properties.ContainsKey(Or))
+                {
+                    var right = diagnostic.Properties.ContainsKey(WhenTrue) ? whenTrue : whenFalse;
+                    replacement = generator.LogicalOrExpression(condition, right);
+                }
+                else if (diagnostic.Properties.ContainsKey(And))
+                {
+                    var right = diagnostic.Properties.ContainsKey(WhenTrue) ? whenTrue : whenFalse;
+                    replacement = generator.LogicalAndExpression(condition, right);
+                };
 
                 editor.ReplaceNode(
                     expr, generator.AddParentheses(replacement.WithTriviaFrom(expr)));

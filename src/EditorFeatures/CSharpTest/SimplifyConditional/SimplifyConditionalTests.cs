@@ -103,7 +103,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
         public async Task TestMustBeBool2()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -120,9 +120,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
-        public async Task TestNotWithTrueTrue()
+        public async Task TestWithTrueTrue()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -135,13 +135,26 @@ class C
 
     private bool X() => throw new NotImplementedException();
     private bool Y() => throw new NotImplementedException();
+}",
+@"
+using System;
+
+class C
+{
+    bool M()
+    {
+        return X() && Y() || true;
+    }
+
+    private bool X() => throw new NotImplementedException();
+    private bool Y() => throw new NotImplementedException();
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
-        public async Task TestNotWithFalseFalse()
+        public async Task TestWithFalseFalse()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -150,6 +163,147 @@ class C
     bool M()
     {
         return [|X() && Y() ? false : false|];
+    }
+
+    private bool X() => throw new NotImplementedException();
+    private bool Y() => throw new NotImplementedException();
+}",
+@"
+using System;
+
+class C
+{
+    bool M()
+    {
+        return X() && Y() && false;
+    }
+
+    private bool X() => throw new NotImplementedException();
+    private bool Y() => throw new NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        public async Task TestWhenTrueIsTrueAndWhenFalseIsUnknown()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    string M()
+    {
+        return [|X() ? true : Y()|];
+    }
+
+    private bool X() => throw new NotImplementedException();
+    private bool Y() => throw new NotImplementedException();
+}",
+@"
+using System;
+
+class C
+{
+    string M()
+    {
+        return X() || Y();
+    }
+
+    private bool X() => throw new NotImplementedException();
+    private bool Y() => throw new NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        public async Task TestWhenTrueIsFalseAndWhenFalseIsUnknown()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    string M()
+    {
+        return [|X() ? false : Y()|];
+    }
+
+    private bool X() => throw new NotImplementedException();
+    private bool Y() => throw new NotImplementedException();
+}",
+@"
+using System;
+
+class C
+{
+    string M()
+    {
+        return !X() && Y();
+    }
+
+    private bool X() => throw new NotImplementedException();
+    private bool Y() => throw new NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        public async Task TestWhenTrueIsUnknownAndWhenFalseIsTrue()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    string M()
+    {
+        return [|X() ? Y() : true|];
+    }
+
+    private bool X() => throw new NotImplementedException();
+    private bool Y() => throw new NotImplementedException();
+}",
+@"
+using System;
+
+class C
+{
+    string M()
+    {
+        return !X() || Y();
+    }
+
+    private bool X() => throw new NotImplementedException();
+    private bool Y() => throw new NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+        public async Task TestWhenTrueIsUnknownAndWhenFalseIsFalse()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    string M()
+    {
+        return [|X() ? Y() : false|];
+    }
+
+    private bool X() => throw new NotImplementedException();
+    private bool Y() => throw new NotImplementedException();
+}",
+@"
+using System;
+
+class C
+{
+    string M()
+    {
+        return X() && Y();
     }
 
     private bool X() => throw new NotImplementedException();

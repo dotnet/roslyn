@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyConditional
 {
+    using static AbstractSimplifyConditionalCodeFixProvider;
+
     internal abstract class AbstractSimplifyConditionalDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
@@ -23,9 +25,20 @@ namespace Microsoft.CodeAnalysis.SimplifyConditional
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
     {
-        private const string Negate = AbstractSimplifyConditionalCodeFixProvider.Negate;
-        private static readonly ImmutableDictionary<string, string> s_negateProperties =
-            ImmutableDictionary<string, string>.Empty.Add(Negate, Negate);
+        private static readonly ImmutableDictionary<string, string> s_takeCondition
+            = ImmutableDictionary<string, string>.Empty;
+        private static readonly ImmutableDictionary<string, string> s_negateCondition
+            = s_takeCondition.Add(Negate, Negate);
+        private static readonly ImmutableDictionary<string, string> s_takeConditionOrWhenFalse
+            = s_takeCondition.Add(Or, Or).Add(WhenFalse, WhenFalse);
+        private static readonly ImmutableDictionary<string, string> s_negateConditionAndWhenFalse
+            = s_negateCondition.Add(And, And).Add(WhenFalse, WhenFalse);
+        private static readonly ImmutableDictionary<string, string> s_negateConditionOrWhenTrue
+            = s_negateCondition.Add(Or, Or).Add(WhenTrue, WhenTrue);
+        private static readonly ImmutableDictionary<string, string> s_takeConditionAndWhenTrue
+            = s_takeCondition.Add(And, And).Add(WhenTrue, WhenTrue);
+        private static readonly ImmutableDictionary<string, string> s_takeConditionAndWhenFalse
+            = s_takeCondition.Add(And, And).Add(WhenFalse, WhenFalse);
 
         protected AbstractSimplifyConditionalDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId,
@@ -81,27 +94,61 @@ namespace Microsoft.CodeAnalysis.SimplifyConditional
                 return;
             }
 
-            var isTrueFalsePattern = IsTrue(whenTrue) && IsFalse(whenFalse);
-            var isFalseTruePattern = IsFalse(whenTrue) && IsTrue(whenFalse);
+            var whenTrue_isTrue = IsTrue(whenTrue);
+            var whenTrue_isFalse = IsFalse(whenTrue);
 
-            if (!isTrueFalsePattern && !isFalseTruePattern)
-                return;
+            var whenFalse_isTrue = IsTrue(whenFalse);
+            var whenFalse_isFalse = IsFalse(whenFalse);
 
-            var severity = styleOption.Notification.Severity;
-            var properties = isTrueFalsePattern
-                ? ImmutableDictionary<string, string>.Empty
-                : s_negateProperties;
-
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                this.Descriptor,
-                conditionalExpression.GetLocation(),
-                severity,
-                additionalLocations: null,
-                properties));
+            if (whenTrue_isTrue && whenFalse_isFalse)
+            {
+                // c ? true : false     =>      c
+                ReportDiagnostic(s_takeCondition);
+            }
+            else if (whenTrue_isFalse && whenFalse_isTrue)
+            {
+                // c ? false : true     =>      !c
+                ReportDiagnostic(s_negateCondition);
+            }
+            else if (whenTrue_isFalse && whenFalse_isFalse)
+            {
+                // c ? false : false      =>      c && false
+                // Note: this is a slight optimization over the when `c ? false : wf`
+                // case below.  It allows to generate `c && false` instead of `!c && false`
+                ReportDiagnostic(s_takeConditionAndWhenFalse);
+            }
+            else if (whenTrue_isTrue)
+            {
+                // c ? true : wf        =>      c || wf
+                ReportDiagnostic(s_takeConditionOrWhenFalse);
+            }
+            else if (whenTrue_isFalse)
+            {
+                // c ? false : wf       =>      !c && wf
+                ReportDiagnostic(s_negateConditionAndWhenFalse);
+            }
+            else if (whenFalse_isTrue)
+            {
+                // c ? wt : true        =>      !c or wt
+                ReportDiagnostic(s_negateConditionOrWhenTrue);
+            }
+            else if (whenFalse_isFalse)
+            {
+                // c ? wt : false       =>      c && wt
+                ReportDiagnostic(s_takeConditionAndWhenTrue);
+            }
 
             return;
 
             // local functions
+
+            void ReportDiagnostic(ImmutableDictionary<string, string> properties)
+                => context.ReportDiagnostic(DiagnosticHelper.Create(
+                    this.Descriptor,
+                    conditionalExpression.GetLocation(),
+                    styleOption.Notification.Severity,
+                    additionalLocations: null,
+                    properties));
 
             bool IsSimpleBooleanType(TExpressionSyntax node)
             {
