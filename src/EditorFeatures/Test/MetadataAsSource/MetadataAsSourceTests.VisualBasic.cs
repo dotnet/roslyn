@@ -91,7 +91,7 @@ End Namespace";
             {
                 using var context = TestContext.Create(LanguageNames.VisualBasic);
                 await context.GenerateAndVerifySourceAsync("System.ValueTuple",
-@"#Region ""Assembly System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51""
+@$"#Region ""{FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51""
 ' System.ValueTuple.dll
 #End Region
 

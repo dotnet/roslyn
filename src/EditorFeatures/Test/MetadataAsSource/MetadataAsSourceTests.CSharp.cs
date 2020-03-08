@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             {
                 using var context = TestContext.Create(LanguageNames.CSharp);
                 await context.GenerateAndVerifySourceAsync("System.ValueTuple",
-@"#region Assembly System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+@$"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
 // System.ValueTuple.dll
 #endregion
 
@@ -45,9 +45,9 @@ using System;
 using System.Collections;
 
 namespace System
-{
+{{
     public struct [|ValueTuple|] : IEquatable<ValueTuple>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple>, ITupleInternal
-    {
+    {{
         public static ValueTuple Create();
         public static ValueTuple<T1> Create<T1>(T1 item1);
         public static (T1, T2) Create<T1, T2>(T1 item1, T2 item2);
@@ -62,8 +62,8 @@ namespace System
         public bool Equals(ValueTuple other);
         public override int GetHashCode();
         public override string ToString();
-    }
-}");
+    }}
+}}");
             }
         }
     }
