@@ -8,8 +8,13 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
@@ -41,8 +46,8 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
                    preferThrowExpressionOption,
                    language,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Use_throw_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             _preferThrowExpressionOption = preferThrowExpressionOption;
         }
@@ -99,8 +104,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            var semanticFacts = GetSemanticFactsService();
-            if (semanticFacts.IsInExpressionTree(semanticModel, throwStatementSyntax, expressionTypeOpt, cancellationToken))
+            if (IsInExpressionTree(semanticModel, throwStatementSyntax, expressionTypeOpt, cancellationToken))
             {
                 return;
             }
@@ -173,7 +177,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                    exprDataFlow.WrittenInside.Contains(localOrParameter);
         }
 
-        protected abstract ISemanticFactsService GetSemanticFactsService();
+        protected abstract bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
 
         private bool TryFindAssignmentExpression(
             IBlockOperation containingBlock, IConditionalOperation ifOperation, ISymbol localOrParameter,

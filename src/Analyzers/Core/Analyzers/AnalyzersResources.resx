@@ -153,6 +153,12 @@
   <data name="The_file_header_does_not_match_the_required_text" xml:space="preserve">
     <value>The file header does not match the required text</value>
   </data>
+  <data name="Use_throw_expression" xml:space="preserve">
+    <value>Use 'throw' expression</value>
+  </data>
+  <data name="Null_check_can_be_simplified" xml:space="preserve">
+    <value>Null check can be simplified</value>
+  </data>
   <data name="Naming_rule_violation_0" xml:space="preserve">
     <value>Naming rule violation: {0}</value>
     <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>
