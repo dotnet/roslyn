@@ -5,12 +5,18 @@
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using FormattingRangeHelper = Microsoft.CodeAnalysis.CSharp.Utilities.FormattingRangeHelper;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 {
@@ -22,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             : base(IDEDiagnosticIds.AddBracesDiagnosticId,
                    CSharpCodeStyleOptions.PreferBraces,
                    LanguageNames.CSharp,
-                   new LocalizableResourceString(nameof(FeaturesResources.Add_braces), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(WorkspacesResources.Add_braces_to_0_statement), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Add_braces), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Add_braces_to_0_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 

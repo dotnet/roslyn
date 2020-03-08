@@ -952,9 +952,6 @@ This version used in: {2}</value>
   <data name="Variadic_SignatureHelpItem_must_have_at_least_one_parameter" xml:space="preserve">
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
   </data>
-  <data name="Add_braces" xml:space="preserve">
-    <value>Add braces</value>
-  </data>
   <data name="Replace_0_with_method" xml:space="preserve">
     <value>Replace '{0}' with method</value>
   </data>
