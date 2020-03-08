@@ -163,9 +163,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     if (firstInterpolationToken.RawKind == startToken.RawKind && lastInterpolationToken.RawKind == endToken.RawKind)
                     {
                         // If the piece like $"foo {a} goo: }",
-                        // we remove the '$' and '"' signs to have string literal foo {a} goo:
+                        // we get the sub string between the first two caracters (whitch represent intepolation startToken)
+                        // and the last one that represent interpolation endToken 
                         // objective here is to transform the non-StringOrCharacterLiteral to a string literal
-                        var textWithoutInterpolationTokens = piece.ToString().Replace("$", "").Replace("\"", "");
+                        var pieceString = piece.ToString();
+                        var textWithoutInterpolationTokens = pieceString.Substring(2, ((pieceString.Length - 1) - 2));
                         // Then we generate new InterpolatedStringTextToken from the new string litéral 
                         // and we add it in the content list
                         content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutInterpolationTokens)));

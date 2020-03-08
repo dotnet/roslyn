@@ -939,14 +939,14 @@ class C
 {
     void M(string a, string b)
     {
-        return [|$""Foo {a} goo: "" + b|];
+        return [|$""Foo {a} goo: $ "" + b|];
     }
 }",
 @"public class C
 {
     void M(string a, string b)
     {
-        return $""Foo {a} goo: {b}"";
+        return $""Foo {a} goo: $ {b}"";
     }
 }");
         }
