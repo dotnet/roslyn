@@ -26,8 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         {
         }
 
-        protected override bool IsStringLiteralToken(SyntaxToken token)
-            => token.Kind() == SyntaxKind.StringLiteralToken;
+        protected override bool IsStringOrCharLiteralToken(SyntaxToken token)
+            => token.Kind() == SyntaxKind.StringLiteralToken ||
+               token.Kind() == SyntaxKind.CharacterLiteralToken;
 
         protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
@@ -54,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 return token.IsVerbatimStringLiteral()
                     ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
                     : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
+            }
+
+            if (token.Kind() == SyntaxKind.CharacterLiteralToken)
+            {
+                return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
             }
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
