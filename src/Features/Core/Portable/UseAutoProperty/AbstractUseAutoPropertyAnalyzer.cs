@@ -119,6 +119,13 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
+            // Serializable types can depend on fields (and their order).  Don't report these
+            // properties in that case.
+            if (containingType.IsSerializable)
+            {
+                return;
+            }
+
             var declarations = property.DeclaringSyntaxReferences;
             if (declarations.Length != 1)
             {
