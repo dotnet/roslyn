@@ -44,12 +44,12 @@ End Class", parameters)
         Public Async Function ToStringWithNoParameter() As Task
             Await TestInRegularAndScriptAsync("
 Class C
-    Sub M(someValue As String)
+    Sub M(someValue As System.DateTime)
         Dim v = $""prefix {someValue{|Unnecessary:[||].ToString()|}} suffix""
     End Sub
 End Class", "
 Class C
-    Sub M(someValue As String)
+    Sub M(someValue As System.DateTime)
         Dim v = $""prefix {someValue} suffix""
     End Sub
 End Class")
@@ -59,12 +59,12 @@ End Class")
         Public Async Function ToStringWithParameter() As Task
             Await TestInRegularAndScriptAsync("
 Class C
-    Sub M(someValue As String)
+    Sub M(someValue As System.DateTime)
         Dim v = $""prefix {someValue{|Unnecessary:[||].ToString(""|}g{|Unnecessary:"")|}} suffix""
     End Sub
 End Class", "
 Class C
-    Sub M(someValue As String)
+    Sub M(someValue As System.DateTime)
         Dim v = $""prefix {someValue:g} suffix""
     End Sub
 End Class")
@@ -74,12 +74,12 @@ End Class")
         Public Async Function ToStringWithEscapeSequences() As Task
             Await TestInRegularAndScriptAsync("
 Class C
-    Sub M(someValue As String)
+    Sub M(someValue As System.DateTime)
         Dim v = $""prefix {someValue{|Unnecessary:[||].ToString(""|}""""d""""{|Unnecessary:"")|}} suffix""
     End Sub
 End Class", "
 Class C
-    Sub M(someValue As String)
+    Sub M(someValue As System.DateTime)
         Dim v = $""prefix {someValue:""""d""""} suffix""
     End Sub
 End Class")
@@ -89,7 +89,7 @@ End Class")
         Public Async Function ToStringWithStringConstantParameter() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
-    Sub M(someValue As String)
+    Sub M(someValue As System.DateTime)
         Const someConst As String = ""some format code""
         Dim v = $""prefix {someValue[||].ToString(someConst)} suffix""
     End Sub
@@ -114,7 +114,7 @@ End Class")
         Public Async Function ToStringWithFormatProvider() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class C
-    Sub M(someValue As String)
+    Sub M(someValue As System.DateTime)
         Dim v = $""prefix {someValue[||].ToString(""some format code"", System.Globalization.CultureInfo.CurrentCulture)} suffix""
     End Sub
 End Class")

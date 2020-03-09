@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void M(string someValue)
+    void M(System.DateTime someValue)
     {
         const string someConst = ""some format code"";
         _ = $""prefix {someValue[||].ToString(someConst)} suffix"";
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void M(string someValue)
+    void M(System.DateTime someValue)
     {
         _ = $""prefix {someValue[||].ToString(""some format code"", System.Globalization.CultureInfo.CurrentCulture)} suffix"";
     }
