@@ -224,8 +224,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         commonAncestorsStack.Add(ancestor);
                     }
 
-                    // Reverse the ancestors array so that we go downwards with CompilationUnit at
-                    // the start, and then go down to this starting node.
+                    // Reverse the ancestors stack so that we go downwards with CompilationUnit at
+                    // the start, and then go down to this starting node.  This enables cheap
+                    // popping later on.
                     commonAncestorsStack.ReverseContents();
                     continue;
                 }
