@@ -458,13 +458,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">O parâmetro '{0}' pode ser removido se ele não fizer parte de uma API pública enviada. Seu valor inicial nunca é usado</target>
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
+        <target state="needs-review-translation">O parâmetro '{0}' pode ser removido se ele não fizer parte de uma API pública enviada. Seu valor inicial nunca é usado</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="translated">O parâmetro '{0}' pode ser removido. Seu valor inicial nunca é usado</target>
+        <source>Parameter '{0}' can be removed; its initial value is never used</source>
+        <target state="needs-review-translation">O parâmetro '{0}' pode ser removido. Seu valor inicial nunca é usado</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
