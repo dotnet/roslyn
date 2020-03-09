@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -29,7 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need the section syntax to get the section builder from the map. Unfortunately this is a bit awkward
                 SyntaxNode sectionSyntax = whenClauseSyntax is SwitchLabelSyntax l ? l.Parent : whenClauseSyntax;
                 bool found = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement> result);
-                Debug.Assert(found);
+                if (!found || result == null)
+                    throw new InvalidOperationException();
+
                 return result;
             }
 

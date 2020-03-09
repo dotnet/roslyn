@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class IsPatternExpressionGeneralLocalRewriter : DecisionDagRewriter
         {
-            private ArrayBuilder<BoundStatement> _statements = ArrayBuilder<BoundStatement>.GetInstance();
+            private readonly ArrayBuilder<BoundStatement> _statements = ArrayBuilder<BoundStatement>.GetInstance();
 
             public IsPatternExpressionGeneralLocalRewriter(SyntaxNode node, LocalRewriter localRewriter) : base(node, localRewriter)
             {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        static bool IsFailureNode(BoundDecisionDagNode node, LabelSymbol whenFalseLabel)
+        private static bool IsFailureNode(BoundDecisionDagNode node, LabelSymbol whenFalseLabel)
         {
             if (node is BoundWhenDecisionDagNode w)
                 node = w.WhenTrue;
