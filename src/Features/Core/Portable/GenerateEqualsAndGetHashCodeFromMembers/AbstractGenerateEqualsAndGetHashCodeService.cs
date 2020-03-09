@@ -147,6 +147,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             // If we have access to System.HashCode, then just use that.
             var hashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
+            if (hashCodeType != null && hashCodeType.DeclaredAccessibility != Accessibility.Public)
+                hashCodeType = null;
 
             var components = factory.GetGetHashCodeComponents(
                 compilation, namedType, members, justMemberReference: true);
