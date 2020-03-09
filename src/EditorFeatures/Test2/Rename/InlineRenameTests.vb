@@ -1868,5 +1868,39 @@ class [|$$Test1|]
                 VerifyFileName(workspace, "test1")
             End Using
         End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function EditBackToOriginalNameThenCommit() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                class [|$$Test1|]
+                                {
+                                    void Blah()
+                                    {
+                                        [|Test1|] f = new [|Test1|]();
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+                textBuffer.Delete(New Span(caretPosition, "Bar".Length))
+
+                Dim comitted = session.GetTestAccessor().CommitWorker(previewChanges:=False)
+                Assert.False(comitted)
+
+                Await VerifyTagsAreCorrect(workspace, "Test1")
+            End Using
+        End Function
     End Class
 End Namespace
