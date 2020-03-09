@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         // Use tri-value so the default state can be used to turn on the feature with experimentation service.
         public static readonly PerLanguageOption<bool?> TriggerInArgumentLists =
-            new PerLanguageOption<bool?>(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: true, // TODO: Switch to null
+            new PerLanguageOption<bool?>(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
         public static IEnumerable<PerLanguageOption<bool>> GetDev15CompletionOptions()

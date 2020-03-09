@@ -280,6 +280,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     var regularItems = await GetItemsWorkerAsync(completionContext, syntaxContext, document, position, inferredTypes, options, preselect: false, telemetryCounter, cancellationToken).ConfigureAwait(false);
                     completionContext.AddItems(regularItems);
 
+                    // We may or may not want to provide preselected items based on context. For example, C# avoids provide providing preselected items when
+                    // triggered via text insertion in an argument list.
                     if (await ShouldProvidePreselectedItemsAsync(completionContext, syntaxContext, document, position, inferredTypes, options).ConfigureAwait(false))
                     {
                         var preselectedItems = await GetItemsWorkerAsync(completionContext, syntaxContext, document, position, inferredTypes, options, preselect: true, telemetryCounter, cancellationToken).ConfigureAwait(false);
@@ -293,7 +295,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        internal virtual Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+        /// <summary>
+        /// The decision for whether to provide preselected items can be contextual, e.g. based on trigger character and syntax location
+        /// </summary>
+        protected virtual Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
         {
             return Task.FromResult(true);
         }

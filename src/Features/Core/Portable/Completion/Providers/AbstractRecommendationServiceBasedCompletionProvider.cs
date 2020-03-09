@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (!preselect &&
                 completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
-                context.IsInArgumentList &&
+                context.IsOnArgumentListBracketOrComma &&
                 (completionContext.Trigger.Character == ' ' || completionContext.Trigger.Character == '(' || completionContext.Trigger.Character == '['))
             {
                 rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection);

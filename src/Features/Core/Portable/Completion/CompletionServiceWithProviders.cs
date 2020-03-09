@@ -259,6 +259,12 @@ namespace Microsoft.CodeAnalysis.Completion
                     break;
             }
 
+            // Phase 1: Completion Providers decide if they are triggered based on textual analysis
+            // Phase 2: Completion Providers use syntax to confirm they are triggered, or decide they are not actually triggered and should become an augmenting provider
+            // Phase 3: Triggered Providers are asked for items
+            // Phase 4: If any items were provided, all augmenting providers are asked for items
+            // This allows a provider to be textually triggered but later decide to be an augmenting provider based on deeper syntactic analysis.
+
             var additionalAugmentingProviders = new List<CompletionProvider>();
             foreach (var provider in triggeredProviders)
             {
