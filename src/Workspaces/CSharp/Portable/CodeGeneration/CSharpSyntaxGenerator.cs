@@ -1487,7 +1487,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static readonly DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
         private static readonly DeclarationModifiers s_accessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;
-        private static readonly DeclarationModifiers s_localFunctionModifiers = DeclarationModifiers.Async | DeclarationModifiers.Static;
+
+        private static readonly DeclarationModifiers s_localFunctionModifiers =
+            DeclarationModifiers.Async |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Extern;
 
         private static DeclarationModifiers GetAllowedModifiers(SyntaxKind kind)
         {

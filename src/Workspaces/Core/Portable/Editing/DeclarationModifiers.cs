@@ -65,14 +65,14 @@ namespace Microsoft.CodeAnalysis.Editing
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic,
                 isAbstract: symbol.IsAbstract,
-                ////isNew: (property != null && property.OverriddenProperty == null) || (method != null && method.OverriddenMethod == null),
-                isReadOnly: (field != null && field.IsReadOnly) || (property != null && property.IsReadOnly),
+                isReadOnly: field?.IsReadOnly == true || property?.IsReadOnly == true,
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
                 isSealed: symbol.IsSealed,
                 isConst: field != null && field.IsConst,
                 isUnsafe: symbol.IsUnsafe(),
-                isVolatile: field != null && field.IsVolatile);
+                isVolatile: field != null && field.IsVolatile,
+                isExtern: symbol.IsExtern);
         }
 
         public bool IsStatic => (_modifiers & Modifiers.Static) != 0;
