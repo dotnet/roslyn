@@ -66,8 +66,7 @@ class c
 
                 state.SendTypeChars("[")
 
-                Await state.AssertSelectedCompletionItem(
-                    $"[  {WorkspacesResources.Regex_character_group}  ]")
+                Await state.AssertSelectedCompletionItem($"[  {WorkspacesResources.Regex_character_group}  ]")
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()
