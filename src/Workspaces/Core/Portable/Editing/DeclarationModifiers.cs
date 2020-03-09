@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 isSealed: symbol.IsSealed,
                 isConst: field != null && field.IsConst,
                 isUnsafe: symbol.IsUnsafe(),
-                isVolatile: field.IsVolatile);
+                isVolatile: field != null && field.IsVolatile);
         }
 
         public bool IsStatic => (_modifiers & Modifiers.Static) != 0;
