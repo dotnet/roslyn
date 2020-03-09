@@ -11,17 +11,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                      Optional excludedTypes As List(Of Type) = Nothing,
                                                      Optional extraExportedTypes As List(Of Type) = Nothing,
                                                      Optional includeFormatCommandHandler As Boolean = False,
-                                                     Optional languageVersion As CodeAnalysis.CSharp.LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Default) As TestState
+                                                     Optional languageVersion As CodeAnalysis.CSharp.LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Default,
+                                                     Optional showCompletionInArgumentLists As Boolean = True) As TestState
 
-            Return New TestState(<Workspace>
-                                     <Project Language="C#" CommonReferences="true" LanguageVersion=<%= DirectCast(languageVersion, Int32) %>>
-                                         <Document>
-                                             <%= documentElement.Value %>
-                                         </Document>
-                                     </Project>
-                                 </Workspace>,
+            Dim testState = New TestState(<Workspace>
+                                              <Project Language="C#" CommonReferences="true" LanguageVersion=<%= DirectCast(languageVersion, Integer) %>>
+                                                  <Document>
+                                                      <%= documentElement.Value %>
+                                                  </Document>
+                                              </Project>
+                                          </Workspace>,
                                  extraCompletionProviders, excludedTypes, extraExportedTypes,
                                  includeFormatCommandHandler, workspaceKind:=Nothing)
+
+            testState.Workspace.SetOptions(
+                testState.Workspace.Options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
+
+            Return testState
         End Function
 
         Public Shared Function CreateVisualBasicTestState(documentElement As XElement,

@@ -4,6 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -492,8 +493,9 @@ class B : A
         }
 
         [WorkItem(531107, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void InteractionWithCompletionList()
+        [WpfTheory, CombinatorialData]
+        [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void InteractionWithCompletionList(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 using System.Collections.Generic;
@@ -506,12 +508,25 @@ class C
 }
 ");
 
+            VisualStudio.Workspace.SetPerLanguageOption(
+                optionName: CompletionOptions.TriggerInArgumentLists.Name,
+                feature: CompletionOptions.TriggerInArgumentLists.Feature,
+                language: LanguageNames.CSharp,
+                value: showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("new Li");
             Assert.True(VisualStudio.Editor.IsCompletionActive());
 
-            // TODO: Split into two tests.
-            //VisualStudio.Editor.SendKeys("(", VirtualKey.Tab);
-            //VisualStudio.Editor.Verify.CurrentLineText("List<int> li = new List<int>()$$", assertCaretPosition: true);
+            if (showCompletionInArgumentLists)
+            {
+                VisualStudio.Editor.SendKeys("(", ")");
+            }
+            else
+            {
+                VisualStudio.Editor.SendKeys("(", VirtualKey.Tab);
+            }
+
+            VisualStudio.Editor.Verify.CurrentLineText("List<int> li = new List<int>()$$", assertCaretPosition: true);
         }
 
         [WorkItem(823958, "DevDiv")]

@@ -42,10 +42,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAtEndOfFile() As Task
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAtEndOfFile(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
-                              <Document>$$</Document>)
+                                <Document>$$</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("us")
                 state.SendTab()

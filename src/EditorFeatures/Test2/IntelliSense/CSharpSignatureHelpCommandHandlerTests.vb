@@ -308,8 +308,9 @@ class C
         End Function
 
         <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestKeepUserSelectedItem2() As Task
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestKeepUserSelectedItem2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class C
@@ -324,7 +325,7 @@ class C
     void M(int i, string x) { }
     void M(int i, int j, int k) { }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
@@ -334,7 +335,10 @@ class C
                 state.SendTypeChars("1, ")
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
 
-                ' TODO: Split into two tests
+                If (showCompletionInArgumentLists) Then
+                    state.SendEscape()
+                End If
+
                 state.SendDownKey()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
 
