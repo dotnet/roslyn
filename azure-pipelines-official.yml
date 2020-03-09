@@ -49,7 +49,9 @@ stages:
       displayName: Tag PR validation build
       inputs:
         type: 'Build'
-        tags: 'PRValidationBuild'
+        tags: |
+          'PRValidationBuild'
+          'PRNumber:$(PRNumber)'
       condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
     - task: PowerShell@2
