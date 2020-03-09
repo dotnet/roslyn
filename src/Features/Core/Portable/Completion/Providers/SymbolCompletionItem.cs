@@ -317,8 +317,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         internal static SymbolKind? GetKind(CompletionItem item)
             => item.Properties.TryGetValue("SymbolKind", out var kind) ? (SymbolKind?)int.Parse(kind) : null;
 
-        internal static string GetSymbolIsGeneric(CompletionItem item)
-            => item.Properties.TryGetValue("IsGeneric", out var isGeneric) ? isGeneric : null;
+        internal static bool GetSymbolIsGeneric(CompletionItem item)
+            => item.Properties.TryGetValue("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
