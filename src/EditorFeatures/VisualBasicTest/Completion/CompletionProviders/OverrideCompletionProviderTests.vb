@@ -16,8 +16,8 @@ Namespace Tests
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New OverrideCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(OverrideCompletionProvider)
         End Function
 
 #Region "CompletionItem tests"
@@ -1851,12 +1851,12 @@ public class C
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(text)
+            Using workspace = TestWorkspace.Create(text, exportProvider:=ExportProvider)
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
-                Dim service = GetCompletionService(workspace)
+                Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Invoke)
                 Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
             End Using

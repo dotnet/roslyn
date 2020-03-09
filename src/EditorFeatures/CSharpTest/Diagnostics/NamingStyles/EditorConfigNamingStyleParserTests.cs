@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.EditorConfigNamingStyleParser;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
@@ -15,24 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 {
     public class EditorConfigNamingStyleParserTests
     {
-        internal static SymbolKindOrTypeKind ToSymbolKindOrTypeKind(object symbolOrTypeKind)
-        {
-            switch (symbolOrTypeKind)
-            {
-                case TypeKind typeKind:
-                    return new SymbolKindOrTypeKind(typeKind);
-
-                case SymbolKind symbolKind:
-                    return new SymbolKindOrTypeKind(symbolKind);
-
-                case MethodKind methodKind:
-                    return new SymbolKindOrTypeKind(methodKind);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(symbolOrTypeKind);
-            }
-        }
-
         [Fact]
         public static void TestPascalCaseRule()
         {
@@ -375,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 rule["dotnet_naming_symbols.kinds.applicable_kinds"] = specification;
             }
 
-            var kinds = typeOrSymbolKinds.Select(ToSymbolKindOrTypeKind).ToArray();
+            var kinds = typeOrSymbolKinds.Select(NamingStylesTestOptionSets.ToSymbolKindOrTypeKind).ToArray();
             var result = ParseDictionary(rule);
             Assert.Equal(kinds, result.SymbolSpecifications.SelectMany(x => x.ApplicableSymbolKindList));
         }
@@ -472,6 +455,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("", namingStyle.Suffix);
             Assert.Equal("", namingStyle.WordSeparator);
             Assert.Equal(Capitalization.PascalCase, namingStyle.CapitalizationScheme);
+        }
+
+        [Fact]
+        public static void TestEditorConfigParseForApplicableSymbolKinds()
+        {
+            var symbolSpecifications = CreateDefaultSymbolSpecification();
+            foreach (var applicableSymbolKind in symbolSpecifications.ApplicableSymbolKindList)
+            {
+                var editorConfigString = EditorConfigNamingStyleParser.ToEditorConfigString(ImmutableArray.Create(applicableSymbolKind));
+                Assert.True(!string.IsNullOrEmpty(editorConfigString));
+            }
         }
     }
 }

@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 // we couldn't look up the document moniker from an hierarchy for an itemid.
                 // Since we only use this moniker as a key, we could fall back to something else, like the document name.
                 Debug.Assert(false, "Could not get the document moniker for an item from its hierarchy.");
-                if (!hierarchy.TryGetItemName(itemid, out filePath))
+                if (!hierarchy.TryGetItemName(itemid, out filePath!))
                 {
                     FatalError.Report(new System.Exception("Failed to get document moniker for a contained document"));
                 }

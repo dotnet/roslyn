@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -12,9 +13,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities.DocumentationCommentXmlNames
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Partial Friend Class XmlDocCommentCompletionProvider
+    <ExportCompletionProvider(NameOf(XmlDocCommentCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(OverrideCompletionProvider))>
+    <[Shared]>
+    Friend Class XmlDocCommentCompletionProvider
         Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(s_defaultRules)
         End Sub

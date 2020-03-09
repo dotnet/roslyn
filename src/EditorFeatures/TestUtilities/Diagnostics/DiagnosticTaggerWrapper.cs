@@ -147,7 +147,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             internal MyDiagnosticAnalyzerService(
                 ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
                 IAsynchronousOperationListener listener)
-                : base(new DiagnosticAnalyzerInfoCache(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap))),
+                : base(new DiagnosticAnalyzerInfoCache(),
+                      new HostDiagnosticAnalyzers(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap))),
                       hostDiagnosticUpdateSource: null,
                       registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
                       listener: listener)

@@ -20,5 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
         Public Sub New()
             MyBase.New(BC30610)
         End Sub
+
+        Protected Overrides Function GetClassIdentifier(classNode As ClassBlockSyntax) As SyntaxToken
+            Return classNode.ClassStatement.Identifier
+        End Function
     End Class
 End Namespace
