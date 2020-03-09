@@ -161,7 +161,10 @@ namespace Microsoft.CodeAnalysis
         /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
         /// </summary>
         /// <returns>
-        /// The returned syntax tree can be null if the <see cref="SupportsSyntaxTree"/> returns false.</returns>
+        /// The returned syntax tree can be <see langword="null"/> if the <see
+        /// cref="SupportsSyntaxTree"/> returns <see langword="false"/>. This function will return
+        /// the same value if called multiple times.
+        /// </returns>
         public Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
         {
             // If the language doesn't support getting syntax trees for a document, then bail out immediately.
@@ -221,7 +224,9 @@ namespace Microsoft.CodeAnalysis
         /// Gets the root node of the syntax tree asynchronously.
         /// </summary>
         /// <returns>
-        /// The returned <see cref="SyntaxNode"/> will be null if <see cref="SupportsSyntaxTree"/> returns false.
+        /// The returned <see cref="SyntaxNode"/> will be <see langword="null"/> if <see
+        /// cref="SupportsSyntaxTree"/> returns <see langword="false"/>.  This function will return
+        /// the same value if called multiple times.
         /// </returns>
         public async Task<SyntaxNode?> GetSyntaxRootAsync(CancellationToken cancellationToken = default)
         {
