@@ -211,14 +211,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var first = true;
             foreach (var node in nodes)
             {
-                var ancestors = node.ValueAncestorsAndSelf();
-
                 // If we're just starting, initialize the ancestors set/array with the ancestors of
                 // this node.
                 if (first)
                 {
                     first = false;
-                    foreach (var ancestor in ancestors)
+                    foreach (var ancestor in node.ValueAncestorsAndSelf())
                     {
                         commonAncestorsSet.Add(ancestor);
                         commonAncestorsStack.Add(ancestor);
