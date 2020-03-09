@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
             var name = SymbolCompletionItem.GetSymbolName(item);
             var kind = SymbolCompletionItem.GetKind(item);
-            bool.TryParse(SymbolCompletionItem.GetSymbolIsGeneric(item), out var isGeneric);
+            var isGeneric = SymbolCompletionItem.GetSymbolIsGeneric(item);
             var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
             var options = document.Project.Solution.Workspace.Options;
             var totalSymbols = await base.GetPerContextSymbolsAsync(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
