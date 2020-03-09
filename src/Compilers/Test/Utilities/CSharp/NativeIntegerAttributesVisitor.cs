@@ -131,7 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 SymbolDisplayMemberOptions.IncludeParameters |
                 SymbolDisplayMemberOptions.IncludeType |
                 SymbolDisplayMemberOptions.IncludeRef |
-                SymbolDisplayMemberOptions.IncludeExplicitInterface);
+                SymbolDisplayMemberOptions.IncludeExplicitInterface).
+            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
 
         private void ReportContainingSymbols(Symbol symbol)
         {

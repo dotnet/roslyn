@@ -316,6 +316,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.UIntEqual, input, loweredLiteral, booleanType, method: null);
                     case SpecialType.System_UInt64:
                         return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.ULongEqual, input, loweredLiteral, booleanType, method: null);
+                    case SpecialType.System_IntPtr when loweredLiteral.Type.IsNativeIntegerType:
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.NIntEqual, input, loweredLiteral, booleanType, method: null);
+                    case SpecialType.System_UIntPtr when loweredLiteral.Type.IsNativeIntegerType:
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.NUIntEqual, input, loweredLiteral, booleanType, method: null);
                     default:
                         if (loweredLiteral.Type.IsEnumType())
                         {

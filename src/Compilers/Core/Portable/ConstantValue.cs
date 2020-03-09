@@ -454,7 +454,6 @@ namespace Microsoft.CodeAnalysis
             return ConstantValueTypeDiscriminator.Bad;
         }
 
-        // PROTOTYPE: Include NInt and NUint.
         private static SpecialType GetSpecialType(ConstantValueTypeDiscriminator discriminator)
         {
             switch (discriminator)
@@ -467,6 +466,8 @@ namespace Microsoft.CodeAnalysis
                 case ConstantValueTypeDiscriminator.UInt32: return SpecialType.System_UInt32;
                 case ConstantValueTypeDiscriminator.Int64: return SpecialType.System_Int64;
                 case ConstantValueTypeDiscriminator.UInt64: return SpecialType.System_UInt64;
+                case ConstantValueTypeDiscriminator.NInt: return SpecialType.System_IntPtr;
+                case ConstantValueTypeDiscriminator.NUInt: return SpecialType.System_UIntPtr;
                 case ConstantValueTypeDiscriminator.Char: return SpecialType.System_Char;
                 case ConstantValueTypeDiscriminator.Boolean: return SpecialType.System_Boolean;
                 case ConstantValueTypeDiscriminator.Single: return SpecialType.System_Single;
@@ -508,7 +509,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        // PROTOTYPE: Include NInt and NUint.
         public static bool IsIntegralType(ConstantValueTypeDiscriminator discriminator)
         {
             switch (discriminator)
@@ -521,6 +521,8 @@ namespace Microsoft.CodeAnalysis
                 case ConstantValueTypeDiscriminator.UInt32:
                 case ConstantValueTypeDiscriminator.Int64:
                 case ConstantValueTypeDiscriminator.UInt64:
+                case ConstantValueTypeDiscriminator.NInt:
+                case ConstantValueTypeDiscriminator.NUInt:
                     return true;
 
                 default:
@@ -536,7 +538,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        // PROTOTYPE: Include NInt and NUint.
         public bool IsNegativeNumeric
         {
             get
@@ -548,6 +549,7 @@ namespace Microsoft.CodeAnalysis
                     case ConstantValueTypeDiscriminator.Int16:
                         return Int16Value < 0;
                     case ConstantValueTypeDiscriminator.Int32:
+                    case ConstantValueTypeDiscriminator.NInt:
                         return Int32Value < 0;
                     case ConstantValueTypeDiscriminator.Int64:
                         return Int64Value < 0;
@@ -564,7 +566,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        // PROTOTYPE: Include NInt and NUint.
         public bool IsNumeric
         {
             get
@@ -582,6 +583,8 @@ namespace Microsoft.CodeAnalysis
                     case ConstantValueTypeDiscriminator.UInt16:
                     case ConstantValueTypeDiscriminator.UInt32:
                     case ConstantValueTypeDiscriminator.UInt64:
+                    case ConstantValueTypeDiscriminator.NInt:
+                    case ConstantValueTypeDiscriminator.NUInt:
                         return true;
 
                     default:
@@ -590,7 +593,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        // PROTOTYPE: Include NInt and NUint.
         public static bool IsUnsignedIntegralType(ConstantValueTypeDiscriminator discriminator)
         {
             switch (discriminator)
@@ -599,6 +601,7 @@ namespace Microsoft.CodeAnalysis
                 case ConstantValueTypeDiscriminator.UInt16:
                 case ConstantValueTypeDiscriminator.UInt32:
                 case ConstantValueTypeDiscriminator.UInt64:
+                case ConstantValueTypeDiscriminator.NUInt:
                     return true;
 
                 default:
