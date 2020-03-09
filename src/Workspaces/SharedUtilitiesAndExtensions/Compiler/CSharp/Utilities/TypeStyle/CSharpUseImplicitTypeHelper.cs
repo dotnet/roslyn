@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -11,9 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
-using System;
 using Microsoft.CodeAnalysis.Operations;
-using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? variableDeclaration) &&
                 typeName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 // implicitly typed variables cannot be constants.
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 // final check to compare type information on both sides of assignment.
                 var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-                return declaredType.Equals(initializerType);
+                return Equals(declaredType, initializerType);
             }
 
             return false;
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     foreach (var arm in ((SwitchExpressionSyntax)initializer).Arms)
                     {
                         var expression = arm.Expression;
-                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpression))
+                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax? parenExpression))
                         {
                             expression = parenExpression.WalkDownParentheses();
                         }
