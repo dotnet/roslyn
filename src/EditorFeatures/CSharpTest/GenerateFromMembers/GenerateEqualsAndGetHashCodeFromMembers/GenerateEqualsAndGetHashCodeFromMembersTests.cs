@@ -2227,6 +2227,43 @@ index: 1,
 parameters: CSharp6Implicit);
         }
 
+        [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestInternalSystemHashCode()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+namespace System { internal struct HashCode { } }
+struct S
+{
+    [|int j;|]
+}",
+@"using System.Collections.Generic;
+namespace System { internal struct HashCode { } }
+struct S
+{
+    int j;
+    
+    public override bool Equals(object obj)
+    {
+        if (!(obj is S))
+        {
+            return false;
+        }
+    
+        var s = (S)obj;
+        return j == s.j;
+    }
+    
+    public override int GetHashCode()
+    {
+        return 1424088837 + j.GetHashCode();
+    }
+}",
+index: 1,
+parameters: CSharp6Implicit);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSystemHashCodeEightMembers()
         {
