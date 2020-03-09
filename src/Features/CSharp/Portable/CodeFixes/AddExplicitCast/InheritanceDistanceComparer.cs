@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
-    sealed class InheritanceDistanceComparer : IComparer<ITypeSymbol>
+    internal sealed class InheritanceDistanceComparer : IComparer<ITypeSymbol>
     {
         private readonly ITypeSymbol _baseType;
         private readonly SemanticModel _semanticModel;
