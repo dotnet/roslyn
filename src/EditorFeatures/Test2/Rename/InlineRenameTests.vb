@@ -1896,8 +1896,8 @@ class [|$$Test1|]
                 textBuffer.Insert(caretPosition, "Bar")
                 textBuffer.Delete(New Span(caretPosition, "Bar".Length))
 
-                Dim comitted = session.GetTestAccessor().CommitWorker(previewChanges:=False)
-                Assert.False(comitted)
+                Dim committed = session.GetTestAccessor().CommitWorker(previewChanges:=False)
+                Assert.False(committed)
 
                 Await VerifyTagsAreCorrect(workspace, "Test1")
             End Using
