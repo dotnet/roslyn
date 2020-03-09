@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return ImmutableArray<TSyntaxNode>.Empty;
             }
 
-            var syntaxFacts = document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpanAsync(document, selectionRaw, cancellationToken).ConfigureAwait(false);
 
             // If user selected only whitespace we don't want to return anything. We could do following:
@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 // First we need to get tokens we might potentially be touching, tokenToRightOrIn and tokenToLeft.
                 var (tokenToRightOrIn, tokenToLeft, location) = await GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
                     document, root, selectionTrimmed, cancellationToken).ConfigureAwait(false);
-
 
                 // In addition to per-node extr also check if current location (if selection is empty) is in a header of higher level
                 // desired node once. We do that only for locations because otherwise `[|int|] A { get; set; }) would trigger all refactorings for 

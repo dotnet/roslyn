@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly MethodSymbol _topLevelMethod;
 
-        internal DynamicSiteContainer(string name, MethodSymbol topLevelMethod)
-            : base(name, topLevelMethod)
+        internal DynamicSiteContainer(string name, MethodSymbol topLevelMethod, MethodSymbol containingMethod)
+            : base(name, containingMethod)
         {
             Debug.Assert(topLevelMethod != null);
             _topLevelMethod = topLevelMethod;

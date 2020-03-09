@@ -3,13 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(InternalsVisibleToCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(DeclarationNameCompletionProvider))]
+    [Shared]
     internal sealed class InternalsVisibleToCompletionProvider : AbstractInternalsVisibleToCompletionProvider
     {
+        [ImportingConstructor]
+        public InternalsVisibleToCompletionProvider()
+        {
+        }
 
         protected override IImmutableList<SyntaxNode> GetAssemblyScopedAttributeSyntaxNodesOfDocument(SyntaxNode documentRoot)
         {

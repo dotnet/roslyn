@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.WorkspaceSymbolName)]
     internal class WorkspaceSymbolsHandler : IRequestHandler<WorkspaceSymbolParams, SymbolInformation[]>
     {
+        [ImportingConstructor]
+        public WorkspaceSymbolsHandler()
+        {
+        }
+
         public async Task<SymbolInformation[]> HandleRequestAsync(Solution solution, WorkspaceSymbolParams request,
             ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {

@@ -10,6 +10,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
@@ -20,12 +21,11 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBro
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
-Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -50,7 +50,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                                             GetType(VisualStudioRuleSetManagerFactory),
                                             GetType(VsMetadataServiceFactory),
                                             GetType(VisualStudioMetadataReferenceManagerFactory),
-                                            GetType(MockWorkspaceEventListenerProvider))
+                                            GetType(MockWorkspaceEventListenerProvider),
+                                            GetType(MockDiagnosticUpdateSourceRegistrationService),
+                                            GetType(HostDiagnosticUpdateSource))
 
                 Return catalog
             End Function)
