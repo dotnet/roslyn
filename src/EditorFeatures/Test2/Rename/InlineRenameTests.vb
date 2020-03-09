@@ -1869,7 +1869,7 @@ class [|$$Test1|]
             End Using
         End Sub
 
-        <WpfFact>
+        <WpfFact, WorkItem(36063, "https://github.com/dotnet/roslyn/issues/36063")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function EditBackToOriginalNameThenCommit() As Task
             Using workspace = CreateWorkspaceWithWaiter(
