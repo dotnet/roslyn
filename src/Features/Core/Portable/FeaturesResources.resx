@@ -1541,7 +1541,7 @@ This version used in: {2}</value>
     <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
   </data>
   <data name="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
-    <value>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</value>
+    <value>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</value>
   </data>
   <data name="Parameter_0_can_be_removed_its_initial_value_is_never_used" xml:space="preserve">
     <value>Parameter '{0}' can be removed; its initial value is never used</value>

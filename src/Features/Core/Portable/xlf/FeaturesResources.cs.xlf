@@ -458,8 +458,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Parametr {0} je možné odebrat, pokud není součástí dodaného veřejného rozhraní API. Jeho počáteční hodnota se nikdy nepoužívá.</target>
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
+        <target state="needs-review-translation">Parametr {0} je možné odebrat, pokud není součástí dodaného veřejného rozhraní API. Jeho počáteční hodnota se nikdy nepoužívá.</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
