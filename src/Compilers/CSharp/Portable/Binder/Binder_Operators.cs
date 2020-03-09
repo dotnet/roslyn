@@ -1311,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static object FoldNativeIntegerBinaryOperator(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
+        private static object FoldNativeIntegerOverflowingBinaryOperator(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
         {
             Debug.Assert(valueLeft != null);
             Debug.Assert(valueRight != null);
@@ -1334,6 +1334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return valueLeft.UInt32Value * valueRight.UInt32Value;
                     case BinaryOperatorKind.NIntDivision:
                         return valueLeft.Int32Value / valueRight.Int32Value;
+                    case BinaryOperatorKind.NIntRemainder:
+                        return valueLeft.Int32Value % valueRight.Int32Value;
                 }
 
                 return null;
@@ -1654,7 +1656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                newValue = FoldNativeIntegerBinaryOperator(kind, valueLeft, valueRight);
+                newValue = FoldNativeIntegerOverflowingBinaryOperator(kind, valueLeft, valueRight);
             }
             catch (OverflowException)
             {
@@ -1963,7 +1965,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // MinValue % -1 always overflows at runtime but never at compile time
                 case BinaryOperatorKind.IntRemainder:
-                case BinaryOperatorKind.NIntRemainder:
                     return (valueRight.Int32Value != -1) ? valueLeft.Int32Value % valueRight.Int32Value : 0;
                 case BinaryOperatorKind.LongRemainder:
                     return (valueRight.Int64Value != -1) ? valueLeft.Int64Value % valueRight.Int64Value : 0;
@@ -2542,7 +2543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                newValue = FoldNativeIntegerUnaryOperator(kind, value);
+                newValue = FoldNativeIntegerOverflowingUnaryOperator(kind, value);
             }
             catch (OverflowException)
             {
@@ -2659,7 +2660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static object FoldNativeIntegerUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
+        private static object FoldNativeIntegerOverflowingUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
         {
             checked
             {
@@ -2669,7 +2670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return -value.Int32Value;
                     case UnaryOperatorKind.NIntBitwiseComplement:
                     case UnaryOperatorKind.NUIntBitwiseComplement:
-                        throw new OverflowException();
+                        return null;
                 }
             }
 
