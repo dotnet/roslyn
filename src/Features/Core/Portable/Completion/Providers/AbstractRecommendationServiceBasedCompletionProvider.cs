@@ -128,7 +128,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var totalSymbols = await base.GetPerContextSymbolsAsync(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             foreach (var (documentId, syntaxContext, symbols) in totalSymbols)
             {
-                var bestSymbols = symbols.WhereAsArray(s => kind != null && s.Kind == kind && s.Name == name && isGeneric == (s.GetArity() > 0));
+                var bestSymbols = symbols.WhereAsArray(
+                    s => kind != null && s.Kind == kind && s.Name == name && isGeneric == (s.GetArity() > 0));
 
                 if (bestSymbols.Any())
                 {
