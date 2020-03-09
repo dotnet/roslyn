@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -123,10 +124,12 @@ namespace Microsoft.CodeAnalysis
             return TryGetRootCore(out root);
         }
 
+#nullable enable
         /// <summary>
         /// Gets the root of the syntax tree if it is available.
         /// </summary>
-        protected abstract bool TryGetRootCore(out SyntaxNode root);
+        protected abstract bool TryGetRootCore([NotNullWhen(true)] out SyntaxNode? root);
+#nullable restore
 
         /// <summary>
         /// Gets the root node of the syntax tree, causing computation if necessary.
@@ -152,6 +155,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the root node of the syntax tree asynchronously.
         /// </summary>
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Public API.")]
         protected abstract Task<SyntaxNode> GetRootAsyncCore(CancellationToken cancellationToken);
 
         /// <summary>

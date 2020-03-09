@@ -92,6 +92,11 @@
         <target state="translated">等待的工作不會傳回任何值</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">無法套用變更 -- 未預期的錯誤: '{0}'</target>
@@ -135,6 +140,16 @@
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
         <target state="translated">設定 {0} 嚴重性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_0_analyzers">
+        <source>Configure severity for all '{0}' analyzers</source>
+        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_analyzers">
+        <source>Configure severity for all analyzers</source>
+        <target state="new">Configure severity for all analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -277,16 +292,6 @@
         <target state="translated">'GetHashCode' 實作可簡化</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="translated">明確實作所有介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="translated">明確實作</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">明確實作 '{0}'</target>
@@ -297,14 +302,34 @@
         <target state="translated">隱含實作 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">隱含實作所有介面</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">隱含實作</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -433,38 +458,18 @@
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">如果參數 '{0}' 不屬於已發行的公用 API，則無法予以移除，永遠不會使用其初始值</target>
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
+        <target state="needs-review-translation">如果參數 '{0}' 不屬於已發行的公用 API，則無法予以移除，永遠不會使用其初始值</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="translated">可以移除參數 '{0}'，永遠不會使用其初始值</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">因為永遠不會讀取指派給私用成員 '{0}' 的值，所以可移除該成員。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">未使用私用成員 '{0}'。</target>
+        <source>Parameter '{0}' can be removed; its initial value is never used</source>
+        <target state="needs-review-translation">可以移除參數 '{0}'，永遠不會使用其初始值</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">修改原始檔案 {0} 將防止調試會話由於內部錯誤而繼續進行: {1}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
-        <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="translated">因為永遠不會叫用私用方法 ‘{0}’，所以可予以移除。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
-        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">系統永遠不會叫用私用屬性 '{0}' 的 get 存取子，因此該屬性可以轉換成方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -492,16 +497,6 @@
         <target state="translated">移除多餘的指派</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unread_private_members">
-        <source>Remove unread private members</source>
-        <target state="translated">刪除未讀取的私用成員</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">移除未使用的成員</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_parameter">
         <source>Remove unused parameter</source>
         <target state="translated">移除未使用的參數</target>
@@ -517,14 +512,14 @@
         <target state="translated">如果未使用的參數 ‘{0}’ 不屬於已發行的公用 API，請予以移除</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_private_members">
-        <source>Remove unused private members</source>
-        <target state="translated">刪除未使用的私用成員</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">將 ‘{0}’ 取代為 ‘{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolve_conflict_markers">
+        <source>Resolve conflict markers</source>
+        <target state="new">Resolve conflict markers</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -551,6 +546,11 @@
         <source>Stream must support read and seek operations.</source>
         <target state="translated">資料流必須支援讀取及搜尋作業。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
+        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
@@ -1588,11 +1588,6 @@ Do you want to continue?</source>
 '{1}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">移除不必要的 Cast</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">簡化名稱</target>
@@ -1883,21 +1878,6 @@ Do you want to continue?</source>
         <target state="translated">新增 'this' 或 'Me' 限定性條件。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">修正名稱違規: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_rule_violation_0">
-        <source>Naming rule violation: {0}</source>
-        <target state="translated">違反命名規則: {0}</target>
-        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
-      </trans-unit>
-      <trans-unit id="Naming_Styles">
-        <source>Naming Styles</source>
-        <target state="translated">命名樣式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">來自 {0}</target>
@@ -2108,11 +2088,6 @@ This version used in: {2}</source>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(未知)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">實作抽象類別</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_framework_type">
@@ -2553,11 +2528,6 @@ This version used in: {2}</source>
       <trans-unit id="Generate_constructor_in_0_without_fields">
         <source>Generate constructor in '{0}' (without fields)</source>
         <target state="translated">在 '{0}' 產生建構函式 (不含欄位)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">新增檔案橫幅</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Method_overrides_symbol_from_metadata">

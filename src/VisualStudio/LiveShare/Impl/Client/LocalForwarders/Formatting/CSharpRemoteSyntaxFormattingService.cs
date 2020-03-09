@@ -12,6 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(ISyntaxFormattingService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspSyntaxFormattingServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpLspSyntaxFormattingServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<ISyntaxFormattingService>();

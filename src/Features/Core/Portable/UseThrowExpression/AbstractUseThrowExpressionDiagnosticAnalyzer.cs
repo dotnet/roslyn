@@ -93,14 +93,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            var options = context.Options;
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(_preferThrowExpressionOption);
+            var option = context.GetOption(_preferThrowExpressionOption);
             if (!option.Value)
             {
                 return;
@@ -180,7 +173,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                    exprDataFlow.WrittenInside.Contains(localOrParameter);
         }
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract ISemanticFactsService GetSemanticFactsService();
 
         private bool TryFindAssignmentExpression(

@@ -160,10 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             switch (type.Kind)
             {
                 case SymbolKind.ErrorType:
-                    if (type.HasUseSiteError)
-                    {
-                        _foundUsableErrorType = true;
-                    }
+                    _foundUsableErrorType = true;
                     return type;
 
                 case SymbolKind.DynamicType:

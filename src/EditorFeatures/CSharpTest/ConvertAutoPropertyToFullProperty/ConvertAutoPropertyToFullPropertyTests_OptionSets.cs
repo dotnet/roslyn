@@ -45,17 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
 
         private IDictionary<OptionKey, object> UseCustomFieldName
             => OptionsSet(
-                SingleOption(SimplificationOptions.NamingPreferences, CreateCustomFieldNamingStylePreference()),
+                SingleOption(NamingStyleOptions.NamingPreferences, CreateCustomFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         private IDictionary<OptionKey, object> UseUnderscorePrefixedFieldName
             => OptionsSet(
-                SingleOption(SimplificationOptions.NamingPreferences, CreateUnderscorePrefixedFieldNamingStylePreference()),
+                SingleOption(NamingStyleOptions.NamingPreferences, CreateUnderscorePrefixedFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         private IDictionary<OptionKey, object> UseCustomStaticFieldName
             => OptionsSet(
-                SingleOption(SimplificationOptions.NamingPreferences, CreateCustomStaticFieldNamingStylePreference()),
+                SingleOption(NamingStyleOptions.NamingPreferences, CreateCustomStaticFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         private NamingStylePreferences CreateCustomFieldNamingStylePreference()

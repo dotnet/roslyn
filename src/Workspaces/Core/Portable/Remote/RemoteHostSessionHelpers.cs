@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private void OnStatusChanged(object sender, bool started)
+        private void OnStatusChanged(object? sender, bool started)
         {
             if (started)
             {

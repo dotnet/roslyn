@@ -39,27 +39,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return results.ToImmutableAndFree();
         }
 
-        public static IEnumerable<DocumentId> GetChangedDocuments(this Solution? newSolution, Solution oldSolution)
-        {
-            if (newSolution != null)
-            {
-                var solutionChanges = newSolution.GetChanges(oldSolution);
-
-                foreach (var projectChanges in solutionChanges.GetProjectChanges())
-                {
-                    foreach (var documentId in projectChanges.GetChangedDocuments())
-                    {
-                        yield return documentId;
-                    }
-                }
-            }
-        }
-
-        public static TextDocument? GetTextDocument(this Solution solution, DocumentId? documentId)
-        {
-            return solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId) ?? solution.GetAnalyzerConfigDocument(documentId);
-        }
-
         public static TextDocumentKind? GetDocumentKind(this Solution solution, DocumentId documentId)
         {
             return solution.GetTextDocument(documentId)?.Kind;
@@ -80,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return solution.WithAdditionalDocumentText(documentId, text, mode);
 
                 case null:
-                    throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
+                    throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(documentKind);

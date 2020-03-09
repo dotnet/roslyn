@@ -2,10 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
     /// <summary>
     /// Marker interface for <see cref="PerLanguageOption{T}"/>
@@ -76,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Options
             this.StorageLocations = storageLocations.ToImmutableArray();
         }
 
-        object IOption.DefaultValue => this.DefaultValue;
+        object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => true;
 

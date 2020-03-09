@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.UseIsNullCheck
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -19,12 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
             Return True
         End Function
 
-        Protected Overrides Function GetInvocationExpressionKind() As SyntaxKind
-            Return SyntaxKind.InvocationExpression
-        End Function
-
-        Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
-            Return VisualBasicSyntaxFactsService.Instance
+        Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
+            Return VisualBasicSyntaxFacts.Instance
         End Function
     End Class
 End Namespace

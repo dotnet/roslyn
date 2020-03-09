@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeWithAnnotations ToAnnotatedTypeWithAnnotations()
         {
-            NullableAnnotation annotation = Type?.IsTypeParameterDisallowingAnnotation() == true
+            NullableAnnotation annotation = (Type?.IsTypeParameterDisallowingAnnotation() == true || Type?.IsValueType == true)
                 ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
             return TypeWithAnnotations.Create(this.Type, annotation);
         }

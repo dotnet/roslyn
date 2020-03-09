@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     [Shared]
     internal class CSharpFormattingCodeFixProvider : AbstractFormattingCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpFormattingCodeFixProvider()
+        {
+        }
+
         protected override ISyntaxFormattingService SyntaxFormattingService => new CSharpSyntaxFormattingService();
     }
 }

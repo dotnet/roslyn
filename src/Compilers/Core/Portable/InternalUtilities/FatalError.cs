@@ -7,6 +7,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 #if COMPILERCORE
 namespace Microsoft.CodeAnalysis
@@ -74,6 +75,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             s_fatalHandler = value;
         }
 
+        private static bool IsCurrentOperationBeingCancelled(Exception exception, CancellationToken cancellationToken)
+#if NET20 // CancellationToken is not defined on NET20, we have an empty stub for it to reduce the amount of conditional code.
+            => exception is OperationCanceledException;
+#else
+            => exception is OperationCanceledException && cancellationToken.IsCancellationRequested;
+#endif
+
         /// <summary>
         /// Use in an exception filter to report a fatal error. 
         /// Unless the exception is <see cref="OperationCanceledException"/> 
@@ -92,7 +100,24 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// Use in an exception filter to report a non fatal error. 
+        /// Use in an exception filter to report a fatal error. 
+        /// Calls <see cref="Handler"/> unless the operation has been cancelled. 
+        /// The exception is passed through (the method returns false).
+        /// </summary>
+        /// <returns>False to avoid catching the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportUnlessCanceled(Exception exception, CancellationToken cancellationToken)
+        {
+            if (IsCurrentOperationBeingCancelled(exception, cancellationToken))
+            {
+                return false;
+            }
+
+            return Report(exception);
+        }
+
+        /// <summary>
+        /// Use in an exception filter to report a non-fatal error. 
         /// Unless the exception is <see cref="OperationCanceledException"/> 
         /// it calls <see cref="NonFatalHandler"/>. The exception isn't passed through (the method returns true).
         /// </summary>
@@ -101,6 +126,23 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         public static bool ReportWithoutCrashUnlessCanceled(Exception exception)
         {
             if (exception is OperationCanceledException)
+            {
+                return false;
+            }
+
+            return ReportWithoutCrash(exception);
+        }
+
+        /// <summary>
+        /// Use in an exception filter to report a non-fatal error. 
+        /// Calls <see cref="NonFatalHandler"/> unless the operation has been cancelled. 
+        /// The exception isn't passed through (the method returns true).
+        /// </summary>
+        /// <returns>True to catch the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportWithoutCrashUnlessCanceled(Exception exception, CancellationToken cancellationToken)
+        {
+            if (IsCurrentOperationBeingCancelled(exception, cancellationToken))
             {
                 return false;
             }
@@ -180,6 +222,21 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return false;
         }
 
+        /// <summary>
+        /// Report a non-fatal error like <see cref="ReportWithoutCrash"/> but propagates the exception, unless the operation has been cancelled.
+        /// </summary>
+        /// <returns>False to propagate the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportWithoutCrashUnlessCanceledAndPropagate(Exception exception, CancellationToken cancellationToken)
+        {
+            if (!IsCurrentOperationBeingCancelled(exception, cancellationToken))
+            {
+                Report(exception, s_nonFatalHandler);
+            }
+
+            return false;
+        }
+
         private static readonly object s_reportedMarker = new object();
 
         private static void Report(Exception exception, Action<Exception>? handler)
@@ -199,7 +256,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 return;
             }
 
-#if !NETFX20
+#if !NET20
             if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1 && aggregate.InnerExceptions[0].Data[s_reportedMarker] != null)
             {
                 return;

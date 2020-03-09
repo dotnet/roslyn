@@ -346,8 +346,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     {
                                         var isOpen = document.IsOpen();
 
-                                        await ProcessOpenDocumentIfNeeded(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
-                                        await ProcessCloseDocumentIfNeeded(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
+                                        await ProcessOpenDocumentIfNeededAsync(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
+                                        await ProcessCloseDocumentIfNeededAsync(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
                                     }
 
                                     // check whether we are having special reanalyze request
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private async Task ProcessOpenDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
+                    private async Task ProcessOpenDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (!isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentOpened))
                         {
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await Processor.RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.DocumentOpenAsync(d, c), cancellationToken).ConfigureAwait(false);
                     }
 
-                    private async Task ProcessCloseDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
+                    private async Task ProcessCloseDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentClosed))
                         {

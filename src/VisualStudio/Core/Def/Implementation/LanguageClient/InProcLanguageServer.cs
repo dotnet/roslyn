@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName)]
-        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
         {
             // The VS LSP protocol package changed the type of 'tagSupport' from bool to an object.
             // Our version of the LSP protocol package is older and assumes that the type is bool, so deserialization fails.
@@ -79,7 +80,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
-        public Task Initialized() => Task.CompletedTask;
+        public async Task InitializedAsync()
+        {
+            // Publish diagnostics for all open documents immediately following initialization.
+            var solution = _workspace.CurrentSolution;
+            var openDocuments = _workspace.GetOpenDocumentIds();
+            foreach (var documentId in openDocuments)
+            {
+                var document = solution.GetDocument(documentId);
+                if (document != null)
+                {
+                    await PublishDiagnosticsAsync(document).ConfigureAwait(false);
+                }
+            }
+        }
 
         [JsonRpcMethod(Methods.ShutdownName)]
         public object? Shutdown(CancellationToken _) => null;
@@ -190,9 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     }
 
                     // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
-                    var diagnostics = await GetDiagnosticsAsync(e.Solution, document, CancellationToken.None).ConfigureAwait(false);
-                    var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = document.GetURI() };
-                    await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
+                    await PublishDiagnosticsAsync(document).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
@@ -200,9 +212,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private async Task<LanguageServer.Protocol.Diagnostic[]> GetDiagnosticsAsync(Solution solution, Document document, CancellationToken cancellationToken)
+        private async Task PublishDiagnosticsAsync(Document document)
         {
-            var diagnostics = _diagnosticService.GetDiagnostics(solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
+            var diagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
+            var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = document.GetURI() };
+            await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
+        }
+
+        private async Task<LanguageServer.Protocol.Diagnostic[]> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var diagnostics = _diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             return diagnostics.Select(diagnostic => new LanguageServer.Protocol.Diagnostic

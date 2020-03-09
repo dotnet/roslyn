@@ -17,12 +17,13 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static class AnalyzerHelper
+    internal static partial class AnalyzerHelper
     {
         private const string CSharpCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
         private const string VisualBasicCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer";
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
         {
             // TODO: find better way.
-            var typeString = analyzer.GetType().ToString();
+            var typeString = analyzer.GetType().FullName;
             if (typeString == CSharpCompilerAnalyzerTypeName)
             {
                 return true;
@@ -91,6 +92,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
             => analyzer.GetType().Assembly.GetName().Name;
+
+        public static OptionSet GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            return GetAnalyzerOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+        }
+
+        public static async ValueTask<OptionSet> GetAnalyzerOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+#pragma warning disable CS0612 // Type or member is obsolete
+            var optionSet = await GetDocumentOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken).ConfigureAwait(false);
+#pragma warning restore CS0612 // Type or member is obsolete
+
+            return new AnalyzerConfigOptionSet(configOptions, optionSet);
+        }
+
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, Option<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            return GetOptionAsync<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+        }
+
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            return GetOptionAsync<T>(analyzerOptions, option, language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+        }
+
+        public static async ValueTask<T> GetOptionAsync<T>(this AnalyzerOptions analyzerOptions, IOption option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            if (analyzerOptions.TryGetEditorConfigOption<T>(option, syntaxTree, out var value))
+            {
+                return value;
+            }
+
+#pragma warning disable CS0612 // Type or member is obsolete
+            var optionSet = await analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).ConfigureAwait(false);
+#pragma warning restore CS0612 // Type or member is obsolete
+            return (T)optionSet?.GetOption(new OptionKey(option, language)) ?? (T)option.DefaultValue!;
+        }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public static ValueTask<OptionSet?> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
@@ -270,7 +309,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             Document document,
             AnalysisKind kind,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
             CompilationWithAnalyzers? compilationWithAnalyzers,
             TextSpan? span,
             CancellationToken cancellationToken)
@@ -298,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // quick optimization to reduce allocations.
-            if (compilationWithAnalyzers == null || !analyzerInfoCache.SupportAnalysisKind(analyzer, document.Project.Language, kind))
+            if (compilationWithAnalyzers == null || !analyzer.SupportAnalysisKind(kind))
             {
                 if (kind == AnalysisKind.Syntax)
                 {
@@ -310,8 +348,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
-            if (kind != AnalysisKind.Syntax &&
-                analyzerInfoCache.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
+            if (kind != AnalysisKind.Syntax && analyzer.IsCompilerAnalyzer())
             {
                 var isEnabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 

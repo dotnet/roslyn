@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         protected SemanticModel _semanticModel;
-        protected ISyntaxFactsService _syntaxFacts;
+        protected ISyntaxFacts _syntaxFacts;
         protected TObjectCreationExpressionSyntax _objectCreationExpression;
         protected CancellationToken _cancellationToken;
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         public void Initialize(
             SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {

@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         public async Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
         {
-            await LoadRoslynPackage(cancellationToken).ConfigureAwait(false);
+            await LoadRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
 
             await _remoteLanguageServiceWorkspace.SetSessionAsync(collaborationSession).ConfigureAwait(false);
 
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
         }
 
-        private async Task LoadRoslynPackage(CancellationToken cancellationToken)
+        private async Task LoadRoslynPackageAsync(CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
