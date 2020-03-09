@@ -3124,7 +3124,7 @@ class C
         o = 1L;
         { if (o is long q and var i) M(i); } // System.Int64
 
-        // 2. If P is a recursive pattern that gives an explicit type, the narrowed type is that type.
+        // 3. If P is a recursive pattern that gives an explicit type, the narrowed type is that type.
         o = 1UL;
         { if (o is ulong {} and var i) M(i); } // System.UInt64
 
@@ -3152,6 +3152,7 @@ class C
         o = null;
         { if (o is null and var i) M(i); } // System.Object
         { if (o is (var x and null) and var i) M(i); } // System.Object
+        { long x = 42; if (x is 42 and var i) M(i); } // expect System.Int64
     }
     static void M<T>(T t)
     {
@@ -3172,7 +3173,8 @@ System.UInt32
 System.String
 System.Object
 System.Object
-System.Object";
+System.Object
+System.Int64";
             var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics(
                 );

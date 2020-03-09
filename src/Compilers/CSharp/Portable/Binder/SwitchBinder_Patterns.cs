@@ -240,7 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SyntaxNode innerExpression = caseLabelSyntax.Value.SkipParens();
                         bool hasErrors = node.HasErrors;
                         BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
-                            caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, SwitchGoverningValEscape, out _, out _, hasErrors, diagnostics);
+                            caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, SwitchGoverningValEscape,
+                            outputType: out _, outputValEscape: out _, hasErrors, diagnostics);
                         pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
                         reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
 

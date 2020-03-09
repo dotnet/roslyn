@@ -398,6 +398,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             case SyntaxKind.GreaterThanEqualsToken:
                             case SyntaxKind.GreaterThanToken:
                             case SyntaxKind.IdentifierToken:
+                            case SyntaxKind.OpenBraceToken:
+                            case SyntaxKind.OpenParenToken:
+                                // these all can start a pattern
                                 return false;
                             default:
                                 if (SyntaxFacts.IsBinaryExpression(tk)) return true; // `e is int and && true` is valid C# 7.0 code with `and` being a designator

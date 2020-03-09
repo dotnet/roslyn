@@ -260,6 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeTestsAndBindings(input, pattern, out _, bindings);
         }
 
+        /// <summary>
+        /// Make the tests and variable bindings for the given pattern with the given input.  The pattern's
+        /// "output" value is placed in <paramref name="output"/>.  The output is defined as the input
+        /// narrwed according to the pattern's *narrowed type*; see https://github.com/dotnet/csharplang/issues/2850.
+        /// </summary>
         private Tests MakeTestsAndBindings(
             BoundDagTemp input,
             BoundPattern pattern,

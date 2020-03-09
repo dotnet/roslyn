@@ -10465,46 +10465,109 @@ switch (e)
         }
 
         [Fact]
-        public void CastExpressionInPattern_02()
+        public void ConjunctiveFollowedByPropertyPattern_01()
         {
-            UsingStatement(@"_ = e is (int)x;",
+            UsingStatement(@"switch (e) { case {} and {}: break; }",
                 TestOptions.RegularWithPatternCombinators
                 );
-            N(SyntaxKind.ExpressionStatement);
+            N(SyntaxKind.SwitchStatement);
             {
-                N(SyntaxKind.SimpleAssignmentExpression);
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
                     {
-                        N(SyntaxKind.IdentifierToken, "_");
-                    }
-                    N(SyntaxKind.EqualsToken);
-                    N(SyntaxKind.IsPatternExpression);
-                    {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.BinaryPattern);
                         {
-                            N(SyntaxKind.IdentifierToken, "e");
-                        }
-                        N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.ConstantPattern);
-                        {
-                            N(SyntaxKind.CastExpression);
+                            N(SyntaxKind.RecursivePattern);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.PropertyPatternClause);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
                                 }
-                                N(SyntaxKind.CloseParenToken);
-                                N(SyntaxKind.IdentifierName);
+                            }
+                            N(SyntaxKind.AndKeyword);
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.PropertyPatternClause);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "x");
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
                                 }
                             }
                         }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConjunctiveFollowedByTuplePattern_01()
+        {
+            UsingStatement(@"switch (e) { case {} and (): break; }",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.BinaryPattern);
+                        {
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.PropertyPatternClause);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.AndKeyword);
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.PositionalPatternClause);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }
