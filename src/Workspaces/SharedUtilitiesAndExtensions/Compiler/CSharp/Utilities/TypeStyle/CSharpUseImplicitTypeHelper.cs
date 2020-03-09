@@ -176,13 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // It's not always safe to convert a decl expression like "Method(out int i)" to
-            // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.
-            // Have to see if using 'var' means not resolving to the same type as before.
-            // Note: this is fairly expensive, so we try to avoid this if we can by seeing if
-            // there are multiple candidates with the original call.  If not, then we don't
-            // have to do anything.
-            if (IsMatchingArgumentToSimpleMethod(declarationExpression, semanticModel, cancellationToken))
+            // First try to do the cheap check to see if we could replace this decl-expression with
+            // "var".  If not, we'll fall out below to the much more expensive case where we change
+            // the actual type to "var" and see if semantics stay the same.
+            if (IsSafeToSwitchToVarWithoutNeedingSpeculation(declarationExpression, semanticModel, cancellationToken))
                 return true;
 
             if (!semanticModel.SyntaxTree.HasCompilationUnitRoot)
@@ -215,8 +212,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 declarationType, newDeclarationType);
         }
 
-        private bool IsMatchingArgumentToSimpleMethod(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private bool IsSafeToSwitchToVarWithoutNeedingSpeculation(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            // It's not always safe to convert a decl expression like "Method(out int i)" to
+            // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.
+            // Have to see if using 'var' means not resolving to the same type as before.
+            // Note: this is fairly expensive, so we try to avoid this if we can by seeing if
+            // there are multiple candidates with the original call.  If not, then we don't
+            // have to do anything.
+
             // If there was only one member in the group, and it was non-generic itself, then this
             // change is commonly safe to make without having to actually change to `var` and
             // speculatively determine if the change is ok or not.
