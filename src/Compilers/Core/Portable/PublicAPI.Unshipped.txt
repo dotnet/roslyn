@@ -8,6 +8,7 @@ Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string
 Microsoft.CodeAnalysis.ErrorLogOptions.SarifVersion.get -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.IParameterSymbol.IsDiscard.get -> bool
 Microsoft.CodeAnalysis.OperationKind.UsingDeclaration = 108 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IObjectCreationOperation.WasTargetTyped.get -> bool
 Microsoft.CodeAnalysis.Operations.IUsingDeclarationOperation
 Microsoft.CodeAnalysis.Operations.IUsingDeclarationOperation.DeclarationGroup.get -> Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation
 Microsoft.CodeAnalysis.Operations.IUsingDeclarationOperation.IsAsynchronous.get -> bool

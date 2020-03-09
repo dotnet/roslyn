@@ -47,7 +47,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: C x1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x1 = new(3, 4)')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new(3, 4)')
-                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(3, 4)')
+                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j), WasTargetTyped) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(3, 4)')
                   Arguments(2):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '3')
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
@@ -73,7 +73,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: C x2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x2 = new(j: 3, i: 4)')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new(j: 3, i: 4)')
-                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(j: 3, i: 4)')
+                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j), WasTargetTyped) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(j: 3, i: 4)')
                   Arguments(2):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: 'j: 3')
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
@@ -99,7 +99,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: C x3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x3 = new(3, j: 4)')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new(3, j: 4)')
-                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(3, j: 4)')
+                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j), WasTargetTyped) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(3, j: 4)')
                   Arguments(2):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '3')
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
@@ -125,7 +125,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: C x4) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x4 = new(i: 3, 4)')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new(i: 3, 4)')
-                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(i: 3, 4)')
+                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j), WasTargetTyped) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(i: 3, 4)')
                   Arguments(2):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i: 3')
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
@@ -193,7 +193,7 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: F x1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x1 = new()')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new()')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new()')
+                IObjectCreationOperation (Constructor: F..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new()')
                   Arguments(0)
                   Initializer: 
                     null
@@ -205,7 +205,7 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: F x2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x2 = new() { Field = 2 }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new() { Field = 2 }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Field = 2 }')
+                IObjectCreationOperation (Constructor: F..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Field = 2 }')
                   Arguments(0)
                   Initializer: 
                     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Field = 2 }')
@@ -225,7 +225,7 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: F x3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x3 = new()  ... rty1 = """" }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new() { P ... rty1 = """" }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Property1 = """" }')
+                IObjectCreationOperation (Constructor: F..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Property1 = """" }')
                   Arguments(0)
                   Initializer: 
                     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Property1 = """" }')
@@ -245,7 +245,7 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: F x4) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x4 = new()  ... Field = 2 }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new() { P ... Field = 2 }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Pro ... Field = 2 }')
+                IObjectCreationOperation (Constructor: F..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Pro ... Field = 2 }')
                   Arguments(0)
                   Initializer: 
                     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Property1 ... Field = 2 }')
@@ -272,7 +272,7 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: F x5) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x5 = new()  ...  = true } }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new() { P ...  = true } }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Pro ...  = true } }')
+                IObjectCreationOperation (Constructor: F..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Pro ...  = true } }')
                   Arguments(0)
                   Initializer: 
                     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Property2 ...  = true } }')
@@ -303,7 +303,7 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: F e1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e1 = new()  ... erty2 = 1 }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new() { P ... erty2 = 1 }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new() { Property2 = 1 }')
+                IObjectCreationOperation (Constructor: F..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new() { Property2 = 1 }')
                   Arguments(0)
                   Initializer: 
                     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F, IsInvalid) (Syntax: '{ Property2 = 1 }')
@@ -326,7 +326,7 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: F e2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e2 = new() { """" }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new() { """" }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new() { """" }')
+                IObjectCreationOperation (Constructor: F..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new() { """" }')
                   Arguments(0)
                   Initializer: 
                     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F, IsInvalid) (Syntax: '{ """" }')
@@ -366,7 +366,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new() { x, y, field }')
+IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new() { x, y, field }')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ x, y, field }')
@@ -428,7 +428,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: 'new() { ... }')
+IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: 'new() { ... }')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '{ ... }')
@@ -463,7 +463,7 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Co
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'new() { ... }')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new() { field }')
-                  IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new() { field }')
+                  IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new() { field }')
                     Arguments(0)
                     Initializer: 
                       IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ field }')
@@ -512,7 +512,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: Class..ctor()) (OperationKind.ObjectCreation, Type: Class) (Syntax: 'new() { ... }')
+IObjectCreationOperation (Constructor: Class..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: Class) (Syntax: 'new() { ... }')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Class) (Syntax: '{ ... }')
@@ -614,7 +614,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new() { a = ... [1] = 2 } }')
+IObjectCreationOperation (Constructor: C..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new() { a = ... [1] = 2 } }')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ a = { [0] ... [1] = 2 } }')
@@ -670,7 +670,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new() { Mis ... ember = 1 }')
+IObjectCreationOperation (Constructor: C..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new() { Mis ... ember = 1 }')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ MissingMember = 1 }')
@@ -708,7 +708,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new(){ Miss ... { x = 1 } }')
+IObjectCreationOperation (Constructor: C..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new(){ Miss ... { x = 1 } }')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ MissingFi ... { x = 1 } }')
@@ -757,7 +757,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new(){ Miss ... t>() { 1 }}')
+IObjectCreationOperation (Constructor: C..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new(){ Miss ... t>() { 1 }}')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ MissingFi ... t>() { 1 }}')
@@ -989,7 +989,7 @@ class C1 : IEnumerable<int>
             var expectedDiagnostics = DiagnosticDescription.None;
 
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new() { d1 }')
+IObjectCreationOperation (Constructor: C1..ctor(), WasTargetTyped) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new() { d1 }')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: '{ d1 }')

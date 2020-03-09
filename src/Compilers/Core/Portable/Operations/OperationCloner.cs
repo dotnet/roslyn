@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitObjectCreation(IObjectCreationOperation operation, object argument)
         {
-            return new ObjectCreationOperation(operation.Constructor, Visit(operation.Initializer), VisitArray(operation.Arguments), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ObjectCreationOperation(operation.Constructor, Visit(operation.Initializer), VisitArray(operation.Arguments), operation.WasTargetTyped, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, object argument)

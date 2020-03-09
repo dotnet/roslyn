@@ -5547,7 +5547,7 @@ oneMoreTime:
             ImmutableArray<IArgumentOperation> visitedArgs = VisitArguments(operation.Arguments);
             PopStackFrame(argumentsFrame);
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
-            IOperation initializedInstance = new ObjectCreationOperation(operation.Constructor, initializer: null, visitedArgs, semanticModel: null,
+            IOperation initializedInstance = new ObjectCreationOperation(operation.Constructor, initializer: null, visitedArgs, operation.WasTargetTyped, semanticModel: null,
                                                                           operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
 
             return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance));
@@ -6860,7 +6860,7 @@ oneMoreTime:
             var makeException = (matchFailureCtor is null)
                 ? MakeInvalidOperation(operation.Syntax, type: _compilation.GetSpecialType(SpecialType.System_Object), ImmutableArray<IOperation>.Empty)
                 : new ObjectCreationOperation(
-                    matchFailureCtor, initializer: null, ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, operation.Syntax,
+                    matchFailureCtor, initializer: null, ImmutableArray<IArgumentOperation>.Empty, wasTargetTyped: false, semanticModel: null, operation.Syntax,
                     type: matchFailureCtor.ContainingType, constantValue: default, isImplicit: true);
             LinkThrowStatement(makeException);
             _currentBasicBlock = null;

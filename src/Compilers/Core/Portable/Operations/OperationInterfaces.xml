@@ -1094,6 +1094,11 @@
         </remarks>
       </Comments>
     </Property>
+    <Property Name="WasTargetTyped" Type="bool">
+        <Comments>
+            <summary>Flag indicating if this is a target-typed object creation expression.</summary>
+        </Comments>
+    </Property>
   </Node>
   <Node Name="ITypeParameterObjectCreationOperation" Base="IOperation">
     <Comments>

@@ -1327,7 +1327,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IObjectCreationOperation));
 
-            LogString($" (Constructor: {operation.Constructor?.ToTestDisplayString() ?? "<null>"})");
+            LogString(" (");
+
+            LogString($"Constructor: {operation.Constructor?.ToTestDisplayString() ?? "<null>"}");
+
+            // WasTargetTyped
+            if (operation.WasTargetTyped)
+            {
+                LogString(", WasTargetTyped");
+            }
+
+            LogString(")");
 
             LogCommonPropertiesAndNewLine(operation);
 

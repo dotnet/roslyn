@@ -1033,6 +1033,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         ImmutableArray<IArgumentOperation> Arguments { get; }
+        /// <summary>
+        /// Flag indicating if this is a target-typed object creation expression.
+        /// </summary>
+        bool WasTargetTyped { get; }
     }
     /// <summary>
     /// Represents a creation of a type parameter object, i.e. new T(), where T is a type parameter with new constraint.
@@ -4735,14 +4739,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BaseObjectCreationOperation : Operation, IObjectCreationOperation
     {
-        internal BaseObjectCreationOperation(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal BaseObjectCreationOperation(IMethodSymbol constructor, bool wasTargetTyped, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(OperationKind.ObjectCreation, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Constructor = constructor;
+            WasTargetTyped = wasTargetTyped;
         }
         public IMethodSymbol Constructor { get; }
         public abstract IObjectOrCollectionInitializerOperation Initializer { get; }
         public abstract ImmutableArray<IArgumentOperation> Arguments { get; }
+        public bool WasTargetTyped { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4759,8 +4765,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ObjectCreationOperation : BaseObjectCreationOperation, IObjectCreationOperation
     {
-        internal ObjectCreationOperation(IMethodSymbol constructor, IObjectOrCollectionInitializerOperation initializer, ImmutableArray<IArgumentOperation> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
+        internal ObjectCreationOperation(IMethodSymbol constructor, IObjectOrCollectionInitializerOperation initializer, ImmutableArray<IArgumentOperation> arguments, bool wasTargetTyped, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(constructor, wasTargetTyped, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Initializer = SetParentOperation(initializer, this);
             Arguments = SetParentOperation(arguments, this);
@@ -4772,8 +4778,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IObjectOrCollectionInitializerOperation _lazyInitializer = s_unsetObjectOrCollectionInitializer;
         private ImmutableArray<IArgumentOperation> _lazyArguments;
-        internal LazyObjectCreationOperation(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(constructor, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyObjectCreationOperation(IMethodSymbol constructor, bool wasTargetTyped, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(constructor, wasTargetTyped, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
         public override IObjectOrCollectionInitializerOperation Initializer
         {

@@ -770,7 +770,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _objectCreation As BoundObjectCreationExpression
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, objectCreation As BoundObjectCreationExpression, constructor As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(constructor, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(constructor, wasTargetTyped:=False, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _objectCreation = objectCreation
         End Sub
