@@ -165,6 +165,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private static string GetSpanText(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
             {
+                // TO-DO: Add new 'triggerText' parameter to the callers of this method via IVT so that we can get the text asynchronously instead.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1080161
                 var sourceText = document.GetTextSynchronously(cancellationToken);
                 var triggerText = sourceText.ToString(triggerSpan);
                 return triggerText;
