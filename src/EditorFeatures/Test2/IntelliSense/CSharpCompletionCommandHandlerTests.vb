@@ -44,6 +44,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
+        <WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBetweenTwoDotsInNamespaceName() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace N.O.P
+{
+}
+
+namespace N$$.P
+{
+}
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="O", isHardSelected:=False)
+            End Using
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAtEndOfFile() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
