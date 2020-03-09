@@ -39,14 +39,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     internal partial class SymbolEquivalenceComparer :
         IEqualityComparer<ISymbol>
     {
-        private readonly EquivalenceVisitor[] _equivalenceVisitors;
-        private readonly GetHashCodeVisitor[] _getHashCodeVisitors;
+        private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
+        private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
         public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false);
         public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: true);
         public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false);
 
         private readonly IEqualityComparer<IAssemblySymbol> _assemblyComparerOpt;
+        private readonly bool _tupleNamesMustMatch;
 
         public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; }
         public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; }
@@ -57,30 +58,26 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             bool tupleNamesMustMatch)
         {
             _assemblyComparerOpt = assemblyComparerOpt;
-            _tupleNamesMustMatch = 
+            _tupleNamesMustMatch = tupleNamesMustMatch;
 
             this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this, distinguishRefFromOut);
             this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);
 
             // There are only so many EquivalenceVisitors and GetHashCodeVisitors we can have.
             // Create them all up front.
-            GetEquivalenceVisitor(false, false, false);
-            GetEquivalenceVisitor(false, false, true);
-            GetEquivalenceVisitor(false, true, false);
-            GetEquivalenceVisitor(false, true, true);
-            GetEquivalenceVisitor(true, false, false);
-            GetEquivalenceVisitor(true, false, true);
-            GetEquivalenceVisitor(true, true, false);
-            GetEquivalenceVisitor(true, true, true);
+            var equivalenceVisitorsBuilder = ImmutableArray.CreateBuilder<EquivalenceVisitor>();
+            equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true));
+            equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false));
+            equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true));
+            equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false));
+            _equivalenceVisitors = equivalenceVisitorsBuilder.ToImmutable();
 
-            GetGetHashCodeVisitor(false, false, false);
-            GetGetHashCodeVisitor(false, false, true);
-            GetGetHashCodeVisitor(false, true, false);
-            GetGetHashCodeVisitor(false, true, true);
-            GetGetHashCodeVisitor(true, false, false);
-            GetGetHashCodeVisitor(true, false, true);
-            GetGetHashCodeVisitor(true, true, false);
-            GetGetHashCodeVisitor(true, true, true);
+            var getHashCodeVisitorsBuilder = ImmutableArray.CreateBuilder<GetHashCodeVisitor>();
+            getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true));
+            getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false));
+            getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true));
+            getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false));
+            _getHashCodeVisitors = getHashCodeVisitorsBuilder.ToImmutable();
         }
 
         // Very subtle logic here.  When checking if two parameters are the same, we can end up with
@@ -91,33 +88,44 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         // here.  So, instead, when asking if parameters are equal, we pass an appropriate flag so
         // that method type parameters are just compared by index and nothing else.
         private EquivalenceVisitor GetEquivalenceVisitor(
-            bool compareMethodTypeParametersByIndex = false,
-            bool objectAndDynamicCompareEqually = false,
-            bool tupleNamesMustMatch = false)
+            bool compareMethodTypeParametersByIndex = false, bool objectAndDynamicCompareEqually = false)
         {
-            var visitorIndex = GetVisitorIndex(
-                compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually, tupleNamesMustMatch);
+            var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
             return _equivalenceVisitors[visitorIndex];
         }
 
         private GetHashCodeVisitor GetGetHashCodeVisitor(
-            bool compareMethodTypeParametersByIndex = false,
-            bool objectAndDynamicCompareEqually = false,
-            bool tupleNamesMustMatch = false)
+            bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
         {
-            var visitorIndex = GetVisitorIndex(
-                compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually, tupleNamesMustMatch);
+            var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
             return _getHashCodeVisitors[visitorIndex];
         }
 
         private static int GetVisitorIndex(
-            bool compareMethodTypeParametersByIndex,
-            bool objectAndDynamicCompareEqually,
-            bool tupleNamesMustMatch)
+            bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
         {
-            return ((compareMethodTypeParametersByIndex ? 1 : 0) << 2) |
-                   ((objectAndDynamicCompareEqually ? 1 : 0) << 1) |
-                   ((tupleNamesMustMatch ? 1 : 0) << 0);
+            if (compareMethodTypeParametersByIndex)
+            {
+                if (objectAndDynamicCompareEqually)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+            else
+            {
+                if (objectAndDynamicCompareEqually)
+                {
+                    return 2;
+                }
+                else
+                {
+                    return 3;
+                }
+            }
         }
 
         public bool ReturnTypeEquals(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies = null)

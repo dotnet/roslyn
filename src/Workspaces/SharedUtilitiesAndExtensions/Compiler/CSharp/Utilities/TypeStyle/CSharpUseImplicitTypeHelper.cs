@@ -183,14 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // there are multiple candidates with the original call.  If not, then we don't
             // have to do anything.
             if (IsMatchingArgToSimpleMethod(declarationExpression, semanticModel, cancellationToken))
-            {
                 return true;
-            }
 
             if (!semanticModel.SyntaxTree.HasCompilationUnitRoot)
-            {
                 return false;
-            }
 
             // Do the expensive check.  Note: we can't use the SpeculationAnalyzer (or any
             // speculative analyzers) here.  This is due to
@@ -215,7 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var newDeclarationTypeNode = newTree.GetRoot(cancellationToken).GetAnnotatedNodes(annotation).Single();
             var newDeclarationType = newSemanticModel.GetTypeInfo(newDeclarationTypeNode, cancellationToken).Type;
 
-            return SymbolEquivalenceComparer.Instance.Equals(declarationType, newDeclarationType);
+            return SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(
+                declarationType, newDeclarationType);
         }
 
         private bool IsMatchingArgToSimpleMethod(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
