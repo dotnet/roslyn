@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new NumericValueSet<T, TTC>(RelatedInterval(relation, value, tc.MinValue, tc.MaxValue));
             }
 
+            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
+            {
+                TTC tc = default;
+                return tc.Related(relation, tc.FromConstantValue(left), tc.FromConstantValue(right));
+            }
+
             /// <summary>
             /// Produce the interval underlying the representation of the result of <see cref="NumericValueSetFactory{T, TTC}"/>.
             /// </summary>

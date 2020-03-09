@@ -265,100 +265,59 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundDagValueTest d:
                         Debug.Assert(!input.Type.IsNullableType());
-                        return makeEqualityTest(_localRewriter.MakeLiteral(d.Syntax, d.Value, input.Type), input);
+                        return MakeValueTest(d.Syntax, input, d.Value);
 
                     case BoundDagRelationalTest d:
                         Debug.Assert(!input.Type.IsNullableType());
                         Debug.Assert(input.Type.IsValueType);
-                        return makeRelationalTest(input, d.OperatorKind, _localRewriter.MakeLiteral(d.Syntax, d.Value, input.Type));
+                        return MakeRelationalTest(d.Syntax, input, d.OperatorKind, d.Value);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(test);
                 }
+            }
 
-                BoundExpression makeRelationalTest(BoundExpression input, BinaryOperatorKind operatorKind, BoundExpression literal)
+            protected BoundExpression MakeValueTest(SyntaxNode syntax, BoundExpression input, ConstantValue value)
+            {
+                TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
+                var operatorType = Binder.RelationalOperatorType(comparisonType.SpecialType);
+                Debug.Assert(operatorType != BinaryOperatorKind.Error);
+                var operatorKind = BinaryOperatorKind.Equal | operatorType;
+                return MakeRelationalTest(syntax, input, operatorKind, value);
+            }
+
+            protected BoundExpression MakeRelationalTest(SyntaxNode syntax, BoundExpression input, BinaryOperatorKind operatorKind, ConstantValue value)
+            {
+                TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
+                BoundExpression literal;
+                if (operatorKind.OperandTypes() == BinaryOperatorKind.Int && comparisonType.SpecialType != SpecialType.System_Int32)
                 {
-                    TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
-                    if (operatorKind.OperandTypes() == BinaryOperatorKind.Int && comparisonType.SpecialType != SpecialType.System_Int32)
+                    // Promote operands to int before comparison for byte, sbyte, short, ushort
+                    Debug.Assert(comparisonType.SpecialType switch
                     {
-                        // Promote operands to int before comparison for byte, sbyte, short, ushort
-                        Debug.Assert(comparisonType.SpecialType switch
-                        {
-                            SpecialType.System_Byte => true,
-                            SpecialType.System_SByte => true,
-                            SpecialType.System_Int16 => true,
-                            SpecialType.System_UInt16 => true,
-                            _ => false
-                        });
-                        comparisonType = _factory.SpecialType(SpecialType.System_Int32);
-                        input = _factory.Convert(comparisonType, input);
-                        literal = _factory.Literal(literal.ConstantValue.Int32Value);
-                    }
-
-                    return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, comparisonType, method: null);
+                        SpecialType.System_Byte => true,
+                        SpecialType.System_SByte => true,
+                        SpecialType.System_Int16 => true,
+                        SpecialType.System_UInt16 => true,
+                        _ => false
+                    });
+                    comparisonType = _factory.SpecialType(SpecialType.System_Int32);
+                    input = _factory.Convert(comparisonType, input);
+                    literal = _factory.Literal(value.Int32Value);
+                }
+                else
+                {
+                    literal = _localRewriter.MakeLiteral(syntax, value, input.Type);
                 }
 
-                BoundExpression makeEqualityTest(BoundExpression loweredLiteral, BoundExpression input)
+                if (literal.Type.SpecialType == SpecialType.System_Double && double.IsNaN(value.DoubleValue) ||
+                    literal.Type.SpecialType == SpecialType.System_Single && float.IsNaN(value.SingleValue))
                 {
-                    Debug.Assert(loweredLiteral.Type.Equals(input.Type, TypeCompareKind.AllIgnoreOptions));
-
-                    if (loweredLiteral.Type.SpecialType == SpecialType.System_Double && double.IsNaN(loweredLiteral.ConstantValue.DoubleValue))
-                    {
-                        // produce double.IsNaN(input)
-                        return _factory.StaticCall(SpecialMember.System_Double__IsNaN, input);
-                    }
-                    else if (loweredLiteral.Type.SpecialType == SpecialType.System_Single && float.IsNaN(loweredLiteral.ConstantValue.SingleValue))
-                    {
-                        // produce float.IsNaN(input)
-                        return _factory.StaticCall(SpecialMember.System_Single__IsNaN, input);
-                    }
-
-                    NamedTypeSymbol booleanType = _factory.SpecialType(SpecialType.System_Boolean);
-                    NamedTypeSymbol intType = _factory.SpecialType(SpecialType.System_Int32);
-                    switch (loweredLiteral.Type.SpecialType)
-                    {
-                        case SpecialType.System_Boolean:
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.BoolEqual, input, loweredLiteral, booleanType, method: null);
-                        case SpecialType.System_Byte:
-                        case SpecialType.System_Char:
-                        case SpecialType.System_Int16:
-                        case SpecialType.System_SByte:
-                        case SpecialType.System_UInt16:
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, _factory.Convert(intType, input), _factory.Convert(intType, loweredLiteral), booleanType, method: null);
-                        case SpecialType.System_Decimal:
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DecimalEqual, input, loweredLiteral, booleanType, method: null);
-                        case SpecialType.System_Double:
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DoubleEqual, input, loweredLiteral, booleanType, method: null);
-                        case SpecialType.System_Int32:
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, input, loweredLiteral, booleanType, method: null);
-                        case SpecialType.System_Int64:
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.LongEqual, input, loweredLiteral, booleanType, method: null);
-                        case SpecialType.System_Single:
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.FloatEqual, input, loweredLiteral, booleanType, method: null);
-                        case SpecialType.System_String:
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.StringEqual, input, loweredLiteral, booleanType, method: null);
-                        case SpecialType.System_UInt32:
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.UIntEqual, input, loweredLiteral, booleanType, method: null);
-                        case SpecialType.System_UInt64:
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.ULongEqual, input, loweredLiteral, booleanType, method: null);
-                        default:
-                            if (loweredLiteral.Type.IsEnumType())
-                            {
-                                return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.EnumEqual, input, loweredLiteral, booleanType, method: null);
-                            }
-
-                            // This is the (correct but inefficient) fallback for any type that isn't yet implemented.
-                            // However, the above should handle all types.
-                            Debug.Assert(false); // don't fail in non-debug builds
-                            NamedTypeSymbol systemObject = _factory.SpecialType(SpecialType.System_Object);
-                            return _factory.StaticCall(
-                                systemObject,
-                                "Equals",
-                                _factory.Convert(systemObject, loweredLiteral),
-                                _factory.Convert(systemObject, input)
-                                );
-                    }
+                    Debug.Assert(operatorKind.Operator() == BinaryOperatorKind.Equal);
+                    return _factory.MakeIsNanTest(input);
                 }
+
+                return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null);
             }
 
             /// <summary>

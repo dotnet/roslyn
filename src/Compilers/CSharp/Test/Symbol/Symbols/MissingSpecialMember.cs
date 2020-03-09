@@ -2145,12 +2145,12 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
             compilation.VerifyEmitDiagnostics(
-                // (13,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
-                //             case "hmm":
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""hmm""").WithArguments("System.String", "op_Equality").WithLocation(13, 18),
-                // (33,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
-                //             case "baz":
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""baz""").WithArguments("System.String", "op_Equality").WithLocation(33, 18)
+                    // (13,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                    //             case "hmm":
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""hmm""").WithArguments("System.String", "op_Equality").WithLocation(13, 18),
+                    // (33,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                    //             case "baz":
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""baz""").WithArguments("System.String", "op_Equality").WithLocation(33, 18)
                 );
         }
 

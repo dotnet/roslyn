@@ -472,64 +472,65 @@ class Program
   IL_0006:  ceq
   IL_0008:  ret
 }");
-            compVerifier.VerifyIL("Program.P5",
-@"{
-  // Code size      103 (0x67)
-  .maxstack  2
-  .locals init (object V_0,
-                double V_1,
-                float V_2,
-                object V_3,
-                bool V_4)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  stloc.3
-  IL_0003:  ldloc.3
-  IL_0004:  stloc.0
-  IL_0005:  ldloc.0
-  IL_0006:  isinst     ""double""
-  IL_000b:  brfalse.s  IL_002a
-  IL_000d:  ldloc.0
-  IL_000e:  unbox.any  ""double""
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""bool double.IsNaN(double)""
-  IL_001a:  brtrue.s   IL_004b
-  IL_001c:  ldloc.1
-  IL_001d:  ldc.r8     3.14
-  IL_0026:  beq.s      IL_0055
-  IL_0028:  br.s       IL_005f
-  IL_002a:  ldloc.0
-  IL_002b:  isinst     ""float""
-  IL_0030:  brfalse.s  IL_005f
-  IL_0032:  ldloc.0
-  IL_0033:  unbox.any  ""float""
-  IL_0038:  stloc.2
-  IL_0039:  ldloc.2
-  IL_003a:  call       ""bool float.IsNaN(float)""
-  IL_003f:  brtrue.s   IL_0050
-  IL_0041:  ldloc.2
-  IL_0042:  ldc.r4     3.14
-  IL_0047:  beq.s      IL_005a
-  IL_0049:  br.s       IL_005f
-  IL_004b:  ldc.i4.1
-  IL_004c:  stloc.s    V_4
-  IL_004e:  br.s       IL_0064
-  IL_0050:  ldc.i4.1
-  IL_0051:  stloc.s    V_4
-  IL_0053:  br.s       IL_0064
-  IL_0055:  ldc.i4.1
-  IL_0056:  stloc.s    V_4
-  IL_0058:  br.s       IL_0064
-  IL_005a:  ldc.i4.1
-  IL_005b:  stloc.s    V_4
-  IL_005d:  br.s       IL_0064
-  IL_005f:  ldc.i4.0
-  IL_0060:  stloc.s    V_4
-  IL_0062:  br.s       IL_0064
-  IL_0064:  ldloc.s    V_4
-  IL_0066:  ret
-}");
+            compVerifier.VerifyIL("Program.P5", @"
+    {
+      // Code size      103 (0x67)
+      .maxstack  2
+      .locals init (object V_0,
+                    double V_1,
+                    float V_2,
+                    object V_3,
+                    bool V_4)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  stloc.3
+      IL_0003:  ldloc.3
+      IL_0004:  stloc.0
+      IL_0005:  ldloc.0
+      IL_0006:  isinst     ""double""
+      IL_000b:  brfalse.s  IL_002a
+      IL_000d:  ldloc.0
+      IL_000e:  unbox.any  ""double""
+      IL_0013:  stloc.1
+      IL_0014:  ldloc.1
+      IL_0015:  ldc.r8     3.14
+      IL_001e:  beq.s      IL_0055
+      IL_0020:  ldloc.1
+      IL_0021:  call       ""bool double.IsNaN(double)""
+      IL_0026:  brtrue.s   IL_004b
+      IL_0028:  br.s       IL_005f
+      IL_002a:  ldloc.0
+      IL_002b:  isinst     ""float""
+      IL_0030:  brfalse.s  IL_005f
+      IL_0032:  ldloc.0
+      IL_0033:  unbox.any  ""float""
+      IL_0038:  stloc.2
+      IL_0039:  ldloc.2
+      IL_003a:  ldc.r4     3.14
+      IL_003f:  beq.s      IL_005a
+      IL_0041:  ldloc.2
+      IL_0042:  call       ""bool float.IsNaN(float)""
+      IL_0047:  brtrue.s   IL_0050
+      IL_0049:  br.s       IL_005f
+      IL_004b:  ldc.i4.1
+      IL_004c:  stloc.s    V_4
+      IL_004e:  br.s       IL_0064
+      IL_0050:  ldc.i4.1
+      IL_0051:  stloc.s    V_4
+      IL_0053:  br.s       IL_0064
+      IL_0055:  ldc.i4.1
+      IL_0056:  stloc.s    V_4
+      IL_0058:  br.s       IL_0064
+      IL_005a:  ldc.i4.1
+      IL_005b:  stloc.s    V_4
+      IL_005d:  br.s       IL_0064
+      IL_005f:  ldc.i4.0
+      IL_0060:  stloc.s    V_4
+      IL_0062:  br.s       IL_0064
+      IL_0064:  ldloc.s    V_4
+      IL_0066:  ret
+    }
+");
         }
 
         [Fact]
