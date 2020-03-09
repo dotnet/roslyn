@@ -2243,18 +2243,18 @@ namespace System { internal struct HashCode { } }
 struct S
 {
     int j;
-    
+
     public override bool Equals(object obj)
     {
         if (!(obj is S))
         {
             return false;
         }
-    
+
         var s = (S)obj;
         return j == s.j;
     }
-    
+
     public override int GetHashCode()
     {
         return 1424088837 + j.GetHashCode();
