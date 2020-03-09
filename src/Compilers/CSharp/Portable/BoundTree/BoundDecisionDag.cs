@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (state)
                 {
                     case BoundTestDecisionDagNode node:
-                        result.AppendLine($"  Test: {dump(node.Test)}");
+                        result.AppendLine($"  Test: {dumpDagTest(node.Test)}");
                         if (node.WhenTrue != null)
                         {
                             result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case BoundEvaluationDecisionDagNode node:
-                        result.AppendLine($"  Test: {dump(node.Evaluation)}");
+                        result.AppendLine($"  Test: {dumpDagTest(node.Evaluation)}");
                         if (node.Next != null)
                         {
                             result.AppendLine($"  Next: {stateIdentifierMap[node.Next]}");
@@ -264,28 +264,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             tempIdentifierMap.Free();
             return resultBuilder.ToStringAndFree();
 
-            string dump(BoundDagTest d)
+            string dumpDagTest(BoundDagTest d)
             {
                 switch (d)
                 {
                     case BoundDagTypeEvaluation a:
-                        return $"t{tempIdentifier(a)}={a.Kind} {tempName(d.Input)} as {a.Type.ToString()}";
-                    case BoundDagPropertyEvaluation e:
-                        return $"t{tempIdentifier(e)}={e.Kind} {tempName(d.Input)}.{e.Property.Name}";
-                    case BoundDagIndexEvaluation i:
-                        return $"t{tempIdentifier(i)}={i.Kind} {tempName(d.Input)}[{i.Index}]";
+                        return $"t{tempIdentifier(a)}={a.Kind}(t{tempIdentifier(a)} as {a.Type})";
                     case BoundDagEvaluation e:
-                        return $"t{tempIdentifier(e)}={e.Kind}, {tempName(d.Input)}";
+                        return $"t{tempIdentifier(e)}={e.Kind}(t{tempIdentifier(e)})";
                     case BoundDagTypeTest b:
-                        return $"?{d.Kind} {tempName(d.Input)} is {b.Type.ToString()}";
+                        return $"?{d.Kind}({tempName(d.Input)} is {b.Type})";
                     case BoundDagValueTest v:
-                        return $"?{d.Kind} {v.Value.ToString()} == {tempName(d.Input)}";
-                    case BoundDagNonNullTest t:
-                        return $"?{d.Kind} {tempName(d.Input)} != null";
-                    case BoundDagExplicitNullTest t:
-                        return $"?{d.Kind} {tempName(d.Input)} == null";
+                        return $"?{d.Kind}({tempName(d.Input)} == {v.Value})";
+                    case BoundDagRelationalTest r:
+                        var operatorName = r.Relation.Operator() switch
+                        {
+                            BinaryOperatorKind.LessThan => "<",
+                            BinaryOperatorKind.LessThanOrEqual => "<=",
+                            BinaryOperatorKind.GreaterThan => ">",
+                            BinaryOperatorKind.GreaterThanOrEqual => ">=",
+                            _ => "??"
+                        };
+                        return $"?{d.Kind}({tempName(d.Input)} {operatorName} {r.Value})";
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(d);
+                        return $"?{d.Kind}({tempName(d.Input)})";
                 }
             }
         }

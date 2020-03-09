@@ -10552,7 +10552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (leftPattern != this.LeftPattern || patternOperator != this.PatternOperator || rightPattern != this.RightPattern)
             {
-                var newNode = SyntaxFactory.BinaryPattern(leftPattern, patternOperator, rightPattern);
+                var newNode = SyntaxFactory.BinaryPattern(this.Kind, leftPattern, patternOperator, rightPattern);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -34414,8 +34414,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public BinaryPatternSyntax BinaryPattern(PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        public BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
         {
+            switch (kind)
+            {
+                case SyntaxKind.OrPattern:
+                case SyntaxKind.AndPattern: break;
+                default: throw new ArgumentException(nameof(kind));
+            }
             #if DEBUG
             if (leftPattern == null) throw new ArgumentNullException(nameof(leftPattern));
             if (patternOperator == null) throw new ArgumentNullException(nameof(patternOperator));
@@ -34429,10 +34435,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.BinaryPattern, leftPattern, patternOperator, rightPattern, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)kind, leftPattern, patternOperator, rightPattern, this.context, out hash);
             if (cached != null) return (BinaryPatternSyntax)cached;
 
-            var result = new BinaryPatternSyntax(SyntaxKind.BinaryPattern, leftPattern, patternOperator, rightPattern, this.context);
+            var result = new BinaryPatternSyntax(kind, leftPattern, patternOperator, rightPattern, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -34450,10 +34456,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.UnaryPattern, patternOperator, pattern, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.NotPattern, patternOperator, pattern, this.context, out hash);
             if (cached != null) return (UnaryPatternSyntax)cached;
 
-            var result = new UnaryPatternSyntax(SyntaxKind.UnaryPattern, patternOperator, pattern, this.context);
+            var result = new UnaryPatternSyntax(SyntaxKind.NotPattern, patternOperator, pattern, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -39058,8 +39064,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static BinaryPatternSyntax BinaryPattern(PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
         {
+            switch (kind)
+            {
+                case SyntaxKind.OrPattern:
+                case SyntaxKind.AndPattern: break;
+                default: throw new ArgumentException(nameof(kind));
+            }
             #if DEBUG
             if (leftPattern == null) throw new ArgumentNullException(nameof(leftPattern));
             if (patternOperator == null) throw new ArgumentNullException(nameof(patternOperator));
@@ -39073,10 +39085,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BinaryPattern, leftPattern, patternOperator, rightPattern, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)kind, leftPattern, patternOperator, rightPattern, out hash);
             if (cached != null) return (BinaryPatternSyntax)cached;
 
-            var result = new BinaryPatternSyntax(SyntaxKind.BinaryPattern, leftPattern, patternOperator, rightPattern);
+            var result = new BinaryPatternSyntax(kind, leftPattern, patternOperator, rightPattern);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -39094,10 +39106,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.UnaryPattern, patternOperator, pattern, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NotPattern, patternOperator, pattern, out hash);
             if (cached != null) return (UnaryPatternSyntax)cached;
 
-            var result = new UnaryPatternSyntax(SyntaxKind.UnaryPattern, patternOperator, pattern);
+            var result = new UnaryPatternSyntax(SyntaxKind.NotPattern, patternOperator, pattern);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);

@@ -8107,7 +8107,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.OrPattern);
                         {
                             N(SyntaxKind.ConstantPattern);
                             {
@@ -8156,7 +8156,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.AndPattern);
                         {
                             N(SyntaxKind.ConstantPattern);
                             {
@@ -8205,7 +8205,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.UnaryPattern);
+                        N(SyntaxKind.NotPattern);
                         {
                             N(SyntaxKind.NotKeyword);
                             N(SyntaxKind.ConstantPattern);
@@ -8247,7 +8247,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.UnaryPattern);
+                        N(SyntaxKind.NotPattern);
                         {
                             N(SyntaxKind.NotKeyword);
                             N(SyntaxKind.ConstantPattern);
@@ -8308,7 +8308,7 @@ switch (e)
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.OrPattern);
                             {
                                 N(SyntaxKind.ConstantPattern);
                                 {
@@ -8335,7 +8335,7 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.AndPattern);
                             {
                                 N(SyntaxKind.ConstantPattern);
                                 {
@@ -8362,7 +8362,7 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.UnaryPattern);
+                            N(SyntaxKind.NotPattern);
                             {
                                 N(SyntaxKind.NotKeyword);
                                 N(SyntaxKind.ConstantPattern);
@@ -8382,7 +8382,7 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.UnaryPattern);
+                            N(SyntaxKind.NotPattern);
                             {
                                 N(SyntaxKind.NotKeyword);
                                 N(SyntaxKind.ConstantPattern);
@@ -9131,7 +9131,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.OrPattern);
                         {
                             N(SyntaxKind.TypePattern);
                             {
@@ -9178,7 +9178,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.OrPattern);
                         {
                             N(SyntaxKind.TypePattern);
                             {
@@ -9236,7 +9236,7 @@ switch (e)
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.OrPattern);
                             {
                                 N(SyntaxKind.TypePattern);
                                 {
@@ -9294,7 +9294,7 @@ switch (e)
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.OrPattern);
                             {
                                 N(SyntaxKind.TypePattern);
                                 {
@@ -9496,9 +9496,9 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "c");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.OrPattern);
                         {
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.AndPattern);
                             {
                                 N(SyntaxKind.RelationalPattern);
                                 {
@@ -9519,7 +9519,7 @@ switch (e)
                                 }
                             }
                             N(SyntaxKind.OrKeyword);
-                            N(SyntaxKind.BinaryPattern);
+                            N(SyntaxKind.AndPattern);
                             {
                                 N(SyntaxKind.RelationalPattern);
                                 {
@@ -9609,7 +9609,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.AndPattern);
                         {
                             N(SyntaxKind.TypePattern);
                             {
@@ -9705,7 +9705,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.AndPattern);
                         {
                             N(SyntaxKind.TypePattern);
                             {
@@ -9760,7 +9760,7 @@ switch (e)
                             N(SyntaxKind.IdentifierToken, "e");
                         }
                         N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.AndPattern);
                         {
                             N(SyntaxKind.TypePattern);
                             {
@@ -10485,7 +10485,7 @@ switch (e)
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.AndPattern);
                         {
                             N(SyntaxKind.RecursivePattern);
                             {
@@ -10539,7 +10539,7 @@ switch (e)
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.BinaryPattern);
+                        N(SyntaxKind.AndPattern);
                         {
                             N(SyntaxKind.RecursivePattern);
                             {
@@ -10568,6 +10568,377 @@ switch (e)
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(42107, "https://github.com/dotnet/roslyn/issues/42107")]
+        public void ParenthesizedRelationalPattern_01()
+        {
+            UsingStatement(@"_ = e is (>= 1);",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.ParenthesizedPattern);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.RelationalPattern);
+                            {
+                                N(SyntaxKind.GreaterThanEqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(42107, "https://github.com/dotnet/roslyn/issues/42107")]
+        public void ParenthesizedRelationalPattern_02()
+        {
+            UsingStatement(@"_ = e switch { (>= 1) => 1 };",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.ParenthesizedPattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.RelationalPattern);
+                                {
+                                    N(SyntaxKind.GreaterThanEqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(42107, "https://github.com/dotnet/roslyn/issues/42107")]
+        public void ParenthesizedRelationalPattern_03()
+        {
+            UsingStatement(@"bool isAsciiLetter(char c) => c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z');",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.BoolKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "isAsciiLetter");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.CharKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ParenthesizedPattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AndPattern);
+                                {
+                                    N(SyntaxKind.RelationalPattern);
+                                    {
+                                        N(SyntaxKind.GreaterThanEqualsToken);
+                                        N(SyntaxKind.CharacterLiteralExpression);
+                                        {
+                                            N(SyntaxKind.CharacterLiteralToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.AndKeyword);
+                                    N(SyntaxKind.RelationalPattern);
+                                    {
+                                        N(SyntaxKind.LessThanEqualsToken);
+                                        N(SyntaxKind.CharacterLiteralExpression);
+                                        {
+                                            N(SyntaxKind.CharacterLiteralToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.ParenthesizedPattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AndPattern);
+                                {
+                                    N(SyntaxKind.RelationalPattern);
+                                    {
+                                        N(SyntaxKind.GreaterThanEqualsToken);
+                                        N(SyntaxKind.CharacterLiteralExpression);
+                                        {
+                                            N(SyntaxKind.CharacterLiteralToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.AndKeyword);
+                                    N(SyntaxKind.RelationalPattern);
+                                    {
+                                        N(SyntaxKind.LessThanEqualsToken);
+                                        N(SyntaxKind.CharacterLiteralExpression);
+                                        {
+                                            N(SyntaxKind.CharacterLiteralToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(42107, "https://github.com/dotnet/roslyn/issues/42107")]
+        public void ParenthesizedRelationalPattern_04()
+        {
+            UsingStatement(@"_ = e is (<= 1, >= 2);",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PositionalPatternClause);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Subpattern);
+                                {
+                                    N(SyntaxKind.RelationalPattern);
+                                    {
+                                        N(SyntaxKind.LessThanEqualsToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Subpattern);
+                                {
+                                    N(SyntaxKind.RelationalPattern);
+                                    {
+                                        N(SyntaxKind.GreaterThanEqualsToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "2");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AndPatternAssociativity_01()
+        {
+            UsingStatement(@"_ = e is A and B and C;",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.AndPattern);
+                        {
+                            N(SyntaxKind.AndPattern);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                }
+                                N(SyntaxKind.AndKeyword);
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.AndKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "C");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void OrPatternAssociativity_01()
+        {
+            UsingStatement(@"_ = e is A or B or C;",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.OrPattern);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                }
+                                N(SyntaxKind.OrKeyword);
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "C");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
             }
             EOF();
         }

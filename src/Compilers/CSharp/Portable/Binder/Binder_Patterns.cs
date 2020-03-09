@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            bool isDisjunction = node.PatternOperator.Kind() == SyntaxKind.OrKeyword;
+            bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
             if (isDisjunction)
             {
                 permitDesignations = false; // prevent designators under 'or'

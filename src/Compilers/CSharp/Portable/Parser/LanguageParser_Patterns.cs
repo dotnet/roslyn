@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var orToken = ConvertToKeyword(this.EatToken());
                 var right = ParseConjunctivePattern(precedence, afterIs, whenIsKeyword);
-                result = _syntaxFactory.BinaryPattern(result, orToken, right);
+                result = _syntaxFactory.BinaryPattern(SyntaxKind.OrPattern, result, orToken, right);
                 result = CheckFeatureAvailability(result, MessageID.IDS_FeatureOrPattern);
             }
 
@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             while (this.CurrentToken.ContextualKind == SyntaxKind.AndKeyword)
             {
                 var orToken = ConvertToKeyword(this.EatToken());
-                var right = ParseConjunctivePattern(precedence, afterIs, whenIsKeyword);
-                result = _syntaxFactory.BinaryPattern(result, orToken, right);
+                var right = ParseNegatedPattern(precedence, afterIs, whenIsKeyword);
+                result = _syntaxFactory.BinaryPattern(SyntaxKind.AndPattern, result, orToken, right);
                 result = CheckFeatureAvailability(result, MessageID.IDS_FeatureAndPattern);
             }
 
@@ -574,7 +574,15 @@ tryAgain:
         private bool IsPossibleSubpatternElement()
         {
             return this.IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false) ||
-                this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
+                this.CurrentToken.Kind switch
+                {
+                    SyntaxKind.OpenBraceToken => true,
+                    SyntaxKind.LessThanToken => true,
+                    SyntaxKind.LessThanEqualsToken => true,
+                    SyntaxKind.GreaterThanToken => true,
+                    SyntaxKind.GreaterThanEqualsToken => true,
+                    _ => false
+                };
         }
 
         private PostSkipAction SkipBadPatternListTokens(
