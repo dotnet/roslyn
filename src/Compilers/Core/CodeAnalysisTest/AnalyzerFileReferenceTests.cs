@@ -350,8 +350,6 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.TestGeneratorNoAttrib", typeNames);
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAGenerator", typeNames);
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.NotAGenerator", typeNames);
-
-
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]
