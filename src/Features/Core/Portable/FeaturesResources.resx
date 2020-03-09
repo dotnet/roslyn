@@ -1544,7 +1544,7 @@ This version used in: {2}</value>
     <value>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</value>
   </data>
   <data name="Parameter_0_can_be_removed_its_initial_value_is_never_used" xml:space="preserve">
-    <value>Parameter '{0}' can be removed, its initial value is never used</value>
+    <value>Parameter '{0}' can be removed; its initial value is never used</value>
   </data>
   <data name="Merge_with_nested_0_statement" xml:space="preserve">
     <value>Merge with nested '{0}' statement</value>
