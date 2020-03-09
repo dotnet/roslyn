@@ -26,7 +26,7 @@ end class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/35631"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCaretPlacement() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
