@@ -145,9 +145,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             SyntaxGenerator factory, Compilation compilation,
             INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
-            // If we have access to System.HashCode, then just use that.
+            // See if there's an accessible System.HashCode we can call into to do all the work.
             var hashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
-            if (hashCodeType?.DeclaredAccessibility != Accessibility.Public)
+            if (hashCodeType != null && !hashCodeType.IsAccessibleWithin(namedType))
                 hashCodeType = null;
 
             var components = factory.GetGetHashCodeComponents(
