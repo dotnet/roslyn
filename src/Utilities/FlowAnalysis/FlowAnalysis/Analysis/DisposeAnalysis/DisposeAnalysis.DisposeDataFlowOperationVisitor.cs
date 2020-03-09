@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 if (!location.IsNull &&
                     location.LocationTypeOpt != null &&
-                    !location.LocationTypeOpt.IsValueType &&
+                    (!location.LocationTypeOpt.IsValueType || location.LocationTypeOpt.IsRefLikeType) &&
                     IsDisposable(location.LocationTypeOpt))
                 {
                     CurrentAnalysisData[location] = value;

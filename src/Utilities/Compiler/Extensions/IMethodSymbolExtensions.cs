@@ -194,6 +194,16 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Checks if the given method matches Dispose method convention and can be recognized by "using".
+        /// </summary>
+        public static bool HasDisposeSignatureByConvention(this IMethodSymbol method)
+        {
+            return method.HasDisposeMethodSignature()
+                && !method.IsStatic
+                && !method.IsPrivate();
+        }
+
+        /// <summary>
         /// Checks if the given method has the signature "void Dispose(bool)".
         /// </summary>
         public static bool HasDisposeBoolMethodSignature(this IMethodSymbol method)
@@ -272,7 +282,12 @@ namespace Analyzer.Utilities.Extensions
             {
                 if (IsDisposeImplementation(method, iDisposable) ||
                     (Equals(method.ContainingType, iDisposable) &&
-                     method.HasDisposeMethodSignature()))
+                     method.HasDisposeMethodSignature())
+#if CODEANALYSIS_V3_OR_BETTER
+                    || (method.ContainingType.IsRefLikeType &&
+                     method.HasDisposeSignatureByConvention())
+#endif
+                )
                 {
                     return DisposeMethodKind.Dispose;
                 }
