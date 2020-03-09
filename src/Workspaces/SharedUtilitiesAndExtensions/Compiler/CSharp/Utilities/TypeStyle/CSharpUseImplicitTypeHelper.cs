@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // Note: this is fairly expensive, so we try to avoid this if we can by seeing if
             // there are multiple candidates with the original call.  If not, then we don't
             // have to do anything.
-            if (IsMatchingArgToSimpleMethod(declarationExpression, semanticModel, cancellationToken))
+            if (IsMatchingArgumentToSimpleMethod(declarationExpression, semanticModel, cancellationToken))
                 return true;
 
             if (!semanticModel.SyntaxTree.HasCompilationUnitRoot)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 declarationType, newDeclarationType);
         }
 
-        private bool IsMatchingArgToSimpleMethod(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private bool IsMatchingArgumentToSimpleMethod(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (!(declarationExpression.Parent is ArgumentSyntax argument) ||
                 !(argument.Parent is ArgumentListSyntax argumentList) ||
