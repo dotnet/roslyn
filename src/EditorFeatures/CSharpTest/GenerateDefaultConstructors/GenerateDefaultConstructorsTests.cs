@@ -938,9 +938,10 @@ abstract class B
 }");
         }
 
+        [WorkItem(35208, "https://github.com/dotnet/roslyn/issues/35208")]
         [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        public async Task TestGenerateConstructorFromPublicConstructor()
+        public async Task TestGenerateConstructorInAbstractClassFromPublicConstructor()
         {
             await TestInRegularAndScriptAsync(
 @"abstract class C : [||]B
@@ -955,7 +956,7 @@ abstract class B
 }",
 @"abstract class C : B
 {
-    public C(int x) : base(x)
+    protected C(int x) : base(x)
     {
     }
 }

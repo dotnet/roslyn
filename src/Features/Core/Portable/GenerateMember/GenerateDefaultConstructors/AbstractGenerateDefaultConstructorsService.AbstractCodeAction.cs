@@ -20,17 +20,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             private readonly IList<IMethodSymbol> _constructors;
             private readonly Document _document;
             private readonly State _state;
-            private readonly TService _service;
             private readonly string _title;
 
             protected AbstractCodeAction(
-                TService service,
                 Document document,
                 State state,
                 IList<IMethodSymbol> constructors,
                 string title)
             {
-                _service = service;
                 _document = document;
                 _state = state;
                 _constructors = constructors;
@@ -59,9 +56,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     : default;
 
                 var classType = _state.ClassType;
+
+                // If our base is abstract, and we are not, then (since we likely want to be
+                // instantiated) we make our constructor public by default.
+                //
+                // If our base constructor is public, and we're abstract, we switch to being
+                // protected as that's a more natural default for constructors in abstract classes.
+                //
+                // in all other cases, we just keep our construct in line with our base class.
+
                 var accessibility = baseConstructor.ContainingType.IsAbstractClass() && !classType.IsAbstractClass()
                     ? Accessibility.Public
-                    : baseConstructor.DeclaredAccessibility;
+                    : baseConstructor.DeclaredAccessibility == Accessibility.Public && classType.IsAbstractClass()
+                        ? Accessibility.Protected
+                        : baseConstructor.DeclaredAccessibility;
                 return CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
                     accessibility: accessibility,
