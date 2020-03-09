@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -84,14 +85,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function GenerateModifiers(constructor As IMethodSymbol, destination As CodeGenerationDestination, options As CodeGenerationOptions) As SyntaxTokenList
-            Dim tokens = New List(Of SyntaxToken)()
-            If constructor.IsStatic Then
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
-            Else
-                AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
-            End If
+            Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
+            Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
+                If constructor.IsStatic Then
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                Else
+                    AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
+                End If
 
-            Return SyntaxFactory.TokenList(tokens)
+                Return SyntaxFactory.TokenList(tokens)
+            End Using
         End Function
 
         Private Function CreateBaseConstructorCall(constructor As IMethodSymbol) As StatementSyntax
