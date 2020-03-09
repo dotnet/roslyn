@@ -3950,15 +3950,19 @@ class C
             var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().Single();
             int nodeLocation = node.Location.SourceSpan.Start;
 
-            var modifiedNode = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement("M(new());");
-            Assert.True(model.TryGetSpeculativeSemanticModel(nodeLocation, modifiedNode, out var speculativeModel));
+            var modifiedNode = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement("M(new());", options: TargetTypedObjectCreationTestOptions);
+            Assert.False(modifiedNode.HasErrors);
+
+            bool success = model.TryGetSpeculativeSemanticModel(nodeLocation, modifiedNode, out var speculativeModel);
+            Assert.True(success);
+            Assert.NotNull(speculativeModel);
 
             var newExpression = ((InvocationExpressionSyntax)modifiedNode.Expression).ArgumentList.Arguments[0].Expression;
             var symbolInfo = speculativeModel.GetSymbolInfo(newExpression);
-            Assert.True(symbolInfo.IsEmpty);
+            Assert.Equal("System.Int32..ctor()", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = speculativeModel.GetTypeInfo(newExpression);
-            Assert.True(typeInfo.ConvertedType.IsErrorType());
-            Assert.True(typeInfo.Type.IsErrorType());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
         }
     }
 }
