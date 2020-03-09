@@ -252,13 +252,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "BC", code)
         End Function
 
-        Protected Overrides Function ResolveAnalyzersFromArguments(
+        Protected Overrides Sub ResolveAnalyzersFromArguments(
             diagnostics As List(Of DiagnosticInfo),
             messageProvider As CommonMessageProvider,
-            ByRef generators As ImmutableArray(Of ISourceGenerator)) As ImmutableArray(Of DiagnosticAnalyzer)
+            ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
+            ByRef generators As ImmutableArray(Of ISourceGenerator))
 
-            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, generators)
-        End Function
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, analyzers, generators)
+        End Sub
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(
             tree As SyntaxTree,

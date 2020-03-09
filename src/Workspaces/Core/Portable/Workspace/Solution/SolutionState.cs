@@ -1117,9 +1117,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             //PROTOTYPE
-            if (_projectIdToGeneratorDriverMap.ContainsKey(projectId))
+            if (_projectIdToGeneratorDriverMap.TryGetValue(projectId, out var driver))
             {
-                var driver = _projectIdToGeneratorDriverMap[projectId];
                 driver = driver.WithGenerators(analyzerReference.GetGenerators());
                 _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
             }
@@ -1150,9 +1149,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             //PROTOTYPE
-            if (_projectIdToGeneratorDriverMap.ContainsKey(projectId))
+            if (_projectIdToGeneratorDriverMap.TryGetValue(projectId, out var driver))
             {
-                var driver = _projectIdToGeneratorDriverMap[projectId].WithGenerators(analyzerReferences.SelectMany(r => r.GetGenerators()).ToImmutableArray());
+                driver = driver.WithGenerators(analyzerReferences.SelectMany(r => r.GetGenerators()).ToImmutableArray());
                 _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
             }
 
@@ -1179,10 +1178,9 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             //PROTOTYPE:
-            if (_projectIdToGeneratorDriverMap.ContainsKey(projectId))
+            if (_projectIdToGeneratorDriverMap.TryGetValue(projectId, out var driver))
             {
                 var gensToRemove = analyzerReference.GetGenerators();
-                var driver = _projectIdToGeneratorDriverMap[projectId];
                 foreach (var generator in gensToRemove)
                 {
                     driver = driver.RemoveGenerator(generator);
@@ -1274,10 +1272,8 @@ namespace Microsoft.CodeAnalysis
                 var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProject, newDocumentStatesForProject);
 
                 // PROTOTYPE: we add the edit to the projects driver, if we have one
-                if (_projectIdToGeneratorDriverMap.ContainsKey(oldProject.Id))
+                if (_projectIdToGeneratorDriverMap.TryGetValue(oldProject.Id, out var driver))
                 {
-                    GeneratorDriver driver = _projectIdToGeneratorDriverMap[oldProject.Id]!;
-
                     var edits = newDocumentStatesForProject.SelectAsArray<T, PendingEdit>(s => new AdditionalFileAddedEdit(new AdditionalTextWithState(s)));
                     driver = driver.WithPendingEdits(edits);
 

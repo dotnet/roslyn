@@ -453,12 +453,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        //PROTOTYPE: we could also return a tuple of analyzer/generators, or have a seperate call for generators?
-        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+        internal void ResolveAnalyzersFromArguments(
             string language,
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             IAnalyzerAssemblyLoader analyzerLoader,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators)
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis
             resolvedReferences.Free();
 
             generators = generatorBuilder.ToImmutable();
-            return analyzerBuilder.ToImmutable();
+            analyzers = analyzerBuilder.ToImmutable();
         }
 
         private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)

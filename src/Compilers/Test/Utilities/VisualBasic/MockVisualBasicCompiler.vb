@@ -41,17 +41,17 @@ Friend Class MockVisualBasicCompiler
         Return RuntimeUtilities.CreateBuildPaths(workingDirectory, tempDirectory:=tempDirectory)
     End Function
 
-    Protected Overrides Function ResolveAnalyzersFromArguments(
+    Protected Overrides Sub ResolveAnalyzersFromArguments(
         diagnostics As List(Of DiagnosticInfo),
         messageProvider As CommonMessageProvider,
-        ByRef generators As ImmutableArray(Of ISourceGenerator)) As ImmutableArray(Of DiagnosticAnalyzer)
+        ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
+        ByRef generators As ImmutableArray(Of ISourceGenerator))
 
-        Dim analyzers = MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, generators)
+        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, analyzers, generators)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If
-        Return analyzers
-    End Function
+    End Sub
 
     Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger, syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
         Compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxTreeDiagnosticOptionsOpt)
