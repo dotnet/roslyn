@@ -217,16 +217,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         private bool IsMatchingArgumentToSimpleMethod(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            // If there was only one member in the group, and it was non-generic itself, then this
+            // change is commonly safe to make without having to actually change to `var` and
+            // speculatively determine if the change is ok or not.
             if (!(declarationExpression.Parent is ArgumentSyntax argument) ||
                 !(argument.Parent is ArgumentListSyntax argumentList) ||
                 !(argumentList.Parent is InvocationExpressionSyntax invocationExpression))
                 return false;
 
-            // If there was only one member in the group, and it was non-generic itself,
-            // then this change is safe to make without doing any complex analysis.
-            // Multiple methods mean that switching to 'var' might remove information
-            // that affects overload resolution.  And if the method is generic, then
-            // switching to 'var' may mean that inference might not work properly.
             var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
             if (memberGroup.Length != 1)
                 return false;
@@ -237,6 +235,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             if (!method.GetTypeParameters().IsEmpty)
                 return false;
+
+            // Looks pretty good so far.  However, this change is not allowed if the user is
+            // specifying something like `out (int x, int y) t` and the method signature has
+            // different names for those tuple elements.  Check and make sure the types are the
+            // same before proceeding.
 
             var invocationOp = semanticModel.GetOperation(invocationExpression) as IInvocationOperation;
             if (invocationOp == null)
