@@ -265,7 +265,9 @@ namespace Microsoft.CodeAnalysis
         /// Gets the semantic model for this document asynchronously.
         /// </summary>
         /// <returns>
-        /// The returned <see cref="SemanticModel"/> may be null if <see cref="SupportsSemanticModel"/> returns false.
+        /// The returned <see cref="SemanticModel"/> may be <see langword="null"/> if <see
+        /// cref="SupportsSemanticModel"/> returns <see langword="false"/>. This function will
+        /// return the same value if called multiple times.
         /// </returns>
         public async Task<SemanticModel?> GetSemanticModelAsync(CancellationToken cancellationToken = default)
         {
