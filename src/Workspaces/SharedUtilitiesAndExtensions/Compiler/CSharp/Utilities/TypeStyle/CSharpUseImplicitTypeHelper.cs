@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 // final check to compare type information on both sides of assignment.
                 var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-                return Equals(declaredType, initializerType);
+                return declaredType != null && declaredType.Equals(initializerType);
             }
 
             return false;
