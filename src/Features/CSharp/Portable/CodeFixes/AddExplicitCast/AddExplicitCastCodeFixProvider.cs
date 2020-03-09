@@ -170,8 +170,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
                 {
-                    if (CanArgumentTypesBeConvertedToParameterTypes(semanticModel, argumentList.Arguments,
-                        candidateSymbol.Parameters, targetArgument, cancellationToken, out var paramIndex))
+                    if (CanArgumentTypesBeConvertedToParameterTypes(
+                            semanticModel, argumentList.Arguments,
+                            candidateSymbol.Parameters, targetArgument,
+                            cancellationToken, out var paramIndex))
                     {
                         var correspondingParameter = candidateSymbol.Parameters[paramIndex];
                         var argumentConversionType = correspondingParameter.Type;
