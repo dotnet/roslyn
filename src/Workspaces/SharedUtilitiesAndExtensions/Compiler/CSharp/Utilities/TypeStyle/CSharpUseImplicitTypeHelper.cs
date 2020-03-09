@@ -227,7 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             if (!(declarationExpression.Parent is ArgumentSyntax argument) ||
                 !(argument.Parent is ArgumentListSyntax argumentList) ||
                 !(argumentList.Parent is InvocationExpressionSyntax invocationExpression))
+            {
                 return false;
+            }
 
             var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
             if (memberGroup.Length != 1)
