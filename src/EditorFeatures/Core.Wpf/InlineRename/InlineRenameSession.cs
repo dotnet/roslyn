@@ -690,6 +690,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             VerifyNotDismissed();
 
             // If the identifier was deleted (or didn't change at all) then cancel the operation.
+            // Note: an alternative approach would be for the work we're doing (like detecting
+            // conflicts) to quickly bail in the case of no change.  However, that involves deeper
+            // changes to the system and is less easy to validate that nothing happens.
+            //
+            // The only potential downside here would be if there was a language that wanted to
+            // still 'rename' even if the identifier went away (or was unchanged).  But that  isn't
+            // a case we're aware of, so it's fine to be opinionated here that we can quickly bail
+            // in these cases.
             if (this.ReplacementText == string.Empty ||
                 this.ReplacementText == _initialRenameText)
             {
