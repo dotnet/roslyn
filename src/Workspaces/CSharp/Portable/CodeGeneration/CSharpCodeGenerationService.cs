@@ -663,9 +663,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             // TODO: Move more APIs to use pooled ArrayBuilder
             // https://github.com/dotnet/roslyn/issues/34960
-            var list = newModifierTokens.ToList();
-            return GetUpdatedDeclarationAccessibilityModifiers(list, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
-                .ToSyntaxTokenList();
+            return GetUpdatedDeclarationAccessibilityModifiers(
+                newModifierTokens, modifiersList,
+                modifier => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()));
         }
 
         public override TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken)
