@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -32,20 +33,36 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [Obsolete("Used for backwards compatibility with old liveshare clients.")]
     internal class RoslynClassificationsHandler : ClassificationsHandler
     {
+        [ImportingConstructor]
+        public RoslynClassificationsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, RoslynMethods.ClassificationsName)]
     internal class CSharpClassificationsHandler : ClassificationsHandler
     {
+        [ImportingConstructor]
+        public CSharpClassificationsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, RoslynMethods.ClassificationsName)]
     internal class VisualBasicClassificationsHandler : ClassificationsHandler
     {
+        [ImportingConstructor]
+        public VisualBasicClassificationsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, RoslynMethods.ClassificationsName)]
     internal class TypeScriptClassificationsHandler : ClassificationsHandler
     {
+        [ImportingConstructor]
+        public TypeScriptClassificationsHandler()
+        {
+        }
     }
 }

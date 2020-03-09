@@ -4,15 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
@@ -34,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             _vbHelperFormattingRule = vbHelperFormattingRule;
         }
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
         {
             // for the common node itself, return absolute indentation
             if (_commonNode == node)
@@ -51,21 +46,21 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             }
 
             // Add everything to the list.
-            AddNextIndentBlockOperations(list, node, optionSet, in nextOperation);
+            AddNextIndentBlockOperations(list, node, options, in nextOperation);
 
             // Filter out everything that encompasses our span.
             AdjustIndentBlockOperation(list);
         }
 
-        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
+        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
         {
             if (_vbHelperFormattingRule == null)
             {
-                base.AddIndentBlockOperations(list, node, optionSet, in nextOperation);
+                base.AddIndentBlockOperations(list, node, options, in nextOperation);
                 return;
             }
 
-            _vbHelperFormattingRule.AddIndentBlockOperations(list, node, optionSet, in nextOperation);
+            _vbHelperFormattingRule.AddIndentBlockOperations(list, node, options, in nextOperation);
         }
 
         private void AdjustIndentBlockOperation(List<IndentBlockOperation> list)

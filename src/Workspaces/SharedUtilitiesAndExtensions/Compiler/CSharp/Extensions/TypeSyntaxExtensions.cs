@@ -9,10 +9,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static partial class TypeSyntaxExtensions
     {
         public static bool IsVoid(this TypeSyntax typeSyntax)
-        {
-            return typeSyntax.IsKind(SyntaxKind.PredefinedType) &&
-                ((PredefinedTypeSyntax)typeSyntax).Keyword.IsKind(SyntaxKind.VoidKeyword);
-        }
+            => typeSyntax.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType) &&
+               predefinedType.Keyword.IsKind(SyntaxKind.VoidKeyword);
 
         public static bool IsPartial(this TypeSyntax typeSyntax)
         {

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseCompoundAssignment;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
         : AbstractUseCompoundAssignmentDiagnosticAnalyzer<SyntaxKind, AssignmentExpressionSyntax, BinaryExpressionSyntax>
     {
         public CSharpUseCompoundAssignmentDiagnosticAnalyzer()
-            : base(CSharpSyntaxFactsService.Instance, Utilities.Kinds)
+            : base(CSharpSyntaxFacts.Instance, Utilities.Kinds)
         {
         }
 

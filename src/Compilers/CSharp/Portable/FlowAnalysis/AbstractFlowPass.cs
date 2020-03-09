@@ -3000,7 +3000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
-            TLocalState savedState;
+            TLocalState leftState;
             if (RegularPropertyAccess(node.LeftOperand) &&
                 (BoundPropertyAccess)node.LeftOperand is var left &&
                 left.PropertySymbol is var property &&
@@ -3011,17 +3011,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
                 VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
 
-                savedState = this.State.Clone();
+                var savedState = this.State.Clone();
+                AdjustStateForNullCoalescingAssignmentNonNullCase(node);
+                leftState = this.State.Clone();
+                SetState(savedState);
                 VisitAssignmentOfNullCoalescingAssignment(node, left);
             }
             else
             {
                 VisitRvalue(node.LeftOperand, isKnownToBeAnLvalue: true);
-                savedState = this.State.Clone();
+                var savedState = this.State.Clone();
+                AdjustStateForNullCoalescingAssignmentNonNullCase(node);
+                leftState = this.State.Clone();
+                SetState(savedState);
                 VisitAssignmentOfNullCoalescingAssignment(node, propertyAccessOpt: null);
             }
 
-            Join(ref this.State, ref savedState);
+            Join(ref this.State, ref leftState);
             return null;
         }
 
@@ -3046,6 +3052,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var writeMethod = symbol.GetOwnOrInheritedSetMethod();
                 PropertySetter(node, propertyAccessOpt.ReceiverOpt, writeMethod);
             }
+        }
+
+        /// <summary>
+        /// This visitor represents just the non-assignment part of the null coalescing assignment
+        /// operator (when the left operand is non-null).
+        /// </summary>
+        protected virtual void AdjustStateForNullCoalescingAssignmentNonNullCase(BoundNullCoalescingAssignmentOperator node)
+        {
         }
 
         private void VisitMethodBodies(BoundBlock blockBody, BoundBlock expressionBody)

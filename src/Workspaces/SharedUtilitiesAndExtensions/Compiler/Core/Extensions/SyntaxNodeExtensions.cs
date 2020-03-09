@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             while (nodes.Count > 0)
             {
-                var currentNode = nodes.First.Value;
+                var currentNode = nodes.First!.Value;
                 nodes.RemoveFirst();
 
                 if (currentNode != null && searchSpan.Contains(currentNode.FullSpan) && predicate(currentNode))
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <summary>
         /// Returns true if this node is found underneath the specified child in the given parent.
         /// </summary>
-        public static bool IsFoundUnder<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode> childGetter)
+        public static bool IsFoundUnder<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode?> childGetter)
            where TParent : SyntaxNode
         {
             var ancestor = node.GetAncestor<TParent>();

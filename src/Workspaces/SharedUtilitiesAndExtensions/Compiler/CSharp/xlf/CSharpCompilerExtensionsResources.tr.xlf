@@ -7,6 +7,11 @@
         <target state="new">Code-block preferences</target>
         <note />
       </trans-unit>
+      <trans-unit id="Expected_string_or_char_literal">
+        <source>Expected string or char literal</source>
+        <target state="new">Expected string or char literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_bodied_members">
         <source>Expression-bodied members</source>
         <target state="new">Expression-bodied members</target>

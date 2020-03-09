@@ -92,11 +92,6 @@
         <target state="translated">&lt;여러 형식&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">불필요한 Imports 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">여기에 이름을 입력하여 새 필드를 선언하세요.</target>
@@ -1535,11 +1530,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
         <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
         <target state="translated">TODO: 위의 Finalize()가 재정의된 경우 다음 줄의 주석 처리를 제거합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports 문은 필요하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">

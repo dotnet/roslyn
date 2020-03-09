@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var tracker = new FileChangeTracker(_fileChangeService, filePath, _VSFILECHANGEFLAGS.VSFILECHG_Add);
                 tracker.UpdatedOnDisk += OnFileAdded;
-                tracker.StartFileChangeListeningAsync();
+                _ = tracker.StartFileChangeListeningAsync();
                 return tracker;
             }
         }

@@ -11,6 +11,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageService(typeof(IRenameTrackingLanguageHeuristicsService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspRenameTrackingLanguageHeuristicsService : IRenameTrackingLanguageHeuristicsService
     {
+        [ImportingConstructor]
+        public CSharpLspRenameTrackingLanguageHeuristicsService()
+        {
+        }
+
         public bool IsIdentifierValidForRenameTracking(string name)
         {
             return false;

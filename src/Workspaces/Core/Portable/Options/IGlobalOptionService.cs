@@ -54,6 +54,18 @@ namespace Microsoft.CodeAnalysis.Options
         IEnumerable<IOption> GetRegisteredOptions();
 
         /// <summary>
+        /// Map an <strong>.editorconfig</strong> key to a corresponding <see cref="IEditorConfigStorageLocation2"/> and
+        /// <see cref="OptionKey"/> that can be used to read and write the value stored in an <see cref="OptionSet"/>.
+        /// </summary>
+        /// <param name="key">The <strong>.editorconfig</strong> key.</param>
+        /// <param name="language">The language to use for the <paramref name="optionKey"/>, if the matching option has
+        /// <see cref="IOption.IsPerLanguage"/> set.</param>
+        /// <param name="storageLocation">The <see cref="IEditorConfigStorageLocation2"/> for the key.</param>
+        /// <param name="optionKey">The <see cref="OptionKey"/> for the key and language.</param>
+        /// <returns><see langword="true"/> if a matching option was found; otherwise, <see langword="false"/>.</returns>
+        bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey);
+
+        /// <summary>
         /// Returns the set of all registered serializable options applicable for the given <paramref name="languages"/>.
         /// </summary>
         ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages);

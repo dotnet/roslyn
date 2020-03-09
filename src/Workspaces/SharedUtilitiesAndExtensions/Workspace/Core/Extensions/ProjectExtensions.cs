@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 AnalyzerConfigDocument? bestAnalyzerConfigDocument = null;
                 foreach (var analyzerConfigDocument in project.AnalyzerConfigDocuments)
                 {
-                    var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigDocument.FilePath);
-                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                    // Analyzer config documents always have full paths, so GetDirectoryName will not return null.
+                    var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigDocument.FilePath)!;
                     if (diagnosticFilePath.StartsWith(analyzerConfigDirectory) &&
-                        analyzerConfigDirectory!.Length > bestPath.Length)
+                        analyzerConfigDirectory.Length > bestPath.Length)
                     {
                         bestPath = analyzerConfigDirectory;
                         bestAnalyzerConfigDocument = analyzerConfigDocument;

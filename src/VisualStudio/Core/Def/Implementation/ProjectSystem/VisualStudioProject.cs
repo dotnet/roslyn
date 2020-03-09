@@ -2,15 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -54,14 +58,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private string _assemblyName;
         private string _displayName;
-        private string _filePath;
-        private CompilationOptions _compilationOptions;
-        private ParseOptions _parseOptions;
+        private string? _filePath;
+        private CompilationOptions? _compilationOptions;
+        private ParseOptions? _parseOptions;
         private bool _hasAllInformation = true;
-        private string _intermediateOutputFilePath;
-        private string _outputFilePath;
-        private string _outputRefFilePath;
-        private string _defaultNamespace;
+        private string? _intermediateOutputFilePath;
+        private string? _outputFilePath;
+        private string? _outputRefFilePath;
+        private string? _defaultNamespace;
 
         // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
         // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
@@ -115,7 +119,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ProjectId id,
             string displayName,
             string language,
-            string directoryNameOpt)
+            string assemblyName,
+            CompilationOptions? compilationOptions,
+            string? filePath,
+            ParseOptions? parseOptions)
         {
             _workspace = workspace;
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
@@ -125,10 +132,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Language = language;
             _displayName = displayName;
 
-            if (directoryNameOpt != null)
+            if (filePath != null)
             {
-                // TODO: use directoryNameOpt to create a directory watcher. For now, there's perf hits due to the flood of events we'll need to sort out later.
-                // _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContextForDirectory(directoryNameOpt);
+                // TODO: use filePath to create a directory watcher. For now, there's perf hits due to the flood of events we'll need to sort out later.
+                // _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContextForDirectory(Path.GetDirectoryName(filePath));
                 _documentFileChangeContext = workspace.FileChangeWatcher.CreateContext();
             }
             else
@@ -156,6 +163,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 (w, d) => w.OnAnalyzerConfigDocumentAdded(d),
                 (w, documentId) => w.OnAnalyzerConfigDocumentRemoved(documentId),
                 documentTextLoaderChangedAction: (w, d, loader) => w.OnAnalyzerConfigDocumentTextLoaderChanged(d, loader));
+
+            _assemblyName = assemblyName;
+            _compilationOptions = compilationOptions;
+            _filePath = filePath;
+            _parseOptions = parseOptions;
         }
 
         private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
@@ -181,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void ChangeProjectOutputPath(ref string field, string newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
+        private void ChangeProjectOutputPath(ref string? field, string? newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
         {
             lock (_gate)
             {
@@ -215,7 +227,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        w => w.OnAssemblyNameChanged(Id, value));
         }
 
-        public CompilationOptions CompilationOptions
+        // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
+        // again once they already had one.
+        [DisallowNull]
+        public CompilationOptions? CompilationOptions
         {
             get => _compilationOptions;
             set => ChangeProjectProperty(
@@ -225,7 +240,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        w => w.OnCompilationOptionsChanged(Id, value));
         }
 
-        public ParseOptions ParseOptions
+        // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
+        // again once they already had one.
+        [DisallowNull]
+        public ParseOptions? ParseOptions
         {
             get => _parseOptions;
             set => ChangeProjectProperty(
@@ -238,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The path to the output in obj.
         /// </summary>
-        internal string IntermediateOutputFilePath
+        internal string? IntermediateOutputFilePath
         {
             get => _intermediateOutputFilePath;
             set
@@ -255,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public string OutputFilePath
+        public string? OutputFilePath
         {
             get => _outputFilePath;
             set => ChangeProjectOutputPath(ref _outputFilePath,
@@ -264,7 +282,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        w => w.OnOutputFilePathChanged(Id, value));
         }
 
-        public string OutputRefFilePath
+        public string? OutputRefFilePath
         {
             get => _outputRefFilePath;
             set => ChangeProjectOutputPath(ref _outputRefFilePath,
@@ -273,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        w => w.OnOutputRefFilePathChanged(Id, value));
         }
 
-        public string FilePath
+        public string? FilePath
         {
             get => _filePath;
             set => ChangeProjectProperty(ref _filePath,
@@ -343,7 +361,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// In the future, we might consider officially exposing "default namespace" for VB project
         /// (e.g.through a "defaultnamespace" msbuild property)
         /// </remarks>
-        internal string DefaultNamespace
+        internal string? DefaultNamespace
         {
             get => _defaultNamespace;
             set => ChangeProjectProperty(ref _defaultNamespace,
@@ -356,7 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The max language version supported for this project, if applicable. Useful to help indicate what 
         /// language version features should be suggested to a user, as well as if they can be upgraded. 
         /// </summary>
-        internal string MaxLangVersion
+        internal string? MaxLangVersion
         {
             set => _workspace.SetMaxLanguageVersion(Id, value);
         }
@@ -494,7 +512,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         else
                         {
                             // TODO: find a cleaner way to fetch this
-                            var metadataReference = _workspace.CurrentSolution.GetProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
+                            var metadataReference = _workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
                                                                                     .Single(m => m.FilePath == path && m.Properties == properties);
 
                             _workspace.FileWatchedReferenceFactory.StopWatchingReference(metadataReference);
@@ -586,7 +604,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string fullPath,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             ImmutableArray<string> folders = default,
-            IDocumentServiceProvider documentServiceProvider = null)
+            IDocumentServiceProvider? documentServiceProvider = null)
         {
             return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, documentServiceProvider);
         }
@@ -690,7 +708,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private DynamicFileInfo FixUpDynamicFileInfo(DynamicFileInfo fileInfo, string filePath)
         {
-            // we might change contract and just throw here. but for now, we keep existing contract where one can return null for DynamicFileInfo.FilePath
+            // we might change contract and just throw here. but for now, we keep existing contract where one can return null for DynamicFileInfo.FilePath.
+            // In this case we substitute the file being generated from so we still have some path.
             if (string.IsNullOrEmpty(fileInfo.FilePath))
             {
                 return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
@@ -896,8 +915,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         else
                         {
                             // TODO: find a cleaner way to fetch this
-                            var metadataReference = w.CurrentSolution.GetProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                    .Single(m => m.FilePath == fullPath && m.Properties == properties);
+                            var metadataReference = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
+                                                                                            .Single(m => m.FilePath == fullPath && m.Properties == properties);
 
                             _workspace.FileWatchedReferenceFactory.StopWatchingReference(metadataReference);
                             w.OnMetadataReferenceRemoved(Id, metadataReference);
@@ -958,7 +977,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return true;
                 }
 
-                return _workspace.CurrentSolution.GetProject(Id).AllProjectReferences.Contains(projectReference);
+                return _workspace.CurrentSolution.GetRequiredProject(Id).AllProjectReferences.Contains(projectReference);
             }
         }
 
@@ -967,7 +986,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 // If we're not batching, then this is cheap: just fetch from the workspace and we're done
-                var projectReferencesInWorkspace = _workspace.CurrentSolution.GetProject(Id).AllProjectReferences;
+                var projectReferencesInWorkspace = _workspace.CurrentSolution.GetRequiredProject(Id).AllProjectReferences;
 
                 if (_activeBatchScopes == 0)
                 {
@@ -1023,7 +1042,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _eventSubscriptionTracker.Clear();
 
                 // Clear any file watchers we still have for references
-                foreach (PortableExecutableReference reference in _workspace.CurrentSolution.GetProject(Id).MetadataReferences)
+                foreach (PortableExecutableReference reference in _workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences)
                 {
                     _workspace.FileWatchedReferenceFactory.StopWatchingReference(reference);
                 }
@@ -1124,7 +1143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// The current list of document file paths that will be ordered in a batch.
             /// </summary>
-            private ImmutableList<DocumentId> _orderedDocumentsInBatch = null;
+            private ImmutableList<DocumentId>? _orderedDocumentsInBatch = null;
 
             private readonly Func<Solution, DocumentId, bool> _documentAlreadyInWorkspace;
             private readonly Action<Workspace, DocumentInfo> _documentAddAction;
@@ -1189,7 +1208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
-            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, IDocumentServiceProvider documentServiceProvider)
+            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, IDocumentServiceProvider? documentServiceProvider)
             {
                 if (textContainer == null)
                 {
@@ -1201,7 +1220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     FileNameUtilities.GetFileName(fullPath),
-                    folders: folders.IsDefault ? null : (IEnumerable<string>)folders,
+                    folders: folders.NullToEmpty(),
                     sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
                     filePath: fullPath,
@@ -1248,6 +1267,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public void AddDynamicFile(IDynamicFileInfoProvider fileInfoProvider, DynamicFileInfo fileInfo, ImmutableArray<string> folders)
             {
                 var documentInfo = CreateDocumentInfoFromFileInfo(fileInfo, folders.NullToEmpty());
+
+                // Generally, DocumentInfo.FilePath can be null, but we always have file paths for dynamic files.
+                Contract.ThrowIfNull(documentInfo.FilePath);
                 var documentId = documentInfo.Id;
 
                 lock (_project._gate)
@@ -1399,6 +1421,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         {
                             _project._workspace.ApplyChangeToWorkspace(w =>
                             {
+                                // Just pass null for the filePath, since this document is immediately being removed
+                                // anyways -- whatever we set won't really be read since the next change will
+                                // come through.
+                                // TODO: Can't we just remove the document without closing it?
                                 w.OnDocumentClosed(documentId, new SourceTextLoader(textContainer, filePath: null));
                                 _documentRemoveAction(w, documentId);
                                 _project._workspace.RemoveDocumentToDocumentsNotFromFiles(documentId);
@@ -1481,7 +1507,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                     _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
                                 // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
-                                var document = w.CurrentSolution.GetDocument(documentId);
+                                var document = w.CurrentSolution.GetRequiredDocument(documentId);
 
                                 var documentInfo = DocumentInfo.Create(
                                     document.Id,
@@ -1563,6 +1589,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 foreach (var documentInfo in _documentsAddedInBatch)
                 {
+                    Contract.ThrowIfNull(documentInfo.FilePath, "We shouldn't be adding documents without file paths.");
                     documentFileNamesAdded.Add(documentInfo.FilePath);
 
                     if (_sourceTextContainersToDocumentIds.TryGetKey(documentInfo.Id, out var textContainer))
@@ -1590,8 +1617,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, IEnumerable<string> folders)
+            private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, ImmutableArray<string> folders)
             {
+                Contract.ThrowIfTrue(folders.IsDefault);
+
                 // we use this file path for editorconfig. 
                 var filePath = fileInfo.FilePath;
 
@@ -1641,9 +1670,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private sealed class SourceTextLoader : TextLoader
             {
                 private readonly SourceTextContainer _textContainer;
-                private readonly string _filePath;
+                private readonly string? _filePath;
 
-                public SourceTextLoader(SourceTextContainer textContainer, string filePath)
+                public SourceTextLoader(SourceTextContainer textContainer, string? filePath)
                 {
                     _textContainer = textContainer;
                     _filePath = filePath;

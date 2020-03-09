@@ -10,6 +10,8 @@ parameters:
   transportFeed: ''
   shippingFeed: ''
   symbolsFeed: ''
+  # If the channel name is empty, no links will be generated
+  akaMSChannelName: ''
 
 stages:
 - stage: ${{ parameters.stageName }}
@@ -83,6 +85,7 @@ stages:
   - job: publish_assets
     displayName: Publish Assets
     dependsOn: setupMaestroVars
+    timeoutInMinutes: 120
     variables:
       - name: BARBuildId
         value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.BARBuildId'] ]
@@ -160,6 +163,9 @@ stages:
             /p:AzureDevOpsStaticTransportFeedKey='$(dn-bot-dnceng-artifact-feeds-rw)'
             /p:AzureDevOpsStaticSymbolsFeed='${{ parameters.symbolsFeed }}'
             /p:AzureDevOpsStaticSymbolsFeedKey='$(dn-bot-dnceng-artifact-feeds-rw)'
+            /p:LatestLinkShortUrlPrefix=dotnet/'${{ parameters.akaMSChannelName }}'
+            /p:AkaMSClientId=$(akams-client-id)
+            /p:AkaMSClientSecret=$(akams-client-secret)
             ${{ parameters.artifactsPublishingAdditionalParameters }}
 
       - template: ../../steps/publish-logs.yml

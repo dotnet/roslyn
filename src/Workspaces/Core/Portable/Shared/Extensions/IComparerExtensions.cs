@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _comparer = comparer;
             }
 
-            public int Compare(T x, T y)
+            public int Compare([AllowNull] T x, [AllowNull] T y)
             {
                 return _comparer.Compare(y, x);
             }
