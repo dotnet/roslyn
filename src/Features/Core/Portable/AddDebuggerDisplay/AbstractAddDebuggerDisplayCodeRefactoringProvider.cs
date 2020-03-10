@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 {
-    internal abstract class AbstractAddDebuggerDisplayCodeRefactoringProvider<TTypeDeclarationSyntax, TMethodDeclarationSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractAddDebuggerDisplayCodeRefactoringProvider<
+        TTypeDeclarationSyntax,
+        TMethodDeclarationSyntax> : CodeRefactoringProvider
         where TTypeDeclarationSyntax : SyntaxNode
         where TMethodDeclarationSyntax : SyntaxNode
     {

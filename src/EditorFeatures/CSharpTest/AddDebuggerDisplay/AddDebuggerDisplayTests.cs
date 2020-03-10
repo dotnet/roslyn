@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddDebuggerDisplay
     public sealed class AddDebuggerDisplayTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-        {
-            return new CSharpAddDebuggerDisplayCodeRefactoringProvider();
-        }
+            => new CSharpAddDebuggerDisplayCodeRefactoringProvider();
 
         [Fact]
         public async Task OfferedOnEmptyClass()
