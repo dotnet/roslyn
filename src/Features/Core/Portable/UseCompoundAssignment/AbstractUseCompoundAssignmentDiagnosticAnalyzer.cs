@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         where TAssignmentSyntax : SyntaxNode
         where TBinaryExpressionSyntax : SyntaxNode
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
 
         /// <summary>
         /// Maps from a binary expression kind (like AddExpression) to the corresponding assignment
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _assignmentToTokenMap;
 
         protected AbstractUseCompoundAssignmentDiagnosticAnalyzer(
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
                    CodeStyleOptions.PreferCompoundAssignment,
@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             _syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(assignment,
                 out var assignmentLeft, out var assignmentToken, out var assignmentRight);
+
+            assignmentRight = _syntaxFacts.WalkDownParentheses(assignmentRight);
 
             // has to be of the form:  a = b op c
             // op has to be a form we could convert into op=

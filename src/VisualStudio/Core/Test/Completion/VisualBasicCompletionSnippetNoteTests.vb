@@ -81,8 +81,7 @@ End Class]]></document>
         Private Function CreateVisualBasicSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
             Dim state = TestStateFactory.CreateVisualBasicTestState(
                 xElement,
-                New CompletionProvider() {New MockCompletionProvider()},
-                New List(Of Type) From {GetType(TestVisualBasicSnippetInfoService)})
+                New List(Of Type) From {GetType(VisualBasicMockCompletionProvider), GetType(TestVisualBasicSnippetInfoService)})
 
             Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ISnippetInfoService)(), TestVisualBasicSnippetInfoService)
             testSnippetInfoService.SetSnippetShortcuts(snippetShortcuts)

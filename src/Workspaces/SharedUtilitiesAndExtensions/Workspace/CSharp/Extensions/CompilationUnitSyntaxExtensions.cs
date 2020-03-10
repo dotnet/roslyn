@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (root.Externs.Count == 0)
             {
                 root = AddImportHelpers.MoveTrivia(
-                    CSharpSyntaxFactsService.Instance, root, root.Usings, usings);
+                    CSharpSyntaxFacts.Instance, root, root.Usings, usings);
             }
 
             return root.WithUsings(

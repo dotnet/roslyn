@@ -42,17 +42,23 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
         private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-        public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false);
-        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false);
+        public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false);
+        public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: true);
+        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false);
 
         private readonly IEqualityComparer<IAssemblySymbol> _assemblyComparerOpt;
+        private readonly bool _tupleNamesMustMatch;
 
         public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; }
         public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; }
 
-        internal SymbolEquivalenceComparer(IEqualityComparer<IAssemblySymbol> assemblyComparerOpt, bool distinguishRefFromOut)
+        internal SymbolEquivalenceComparer(
+            IEqualityComparer<IAssemblySymbol> assemblyComparerOpt,
+            bool distinguishRefFromOut,
+            bool tupleNamesMustMatch)
         {
             _assemblyComparerOpt = assemblyComparerOpt;
+            _tupleNamesMustMatch = tupleNamesMustMatch;
 
             this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this, distinguishRefFromOut);
             this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);

@@ -211,18 +211,18 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
             Debug.Assert(matches.Contains(expression));
 
-            (document, matches) = await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(false);
+            (document, matches) = await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(false);
 
             // Our original expression should have been one of the matches, which were tracked as part
             // of complexification, so we can retrieve the latest version of the expression here.
             expression = document.Root.GetCurrentNode(expression);
 
             var root = document.Root;
-            ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => expr.GetAncestorsOrThis<StatementSyntax>()));
+            ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => GetApplicableStatementAncestors(expr)));
 
             SyntaxNode innermostCommonBlock;
 
-            var innermostStatements = new HashSet<StatementSyntax>(matches.Select(expr => expr.GetAncestorOrThis<StatementSyntax>()));
+            var innermostStatements = new HashSet<StatementSyntax>(matches.Select(expr => GetApplicableStatementAncestors(expr).First()));
             if (innermostStatements.Count == 1)
             {
                 // if there was only one match, or all the matches came from the same statement
@@ -259,6 +259,23 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var newRoot = root.ReplaceNode(innermostCommonBlock, finalInnerMostBlock);
             return document.Document.WithSyntaxRoot(newRoot);
+        }
+
+        private IEnumerable<StatementSyntax> GetApplicableStatementAncestors(ExpressionSyntax expr)
+        {
+            foreach (var statement in expr.GetAncestorsOrThis<StatementSyntax>())
+            {
+                // When determining where to put a local, we don't want to put it between the `else`
+                // and `if` of a compound if-statement.
+
+                if (statement.Kind() == SyntaxKind.IfStatement &&
+                    statement.IsParentKind(SyntaxKind.ElseClause))
+                {
+                    continue;
+                }
+
+                yield return statement;
+            }
         }
 
         private int GetFirstStatementAffectedIndex(SyntaxNode innermostCommonBlock, ISet<ExpressionSyntax> matches, int firstStatementAffectedIndex)

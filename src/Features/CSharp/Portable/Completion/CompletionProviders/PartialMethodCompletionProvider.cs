@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
@@ -17,8 +17,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(PartialMethodCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(OverrideCompletionProvider))]
+    [Shared]
     internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
     {
+        [ImportingConstructor]
         public PartialMethodCompletionProvider()
         {
         }

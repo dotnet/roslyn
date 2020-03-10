@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers
         /// <summary>
         /// For testing purposes only.
         /// </summary>
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         internal CSharpGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
             : base(pickMembersService_forTesting)
         {
