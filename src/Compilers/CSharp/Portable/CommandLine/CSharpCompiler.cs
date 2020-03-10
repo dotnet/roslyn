@@ -358,11 +358,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
         }
 
-        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+        protected override void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider)
+            CommonMessageProvider messageProvider,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<ISourceGenerator> generators)
         {
-            return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader);
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, out analyzers, out generators);
         }
 
         protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(
@@ -397,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts)
+        private protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
         {
             // PROTOTYPE: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
             if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
@@ -405,8 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return input;
             }
 
-            // PROTOTYPE: we need to actually read the generators in via the provider mechanism
-            var driver = new CSharpGeneratorDriver(input, parseOptions, ImmutableArray<ISourceGenerator>.Empty, additionalTexts);
+            var driver = new CSharpGeneratorDriver(input, parseOptions, generators, additionalTexts);
             driver.RunFullGeneration(input, out var compilationOut);
             return compilationOut;
         }

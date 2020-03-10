@@ -1101,26 +1101,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Create a new solution instance with the project specified updated to include the 
-        /// specified analyzer reference.
-        /// </summary>
-        public SolutionState AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
-        {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (analyzerReference == null)
-            {
-                throw new ArgumentNullException(nameof(analyzerReference));
-            }
-
-            CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId)!.AddAnalyzerReference(analyzerReference));
-        }
-
-        /// <summary>
         /// Create a new solution instance with the project specified updated to include the
         /// specified analyzer references.
         /// </summary>
@@ -1139,6 +1119,13 @@ namespace Microsoft.CodeAnalysis
             if (!analyzerReferences.Any())
             {
                 return this;
+            }
+
+            //PROTOTYPE
+            if (_projectIdToGeneratorDriverMap.TryGetValue(projectId, out var driver))
+            {
+                driver = driver.AddGenerators(analyzerReferences.SelectMany(r => r.GetGenerators()).ToImmutableArray());
+                _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
             }
 
             CheckContainsProject(projectId);
@@ -1162,6 +1149,14 @@ namespace Microsoft.CodeAnalysis
             }
 
             CheckContainsProject(projectId);
+
+            //PROTOTYPE:
+            if (_projectIdToGeneratorDriverMap.TryGetValue(projectId, out var driver))
+            {
+                driver = driver.RemoveGenerators(analyzerReference.GetGenerators());
+                _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
+            }
+
             return this.ForkProject(this.GetProjectState(projectId)!.RemoveAnalyzerReference(analyzerReference));
         }
 
@@ -1246,10 +1241,8 @@ namespace Microsoft.CodeAnalysis
                 var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProject, newDocumentStatesForProject);
 
                 // PROTOTYPE: we add the edit to the projects driver, if we have one
-                if (_projectIdToGeneratorDriverMap.ContainsKey(oldProject.Id))
+                if (_projectIdToGeneratorDriverMap.TryGetValue(oldProject.Id, out var driver))
                 {
-                    GeneratorDriver driver = _projectIdToGeneratorDriverMap[oldProject.Id]!;
-
                     var edits = newDocumentStatesForProject.SelectAsArray<T, PendingEdit>(s => new AdditionalFileAddedEdit(new AdditionalTextWithState(s)));
                     driver = driver.WithPendingEdits(edits);
 
@@ -2016,11 +2009,10 @@ namespace Microsoft.CodeAnalysis
                 var comp = await GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).ConfigureAwait(false);
 
                 // PROTOTYPE: either get an existing generator, or create a new one
-                // PROTOTYPE: we currently aren't adding any actual providers, so this won't cause anything to happen
                 GeneratorDriver? driver = _projectIdToGeneratorDriverMap.ContainsKey(project.Id)
                                        ? _projectIdToGeneratorDriverMap[project.Id]
                                        : project.LanguageServices.CompilationFactory?.CreateGeneratorDriver(comp, project.ParseOptions,
-                                                                                                            generators: ImmutableArray<ISourceGenerator>.Empty,
+                                                                                                            generators: project.AnalyzerReferences.SelectMany(r => r.GetGenerators()).ToImmutableArray(),
                                                                                                             additionalTexts: project.AdditionalDocumentStates.Values.SelectAsArray<TextDocumentState, AdditionalText>(d => new AdditionalTextWithState(d)));
 
                 if (driver is object)
