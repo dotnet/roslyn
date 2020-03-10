@@ -3731,6 +3731,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void LearnFromEqualsMethod(MethodSymbol method, BoundCall node, TypeWithState receiverType, ImmutableArray<VisitArgumentResult> results)
         {
+            // explicit implementations can't be directly called, they're only virtual-dispatched to at runtime.
+            Debug.Assert(!method.IsExplicitInterfaceImplementation);
+
             // easy out
             var parameterCount = method.ParameterCount;
             var arguments = node.Arguments;
@@ -3783,6 +3786,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
+                // we won't be able to find an implicit implementation of 'constructedMethod' on a derived interface.
+                if (method.ContainingType.IsInterface)
+                {
+                    return false;
+                }
+
                 // check whether 'method', when called on this receiver, is an implementation of 'constructedMethod'.
                 for (var baseType = receiverType; baseType is object && method is object; baseType = baseType.BaseTypeNoUseSiteDiagnostics)
                 {
@@ -3793,24 +3802,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (implementationMethod.ContainingType.IsInterface)
+                    // 'method' definitely won't match if the implementation is explict.
+                    if (!implementationMethod.IsExplicitInterfaceImplementation())
                     {
-                        // this doesn't make sense because an interface can only explicitly implement a method from its base interface.
-                        return false;
-                    }
-
-                    // could be calling an override of a method that implements the interface method
-                    for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
-                    {
-                        if (overriddenMethod.Equals(implementationMethod))
+                        // could be calling an override of a method that implements the interface method
+                        for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
                         {
-                            return true;
+                            if (overriddenMethod.Equals(implementationMethod))
+                            {
+                                return true;
+                            }
                         }
                     }
 
                     // the Equals method being called isn't the method that implements the interface method in this type.
-                    // it could be a method that implements the interface on a base type, so check again with the base type.
-                    // if the method is directly contained in this type, we should skip up to its overridden method.
+                    // it could be a method that implements the interface on a base type, so check again with the base type of 'implementationMethod.ContainingType'
 
                     // e.g. in this hierarchy:
                     // class A -> B -> C -> D
@@ -3822,9 +3828,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // 3. B.Equals when called on B
                     // 4. give up when checking A, since B.Equals is not overriding anything in A
 
-                    if (baseType.Equals(method.ContainingType))
+                    // we know that implementationMethod.ContainingType is the same type or a base type of 'baseType',
+                    // and that the implementation method will be the same between 'baseType' and 'implementationMethod.ContainingType'.
+                    // we step through the intermediate bases in order to skip unnecessary override methods.
+                    while (!baseType.Equals(implementationMethod.ContainingType))
                     {
-                        method = method.OverriddenMethod;
+                        baseType = baseType.BaseTypeNoUseSiteDiagnostics;
+                        // the implementation method must be contained in this 'baseType' or one of its bases.
+                        Debug.Assert(baseType is object);
+
+                        // since we're about to move on to the base of 'method.ContainingType',
+                        // we know the implementation could only be an overridden method of 'method'.
+                        if (baseType.Equals(method.ContainingType))
+                        {
+                            method = method.OverriddenMethod;
+                        }
                     }
                 }
 
