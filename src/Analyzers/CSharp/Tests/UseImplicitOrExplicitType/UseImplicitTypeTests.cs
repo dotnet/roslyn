@@ -7,20 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType
 {
@@ -29,48 +24,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider());
 
-        private static readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
-        private static readonly CodeStyleOption<bool> offWithSilent = new CodeStyleOption<bool>(false, NotificationOption.Silent);
-        private static readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
-        private static readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-        private static readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-        private static readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
-        private static readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
-        private static readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
+        private static readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
+        private static readonly CodeStyleOption2<bool> offWithSilent = new CodeStyleOption2<bool>(false, NotificationOption2.Silent);
+        private static readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+        private static readonly CodeStyleOption2<bool> offWithInfo = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
+        private static readonly CodeStyleOption2<bool> onWithWarning = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
+        private static readonly CodeStyleOption2<bool> offWithWarning = new CodeStyleOption2<bool>(false, NotificationOption2.Warning);
+        private static readonly CodeStyleOption2<bool> onWithError = new CodeStyleOption2<bool>(true, NotificationOption2.Error);
+        private static readonly CodeStyleOption2<bool> offWithError = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
 
         // specify all options explicitly to override defaults.
-        public IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
+        internal IOptionsCollection ImplicitTypeEverywhere() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
-        private IDictionary<OptionKey, object> ImplicitTypeWhereApparent() => OptionsSet(
+        private IOptionsCollection ImplicitTypeWhereApparent() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
-        private IDictionary<OptionKey, object> ImplicitTypeWhereApparentAndForIntrinsics() => OptionsSet(
+        private IOptionsCollection ImplicitTypeWhereApparentAndForIntrinsics() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
-        public IDictionary<OptionKey, object> ImplicitTypeButKeepIntrinsics() => OptionsSet(
+        internal IOptionsCollection ImplicitTypeButKeepIntrinsics() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo));
 
-        private IDictionary<OptionKey, object> ImplicitTypeEnforcements() => OptionsSet(
+        private IOptionsCollection ImplicitTypeEnforcements() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithWarning),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
-        private IDictionary<OptionKey, object> ImplicitTypeSilentEnforcement() => OptionsSet(
+        private IOptionsCollection ImplicitTypeSilentEnforcement() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
-
-        private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
-            => new Dictionary<OptionKey, object> { { option, value } };
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnFieldDeclaration()
