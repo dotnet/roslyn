@@ -684,6 +684,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SuppressNullableWarningExpression:
                     return BindSuppressNullableWarningExpression((PostfixUnaryExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.WithExpression:
+                    return BindWithExpression((WithExpressionSyntax)node, diagnostics);
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected

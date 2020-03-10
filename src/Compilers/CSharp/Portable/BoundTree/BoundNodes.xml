@@ -2052,4 +2052,19 @@
     <Field Name="Type" Type="TypeSymbol?" Override="true"/> <!-- We use null Type for placeholders representing out vars -->
     <Field Name="NullableAnnotation" Type="NullableAnnotation"/>
   </Node>
+
+  <Node Name="BoundWithExpression" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Receiver" Type="BoundExpression" />
+    <!-- WithMethod may be null in error scenarios-->
+    <Field Name="WithMethod" Type="MethodSymbol?" />
+    <!-- The set of fields/properties that are used for the WithMethod. There are exactly as many WithMembers as 
+         there are parameters to the With method. If there was no matching field/property for the With parameter,
+         that index should contain null. -->
+    <Field Name="WithMembers" Type="ImmutableArray&lt;Symbol?&gt;" Null="allow" />
+    <!-- Members and expressions passed as arguments to the With expression. -->
+    <Field Name="Arguments" Type="ImmutableArray&lt;(Symbol? Member, BoundExpression Expression)&gt;" />
+  </Node>
+
 </Tree>

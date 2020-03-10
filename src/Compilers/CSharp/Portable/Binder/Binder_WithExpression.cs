@@ -1,0 +1,185 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+
+namespace Microsoft.CodeAnalysis.CSharp
+{
+    /// <summary>
+    /// This portion of the binder converts an <see cref="ExpressionSyntax"/> into a <see cref="BoundExpression"/>.
+    /// </summary>
+    internal partial class Binder
+    {
+        private BoundExpression BindWithExpression(WithExpressionSyntax syntax, DiagnosticBag diagnostics)
+        {
+            var receiver = BindRValueWithoutTargetType(syntax.Receiver, diagnostics);
+
+            var receiverType = receiver.Type;
+            if (receiverType is null || receiverType.IsVoidType())
+            {
+                diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Receiver.Location);
+                return BadExpression(syntax, receiver);
+            }
+
+            if (receiverType.IsErrorType())
+            {
+                return BadExpression(syntax, receiver);
+            }
+
+            // PROTOTYPE: The receiver type must have a single declared instance method called 'With'
+            var members = receiverType.GetMembers("With");
+            MethodSymbol? withMethod = null;
+            if (members.Length == 1 && members[0] is MethodSymbol m)
+            {
+                withMethod = m;
+            }
+            else if (members.Length > 1)
+            {
+                // If there are multiple With methods, exclude overrides and
+                // look for a single remaining one
+                foreach (var member in members)
+                {
+                    if (member is MethodSymbol { IsOverride: false} method)
+                    {
+                        if (withMethod is null)
+                        {
+                            withMethod = method;
+                        }
+                        else
+                        {
+                            withMethod = null;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            var lookupResult = LookupResult.GetInstance();
+            ImmutableArray<Symbol?> withMembers;
+
+            if (withMethod is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_NoSingleWithMethod, syntax.Receiver.Location, receiverType);
+                withMembers = default;
+            }
+            else
+            {
+                // Check return type
+                if (!withMethod.ReturnType.IsEqualToOrDerivedFrom(
+                    receiverType,
+                    TypeCompareKind.ConsiderEverything,
+                    ref useSiteDiagnostics))
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_ContainingTypeMustDeriveFromWithReturnType,
+                        syntax.Receiver.Location,
+                        receiverType,
+                        withMethod.ReturnType);
+                }
+
+
+                // Build WithMethod member list
+                var matchingMembers = ArrayBuilder<Symbol?>.GetInstance(withMethod.ParameterCount); 
+                foreach (var p in withMethod.Parameters)
+                {
+                    this.LookupMembersInType(
+                        lookupResult,
+                        receiverType,
+                        p.Name,
+                        arity: 0,
+                        basesBeingResolved: null,
+                        options: LookupOptions.Default,
+                        originalBinder: this,
+                        diagnose: false,
+                        useSiteDiagnostics: ref useSiteDiagnostics);
+
+                    Symbol? member;
+                    if (!lookupResult.IsSingleViable)
+                    {
+                        diagnostics.Add(
+                            ErrorCode.ERR_WithParameterWithoutMatchingMember,
+                            syntax.Receiver.Location,
+                            receiverType,
+                            p.Name);
+                        member = null;
+                    }
+                    else 
+                    {
+                        member = lookupResult.SingleSymbolOrDefault;
+                        Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property);
+
+                        if (!member.GetTypeOrReturnType().Equals(
+                            p.TypeWithAnnotations,
+                            TypeCompareKind.ConsiderEverything))
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_WithParameterTypeDoesntMatchMemberType,
+                                syntax.Receiver.Location,
+                                p.Name,
+                                p.Type,
+                                member.GetTypeOrReturnType());
+                        }
+                    }
+
+                    lookupResult.Clear();
+                    matchingMembers.Add(member);
+                }
+                withMembers = matchingMembers.ToImmutableAndFree();
+            }
+
+            var args = ArrayBuilder<(Symbol?, BoundExpression)>.GetInstance();
+            // Bind with expression arguments
+            foreach (var initializer in syntax.Initializers)
+            {
+                var propName = initializer.NameEquals?.Name.Identifier.Text;
+                Symbol? member = null;
+                if (propName is object)
+                {
+                    this.LookupMembersInType(
+                        lookupResult,
+                        receiverType,
+                        propName,
+                        arity: 0,
+                        basesBeingResolved: null,
+                        options: LookupOptions.Default, // properties are not invocable - their accessors are
+                        originalBinder: this,
+                        diagnose: false,
+                        useSiteDiagnostics: ref useSiteDiagnostics);
+                    if (lookupResult.IsSingleViable)
+                    {
+                        member = lookupResult.SingleSymbolOrDefault;
+                        Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property);
+                    }
+                    else
+                    {
+                        diagnostics.Add(initializer.NameEquals!.Name, useSiteDiagnostics);
+                    }
+                }
+
+                var expr = BindValue(initializer.Expression, diagnostics, BindValueKind.RValue);
+                lookupResult.Clear();
+                args.Add((member, expr));
+            }
+
+            lookupResult.Free();
+
+            return new BoundWithExpression(
+                syntax,
+                receiver,
+                withMethod,
+                withMembers,
+                args.ToImmutableAndFree(),
+                withMethod?.ReturnType ?? receiverType,
+                hasErrors: false);
+        }
+    }
+}

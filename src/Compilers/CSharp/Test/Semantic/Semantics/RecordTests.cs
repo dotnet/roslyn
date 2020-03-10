@@ -16,7 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             => CSharpTestBase.CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
         private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
-            => base.CompileAndVerify(src, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularPreview);
+            => base.CompileAndVerify(
+                src,
+                expectedOutput: expectedOutput,
+                parseOptions: TestOptions.RegularPreview,
+                options: TestOptions.ReleaseExe);
 
         [Fact]
         public void RecordLanguageVersion()
@@ -424,6 +428,445 @@ data class C(); ";
                 // (2,13): error CS8770: Records must have both a 'data' modifier and non-empty parameter list
                 // data class C(); 
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExpr1()
+        {
+            var src = @"
+class C
+{
+    public static void Main()
+    {
+        var c = new C();
+        _ = Main() with { };
+        _ = default with { };
+        _ = null with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8802: The receiver of a `with` expression must have a valid non-void type.
+                //         _ = Main() with { };
+                Diagnostic(ErrorCode.ERR_InvalidWithReceiverType, "Main()").WithLocation(7, 13),
+                // (8,13): error CS8716: There is no target type for the default literal.
+                //         _ = default with { };
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 13),
+                // (9,13): error CS8802: The receiver of a `with` expression must have a valid non-void type.
+                //         _ = null with { };
+                Diagnostic(ErrorCode.ERR_InvalidWithReceiverType, "null").WithLocation(9, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExpr2()
+        {
+            var src = @"
+class C
+{
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "With".
+                //         c = c with { };
+                Diagnostic(ErrorCode.ERR_NoSingleWithMethod, "c").WithArguments("C").WithLocation(7, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExpr3()
+        {
+            var src = @"
+class C
+{
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+    }
+
+    public C With() => null;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr4()
+        {
+            var src = @"
+class B
+{
+    public B With() => null;
+}
+class C : B
+{
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+    }
+
+    public new C With() => null;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr5()
+        {
+            var src = @"
+class B
+{
+    public int X { get; }
+    public B With(int X) => null;
+}
+class C : B
+{
+    public int Y { get; }
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+    }
+
+    public C With(string Y) => null;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,13): error CS8806: The 'With' method parameter named 'Y' has type 'string' which doesn't match member type 'int'
+                //         c = c with { };
+                Diagnostic(ErrorCode.ERR_WithParameterTypeDoesntMatchMemberType, "c").WithArguments("Y", "string", "int").WithLocation(13, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExpr6()
+        {
+            var src = @"
+class B
+{
+    public int X { get; }
+    public B With(int X) => null;
+}
+class C : B
+{
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "With".
+                //         c = c with { };
+                Diagnostic(ErrorCode.ERR_NoSingleWithMethod, "c").WithArguments("C").WithLocation(12, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExpr7()
+        {
+            var src = @"
+class B
+{
+    public int X { get; }
+    public virtual B With(int X) => null;
+}
+class C : B
+{
+    public static void Main()
+    {
+        var c = new C();
+        B b = c;
+        b = b with { };
+        var b2 = c with { };
+    }
+    public override B With(int X) => null;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (14,18): error CS8804: The type of the 'with' expression receiver, 'C', does not derive from the return type of the 'With' method, 'B'.
+                //         var b2 = c with { };
+                Diagnostic(ErrorCode.ERR_ContainingTypeMustDeriveFromWithReturnType, "c").WithArguments("C", "B").WithLocation(14, 18)
+            );
+        }
+ 
+        [Fact]
+        public void WithExpr8()
+        {
+            var src = @"
+class B
+{
+    public int X { get; }
+    public virtual B With(int X) => null;
+}
+class C : B
+{
+    public string Y { get; }
+    public static void Main()
+    {
+        var c = new C();
+        B b = c;
+        b = b with { };
+        c = c with { };
+    }
+    public override B With(int X) => null;
+    public virtual C With(string Y) => null;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr9()
+        {
+            var src = @"
+class C
+{
+    public int X { get; }
+    public string With(int X) => null;
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8804: The type of the 'with' expression receiver, 'C', does not derive from the return type of the 'With' method, 'string'.
+                //         c = c with { };
+                Diagnostic(ErrorCode.ERR_ContainingTypeMustDeriveFromWithReturnType, "c").WithArguments("C", "string").WithLocation(9, 13),
+                // (9,13): error CS0029: Cannot implicitly convert type 'string' to 'C'
+                //         c = c with { };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c with { }").WithArguments("string", "C").WithLocation(9, 13)
+            );
+        }
+ 
+        [Fact]
+        public void WithExpr10()
+        {
+            var src = @"
+class C
+{
+    public int X { get; }
+    public string With(int X) => null;
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8804: The type of the 'with' expression receiver, 'C', does not derive from the return type of the 'With' method, 'string'.
+                //         c = c with { };
+                Diagnostic(ErrorCode.ERR_ContainingTypeMustDeriveFromWithReturnType, "c").WithArguments("C", "string").WithLocation(9, 13),
+                // (9,13): error CS0029: Cannot implicitly convert type 'string' to 'C'
+                //         c = c with { };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c with { }").WithArguments("string", "C").WithLocation(9, 13)
+            );
+        }   
+ 
+        [Fact]
+        public void WithExpr11()
+        {
+            var src = @"
+class C
+{
+    public int X { get; }
+    public C With(string X) => null;
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { X = """"};
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8806: The 'With' method parameter named 'X' has type 'string' which doesn't match member type 'int'
+                //         c = c with { X = ""};
+                Diagnostic(ErrorCode.ERR_WithParameterTypeDoesntMatchMemberType, "c").WithArguments("X", "string", "int").WithLocation(9, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExpr12()
+        {
+            var src = @"
+using System;
+data class C(int X)
+{
+    public C With(int X) => new C(X);
+    public static void Main()
+    {
+        var c = new C(0);
+        Console.WriteLine(c.X);
+        c = c with { X = 5 };
+        Console.WriteLine(c.X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"0
+5");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.0
+  IL_0001:  newobj     ""C..ctor(int)""
+  IL_0006:  dup
+  IL_0007:  callvirt   ""int C.X.get""
+  IL_000c:  call       ""void System.Console.WriteLine(int)""
+  IL_0011:  ldc.i4.5
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  callvirt   ""C C.With(int)""
+  IL_0019:  callvirt   ""int C.X.get""
+  IL_001e:  call       ""void System.Console.WriteLine(int)""
+  IL_0023:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExpr13()
+        {
+            var src = @"
+using System;
+data class C(int X, int Y)
+{
+    public C With(int X) => new C(X, Y);
+    public override string ToString() => X + "" "" + Y;
+    public static void Main()
+    {
+        var c = new C(0, 1);
+        Console.WriteLine(c);
+        c = c with { X = 5 };
+        Console.WriteLine(c);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"0 1
+5 1");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""C..ctor(int, int)""
+  IL_0007:  dup
+  IL_0008:  call       ""void System.Console.WriteLine(object)""
+  IL_000d:  ldc.i4.5
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  callvirt   ""C C.With(int)""
+  IL_0015:  call       ""void System.Console.WriteLine(object)""
+  IL_001a:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExpr14()
+        {
+            var src = @"
+using System;
+data class C(int X, int Y)
+{
+    public C With(int X, int Y) => new C(X, Y);
+    public override string ToString() => X + "" "" + Y;
+    public static void Main()
+    {
+        var c = new C(0, 1);
+        Console.WriteLine(c);
+        c = c with { X = 5 };
+        Console.WriteLine(c);
+        c = c with { Y = 2 };
+        Console.WriteLine(c);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"0 1
+5 1
+5 2");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  3
+  .locals init (C V_0,
+                int V_1)
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""C..ctor(int, int)""
+  IL_0007:  dup
+  IL_0008:  call       ""void System.Console.WriteLine(object)""
+  IL_000d:  stloc.0
+  IL_000e:  ldc.i4.5
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  ldloc.1
+  IL_0012:  ldloc.0
+  IL_0013:  callvirt   ""int C.Y.get""
+  IL_0018:  callvirt   ""C C.With(int, int)""
+  IL_001d:  dup
+  IL_001e:  call       ""void System.Console.WriteLine(object)""
+  IL_0023:  ldc.i4.2
+  IL_0024:  stloc.1
+  IL_0025:  dup
+  IL_0026:  callvirt   ""int C.X.get""
+  IL_002b:  ldloc.1
+  IL_002c:  callvirt   ""C C.With(int, int)""
+  IL_0031:  call       ""void System.Console.WriteLine(object)""
+  IL_0036:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExpr15()
+        {
+            var src = @"
+data class C(int X, int Y)
+{
+    public C With(int X, int Y) => null;
+    public static void Main()
+    {
+        var c = new C(0, 0);
+        c = c with { = 5 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,22): error CS1525: Invalid expression term '='
+                //         c = c with { = 5 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 22)
+            );
+        }
+
+        [Fact]
+        public void WithExpr16()
+        {
+            var src = @"
+data class C(int X, int Y)
+{
+    public C With(int X, int Y) => null;
+    public static void Main()
+    {
+        var c = new C(0, 0);
+        c = c with { X = };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,26): error CS1525: Invalid expression term '}'
+                //         c = c with { X = };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(8, 26)
             );
         }
     }

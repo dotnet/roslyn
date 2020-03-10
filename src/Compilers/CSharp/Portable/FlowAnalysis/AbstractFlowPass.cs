@@ -2024,6 +2024,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitWithExpression(BoundWithExpression node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
         {
             VisitRvalue(node.Expression);

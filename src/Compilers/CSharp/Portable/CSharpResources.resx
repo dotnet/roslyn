@@ -6046,4 +6046,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DuplicateRecordConstructor" xml:space="preserve">
     <value>There cannot be a primary constructor and a member constructor with the same parameter types.</value>
   </data>
+  <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
+    <value>The receiver of a `with` expression must have a valid non-void type.</value>
+  </data>
+  <data name="ERR_NoSingleWithMethod" xml:space="preserve">
+    <value>The 'with' expression requires the receiver type '{0}' to have a single accessible non-inherited instance method named "With".</value>
+  </data>
+  <data name="ERR_ContainingTypeMustDeriveFromWithReturnType" xml:space="preserve">
+    <value>The type of the 'with' expression receiver, '{0}', does not derive from the return type of the 'With' method, '{1}'.</value>
+  </data>
+  <data name="ERR_WithParameterWithoutMatchingMember" xml:space="preserve">
+    <value>The receiver type '{0}' does not have a corresponding member to the 'With' method parameter named '{1}'.</value>
+  </data>
+  <data name="ERR_WithParameterTypeDoesntMatchMemberType" xml:space="preserve">
+    <value>The 'With' method parameter named '{0}' has type '{1}' which doesn't match member type '{2}'</value>
+  </data>
 </root>

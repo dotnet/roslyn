@@ -117,6 +117,11 @@
         <target state="translated">型 '{0}' の式を型 '{1}' のパターンで処理することはできません。オープン型と定数パターンを一致させるには、言語バージョン '{2}' 以上をご使用ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ContainingTypeMustDeriveFromWithReturnType">
+        <source>The type of the 'with' expression receiver, '{0}', does not derive from the return type of the 'With' method, '{1}'.</source>
+        <target state="new">The type of the 'with' expression receiver, '{0}', does not derive from the return type of the 'With' method, '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">名前 '{0}' は対応する 'Deconstruct' パラメーター '{1}' と一致しません。</target>
@@ -307,6 +312,11 @@
         <target state="translated">"無効な次元指定子です: ']' を指定してください</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidWithReceiverType">
+        <source>The receiver of a `with` expression must have a valid non-void type.</source>
+        <target state="new">The receiver of a `with` expression must have a valid non-void type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
         <target state="translated">is-type 式で Null 許容参照型 '{0}?' を使用することはできません。代わりに基になる型 '{0}' をご使用ください。</target>
@@ -355,6 +365,11 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="new">Output directory could not be determined</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoSingleWithMethod">
+        <source>The 'with' expression requires the receiver type '{0}' to have a single accessible non-inherited instance method named "With".</source>
+        <target state="new">The 'with' expression requires the receiver type '{0}' to have a single accessible non-inherited instance method named "With".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -535,6 +550,16 @@
       <trans-unit id="ERR_VarianceInterfaceNesting">
         <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
         <target state="translated">'in' または 'out' の型パラメーターを持つインターフェイス内では、列挙体、クラス、および構造体を宣言することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_WithParameterTypeDoesntMatchMemberType">
+        <source>The 'With' method parameter named '{0}' has type '{1}' which doesn't match member type '{2}'</source>
+        <target state="new">The 'With' method parameter named '{0}' has type '{1}' which doesn't match member type '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_WithParameterWithoutMatchingMember">
+        <source>The receiver type '{0}' does not have a corresponding member to the 'With' method parameter named '{1}'.</source>
+        <target state="new">The receiver type '{0}' does not have a corresponding member to the 'With' method parameter named '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">

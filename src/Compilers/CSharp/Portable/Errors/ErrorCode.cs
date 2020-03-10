@@ -1771,6 +1771,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_BadRecordDeclaration = 8800,
         ERR_DuplicateRecordConstructor = 8801,
+        ERR_InvalidWithReceiverType = 8802,
+        ERR_NoSingleWithMethod = 8803,
+        ERR_ContainingTypeMustDeriveFromWithReturnType = 8804,
+        ERR_WithParameterWithoutMatchingMember = 8805,
+        ERR_WithParameterTypeDoesntMatchMemberType = 8806,
+
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
