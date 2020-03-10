@@ -7,15 +7,19 @@
 using System;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#endif
+
 namespace Microsoft.CodeAnalysis.Options
 {
     [NonDefaultable]
-    public readonly struct OptionKey : IEquatable<OptionKey>
+    internal readonly struct OptionKey2 : IEquatable<OptionKey2>
     {
-        public IOption Option { get; }
+        public IOption2 Option { get; }
         public string? Language { get; }
 
-        public OptionKey(IOption option, string? language = null)
+        public OptionKey2(IOption2 option, string? language = null)
         {
             if (language != null && !option.IsPerLanguage)
             {
@@ -32,11 +36,11 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override bool Equals(object? obj)
         {
-            return obj is OptionKey key &&
+            return obj is OptionKey2 key &&
                    Equals(key);
         }
 
-        public bool Equals(OptionKey other)
+        public bool Equals(OptionKey2 other)
         {
             return Option == other.Option && Language == other.Language;
         }
@@ -67,14 +71,19 @@ namespace Microsoft.CodeAnalysis.Options
             return languageDisplay + Option.ToString();
         }
 
-        public static bool operator ==(OptionKey left, OptionKey right)
+        public static bool operator ==(OptionKey2 left, OptionKey2 right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(OptionKey left, OptionKey right)
+        public static bool operator !=(OptionKey2 left, OptionKey2 right)
         {
             return !left.Equals(right);
         }
+
+#if !CODE_STYLE
+        public static implicit operator OptionKey(OptionKey2 optionKey)
+            => new OptionKey(optionKey.Option, optionKey.Language);
+#endif
     }
 }

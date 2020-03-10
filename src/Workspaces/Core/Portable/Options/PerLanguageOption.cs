@@ -7,49 +7,37 @@
 using System;
 using System.Collections.Immutable;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
-    /// <summary>
-    /// Marker interface for <see cref="PerLanguageOption{T}"/>
-    /// </summary>
-    internal interface IPerLanguageOption : IOptionWithGroup
+    /// <inheritdoc cref="PerLanguageOption2{T}"/>
+    public class PerLanguageOption<T> : IPerLanguageOption<T>
     {
-    }
+        private readonly PerLanguageOption2<T> _perLanguageOptionImpl;
 
-    /// <summary>
-    /// An option that can be specified once per language.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class PerLanguageOption<T> : IPerLanguageOption
-    {
         /// <summary>
         /// Feature this option is associated with.
         /// </summary>
-        public string Feature { get; }
+        public string Feature => _perLanguageOptionImpl.Feature;
 
         /// <summary>
         /// Optional group/sub-feature for this option.
         /// </summary>
-        internal OptionGroup Group { get; }
+        internal OptionGroup Group => _perLanguageOptionImpl.Group;
 
         /// <summary>
         /// The name of the option.
         /// </summary>
-        public string Name { get; }
+        public string Name => _perLanguageOptionImpl.Name;
 
         /// <summary>
         /// The type of the option value.
         /// </summary>
-        public Type Type => typeof(T);
+        public Type Type => _perLanguageOptionImpl.Type;
 
         /// <summary>
         /// The default option value.
         /// </summary>
-        public T DefaultValue { get; }
+        public T DefaultValue => _perLanguageOptionImpl.DefaultValue;
 
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
@@ -64,6 +52,11 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+            : this(feature, group, name, defaultValue, storageLocations.ToImmutableArray())
+        {
+        }
+
+        internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -75,22 +68,16 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentException(nameof(name));
             }
 
-            this.Feature = feature;
-            this.Group = group ?? throw new ArgumentNullException(nameof(group));
-            this.Name = name;
-            this.DefaultValue = defaultValue;
-            this.StorageLocations = storageLocations.ToImmutableArray();
+            _perLanguageOptionImpl = new PerLanguageOption2<T>(feature, group, name, defaultValue);
+            StorageLocations = storageLocations;
         }
+
+        OptionGroup IOptionWithGroup.Group => this.Group;
 
         object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => true;
 
-        OptionGroup IOptionWithGroup.Group => this.Group;
-
-        public override string ToString()
-        {
-            return string.Format("{0} - {1}", this.Feature, this.Name);
-        }
+        public override string ToString() => _perLanguageOptionImpl.ToString();
     }
 }

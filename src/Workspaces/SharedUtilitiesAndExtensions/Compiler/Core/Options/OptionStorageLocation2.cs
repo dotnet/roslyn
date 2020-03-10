@@ -9,7 +9,10 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// The base type of all types that specify where options are stored.
     /// </summary>
-    public abstract class OptionStorageLocation
+    internal abstract class OptionStorageLocation2
+#if !CODE_STYLE
+        : OptionStorageLocation
+#endif
     {
     }
 }

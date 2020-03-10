@@ -9,14 +9,19 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    public interface IOption
+    internal interface IOption2
+#if !CODE_STYLE
+        : IOption
+#endif
     {
+#if CODE_STYLE
         string Feature { get; }
         string Name { get; }
         Type Type { get; }
         object? DefaultValue { get; }
         bool IsPerLanguage { get; }
 
-        ImmutableArray<OptionStorageLocation> StorageLocations { get; }
+        ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
+#endif
     }
 }

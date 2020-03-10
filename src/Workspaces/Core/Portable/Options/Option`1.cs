@@ -7,48 +7,39 @@
 using System;
 using System.Collections.Immutable;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
-    /// <summary>
-    /// Marker interface for <see cref="Option{T}"/>
-    /// </summary>
-    internal interface ILanguageSpecificOption : IOptionWithGroup
-    {
-    }
-
     /// <summary>
     /// An global option. An instance of this class can be used to access an option value from an OptionSet.
     /// </summary>
-    public class Option<T> : ILanguageSpecificOption
+    public class Option<T> : ILanguageSpecificOption<T>
     {
+        private readonly Option2<T> _optionImpl;
+
         /// <summary>
         /// Feature this option is associated with.
         /// </summary>
-        public string Feature { get; }
+        public string Feature => _optionImpl.Feature;
 
         /// <summary>
         /// Optional group/sub-feature for this option.
         /// </summary>
-        internal OptionGroup Group { get; }
+        internal OptionGroup Group => _optionImpl.Group;
 
         /// <summary>
         /// The name of the option.
         /// </summary>
-        public string Name { get; }
+        public string Name => _optionImpl.Name;
 
         /// <summary>
         /// The default value of the option.
         /// </summary>
-        public T DefaultValue { get; }
+        public T DefaultValue => _optionImpl.DefaultValue;
 
         /// <summary>
         /// The type of the option value.
         /// </summary>
-        public Type Type => typeof(T);
+        public Type Type => _optionImpl.Type;
 
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
@@ -70,6 +61,11 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal Option(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+            : this(feature, group, name, defaultValue, storageLocations.ToImmutableArray())
+        {
+        }
+
+        internal Option(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -81,23 +77,17 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentException(nameof(name));
             }
 
-            this.Feature = feature;
-            this.Group = group ?? throw new ArgumentNullException(nameof(group));
-            this.Name = name;
-            this.DefaultValue = defaultValue;
-            this.StorageLocations = storageLocations.ToImmutableArray();
+            _optionImpl = new Option2<T>(feature, group, name, defaultValue);
+            this.StorageLocations = storageLocations;
         }
+
+        OptionGroup IOptionWithGroup.Group => this.Group;
 
         object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => false;
 
-        OptionGroup IOptionWithGroup.Group => this.Group;
-
-        public override string ToString()
-        {
-            return string.Format("{0} - {1}", this.Feature, this.Name);
-        }
+        public override string ToString() => _optionImpl.ToString();
 
         public static implicit operator OptionKey(Option<T> option)
         {

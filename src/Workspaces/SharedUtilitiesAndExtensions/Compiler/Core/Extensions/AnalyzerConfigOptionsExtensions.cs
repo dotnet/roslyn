@@ -2,11 +2,12 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 
 #if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
+using TOption = Microsoft.CodeAnalysis.Options.IOption2;
 #else
-using Microsoft.CodeAnalysis.Options;
+using TOption = Microsoft.CodeAnalysis.Options.IOption;
 #endif
 
 namespace Microsoft.CodeAnalysis
@@ -14,16 +15,28 @@ namespace Microsoft.CodeAnalysis
     internal static class AnalyzerConfigOptionsExtensions
     {
 #if CODE_STYLE
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option, string language)
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption2<T> option, string language)
         {
             // Language is not used for .editorconfig lookups
             _ = language;
 
             return GetOption(analyzerConfigOptions, option);
         }
+#else
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Options.Option<T> option)
+            => analyzerConfigOptions.GetOptionWithAssertOnFailure<T>(option);
+
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Options.PerLanguageOption<T> option)
+            => analyzerConfigOptions.GetOptionWithAssertOnFailure<T>(option);
 #endif
 
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option<T> option)
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option2<T> option)
+            => analyzerConfigOptions.GetOptionWithAssertOnFailure<T>(option);
+
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption2<T> option)
+            => analyzerConfigOptions.GetOptionWithAssertOnFailure<T>(option);
+
+        private static T GetOptionWithAssertOnFailure<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option)
         {
             if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
             {
@@ -31,33 +44,19 @@ namespace Microsoft.CodeAnalysis
                 //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
                 //  2. Attempting to access an option which is not exposed from any option provider, i.e. IOptionProvider.Options.
                 Debug.Fail("Failed to find a .editorconfig key for the option.");
-                value = option.DefaultValue;
+                value = (T)option.DefaultValue;
             }
 
             return value;
         }
 
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption<T> option)
-        {
-            if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
-            {
-                // There are couple of reasons this assert might fire:
-                //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
-                //  2. Attempting to access an option which is not exposed from any option provider, i.e. IOptionProvider.Options.
-                Debug.Fail("Failed to find a .editorconfig key for the option.");
-                value = option.DefaultValue;
-            }
-
-            return value;
-        }
-
-        public static bool TryGetEditorConfigOptionOrDefault<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, out T value)
+        public static bool TryGetEditorConfigOptionOrDefault<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, out T value)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, useDefaultIfMissing: true, out value);
 
-        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, out T value)
+        public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, out T value)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, useDefaultIfMissing: false, out value);
 
-        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, IOption option, bool useDefaultIfMissing, out T value)
+        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, bool useDefaultIfMissing, out T value)
         {
             var hasEditorConfigStorage = false;
             foreach (var storageLocation in option.StorageLocations)

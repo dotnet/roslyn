@@ -9,22 +9,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 #endif
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
     /// <summary>
     /// Specifies that an option should be read from an .editorconfig file.
     /// </summary>
-    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation, IEditorConfigStorageLocation2
+    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation2, IEditorConfigStorageLocation2
     {
         public string KeyName { get; }
 
