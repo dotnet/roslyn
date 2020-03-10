@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 #else
@@ -44,8 +46,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public override string ToString() => Name;
 
 #if !CODE_STYLE
-        public static implicit operator NotificationOption2(NotificationOption notificationOption)
+        public static implicit operator NotificationOption2?(NotificationOption? notificationOption)
         {
+            if (notificationOption is null)
+            {
+                return null;
+            }
+
             return notificationOption.Severity switch
             {
                 ReportDiagnostic.Suppress => None,
@@ -57,8 +64,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             };
         }
 
-        public static implicit operator NotificationOption(NotificationOption2 notificationOption)
+        public static implicit operator NotificationOption?(NotificationOption2? notificationOption)
         {
+            if (notificationOption is null)
+            {
+                return null;
+            }
+
             return notificationOption.Severity switch
             {
                 ReportDiagnostic.Suppress => NotificationOption.None,
@@ -70,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             };
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is NotificationOption)
             {
@@ -89,19 +101,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return Hash.Combine(Name.GetHashCode(), Severity.GetHashCode());
         }
 
-        public bool Equals(NotificationOption2 notificationOption2)
+        public bool Equals(NotificationOption2? notificationOption2)
         {
             return ReferenceEquals(this, notificationOption2);
         }
 
-        public static bool operator ==(NotificationOption notificationOption, NotificationOption2 notificationOption2)
+        public static bool operator ==(NotificationOption? notificationOption, NotificationOption2? notificationOption2)
         {
-            return notificationOption2.Equals((NotificationOption2)notificationOption);
+            return Equals((NotificationOption2?)notificationOption, notificationOption2);
         }
 
         public static bool operator !=(NotificationOption notificationOption, NotificationOption2 notificationOption2)
         {
-            return !notificationOption2.Equals((NotificationOption2)notificationOption);
+            return !Equals((NotificationOption2?)notificationOption, notificationOption2);
         }
 #endif
     }
