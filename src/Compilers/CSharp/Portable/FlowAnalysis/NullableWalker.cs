@@ -3787,37 +3787,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (var baseType = receiverType; baseType is object && method is object; baseType = baseType.BaseTypeNoUseSiteDiagnostics)
                 {
                     var implementationMethod = baseType.FindImplementationForInterfaceMember(constructedMethod);
-
-                    if (implementationMethod is object)
-                    {
-                        if (implementationMethod.ContainingType.IsInterface)
-                        {
-                            break;
-                        }
-
-                        for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
-                        {
-                            if (overriddenMethod.Equals(implementationMethod))
-                            {
-                                return true;
-                            }
-                        }
-
-                        var oldBase = baseType;
-                        baseType = implementationMethod.ContainingType;
-
-                        for (; oldBase is object && !oldBase.Equals(baseType);)
-                        {
-                            // skip unnecessary override methods
-                        }
-                    }
-                    else
+                    if (implementationMethod is null)
                     {
                         // we know no base type will implement this interface member either
-                        break;
+                        return false;
                     }
 
-                    // No point checking beyond the base type in which this method is actually declared.
+                    if (implementationMethod.ContainingType.IsInterface)
+                    {
+                        // this doesn't make sense because an interface can only explicitly implement a method from its base interface.
+                        return false;
+                    }
+
+                    // could be calling an override of a method that implements the interface method
+                    for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
+                    {
+                        if (overriddenMethod.Equals(implementationMethod))
+                        {
+                            return true;
+                        }
+                    }
+
+                    // the Equals method being called isn't the method that implements the interface method in this type.
+                    // it could be a method that implements the interface on a base type, so check again with the base type.
+                    // if the method is directly contained in this type, we should skip up to its overridden method.
+
+                    // e.g. in this hierarchy:
+                    // class A -> B -> C -> D
+                    // method virtual B.Equals -> override D.Equals
+                    //
+                    // we would potentially check:
+                    // 1. D.Equals when called on D, then B.Equals when called on D
+                    // 2. B.Equals when called on C
+                    // 3. B.Equals when called on B
+                    // 4. give up when checking A, since B.Equals is not overriding anything in A
+
                     if (baseType.Equals(method.ContainingType))
                     {
                         method = method.OverriddenMethod;
