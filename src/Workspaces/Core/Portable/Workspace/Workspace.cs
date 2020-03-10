@@ -684,13 +684,11 @@ namespace Microsoft.CodeAnalysis
 
             using (_serializationLock.DisposableWait())
             {
-                var documentId = documentInfo.Id;
-
                 oldSolution = this.CurrentSolution;
                 newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
             }
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentInfo.Id);
         }
 
         /// <summary>
@@ -1009,11 +1007,10 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnAdditionalDocumentAdded(DocumentInfo documentInfo)
         {
             Solution oldSolution, newSolution;
+            var documentId = documentInfo.Id;
 
             using (_serializationLock.DisposableWait())
             {
-                var documentId = documentInfo.Id;
-
                 CheckProjectIsInCurrentSolution(documentId.ProjectId);
                 CheckAdditionalDocumentIsNotInCurrentSolution(documentId);
 
