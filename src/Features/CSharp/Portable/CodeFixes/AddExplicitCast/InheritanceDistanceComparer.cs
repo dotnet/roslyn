@@ -20,23 +20,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             _baseType = baseType;
         }
 
+        public int Compare(ITypeSymbol x, ITypeSymbol y)
+        {
+            var xDist = GetInheritanceDistance(x);
+            var yDist = GetInheritanceDistance(y);
+            return xDist.CompareTo(yDist);
+        }
+
         /// <summary>
         /// Calculate the inheritance distance between _baseType and derivedType.
         /// </summary>
-        private int GetInheritanceDistance(ITypeSymbol? derivedType)
+        private int GetInheritanceDistanceRecursive(ITypeSymbol? derivedType)
         {
             if (derivedType == null)
                 return int.MaxValue;
             if (derivedType.Equals(_baseType))
                 return 0;
 
-            var distance = GetInheritanceDistance(derivedType.BaseType);
+            var distance = GetInheritanceDistanceRecursive(derivedType.BaseType);
 
             if (derivedType.Interfaces.Length != 0)
             {
                 foreach (var interfaceType in derivedType.Interfaces)
                 {
-                    distance = Math.Min(GetInheritanceDistance(interfaceType), distance);
+                    distance = Math.Min(GetInheritanceDistanceRecursive(interfaceType), distance);
                 }
             }
 
@@ -47,21 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// Wrapper funtion of [GetInheritanceDistance], also consider the class with explicit conversion operator
         /// has the highest priority.
         /// </summary>
-        private int GetInheritanceDistanceWrapper(ITypeSymbol type)
+        private int GetInheritanceDistance(ITypeSymbol type)
         {
             var conversion = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, type);
 
             // If the node has the explicit conversion operator, then it has the shortest distance,
             // since explicit conversion operator is defined by users and has the highest priority 
-            var distance = conversion.IsUserDefined ? 0 : GetInheritanceDistance(type);
+            var distance = conversion.IsUserDefined ? 0 : GetInheritanceDistanceRecursive(type);
             return distance;
-        }
-
-        public int Compare(ITypeSymbol x, ITypeSymbol y)
-        {
-            var xDist = GetInheritanceDistanceWrapper(x);
-            var yDist = GetInheritanceDistanceWrapper(y);
-            return xDist.CompareTo(yDist);
         }
     }
 }
