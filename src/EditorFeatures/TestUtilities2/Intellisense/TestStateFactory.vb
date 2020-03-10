@@ -45,10 +45,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Shared Function CreateTestStateFromWorkspace(workspaceElement As XElement,
                                                             Optional extraExportedTypes As List(Of Type) = Nothing,
-                                                            Optional workspaceKind As String = Nothing) As TestState
+                                                            Optional workspaceKind As String = Nothing,
+                                                            Optional showCompletionInArgumentLists As Boolean = True) As TestState
 
-            Return New TestState(workspaceElement,
-                                   excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
+            Dim testState = New TestState(
+                workspaceElement, excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
+
+            testState.Workspace.SetOptions(
+                testState.Workspace.Options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
+
+            Return testState
         End Function
     End Class
 End Namespace
