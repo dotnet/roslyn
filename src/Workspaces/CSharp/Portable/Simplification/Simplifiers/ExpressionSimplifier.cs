@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                             replacementNode = replacementNode
                                 .WithAdditionalAnnotations<TypeSyntax>(new SyntaxAnnotation(
-                                    nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)));
+                                    nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)));
 
                             issueSpan = memberAccess.Span; // we want to show the whole expression as unnecessary
 

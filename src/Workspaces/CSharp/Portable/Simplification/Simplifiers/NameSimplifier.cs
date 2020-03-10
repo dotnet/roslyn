@@ -243,8 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                             // If not, we'll still fall through and see if we can convert it to Int32.
 
                             var codeStyleOptionName = inDeclarationContext
-                                ? nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
-                                : nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
+                                ? nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+                                : nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
 
                             var type = semanticModel.GetTypeInfo(name, cancellationToken).Type;
                             if (type != null)
