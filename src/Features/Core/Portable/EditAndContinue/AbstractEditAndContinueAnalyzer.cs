@@ -2739,6 +2739,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var attribute in attributes)
             {
+                RoslynDebug.Assert(attribute.AttributeClass is object); // TODO2
                 if (attribute.AttributeClass.Equals(lazyLayoutAttribute) && attribute.ConstructorArguments.Length == 1)
                 {
                     var layoutValue = attribute.ConstructorArguments.Single().Value;
