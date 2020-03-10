@@ -57,16 +57,6 @@
         <target state="translated">Odsazení a mezery</target>
         <note />
       </trans-unit>
-      <trans-unit id="Naming_rules">
-        <source>Naming rules</source>
-        <target state="translated">Pravidla pojmenování</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_styles">
-        <source>Naming styles</source>
-        <target state="translated">Styly pojmenování</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
         <target state="translated">Předvolby nových řádků</target>
@@ -1280,11 +1270,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Adding_projects_is_not_supported">
         <source>Adding projects is not supported.</source>
         <target state="translated">Přidávání projektů se nepodporuje.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_specifications">
-        <source>Symbol specifications</source>
-        <target state="translated">Specifikace symbolů</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">

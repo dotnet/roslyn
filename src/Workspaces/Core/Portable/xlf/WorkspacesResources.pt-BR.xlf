@@ -57,16 +57,6 @@
         <target state="translated">Recuo e espaçamento</target>
         <note />
       </trans-unit>
-      <trans-unit id="Naming_rules">
-        <source>Naming rules</source>
-        <target state="translated">Regras de nomenclatura</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_styles">
-        <source>Naming styles</source>
-        <target state="translated">Estilos de nomenclatura</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
         <target state="translated">Preferências de nova linha</target>
@@ -1280,11 +1270,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Adding_projects_is_not_supported">
         <source>Adding projects is not supported.</source>
         <target state="translated">Não há suporte para adicionar projetos.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_specifications">
-        <source>Symbol specifications</source>
-        <target state="translated">Especificações de símbolo</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
