@@ -30,6 +30,220 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public RecordParsingTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
+        public void RecordParsing01()	
+        {	
+            var text = "data class C(int X, int Y);";	
+            UsingTree(text);	
+
+            N(SyntaxKind.CompilationUnit);	
+            {	
+                N(SyntaxKind.ClassDeclaration);	
+                {	
+                    N(SyntaxKind.DataKeyword);	
+                    N(SyntaxKind.ClassKeyword);	
+                    N(SyntaxKind.IdentifierToken, "C");	
+                    N(SyntaxKind.ParameterList);	
+                    {	
+                        N(SyntaxKind.OpenParenToken);	
+                        N(SyntaxKind.Parameter);	
+                        {	
+                            N(SyntaxKind.PredefinedType);	
+                            {	
+                                N(SyntaxKind.IntKeyword);	
+                            }	
+                            N(SyntaxKind.IdentifierToken, "X");	
+                        }	
+                        N(SyntaxKind.CommaToken);	
+                        N(SyntaxKind.Parameter);	
+                        {	
+                            N(SyntaxKind.PredefinedType);	
+                            {	
+                                N(SyntaxKind.IntKeyword);	
+                            }	
+                            N(SyntaxKind.IdentifierToken, "Y");	
+                        }	
+                        N(SyntaxKind.CloseParenToken);	
+                    }	
+                    N(SyntaxKind.SemicolonToken);	
+                }	
+            }	
+            N(SyntaxKind.EndOfFileToken);	
+            EOF();	
+        }	
+
+        [Fact]	
+        public void RecordParsing02()	
+        {	
+            var text = "class C(int X, int Y);";	
+            UsingTree(text);	
+
+            N(SyntaxKind.CompilationUnit);	
+            {	
+                N(SyntaxKind.ClassDeclaration);	
+                {	
+                    N(SyntaxKind.ClassKeyword);	
+                    N(SyntaxKind.IdentifierToken, "C");	
+                    N(SyntaxKind.ParameterList);	
+                    {	
+                        N(SyntaxKind.OpenParenToken);	
+                        N(SyntaxKind.Parameter);	
+                        {	
+                            N(SyntaxKind.PredefinedType);	
+                            {	
+                                N(SyntaxKind.IntKeyword);	
+                            }	
+                            N(SyntaxKind.IdentifierToken, "X");	
+                        }	
+                        N(SyntaxKind.CommaToken);	
+                        N(SyntaxKind.Parameter);	
+                        {	
+                            N(SyntaxKind.PredefinedType);	
+                            {	
+                                N(SyntaxKind.IntKeyword);	
+                            }	
+                            N(SyntaxKind.IdentifierToken, "Y");	
+                        }	
+                        N(SyntaxKind.CloseParenToken);	
+                    }	
+                    N(SyntaxKind.SemicolonToken);	
+                }	
+            }	
+            N(SyntaxKind.EndOfFileToken);	
+            EOF();	
+        }	
+
+        [Fact]	
+        public void RecordParsing03()	
+        {	
+            var text = "data class C;";	
+            UsingTree(text);	
+
+            N(SyntaxKind.CompilationUnit);	
+            {	
+                N(SyntaxKind.ClassDeclaration);	
+                {	
+                    N(SyntaxKind.DataKeyword);	
+                    N(SyntaxKind.ClassKeyword);	
+                    N(SyntaxKind.IdentifierToken, "C");	
+                    N(SyntaxKind.SemicolonToken);	
+                }	
+            }	
+            N(SyntaxKind.EndOfFileToken);	
+            EOF();	
+        }	
+
+        [Fact]	
+        public void RecordParsing04()	
+        {	
+            var text = "class C { public int data; }";	
+            UsingTree(text);	
+
+            N(SyntaxKind.CompilationUnit);	
+            {	
+                N(SyntaxKind.ClassDeclaration);	
+                {	
+                    N(SyntaxKind.ClassKeyword);	
+                    N(SyntaxKind.IdentifierToken, "C");	
+                    N(SyntaxKind.OpenBraceToken);	
+                    N(SyntaxKind.FieldDeclaration);	
+                    {	
+                        N(SyntaxKind.PublicKeyword);	
+                        N(SyntaxKind.VariableDeclaration);	
+                        {	
+                            N(SyntaxKind.PredefinedType);	
+                            {	
+                                N(SyntaxKind.IntKeyword);	
+                            }	
+                            N(SyntaxKind.VariableDeclarator);	
+                            {	
+                                N(SyntaxKind.IdentifierToken, "data");	
+                            }	
+                            N(SyntaxKind.SemicolonToken);	
+                        }	
+                    }	
+                    N(SyntaxKind.CloseBraceToken);	
+                }	
+            }	
+            N(SyntaxKind.EndOfFileToken);	
+            EOF();	
+        }	
+
+        [Fact]	
+        public void RecordParsing05()	
+        {	
+            var tree = ParseTree("class Point;", options: null);	
+            tree.GetDiagnostics().Verify(	
+                // (1,12): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.	
+                // class Point;	
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("records").WithLocation(1, 12)	
+            );	
+
+            UsingNode((CSharpSyntaxNode)tree.GetRoot());	
+
+            N(SyntaxKind.CompilationUnit);	
+            {	
+                N(SyntaxKind.ClassDeclaration);	
+                {	
+                    N(SyntaxKind.ClassKeyword);	
+                    N(SyntaxKind.IdentifierToken, "Point");	
+                    N(SyntaxKind.SemicolonToken);	
+                }	
+                N(SyntaxKind.EndOfFileToken);	
+            }	
+            EOF();	
+        }	
+
+        [Fact]	
+        public void RecordParsing06()	
+        {	
+            var tree = ParseTree("interface P;", options: null);	
+            tree.GetDiagnostics().Verify(	
+                // (1,12): error CS1514: { expected	
+                // interface P;	
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 12),	
+                // (1,12): error CS1513: } expected	
+                // interface P;	
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 12)	
+            );	
+
+            UsingNode((CSharpSyntaxNode)tree.GetRoot());	
+
+            N(SyntaxKind.CompilationUnit);	
+            {	
+                N(SyntaxKind.InterfaceDeclaration);	
+                {	
+                    N(SyntaxKind.InterfaceKeyword);	
+                    N(SyntaxKind.IdentifierToken, "P");	
+                    M(SyntaxKind.OpenBraceToken);	
+                    M(SyntaxKind.CloseBraceToken);	
+                    N(SyntaxKind.SemicolonToken);	
+                }	
+                N(SyntaxKind.EndOfFileToken);	
+            }	
+            EOF();	
+        }	
+
+        [Fact]	
+        public void RecordParsing07()	
+        {	
+            var tree = ParseTree("interface P(int x, int y);", options: null);	
+            tree.GetDiagnostics().Verify(	
+                // (1,12): error CS1514: { expected	
+                // interface P(int x, int y);	
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),	
+                // (1,12): error CS1513: } expected	
+                // interface P(int x, int y);	
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),	
+                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods	
+                // interface P(int x, int y);	
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ")").WithLocation(1, 25),	
+                // (1,26): error CS1022: Type or namespace definition, or end-of-file expected	
+                // interface P(int x, int y);	
+                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(1, 26)	
+            );	
+        }
+
+        [Fact]
         public void WithParsingLangVer()
         {
             var text = @"
@@ -537,6 +751,135 @@ class C
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing11()
+        {
+            UsingStatement("await with;", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "await");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing12()
+        {
+            var text = @"M() switch { } with { }";
+
+            UsingExpression(text);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing13()
+        {
+            var text = @"M(out await with)";
+            UsingExpression(text);
+            N(SyntaxKind.InvocationExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "M");
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.OutKeyword);
+                        N(SyntaxKind.DeclarationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "await");
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "with");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void WithParsing14()
+        {
+            // Precedence inversion
+            var text = @"x is int y with {}";
+            UsingExpression(text,
+                // (1,12): error CS1073: Unexpected token 'with'
+                // x is int y with {}
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "with").WithArguments("with").WithLocation(1, 12)
+            );
+            N(SyntaxKind.WithExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }

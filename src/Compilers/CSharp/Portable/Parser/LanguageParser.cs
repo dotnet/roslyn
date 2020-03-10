@@ -8821,6 +8821,8 @@ tryAgain:
                 case SyntaxKind.IsPatternExpression:
                     return Precedence.Relational;
                 case SyntaxKind.SwitchExpression:
+                // PROTOTYPE: Is this the right precedence?
+                case SyntaxKind.WithExpression:
                     return Precedence.Switch;
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
@@ -8892,8 +8894,6 @@ tryAgain:
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.TupleExpression:
-                // PROTOTYPE: Is this the right precedence?
-                case SyntaxKind.WithExpression:
                     return Precedence.Primary;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(op);
