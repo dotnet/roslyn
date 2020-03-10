@@ -138,6 +138,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public bool ProduceBinaryLog
+        {
+            get => _loader.ProduceBinaryLog;
+            set => _loader.ProduceBinaryLog = value;
+        }
+
+        /// <summary>
         /// Associates a project file extension with a language name.
         /// </summary>
         public void AssociateFileExtensionWithLanguage(string projectFileExtension, string language)

@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public bool SkipUnrecognizedProjects { get; set; } = true;
 
         /// <summary>
+        /// 
+        /// </summary>
+        public bool ProduceBinaryLog { get; set; } = false;
+
+        /// <summary>
         /// Associates a project file extension with a language name.
         /// </summary>
         /// <param name="projectFileExtension">The project file extension to associate with <paramref name="language"/>.</param>
@@ -197,7 +202,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 progress,
                 requestedProjectOptions: reportingOptions,
                 discoveredProjectOptions: reportingOptions,
-                preferMetadataForReferencesOfDiscoveredProjects: false);
+                preferMetadataForReferencesOfDiscoveredProjects: false,
+                produceBinaryLog: ProduceBinaryLog);
 
             var projects = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
 
@@ -253,7 +259,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 progress,
                 requestedProjectOptions,
                 discoveredProjectOptions,
-                this.LoadMetadataForReferencedProjects);
+                this.LoadMetadataForReferencedProjects,
+                produceBinaryLog: ProduceBinaryLog);
 
             return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
         }

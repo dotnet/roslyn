@@ -1,1 +1,4 @@
-
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.ProduceBinaryLog.get -> bool
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.ProduceBinaryLog.set -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ProduceBinaryLog.get -> bool
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ProduceBinaryLog.set -> void
