@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.EditorConfig;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -232,7 +233,11 @@ namespace Microsoft.CodeAnalysis
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
             var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetProjectLanguages());
-            this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
+
+            using (_serializationLock.DisposableWait())
+            {
+                this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
+            }
         }
 
         /// <summary>
@@ -274,13 +279,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void ClearSolution()
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
                 this.ClearSolutionData();
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, this.CurrentSolution);
+                newSolution = this.CurrentSolution;
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, newSolution);
         }
 
         /// <summary>
@@ -352,19 +360,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionAdded(SolutionInfo solutionInfo)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
                 var solutionId = solutionInfo.Id;
 
                 CheckSolutionIsEmpty();
                 this.SetCurrentSolution(this.CreateSolution(solutionInfo));
 
-                solutionInfo.Projects.Do(p => OnProjectAdded_NoLock(p, silent: true));
+                solutionInfo.Projects.Do(p => OnProjectAdded_NoLock(p));
 
-                var newSolution = this.CurrentSolution;
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionAdded, oldSolution, newSolution);
+                newSolution = this.CurrentSolution;
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionAdded, oldSolution, newSolution);
         }
 
         /// <summary>
@@ -372,18 +383,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionReloaded(SolutionInfo reloadedSolutionInfo)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(this.CreateSolution(reloadedSolutionInfo));
+                oldSolution = this.CurrentSolution;
+                newSolution = this.SetCurrentSolution(this.CreateSolution(reloadedSolutionInfo));
 
-                reloadedSolutionInfo.Projects.Do(pi => OnProjectAdded_NoLock(pi, silent: true));
+                reloadedSolutionInfo.Projects.Do(pi => OnProjectAdded_NoLock(pi));
 
                 newSolution = this.AdjustReloadedSolution(oldSolution, this.CurrentSolution);
                 newSolution = this.SetCurrentSolution(newSolution);
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionReloaded, oldSolution, newSolution);
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionReloaded, oldSolution, newSolution);
         }
 
         /// <summary>
@@ -395,17 +409,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionRemoved()
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
 
                 this.ClearSolutionData();
 
                 // reset to new empty solution
                 this.SetCurrentSolution(this.CreateSolution(SolutionId.CreateNewId()));
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionRemoved, oldSolution, this.CurrentSolution);
+                newSolution = this.CurrentSolution;
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionRemoved, oldSolution, newSolution);
         }
 
         /// <summary>
@@ -413,30 +431,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectAdded(ProjectInfo projectInfo)
         {
-            this.OnProjectAdded(projectInfo, silent: false);
-        }
+            Solution oldSolution, newSolution;
 
-        private void OnProjectAdded(ProjectInfo projectInfo, bool silent)
-        {
             using (_serializationLock.DisposableWait())
             {
-                this.OnProjectAdded_NoLock(projectInfo, silent);
+                oldSolution = CurrentSolution;
+                OnProjectAdded_NoLock(projectInfo);
+                newSolution = CurrentSolution;
             }
+
+            RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectAdded, oldSolution, newSolution, projectInfo.Id);
         }
 
-        private void OnProjectAdded_NoLock(ProjectInfo projectInfo, bool silent)
+        private void OnProjectAdded_NoLock(ProjectInfo projectInfo)
         {
-            var projectId = projectInfo.Id;
-
-            CheckProjectIsNotInCurrentSolution(projectId);
-
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(oldSolution.AddProject(projectInfo));
-
-            if (!silent)
-            {
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectAdded, oldSolution, newSolution, projectId);
-            }
+            CheckProjectIsNotInCurrentSolution(projectInfo.Id);
+            SetCurrentSolution(CurrentSolution.AddProject(projectInfo));
         }
 
         /// <summary>
@@ -444,20 +454,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectReloaded(ProjectInfo reloadedProjectInfo)
         {
+            Solution oldSolution, newSolution;
+            var projectId = reloadedProjectInfo.Id;
+
             using (_serializationLock.DisposableWait())
             {
-                var projectId = reloadedProjectInfo.Id;
 
                 CheckProjectIsInCurrentSolution(projectId);
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = oldSolution.RemoveProject(projectId).AddProject(reloadedProjectInfo);
+                oldSolution = this.CurrentSolution;
+                newSolution = oldSolution.RemoveProject(projectId).AddProject(reloadedProjectInfo);
 
                 newSolution = this.AdjustReloadedProject(oldSolution.GetProject(projectId), newSolution.GetProject(projectId)).Solution;
                 newSolution = this.SetCurrentSolution(newSolution);
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectReloaded, oldSolution, newSolution, projectId);
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectReloaded, oldSolution, newSolution, projectId);
         }
 
         /// <summary>
@@ -465,18 +478,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectRemoved(ProjectId projectId)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 this.CheckProjectCanBeRemoved(projectId);
 
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
 
                 this.ClearProjectData(projectId);
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
+                newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
         }
 
         /// <summary>
@@ -489,15 +505,17 @@ namespace Microsoft.CodeAnalysis
 
         private void HandleProjectChange(ProjectId projectId, Func<Solution, Solution> getSolutionWithChangedProject)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(getSolutionWithChangedProject(oldSolution));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                oldSolution = this.CurrentSolution;
+                newSolution = this.SetCurrentSolution(getSolutionWithChangedProject(oldSolution));
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
         }
 
         /// <summary>
@@ -662,15 +680,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentAdded(DocumentInfo documentInfo)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 var documentId = documentInfo.Id;
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
+                oldSolution = this.CurrentSolution;
+                newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -678,15 +698,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentsAdded(ImmutableArray<DocumentInfo> documentInfos)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddDocuments(documentInfos));
-
-                // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
-                // DocumentId associated with it, and we don't want to be raising multiple events.
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution);
+                oldSolution = this.CurrentSolution;
+                newSolution = this.SetCurrentSolution(oldSolution.AddDocuments(documentInfos));
             }
+
+            // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
+            // DocumentId associated with it, and we don't want to be raising multiple events.
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution);
         }
 
         /// <summary>
@@ -694,15 +716,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentReloaded(DocumentInfo newDocumentInfo)
         {
+            Solution oldSolution, newSolution;
+            var documentId = newDocumentInfo.Id;
+
             using (_serializationLock.DisposableWait())
             {
-                var documentId = newDocumentInfo.Id;
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId).AddDocument(newDocumentInfo));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentReloaded, oldSolution, newSolution, documentId: documentId);
+                oldSolution = this.CurrentSolution;
+                newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId).AddDocument(newDocumentInfo));
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentReloaded, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -710,20 +733,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentRemoved(DocumentId documentId)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
                 this.CheckDocumentCanBeRemoved(documentId);
 
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
 
                 this.ClearDocumentData(documentId);
 
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentRemoved, oldSolution, newSolution, documentId: documentId);
+                newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId));
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentRemoved, oldSolution, newSolution, documentId: documentId);
         }
 
         protected virtual void CheckDocumentCanBeRemoved(DocumentId documentId)
@@ -735,20 +760,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
 
-                var newSolution = oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                newSolution = oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
                 newSolution = this.SetCurrentSolution(newSolution);
 
                 var newDocument = newSolution.GetDocument(documentId)!;
                 this.OnDocumentTextChanged(newDocument);
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -756,36 +783,39 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
 
-                var newSolution = oldSolution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                newSolution = oldSolution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
                 newSolution = this.SetCurrentSolution(newSolution);
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
-        }
 
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
+        }
 
         /// <summary>
         /// Call this method when the text of a analyzer config document is changed on disk.
         /// </summary>
         protected internal void OnAnalyzerConfigDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
 
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
 
-                var newSolution = oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                newSolution = oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
                 newSolution = this.SetCurrentSolution(newSolution);
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -793,13 +823,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentInfoChanged(DocumentId documentId, DocumentInfo newInfo)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
 
-                var newSolution = oldSolution;
+                newSolution = oldSolution;
                 var oldAttributes = oldSolution.GetDocument(documentId)!.State.Attributes;
 
                 if (oldAttributes.Name != newInfo.Name)
@@ -828,10 +860,10 @@ namespace Microsoft.CodeAnalysis
                 if (newSolution != oldSolution)
                 {
                     SetCurrentSolution(newSolution);
-
-                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentInfoChanged, oldSolution, newSolution, documentId: documentId);
                 }
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentInfoChanged, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -898,16 +930,18 @@ namespace Microsoft.CodeAnalysis
             WorkspaceChangeKind changeKind,
             bool isCodeDocument)
         {
+            Solution oldSolution, newSolution;
+            using var _ = ArrayBuilder<DocumentId>.GetInstance(out var updatedDocumentIds);
+
             using (_serializationLock.DisposableWait())
             {
                 checkIsInCurrentSolution(documentId);
 
-                var originalSolution = CurrentSolution;
+                oldSolution = CurrentSolution;
                 var updatedSolution = CurrentSolution;
                 var previousSolution = updatedSolution;
 
                 var linkedDocuments = getRelatedDocuments(updatedSolution, documentId);
-                var updatedDocumentIds = new List<DocumentId>();
 
                 foreach (var linkedDocument in linkedDocuments)
                 {
@@ -923,7 +957,7 @@ namespace Microsoft.CodeAnalysis
                 // documents during an earlier call to this method. We may have no work to do here.
                 if (updatedDocumentIds.Count > 0)
                 {
-                    var newSolution = SetCurrentSolution(updatedSolution);
+                    newSolution = SetCurrentSolution(updatedSolution);
 
                     // Prior to the unification of the callers of this method, the
                     // OnAdditionalDocumentTextChanged method did not fire any sort of synchronous
@@ -937,16 +971,14 @@ namespace Microsoft.CodeAnalysis
                             OnDocumentTextChanged(newDocument);
                         }
                     }
-
-                    foreach (var updatedDocumentInfo in updatedDocumentIds)
-                    {
-                        RaiseWorkspaceChangedEventAsync(
-                            changeKind,
-                            originalSolution,
-                            newSolution,
-                            documentId: updatedDocumentInfo);
-                    }
                 }
+
+                newSolution = CurrentSolution;
+            }
+
+            foreach (var updatedDocumentInfo in updatedDocumentIds)
+            {
+                RaiseWorkspaceChangedEventAsync(changeKind, oldSolution, newSolution, documentId: updatedDocumentInfo);
             }
         }
 
@@ -955,18 +987,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentSourceCodeKindChanged(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithDocumentSourceCodeKind(documentId, sourceCodeKind));
+                oldSolution = this.CurrentSolution;
+                newSolution = this.SetCurrentSolution(oldSolution.WithDocumentSourceCodeKind(documentId, sourceCodeKind));
 
                 var newDocument = newSolution.GetDocument(documentId)!;
                 this.OnDocumentTextChanged(newDocument);
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -974,6 +1008,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentAdded(DocumentInfo documentInfo)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 var documentId = documentInfo.Id;
@@ -981,11 +1017,11 @@ namespace Microsoft.CodeAnalysis
                 CheckProjectIsInCurrentSolution(documentId.ProjectId);
                 CheckAdditionalDocumentIsNotInCurrentSolution(documentId);
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddAdditionalDocument(documentInfo));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentAdded, oldSolution, newSolution, documentId: documentId);
+                oldSolution = this.CurrentSolution;
+                newSolution = this.SetCurrentSolution(oldSolution.AddAdditionalDocument(documentInfo));
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentAdded, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -993,20 +1029,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentRemoved(DocumentId documentId)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
                 this.CheckDocumentCanBeRemoved(documentId);
 
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
 
                 this.ClearDocumentData(documentId);
 
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAdditionalDocument(documentId));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentRemoved, oldSolution, newSolution, documentId: documentId);
+                newSolution = this.SetCurrentSolution(oldSolution.RemoveAdditionalDocument(documentId));
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentRemoved, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -1014,18 +1052,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerConfigDocumentAdded(DocumentInfo documentInfo)
         {
+            Solution oldSolution, newSolution;
+            var documentId = documentInfo.Id;
+
             using (_serializationLock.DisposableWait())
             {
-                var documentId = documentInfo.Id;
-
                 CheckProjectIsInCurrentSolution(documentId.ProjectId);
                 CheckAnalyzerConfigDocumentIsNotInCurrentSolution(documentId);
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo)));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentAdded, oldSolution, newSolution, documentId: documentId);
+                oldSolution = this.CurrentSolution;
+                newSolution = this.SetCurrentSolution(oldSolution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo)));
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentAdded, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -1033,20 +1072,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerConfigDocumentRemoved(DocumentId documentId)
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
                 CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
 
                 this.CheckDocumentCanBeRemoved(documentId);
 
-                var oldSolution = this.CurrentSolution;
+                oldSolution = this.CurrentSolution;
 
                 this.ClearDocumentData(documentId);
 
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAnalyzerConfigDocument(documentId));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, oldSolution, newSolution, documentId: documentId);
+                newSolution = this.SetCurrentSolution(oldSolution.RemoveAnalyzerConfigDocument(documentId));
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -1054,17 +1095,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void UpdateReferencesAfterAdd()
         {
+            Solution oldSolution, newSolution;
+
             using (_serializationLock.DisposableWait())
             {
-                var oldSolution = this.CurrentSolution;
-                var newSolution = UpdateReferencesAfterAdd(oldSolution);
-
-                if (newSolution != oldSolution)
-                {
-                    newSolution = this.SetCurrentSolution(newSolution);
-                    var ignore = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-                }
+                oldSolution = this.CurrentSolution;
+                newSolution = this.SetCurrentSolution(UpdateReferencesAfterAdd(oldSolution));
             }
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
 
         [System.Diagnostics.Contracts.Pure]
