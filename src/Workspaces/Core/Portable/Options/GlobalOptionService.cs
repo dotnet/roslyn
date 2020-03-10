@@ -255,7 +255,17 @@ namespace Microsoft.CodeAnalysis.Options
             return (T)GetOption(new OptionKey(option))!;
         }
 
+        public T GetOption<T>(Option2<T> option)
+        {
+            return (T)GetOption(new OptionKey(option))!;
+        }
+
         public T GetOption<T>(PerLanguageOption<T> option, string? language)
+        {
+            return (T)GetOption(new OptionKey(option, language))!;
+        }
+
+        public T GetOption<T>(PerLanguageOption2<T> option, string? language)
         {
             return (T)GetOption(new OptionKey(option, language))!;
         }
