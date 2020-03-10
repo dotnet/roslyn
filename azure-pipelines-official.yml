@@ -50,8 +50,8 @@ stages:
       inputs:
         type: 'Build'
         tags: |
-          'PRValidationBuild'
-          'PRNumber:$(PRNumber)'
+          PRValidationBuild
+          PRNumber:$(PRNumber)
       condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
     - task: PowerShell@2
