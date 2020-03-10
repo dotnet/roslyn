@@ -5535,6 +5535,10 @@ tryAgain:
             NameSyntax left,
             SyntaxToken separator)
         {
+            Debug.Assert(
+                separator.Kind == SyntaxKind.DotToken ||
+                separator.Kind == SyntaxKind.DotDotToken ||
+                separator.Kind == SyntaxKind.ColonColonToken);
             var right = this.ParseSimpleName(options);
 
             switch (separator.Kind)
@@ -5545,10 +5549,11 @@ tryAgain:
                     // Error recovery.  If we have `X..Y` break that into `X.<missing-id>.Y`
 
                     var leftDot = SyntaxFactory.Token(separator.LeadingTrivia.Node, SyntaxKind.DotToken, null);
-                    var rightDot = this.AddError(SyntaxFactory.Token(null, SyntaxKind.DotToken, separator.TrailingTrivia.Node), ErrorCode.ERR_IdentifierExpected);
+                    var missingName = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected);
+                    var rightDot = SyntaxFactory.Token(null, SyntaxKind.DotToken, separator.TrailingTrivia.Node);
 
                     return _syntaxFactory.QualifiedName(
-                        _syntaxFactory.QualifiedName(left, leftDot, this.CreateMissingIdentifierName()),
+                        _syntaxFactory.QualifiedName(left, leftDot, missingName),
                         rightDot, right);
 
                 case SyntaxKind.ColonColonToken:
@@ -5582,7 +5587,7 @@ tryAgain:
                     }
 
                 default:
-                    return left;
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 
