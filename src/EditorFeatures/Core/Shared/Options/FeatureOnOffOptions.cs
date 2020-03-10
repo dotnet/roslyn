@@ -79,16 +79,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> StreamingGoToImplementation = new PerLanguageOption2<bool>(
             nameof(FeatureOnOffOptions), nameof(StreamingGoToImplementation), defaultValue: true);
 
-        public static readonly Option<bool> NavigateToDecompiledSources = new Option<bool>(
+        public static readonly Option2<bool> NavigateToDecompiledSources = new Option2<bool>(
             nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(NavigateToDecompiledSources)}"));
 
-        public static readonly Option<int> UseEnhancedColors = new Option<int>(
+        public static readonly Option2<int> UseEnhancedColors = new Option2<int>(
             nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
 
         // Note: no storage location since this is intentionally a session variable
-        public static readonly Option<bool> AcceptedDecompilerDisclaimer = new Option<bool>(
+        public static readonly Option2<bool> AcceptedDecompilerDisclaimer = new Option2<bool>(
             nameof(FeatureOnOffOptions), nameof(AcceptedDecompilerDisclaimer), defaultValue: false);
     }
 
