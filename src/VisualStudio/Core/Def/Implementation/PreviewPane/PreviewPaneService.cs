@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private Guid GetOptionPageGuidForOptionName(string optionName, string optionLanguage)
         {
-            if (optionName == nameof(SimplificationOptions.NamingPreferences))
+            if (optionName == nameof(NamingStyleOptions.NamingPreferences))
             {
                 if (optionLanguage == LanguageNames.CSharp)
                 {

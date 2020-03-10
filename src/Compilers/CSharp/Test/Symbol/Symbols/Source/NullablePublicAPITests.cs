@@ -3330,7 +3330,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_SpeculativeParamReference()
+        public void NestedLambdaReinference_SpeculativeParamReference()
         {
             var source = @"
 using System;
@@ -3373,7 +3373,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_GetDeclaredSymbolParameter()
+        public void NestedLambdaReinference_GetDeclaredSymbolParameter()
         {
             var source = @"
 using System;
@@ -3401,7 +3401,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_NestedLocalDeclaration()
+        public void NestedLambdaReinference_NestedLocalDeclaration()
         {
             var source = @"
 using System;
@@ -3474,7 +3474,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_InInitializers()
+        public void NestedLambdaReinference_InInitializers()
         {
             var source = @"
 using System;
@@ -3529,7 +3529,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_PartialExplicitTypes()
+        public void NestedLambdaReinference_PartialExplicitTypes()
         {
             var source = @"
 using System;
@@ -3589,7 +3589,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_AttributeAndInitializers()
+        public void NestedLambdaReinference_AttributeAndInitializers()
         {
             var source = @"
 using System;
@@ -3617,14 +3617,11 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                     // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
                     //             void localFunc([A(o1)] object o3 = o2)
                     Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(18, 18),
-                    // (18,28): error CS8205: Attributes are not allowed on local function parameters or type parameters
-                    //             void localFunc([A(o1)] object o3 = o2)
-                    Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(o1)]").WithLocation(18, 28),
                     // (18,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                     //             void localFunc([A(o1)] object o3 = o2)
                     Diagnostic(ErrorCode.ERR_BadAttributeArgument, "o1").WithLocation(18, 31),

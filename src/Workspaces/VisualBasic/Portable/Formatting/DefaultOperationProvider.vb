@@ -3,15 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports Microsoft.CodeAnalysis.Options
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     ' the default provider that will be called by the engine at the end of provider's chain.
@@ -26,20 +20,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextSuppressOperationAction)
         End Sub
 
-        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAnchorIndentationOperationAction)
+        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextAnchorIndentationOperationAction)
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextIndentBlockOperationAction)
+        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextIndentBlockOperationAction)
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAlignTokensOperationAction)
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextAlignTokensOperationAction)
         End Sub
 
         <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False, AllowImplicitBoxing:=False)>
-        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.Parent Is Nothing Then
                 Return Nothing
             End If
@@ -158,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         ' return 1 space for every token pairs as a default operation
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             If previousToken.Kind = SyntaxKind.ColonToken AndAlso
                TypeOf previousToken.Parent Is LabelStatementSyntax AndAlso
                currentToken.Kind <> SyntaxKind.EndOfFileToken Then

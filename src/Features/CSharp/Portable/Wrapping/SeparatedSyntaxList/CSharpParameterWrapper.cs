@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         protected override SeparatedSyntaxList<ParameterSyntax> GetListItems(BaseParameterListSyntax listSyntax)
             => listSyntax.Parameters;
 
-        protected override BaseParameterListSyntax TryGetApplicableList(SyntaxNode node)
+        protected override BaseParameterListSyntax? TryGetApplicableList(SyntaxNode node)
             => node.GetParameterList();
 
         protected override bool PositionIsApplicable(

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// Get saved global <see cref="CustomAsset"/> associated with given <paramref name="value"/>
         /// </summary>
-        CustomAsset GetGlobalAsset(object value, CancellationToken cancellationToken);
+        CustomAsset? GetGlobalAsset(object value, CancellationToken cancellationToken);
 
         /// <summary>
         /// Remove saved global <see cref="CustomAsset"/> associated with given <paramref name="value"/>

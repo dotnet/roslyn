@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.ConflictMarkerResolution
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
@@ -15,19 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution
 
         <ImportingConstructor>
         Public Sub New()
-            MyBase.New(BC37284)
+            MyBase.New(VisualBasicSyntaxKinds.Instance, BC37284)
         End Sub
-
-        Protected Overrides Function IsConflictMarker(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind() = SyntaxKind.ConflictMarkerTrivia
-        End Function
-
-        Protected Overrides Function IsDisabledText(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind() = SyntaxKind.DisabledTextTrivia
-        End Function
-
-        Protected Overrides Function IsEndOfLine(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind() = SyntaxKind.EndOfLineTrivia
-        End Function
     End Class
 End Namespace

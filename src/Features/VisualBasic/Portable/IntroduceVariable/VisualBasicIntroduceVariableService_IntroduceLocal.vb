@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             Dim matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken)
 
-            Dim complexified = Await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(False)
+            Dim complexified = Await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(False)
             document = complexified.newSemanticDocument
             matches = complexified.newMatches
 

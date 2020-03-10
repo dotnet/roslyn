@@ -98,13 +98,13 @@ namespace Microsoft.CodeAnalysis
 
         public override string? NormalizePath(string path, string? baseFilePath)
         {
-            string normalizedPath = FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
+            string? normalizedPath = FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
             return (normalizedPath == null || _pathMap.IsDefaultOrEmpty) ? normalizedPath : PathUtilities.NormalizePathPrefix(normalizedPath, _pathMap);
         }
 
         public override string? ResolveReference(string path, string? baseFilePath)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
+            string? resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
             if (resolvedPath == null)
             {
                 return null;
@@ -135,8 +135,13 @@ namespace Microsoft.CodeAnalysis
             return Equals((SourceFileResolver)obj);
         }
 
-        public bool Equals(SourceFileResolver other)
+        public bool Equals(SourceFileResolver? other)
         {
+            if (other is null)
+            {
+                return false;
+            }
+
             return
                 string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
                 _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal) &&

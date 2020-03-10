@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -102,13 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     return default;
                 }
 
-                var optionSet = analyzerOptionsOpt.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-                if (optionSet is null)
-                {
-                    return default;
-                }
-
-                option = optionSet.GetOption(CSharpCodeStyleOptions.PreferRangeOperator);
+                option = analyzerOptionsOpt.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
                 if (!option.Value)
                 {
                     return default;
@@ -138,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // same as the right side of the subtraction.
             var startOperation = invocation.Arguments[0].Value;
 
-            if (CSharpSyntaxFactsService.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
+            if (CSharpSyntaxFacts.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
             {
                 return new Result(
                     ResultKind.Computed, option,

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../CodeFixesResources.resx">
+    <body>
+      <trans-unit id="Add_file_banner">
+        <source>Add file banner</source>
+        <target state="translated">파일 배너 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_Name_Violation_colon_0">
+        <source>Fix Name Violation: {0}</source>
+        <target state="new">Fix Name Violation: {0}</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

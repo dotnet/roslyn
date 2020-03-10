@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             public DeferredFileWatcher(IFileWatcher fileWatcher, IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
             {
                 _fileWatcher = fileWatcher;
-                _fileWatcher.ConventionFileChanged += OnConventionFileChanged;
+                _fileWatcher.ConventionFileChanged += OnConventionFileChangedAsync;
 
                 _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Workspace);
             }
 
-            private Task OnConventionFileChanged(object sender, ConventionsFileChangeEventArgs arg)
+            private Task OnConventionFileChangedAsync(object sender, ConventionsFileChangeEventArgs arg)
             {
                 return ConventionFileChanged?.Invoke(this, arg) ?? Task.CompletedTask;
             }
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             public void Dispose()
             {
-                _fileWatcher.ConventionFileChanged -= OnConventionFileChanged;
+                _fileWatcher.ConventionFileChanged -= OnConventionFileChangedAsync;
                 _fileWatcher.Dispose();
             }
 

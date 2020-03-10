@@ -79,13 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 var block = GetImmediatelyContainingBlock();
 
                 // if we're the start of a "catch(Goo e)" clause, then add "e".
-                if (block != null && block.IsParentKind(SyntaxKind.CatchClause))
+                if (block != null && block.IsParentKind(SyntaxKind.CatchClause, out CatchClauseSyntax catchClause) &&
+                    catchClause.Declaration != null && catchClause.Declaration.Identifier.Kind() != SyntaxKind.None)
                 {
-                    var catchClause = (CatchClauseSyntax)block.Parent;
-                    if (catchClause.Declaration != null && catchClause.Declaration.Identifier.Kind() != SyntaxKind.None)
-                    {
-                        _expressions.Add(catchClause.Declaration.Identifier.ValueText);
-                    }
+                    _expressions.Add(catchClause.Declaration.Identifier.ValueText);
                 }
             }
 

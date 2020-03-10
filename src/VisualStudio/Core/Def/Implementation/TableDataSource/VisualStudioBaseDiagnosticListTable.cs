@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 DiagnosticSeverity.Error => __VSERRORCATEGORY.EC_ERROR,
                 DiagnosticSeverity.Warning => __VSERRORCATEGORY.EC_WARNING,
                 DiagnosticSeverity.Info => __VSERRORCATEGORY.EC_MESSAGE,
-                _ => Contract.FailWithReturn<__VSERRORCATEGORY>(),
+                _ => throw ExceptionUtilities.UnexpectedValue(severity)
             };
         }
 

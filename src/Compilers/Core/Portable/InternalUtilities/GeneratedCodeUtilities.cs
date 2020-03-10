@@ -62,7 +62,7 @@ namespace Roslyn.Utilities
 
         private static bool IsGeneratedCodeFile([NotNullWhen(returnValue: true)] string? filePath)
         {
-            if (!string.IsNullOrEmpty(filePath))
+            if (!RoslynString.IsNullOrEmpty(filePath))
             {
                 var fileName = PathUtilities.GetFileName(filePath);
                 if (fileName.StartsWith("TemporaryGeneratedFile_", StringComparison.OrdinalIgnoreCase))

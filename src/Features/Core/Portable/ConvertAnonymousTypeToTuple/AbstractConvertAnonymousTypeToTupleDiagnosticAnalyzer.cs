@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 {
@@ -14,15 +17,17 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         where TSyntaxKind : struct
         where TAnonymousObjectCreationExpressionSyntax : SyntaxNode
     {
-        protected AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer()
+        private readonly ISyntaxKinds _syntaxKinds;
+
+        protected AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer(ISyntaxKinds syntaxKinds)
             : base(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId,
                    option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
+            _syntaxKinds = syntaxKinds;
         }
 
-        protected abstract TSyntaxKind GetAnonymousObjectCreationExpressionSyntaxKind();
         protected abstract int GetInitializerCount(TAnonymousObjectCreationExpressionSyntax anonymousType);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -31,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(
                 AnalyzeSyntax,
-                GetAnonymousObjectCreationExpressionSyntaxKind());
+                _syntaxKinds.Convert<TSyntaxKind>(_syntaxKinds.AnonymousObjectCreationExpression));
 
         // Analysis is trivial.  All anonymous types with more than two fields are marked as being
         // convertible to a tuple.
