@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         /// <summary>
         /// This option is used by TypeScript.
         /// </summary>
-        public static readonly PerLanguageOption<bool> RemoveDocumentDiagnosticsOnDocumentClose = new PerLanguageOption<bool>(
+        public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new PerLanguageOption2<bool>(
             "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose"));
     }
