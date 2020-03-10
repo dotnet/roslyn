@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
@@ -111,6 +112,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                     typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
                 .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(typeof(Workspace).Assembly, typeof(IOptionProvider)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IOptionProvider)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IOptionProvider)))
                 .Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions).Assembly, typeof(CodeAnalysis.Options.IOption)))
                 .Distinct()
                 .ToArray();

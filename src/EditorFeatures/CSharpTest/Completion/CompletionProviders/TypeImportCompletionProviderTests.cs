@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
@@ -22,17 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class TypeImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        private static readonly IExportProviderFactory s_exportProviderFactory
-            = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)));
-
         public TypeImportCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new TypeImportCompletionProvider();
+            return typeof(TypeImportCompletionProvider);
         }
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
@@ -46,8 +42,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
-        protected override ExportProvider GetExportProvider()
-            => s_exportProviderFactory.CreateExportProvider();
+        protected override ComposableCatalog GetExportCatalog()
+        {
+            return base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        }
 
         #region "Option tests"
 

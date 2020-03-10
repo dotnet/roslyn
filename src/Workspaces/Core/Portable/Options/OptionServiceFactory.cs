@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Options
                 _globalOptionService.OptionChanged -= OnGlobalOptionServiceOptionChanged;
             }
 
-            private void OnGlobalOptionServiceOptionChanged(object sender, OptionChangedEventArgs e)
+            private void OnGlobalOptionServiceOptionChanged(object? sender, OptionChangedEventArgs e)
             {
                 _taskQueue.ScheduleTask(() =>
                 {

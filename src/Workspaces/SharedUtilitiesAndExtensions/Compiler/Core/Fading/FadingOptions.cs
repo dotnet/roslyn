@@ -4,7 +4,11 @@
 
 #nullable enable
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Fading
 {

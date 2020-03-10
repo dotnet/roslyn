@@ -202,12 +202,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Cases:
-            //   ('')    -> ''
-            //   ("")    -> ""
-            //   (false) -> false
-            //   (true)  -> true
-            //   (null)  -> null
-            //   (1)     -> 1
+            //   ('')      -> ''
+            //   ("")      -> ""
+            //   (false)   -> false
+            //   (true)    -> true
+            //   (null)    -> null
+            //   (default) -> default;
+            //   (1)       -> 1
             if (expression.IsAnyLiteralExpression())
             {
                 return true;
