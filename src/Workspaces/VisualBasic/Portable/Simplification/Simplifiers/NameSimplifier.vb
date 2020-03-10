@@ -169,9 +169,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
                                     Dim codeStyleOptionName As String = Nothing
                                     If inDeclarationContext Then
-                                        codeStyleOptionName = NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+                                        codeStyleOptionName = NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
                                     ElseIf inMemberAccessContext Then
-                                        codeStyleOptionName = NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
+                                        codeStyleOptionName = NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
                                     End If
 
                                     replacementNode = SyntaxFactory.PredefinedType(token)
