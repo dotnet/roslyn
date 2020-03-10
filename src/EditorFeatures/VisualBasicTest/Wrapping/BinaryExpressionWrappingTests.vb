@@ -15,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return New VisualBasicWrappingCodeRefactoringProvider()
         End Function
 
-        Private ReadOnly Property EndOfLine As IDictionary(Of OptionKey, Object) = [Option](
-            CodeStyleOptions.OperatorPlacementWhenWrapping,
+        Private ReadOnly Property EndOfLine As IDictionary(Of OptionKey2, Object) = [Option](
+            CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.EndOfLine)
 
-        Private ReadOnly Property BeginningOfLine As IDictionary(Of OptionKey, Object) = [Option](
-            CodeStyleOptions.OperatorPlacementWhenWrapping,
+        Private ReadOnly Property BeginningOfLine As IDictionary(Of OptionKey2, Object) = [Option](
+            CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.BeginningOfLine)
 
         Private Function TestEndOfLine(markup As String, expected As String) As Task

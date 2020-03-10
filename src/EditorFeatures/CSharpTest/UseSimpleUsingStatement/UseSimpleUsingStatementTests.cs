@@ -68,7 +68,7 @@ class C
 }",
 new TestParameters(
     parseOptions: CSharp8ParseOptions,
-    options: Option(CSharpCodeStyleOptions.PreferSimpleUsingStatement, CodeStyleOptions.FalseWithSilentEnforcement)));
+    options: Option(CSharpCodeStyleOptions.PreferSimpleUsingStatement, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]

@@ -93,7 +93,7 @@ class D
             await TestInRegularAndScriptAsync(
                 initialMarkup: input,
                 expectedMarkup: expected,
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Suggestion));
+                options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Suggestion));
         }
     }
 }

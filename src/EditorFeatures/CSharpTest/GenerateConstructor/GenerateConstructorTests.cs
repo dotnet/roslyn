@@ -428,7 +428,7 @@ class D
         this.X = x;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+                options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -560,7 +560,7 @@ class D : B
         this.X = x;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+                options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -724,7 +724,7 @@ class D
 
     public int X { get; private set; }
 }",
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+                options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -856,7 +856,7 @@ class D : B
         this.X = x;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+                options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -943,7 +943,7 @@ class D : B
         this.X = x;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+                options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]

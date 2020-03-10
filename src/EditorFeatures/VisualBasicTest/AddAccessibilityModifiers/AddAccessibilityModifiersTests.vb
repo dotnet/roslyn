@@ -18,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAccessibilityMo
                     New VisualBasicAddAccessibilityModifiersCodeFixProvider())
         End Function
 
-        Private ReadOnly Property OmitDefaultModifiers As IDictionary(Of OptionKey, Object)
+        Private ReadOnly Property OmitDefaultModifiers As IDictionary(Of OptionKey2, Object)
             Get
                 Return OptionsSet(
-                    SingleOption(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Suggestion))
+                    SingleOption(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Suggestion))
             End Get
         End Property
 

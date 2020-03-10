@@ -2217,19 +2217,19 @@ class C
                 options: AllCodeStyleOff);
         }
 
-        private IDictionary<OptionKey, object> AllCodeStyleOff =>
+        private IDictionary<OptionKey2, object> AllCodeStyleOff =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessors =>
+        private IDictionary<OptionKey2, object> PreferExpressionBodiedAccessors =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedProperties =>
+        private IDictionary<OptionKey2, object> PreferExpressionBodiedProperties =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessorsAndProperties =>
+        private IDictionary<OptionKey2, object> PreferExpressionBodiedAccessorsAndProperties =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }

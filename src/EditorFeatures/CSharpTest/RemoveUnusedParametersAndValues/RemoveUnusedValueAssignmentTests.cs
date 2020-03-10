@@ -18,17 +18,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 {
     public partial class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
     {
-        protected override IDictionary<OptionKey, object> PreferNone =>
+        private protected override IDictionary<OptionKey2, object> PreferNone =>
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.None));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
 
-        protected override IDictionary<OptionKey, object> PreferDiscard =>
+        private protected override IDictionary<OptionKey2, object> PreferDiscard =>
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Suggestion));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion));
 
-        protected override IDictionary<OptionKey, object> PreferUnusedLocal =>
+        private protected override IDictionary<OptionKey2, object> PreferUnusedLocal =>
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Suggestion));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_Suppressed()
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_ConstantValue_RemoveUnsuedParametersSuppressed()
         {
-            var removeUnusedParametersSuppressed = Option(CodeStyleOptions.UnusedParameters,
-                new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption.None));
+            var removeUnusedParametersSuppressed = Option(CodeStyleOptions2.UnusedParameters,
+                new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.None));
 
             await TestInRegularAndScriptAsync(
 @"class C
@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_ConstantValue_RemoveUnsuedParametersNotApplicable()
         {
-            var removeUnusedParametersNotApplicable = Option(CodeStyleOptions.UnusedParameters,
-                new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption.Silent));
+            var removeUnusedParametersNotApplicable = Option(CodeStyleOptions2.UnusedParameters,
+                new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.Silent));
 
             await TestInRegularAndScriptAsync(
 @"class C

@@ -10,21 +10,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParame
     Partial Public Class RemoveUnusedValueExpressionStatementTests
         Inherits RemoveUnusedValuesTestsBase
 
-        Protected Overrides ReadOnly Property PreferNone As IDictionary(Of OptionKey, Object)
+        Private Protected Overrides ReadOnly Property PreferNone As IDictionary(Of OptionKey2, Object)
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                                 New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption.None))
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property PreferDiscard As IDictionary(Of OptionKey, Object)
+        Private Protected Overrides ReadOnly Property PreferDiscard As IDictionary(Of OptionKey2, Object)
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                                 New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.DiscardVariable, NotificationOption.Silent))
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property PreferUnusedLocal As IDictionary(Of OptionKey, Object)
+        Private Protected Overrides ReadOnly Property PreferUnusedLocal As IDictionary(Of OptionKey2, Object)
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                                 New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Silent))

@@ -310,7 +310,7 @@ namespace Outer
                 },
                 Options =
                 {
-                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -332,7 +332,7 @@ namespace Test
 }",
                 Options =
                 {
-                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -354,7 +354,7 @@ namespace Test
 }",
                 Options =
                 {
-                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -370,7 +370,7 @@ internal class [|C1|] { }",
 class C1 { }",
                 Options =
                 {
-                    { CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }

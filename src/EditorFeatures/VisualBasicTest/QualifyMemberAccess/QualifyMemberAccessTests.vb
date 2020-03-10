@@ -18,19 +18,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAcces
                     New VisualBasicQualifyMemberAccessCodeFixProvider())
         End Function
 
-        Private Function TestAsyncWithOption(code As String, expected As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As Task
+        Private Function TestAsyncWithOption(code As String, expected As String, opt As PerLanguageOption2(Of CodeStyleOption2(Of Boolean))) As Task
             Return TestAsyncWithOptionAndNotification(code, expected, opt, NotificationOption.Error)
         End Function
 
-        Private Function TestAsyncWithOptionAndNotification(code As String, expected As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean)), notification As NotificationOption) As Task
+        Private Function TestAsyncWithOptionAndNotification(code As String, expected As String, opt As PerLanguageOption2(Of CodeStyleOption2(Of Boolean)), notification As NotificationOption2) As Task
             Return TestInRegularAndScriptAsync(code, expected, options:=[Option](opt, True, notification))
         End Function
 
-        Private Function TestMissingAsyncWithOption(code As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As Task
+        Private Function TestMissingAsyncWithOption(code As String, opt As PerLanguageOption2(Of CodeStyleOption2(Of Boolean))) As Task
             Return TestMissingAsyncWithOptionAndNotification(code, opt, NotificationOption.Error)
         End Function
 
-        Private Function TestMissingAsyncWithOptionAndNotification(code As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean)), notification As NotificationOption) As Task
+        Private Function TestMissingAsyncWithOptionAndNotification(code As String, opt As PerLanguageOption2(Of CodeStyleOption2(Of Boolean)), notification As NotificationOption2) As Task
             Return TestMissingInRegularAndScriptAsync(code,
                 New TestParameters(options:=[Option](opt, True, notification)))
         End Function
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAcces
             Await TestAsyncWithOption(
 "Class C : Dim i As Integer : Sub M() : [|i|] = 1 : End Sub : End Class",
 "Class C : Dim i As Integer : Sub M() : Me.i = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -50,7 +50,7 @@ CodeStyleOptions.QualifyFieldAccess)
             Await TestAsyncWithOption(
 "Class C : Dim i As Integer : Sub M() : Dim x = [|i|] : End Sub : End Class",
 "Class C : Dim i As Integer : Sub M() : Dim x = Me.i : End Sub : End Class",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -59,7 +59,7 @@ CodeStyleOptions.QualifyFieldAccess)
             Await TestAsyncWithOption(
 "Class C : Dim i As Integer : Sub M(ii As Integer) : M([|i|]) : End Sub : End Class",
 "Class C : Dim i As Integer : Sub M(ii As Integer) : M(Me.i) : End Sub : End Class",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -68,7 +68,7 @@ CodeStyleOptions.QualifyFieldAccess)
             Await TestAsyncWithOption(
 "Class C : Dim i As Integer : Sub M() : Dim s = [|i|].ToString() : End Sub : End Class",
 "Class C : Dim i As Integer : Sub M() : Dim s = Me.i.ToString() : End Sub : End Class",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -77,7 +77,7 @@ CodeStyleOptions.QualifyFieldAccess)
             Await TestAsyncWithOption(
 "Class C : Dim s As String : Sub M() : Dim x = [|s|]?.ToString() : End Sub : End Class",
 "Class C : Dim s As String : Sub M() : Dim x = Me.s?.ToString() : End Sub : End Class",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -86,7 +86,7 @@ CodeStyleOptions.QualifyFieldAccess)
             Await TestAsyncWithOption(
 "Class C : Property I As Integer : Sub M() : [|_I|] = 1 : End Sub : End Class",
 "Class C : Property I As Integer : Sub M() : Me._I = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -114,7 +114,7 @@ Class Derived
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")>
@@ -136,7 +136,7 @@ Class C
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")>
@@ -158,7 +158,7 @@ Class C
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -166,7 +166,7 @@ CodeStyleOptions.QualifyFieldAccess)
         Public Async Function QualifyFieldAccess_NotSuggestedOnInstance() As Task
             Await TestMissingAsyncWithOption(
 "Class C : Dim i As Integer : Sub M(c As C) : c.[|i|] = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -174,7 +174,7 @@ CodeStyleOptions.QualifyFieldAccess)
         Public Async Function QualifyFieldAccess_NotSuggestedOnShared() As Task
             Await TestMissingAsyncWithOption(
 "Class C : Shared i As Integer : Sub M() : [|i|] = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -182,7 +182,7 @@ CodeStyleOptions.QualifyFieldAccess)
         Public Async Function QualifyFieldAccess_NotSuggestedOnSharedWithMe() As Task
             Await TestMissingAsyncWithOption(
 "Class C : Shared i As Integer : Sub M() : Me.[|i|] = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -190,7 +190,7 @@ CodeStyleOptions.QualifyFieldAccess)
         Public Async Function QualifyFieldAccess_NotSuggestedInModule() As Task
             Await TestMissingAsyncWithOption(
 "Module C : Dim i As Integer : Sub M() : [|i|] = 1 : End Sub : End Module",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")>
@@ -203,7 +203,7 @@ CodeStyleOptions.QualifyFieldAccess)
         Dim test = New System.Collections.Generic.List(Of Integer) With { [|i|] }
     End Sub
 End Module",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")>
@@ -216,7 +216,7 @@ CodeStyleOptions.QualifyFieldAccess)
         Dim test = New System.Collections.Generic.List(Of Integer) With { [|i|] }
     End Sub
 End Module",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -225,7 +225,7 @@ CodeStyleOptions.QualifyFieldAccess)
             Await TestAsyncWithOption(
 "Class C : Property i As Integer : Sub M() : [|i|] = 1 : End Sub : End Class",
 "Class C : Property i As Integer : Sub M() : Me.i = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -234,7 +234,7 @@ CodeStyleOptions.QualifyPropertyAccess)
             Await TestAsyncWithOption(
 "Class C : Property i As Integer : Sub M() : Dim x = [|i|] : End Sub : End Class",
 "Class C : Property i As Integer : Sub M() : Dim x = Me.i : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -243,7 +243,7 @@ CodeStyleOptions.QualifyPropertyAccess)
             Await TestAsyncWithOption(
 "Class C : Property i As Integer : Sub M(ii As Integer) : M([|i|]) : End Sub : End Class",
 "Class C : Property i As Integer : Sub M(ii As Integer) : M(Me.i) : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -252,7 +252,7 @@ CodeStyleOptions.QualifyPropertyAccess)
             Await TestAsyncWithOption(
 "Class C : Property i As Integer : Sub M() : Dim s = [|i|].ToString() : End Sub : End Class",
 "Class C : Property i As Integer : Sub M() : Dim s = Me.i.ToString() : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -261,7 +261,7 @@ CodeStyleOptions.QualifyPropertyAccess)
             Await TestAsyncWithOption(
 "Class C : Property s As String : Sub M() : Dim x = [|s|]?.ToString() : End Sub : End Class",
 "Class C : Property s As String : Sub M() : Dim x = Me.s?.ToString() : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -289,7 +289,7 @@ Class Derived
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")>
@@ -311,7 +311,7 @@ Class C
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")>
@@ -333,7 +333,7 @@ Class C
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -341,7 +341,7 @@ CodeStyleOptions.QualifyPropertyAccess)
         Public Async Function QualifyPropertyAccess_NotSuggestedOnInstance() As Task
             Await TestMissingAsyncWithOption(
 "Class C : Property i As Integer : Sub M(c As C) : c.[|i|] = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -349,7 +349,7 @@ CodeStyleOptions.QualifyPropertyAccess)
         Public Async Function QualifyPropertyAccess_NotSuggestedOnShared() As Task
             Await TestMissingAsyncWithOption(
 "Class C : Shared Property i As Integer : Sub M() : [|i|] = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -358,7 +358,7 @@ CodeStyleOptions.QualifyPropertyAccess)
             Await TestAsyncWithOption(
 "Class C : Function M() As Integer : Return [|M|]() : End Function : End Class",
 "Class C : Function M() As Integer : Return Me.M() : End Function : End Class",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -367,7 +367,7 @@ CodeStyleOptions.QualifyMethodAccess)
             Await TestAsyncWithOption(
 "Class C : Function M() As String : Return [|M|]().ToString() : End Function : End Class",
 "Class C : Function M() As String : Return Me.M().ToString() : End Function : End Class",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -376,7 +376,7 @@ CodeStyleOptions.QualifyMethodAccess)
             Await TestAsyncWithOption(
 "Class C : Function M() As String : Return [|M|]()?.ToString() : End Function : End Class",
 "Class C : Function M() As String : Return Me.M()?.ToString() : End Function : End Class",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -398,7 +398,7 @@ Class C
         AddHandler e, AddressOf Me.Handler
     End Sub
 End Class",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -420,7 +420,7 @@ Class C
         AddHandler e, New EventHandler(AddressOf Me.Handler)
     End Sub
 End Class",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -450,7 +450,7 @@ Class Derived
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -458,7 +458,7 @@ CodeStyleOptions.QualifyMethodAccess)
         Public Async Function QualifyMethodAccess_NotSuggestedOnInstance() As Task
             Await TestMissingAsyncWithOption(
 "Class C : Sub M(c As C) : c.[|M|]() : End Sub : End Class",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -466,7 +466,7 @@ CodeStyleOptions.QualifyMethodAccess)
         Public Async Function QualifyMethodAccess_NotSuggestedOnShared() As Task
             Await TestMissingAsyncWithOption(
 "Class C : Shared Sub Method() : End Sub : Sub M() : [|Method|]() : End Sub : End Class",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")>
@@ -479,7 +479,7 @@ CodeStyleOptions.QualifyMethodAccess)
         Dim test = New System.Collections.Generic.List(Of Integer) With { [|i|] }
     End Sub
 End Module",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(28509, "https://github.com/dotnet/roslyn/issues/28509")>
@@ -492,7 +492,7 @@ CodeStyleOptions.QualifyMethodAccess)
         Dim test = New System.Collections.Generic.List(Of Integer) With { [|i|] }
     End Sub
 End Module",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -514,7 +514,7 @@ Class C
         AddHandler Me.e, AddressOf Handler
     End Function
 End Class",
-CodeStyleOptions.QualifyEventAccess)
+CodeStyleOptions2.QualifyEventAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -542,7 +542,7 @@ Class Derived
         AddHandler Me.e, AddressOf Handler
     End Function
 End Class",
-CodeStyleOptions.QualifyEventAccess)
+CodeStyleOptions2.QualifyEventAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -558,7 +558,7 @@ Class C
     Sub Handler(sender As Object, args As EventArgs)
     End Function
 End Class",
-CodeStyleOptions.QualifyEventAccess)
+CodeStyleOptions2.QualifyEventAccess)
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -572,7 +572,7 @@ Class C
         AddHandler [|e|], AddressOf Handler
     End Function
 End Class",
-CodeStyleOptions.QualifyEventAccess)
+CodeStyleOptions2.QualifyEventAccess)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
@@ -580,7 +580,7 @@ CodeStyleOptions.QualifyEventAccess)
             Await TestAsyncWithOptionAndNotification(
 "Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
 "Class C : Property I As Integer : Sub M() : Me.I = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Silent)
+CodeStyleOptions2.QualifyPropertyAccess, NotificationOption.Silent)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
@@ -588,7 +588,7 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Silent)
             Await TestAsyncWithOptionAndNotification(
 "Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
 "Class C : Property I As Integer : Sub M() : Me.I = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Suggestion)
+CodeStyleOptions2.QualifyPropertyAccess, NotificationOption.Suggestion)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
@@ -596,7 +596,7 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Suggestion)
             Await TestAsyncWithOptionAndNotification(
 "Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
 "Class C : Property I As Integer : Sub M() : Me.I = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Warning)
+CodeStyleOptions2.QualifyPropertyAccess, NotificationOption.Warning)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
@@ -604,7 +604,7 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Warning)
             Await TestAsyncWithOptionAndNotification(
 "Class C : Property I As Integer : Sub M() : [|I|] = 1 : End Sub : End Class",
 "Class C : Property I As Integer : Sub M() : Me.I = 1 : End Sub : End Class",
-CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Error)
+CodeStyleOptions2.QualifyPropertyAccess, NotificationOption.Error)
         End Function
 
         <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
@@ -621,7 +621,7 @@ Class Derived
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
@@ -635,7 +635,7 @@ Class C
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
@@ -653,7 +653,7 @@ Class Derived
         End Get
 End Class
 ",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
@@ -668,7 +668,7 @@ Class C
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
@@ -687,7 +687,7 @@ Class Derived
         End Get
 End Class
 ",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
@@ -702,7 +702,7 @@ Class C
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyMethodAccess)
+CodeStyleOptions2.QualifyMethodAccess)
         End Function
 
         <WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")>
@@ -717,7 +717,7 @@ Class C
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")>
@@ -729,7 +729,7 @@ Class C
     Private Shared Field As String = NameOf([|Value|])
 End Class
 ",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(32093, "https://github.com/dotnet/roslyn/issues/32093")>
@@ -748,7 +748,7 @@ Public Class Derived
         MyBase.New(NameOf([|Foo|]))
     End Sub
 End Class",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")>
@@ -763,7 +763,7 @@ class C
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")>
@@ -778,7 +778,7 @@ class C
     End Sub
 End Class
 ",
-CodeStyleOptions.QualifyFieldAccess)
+CodeStyleOptions2.QualifyFieldAccess)
         End Function
 
         <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
@@ -799,7 +799,7 @@ Class C
     Private Property Goo As String
 End Class
 ",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
@@ -820,7 +820,7 @@ Class C
     Private Property Goo As String
 End Class
 ",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
@@ -843,7 +843,7 @@ Class C
     Private Bar As Integer
 End Class
 ",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
 
         <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
@@ -866,7 +866,7 @@ Class C
     End Sub    
 End Class
 ",
-CodeStyleOptions.QualifyPropertyAccess)
+CodeStyleOptions2.QualifyPropertyAccess)
         End Function
     End Class
 End Namespace

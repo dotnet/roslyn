@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string expectedMarkup,
             int index = 0,
             CodeActionPriority? priority = null,
-            IDictionary<OptionKey, object> options = null)
+            IOptionsCollection options = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: false);
             await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: true);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string expectedMarkup,
             int index,
             CodeActionPriority? priority,
-            IDictionary<OptionKey, object> options,
+            IOptionsCollection options,
             bool outOfProcess)
         {
             await TestInRegularAndScript1Async(

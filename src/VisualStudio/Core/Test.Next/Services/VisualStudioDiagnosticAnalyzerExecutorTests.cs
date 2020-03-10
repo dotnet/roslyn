@@ -80,7 +80,7 @@ End Class";
             {
                 // set option
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(CodeStyleOptions.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption<bool>(false, NotificationOption.Silent))));
+                    .WithChangedOption(CodeStyleOptions2.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption2<bool>(false, NotificationOption.Silent))));
 
                 var analyzerType = typeof(VisualBasicUseNullPropagationDiagnosticAnalyzer);
                 var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
@@ -89,7 +89,7 @@ End Class";
 
                 // set option
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(CodeStyleOptions.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.Error))));
+                    .WithChangedOption(CodeStyleOptions2.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption2<bool>(true, NotificationOption.Error))));
                 analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
 
                 var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);

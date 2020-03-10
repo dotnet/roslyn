@@ -22,17 +22,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
     /// </summary>
     public class MisplacedUsingDirectivesInCompilationUnitCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal static readonly CodeStyleOption<AddImportPlacement> OutsidePreferPreservationOption =
-           new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption.None);
+        internal static readonly CodeStyleOption2<AddImportPlacement> OutsidePreferPreservationOption =
+           new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.None);
 
-        internal static readonly CodeStyleOption<AddImportPlacement> InsidePreferPreservationOption =
-            new CodeStyleOption<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption.None);
+        internal static readonly CodeStyleOption2<AddImportPlacement> InsidePreferPreservationOption =
+            new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.None);
 
-        internal static readonly CodeStyleOption<AddImportPlacement> InsideNamespaceOption =
-            new CodeStyleOption<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption.Error);
+        internal static readonly CodeStyleOption2<AddImportPlacement> InsideNamespaceOption =
+            new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error);
 
-        internal static readonly CodeStyleOption<AddImportPlacement> OutsideNamespaceOption =
-            new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption.Error);
+        internal static readonly CodeStyleOption2<AddImportPlacement> OutsideNamespaceOption =
+            new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Error);
 
 
         protected const string ClassDefinition = @"public class TestClass
@@ -54,25 +54,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
 
         protected const string DelegateDefinition = @"public delegate void TestDelegate();";
 
-        private protected Task TestDiagnosticMissingAsync(string initialMarkup, CodeStyleOption<AddImportPlacement> preferredPlacementOption)
+        private protected Task TestDiagnosticMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
         {
-            var options = new Dictionary<OptionKey, object> { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } };
+            var options = OptionsSet(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption);
             return TestDiagnosticMissingAsync(initialMarkup, new TestParameters(options: options));
         }
 
-        private protected Task TestMissingAsync(string initialMarkup, CodeStyleOption<AddImportPlacement> preferredPlacementOption)
+        private protected Task TestMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
         {
-            var options = new Dictionary<OptionKey, object> { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } };
+            var options = OptionsSet(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption);
             return TestMissingAsync(initialMarkup, new TestParameters(options: options));
         }
 
-        private protected Task TestInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, CodeStyleOption<AddImportPlacement> preferredPlacementOption, bool placeSystemNamespaceFirst)
+        private protected Task TestInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption, bool placeSystemNamespaceFirst)
         {
-            var options = new Dictionary<OptionKey, object>
-            {
-                { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption },
-                { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), placeSystemNamespaceFirst }
-            };
+            var options = OptionsSet
+                (
+                    (new OptionKey2(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement), preferredPlacementOption),
+                    (new OptionKey2(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), placeSystemNamespaceFirst)
+                );
             return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
         }
 

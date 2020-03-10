@@ -581,7 +581,7 @@ class C
         } 
     }
 }";
-            var warningOption = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+            var warningOption = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
             var options = Option(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, warningOption);
             var testParameters = new TestParameters(options: options, parseOptions: TestOptions.Regular8);
 

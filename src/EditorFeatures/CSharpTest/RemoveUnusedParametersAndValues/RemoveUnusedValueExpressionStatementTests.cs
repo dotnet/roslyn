@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 {
     public partial class RemoveUnusedValueExpressionStatementTests : RemoveUnusedValuesTestsBase
     {
-        protected override IDictionary<OptionKey, object> PreferNone =>
+        private protected override IDictionary<OptionKey2, object> PreferNone =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.None));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
 
-        protected override IDictionary<OptionKey, object> PreferDiscard =>
+        private protected override IDictionary<OptionKey2, object> PreferDiscard =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Silent));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent));
 
-        protected override IDictionary<OptionKey, object> PreferUnusedLocal =>
+        private protected override IDictionary<OptionKey2, object> PreferUnusedLocal =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Silent));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task ExpressionStatement_Suppressed()
