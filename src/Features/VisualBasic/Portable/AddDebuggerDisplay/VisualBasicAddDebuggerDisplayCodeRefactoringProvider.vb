@@ -6,10 +6,14 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay
-
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddDebuggerDisplayCodeRefactoringProvider)), [Shared]>
     Friend NotInheritable Class VisualBasicAddDebuggerDisplayCodeRefactoringProvider
-        Inherits AbstractAddDebuggerDisplayCodeRefactoringProvider(Of TypeBlockSyntax, MethodStatementSyntax)
+        Inherits AbstractAddDebuggerDisplayCodeRefactoringProvider(Of
+            TypeBlockSyntax, MethodStatementSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides ReadOnly Property CanNameofAccessNonPublicMembersFromAttributeArgument As Boolean = False
     End Class

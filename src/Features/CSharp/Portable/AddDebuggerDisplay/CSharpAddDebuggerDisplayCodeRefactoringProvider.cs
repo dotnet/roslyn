@@ -8,8 +8,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpAddDebuggerDisplayCodeRefactoringProvider)), Shared]
-    internal sealed class CSharpAddDebuggerDisplayCodeRefactoringProvider : AbstractAddDebuggerDisplayCodeRefactoringProvider<TypeDeclarationSyntax, MethodDeclarationSyntax>
+    internal sealed class CSharpAddDebuggerDisplayCodeRefactoringProvider
+        : AbstractAddDebuggerDisplayCodeRefactoringProvider<
+            TypeDeclarationSyntax,
+            MethodDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public CSharpAddDebuggerDisplayCodeRefactoringProvider()
+        {
+        }
+
         protected override bool CanNameofAccessNonPublicMembersFromAttributeArgument => true;
     }
 }

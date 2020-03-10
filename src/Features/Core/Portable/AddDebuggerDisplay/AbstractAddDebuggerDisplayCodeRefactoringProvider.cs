@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
@@ -23,90 +26,92 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            var (document, _, cancellationToken) = context;
+
             var typeAndPriority =
-                await GetRelevantTypeFromHeaderAsync(context).ConfigureAwait(false)
-                ?? await GetRelevantTypeFromMethodAsync(context).ConfigureAwait(false);
+                await GetRelevantTypeFromHeaderAsync(context).ConfigureAwait(false) ??
+                await GetRelevantTypeFromMethodAsync(context).ConfigureAwait(false);
 
-            if (!(typeAndPriority is var (type, priority))) return;
+            if (typeAndPriority == null)
+                return;
 
-            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            var (type, priority) = typeAndPriority.Value;
 
-            var debuggerAttributeTypeSymbol = semanticModel.Compilation.GetTypeByMetadataName("System.Diagnostics.DebuggerDisplayAttribute");
-            if (debuggerAttributeTypeSymbol is null) return;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
 
-            var typeSymbol = (ITypeSymbol)semanticModel.GetDeclaredSymbol(type, context.CancellationToken);
+            var debuggerAttributeTypeSymbol = compilation.GetTypeByMetadataName("System.Diagnostics.DebuggerDisplayAttribute");
+            if (debuggerAttributeTypeSymbol is null)
+                return;
 
-            if (IsClassOrStruct(typeSymbol) && !HasDebuggerDisplayAttribute(typeSymbol, semanticModel.Compilation))
-            {
-                context.RegisterRefactoring(new MyCodeAction(
-                    priority,
-                    FeaturesResources.Add_DebuggerDisplay,
-                    cancellationToken => ApplyAsync(context.Document, type, debuggerAttributeTypeSymbol, cancellationToken)));
-            }
+            var typeSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(type, context.CancellationToken);
+
+            if (!IsClassOrStruct(typeSymbol))
+                return;
+
+            if (HasDebuggerDisplayAttribute(typeSymbol, compilation))
+                return;
+
+            context.RegisterRefactoring(new MyCodeAction(
+                priority,
+                FeaturesResources.Add_DebuggerDisplay_attribute,
+                c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c)));
         }
 
         private static async Task<(TTypeDeclarationSyntax type, CodeActionPriority priority)?> GetRelevantTypeFromHeaderAsync(CodeRefactoringContext context)
         {
             var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>().ConfigureAwait(false);
+            if (type is null)
+                return null;
 
-            if (type is null) return null;
             return (type, CodeActionPriority.Low);
         }
 
         private static async Task<(TTypeDeclarationSyntax type, CodeActionPriority priority)?> GetRelevantTypeFromMethodAsync(CodeRefactoringContext context)
         {
+            var (document, _, cancellationToken) = context;
             var method = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
-            if (method != null)
-            {
-                var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-                var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(method);
+            if (method == null)
+                return null;
 
-                var isDebuggerDisplayMethod = IsDebuggerDisplayMethod(methodSymbol);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(method);
 
-                if (isDebuggerDisplayMethod || IsToStringMethod(methodSymbol))
-                {
-                    return (
-                        method.FirstAncestorOrSelf<TTypeDeclarationSyntax>(),
-                        isDebuggerDisplayMethod ? CodeActionPriority.Medium : CodeActionPriority.Low);
-                }
-            }
+            var isDebuggerDisplayMethod = IsDebuggerDisplayMethod(methodSymbol);
+            if (!isDebuggerDisplayMethod && !IsToStringMethod(methodSymbol))
+                return null;
 
-            return null;
+            // Show the feature if we're on a ToString or GetDebuggerDisplay method. For the former,
+            // have this be low-pri so we don't override more important light-bulb options.
+            var typeDecl = method.FirstAncestorOrSelf<TTypeDeclarationSyntax>();
+            if (typeDecl == null)
+                return null;
+
+            var priority = isDebuggerDisplayMethod ? CodeActionPriority.Medium : CodeActionPriority.Low;
+            return (typeDecl, priority);
         }
 
         private static bool IsToStringMethod(IMethodSymbol methodSymbol)
-            => methodSymbol is
-            {
-                Arity: 0,
-                Parameters: { IsEmpty: true },
-                Name: nameof(ToString)
-            };
+            => methodSymbol is { Name: nameof(ToString), Arity: 0, Parameters: { IsEmpty: true } };
 
         private static bool IsDebuggerDisplayMethod(IMethodSymbol methodSymbol)
-            => methodSymbol is
-            {
-                Arity: 0,
-                Parameters: { IsEmpty: true },
-                Name: DebuggerDisplayMethodName
-            };
+            => methodSymbol is { Name: DebuggerDisplayMethodName, Arity: 0, Parameters: { IsEmpty: true } };
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
             => typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct;
 
         private static bool HasDebuggerDisplayAttribute(ITypeSymbol typeSymbol, Compilation compilation)
-        {
-            return typeSymbol.GetAttributes()
+            => typeSymbol.GetAttributes()
                 .Select(data => data.AttributeClass)
                 .Contains(compilation.GetTypeByMetadataName("System.Diagnostics.DebuggerDisplayAttribute"));
-        }
 
         private async Task<Document> ApplyAsync(Document document, TTypeDeclarationSyntax type, INamedTypeSymbol debuggerAttributeTypeSymbol, CancellationToken cancellationToken)
         {
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var editor = new SyntaxEditor(syntaxRoot, generator);
+            var editor = new SyntaxEditor(syntaxRoot, document.Project.Solution.Workspace);
+            var generator = editor.Generator;
 
             var attributeArgument = CanNameofAccessNonPublicMembersFromAttributeArgument
                 ? generator.AddExpression(
@@ -115,9 +120,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                         generator.NameOfExpression(generator.IdentifierName(DebuggerDisplayMethodName))),
                     generator.LiteralExpression(DebuggerDisplaySuffix))
                 : generator.LiteralExpression(
-                    DebuggerDisplayPrefix
-                    + DebuggerDisplayMethodName
-                    + DebuggerDisplaySuffix);
+                    DebuggerDisplayPrefix + DebuggerDisplayMethodName + DebuggerDisplaySuffix);
 
             var newAttribute = generator
                 .Attribute(generator.TypeExpression(debuggerAttributeTypeSymbol), new[] { attributeArgument })
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             editor.AddAttribute(type, newAttribute);
 
-            var typeSymbol = (ITypeSymbol)semanticModel.GetDeclaredSymbol(type, cancellationToken);
+            var typeSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(type, cancellationToken);
 
             if (!typeSymbol.GetMembers().OfType<IMethodSymbol>().Any(IsDebuggerDisplayMethod))
             {
@@ -139,13 +142,13 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                         statements: new[]
                         {
                             generator.ReturnStatement(generator.InvocationExpression(
-                                generator.MemberAccessExpression(generator.ThisExpression(), generator.IdentifierName("ToString"))))
+                                generator.MemberAccessExpression(
+                                    generator.ThisExpression(),
+                                    generator.IdentifierName("ToString"))))
                         }));
             }
 
-            syntaxRoot = editor.GetChangedRoot();
-
-            return document.WithSyntaxRoot(syntaxRoot);
+            return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
