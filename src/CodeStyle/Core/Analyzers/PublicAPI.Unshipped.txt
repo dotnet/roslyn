@@ -28,15 +28,6 @@ Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsVirtual(bool 
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsWriteOnly(bool isWriteOnly) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithPartial(bool isPartial) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithWithEvents(bool withEvents) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
-Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions
-Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.CodeStyleOptions() -> void
-Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation
-Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation.TryGetOption(System.Collections.Generic.IReadOnlyDictionary<string, string> rawOptions, System.Type type, out object value) -> bool
-Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation2
-Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation2.GetEditorConfigString(object value, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions optionSet) -> string
-Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation2.GetEditorConfigStringValue(object value, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions optionSet) -> string
-Microsoft.CodeAnalysis.Internal.Options.IEditorConfigStorageLocation2.KeyName.get -> string
-Microsoft.CodeAnalysis.Internal.Options.NamingStyleOptions
 override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.ToString() -> string
@@ -63,10 +54,3 @@ static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator +(M
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator -(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator ==(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator |(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
-static Microsoft.CodeAnalysis.Internal.Options.NamingStyleOptions.GetNamingPreferencesOptionKey(string language) -> Microsoft.CodeAnalysis.Internal.Options.OptionKey
-static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
-static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
-static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.QualifyEventAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
-static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.QualifyFieldAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
-static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.QualifyMethodAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
-static readonly Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions.QualifyPropertyAccess -> Microsoft.CodeAnalysis.Internal.Options.PerLanguageOption<Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption<bool>>
